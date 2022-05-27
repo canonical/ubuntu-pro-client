@@ -17,20 +17,20 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `ua status --wait` as non-root
         And I run `ua status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        livepatch     +yes +n/a  +Canonical Livepatch service
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-azure-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -99,26 +99,31 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         When I run `ua enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Disabling incompatible service: FIPS
-            Updating package lists
-            Installing FIPS Updates packages
-            FIPS Updates enabled
-            A reboot is required to complete install.
-            """
+        """
+        One moment, checking your subscription first
+        Disabling incompatible service: FIPS
+        Updating package lists
+        Installing FIPS Updates packages
+        FIPS Updates enabled
+        A reboot is required to complete install.
+        """
         When I run `ua status` with sudo
         Then stdout matches regexp:
-            """
-            fips          +yes +n/a +NIST-certified core packages
-            fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
-            """
+        """
+        fips          +yes +n/a +NIST-certified core packages
+        fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+        """
+        And stdout matches regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
+        """
         When I reboot the `<release>` machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-azure-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -128,6 +133,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then I will see the following on stdout:
         """
         1
+        """
+        When I run `ua status` with sudo
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
         """
 
         Examples: ubuntu release
@@ -225,20 +236,20 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `ua status --wait` as non-root
         And I run `ua status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        livepatch     +yes +n/a  +Canonical Livepatch service
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-aws-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -307,26 +318,31 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         When I run `ua enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Disabling incompatible service: FIPS
-            Updating package lists
-            Installing FIPS Updates packages
-            FIPS Updates enabled
-            A reboot is required to complete install.
-            """
+        """
+        One moment, checking your subscription first
+        Disabling incompatible service: FIPS
+        Updating package lists
+        Installing FIPS Updates packages
+        FIPS Updates enabled
+        A reboot is required to complete install.
+        """
         When I run `ua status` with sudo
         Then stdout matches regexp:
-            """
-            fips          +yes +n/a +NIST-certified core packages
-            fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
-            """
+        """
+        fips          +yes +n/a +NIST-certified core packages
+        fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+        """
+        And stdout matches regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
+        """
         When I reboot the `<release>` machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-aws-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -336,6 +352,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then I will see the following on stdout:
         """
         1
+        """
+        When I run `ua status` with sudo
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
         """
 
         Examples: ubuntu release
@@ -498,9 +520,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-gcp-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -569,26 +591,31 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         When I run `ua enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Disabling incompatible service: FIPS
-            Updating package lists
-            Installing FIPS Updates packages
-            FIPS Updates enabled
-            A reboot is required to complete install.
-            """
+        """
+        One moment, checking your subscription first
+        Disabling incompatible service: FIPS
+        Updating package lists
+        Installing FIPS Updates packages
+        FIPS Updates enabled
+        A reboot is required to complete install.
+        """
         When I run `ua status` with sudo
         Then stdout matches regexp:
-            """
-            fips          +yes +n/a +NIST-certified core packages
-            fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
-            """
+        """
+        fips          +yes +n/a +NIST-certified core packages
+        fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+        """
+        And stdout matches regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
+        """
         When I reboot the `<release>` machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            <fips-kernel-version>
-            """
+        """
+        <fips-kernel-version>
+        """
         When I run `apt-cache policy ubuntu-gcp-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -598,6 +625,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then I will see the following on stdout:
         """
         1
+        """
+        When I run `ua status` with sudo
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        FIPS support requires system reboot to complete configuration.
         """
 
         Examples: ubuntu release
