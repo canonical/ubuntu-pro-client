@@ -922,13 +922,14 @@ class TestFIPSEntitlementDisable:
         ] == entitlement.cfg.read_cache("notices")
 
 
+@mock.patch("uaclient.util.should_reboot")
 class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize(
         "super_application_status",
         [s for s in ApplicationStatus if s is not ApplicationStatus.ENABLED],
     )
     def test_non_enabled_passed_through(
-        self, entitlement, super_application_status
+        self, _m_should_reboot, entitlement, super_application_status
     ):
         msg = "sure is some status here"
         with mock.patch(
@@ -939,11 +940,18 @@ class TestFIPSEntitlementApplicationStatus:
 
         assert (super_application_status, msg) == application_status
 
+    @pytest.mark.parametrize("should_reboot", ((True), (False)))
     @pytest.mark.parametrize("path_exists", ((True), (False)))
     @pytest.mark.parametrize("proc_content", (("0"), ("1")))
     def test_proc_file_is_used_to_determine_application_status_message(
-        self, proc_content, path_exists, entitlement
+        self,
+        m_should_reboot,
+        proc_content,
+        path_exists,
+        should_reboot,
+        entitlement,
     ):
+        m_should_reboot.return_value = should_reboot
         orig_load_file = util.load_file
 
         def fake_load_file(path):
@@ -985,29 +993,41 @@ class TestFIPSEntitlementApplicationStatus:
                     ) = entitlement.application_status()
 
         expected_status = ApplicationStatus.ENABLED
-        if path_exists and proc_content == "1":
+        expected_msg = msg
+        if path_exists and should_reboot and proc_content == "1":
+            expected_msg = msg
+            assert [
+                ["", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg]
+            ] == entitlement.cfg.read_cache("notices")
+        elif path_exists and not should_reboot and proc_content == "1":
             expected_msg = msg
             assert entitlement.cfg.read_cache("notices") is None
-        elif path_exists and proc_content == "0":
+        elif path_exists and should_reboot and proc_content == "0":
             expected_msg = messages.FIPS_PROC_FILE_ERROR.format(
                 file_name=entitlement.FIPS_PROC_FILE
             )
             expected_status = ApplicationStatus.DISABLED
             assert [
-                ["", messages.NOTICE_FIPS_MANUAL_DISABLE_URL]
+                ["", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg],
+                ["", messages.NOTICE_FIPS_MANUAL_DISABLE_URL],
+            ] == entitlement.cfg.read_cache("notices")
+        elif path_exists and not should_reboot and proc_content == "0":
+            expected_msg = messages.FIPS_PROC_FILE_ERROR.format(
+                file_name=entitlement.FIPS_PROC_FILE
+            )
+            expected_status = ApplicationStatus.DISABLED
+            assert [
+                ["", messages.NOTICE_FIPS_MANUAL_DISABLE_URL],
             ] == entitlement.cfg.read_cache("notices")
         else:
             expected_msg = messages.FIPS_REBOOT_REQUIRED
-            assert [
-                ["", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg]
-            ] == entitlement.cfg.read_cache("notices")
 
         assert actual_status == expected_status
         assert expected_msg.msg == actual_msg.msg
         assert expected_msg.name == actual_msg.name
 
     def test_fips_does_not_show_enabled_when_fips_updates_is(
-        self, entitlement
+        self, _m_should_reboot, entitlement
     ):
         with mock.patch(
             "uaclient.apt.run_apt_cache_policy_command"
@@ -1264,11 +1284,16 @@ class TestFipsEntitlementPackages:
 
 class TestFIPSUpdatesEntitlementEnable:
     @pytest.mark.parametrize("enable_ret", ((True), (False)))
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch(
         "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
     )
     def test_fips_updates_enable_write_service_once_enable_file(
-        self, m_perform_enable, enable_ret, entitlement_factory
+        self,
+        m_perform_enable,
+        m_remove_notice,
+        enable_ret,
+        entitlement_factory,
     ):
         m_perform_enable.return_value = enable_ret
         m_write_cache = mock.MagicMock()
@@ -1278,6 +1303,7 @@ class TestFIPSUpdatesEntitlementEnable:
         cfg = mock.MagicMock()
         cfg.read_cache = m_read_cache
         cfg.write_cache = m_write_cache
+        cfg.remove_notice = m_remove_notice
 
         fips_updates_ent = entitlement_factory(FIPSUpdatesEntitlement, cfg=cfg)
         assert fips_updates_ent._perform_enable() == enable_ret
@@ -1290,6 +1316,9 @@ class TestFIPSUpdatesEntitlementEnable:
                     key="services-once-enabled", content={"fips-updates": True}
                 )
             ] == m_write_cache.call_args_list
+            assert [
+                mock.call("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
+            ] == m_remove_notice.call_args_list
         else:
             assert not m_read_cache.call_count
             assert not m_write_cache.call_count

@@ -311,9 +311,14 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
-            self.cfg.remove_notice(
-                "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
-            )
+
+            # We are now only removing the notice if there is no reboot
+            # required information regarding the fips metapackage we install.
+            if not util.should_reboot(set(self.packages)):
+                self.cfg.remove_notice(
+                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+                )
+
             self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
@@ -559,6 +564,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
+            self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )
