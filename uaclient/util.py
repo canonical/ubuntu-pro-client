@@ -860,14 +860,6 @@ def should_reboot(
     return False
 
 
-def is_installed(package_name: str) -> bool:
-    try:
-        out, _ = subp(["dpkg", "-l", package_name])
-        return "ii  {} ".format(package_name) in out
-    except exceptions.ProcessExecutionError:
-        return False
-
-
 def handle_message_operations(
     msg_ops: Optional[MessagingOperations],
 ) -> bool:
