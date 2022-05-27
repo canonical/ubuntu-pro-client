@@ -1795,9 +1795,7 @@ def main_error_handler(func):
             sys.exit(1)
         except exceptions.UrlError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
-                tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
-                if util.is_installed("ca-certificates"):
-                    tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
+                tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
                 msg = tmpl.format(url=exc.url)
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
