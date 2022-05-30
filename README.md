@@ -74,6 +74,7 @@ To learn the basic commands and enable professional Ubuntu services in a sandbox
 * [What are the timer jobs?](./docs/explanations/what_are_the_timer_jobs.md)
 * [What are the UA related MOTD messages?](./docs/explanations/motd_messages.md)
 * [What are the UA related APT messages?](./docs/explanations/apt_messages.md)
+* [How to interpret the security-status command](./docs/explanations/how_to_interpret_the_security_status_command.md)
 
 ## Contributing and Developer Documentation
 See [CONTRIBUTING.md](CONTRIBUTING.md)
