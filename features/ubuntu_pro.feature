@@ -227,56 +227,40 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +enabled  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+        """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +enabled  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `ua disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+        """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -336,15 +320,17 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
 
         Then stdout matches regexp:
-            """
-            .*status=0\/SUCCESS.*
-            """
+        """
+        .*status=0\/SUCCESS.*
+        """
 
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg |
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | usg        |
+           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | usg        |
+
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -361,56 +347,40 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua status --wait` as non-root
         And I run `ua status` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
+        """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `ua disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+        """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -470,15 +440,16 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
 
         Then stdout matches regexp:
-            """
-            .*status=0\/SUCCESS.*
-            """
+        """
+        .*status=0\/SUCCESS.*
+        """
 
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
+           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -495,56 +466,40 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua status --wait` as non-root
         And I run `ua status` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
+        """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+        """
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +<fips-s> +NIST-certified core packages
+        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        """
         Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `ua disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
+        """
+        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+        """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -604,12 +559,13 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
 
         Then stdout matches regexp:
-            """
-            .*status=0\/SUCCESS.*
-            """
+        """
+        .*status=0\/SUCCESS.*
+        """
 
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
+           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | usg        |
