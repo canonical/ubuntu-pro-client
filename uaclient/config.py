@@ -317,7 +317,7 @@ class UAConfig:
                 lock_pid,
                 lock_holder,
             )
-            os.unlink(lock_path)
+            util.remove_file(lock_path)
             return no_lock
 
     @property
@@ -569,8 +569,7 @@ class UAConfig:
         (This is a separate method to allow easier disabling of deletion during
         tests.)
         """
-        if os.path.exists(cache_path):
-            os.unlink(cache_path)
+        util.remove_file(cache_path)
 
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
