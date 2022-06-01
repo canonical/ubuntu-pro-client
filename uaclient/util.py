@@ -9,7 +9,6 @@ import sys
 import time
 import uuid
 from contextlib import contextmanager
-from errno import ENOENT
 from functools import lru_cache, wraps
 from http.client import HTTPMessage
 from typing import (
@@ -179,14 +178,6 @@ def apply_contract_overrides(
             else:
                 # Otherwise, replace it wholesale
                 orig_access["entitlement"][key] = value
-
-
-def del_file(path: str) -> None:
-    try:
-        os.unlink(path)
-    except OSError as e:
-        if e.errno != ENOENT:
-            raise e
 
 
 @contextmanager

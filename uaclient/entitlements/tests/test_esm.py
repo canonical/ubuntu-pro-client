@@ -230,8 +230,8 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
-            m_unlink = stack.enter_context(
-                mock.patch("uaclient.apt.os.unlink")
+            m_remove_file = stack.enter_context(
+                mock.patch("uaclient.util.remove_file")
             )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
@@ -284,14 +284,14 @@ class TestESMInfraEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
         if entitlement.name == "esm-infra":  # Remove "never" apt pref pin
-            unlink_calls = [
+            remove_file_calls = [
                 mock.call(
                     "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
                 )
             ]
         else:
-            unlink_calls = []  # esm-apps doesn't write an apt pref file
-        assert unlink_calls == m_unlink.call_args_list
+            remove_file_calls = []  # esm-apps doesn't write an apt pref file
+        assert remove_file_calls == m_remove_file.call_args_list
         assert [
             mock.call(entitlement.cfg)
         ] == m_update_apt_and_motd_msgs.call_args_list
@@ -349,8 +349,8 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
-            m_unlink = stack.enter_context(
-                mock.patch("uaclient.apt.os.unlink")
+            m_remove_file = stack.enter_context(
+                mock.patch("uaclient.util.remove_file")
             )
 
             m_can_enable.return_value = (True, None)
@@ -386,14 +386,16 @@ class TestESMInfraEntitlementEnable:
         assert subp_calls == m_subp.call_args_list
         if entitlement.name == "esm-infra":
             # Enable esm-infra xenial removes apt preferences pin 'never' file
-            unlink_calls = [
+            remove_file_calls = [
                 mock.call(
                     "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
                 )
             ]
         else:
-            unlink_calls = []  # esm-apps there is no apt pref file to remove
-        assert unlink_calls == m_unlink.call_args_list
+            remove_file_calls = (
+                []
+            )  # esm-apps there is no apt pref file to remove
+        assert remove_file_calls == m_remove_file.call_args_list
         assert [
             mock.call(run_apt_update=False)
         ] == m_remove_apt_config.call_args_list
