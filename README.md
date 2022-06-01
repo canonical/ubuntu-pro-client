@@ -75,6 +75,7 @@ To learn the basic commands and enable professional Ubuntu services in a sandbox
 * [What are the UA related MOTD messages?](./docs/explanations/motd_messages.md)
 * [What are the UA related APT messages?](./docs/explanations/apt_messages.md)
 * [How to interpret the security-status command](./docs/explanations/how_to_interpret_the_security_status_command.md)
+* [Why Trusty (14.04) is no longer supported](./docs/explanations/why_trusty_is_no_longer_supported.md)
 
 ## Contributing and Developer Documentation
 See [CONTRIBUTING.md](CONTRIBUTING.md)
