@@ -736,7 +736,7 @@ class TestRemoveAptConfig:
             )
         ] == m_add_ppa_pinning.call_args_list
 
-    @mock.patch(M_PATH + "os.unlink")
+    @mock.patch(M_PATH + "util.remove_file")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -749,7 +749,7 @@ class TestRemoveAptConfig:
         _m_run_apt_command,
         _m_remove_apt_list_files,
         _m_remove_auth_apt_repo,
-        m_unlink,
+        m_remove_file,
         entitlement_factory,
     ):
         """Remove apt preferences file when repo_pin_priority is an int."""
@@ -760,12 +760,10 @@ class TestRemoveAptConfig:
         )
 
         assert 1000 == entitlement.repo_pin_priority
-        with mock.patch(M_PATH + "os.path.exists") as m_exists:
-            m_exists.return_value = True
-            entitlement.remove_apt_config()
-        expected_call = [mock.call("/etc/apt/preferences.d/ubuntu-repotest")]
-        assert expected_call == m_exists.call_args_list
-        assert expected_call == m_unlink.call_args_list
+        entitlement.remove_apt_config()
+        assert [
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest")
+        ] == m_remove_file.call_args_list
 
 
 class TestSetupAptConfig:
@@ -915,7 +913,7 @@ class TestSetupAptConfig:
         )
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "os.unlink")
+    @mock.patch(M_PATH + "util.remove_file")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
     @mock.patch(M_PATH + "util.get_platform_info")
@@ -926,7 +924,7 @@ class TestSetupAptConfig:
         m_get_platform_info,
         m_run_apt_command,
         m_add_auth_repo,
-        m_unlink,
+        m_remove_file,
         _m_setup_apt_proxy,
         entitlement_factory,
     ):
@@ -940,13 +938,12 @@ class TestSetupAptConfig:
             m_exists.return_value = True
             entitlement.setup_apt_config()
         assert [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest"),
             mock.call("/usr/lib/apt/methods/https"),
             mock.call("/usr/sbin/update-ca-certificates"),
         ] == m_exists.call_args_list
         assert [
             mock.call("/etc/apt/preferences.d/ubuntu-repotest")
-        ] == m_unlink.call_args_list
+        ] == m_remove_file.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
