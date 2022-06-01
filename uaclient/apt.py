@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import tempfile
 from functools import lru_cache
 from typing import Dict, List, Optional
@@ -355,7 +356,7 @@ def remove_repo_from_apt_auth_file(repo_url):
             [line for line in apt_auth.splitlines() if auth_prefix not in line]
         )
         if not content:
-            os.unlink(apt_auth_file)
+            util.remove_file(apt_auth_file)
         else:
             util.write_file(apt_auth_file, content, mode=0o600)
 
@@ -364,10 +365,10 @@ def remove_auth_apt_repo(
     repo_filename: str, repo_url: str, keyring_file: str = None
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
-    util.del_file(repo_filename)
+    util.remove_file(repo_filename)
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-        util.del_file(keyring_file)
+        util.remove_file(keyring_file)
     remove_repo_from_apt_auth_file(repo_url)
 
 
@@ -432,8 +433,7 @@ def find_apt_list_files(repo_url, series):
 def remove_apt_list_files(repo_url, series):
     """Remove any apt list files present for this repo_url and series."""
     for path in find_apt_list_files(repo_url, series):
-        if os.path.exists(path):
-            os.unlink(path)
+        util.remove_file(path)
 
 
 def clean_apt_files(*, _entitlements=None):
@@ -455,14 +455,18 @@ def clean_apt_files(*, _entitlements=None):
             continue
         repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
         pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
-
         if os.path.exists(repo_file):
-            logging.info("Removing apt source file: %s", repo_file)
-            os.unlink(repo_file)
-
+            event.info(
+                "Removing apt source file: {}".format(repo_file),
+                file_type=sys.stderr,
+            )
+            util.remove_file(repo_file)
         if os.path.exists(pref_file):
-            logging.info("Removing apt preferences file: %s", pref_file)
-            os.unlink(pref_file)
+            event.info(
+                "Removing apt preferences file: {}".format(pref_file),
+                file_type=sys.stderr,
+            )
+            util.remove_file(pref_file)
 
 
 def get_installed_packages() -> List[str]:
