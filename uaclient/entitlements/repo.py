@@ -352,8 +352,9 @@ class RepoEntitlement(base.UAEntitlement):
                     self.origin,
                     self.repo_pin_priority,
                 )
-            elif os.path.exists(repo_pref_file):
-                os.unlink(repo_pref_file)  # Remove disabling apt pref file
+            else:
+                # Remove disabling apt pref file
+                util.remove_file(repo_pref_file)
 
         prerequisite_pkgs = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
@@ -424,8 +425,8 @@ class RepoEntitlement(base.UAEntitlement):
                     self.origin,
                     self.repo_pin_priority,
                 )
-            elif os.path.exists(repo_pref_file):
-                os.unlink(repo_pref_file)
+            else:
+                util.remove_file(repo_pref_file)
 
         if run_apt_update:
             if not silent:
