@@ -1628,6 +1628,7 @@ def get_parser(cfg: config.UAConfig):
         "version", help="show version of {}".format(NAME)
     )
     parser_version.set_defaults(action=print_version)
+
     return parser
 
 
