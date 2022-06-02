@@ -143,8 +143,7 @@ Feature: Unattached status
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
-           # jammy livepatch is only no when running the container test on a pre-jammy ubuntu
-           | jammy   | yes      | no     | cis | no            | no   | yes       | no  | no        |     | yes             |
+           | jammy   | yes      | no     |     | no            | no   | yes       | no  | no        | usg | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -209,7 +208,7 @@ Feature: Unattached status
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
-           | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg | yes             |
+           | jammy   | yes      | no     |     | no            | no   | yes       | no  | no        | usg | yes             |
 
 
     @series.all
@@ -257,4 +256,4 @@ Feature: Unattached status
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
-           | jammy   | no       | no     |     | no            | no   | yes       | no  | yes       | usg |
+           | jammy   | no       | no     |     | no            | no   | yes       | no  | no        | usg |

@@ -183,7 +183,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
            | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
            | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
-           | jammy   | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
+           | jammy   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
