@@ -1,7 +1,6 @@
 import io
 import logging
 import sys
-from typing import Any, Dict
 
 import mock
 import pytest
@@ -98,50 +97,64 @@ def logging_sandbox():
 @pytest.fixture
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
-        def __init__(self, cfg_overrides={}, features_override=None) -> None:
-            cfg_overrides.update({"data_dir": tmpdir.strpath})
+        def __init__(
+            self, cfg_overrides={}, attached=False, additional_info={}
+        ) -> None:
+            if not cfg_overrides.get("data_dir", None):
+                cfg_overrides.update({"data_dir": tmpdir.strpath})
             super().__init__(cfg_overrides)
+            self._attached = attached
+            if self._attached:
+                account_name = additional_info.get(
+                    "account_name", "test_account"
+                )
+                _machine_token = additional_info.get("machine_token", None)
+                self._status_cache = additional_info.get("status_cache", None)
+                if not _machine_token:
+                    _machine_token = self.default_machine_token(account_name)
+                self.machine_token_file.write(_machine_token)
+                if self._status_cache:
+                    self.write_cache("status-cache", self._status_cache)
+                else:
+                    self.write_cache("status-cache", {"attached": True})
 
-        @classmethod
-        def for_attached_machine(
-            cls,
-            account_name: str = "test_account",
-            machine_token: Dict[str, Any] = None,
-            status_cache: Dict[str, Any] = None,
-        ):
-            if not machine_token:
-                machine_token = {
-                    "availableResources": [],
-                    "machineToken": "not-null",
-                    "machineTokenInfo": {
-                        "machineId": "test_machine_id",
-                        "accountInfo": {
-                            "id": "acct-1",
-                            "name": account_name,
-                            "createdAt": "2019-06-14T06:45:50Z",
-                            "externalAccountIDs": [
-                                {"IDs": ["id1"], "Origin": "AWS"}
-                            ],
-                        },
-                        "contractInfo": {
-                            "id": "cid",
-                            "name": "test_contract",
-                            "createdAt": "2020-05-08T19:02:26Z",
-                            "effectiveFrom": "2000-05-08T19:02:26Z",
-                            "effectiveTo": "2040-05-08T19:02:26Z",
-                            "resourceEntitlements": [],
-                            "products": ["free"],
-                        },
+        @property
+        def attached(self):
+            return self._attached
+
+        @attached.setter
+        def attached(self, value):
+            if value is True:
+                self._attached = True
+                _machine_token = self.default_machine_token("test_account")
+                self.machine_token_file.write(_machine_token)
+                self.write_cache("status-cache", {"attached": True})
+
+        def default_machine_token(self, account_name: str):
+            return {
+                "availableResources": [],
+                "machineToken": "not-null",
+                "machineTokenInfo": {
+                    "machineId": "test_machine_id",
+                    "accountInfo": {
+                        "id": "acct-1",
+                        "name": account_name,
+                        "createdAt": "2019-06-14T06:45:50Z",
+                        "externalAccountIDs": [
+                            {"IDs": ["id1"], "Origin": "AWS"}
+                        ],
                     },
-                }
-
-            if not status_cache:
-                status_cache = {"attached": True}
-
-            config = cls()
-            config.write_cache("machine-token", machine_token)
-            config.write_cache("status-cache", status_cache)
-            return config
+                    "contractInfo": {
+                        "id": "cid",
+                        "name": "test_contract",
+                        "createdAt": "2020-05-08T19:02:26Z",
+                        "effectiveFrom": "2000-05-08T19:02:26Z",
+                        "effectiveTo": "2040-05-08T19:02:26Z",
+                        "resourceEntitlements": [],
+                        "products": ["free"],
+                    },
+                },
+            }
 
         def override_features(self, features_override):
             if features_override is not None:

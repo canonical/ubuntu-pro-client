@@ -282,10 +282,12 @@ class TestActionStatus:
         _m_remove_notice,
         _m_contract_changed,
         capsys,
+        FakeConfig,
     ):
+        cfg_override = FakeConfig().cfg
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
-                main()
+                main([cfg_override])
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
@@ -315,7 +317,7 @@ class TestActionStatus:
         FakeConfig,
     ):
         """Check that root and non-root will emit attached status"""
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         cfg.write_cache("notices", notices)
         assert 0 == action_status(
             mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
@@ -556,7 +558,7 @@ class TestActionStatus:
         event,
     ):
         """Check that unattached status json output is emitted to console"""
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         args = mock.MagicMock(
             format=format_type, all=use_all, simulate_with_token=None
@@ -862,7 +864,7 @@ class TestActionStatus:
         with mock.patch("sys.stdout", fake_stdout):
             action_status(
                 mock.MagicMock(all=True, simulate_with_token=None),
-                cfg=FakeConfig.for_attached_machine(),
+                cfg=FakeConfig(attached=True),
             )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
@@ -1015,7 +1017,7 @@ class TestActionStatus:
     ):
         _m_contract_changed.return_value = contract_changed
         if is_attached:
-            cfg = FakeConfig().for_attached_machine()
+            cfg = FakeConfig(attached=True)
         else:
             cfg = FakeConfig()
 

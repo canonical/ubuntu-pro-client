@@ -212,7 +212,9 @@ class LivepatchEntitlement(UAEntitlement):
         :param process_token: Boolean set True when token should be
             processsed.
         """
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name
+        )
         if process_directives:
             try:
                 process_config_directives(entitlement_cfg)

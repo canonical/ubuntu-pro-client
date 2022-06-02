@@ -403,7 +403,7 @@ class TestAssertAttached:
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)
@@ -432,7 +432,7 @@ class TestAssertNotAttached:
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(AlreadyAttachedError):

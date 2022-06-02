@@ -117,7 +117,8 @@ class TestActionAttach:
     def test_already_attached(self, _m_getuid, capsys, FakeConfig, event):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = "test_account"
-        cfg = FakeConfig.for_attached_machine(account_name=account_name)
+        info = {"account_name": account_name}
+        cfg = FakeConfig(attached=True, additional_info=info)
 
         with pytest.raises(AlreadyAttachedError):
             action_attach(mock.MagicMock(), cfg=cfg)
@@ -269,7 +270,7 @@ class TestActionAttach:
         orig_unattached_status = cfg.read_cache("status-cache")
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):
-            cfg.write_cache("machine-token", ENTITLED_MACHINE_TOKEN)
+            cfg.machine_token_file.write(ENTITLED_MACHINE_TOKEN)
             raise error_class(error_str)
 
         request_updated_contract.side_effect = fake_request_updated_contract
@@ -312,7 +313,7 @@ class TestActionAttach:
         cfg = FakeConfig()
 
         def fake_contract_attach(contract_token):
-            cfg.write_cache("machine-token", BASIC_MACHINE_TOKEN)
+            cfg.machine_token_file.write(BASIC_MACHINE_TOKEN)
             return BASIC_MACHINE_TOKEN
 
         contract_machine_attach.side_effect = fake_contract_attach
@@ -332,6 +333,7 @@ class TestActionAttach:
         # file, which will make all other cfg objects here to report
         # as attached
         cfg.delete_cache()
+        cfg.machine_token_file.delete()
 
         cfg = FakeConfig()
         args = mock.MagicMock(token=token, attach_config=None)
@@ -375,7 +377,7 @@ class TestActionAttach:
         args = mock.MagicMock(auto_enable=auto_enable, attach_config=None)
 
         def fake_contract_updates(cfg, contract_token, allow_enable):
-            cfg.write_cache("machine-token", BASIC_MACHINE_TOKEN)
+            cfg.machine_token_file.write(BASIC_MACHINE_TOKEN)
             return True
 
         cfg = FakeConfig()

@@ -321,7 +321,7 @@ class TestPollForProLicense:
         FakeConfig,
     ):
         if is_attached:
-            cfg = FakeConfig.for_attached_machine()
+            cfg = FakeConfig(attached=True)
         else:
             cfg = FakeConfig()
         cfg.cfg.update(

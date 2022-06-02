@@ -61,7 +61,7 @@ class TestActionEnable:
         getuid.return_value = 1
         args = mock.MagicMock()
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(args, cfg=cfg)
 
@@ -110,7 +110,7 @@ class TestActionEnable:
     ):
         """Check inability to enable if operation holds lock file."""
         getuid.return_value = 0
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         cfg.write_cache("lock", "123:ua disable")
         args = mock.MagicMock()
 
@@ -237,7 +237,7 @@ class TestActionEnable:
 
         m_getuid.return_value = uid
         if is_attached:
-            cfg = FakeConfig.for_attached_machine()
+            cfg = FakeConfig(attached=True)
             service_msg = "\n".join(
                 textwrap.wrap(
                     (
@@ -386,7 +386,7 @@ class TestActionEnable:
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (True, None)
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args = mock.MagicMock()
         args.service = ["testitlement"]
         args.assume_yes = assume_yes
@@ -454,7 +454,7 @@ class TestActionEnable:
         m_entitlement_factory.side_effect = factory_side_effect
         m_valid_services.return_value = ["ent2", "ent3"]
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         assume_yes = False
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
@@ -563,7 +563,7 @@ class TestActionEnable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         assume_yes = False
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
@@ -688,7 +688,7 @@ class TestActionEnable:
             ),
         )
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock = mock.Mock()
         args_mock.service = ["ent1"]
         args_mock.assume_yes = False
@@ -758,7 +758,7 @@ class TestActionEnable:
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
         expected_msg = "One moment, checking your subscription first\n"
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock = mock.MagicMock()
         args_mock.service = service
         args_mock.beta = beta
@@ -831,7 +831,7 @@ class TestActionEnable:
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (True, None)
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         args_mock = mock.MagicMock()
         args_mock.assume_yes = False

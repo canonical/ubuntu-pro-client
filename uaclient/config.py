@@ -4,13 +4,12 @@ import logging
 import os
 import re
 from collections import namedtuple
-from datetime import datetime
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 import yaml
 
-from uaclient import apt, event_logger, exceptions, messages, snap, util
+from uaclient import apt, event_logger, exceptions, files, messages, snap, util
 from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -78,7 +77,6 @@ class UAConfig:
     data_paths = {
         "instance-id": DataPath("instance-id", True, False),
         "machine-access-cis": DataPath("machine-access-cis.json", True, False),
-        "machine-token": DataPath("machine-token.json", True, False),
         "lock": DataPath("lock", True, False),
         "status-cache": DataPath("status.json", False, False),
         "notices": DataPath("notices.json", False, False),
@@ -115,14 +113,19 @@ class UAConfig:
             self.cfg, self.invalid_keys = parse_config(self.cfg_path)
 
         self.series = series
+        self._machine_token_file = None
 
     @property
-    def accounts(self):
-        """Return the list of accounts that apply to this authorized user."""
-        if self.is_attached:
-            accountInfo = self.machine_token["machineTokenInfo"]["accountInfo"]
-            return [accountInfo]
-        return []
+    def machine_token_file(self):
+        if not self._machine_token_file:
+            if os.getuid() == 0:
+                root_mode = True
+            else:
+                root_mode = False
+            self._machine_token_file = files.MachineTokenFile(
+                self.cfg.get("data_dir", ""), root_mode
+            )
+        return self._machine_token_file
 
     @property
     def contract_url(self) -> str:
@@ -381,76 +384,9 @@ class UAConfig:
         )
 
     @property
-    def entitlements(self):
-        """Return configured entitlements keyed by entitlement named"""
-        if self._entitlements:
-            return self._entitlements
-        if not self.machine_token:
-            return {}
-        self._entitlements = self.get_entitlements_from_token(
-            self.machine_token
-        )
-        return self._entitlements
-
-    @staticmethod
-    def get_entitlements_from_token(machine_token: Dict):
-        """Return a dictionary of entitlements keyed by entitlement name.
-
-        Return an empty dict if no entitlements are present.
-        """
-        if not machine_token:
-            return {}
-
-        entitlements = {}
-        contractInfo = machine_token.get("machineTokenInfo", {}).get(
-            "contractInfo"
-        )
-        if not contractInfo:
-            return {}
-
-        tokens_by_name = dict(
-            (e.get("type"), e.get("token"))
-            for e in machine_token.get("resourceTokens", [])
-        )
-        ent_by_name = dict(
-            (e.get("type"), e)
-            for e in contractInfo.get("resourceEntitlements", [])
-        )
-        for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = {"entitlement": ent_value}
-            if entitlement_name in tokens_by_name:
-                entitlement_cfg["resourceToken"] = tokens_by_name[
-                    entitlement_name
-                ]
-            util.apply_contract_overrides(entitlement_cfg)
-            entitlements[entitlement_name] = entitlement_cfg
-        return entitlements
-
-    @property
-    def contract_expiry_datetime(self) -> datetime:
-        """Return a datetime of the attached contract expiration."""
-        if not self._contract_expiry_datetime:
-            self._contract_expiry_datetime = self.machine_token[
-                "machineTokenInfo"
-            ]["contractInfo"]["effectiveTo"]
-
-        return self._contract_expiry_datetime
-
-    @property
     def is_attached(self):
         """Report whether this machine configuration is attached to UA."""
         return bool(self.machine_token)  # machine_token is removed on detach
-
-    @property
-    def contract_remaining_days(self) -> int:
-        """Report num days until contract expiration based on effectiveTo
-
-        :return: A positive int representing the number of days the attached
-            contract remains in effect. Return a negative int for the number
-            of days beyond contract's effectiveTo date.
-        """
-        delta = self.contract_expiry_datetime.date() - datetime.utcnow().date()
-        return delta.days
 
     @property
     def features(self):
@@ -470,59 +406,22 @@ class UAConfig:
     @property
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
-        if not self._machine_token:
-            raw_machine_token = self.read_cache("machine-token")
+        raw_machine_token = self.machine_token_file.machine_token
 
-            machine_token_overlay_path = self.features.get(
-                "machine_token_overlay"
+        machine_token_overlay_path = self.features.get("machine_token_overlay")
+
+        if raw_machine_token and machine_token_overlay_path:
+            machine_token_overlay = self.parse_machine_token_overlay(
+                machine_token_overlay_path
             )
 
-            if raw_machine_token and machine_token_overlay_path:
-                machine_token_overlay = self.parse_machine_token_overlay(
-                    machine_token_overlay_path
+            if machine_token_overlay:
+                depth_first_merge_overlay_dict(
+                    base_dict=raw_machine_token,
+                    overlay_dict=machine_token_overlay,
                 )
 
-                if machine_token_overlay:
-                    depth_first_merge_overlay_dict(
-                        base_dict=raw_machine_token,
-                        overlay_dict=machine_token_overlay,
-                    )
-
-            self._machine_token = raw_machine_token
-
-        return self._machine_token
-
-    @property
-    def activity_token(self) -> "Optional[str]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get(
-                "activityToken"
-            )
-        return None
-
-    @property
-    def activity_id(self) -> "Optional[str]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get("activityID")
-        return None
-
-    @property
-    def activity_ping_interval(self) -> "Optional[int]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get(
-                "activityPingInterval"
-            )
-        return None
-
-    @property
-    def contract_id(self):
-        if self.machine_token:
-            return (
-                self.machine_token.get("machineTokenInfo", {})
-                .get("contractInfo", {})
-                .get("id")
-            )
-        return None
+        return raw_machine_token
 
     def parse_machine_token_overlay(self, machine_token_overlay_path):
         if not os.path.exists(machine_token_overlay_path):
@@ -577,9 +476,10 @@ class UAConfig:
             raise RuntimeError(
                 "Invalid or empty key provided to delete_cache_key"
             )
-        if key.startswith("machine-access") or key == "machine-token":
-            self._entitlements = None
-            self._machine_token = None
+        if key.startswith("machine-access"):
+            # will find a better way for this
+            self.machine_token_file._entitlements = None
+            self.machine_token_file._machine_token = None
         elif key == "lock":
             self.remove_notice("", "Operation in progress.*")
         cache_path = self.data_path(key)
@@ -615,9 +515,9 @@ class UAConfig:
             os.makedirs(data_dir)
             if os.path.basename(data_dir) == PRIVATE_SUBDIR:
                 os.chmod(data_dir, 0o700)
-        if key.startswith("machine-access") or key == "machine-token":
-            self._machine_token = None
-            self._entitlements = None
+        if key.startswith("machine-access"):
+            self.machine_token_file._entitlements = None
+            self.machine_token_file._machine_token = None
         elif key == "lock":
             if ":" in content:
                 self.add_notice(

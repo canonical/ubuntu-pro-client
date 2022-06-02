@@ -67,7 +67,7 @@ def get_contract_expiry_status(
 
     grace_period = defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
     pending_expiry = defaults.CONTRACT_EXPIRY_PENDING_DAYS
-    remaining_days = cfg.contract_remaining_days
+    remaining_days = cfg.machine_token_file.contract_remaining_days
     if 0 <= remaining_days <= pending_expiry:
         return ContractExpiryStatus.ACTIVE_EXPIRED_SOON, remaining_days
     elif -grace_period <= remaining_days < 0:
@@ -147,9 +147,11 @@ def _write_esm_service_msg_templates(
             grace_period_remaining = (
                 defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
             )
+            exp_dt = cfg.machine_token_file.contract_expiry_datetime
+            exp_dt = exp_dt.strftime("%d %b %Y")
             pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
                 title=ent.title,
-                expired_date=cfg.contract_expiry_datetime.strftime("%d %b %Y"),
+                expired_date=exp_dt,
                 remaining_days=grace_period_remaining,
                 url=defaults.BASE_UA_URL,
             )

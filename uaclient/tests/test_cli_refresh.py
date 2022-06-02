@@ -29,10 +29,11 @@ Flags:
 @mock.patch("os.getuid", return_value=0)
 class TestActionRefresh:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_refresh_help(self, _m_resources, _getuid, capsys):
+    def test_refresh_help(self, _m_resources, _getuid, capsys, FakeConfig):
+        cfg_override = FakeConfig().cfg
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
-                main()
+                main([cfg_override])
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT in out
 
@@ -40,7 +41,7 @@ class TestActionRefresh:
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg=cfg)
 
@@ -68,9 +69,8 @@ class TestActionRefresh:
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
-        cfg = FakeConfig().for_attached_machine()
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua disable")
+        cfg = FakeConfig(attached=True)
+        cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_refresh(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
@@ -95,7 +95,7 @@ class TestActionRefresh:
             mock.MagicMock()
         )
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
@@ -118,7 +118,7 @@ class TestActionRefresh:
         """On success from request_updates_contract root user can refresh."""
         request_updated_contract.return_value = True
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         ret = action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
         assert 0 == ret
@@ -205,7 +205,7 @@ class TestActionRefresh:
     ):
         """On failure in process_config emit an error."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="config"), cfg=cfg)
@@ -218,7 +218,7 @@ class TestActionRefresh:
     ):
         """On success from process_config root user gets success message."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         ret = action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
         assert 0 == ret
@@ -239,7 +239,7 @@ class TestActionRefresh:
     ):
         """On success from process_config root user gets success message."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         ret = action_refresh(mock.MagicMock(target=None), cfg=cfg)
         out, err = capsys.readouterr()
 

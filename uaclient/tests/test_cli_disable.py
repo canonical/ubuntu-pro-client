@@ -49,10 +49,11 @@ Flags:
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_disable_help(self, _m_resources, _getuid, capsys):
+    def test_disable_help(self, _m_resources, _getuid, capsys, FakeConfig):
+        cfg_override = FakeConfig().cfg
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
-                main()
+                main([cfg_override])
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
@@ -111,7 +112,7 @@ class TestDisable:
 
         m_entitlement_factory.side_effect = factory_side_effect
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock = mock.Mock()
         args_mock.service = service
         args_mock.assume_yes = assume_yes
@@ -133,7 +134,7 @@ class TestDisable:
         assert return_code == ret
         assert len(entitlements_cls) == m_status.call_count
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock.assume_yes = True
         args_mock.format = "json"
         with mock.patch.object(
@@ -226,7 +227,7 @@ class TestDisable:
         m_entitlement_factory.side_effect = factory_side_effect
         m_valid_services.return_value = ["ent2", "ent3"]
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
@@ -258,7 +259,7 @@ class TestDisable:
         assert 0 == m_ent1_obj.call_count
         assert num_calls == m_status.call_count
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args_mock.assume_yes = True
         args_mock.format = "json"
         with pytest.raises(SystemExit):
@@ -316,7 +317,7 @@ class TestDisable:
         """Check invalid service name results in custom error message."""
         m_getuid.return_value = uid
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args = mock.MagicMock()
 
         if not uid:
@@ -367,7 +368,7 @@ class TestDisable:
         m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args = mock.MagicMock()
         expected_error = expected_error_tmpl.format(
             operation="disable",
@@ -470,13 +471,12 @@ class TestDisable:
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(self, m_subp, m_getuid, FakeConfig, event):
         """Check inability to disable if operation in progress holds lock."""
-        cfg = FakeConfig().for_attached_machine()
+        cfg = FakeConfig(attached=True)
         args = mock.MagicMock()
         expected_error = messages.LOCK_HELD_ERROR.format(
             lock_request="ua disable", lock_holder="ua enable", pid="123"
         )
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua enable")
+        cfg.write_cache("lock", "123:ua enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)

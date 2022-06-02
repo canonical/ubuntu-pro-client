@@ -38,7 +38,6 @@ FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
     additional_packages = FIPS_ADDITIONAL_PACKAGES
-
     return partial(
         entitlement_factory,
         request.param,
@@ -48,7 +47,8 @@ def fips_entitlement_factory(request, entitlement_factory):
 
 @pytest.fixture
 def entitlement(fips_entitlement_factory):
-    return fips_entitlement_factory()
+    with mock.patch("os.getuid", return_value=0):
+        return fips_entitlement_factory()
 
 
 class TestFIPSEntitlementDefaults:

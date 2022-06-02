@@ -38,6 +38,7 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType(
     }
 )
 
+M_CFG_PATH = "uaclient.config."
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
 DISABLED_APP_STATUS = (ApplicationStatus.DISABLED, "")
@@ -65,7 +66,8 @@ def livepatch_entitlement_factory(entitlement_factory):
 
 @pytest.fixture
 def entitlement(livepatch_entitlement_factory):
-    return livepatch_entitlement_factory()
+    with mock.patch("os.getuid", return_value=0):
+        return livepatch_entitlement_factory()
 
 
 class TestConfigureLivepatchProxy:
@@ -269,7 +271,7 @@ class TestLivepatchUserFacingStatus:
         no_entitlements["machineTokenInfo"]["contractInfo"][
             "resourceEntitlements"
         ].pop()
-        entitlement.cfg.write_cache("machine-token", no_entitlements)
+        entitlement.cfg.machine_token_file.write(no_entitlements)
 
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
@@ -619,6 +621,7 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("apt_update_success", (True, False))
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.apply_contract_overrides")
@@ -639,6 +642,7 @@ class TestLivepatchEntitlementEnable:
         _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
+        m_getuid,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -682,6 +686,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp", return_value=("snapd", ""))
     @mock.patch("uaclient.util.apply_contract_overrides")
@@ -700,6 +705,7 @@ class TestLivepatchEntitlementEnable:
         _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
+        m_getuid,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -764,6 +770,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
@@ -782,6 +789,7 @@ class TestLivepatchEntitlementEnable:
         m_subp,
         _m_get_platform_info,
         _m_get_installed_packages,
+        m_getuid,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -815,6 +823,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
@@ -833,6 +842,7 @@ class TestLivepatchEntitlementEnable:
         m_subp,
         _m_get_platform_info,
         _m_get_installed_packages,
+        m_getuid,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,

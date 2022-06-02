@@ -35,6 +35,7 @@ from uaclient.testing.fakes import FakeContractClient
 from uaclient.version import get_version
 
 M_PATH = "uaclient.contract."
+M_CFG_PATH = "uaclient.config."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 
 
@@ -75,7 +76,7 @@ class TestUAContractClient:
             ] = machine_id_response
 
         request_url.return_value = (machine_token, {})
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
         if detach is not None:
@@ -87,7 +88,9 @@ class TestUAContractClient:
                 return (UserFacingStatus.ACTIVE, "")
             return (UserFacingStatus.INACTIVE, "")
 
-        with mock.patch.object(type(cfg), "activity_id", activity_id):
+        with mock.patch.object(
+            type(cfg.machine_token_file), "activity_id", activity_id
+        ):
             with mock.patch.object(
                 UAEntitlement,
                 "user_facing_status",
@@ -96,7 +99,7 @@ class TestUAContractClient:
                 client._request_machine_token_update(**kwargs)
 
         if not detach:  # Then we have written the updated cache
-            assert machine_token == cfg.read_cache("machine-token")
+            assert machine_token == cfg.machine_token_file.machine_token
             expected_machine_id = "machineId"
             if machine_id_response:
                 expected_machine_id = machine_id_response
@@ -169,7 +172,7 @@ class TestUAContractClient:
             "contract_id": "cId",
             "machine_id": machine_id_param,
         }
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         client = UAContractClient(cfg)
         resp = client.get_updated_contract_info(**kwargs)
         assert resp == machine_token
@@ -180,7 +183,7 @@ class TestUAContractClient:
         """GET from resource-machine-access route to "enable" a service"""
         get_machine_id.return_value = "machineId"
         request_url.return_value = ("response", {})
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "resource": "cis"}
         assert "response" == client.request_resource_machine_access(**kwargs)
@@ -202,7 +205,7 @@ class TestUAContractClient:
     ):
         m_request_url.return_value = ("response", {})
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         client = UAContractClient(cfg)
         params = {
             "headers": {
@@ -222,8 +225,10 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "enabled_services", (([]), (["esm-apps", "livepatch"]))
     )
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     def test_report_machine_activity(
         self,
+        m_getuid,
         get_machine_id,
         request_url,
         activity_id,
@@ -241,7 +246,7 @@ class TestUAContractClient:
             },
             None,
         )
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         client = UAContractClient(cfg)
 
         def entitlement_user_facing_status(self):
@@ -249,19 +254,21 @@ class TestUAContractClient:
                 return (UserFacingStatus.ACTIVE, "")
             return (UserFacingStatus.INACTIVE, "")
 
-        with mock.patch.object(type(cfg), "activity_id", activity_id):
+        with mock.patch.object(
+            type(cfg.machine_token_file), "activity_id", activity_id
+        ):
             with mock.patch.object(
                 UAEntitlement,
                 "user_facing_status",
                 new=entitlement_user_facing_status,
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig.write_cache"
-                ) as m_write_cache:
+                    "uaclient.config.files.MachineTokenFile.write"
+                ) as m_write_file:
                     client.report_machine_activity()
 
         expected_write_calls = 1
-        assert expected_write_calls == m_write_cache.call_count
+        assert expected_write_calls == m_write_file.call_count
 
         expected_activity_id = activity_id if activity_id else machine_id
         params = {
@@ -499,7 +506,7 @@ class TestRequestUpdatedContract:
             return FakeContractClient(cfg)
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg, contract_token="something")
 
@@ -622,7 +629,7 @@ class TestRequestUpdatedContract:
             return fake_client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
 
@@ -654,7 +661,9 @@ class TestRequestUpdatedContract:
             return fake_client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        cfg = FakeConfig(
+            attached=True, additional_info={"machine_token": machine_token}
+        )
         with mock.patch(M_PATH + "process_entitlement_delta") as m_process:
             m_process.side_effect = (
                 exceptions.UserFacingError("broken ent1"),
@@ -732,7 +741,9 @@ class TestRequestUpdatedContract:
             },
         }
 
-        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        cfg = FakeConfig(
+            attached=True, additional_info={"machine_token": machine_token}
+        )
         fake_client = FakeContractClient(cfg)
         fake_client._responses = {
             self.refresh_route: machine_token,
@@ -751,11 +762,19 @@ class TestRequestUpdatedContract:
         assert 3 == process_entitlement_delta.call_count
         assert ux_error_msg.msg == str(exc.value.msg)
 
+    @mock.patch("uaclient.files.PublicMachineTokenFile.write")
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_machine_token_and_services(
-        self, client, get_machine_id, process_entitlement_delta, FakeConfig
+        self,
+        client,
+        get_machine_id,
+        process_entitlement_delta,
+        m_getuid,
+        public_write,
+        FakeConfig,
     ):
         """When attached, refresh machine token and entitled services.
 
@@ -788,10 +807,12 @@ class TestRequestUpdatedContract:
             return client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        cfg = FakeConfig(
+            attached=True, additional_info={"machine_token": machine_token}
+        )
         process_entitlement_delta.return_value = (None, False)
         assert None is request_updated_contract(cfg)
-        assert new_token == cfg.read_cache("machine-token")
+        assert new_token == cfg.machine_token_file.machine_token
 
         # Deltas are processed in a sorted fashion so that if enableByDefault
         # is true, the order of enablement operations is the same regardless
@@ -846,7 +867,7 @@ class TestContractChanged:
                 },
             },
         }
-        cfg = FakeConfig().for_attached_machine()
+        cfg = FakeConfig(attached=True)
         assert is_contract_changed(cfg) == ret_val
 
     @pytest.mark.parametrize("has_contract_changed", (False, True))
@@ -869,5 +890,5 @@ class TestContractChanged:
                 },
             },
         }
-        cfg = FakeConfig().for_attached_machine()
+        cfg = FakeConfig(attached=True)
         assert is_contract_changed(cfg) == has_contract_changed

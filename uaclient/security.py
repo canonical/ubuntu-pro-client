@@ -856,7 +856,6 @@ def _handle_released_package_fixes(
         ]:
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
-
             if upgrade_status:
                 msg = _format_packages_message(
                     pkg_status_list=pkg_src_group,

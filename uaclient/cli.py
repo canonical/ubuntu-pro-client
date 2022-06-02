@@ -1252,6 +1252,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
     cfg.delete_cache()
+    cfg.machine_token_file.delete()
     daemon.start()
     update_apt_and_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)

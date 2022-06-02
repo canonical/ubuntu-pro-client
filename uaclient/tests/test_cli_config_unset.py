@@ -50,14 +50,22 @@ class TestMainConfigUnSet:
         ),
     )
     def test_set_error_with_help_on_invalid_key_value_pair(
-        self, _m_resources, _logging, _getuid, kv_pair, err_msg, capsys
+        self,
+        _m_resources,
+        _logging,
+        _getuid,
+        kv_pair,
+        err_msg,
+        capsys,
+        FakeConfig,
     ):
         """Exit 1 and print help on invalid key_value_pair input param."""
+        cfg_override = FakeConfig().cfg
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "config", "unset", kv_pair]
             ):
-                main()
+                main([cfg_override])
         out, err = capsys.readouterr()
         assert HELP_OUTPUT == out
         assert err_msg in err

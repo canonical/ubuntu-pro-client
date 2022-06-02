@@ -22,7 +22,7 @@ M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 class TestMain:
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     def test_retries_on_lock_file(self, FakeConfig, caplog_text):
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch(
                 "uaclient.config.UAConfig.check_lock_info"
@@ -66,7 +66,7 @@ class TestMain:
     def test_main_unattached_removes_marker_file(
         self, m_subp, FakeConfig, tmpdir
     ):
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         assert None is cfg.read_cache("marker-reboot-cmds")
         main(cfg=cfg)
         assert 0 == m_subp.call_count
@@ -162,8 +162,7 @@ class TestProcessRebootOperations:
         m_check_lock_info.return_value = (0, 0)
         m_fix_pro_pkg_holds.side_effect = ProcessExecutionError("error")
 
-        cfg = FakeConfig()
-        cfg.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         with mock.patch("os.path.exists", return_value=True):
             with mock.patch("uaclient.config.UAConfig.write_cache"):
                 process_reboot_operations(cfg=cfg)

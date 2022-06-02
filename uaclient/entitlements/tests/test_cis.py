@@ -8,16 +8,18 @@ from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 M_REPOPATH = "uaclient.entitlements.repo."
+M_CFG_PATH = "uaclient.config."
 
 
 @pytest.fixture
 def entitlement(entitlement_factory):
-    return entitlement_factory(
-        CISEntitlement,
-        allow_beta=True,
-        called_name="cis",
-        additional_packages=["pkg1"],
-    )
+    with mock.patch(M_CFG_PATH + "os.getuid", return_value=0):
+        return entitlement_factory(
+            CISEntitlement,
+            allow_beta=True,
+            called_name="cis",
+            additional_packages=["pkg1"],
+        )
 
 
 class TestCISEntitlementCanEnable:
@@ -109,7 +111,6 @@ class TestCISEntitlementEnable:
                 env={"DEBIAN_FRONTEND": "noninteractive"},
             ),
         ]
-
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis
         assert [] == m_add_pin.call_args_list

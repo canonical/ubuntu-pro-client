@@ -446,7 +446,8 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(machine_token=token)
+        info = {"machine_token": token}
+        cfg = FakeConfig(attached=True, additional_info=info)
         if features_override:
             cfg.override_features(features_override)
 
@@ -552,7 +553,7 @@ class TestStatus:
         FakeConfig,
     ):
         """Ensure that non-root run after root returns data"""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
 
         # Run as root
         m_getuid.return_value = 0
@@ -560,9 +561,11 @@ class TestStatus:
 
         # Replicate an attach by modifying the underlying config and confirm
         # that we see different status
-        other_cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("accounts", {"accounts": other_cfg.accounts})
-        cfg.write_cache("machine-token", other_cfg.machine_token)
+        other_cfg = FakeConfig(attached=True)
+        cfg.write_cache(
+            "accounts", {"accounts": other_cfg.machine_token_file.accounts}
+        )
+        cfg.machine_token_file.write(other_cfg.machine_token)
         cfg.delete_cache_key("status-cache")
         assert status._attached_status(cfg=cfg) != before
 
@@ -686,9 +689,8 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname", machine_token=token
-        )
+        info = {"machine_token": token, "account_name": "accountname"}
+        cfg = FakeConfig(attached=True, additional_info=info)
         if features_override:
             cfg.override_features(features_override)
         if not entitlements:
@@ -800,9 +802,8 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname", machine_token=token
-        )
+        info = {"machine_token": token, "account_name": "accountname"}
+        cfg = FakeConfig(attached=True, additional_info=info)
 
         # Test that root's status works as expected (including the cache write)
         m_getuid.return_value = 0

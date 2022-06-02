@@ -82,8 +82,12 @@ def process_contract_delta_after_apt_lock() -> None:
         logging.warning(msg)
         sys.exit(1)
 
-    past_entitlements = UAConfig(series=past_release).entitlements
-    new_entitlements = UAConfig(series=current_release).entitlements
+    past_entitlements = UAConfig(
+        series=past_release
+    ).machine_token_file.entitlements
+    new_entitlements = UAConfig(
+        series=current_release
+    ).machine_token_file.entitlements
 
     retry_count = 0
     while out:

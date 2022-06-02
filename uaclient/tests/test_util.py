@@ -64,6 +64,7 @@ BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
 VERSION_CODENAME=xenial
 UBUNTU_CODENAME=xenial
 """
+M_CFG_PATH = "uaclient.config."
 
 
 class TestGetDictDeltas:
@@ -698,7 +699,7 @@ class TestApplyContractOverrides:
 
 class TestGetMachineId:
     def test_get_machine_id_from_config(self, FakeConfig):
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         value = util.get_machine_id(cfg)
         assert "test_machine_id" == value
 
@@ -771,13 +772,13 @@ class TestGetMachineId:
         assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
 
     @pytest.mark.parametrize("empty_value", ["", "\n"])
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     def test_fallback_used_if_all_other_files_are_empty(
-        self, FakeConfig, tmpdir, empty_value
+        self, m_getuid, FakeConfig, tmpdir, empty_value
     ):
         data_machine_id = tmpdir.mkdir("private").join("machine-id")
-        cfg = FakeConfig().for_attached_machine(
-            machine_token={"some": "thing"}
-        )
+        info = {"machine_token": {"some": "thing"}}
+        cfg = FakeConfig(attached=True, additional_info=info)
         # Need to initialize the property with a noop,
         # so load_file is not called after mocked
         cfg.machine_token

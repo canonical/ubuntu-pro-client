@@ -69,7 +69,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
 
 @pytest.fixture
-def concrete_entitlement_factory(tmpdir):
+def concrete_entitlement_factory(tmpdir, FakeConfig):
     def factory(
         *,
         entitled: bool,
@@ -81,24 +81,25 @@ def concrete_entitlement_factory(tmpdir):
         disable: bool = False,
         dependent_services: Tuple[str, ...] = None
     ) -> ConcreteTestEntitlement:
-        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
-        machineToken = {
-            "machineToken": "blah",
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "testconcreteentitlement",
-                            "entitled": entitled,
-                        }
-                    ]
-                }
-            },
-        }
-        cfg.write_cache("machine-token", machineToken)
+        with mock.patch("os.getuid", return_value=0):
+            cfg = FakeConfig()
+            machineToken = {
+                "machineToken": "blah",
+                "machineTokenInfo": {
+                    "contractInfo": {
+                        "resourceEntitlements": [
+                            {
+                                "type": "testconcreteentitlement",
+                                "entitled": entitled,
+                            }
+                        ]
+                    }
+                },
+            }
+            cfg.machine_token_file.write(machineToken)
 
-        if feature_overrides:
-            cfg.cfg.update({"features": feature_overrides})
+            if feature_overrides:
+                cfg.cfg.update({"features": feature_overrides})
 
         return ConcreteTestEntitlement(
             cfg,
@@ -939,7 +940,7 @@ class TestUaEntitlement:
             }
         }
         with mock.patch(
-            "uaclient.config.UAConfig.entitlements", m_entitlements
+            "uaclient.files.MachineTokenFile.entitlements", m_entitlements
         ):
             assert "something_else" == entitlement.presentation_name
 

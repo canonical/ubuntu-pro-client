@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import stat
+from unittest.mock import PropertyMock
 
 import mock
 import pytest
@@ -27,9 +28,10 @@ from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 KNOWN_DATA_PATHS = (
     ("machine-access-cis", "machine-access-cis.json"),
-    ("machine-token", "machine-token.json"),
+    ("instance-id", "instance-id"),
 )
 M_PATH = "uaclient.entitlements."
+M_CFG_PATH = "uaclient.config."
 
 ALL_RESOURCES_AVAILABLE = [
     {"name": name, "available": True}
@@ -58,8 +60,10 @@ class TestNotices:
             ([["a", "a1"], ["a", "a1"]], [["a", "a1"]]),
         ),
     )
-    def test_add_notice_avoids_duplicates(self, notices, expected, tmpdir):
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+    def test_add_notice_avoids_duplicates(
+        self, notices, expected, tmpdir, FakeConfig
+    ):
+        cfg = FakeConfig()
         assert None is cfg.read_cache("notices")
         for notice in notices:
             cfg.add_notice(*notice)
@@ -82,9 +86,9 @@ class TestNotices:
         ),
     )
     def test_remove_notice_removes_matching(
-        self, notices, removes, expected, tmpdir
+        self, notices, removes, expected, tmpdir, FakeConfig
     ):
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         for notice in notices:
             cfg.add_notice(*notice)
         for label, descr in removes:
@@ -93,9 +97,11 @@ class TestNotices:
 
 
 class TestEntitlements:
-    def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
+    def test_entitlements_property_keyed_by_entitlement_name(
+        self, tmpdir, FakeConfig
+    ):
         """Return machine_token resourceEntitlements, keyed by name."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
@@ -107,7 +113,7 @@ class TestEntitlements:
                 }
             },
         }
-        cfg.write_cache("machine-token", token)
+        cfg.machine_token_file.write(token)
         expected = {
             "entitlement1": {
                 "entitlement": {"entitled": True, "type": "entitlement1"}
@@ -116,11 +122,14 @@ class TestEntitlements:
                 "entitlement": {"entitled": True, "type": "entitlement2"}
             },
         }
-        assert expected == cfg.entitlements
+        assert expected == cfg.machine_token_file.entitlements
 
-    def test_entitlements_uses_resource_token_from_machine_token(self, tmpdir):
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
+    def test_entitlements_uses_resource_token_from_machine_token(
+        self, _, tmpdir, FakeConfig
+    ):
         """Include entitlement-specicific resourceTokens from machine_token"""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
@@ -136,7 +145,7 @@ class TestEntitlements:
                 {"type": "entitlement2", "token": "ent2-token"},
             ],
         }
-        cfg.write_cache("machine-token", token)
+        cfg.machine_token_file.write(token)
         expected = {
             "entitlement1": {
                 "entitlement": {"entitled": True, "type": "entitlement1"},
@@ -147,48 +156,47 @@ class TestEntitlements:
                 "resourceToken": "ent2-token",
             },
         }
-        assert expected == cfg.entitlements
+        assert expected == cfg.machine_token_file.entitlements
 
 
 class TestAccounts:
     def test_accounts_returns_empty_list_when_no_cached_account_value(
-        self, tmpdir
+        self, tmpdir, FakeConfig
     ):
         """Config.accounts property returns an empty list when no cache."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
 
-        assert [] == cfg.accounts
+        assert [] == cfg.machine_token_file.accounts
 
     def test_accounts_extracts_accounts_key_from_machine_token_cache(
-        self, tmpdir
+        self, tmpdir, FakeConfig
     ):
         """Use machine_token cached accountInfo when no accounts cache."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         accountInfo = {"id": "1", "name": "accountname"}
 
-        cfg.write_cache(
-            "machine-token",
+        cfg.machine_token_file.write(
             {
                 "availableResources": ALL_RESOURCES_AVAILABLE,
                 "machineTokenInfo": {"accountInfo": accountInfo},
             },
         )
 
-        assert [accountInfo] == cfg.accounts
+        assert [accountInfo] == cfg.machine_token_file.accounts
 
 
 class TestDataPath:
-    def test_data_path_returns_data_dir_path_without_key(self):
+    def test_data_path_returns_data_dir_path_without_key(self, FakeConfig):
         """The data_path method returns the data_dir when key is absent."""
-        cfg = UAConfig({"data_dir": "/my/dir"})
+        cfg = FakeConfig({"data_dir": "/my/dir"})
         assert "/my/dir/{}".format(PRIVATE_SUBDIR) == cfg.data_path()
 
     @pytest.mark.parametrize("key,path_basename", KNOWN_DATA_PATHS)
     def test_data_path_returns_file_path_with_defined_data_paths(
-        self, key, path_basename
+        self, key, path_basename, FakeConfig
     ):
         """When key is defined in Config.data_paths return data_path value."""
-        cfg = UAConfig({"data_dir": "/my/dir"})
+        cfg = FakeConfig({"data_dir": "/my/dir"})
         private_path = "/my/dir/{}/{}".format(PRIVATE_SUBDIR, path_basename)
         assert private_path == cfg.data_path(key=key)
 
@@ -196,16 +204,18 @@ class TestDataPath:
         "key,path_basename", (("notHere", "notHere"), ("anything", "anything"))
     )
     def test_data_path_returns_file_path_with_undefined_data_paths(
-        self, key, path_basename
+        self, key, path_basename, FakeConfig
     ):
         """When key is not in Config.data_paths the key is used to data_dir"""
-        cfg = UAConfig({"data_dir": "/my/d"})
+        cfg = FakeConfig({"data_dir": "/my/d"})
         assert "/my/d/{}/{}".format(PRIVATE_SUBDIR, key) == cfg.data_path(
             key=key
         )
 
-    def test_data_path_returns_public_path_for_public_datapath(self):
-        cfg = UAConfig({"data_dir": "/my/d"})
+    def test_data_path_returns_public_path_for_public_datapath(
+        self, FakeConfig
+    ):
+        cfg = FakeConfig({"data_dir": "/my/d"})
         cfg.data_paths["test_path"] = DataPath("test_path", False, False)
         assert "/my/d/test_path" == cfg.data_path("test_path")
 
@@ -267,10 +277,10 @@ class TestUAConfigKeys:
     @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
     @mock.patch("uaclient.config.UAConfig.write_cfg")
     def test_ua_configurable_keys_set_ua_config_dict(
-        self, write_cfg, attr_name, tmpdir
+        self, write_cfg, attr_name, tmpdir, FakeConfig
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         assert None is getattr(cfg, attr_name, None)
         cfg_non_members = ("apt_http_proxy", "apt_https_proxy")
         if attr_name not in cfg_non_members:
@@ -319,12 +329,12 @@ class TestWriteCfg:
         ),
     )
     def test_write_cfg_reads_cfg_andpersists_structured_content_to_config_path(
-        self, orig_content, expected, tmpdir
+        self, orig_content, expected, tmpdir, FakeConfig
     ):
         """write_cfg writes structured, ordered config YAML to config_path."""
         orig_conf = tmpdir.join("orig_uaclient.conf")
         orig_conf.write(orig_content)
-        cfg = UAConfig(cfg=parse_config(orig_conf.strpath)[0])
+        cfg = FakeConfig(cfg_overrides=parse_config(orig_conf.strpath)[0])
         out_conf = tmpdir.join("uaclient.conf")
         cfg.write_cfg(out_conf.strpath)
         assert expected == out_conf.read()
@@ -347,10 +357,13 @@ class TestWriteCache:
         # setup cached values
         cfg._machine_token = mock.sentinel.token
         cfg._entitlements = mock.sentinel.entitlements
-        cfg.write_cache(key, "something")
+        if key == "machine-token":
+            cfg.machine_token_file.write("something")
+        else:
+            cfg.write_cache(key, "something")
         if clears_cache:
-            assert None is cfg._entitlements
-            assert None is cfg._machine_token
+            assert None is cfg.machine_token_file._entitlements
+            assert None is cfg.machine_token_file._machine_token
         else:
             assert mock.sentinel.token is cfg._machine_token
             assert mock.sentinel.entitlements is cfg._entitlements
@@ -509,10 +522,11 @@ class TestDeleteCacheKey:
             ("machine", False),
         ),
     )
+    @mock.patch("os.getuid", return_value=0)
     def test_delete_cache_key_clears_machine_token_and_entitlements(
-        self, property_name, clears_cache, tmpdir
+        self, _, property_name, clears_cache, tmpdir, FakeConfig
     ):
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig(attached=True)
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
@@ -524,26 +538,30 @@ class TestDeleteCacheKey:
                 }
             },
         }
-        cfg.write_cache("machine-token", token)
-        cfg.entitlements  # sets config _entitlements and _machine_token cache
-        assert cfg._entitlements is not None
-        assert cfg._machine_token is not None
-        cfg.delete_cache_key(property_name)
+        cfg.machine_token_file.write(token)
+        # sets config _entitlements and _machine_token cache
+        cfg.machine_token_file.entitlements
+        assert cfg.machine_token_file._entitlements is not None
+        assert cfg.machine_token_file._machine_token is not None
+        if property_name == "machine-token":
+            cfg.machine_token_file.delete()
+        else:
+            cfg.delete_cache_key(property_name)
         if clears_cache:
             # internal cache is cleared
             assert cfg._entitlements is None
             assert cfg._machine_token is None
 
         # Reconstitutes _entitlements and _machine_token caches
-        entitlements = cfg.entitlements
+        entitlements = cfg.machine_token_file.entitlements
         if property_name == "machine-token":
             # We performed delete_cache_key("machine-token") above, so None now
             assert None is cfg._entitlements
             assert None is cfg.machine_token
         else:
             # re-constitute from cache
-            assert entitlements is cfg._entitlements
-            assert cfg._machine_token is cfg.machine_token
+            assert entitlements is cfg.machine_token_file._entitlements
+            assert cfg.machine_token_file._machine_token is cfg.machine_token
 
 
 class TestDeleteCache:
@@ -551,8 +569,15 @@ class TestDeleteCache:
         "property_name,data_path_name,expected_null_value",
         (("machine_token", "machine-token", None),),
     )
+    @mock.patch(M_CFG_PATH + "os.getuid", return_value=0)
     def test_delete_cache_properly_clears_all_caches_simple(
-        self, tmpdir, property_name, data_path_name, expected_null_value
+        self,
+        m_getuid,
+        tmpdir,
+        property_name,
+        data_path_name,
+        expected_null_value,
+        FakeConfig,
     ):
         """
         Ensure that delete_cache clears the cache for simple attributes
@@ -561,24 +586,28 @@ class TestDeleteCache:
         filesystem and returned.)
         """
         property_value = "our-value"
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
 
         data_path = cfg.data_path(data_path_name)
         os.makedirs(os.path.dirname(data_path))
-        with open(data_path, "w") as f:
-            f.write(property_value)
+        if property_name == "machine_token":
+            cfg.machine_token_file.write(property_value)
+        else:
+            with open(data_path, "w") as f:
+                f.write(property_value)
 
         before_prop_value = getattr(cfg, property_name)
         assert before_prop_value == property_value
 
-        cfg.delete_cache()
-
+        cfg.machine_token_file.delete()
+        print("After deleting")
         after_prop_value = getattr(cfg, property_name)
         assert expected_null_value == after_prop_value
 
-    def test_delete_cache_unsets_entitlements(self, tmpdir):
+    @mock.patch("os.getuid", return_value=0)
+    def test_delete_cache_unsets_entitlements(self, _, tmpdir, FakeConfig):
         """The delete_cache unsets any cached entitlements content."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
@@ -589,21 +618,22 @@ class TestDeleteCache:
                 }
             },
         }
-        cfg.write_cache("machine-token", token)
+        cfg.machine_token_file.write(token)
         previous_entitlements = {
             "entitlement1": {
                 "entitlement": {"type": "entitlement1", "entitled": True}
             }
         }
-        assert previous_entitlements == cfg.entitlements
-        cfg.delete_cache()
-        assert {} == cfg.entitlements
+        assert previous_entitlements == cfg.machine_token_file.entitlements
+        cfg.machine_token_file.delete()
+        assert {} == cfg.machine_token_file.entitlements
 
+    @mock.patch("os.getuid", return_value=0)
     def test_delete_cache_removes_all_data_path_files_with_delete_permanent(
-        self, tmpdir
+        self, _, tmpdir, FakeConfig
     ):
         """Any cached files defined in cfg.data_paths will be removed."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         # Create half of the cached files, but not all
         odd_keys = list(sorted(cfg.data_paths.keys()))[::2]
         for odd_key in odd_keys:
@@ -621,6 +651,7 @@ class TestDeleteCache:
         )
         assert len(odd_keys) == len(present_files)
         cfg.delete_cache(delete_permanent=True)
+        cfg.machine_token_file.delete()
         dirty_files = list(
             itertools.chain(
                 *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
@@ -630,9 +661,12 @@ class TestDeleteCache:
             ", ".join(dirty_files)
         )
 
-    def test_delete_cache_ignores_permanent_data_path_files(self, tmpdir):
+    @mock.patch("os.getuid", return_value=0)
+    def test_delete_cache_ignores_permanent_data_path_files(
+        self, _, tmpdir, FakeConfig
+    ):
         """Any cached files defined in cfg.data_paths will be removed."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         for key in cfg.data_paths.keys():
             if key == "notices":
                 # notices key expects specific list or lists format
@@ -651,6 +685,7 @@ class TestDeleteCache:
         )
         assert len(cfg.data_paths.keys()) == len(present_files)
         cfg.delete_cache()
+        cfg.machine_token_file.delete()
         dirty_files = list(
             itertools.chain(
                 *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
@@ -660,11 +695,12 @@ class TestDeleteCache:
             dirty_files
         ), "{} files not deleted".format(", ".join(dirty_files))
 
+    @mock.patch("os.getuid", return_value=0)
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
-        self, tmpdir
+        self, _, tmpdir, FakeConfig
     ):
         """Any files in data_dir undefined in cfg.data_paths will remain."""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         t_file = tmpdir.join(PRIVATE_SUBDIR, "otherfile")
         os.makedirs(os.path.dirname(t_file.strpath))
         with open(t_file.strpath, "w") as f:
@@ -673,6 +709,7 @@ class TestDeleteCache:
             tmpdir.join(PRIVATE_SUBDIR).strpath
         )
         cfg.delete_cache()
+        cfg.machine_token_file.delete()
         assert [os.path.basename(t_file.strpath)] == os.listdir(
             tmpdir.join(PRIVATE_SUBDIR).strpath
         )
@@ -1259,15 +1296,18 @@ class TestMachineTokenOverlay:
     }
 
     @mock.patch("uaclient.util.load_file")
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.machine_token",
+        new_callable=PropertyMock,
+    )
     @mock.patch("uaclient.config.os.path.exists", return_value=True)
     def test_machine_token_update_with_overlay(
-        self, m_path, m_read_cache, m_load_file
+        self, m_path, m_token, m_load_file
     ):
         user_cfg = {
             "features": {"machine_token_overlay": "machine-token-path"}
         }
-        m_read_cache.return_value = self.machine_token_dict
+        m_token.return_value = self.machine_token_dict
 
         remote_server_overlay = "overlay"
         json_str = json.dumps(
@@ -1310,19 +1350,25 @@ class TestMachineTokenOverlay:
         cfg = UAConfig(cfg=user_cfg)
         assert expected == cfg.machine_token
 
-    @mock.patch("uaclient.config.UAConfig.read_cache")
-    def test_machine_token_without_overlay(self, m_read_cache):
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.machine_token",
+        new_callable=PropertyMock,
+    )
+    def test_machine_token_without_overlay(self, m_token):
         user_cfg = {}
-        m_read_cache.return_value = self.machine_token_dict
+        m_token.return_value = self.machine_token_dict
         cfg = UAConfig(cfg=user_cfg)
         assert self.machine_token_dict == cfg.machine_token
 
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.machine_token",
+        new_callable=PropertyMock,
+    )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_machine_token_overlay_file_not_found(self, m_path, m_read_cache):
+    def test_machine_token_overlay_file_not_found(self, m_path, m_token):
         invalid_path = "machine-token-path"
         user_cfg = {"features": {"machine_token_overlay": invalid_path}}
-        m_read_cache.return_value = self.machine_token_dict
+        m_token.return_value = self.machine_token_dict
 
         cfg = UAConfig(cfg=user_cfg)
         expected_msg = messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
@@ -1335,14 +1381,17 @@ class TestMachineTokenOverlay:
         assert expected_msg == str(excinfo.value)
 
     @mock.patch("uaclient.util.load_file")
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.machine_token",
+        new_callable=PropertyMock,
+    )
     @mock.patch("uaclient.config.os.path.exists", return_value=True)
     def test_machine_token_overlay_json_decode_error(
-        self, m_path, m_read_cache, m_load_file
+        self, m_path, m_token, m_load_file
     ):
         invalid_json_path = "machine-token-path"
         user_cfg = {"features": {"machine_token_overlay": invalid_json_path}}
-        m_read_cache.return_value = self.machine_token_dict
+        m_token.return_value = self.machine_token_dict
 
         json_str = '{"directives": {"remoteServer": "overlay"}'
         m_load_file.return_value = json_str

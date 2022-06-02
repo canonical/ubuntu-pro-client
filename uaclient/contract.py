@@ -49,7 +49,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
-        self.cfg.write_cache("machine-token", machine_token)
+        self.cfg.machine_token_file.write(machine_token)
 
         util.get_machine_id.cache_clear()
         machine_id = machine_token.get("machineTokenInfo", {}).get(
@@ -148,7 +148,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         This will report to the contracts backend all the current
         enabled services in the system.
         """
-        contract_id = self.cfg.contract_id
+        contract_id = self.cfg.machine_token_file.contract_id
         machine_token = self.cfg.machine_token.get("machineToken")
         machine_id = util.get_machine_id(self.cfg)
 
@@ -166,8 +166,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         # a full `activityInfo` object which belongs at the root of
         # `machine-token.json`
         if response:
-
-            machine_token = self.cfg.read_cache("machine-token")
+            machine_token = self.cfg.machine_token_file.machine_token
             # The activity information received as a response here
             # will not provide the information inside an activityInfo
             # structure. However, this structure will be reflected when
@@ -175,7 +174,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             # Because of that, we will store the response directly on
             # the activityInfo key
             machine_token["activityInfo"] = response
-            self.cfg.write_cache("machine-token", machine_token)
+            self.cfg.machine_token_file.write(machine_token)
 
     def get_updated_contract_info(
         self,
@@ -243,7 +242,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get("expires"):
             response["expires"] = headers["expires"]
         if not detach:
-            self.cfg.write_cache("machine-token", response)
+            self.cfg.machine_token_file.write(response)
             util.get_machine_id.cache_clear()
             machine_id = response.get("machineTokenInfo", {}).get(
                 "machineId", data.get("machineId")
@@ -273,7 +272,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         # If the activityID is null we should provide the endpoint
         # with the instance machine id as the activityID
-        activity_id = self.cfg.activity_id or machine_id
+        activity_id = self.cfg.machine_token_file.activity_id or machine_id
 
         enabled_services = [
             ent(self.cfg).name
@@ -283,7 +282,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         return {
             "activityID": activity_id,
-            "activityToken": self.cfg.activity_token,
+            "activityToken": self.cfg.machine_token_file.activity_token,
             "resources": enabled_services,
         }
 
@@ -475,7 +474,7 @@ def request_updated_contract(
     :raise UrlError: On failure to contact the server
     """
     orig_token = cfg.machine_token
-    orig_entitlements = cfg.entitlements
+    orig_entitlements = cfg.machine_token_file.entitlements
     if orig_token and contract_token:
         msg = messages.UNEXPECTED_CONTRACT_TOKEN_ON_ATTACHED_MACHINE
         raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
@@ -512,7 +511,10 @@ def request_updated_contract(
         )
 
     process_entitlements_delta(
-        cfg, orig_entitlements, cfg.entitlements, allow_enable
+        cfg,
+        orig_entitlements,
+        cfg.machine_token_file.entitlements,
+        allow_enable,
     )
 
 
@@ -531,7 +533,7 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
 
 def is_contract_changed(cfg: UAConfig) -> bool:
     orig_token = cfg.machine_token
-    orig_entitlements = cfg.entitlements
+    orig_entitlements = cfg.machine_token_file.entitlements
     machine_token = orig_token.get("machineToken", "")
     contract_id = (
         orig_token.get("machineTokenInfo", {})
@@ -550,11 +552,13 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     new_expiry = (
         util.parse_rfc3339_date(resp_expiry)
         if resp_expiry
-        else cfg.contract_expiry_datetime
+        else cfg.machine_token_file.contract_expiry_datetime
     )
-    if cfg.contract_expiry_datetime != new_expiry:
+    if cfg.machine_token_file.contract_expiry_datetime != new_expiry:
         return True
-    curr_entitlements = cfg.get_entitlements_from_token(resp)
+    curr_entitlements = cfg.machine_token_file.get_entitlements_from_token(
+        resp
+    )
     for name, new_entitlement in sorted(curr_entitlements.items()):
         deltas = util.get_dict_deltas(
             orig_entitlements.get(name, {}), new_entitlement

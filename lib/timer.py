@@ -89,7 +89,8 @@ class MeteringTimedJob(TimedJob):
         job, we will select the greater value between those two choices.
         """
         return max(
-            cfg.activity_ping_interval or 0, super().run_interval_seconds(cfg)
+            cfg.machine_token_file.activity_ping_interval or 0,
+            super().run_interval_seconds(cfg),
         )
 
 

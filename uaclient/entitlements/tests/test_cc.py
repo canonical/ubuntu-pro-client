@@ -73,7 +73,7 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         unsupported_info["version"] = version
         m_platform_info.return_value = unsupported_info
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
-        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.machine_token_file.write(CC_MACHINE_TOKEN)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
@@ -89,7 +89,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         """When entitlement is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
-        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.machine_token_file.write(CC_MACHINE_TOKEN)
         entitlement = CommonCriteriaEntitlement(cfg, allow_beta=True)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
@@ -106,6 +106,7 @@ class TestCommonCriteriaEntitlementEnable:
         "apt_transport_https,ca_certificates",
         itertools.product([False, True], repeat=2),
     )
+    @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.util.subp")
@@ -120,6 +121,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
+        m_getuid,
         capsys,
         tmpdir,
         apt_transport_https,
@@ -149,7 +151,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         m_platform_info.side_effect = fake_platform
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
-        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.machine_token_file.write(CC_MACHINE_TOKEN)
         entitlement = CommonCriteriaEntitlement(cfg, allow_beta=True)
 
         with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:

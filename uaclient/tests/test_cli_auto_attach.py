@@ -58,12 +58,13 @@ def fake_instance_factory():
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_auto_attach_help(self, _m_resources, _getuid, capsys):
+    def test_auto_attach_help(self, _m_resources, _getuid, capsys, FakeConfig):
+        cfg_override = FakeConfig().cfg
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
             ):
-                main()
+                main([cfg_override])
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
@@ -173,7 +174,7 @@ class TestActionAutoAttach:
         """Non-supported clouds will error."""
         m_cloud_instance_factory.side_effect = cloud_factory_error
         if is_attached:
-            cfg = FakeConfig.for_attached_machine()
+            cfg = FakeConfig(attached=True)
         else:
             cfg = FakeConfig()
 
@@ -201,7 +202,7 @@ class TestActionAutoAttach:
 
         m_get_instance_id.return_value = iid_curr
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         # persist old instance-id value
         cfg.write_cache("instance-id", iid_old)
 
@@ -232,7 +233,7 @@ class TestActionAutoAttach:
     ):
         """When instance-id changes since last attach, call detach."""
         m_get_instance_id.return_value = iid_response
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         # persist old instance-id value
         cfg.write_cache("instance-id", "old-iid")
 
@@ -262,7 +263,7 @@ class TestActionAutoAttach:
 
         m_get_instance_id.return_value = "new-iid"
         m_detach.return_value = 1  # Failure to auto-detach
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig(attached=True)
         # persist old instance-id value
         cfg.write_cache("instance-id", "old-iid")
 

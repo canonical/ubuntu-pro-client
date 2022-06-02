@@ -127,7 +127,7 @@ class TestSecurityStatus:
     @mock.patch("uaclient.security_status.status")
     def test_get_ua_info(self, m_status, is_attached, FakeConfig):
         if is_attached:
-            cfg = FakeConfig().for_attached_machine()
+            cfg = FakeConfig(attached=True)
         else:
             cfg = FakeConfig()
 
