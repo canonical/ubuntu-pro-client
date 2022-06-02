@@ -5,7 +5,7 @@ import socket
 import mock
 import pytest
 
-from uaclient import exceptions, util
+from uaclient import exceptions, messages, util
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_CONTRACT_INFORMATION,
@@ -343,6 +343,153 @@ class TestUAContractClient:
                 expected_machine_id = "machine-id"
 
         assert expected_machine_id == cfg.read_cache("machine-id")
+
+    def test_new_magic_attach_token_successfull(
+        self,
+        get_machine_id,
+        request_url,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        email = "test@test.com"
+        magic_attach_token_resp = (
+            {
+                "token": "token",
+                "expires": "2100-06-09T18:14:55.323733Z",
+                "userEmail": email,
+                "confirmationCode": "1234",
+            },
+        )
+        request_url.return_value = (magic_attach_token_resp, None)
+
+        assert (
+            client.new_magic_attach_token(email=email)
+            == magic_attach_token_resp
+        )
+
+    @pytest.mark.parametrize(
+        "error_code,expected_exception",
+        ((400, exceptions.MagicAttachInvalidEmail),),
+    )
+    def test_new_magic_attach_token_contract_error(
+        self,
+        get_machine_id,
+        request_url,
+        error_code,
+        expected_exception,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        email = "invalid email"
+        request_url.side_effect = exceptions.ContractAPIError(
+            exceptions.UrlError("test", error_code),
+            error_response={},
+        )
+
+        with pytest.raises(expected_exception):
+            client.new_magic_attach_token(email=email)
+
+    def test_new_magic_attach_token_fails(
+        self,
+        get_machine_id,
+        request_url,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        email = "test@test.com"
+        request_url.side_effect = exceptions.UrlError("test")
+
+        with pytest.raises(exceptions.UserFacingError) as exc_error:
+            client.new_magic_attach_token(email=email)
+
+        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+
+    @pytest.mark.parametrize(
+        "error_code,expected_exception",
+        ((401, exceptions.MagicAttachTokenExpired),),
+    )
+    def test_get_magic_attach_token_info_contract_error(
+        self,
+        get_machine_id,
+        request_url,
+        error_code,
+        expected_exception,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        magic_token = "test-id"
+        request_url.side_effect = exceptions.ContractAPIError(
+            exceptions.UrlError("test", error_code),
+            error_response={},
+        )
+
+        with pytest.raises(expected_exception):
+            client.get_magic_attach_token_info(magic_token=magic_token)
+
+    def test_request_magic_attach_id_info_fails(
+        self,
+        get_machine_id,
+        request_url,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        magic_token = "test-id"
+        request_url.side_effect = exceptions.UrlError("test")
+
+        with pytest.raises(exceptions.UserFacingError) as exc_error:
+            client.get_magic_attach_token_info(magic_token=magic_token)
+
+        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+
+    @pytest.mark.parametrize(
+        "error_code,expected_exception",
+        (
+            (400, exceptions.MagicAttachTokenExpiredOrActivated),
+            (401, exceptions.MagicAttachTokenNotFound),
+        ),
+    )
+    def test_revoke_magic_attach_token_contract_error(
+        self,
+        get_machine_id,
+        request_url,
+        error_code,
+        expected_exception,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        magic_token = "test-id"
+        request_url.side_effect = exceptions.ContractAPIError(
+            exceptions.UrlError("test", error_code),
+            error_response={},
+        )
+
+        with pytest.raises(expected_exception):
+            client.revoke_magic_attach_token(magic_token=magic_token)
+
+    def test_revoke_magic_attach_token_fails(
+        self,
+        get_machine_id,
+        request_url,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        magic_token = "test-id"
+        request_url.side_effect = exceptions.UrlError("test")
+
+        with pytest.raises(exceptions.UserFacingError) as exc_error:
+            client.revoke_magic_attach_token(magic_token=magic_token)
+
+        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
 
 class TestProcessEntitlementDeltas:
