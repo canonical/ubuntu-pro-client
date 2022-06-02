@@ -473,24 +473,30 @@ def refresh_parser(parser):
         "Refresh existing Ubuntu Advantage contract and update services."
     )
     parser.usage = USAGE_TMPL.format(
-        name=NAME, command="refresh [contract|config]"
+        name=NAME, command="refresh [contract|config|messages]"
     )
+
     parser._optionals.title = "Flags"
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = textwrap.dedent(
+        """\
+        Refresh three distinct UA related artifacts in the system:
+
+        * contract: Update contract details from the server.
+        * config:   Reload the config file.
+        * messages: Update APT and MOTD messages related to UA.
+
+        You can individually target any of the three specific actions,
+        by passing it's target to nome to the command.  If no `target`
+        is specified, all targets are refreshed.
+        """
+    )
     parser.add_argument(
         "target",
         choices=["contract", "config", "messages"],
         nargs="?",
         default=None,
-        help=(
-            "Target to refresh. `ua refresh contract` will update contract"
-            " details from the server and perform any updates necessary."
-            " `ua refresh config` will reload"
-            " /etc/ubuntu-advantage/uaclient.conf and perform any changes"
-            " necessary. `ua refresh messages` will refresh"
-            " the APT and MOTD messages associated with UA."
-            " `ua refresh` is the equivalent of `ua refresh"
-            " config && ua refresh contract && ua refresh motd`."
-        ),
+        help="Target to refresh.",
     )
     return parser
 
