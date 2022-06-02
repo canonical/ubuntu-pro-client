@@ -5,20 +5,21 @@ from uaclient import exceptions, messages
 from uaclient.cli import action_refresh, main
 
 HELP_OUTPUT = """\
-usage: ua refresh [contract|config] [flags]
+usage: ua refresh [contract|config|messages] [flags]
 
-Refresh existing Ubuntu Advantage contract and update services.
+Refresh three distinct UA related artifacts in the system:
+
+* contract: Update contract details from the server.
+* config:   Reload the config file.
+* messages: Update APT and MOTD messages related to UA.
+
+You can individually target any of the three specific actions,
+by passing it's target to nome to the command.  If no `target`
+is specified, all targets are refreshed.
 
 positional arguments:
   {contract,config,messages}
-                        Target to refresh. `ua refresh contract` will update
-                        contract details from the server and perform any
-                        updates necessary. `ua refresh config` will reload
-                        /etc/ubuntu-advantage/uaclient.conf and perform any
-                        changes necessary. `ua refresh messages` will refresh
-                        the APT and MOTD messages associated with UA. `ua
-                        refresh` is the equivalent of `ua refresh config && ua
-                        refresh contract && ua refresh motd`.
+                        Target to refresh.
 
 Flags:
   -h, --help            show this help message and exit
@@ -33,7 +34,6 @@ class TestActionRefresh:
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
                 main()
         out, _err = capsys.readouterr()
-        print(out)
         assert HELP_OUTPUT in out
 
     def test_non_root_users_are_rejected(self, getuid, FakeConfig):
