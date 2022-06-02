@@ -210,7 +210,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | n/a         | cis        |
-           | bionic  | disabled | disabled | disabled | n/a         | cis        |
+           | bionic  | disabled | disabled | disabled | enabled     | cis        |
            | focal   | disabled | n/a      | disabled | enabled     | usg        |
 
     @series.lts
