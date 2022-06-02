@@ -138,7 +138,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
            | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
            | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
-           | jammy   | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
 
     @series.xenial
     @series.bionic
@@ -156,8 +156,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,
-            realtime-kernel, ros, ros-updates.
+            <msg>
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -177,10 +176,10 @@ Feature: Command behaviour when attached to an UA subscription
         And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | jammy  |
+           | release | msg                                                                                                      |
+           | xenial  | Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | bionic  | Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | jammy   | Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -294,7 +293,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
-           | jammy   | yes      | no     | no  | no   | no          | no  | cis        | yes             |
+           | jammy   | yes      | no     | no  | no   | no          | no  | usg        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -583,12 +582,12 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  | enabled      |
            | xenial  | enabled      |
            | impish  | n/a          |
-           | jammy   | enabled      |
 
+    @series.jammy
     @series.focal
     @uses.config.machine_type.lxd.container
-    Scenario: Help command on an attached machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Help command on an attached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua help esm-infra` with sudo
         Then I will see the following on stdout:
@@ -680,6 +679,11 @@ Feature: Command behaviour when attached to an UA subscription
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
+
+        Examples: ubuntu release
+           | release |
+           | focal   |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
