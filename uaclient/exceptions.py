@@ -202,6 +202,48 @@ class AttachInvalidTokenError(UserFacingError):
         )
 
 
+class MagicAttachTokenExpired(UserFacingError):
+    def __init__(self, magic_token: str):
+        msg = messages.MAGIC_ATTACH_EXPIRED_TOKEN.format(
+            magic_token=magic_token
+        )
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+        )
+
+
+class MagicAttachTokenExpiredOrActivated(UserFacingError):
+    def __init__(self, magic_token: str):
+        msg = messages.MAGIC_ATTACH_TOKEN_EXPIRED_OR_ACTIVATED.format(
+            magic_token=magic_token
+        )
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+        )
+
+
+class MagicAttachTokenNotFound(UserFacingError):
+    def __init__(self, magic_token: str):
+        msg = messages.MAGIC_ATTACH_TOKEN_NOT_FOUND.format(
+            magic_token=magic_token
+        )
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+        )
+
+
+class MagicAttachInvalidEmail(UserFacingError):
+    def __init__(self, email: str):
+        msg = messages.MAGIC_ATTACH_INVALID_EMAIL.format(email=email)
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+        )
+
+
 class LockHeldError(UserFacingError):
     """An exception for when another pro operation is in progress
 

@@ -25,6 +25,8 @@ API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
 
+API_V1_MAGIC_ATTACH = "/v1/magic-attach"
+
 event = event_logger.get_event_logger()
 
 
@@ -170,6 +172,90 @@ class UAContractClient(serviceclient.UAServiceClient):
             # the activityInfo key
             machine_token["activityInfo"] = response
             self.cfg.write_cache("machine-token", machine_token)
+
+    def get_magic_attach_token_info(self, magic_token: str) -> Dict[str, Any]:
+        """Request magic attach token info.
+
+        When the magic token is registered, it will contain new fields
+        that will allow us to know that the attach process can proceed
+        """
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(magic_token)})
+        url = API_V1_MAGIC_ATTACH
+
+        try:
+            response, _ = self.request_url(url, headers=headers)
+        except exceptions.UrlError as e:
+            if isinstance(e, exceptions.ContractAPIError):
+                if hasattr(e, "code"):
+                    if e.code == 401:
+                        raise exceptions.MagicAttachTokenExpired(
+                            magic_token=magic_token
+                        )
+                raise e
+
+            logging.exception(str(e))
+            raise exceptions.UserFacingError(
+                msg=messages.CONNECTIVITY_ERROR.msg,
+                msg_code=messages.CONNECTIVITY_ERROR.name,
+            )
+
+        return response
+
+    def new_magic_attach_token(self, email: str) -> Dict[str, Any]:
+        """Create a magic attach token for the user."""
+        headers = self.headers()
+        url = API_V1_MAGIC_ATTACH
+
+        try:
+            kwargs = {
+                "headers": headers,
+                "method": "POST",
+                "data": {"email": email},
+            }
+            response, _ = self.request_url(url, **kwargs)
+        except exceptions.UrlError as e:
+            if isinstance(e, exceptions.ContractAPIError):
+                if hasattr(e, "code"):
+                    if e.code == 400:
+                        raise exceptions.MagicAttachInvalidEmail(email=email)
+            logging.exception(str(e))
+            raise exceptions.UserFacingError(
+                msg=messages.CONNECTIVITY_ERROR.msg,
+                msg_code=messages.CONNECTIVITY_ERROR.name,
+            )
+
+        return response
+
+    def revoke_magic_attach_token(self, magic_token: str):
+        """Revoke a magic attach token for the user."""
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(magic_token)})
+        url = API_V1_MAGIC_ATTACH
+
+        try:
+            kwargs = {
+                "headers": headers,
+                "method": "DELETE",
+            }
+            self.request_url(url, **kwargs)
+        except exceptions.UrlError as e:
+            if isinstance(e, exceptions.ContractAPIError):
+                if hasattr(e, "code"):
+                    if e.code == 400:
+                        raise exceptions.MagicAttachTokenExpiredOrActivated(
+                            magic_token=magic_token
+                        )
+                    elif e.code == 401:
+                        raise exceptions.MagicAttachTokenNotFound(
+                            magic_token=magic_token
+                        )
+                raise e
+            logging.exception(str(e))
+            raise exceptions.UserFacingError(
+                msg=messages.CONNECTIVITY_ERROR.msg,
+                msg_code=messages.CONNECTIVITY_ERROR.name,
+            )
 
     def get_updated_contract_info(
         self,

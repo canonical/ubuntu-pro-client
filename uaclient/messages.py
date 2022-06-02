@@ -463,6 +463,29 @@ Invalid token. See """
     + BASE_UA_URL,
 )
 
+MAGIC_ATTACH_TOKEN_EXPIRED_OR_ACTIVATED = FormattedNamedMessage(
+    "magic-attach-token-expired-or-activated",
+    (
+        "The magic attach token: {magic_token} is already "
+        "activated or expired."
+    ),
+)
+
+MAGIC_ATTACH_EXPIRED_TOKEN = FormattedNamedMessage(
+    "magic-attach-token-expired",
+    "The magic attach token: {magic_token} has expired or never existed.",
+)
+
+MAGIC_ATTACH_TOKEN_NOT_FOUND = FormattedNamedMessage(
+    "magic-attach-token-not-found",
+    "The magic attach token: {magic_token} was not found.",
+)
+
+MAGIC_ATTACH_INVALID_EMAIL = FormattedNamedMessage(
+    "magic-attach-invalid-email",
+    "The magic attach email: {email} is not valid.",
+)
+
 REQUIRED_SERVICE_NOT_FOUND = FormattedNamedMessage(
     "required-service-not-found", "Required service {service} not found."
 )
