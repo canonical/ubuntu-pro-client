@@ -24,6 +24,9 @@ PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
 CONTRACT_EXPIRY_PENDING_DAYS = 20
 ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
+DEFAULT_LOG_DIR = "/var/log"
+DEFAULT_LOG_FILE_BASE_NAME = "ubuntu-advantage"
+DEFAULT_LOG_PREFIX = DEFAULT_LOG_DIR + "/" + DEFAULT_LOG_FILE_BASE_NAME
 DEFAULT_LOG_FORMAT = (
     "%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s"
 )

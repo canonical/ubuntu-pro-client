@@ -178,47 +178,6 @@ Feature: Command behaviour when unattached
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Run collect-logs on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        And I verify that running `ua collect-logs` `as non-root` exits `1`
-        Then I will see the following on stderr:
-             """
-             This command must be run as root (try using sudo).
-             """
-        When I run `ua collect-logs` with sudo
-        Then I verify that files exist matching `ua_logs.tar.gz`
-        When I run `tar zxf ua_logs.tar.gz` as non-root
-        Then I verify that files exist matching `logs/`
-        When I run `sh -c "ls -1 logs/ | sort -d"` as non-root
-        Then stdout matches regexp:
-        """
-        build.info
-        cloud-id.txt
-        jobs-status.json
-        journalctl.txt
-        livepatch-status.txt-error
-        systemd-timers.txt
-        ua-auto-attach.path.txt-error
-        ua-auto-attach.service.txt-error
-        uaclient.conf
-        ua-reboot-cmds.service.txt
-        ua-status.json
-        ua-timer.service.txt
-        ua-timer.timer.txt
-        ubuntu-advantage.log
-        ubuntu-advantage.service.txt
-        ubuntu-advantage-timer.log
-        """
-        Examples: ubuntu release
-          | release |
-          | bionic  |
-          | focal   |
-          | impish  |
-          | jammy   |
-
-    @series.all
-    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua <command> esm-infra` `as non-root` exits `1`
