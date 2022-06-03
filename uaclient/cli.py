@@ -3,6 +3,7 @@
 """Client to manage Ubuntu Advantage services on a machine."""
 
 import argparse
+import glob
 import json
 import logging
 import os
@@ -43,6 +44,7 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_FORMAT,
+    DEFAULT_LOG_PREFIX,
     PRINT_WRAP_WIDTH,
 )
 from uaclient.entitlements.entitlement_status import (
@@ -1475,7 +1477,8 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
                 return_codes=[0, 3],
             )
 
-        ua_logs = (
+        # include cfg log files here because they could be set to non default
+        state_files = [
             cfg.cfg_path or DEFAULT_CONFIG_FILE,
             cfg.log_file,
             cfg.timer_log_file,
@@ -1487,14 +1490,15 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
                 for entitlement in entitlements.ENTITLEMENT_CLASSES
                 if issubclass(entitlement, entitlements.repo.RepoEntitlement)
             ),
-        )
+        ]
 
-        for log in ua_logs:
-            if os.path.isfile(log):
-                log_content = util.load_file(log)
+        # also get default logrotated log files
+        for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
+            if os.path.isfile(f):
+                log_content = util.load_file(f)
                 log_content = util.redact_sensitive_logs(log_content)
-                util.write_file(log, log_content)
-                shutil.copy(log, output_dir)
+                util.write_file(f, log_content)
+                shutil.copy(f, output_dir)
 
         with tarfile.open(output_file, "w:gz") as results:
             results.add(output_dir, arcname="logs/")
