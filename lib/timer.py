@@ -42,6 +42,7 @@ class TimedJob:
             return False
 
         try:
+            LOG.debug("Running job: %s", self.name)
             if self._job_func(cfg=cfg):
                 LOG.debug("Executed job: %s", self.name)
         except Exception as e:
