@@ -51,6 +51,13 @@ class TestActionCollectLogs:
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
 
+    @mock.patch(
+        M_PATH + "glob.glob",
+        return_value=[
+            "/var/log/ubuntu-advantage.log",
+            "/var/log/ubuntu-advantage.log.1",
+        ],
+    )
     @mock.patch(M_PATH + "tarfile.open")
     @mock.patch("builtins.open")
     @mock.patch(M_PATH + "util.redact_sensitive_logs", return_value="test")
@@ -68,6 +75,7 @@ class TestActionCollectLogs:
         redact,
         _fopen,
         _tarfile,
+        _glob,
         _getuid,
         FakeConfig,
     ):
@@ -118,8 +126,37 @@ class TestActionCollectLogs:
             ),
         ]
 
-        assert m_copy.call_count == 15
-        assert redact.call_count == 15
+        assert m_copy.call_count == 17
+        assert m_copy.call_args_list == [
+            mock.call("/etc/ubuntu-advantage/uaclient.conf", mock.ANY),
+            mock.call("/var/log/ubuntu-advantage.log", mock.ANY),
+            mock.call("/var/log/ubuntu-advantage-timer.log", mock.ANY),
+            mock.call("/var/log/ubuntu-advantage-daemon.log", mock.ANY),
+            mock.call(cfg.data_dir + "/jobs-status.json", mock.ANY),
+            mock.call("/etc/cloud/build.info", mock.ANY),
+            mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list", mock.ANY),
+            mock.call("/etc/apt/sources.list.d/ubuntu-cis.list", mock.ANY),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-esm-apps.list", mock.ANY
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-esm-infra.list", mock.ANY
+            ),
+            mock.call("/etc/apt/sources.list.d/ubuntu-fips.list", mock.ANY),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-fips-updates.list", mock.ANY
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-realtime-kernel.list", mock.ANY
+            ),
+            mock.call("/etc/apt/sources.list.d/ubuntu-ros.list", mock.ANY),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-ros-updates.list", mock.ANY
+            ),
+            mock.call("/var/log/ubuntu-advantage.log", mock.ANY),
+            mock.call("/var/log/ubuntu-advantage.log.1", mock.ANY),
+        ]
+        assert redact.call_count == 17
 
 
 class TestParser:
