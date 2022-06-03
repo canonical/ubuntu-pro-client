@@ -24,26 +24,17 @@ following entitlements are supported:
 - [Ubuntu Security Guide (USG) Tooling](https://ubuntu.com/security/certifications/docs/usg)
 - [Ubuntu Extended Security Maintenance (ESM)](https://ubuntu.com/security/esm)
 - [Robot Operating System (ROS) Extended Security Maintenance](https://ubuntu.com/robotics/ros-esm)
-- [FIPS 140-2 Certified Modules](https://ubuntu.com/security/fips)
-- [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/security/fips)
+- [FIPS 140-2 Certified Modules (and optional non-certified patches)](https://ubuntu.com/security/fips)
 - [Livepatch Service](https://ubuntu.com/security/livepatch)
 
-## Obtaining the Client
+## Quickstart
 
-The client comes pre-installed on all Ubuntu systems in the debian `ubuntu-advantage-tools` package.
+`ua` is already installed on every Ubuntu system. Try it out by running `ua help`!
 
-Additionally, there are 3 PPAs with different release channels of the Ubuntu Advantage Client:
+To learn the basic commands and enable professional Ubuntu services in a sandbox environment, follow our [Getting Started Tutorial](./docs/tutorials/basic_ua_commands.md).
 
-1. Stable: This contains stable builds only which have been verified for release into Ubuntu stable releases or Ubuntu PRO images.
-    - add with `sudo add-apt-repository ppa:ua-client/stable`
-2. Staging: This contains builds under validation for release to stable Ubuntu releases and images
-    - add with `sudo add-apt-repository ppa:ua-client/staging`
-3. Daily: This PPA is updated every day with the latest changes.
-    - add with `sudo add-apt-repository ppa:ua-client/daily`
 
-Users can manually run the `ua` command to learn more or view the manpage.
-
-## User Documentation
+## Documentation
 
 ### Tutorials
 
@@ -53,7 +44,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 ### How To Guides
 
-* [How to get an UA token and attach to a subscription?](./docs/howtoguides/get_token_and_attach.md)
+* [How to get an UA token and attach to a subscription](./docs/howtoguides/get_token_and_attach.md)
 * [How to Configure Proxies](./docs/howtoguides/configure_proxies.md)
 * [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
 * [How to Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
@@ -63,9 +54,9 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [How to enable ESM Infra](./docs/howtoguides/enable_esm_infra.md)
 * [How to enable FIPS](./docs/howtoguides/enable_fips.md)
 * [How to enable Livepatch](./docs/howtoguides/enable_livepatch.md)
-* [How to configure a timer job?](./docs/howtoguides/configuring_timer_jobs.md)
-* [How to attach with a configuration file?](./docs/howtoguides/how_to_attach_with_config_file.md)
-* [How to collect UA logs?](./docs/howtoguides/how_to_collect_ua_logs.md)
+* [How to configure a timer job](./docs/howtoguides/configuring_timer_jobs.md)
+* [How to attach with a configuration file](./docs/howtoguides/how_to_attach_with_config_file.md)
+* [How to collect UA logs](./docs/howtoguides/how_to_collect_ua_logs.md)
 * [How to Simulate attach operation](./docs/howtoguides/how_to_simulate_attach.md)
 * [How to run ua fix in dry-run mode](./docs/howtoguides/how_to_run_ua_fix_in_dry_run_mode.md)
 
@@ -73,6 +64,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 * [Ubuntu Release and Architecture Support Matrix](./docs/references/support_matrix.md)
 * [UA Network Requirements](./docs/references/network_requirements.md)
+* [PPAs with different versions of `ua`](./docs/references/ppas.md)
 
 ### Explanation
 
@@ -80,8 +72,8 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [What is Ubuntu PRO?](./docs/explanations/what_is_ubuntu_pro.md)
 * [What is the ubuntu-advantage-pro package?](./docs/explanations/what_is_the_ubuntu_advantage_pro_package.md)
 * [What are the timer jobs?](./docs/explanations/what_are_the_timer_jobs.md)
-* [What are the UA related MOTD messages](./docs/explanations/motd_messages.md)
+* [What are the UA related MOTD messages?](./docs/explanations/motd_messages.md)
 * [What are the UA related APT messages?](./docs/explanations/apt_messages.md)
 
-## Contributing
+## Contributing and Developer Documentation
 See [CONTRIBUTING.md](CONTRIBUTING.md)
