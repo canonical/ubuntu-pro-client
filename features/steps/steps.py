@@ -1047,6 +1047,63 @@ def systemd_memory_usage_less_than(context, release, mb_limit):
         )
 
 
+@when(
+    "I prepare the local PPAs to upgrade from `{release}` to `{next_release}`"
+)
+def when_i_create_local_ppas(context, release, next_release):
+    if not context.config.build_pr:
+        return
+
+    # We need Kinetic or greater to support zstd when creating the PPAs
+    launch_machine(context, "kinetic", "ppa")
+    when_i_run_command_on_machine(
+        context, "apt-get update", "with sudo", "ppa"
+    )
+    when_i_run_command_on_machine(
+        context, "apt-get install -y aptly", "with sudo", "ppa"
+    )
+    create_local_ppa(context, release)
+    create_local_ppa(context, next_release)
+    repo_line = "deb [trusted=yes] http://{}:8080 {} main".format(
+        context.instances["ppa"].ip, release
+    )
+    repo_file = "/etc/apt/sources.list.d/local-ua.list"
+    when_i_run_shell_command(
+        context, "printf '{}\n' > {}".format(repo_line, repo_file), "with sudo"
+    )
+    when_i_run_command_on_machine(
+        context,
+        "sh -c 'nohup aptly serve > /dev/null 2>&1 &'",
+        "with sudo",
+        "ppa",
+    )
+
+
+def create_local_ppa(context, release):
+    when_i_run_command_on_machine(
+        context,
+        "aptly repo create -distribution {} repo-{}".format(release, release),
+        "with sudo",
+        "ppa",
+    )
+    debs = build_debs_from_sbuild(context, release)
+    for deb in debs:
+        deb_destination = "/tmp/" + deb.split("/")[-1]
+        context.instances["ppa"].push_file(deb, deb_destination)
+        when_i_run_command_on_machine(
+            context,
+            "aptly repo add repo-{} {}".format(release, deb_destination),
+            "with sudo",
+            "ppa",
+        )
+    when_i_run_command_on_machine(
+        context,
+        "aptly publish repo -skip-signing repo-{}".format(release),
+        "with sudo",
+        "ppa",
+    )
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
