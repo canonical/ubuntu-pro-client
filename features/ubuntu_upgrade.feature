@@ -9,10 +9,8 @@ Feature: Upgrade between releases when uaclient is attached
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `<before_cmd>` with sudo
-        # update-manager-core requires ua < 28. Our tests that build the package will
-        # generate ua with version 28. We are removing that package here to make sure
-        # do-release-upgrade will be able to run
-        And I run `apt remove update-manager-core -y` with sudo
+        # Local PPAs are prepared and served only when testing with BUILD_PR=1
+        And I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
         And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the `<release>` machine
@@ -34,7 +32,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
         """
         When I run `ua refresh` with sudo
-        When I run `ua status` with sudo
+        And I run `ua status` with sudo
         Then stdout matches regexp:
         """
         <service> +yes +<service_status>
@@ -89,7 +87,9 @@ Feature: Upgrade between releases when uaclient is attached
         """
         1
         """
-        When I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
+         # Local PPAs are prepared and served only when testing with BUILD_PR=1
+        When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+        And I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
         # A package may need a reboot after running dist-upgrade
         And I reboot the `<release>` machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following

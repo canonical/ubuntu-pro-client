@@ -7,10 +7,8 @@ Feature: Upgrade between releases when uaclient is unattached
     @upgrade
     Scenario Outline: Unattached upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        # update-manager-core requires ua < 28. Our tests that build the package will
-        # generate ua with version 28. We are removing that package here to make sure
-        # do-release-upgrade will be able to run
-        When I run `apt remove update-manager-core -y` with sudo
+        # Local PPAs are prepared and served only when testing with BUILD_PR=1
+        When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
         And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the `<release>` machine
