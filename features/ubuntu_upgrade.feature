@@ -35,7 +35,11 @@ Feature: Upgrade between releases when uaclient is attached
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        <service> +yes +<service_status>
+        <service1> +yes +<service1_status>
+        """
+        Then stdout matches regexp:
+        """
+        <service2> +yes +<service2_status>
         """
         When I run `ua detach --assume-yes` with sudo
         Then stdout matches regexp:
@@ -44,14 +48,14 @@ Feature: Upgrade between releases when uaclient is attached
         """
 
         Examples: ubuntu release
-        | release | next_release | prompt | devel_release   | service   | service_status | before_cmd    |
-        | xenial  | bionic       | lts    |                 | esm-infra | enabled        | true          |
-        | bionic  | focal        | lts    |                 | esm-infra | enabled        | true          |
-        | bionic  | focal        | lts    |                 | usg       | enabled        | ua enable cis |
-        | focal   | impish       | normal |                 | esm-infra | n/a            | true          |
-        | focal   | jammy        | lts    | --devel-release | esm-infra | enabled        | true          |
-        | impish  | jammy        | lts    |                 | esm-infra | disabled       | true          |
-        | jammy   | kinetic      | normal | --devel-release | esm-infra | n/a            | true          |
+        | release | next_release | prompt | devel_release   | service1  | service1_status | service2 | service2_status | before_cmd    |
+        | xenial  | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true          |
+        | bionic  | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true          |
+        | bionic  | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | ua enable cis |
+        | focal   | impish       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true          |
+        | focal   | jammy        | lts    | --devel-release | esm-infra | enabled         | esm-apps | enabled         | true          |
+        | impish  | jammy        | lts    |                 | esm-infra | disabled        | esm-apps | enabled         | true          |
+        | jammy   | kinetic      | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true          |
 
     @slow
     @series.xenial
