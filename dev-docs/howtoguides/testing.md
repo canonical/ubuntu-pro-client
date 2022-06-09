@@ -38,10 +38,18 @@ By default, integration tests will do the following on a given cloud platform:
  * Install the appropriate ubuntu-advantage-tools and ubuntu-advantage-pro deb
  * Run the integration tests on that instance.
 
-The testing can be overridden to run using a local copy of the ubuntu-advantage-client source code instead of the daily PPA by providing the following environment variable to the behave test runner:
-```UACLIENT_BEHAVE_BUILD_PR=1```
+The testing can be overridden to install ubuntu-advantage-tools from other sources instead of the daily PPA by providing `UACLIENT_BEHAVE_INSTALL_FROM` to the behave test runner. The default is `UACLIENT_BEHAVE_INSTALL_FROM=daily`, and the other available options are:
 
-> Note that, by default, we cache the source even when `UACLIENT_BEHAVE_BUILD_PR=1`. This means that if you change the python code locally and want to run the behave tests against your new version, you need to either delete the cache (`rm /tmp/uaclient_behave`) or also set `UACLIENT_BEHAVE_CACHE_SOURCE=0`.
+- `staging`: install from the [staging PPA](https://code.launchpad.net/~ua-client/+archive/ubuntu/staging)
+- `stable`: install from the [stable PPA](https://code.launchpad.net/~ua-client/+archive/ubuntu/stable)
+- `archive`: install the latest version available in the archive, not adding any PPA
+- `proposed`: install the package from the -proposed pocket - specially useful for SRU testing (see [the release guide](how_to_release_a_new_version_of_ua.md))
+- `custom`: install from a custom provided PPA. If set, then two other variables need to be set: `UACLIENT_BEHAVE_CUSTOM_PPA=<PPA URL>` and `UACLIENT_BEHAVE_CUSTOM_PPA_KEYID=<signing key for the PPA>`.
+- `local`: install from a local copy of the ubuntu-advantage-client source code
+
+`local` is particularly useful, as it runs the suite against the local code, thus including and validating the latest changes made. It is advised to run any related integration tests against local code changes before pushing them to be reviewed.
+
+> Note that, by default, we cache the source even when `UACLIENT_BEHAVE_INSTALL_FROM=local`. This means that if you change the python code locally and want to run the behave tests against your new version, you need to either delete the cache (`rm /tmp/uaclient_behave`) or also set `UACLIENT_BEHAVE_CACHE_SOURCE=0`.
 
 To run the tests, you can use `tox`:
 

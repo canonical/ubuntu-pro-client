@@ -7,7 +7,7 @@ Feature: Upgrade between releases when uaclient is unattached
     @upgrade
     Scenario Outline: Unattached upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        # Local PPAs are prepared and served only when testing with BUILD_PR=1
+        # Local PPAs are prepared and served only when testing with local debs
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
         And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
