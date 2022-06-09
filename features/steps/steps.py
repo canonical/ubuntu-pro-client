@@ -19,11 +19,12 @@ from hamcrest import (
 )
 
 from features.environment import (
+    UA_PPA_TEMPLATE,
     build_debs_from_sbuild,
     capture_container_as_image,
     create_instance_with_uat_installed,
 )
-from features.util import SafeLoaderWithoutDatetime
+from features.util import InstallationSource, SafeLoaderWithoutDatetime
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
 from uaclient.util import DatetimeAwareJSONDecoder
 
@@ -129,7 +130,7 @@ def given_a_machine(context, series):
 
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
-    if context.config.build_pr:
+    if context.config.install_from is InstallationSource.LOCAL:
         deb_paths = build_debs_from_sbuild(context, series)
 
         for deb_path in deb_paths:
@@ -137,23 +138,25 @@ def when_i_have_the_debs_under_test(context, series, dest):
             dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
             context.instances["uaclient"].push_file(deb_path, dest_path)
     else:
-        if context.config.enable_proposed:
+        if context.config.install_from is InstallationSource.PROPOSED:
             ppa_opts = ""
         else:
-            if context.config.ppa.startswith("ppa"):
-                ppa = context.config.ppa
-            else:
-                # assumes format "http://domain.name/user/ppa/ubuntu"
-                match = re.match(
-                    r"https?://[\w.]+/([^/]+/[^/]+)", context.config.ppa
-                )
-                if not match:
-                    raise AssertionError(
-                        "ppa is in unsupported format: {}".format(
-                            context.config.ppa
+            if context.config.install_from is InstallationSource.DAILY:
+                ppa = UA_PPA_TEMPLATE.format("daily")
+            elif context.config.install_from is InstallationSource.STAGING:
+                ppa = UA_PPA_TEMPLATE.format("staging")
+            elif context.config.install_from is InstallationSource.STABLE:
+                ppa = UA_PPA_TEMPLATE.format("stable")
+            elif context.config.install_from is InstallationSource.CUSTOM:
+                ppa = context.config.custom_ppa
+                if not ppa.startswith("ppa"):
+                    # assumes format "http://domain.name/user/ppa/ubuntu"
+                    match = re.match(r"https?://[\w.]+/([^/]+/[^/]+)", ppa)
+                    if not match:
+                        raise AssertionError(
+                            "ppa is in unsupported format: {}".format(ppa)
                         )
-                    )
-                ppa = "ppa:{}".format(match.group(1))
+                    ppa = "ppa:{}".format(match.group(1))
             ppa_opts = "--distro ppa --ppa {}".format(ppa)
         download_cmd = "pull-lp-debs {} ubuntu-advantage-tools {}".format(
             ppa_opts, series
@@ -1095,7 +1098,7 @@ def systemd_memory_usage_less_than(context, release, mb_limit):
     "I prepare the local PPAs to upgrade from `{release}` to `{next_release}`"
 )
 def when_i_create_local_ppas(context, release, next_release):
-    if not context.config.build_pr:
+    if context.config.install_from is not InstallationSource.LOCAL:
         return
 
     # We need Kinetic or greater to support zstd when creating the PPAs

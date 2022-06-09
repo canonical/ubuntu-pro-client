@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import textwrap
+from enum import Enum
 from typing import Iterable, List, Optional
 
 import yaml
@@ -37,6 +38,16 @@ BUILD_FROM_TGZ = textwrap.dedent(
    cp /tmp/ubuntu-advantage-pro*.deb /tmp/ubuntu-advantage-pro.deb
    """
 )
+
+
+class InstallationSource(Enum):
+    ARCHIVE = "archive"
+    LOCAL = "local"
+    DAILY = "daily"
+    STAGING = "staging"
+    STABLE = "stable"
+    PROPOSED = "proposed"
+    CUSTOM = "custom"
 
 
 def lxc_get_property(name: str, property_name: str, image: bool = False):

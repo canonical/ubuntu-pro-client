@@ -5,6 +5,7 @@ import os
 import random
 import re
 import string
+import sys
 import textwrap
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
@@ -13,12 +14,12 @@ from behave.model import Feature, Scenario
 from behave.runner import Context
 
 import features.cloud as cloud
-from features.util import build_debs, lxc_get_property
+from features.util import InstallationSource, build_debs, lxc_get_property
 
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "xenial"]
 
-DAILY_PPA = "http://ppa.launchpad.net/ua-client/daily/ubuntu"
-DAILY_PPA_KEYID = "6E34E7116C0BC933"
+UA_PPA_TEMPLATE = "http://ppa.launchpad.net/ua-client/{}/ubuntu"
+DEFAULT_UA_PPA_KEYID = "6E34E7116C0BC933"
 
 USERDATA_BLOCK_AUTO_ATTACH_IMG = """\
 #cloud-config
@@ -31,7 +32,7 @@ bootcmd:
 # the lxd_agent on some releases
 USERDATA_RUNCMD_PIN_PPA = """\
 runcmd:
-  - "printf \\"Package: *\\nPin: release o=LP-PPA-ua-client-daily\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient"
+  - "printf \\"Package: *\\nPin: release o=LP-PPA-ua-client-{}\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient"
 """  # noqa: E501
 
 USERDATA_RUNCMD_ENABLE_PROPOSED = """
@@ -111,11 +112,9 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = [
-        "build_pr",
         "image_clean",
         "destroy_instances",
         "cache_source",
-        "enable_proposed",
         "ephemeral_instance",
         "snapshot_strategy",
     ]
@@ -130,8 +129,9 @@ class UAClientBehaveConfig:
         "reuse_image",
         "debs_path",
         "artifact_dir",
-        "ppa",
-        "ppa_keyid",
+        "install_from",
+        "custom_ppa",
+        "custom_ppa_keyid",
         "userdata_file",
         "check_version",
         "sbuild_chroot",
@@ -152,11 +152,9 @@ class UAClientBehaveConfig:
         self,
         *,
         cloud_credentials_path: str = None,
-        build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
         cache_source: bool = True,
-        enable_proposed: bool = False,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
         machine_type: str = "lxd.container",
@@ -168,8 +166,9 @@ class UAClientBehaveConfig:
         contract_token_staging_expired: str = None,
         debs_path: str = None,
         artifact_dir: str = None,
-        ppa: str = DAILY_PPA,
-        ppa_keyid: str = DAILY_PPA_KEYID,
+        install_from: InstallationSource = InstallationSource.DAILY,
+        custom_ppa: str = None,
+        custom_ppa_keyid: str = None,
         userdata_file: str = None,
         check_version: str = None,
         sbuild_chroot: str = None,
@@ -177,9 +176,7 @@ class UAClientBehaveConfig:
     ) -> None:
         # First, store the values we've detected
         self.cloud_credentials_path = cloud_credentials_path
-        self.build_pr = build_pr
         self.cache_source = cache_source
-        self.enable_proposed = enable_proposed
         self.ephemeral_instance = ephemeral_instance
         self.snapshot_strategy = snapshot_strategy
         self.contract_token = contract_token
@@ -194,8 +191,9 @@ class UAClientBehaveConfig:
         self.cmdline_tags = cmdline_tags
         self.debs_path = debs_path
         self.artifact_dir = artifact_dir
-        self.ppa = ppa
-        self.ppa_keyid = ppa_keyid
+        self.install_from = install_from
+        self.custom_ppa = custom_ppa
+        self.custom_ppa_keyid = custom_ppa_keyid
         self.userdata_file = userdata_file
         self.check_version = check_version
         self.sbuild_chroot = sbuild_chroot
@@ -300,7 +298,9 @@ class UAClientBehaveConfig:
     def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from os.environ and return a config object"""
         # First, gather all known options
-        kwargs = {}  # type: Dict[str, Union[str, bool, List]]
+        kwargs = (
+            {}
+        )  # type: Dict[str, Union[str, bool, List, InstallationSource]]
         # Preserve cmdline_tags for reference
         if not config.tags.ands:
             kwargs["cmdline_tags"] = []
@@ -324,6 +324,10 @@ class UAClientBehaveConfig:
                 if kwargs[key] == "0":
                     bool_value = False
                 kwargs[key] = bool_value
+
+        if "install_from" in kwargs:
+            kwargs["install_from"] = InstallationSource(kwargs["install_from"])
+
         return cls(**kwargs)  # type: ignore
 
 
@@ -540,11 +544,7 @@ def after_step(context, step):
 
 
 def after_all(context):
-    if context.config.ppa == "":
-        logging.info(
-            " No custom images to delete. UACLIENT_BEHAVE_PPA is unset."
-        )
-    elif context.config.image_clean:
+    if context.config.image_clean:
         for key, image in context.series_image_name.items():
             if key == context.series_reuse_image:
                 logging.info(
@@ -619,7 +619,7 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
 
 def create_instance_with_uat_installed(
     context: Context, series: str, name: str
-) -> None:
+) -> pycloudlib.instance.BaseInstance:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
@@ -631,6 +631,8 @@ def create_instance_with_uat_installed(
         it.
     :param series:
        A string representing the series name to create
+
+    :return: A pycloudlib Instance
     """
 
     if series in context.reuse_container:
@@ -639,57 +641,20 @@ def create_instance_with_uat_installed(
             context.reuse_container[series],
         )
         return
-    ppa = context.config.ppa
-    if ppa == "":
-        image_name = context.config.cloud_manager.locate_image_name(series)
-        logging.info(
-            "--- Unset UACLIENT_BEHAVE_PPA. Using ubuntu-advantage-tools "
-            + "from image: {}".format(image_name)
-        )
-        context.series_image_name[series] = image_name
-        return
 
-    deb_paths = []
-    if context.config.build_pr:
-        deb_paths = build_debs_from_sbuild(context, series)
+    user_data = _get_user_data_for_instance(context.config, series)
 
     logging.info(
-        "--- Launching VM to create a base image with updated ubuntu-advantage"
+        "--- Launching VM to create a base image with ubuntu-advantage"
     )
-
-    user_data = ""
-    ud_file = context.config.userdata_file
-    if ud_file and os.path.exists(ud_file):
-        with open(ud_file, "r") as stream:
-            user_data = stream.read()
-    if "pro" in context.config.machine_type:
-        if not user_data:
-            user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
-    if not deb_paths:
-        if not user_data:
-            user_data = "#cloud-config\n"
-
-        if context.config.enable_proposed:
-            user_data += USERDATA_RUNCMD_ENABLE_PROPOSED.format(series=series)
-        else:
-            ppa = context.config.ppa
-            ppa_keyid = context.config.ppa_keyid
-            if context.config.ppa.startswith("ppa:"):
-                ppa = (
-                    ppa.replace("ppa:", "http://ppa.launchpad.net/")
-                    + "/ubuntu"
-                )
-
-            if ppa == DAILY_PPA:
-                user_data += USERDATA_RUNCMD_PIN_PPA
-
-            user_data += USERDATA_APT_SOURCE_PPA.format(
-                ppa_url=ppa, ppa_keyid=ppa_keyid
-            )
     inst = context.config.cloud_manager.launch(
         instance_name=name, series=series, user_data=user_data
     )
     instance_id = context.config.cloud_manager.get_instance_id(inst)
+
+    deb_paths = None
+    if context.config.install_from is InstallationSource.LOCAL:
+        deb_paths = build_debs_from_sbuild(context, series)
 
     _install_uat_in_container(
         instance_id,
@@ -700,6 +665,61 @@ def create_instance_with_uat_installed(
     )
 
     return inst
+
+
+def _get_user_data_for_instance(
+    config: UAClientBehaveConfig, series: str
+) -> str:
+    if config.install_from in (
+        InstallationSource.ARCHIVE,
+        InstallationSource.LOCAL,
+    ):
+        return ""
+
+    user_data = "#cloud-config\n"
+
+    if "pro" in config.machine_type:
+        user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
+
+    if config.userdata_file and os.path.exists(config.userdata_file):
+        with open(config.userdata_file, "r") as stream:
+            user_data = stream.read()
+
+    if config.install_from is InstallationSource.PROPOSED:
+        user_data += USERDATA_RUNCMD_ENABLE_PROPOSED.format(series=series)
+        return user_data
+
+    if config.install_from is InstallationSource.DAILY:
+        user_data += USERDATA_RUNCMD_PIN_PPA.format("daily")
+        ppa = UA_PPA_TEMPLATE.format("daily")
+        ppa_keyid = DEFAULT_UA_PPA_KEYID
+    elif config.install_from is InstallationSource.STAGING:
+        user_data += USERDATA_RUNCMD_PIN_PPA.format("staging")
+        ppa = UA_PPA_TEMPLATE.format("staging")
+        ppa_keyid = DEFAULT_UA_PPA_KEYID
+    elif config.install_from is InstallationSource.STABLE:
+        user_data += USERDATA_RUNCMD_PIN_PPA.format("stable")
+        ppa = UA_PPA_TEMPLATE.format("stable")
+        ppa_keyid = DEFAULT_UA_PPA_KEYID
+    elif config.install_from is InstallationSource.CUSTOM:
+        if not config.custom_ppa or not config.custom_ppa_keyid:
+            logging.error(
+                "UACLIENT_BEHAVE_INSTALL_FROM is set to 'custom', "
+                + "but missing UACLIENT_BEHAVE_CUSTOM_PPA or "
+                + "UACLIENT_BEHAVE_CUSTOM_PPA_KEYID"
+            )
+            sys.exit(1)
+        ppa = config.custom_ppa
+        if ppa.startswith("ppa:"):
+            ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
+        ppa_keyid = config.custom_ppa_keyid or ""
+
+    user_data += USERDATA_APT_SOURCE_PPA.format(
+        ppa_url=ppa, ppa_keyid=ppa_keyid
+    )
+
+    logging.debug("User data:\n" + user_data)
+    return user_data
 
 
 def _install_uat_in_container(
