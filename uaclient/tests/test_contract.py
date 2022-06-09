@@ -156,7 +156,12 @@ class TestUAContractClient:
             return {"machineId": machine_id}
 
         m_platform_data.side_effect = fake_platform_data
-        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
+        get_platform_info.return_value = {
+            "arch": "arch",
+            "kernel": "kernel",
+            "series": "series",
+        }
+
         get_machine_id.return_value = "machineId"
         machine_token = {"machineTokenInfo": {}}
         if machine_id_response:
