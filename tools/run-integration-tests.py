@@ -43,7 +43,7 @@ def is_compatible(platform, series):
 
 
 def build_commands(
-    platform, series, proposed, check_version, token, credentials_path, wip
+    platform, series, install_from, check_version, token, credentials_path, wip
 ):
     with open(credentials_path) as f:
         credentials = yaml.safe_load(f)
@@ -61,11 +61,8 @@ def build_commands(
                         check_version, series_version
                     )
 
-                # If not told to run from proposed, run from local changes
-                if proposed:
-                    env["UACLIENT_BEHAVE_ENABLE_PROPOSED"] = "1"
-                else:
-                    env["UACLIENT_BEHAVE_BUILD_PR"] = "1"
+                # choose the appropriate installation source for the deb
+                env["UACLIENT_BEHAVE_INSTALL_FROM"] = install_from
 
                 # Inject tokens from credentials
                 for t in token:
@@ -115,11 +112,20 @@ def build_commands(
     help="Tokens to use for the tests (require tokens in the credentials file)",
 )
 @click.option(
-    "--proposed",
-    type=bool,
-    default=False,
-    is_flag=True,
-    help="Run tests based on existing packages in the Proposed pocket",
+    "--install-from",
+    type=click.Choice(
+        (
+            "archive",
+            "local",
+            "daily",
+            "staging",
+            "stable",
+            "proposed",
+            "custom",
+        )
+    ),
+    default="local",
+    help="Choose the installation source for the uaclient deb",
 )
 @click.option(
     "--check-version",
@@ -142,10 +148,16 @@ def build_commands(
     help="Run only tests with the @wip decorator",
 )
 def run_tests(
-    platform, series, proposed, check_version, token, credentials_path, wip
+    platform, series, install_from, check_version, token, credentials_path, wip
 ):
     commands = build_commands(
-        platform, series, proposed, check_version, token, credentials_path, wip
+        platform,
+        series,
+        install_from,
+        check_version,
+        token,
+        credentials_path,
+        wip,
     )
     current_datetime = datetime.now().strftime(format="%b-%d-%H%M")
     output_dir = "test-results/{}".format(current_datetime)
@@ -179,7 +191,7 @@ def run_tests(
                 processes.remove(process)
         time.sleep(5)
 
-    if proposed and not error:
+    if install_from == "proposed" and not error:
         filename = "test-results-{}.tar.gz".format(current_datetime)
         with tarfile.open(filename, "w:gz") as results:
             results.add(output_dir, arcname="test-results/")
