@@ -61,14 +61,8 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def request_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
-        platform = util.get_platform_info()
-        query_params = {
-            "architecture": platform["arch"],
-            "series": platform["series"],
-            "kernel": platform["kernel"],
-        }
         resource_response, headers = self.request_url(
-            API_V1_RESOURCES, query_params=query_params
+            API_V1_RESOURCES, query_params=self._get_platform_basic_info()
         )
         return resource_response
 
@@ -198,10 +192,14 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
-            contract=contract_id, machine=machine_id
+            contract=contract_id,
+            machine=machine_id,
         )
         response, headers = self.request_url(
-            url, method="GET", headers=headers
+            url,
+            method="GET",
+            headers=headers,
+            query_params=self._get_platform_basic_info(),
         )
         if headers.get("expires"):
             response["expires"] = headers["expires"]
@@ -262,6 +260,15 @@ class UAContractClient(serviceclient.UAServiceClient):
             "machineId": machine_id,
             "architecture": arch,
             "os": platform_os,
+        }
+
+    def _get_platform_basic_info(self):
+        """Return a dict of platform basic info for some contract requests"""
+        platform = util.get_platform_info()
+        return {
+            "architecture": platform["arch"],
+            "series": platform["series"],
+            "kernel": platform["kernel"],
         }
 
     def _get_activity_info(self, machine_id: Optional[str] = None):
