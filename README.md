@@ -15,9 +15,10 @@
 ![Released Focal Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/focal?label=Focal&logo=ubuntu&logoColor=white)
 ![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)
 
-The Ubuntu Advantage (UA) Client provides users with a simple mechanism to
-view, enable, and disable offerings from Canonical on their system. The
-following entitlements are supported:
+The Ubuntu Advantage (UA) Client is the offical tool to enable Canonical offerings on your
+system.
+
+UA provides support to view, enable, and disable the following Canonical services:
 
 - [Common Criteria EAL2 Certification Tooling](https://ubuntu.com/security/cc)
 - [CIS Benchmark Audit Tooling](https://ubuntu.com/security/cis)
@@ -27,12 +28,9 @@ following entitlements are supported:
 - [FIPS 140-2 Certified Modules (and optional non-certified patches)](https://ubuntu.com/security/fips)
 - [Livepatch Service](https://ubuntu.com/security/livepatch)
 
-## Quickstart
 
-`ua` is already installed on every Ubuntu system. Try it out by running `ua help`!
-
-To learn the basic commands and enable professional Ubuntu services in a sandbox environment, follow our [Getting Started Tutorial](./docs/tutorials/basic_ua_commands.md).
-
+If you need any of those services for your machine, UA is the right tool for you.
+Furthermore, UA is already installed on every Ubuntu system. Try it out by running `ua help`!
 
 ## Documentation
 
@@ -77,5 +75,9 @@ To learn the basic commands and enable professional Ubuntu services in a sandbox
 * [How to interpret the security-status command](./docs/explanations/how_to_interpret_the_security_status_command.md)
 * [Why Trusty (14.04) is no longer supported](./docs/explanations/why_trusty_is_no_longer_supported.md)
 
-## Contributing and Developer Documentation
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+## Project and community
+
+UA is a member of the Ubuntu family. It’s an open source project that warmly welcomes
+community projects, contributions, suggestions, fixes and constructive feedback.
+
+* [Contribute](CONTRIBUTING.md)
