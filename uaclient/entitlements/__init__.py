@@ -1,4 +1,5 @@
-from typing import List, Type  # noqa: F401
+import enum
+from typing import Dict, List, Type  # noqa: F401
 
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
@@ -24,6 +25,10 @@ ENTITLEMENT_CLASSES = [
     ROSEntitlement,
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
+
+ENTITLEMENT_CLS_BY_NAME = {
+    str(ent_cls.name): ent_cls for ent_cls in ENTITLEMENT_CLASSES
+}  # type: Dict[str, Type[UAEntitlement]]
 
 
 def entitlement_factory(cfg: UAConfig, name: str):
@@ -78,3 +83,57 @@ def valid_services(
             for entitlement in entitlements
         ]
     )
+
+
+@enum.unique
+class SortOrder(enum.Enum):
+    REQUIRED_SERVICES = object()
+    DEPENDENT_SERVICES = object()
+
+
+def entitlements_disable_order() -> List[str]:
+    """
+    Return the entitlements disable order based on dependent services logic.
+    """
+    return _sort_entitlements(key=SortOrder.DEPENDENT_SERVICES)
+
+
+def entitlements_enable_order() -> List[str]:
+    """
+    Return the entitlements enable order based on required services logic.
+    """
+    return _sort_entitlements(key=SortOrder.REQUIRED_SERVICES)
+
+
+def _visit_ent(
+    ent_cls: Type[UAEntitlement],
+    key: SortOrder,
+    visited: Dict[str, bool],
+    order: List[str],
+):
+    if ent_cls.name in visited:
+        return
+
+    if key == SortOrder.REQUIRED_SERVICES:
+        cls_list = ent_cls._required_services
+    else:
+        cls_list = ent_cls._dependent_services
+
+    for ent_name in cls_list:
+        req_cls = ENTITLEMENT_CLS_BY_NAME.get(ent_name)
+
+        if req_cls and req_cls.name not in visited:
+            _visit_ent(req_cls, key, visited, order)
+
+    order.append(str(ent_cls.name))
+    visited[str(ent_cls.name)] = True
+
+
+def _sort_entitlements(key: SortOrder) -> List[str]:
+    order = []  # type: List[str]
+    visited = {}  # type: Dict[str, bool]
+
+    for ent_cls in ENTITLEMENT_CLASSES:
+        _visit_ent(ent_cls, key, visited, order)
+
+    return order

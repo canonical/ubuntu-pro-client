@@ -316,9 +316,28 @@ def process_entitlements_delta(
     :param series_overrides: Boolean set True if series overrides should be
         applied to the new_access dict.
     """
+    from uaclient.entitlements import entitlements_enable_order
+
     delta_error = False
     unexpected_error = False
-    for name, new_entitlement in sorted(new_entitlements.items()):
+
+    # We need to sort our entitlements because some of them
+    # depend on other service to be enable first. Additionally,
+    # we must be careful because no all entitlements that are
+    # provided by the contract are supported by UA.
+    def sort_entitlements(key_name):
+        try:
+            ent_pos = entitlements_enable_order().index(key_name)
+        except ValueError:
+            ent_pos = len(entitlements_enable_order())
+
+        return ent_pos
+
+    sorted_entitlements = sorted(
+        new_entitlements.items(), key=lambda ent: sort_entitlements(ent[0])
+    )
+
+    for name, new_entitlement in sorted_entitlements:
         try:
             deltas, service_enabled = process_entitlement_delta(
                 cfg=cfg,
