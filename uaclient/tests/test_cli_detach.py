@@ -152,8 +152,10 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.entitlements_disable_order")
     def test_entitlements_disabled_appropriately(
         self,
+        m_disable_order,
         m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
@@ -185,6 +187,7 @@ class TestActionDetach:
             entitlement_cls_mock_factory(True, name="test"),
             entitlement_cls_mock_factory(False),
         ]
+        m_disable_order.return_value = ["test"]
 
         args = mock.MagicMock(assume_yes=assume_yes)
         return_code = action_detach(args, cfg=cfg)
@@ -359,8 +362,10 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.entitlements_disable_order")
     def test_informational_message_emitted(
         self,
+        m_disable_order,
         m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
@@ -376,6 +381,7 @@ class TestActionDetach:
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
+        m_disable_order.return_value = disabled_services
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client

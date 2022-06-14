@@ -756,20 +756,26 @@ class TestRequestUpdatedContract:
         assert 3 == process_entitlement_delta.call_count
         assert ux_error_msg.msg == str(exc.value.msg)
 
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_machine_token_and_services(
-        self, client, get_machine_id, process_entitlement_delta, FakeConfig
+        self,
+        client,
+        get_machine_id,
+        process_entitlement_delta,
+        m_enable_order,
+        FakeConfig,
     ):
         """When attached, refresh machine token and entitled services.
 
         Processing service deltas are processed in a sorted order based on
-        name to ensure operations occur the same regardless of dict ordering.
+        service dependencies to ensure operations occur the same regardless
+        of dict ordering.
         """
+        m_enable_order.return_value = ["ent2", "ent1"]
 
-        # resourceEntitlements specifically ordered reverse alphabetically
-        # to ensure proper sorting for process_contract_delta calls below
         machine_token = {
             "machineToken": "mToken",
             "machineTokenInfo": {
@@ -798,10 +804,18 @@ class TestRequestUpdatedContract:
         assert None is request_updated_contract(cfg)
         assert new_token == cfg.read_cache("machine-token")
 
-        # Deltas are processed in a sorted fashion so that if enableByDefault
-        # is true, the order of enablement operations is the same regardless
-        # of dict key ordering.
         process_calls = [
+            mock.call(
+                cfg=cfg,
+                orig_access={
+                    "entitlement": {"entitled": False, "type": "ent2"}
+                },
+                new_access={
+                    "entitlement": {"entitled": False, "type": "ent2"}
+                },
+                allow_enable=False,
+                series_overrides=True,
+            ),
             mock.call(
                 cfg=cfg,
                 orig_access={
@@ -813,17 +827,6 @@ class TestRequestUpdatedContract:
                         "type": "ent1",
                         "new": "newval",
                     }
-                },
-                allow_enable=False,
-                series_overrides=True,
-            ),
-            mock.call(
-                cfg=cfg,
-                orig_access={
-                    "entitlement": {"entitled": False, "type": "ent2"}
-                },
-                new_access={
-                    "entitlement": {"entitled": False, "type": "ent2"}
                 },
                 allow_enable=False,
                 series_overrides=True,
