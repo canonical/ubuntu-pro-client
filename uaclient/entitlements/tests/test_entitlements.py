@@ -71,34 +71,40 @@ class TestEntitlementFactory:
 
 
 class TestSortEntitlements:
-    def test_disable_order(self):
+    def test_disable_order(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
-        type(m_cls_1)._dependent_services = mock.PropertyMock(return_value=[])
+        m_obj_1 = m_cls_1.return_value
+        type(m_obj_1).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
         m_cls_2 = mock.MagicMock()
-        type(m_cls_2)._dependent_services = mock.PropertyMock(return_value=[])
+        m_obj_2 = m_cls_2.return_value
+        type(m_obj_2).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_3 = mock.MagicMock()
-        type(m_cls_3)._dependent_services = mock.PropertyMock(
-            return_value=["ent1", "ent2"]
+        m_obj_3 = m_cls_3.return_value
+        type(m_obj_3).dependent_services = mock.PropertyMock(
+            return_value=(m_cls_1, m_cls_2)
         )
         type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
 
-        m_cls_4 = mock.MagicMock()
-        type(m_cls_4)._dependent_services = mock.PropertyMock(
-            return_value=["ent5", "ent6"]
-        )
-        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
-
         m_cls_5 = mock.MagicMock()
-        type(m_cls_5)._dependent_services = mock.PropertyMock(return_value=[])
+        m_obj_5 = m_cls_5.return_value
+        type(m_obj_5).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
-        type(m_cls_6)._dependent_services = mock.PropertyMock(return_value=[])
+        m_obj_6 = m_cls_6.return_value
+        type(m_obj_6).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
+
+        m_cls_4 = mock.MagicMock()
+        m_obj_4 = m_cls_4.return_value
+        type(m_obj_4).dependent_services = mock.PropertyMock(
+            return_value=(m_cls_5, m_cls_6)
+        )
+        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
 
         m_entitlements = [
             m_cls_1,
@@ -108,53 +114,55 @@ class TestSortEntitlements:
             m_cls_5,
             m_cls_6,
         ]
-        m_entitlements_name = {m_cls.name: m_cls for m_cls in m_entitlements}
 
         with mock.patch.object(
             entitlements, "ENTITLEMENT_CLASSES", m_entitlements
         ):
-            with mock.patch.object(
-                entitlements, "ENTITLEMENT_CLS_BY_NAME", m_entitlements_name
-            ):
-                assert [
-                    "ent1",
-                    "ent2",
-                    "ent3",
-                    "ent5",
-                    "ent6",
-                    "ent4",
-                ] == entitlements.entitlements_disable_order()
+            assert [
+                "ent1",
+                "ent2",
+                "ent3",
+                "ent5",
+                "ent6",
+                "ent4",
+            ] == entitlements.entitlements_disable_order(FakeConfig())
 
-    def test_enable_order(self):
+    def test_enable_order(self, FakeConfig):
+        m_cls_2 = mock.MagicMock()
+        m_obj_2 = m_cls_2.return_value
+        type(m_obj_2).required_services = mock.PropertyMock(return_value=())
+        type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
+
         m_cls_1 = mock.MagicMock()
-        type(m_cls_1)._required_services = mock.PropertyMock(
-            return_value=["ent2"]
+        m_obj_1 = m_cls_1.return_value
+        type(m_obj_1).required_services = mock.PropertyMock(
+            return_value=(m_cls_2,)
         )
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
-        m_cls_2 = mock.MagicMock()
-        type(m_cls_2)._required_services = mock.PropertyMock(return_value=[])
-        type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
-
         m_cls_3 = mock.MagicMock()
-        type(m_cls_3)._required_services = mock.PropertyMock(
-            return_value=["ent1", "ent2"]
+        m_obj_3 = m_cls_3.return_value
+        type(m_obj_3).required_services = mock.PropertyMock(
+            return_value=(m_cls_1, m_cls_2)
         )
         type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
 
-        m_cls_4 = mock.MagicMock()
-        type(m_cls_4)._required_services = mock.PropertyMock(
-            return_value=["ent5", "ent6"]
-        )
-        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
-
         m_cls_5 = mock.MagicMock()
-        type(m_cls_5)._required_services = mock.PropertyMock(return_value=[])
+        m_obj_5 = m_cls_5.return_value
+        type(m_obj_5).required_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
-        type(m_cls_6)._required_services = mock.PropertyMock(return_value=[])
+        m_obj_6 = m_cls_6.return_value
+        type(m_obj_6).required_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
+
+        m_cls_4 = mock.MagicMock()
+        m_obj_4 = m_cls_4.return_value
+        type(m_obj_4).required_services = mock.PropertyMock(
+            return_value=(m_cls_5, m_cls_6)
+        )
+        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
 
         m_entitlements = [
             m_cls_1,
@@ -164,19 +172,15 @@ class TestSortEntitlements:
             m_cls_5,
             m_cls_6,
         ]
-        m_entitlements_name = {m_cls.name: m_cls for m_cls in m_entitlements}
 
         with mock.patch.object(
             entitlements, "ENTITLEMENT_CLASSES", m_entitlements
         ):
-            with mock.patch.object(
-                entitlements, "ENTITLEMENT_CLS_BY_NAME", m_entitlements_name
-            ):
-                assert [
-                    "ent2",
-                    "ent1",
-                    "ent3",
-                    "ent5",
-                    "ent6",
-                    "ent4",
-                ] == entitlements.entitlements_enable_order()
+            assert [
+                "ent2",
+                "ent1",
+                "ent3",
+                "ent5",
+                "ent6",
+                "ent4",
+            ] == entitlements.entitlements_enable_order(cfg=FakeConfig())

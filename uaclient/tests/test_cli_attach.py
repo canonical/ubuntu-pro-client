@@ -533,6 +533,7 @@ class TestActionAttach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
     @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
@@ -543,6 +544,7 @@ class TestActionAttach:
         m_request_url,
         _m_apply_contract_overrides,
         m_process_entitlement_delta,
+        m_enable_order,
         _m_getuid,
         FakeConfig,
         event,
@@ -550,6 +552,7 @@ class TestActionAttach:
         args = mock.MagicMock(token="token", attach_config=None)
         cfg = FakeConfig()
 
+        m_enable_order.return_value = ["test1", "test2"]
         m_process_entitlement_delta.side_effect = [
             ({"test": 123}, True),
             UserFacingError("error"),
