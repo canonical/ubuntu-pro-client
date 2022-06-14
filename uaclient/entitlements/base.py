@@ -59,10 +59,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     _incompatible_services = ()  # type: Tuple[IncompatibleService, ...]
 
     # List of services that must be active before enabling this service
-    _required_services = ()  # type: Tuple[str, ...]
+    _required_services = ()  # type: Tuple[Type[UAEntitlement], ...]
 
     # List of services that depend on this service
-    _dependent_services = ()  # type: Tuple[str, ...]
+    _dependent_services = ()  # type: Tuple[Type[UAEntitlement], ...]
 
     @property
     @abc.abstractmethod
@@ -132,7 +132,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._incompatible_services
 
     @property
-    def required_services(self) -> Tuple[str, ...]:
+    def required_services(self) -> Tuple[Type["UAEntitlement"], ...]:
         """
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
@@ -142,7 +142,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._required_services
 
     @property
-    def dependent_services(self) -> Tuple[str, ...]:
+    def dependent_services(self) -> Tuple[Type["UAEntitlement"], ...]:
         """
         Return a list of packages that depend on this service.
         We will use that list during disable operations, where
@@ -353,23 +353,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return (True, None)
 
-    def _check_any_service_is_active(self, services: Tuple[str, ...]) -> bool:
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
-        )
-
-        for service in services:
-            try:
-                ent_cls = entitlement_factory(cfg=self.cfg, name=service)
-            except EntitlementNotFoundError:
-                continue
-            ent_status, _ = ent_cls(self.cfg).application_status()
-            if ent_status == ApplicationStatus.ENABLED:
-                return True
-
-        return False
-
     def detect_dependent_services(self) -> bool:
         """
         Check for depedent services.
@@ -378,9 +361,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if there are dependent services enabled
             False if there are no dependent services enabled
         """
-        return self._check_any_service_is_active(
-            services=self.dependent_services
-        )
+        for dependent_service_cls in self.dependent_services:
+            ent_status, _ = dependent_service_cls(
+                self.cfg
+            ).application_status()
+            if ent_status == ApplicationStatus.ENABLED:
+                return True
+
+        return False
 
     def check_required_services_active(self):
         """
@@ -390,14 +378,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if all required services are active
             False is at least one of the required services is disabled
         """
-        from uaclient.entitlements import entitlement_factory
-
-        for required_service in self.required_services:
+        for required_service_cls in self.required_services:
             try:
-                ent_cls = entitlement_factory(
-                    cfg=self.cfg, name=required_service
-                )
-                ent_status, _ = ent_cls(self.cfg).application_status()
+                ent_status, _ = required_service_cls(
+                    self.cfg
+                ).application_status()
                 if ent_status != ApplicationStatus.ENABLED:
                     return False
             except exceptions.EntitlementNotFoundError:
@@ -490,20 +475,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         that must be enabled first. In that situation, we can ask the user
         if the required service should be enabled before proceeding.
         """
-        from uaclient.entitlements import entitlement_factory
-
-        for required_service in self.required_services:
-            try:
-                ent_cls = entitlement_factory(
-                    cfg=self.cfg, name=required_service
-                )
-            except exceptions.EntitlementNotFoundError:
-                msg = messages.REQUIRED_SERVICE_NOT_FOUND.format(
-                    service=required_service
-                )
-                return False, msg
-
-            ent = ent_cls(self.cfg, allow_beta=True)
+        for required_service_cls in self.required_services:
+            ent = required_service_cls(self.cfg, allow_beta=True)
 
             is_service_disabled = (
                 ent.application_status()[0] == ApplicationStatus.DISABLED
@@ -529,7 +502,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ret, fail = ent.enable(silent=True)
                 if not ret:
                     error_msg = ""
-                    if fail.message and fail.message.msg:
+                    if fail and fail.message and fail.message.msg:
                         error_msg = "\n" + fail.message.msg
 
                     msg = messages.ERROR_ENABLING_REQUIRED_SERVICE.format(
@@ -659,21 +632,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         @param silent: Boolean set True to silence print/log of messages
         """
-        from uaclient.entitlements import entitlement_factory
-
-        for dependent_service in self.dependent_services:
-            try:
-                ent_cls = entitlement_factory(
-                    cfg=self.cfg, name=dependent_service
-                )
-            except exceptions.EntitlementNotFoundError:
-                msg = messages.DEPENDENT_SERVICE_NOT_FOUND.format(
-                    service=dependent_service
-                )
-                event.info(info_msg=msg.msg, file_type=sys.stderr)
-                return False, msg
-
-            ent = ent_cls(cfg=self.cfg, assume_yes=True)
+        for dependent_service_cls in self.dependent_services:
+            ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
 
             is_service_enabled = (
                 ent.application_status()[0] == ApplicationStatus.ENABLED
@@ -705,7 +665,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ret, fail = ent.disable(silent=True)
                 if not ret:
                     error_msg = ""
-                    if fail.message and fail.message.msg:
+                    if fail and fail.message and fail.message.msg:
                         error_msg = "\n" + fail.message.msg
 
                     msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(

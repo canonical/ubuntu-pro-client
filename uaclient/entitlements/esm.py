@@ -1,14 +1,23 @@
-from typing import Optional, Tuple, Union  # noqa: F401
+from typing import Optional, Tuple, Type, Union  # noqa: F401
 
 from uaclient import util
 from uaclient.entitlements import repo
+from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
-    _dependent_services = ("ros", "ros-updates")  # type: Tuple[str, ...]
+
+    @property
+    def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:
+        from uaclient.entitlements.ros import (
+            ROSEntitlement,
+            ROSUpdatesEntitlement,
+        )
+
+        return (ROSEntitlement, ROSUpdatesEntitlement)
 
     def _perform_enable(self, silent: bool = False) -> bool:
         enable_performed = super()._perform_enable(silent=silent)

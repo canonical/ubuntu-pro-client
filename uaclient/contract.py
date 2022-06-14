@@ -326,10 +326,11 @@ def process_entitlements_delta(
     # we must be careful because no all entitlements that are
     # provided by the contract are supported by UA.
     def sort_entitlements(key_name):
+        ent_order = entitlements_enable_order(cfg)
         try:
-            ent_pos = entitlements_enable_order().index(key_name)
+            ent_pos = ent_order.index(key_name)
         except ValueError:
-            ent_pos = len(entitlements_enable_order())
+            ent_pos = len(ent_order)
 
         return ent_pos
 

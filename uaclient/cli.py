@@ -1226,7 +1226,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
             to_disable.append(ent)
 
     to_disable.sort(
-        key=lambda ent: entitlements_disable_order().index(ent.name)
+        key=lambda ent: entitlements_disable_order(cfg).index(ent.name)
     )
 
     if to_disable:

@@ -26,10 +26,6 @@ ENTITLEMENT_CLASSES = [
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
 
-ENTITLEMENT_CLS_BY_NAME = {
-    str(ent_cls.name): ent_cls for ent_cls in ENTITLEMENT_CLASSES
-}  # type: Dict[str, Type[UAEntitlement]]
-
 
 def entitlement_factory(cfg: UAConfig, name: str):
     """Returns a UAEntitlement class based on the provided name.
@@ -91,21 +87,22 @@ class SortOrder(enum.Enum):
     DEPENDENT_SERVICES = object()
 
 
-def entitlements_disable_order() -> List[str]:
+def entitlements_disable_order(cfg: UAConfig) -> List[str]:
     """
     Return the entitlements disable order based on dependent services logic.
     """
-    return _sort_entitlements(key=SortOrder.DEPENDENT_SERVICES)
+    return _sort_entitlements(cfg=cfg, key=SortOrder.DEPENDENT_SERVICES)
 
 
-def entitlements_enable_order() -> List[str]:
+def entitlements_enable_order(cfg: UAConfig) -> List[str]:
     """
     Return the entitlements enable order based on required services logic.
     """
-    return _sort_entitlements(key=SortOrder.REQUIRED_SERVICES)
+    return _sort_entitlements(cfg=cfg, key=SortOrder.REQUIRED_SERVICES)
 
 
 def _visit_ent(
+    cfg: UAConfig,
     ent_cls: Type[UAEntitlement],
     key: SortOrder,
     visited: Dict[str, bool],
@@ -115,25 +112,35 @@ def _visit_ent(
         return
 
     if key == SortOrder.REQUIRED_SERVICES:
-        cls_list = ent_cls._required_services
+        cls_list = ent_cls(cfg).required_services
     else:
-        cls_list = ent_cls._dependent_services
+        cls_list = ent_cls(cfg).dependent_services
 
-    for ent_name in cls_list:
-        req_cls = ENTITLEMENT_CLS_BY_NAME.get(ent_name)
-
-        if req_cls and req_cls.name not in visited:
-            _visit_ent(req_cls, key, visited, order)
+    for cls_dependency in cls_list:
+        if ent_cls.name not in visited:
+            _visit_ent(
+                cfg=cfg,
+                ent_cls=cls_dependency,
+                key=key,
+                visited=visited,
+                order=order,
+            )
 
     order.append(str(ent_cls.name))
     visited[str(ent_cls.name)] = True
 
 
-def _sort_entitlements(key: SortOrder) -> List[str]:
+def _sort_entitlements(cfg: UAConfig, key: SortOrder) -> List[str]:
     order = []  # type: List[str]
     visited = {}  # type: Dict[str, bool]
 
     for ent_cls in ENTITLEMENT_CLASSES:
-        _visit_ent(ent_cls, key, visited, order)
+        _visit_ent(
+            cfg=cfg,
+            ent_cls=ent_cls,
+            key=key,
+            visited=visited,
+            order=order,
+        )
 
     return order
