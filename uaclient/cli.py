@@ -47,6 +47,7 @@ from uaclient.defaults import (
     DEFAULT_LOG_PREFIX,
     PRINT_WRAP_WIDTH,
 )
+from uaclient.entitlements import entitlements_disable_order
 from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
     CanDisableFailure,
@@ -1224,22 +1225,9 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         if ret:
             to_disable.append(ent)
 
-    """
-    We will make sure that services without dependencies are disabled first
-    PS: This will only work because we have only three services with reverse
-    dependencies:
-    * ros: ros-updates
-    * esm-infra: ros, ros-updates
-    * esm-apps: ros, ros-updates
-
-    Therefore, this logic will guarantee that we will always disable ros and
-    ros-updates before diabling the esm services. If that dependency chain
-    change, this logic won't hold anymore and must be properly fixed.
-
-    More details can be seen here:
-    https://github.com/canonical/ubuntu-advantage-client/issues/1831
-    """
-    to_disable.sort(key=lambda ent: len(ent.dependent_services))
+    to_disable.sort(
+        key=lambda ent: entitlements_disable_order().index(ent.name)
+    )
 
     if to_disable:
         suffix = "s" if len(to_disable) > 1 else ""
