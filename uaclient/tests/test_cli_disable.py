@@ -484,7 +484,7 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    @mock.patch("uaclient.cli.system.subp")
+    @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(self, m_subp, m_getuid, FakeConfig, event):
         """Check inability to disable if operation in progress holds lock."""
         cfg = FakeConfig().for_attached_machine()
