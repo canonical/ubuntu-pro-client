@@ -1447,8 +1447,6 @@ def _write_command_output_to_file(
         system.write_file(filename, out)
 
 
-# We have to assert root here, because the logs are not non-root user readable
-@assert_root
 def action_collect_logs(args, *, cfg: config.UAConfig):
     output_file = args.output or UA_COLLECT_LOGS_FILE
 
@@ -1507,13 +1505,27 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
         # also get default logrotated log files
         for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
             if os.path.isfile(f):
-                log_content = system.load_file(f)
-                log_content = util.redact_sensitive_logs(log_content)
-                system.write_file(f, log_content)
-                shutil.copy(f, output_dir)
+                try:
+                    content = system.load_file(f)
+                except PermissionError as e:
+                    logging.warning(e)
+                    print("Warning: failed to include file {}".format(f))
+                content = util.redact_sensitive_logs(content)
+                if os.getuid() == 0:
+                    # if root, overwrite the original with redacted content
+                    system.write_file(f, content)
+                system.write_file(
+                    os.path.join(output_dir, os.path.basename(f)), content
+                )
 
-        with tarfile.open(output_file, "w:gz") as results:
-            results.add(output_dir, arcname="logs/")
+        try:
+            with tarfile.open(output_file, "w:gz") as results:
+                results.add(output_dir, arcname="logs/")
+        except PermissionError as e:
+            logging.error(e)
+            print("Failed to create tarfile.")
+            return 1
+        return 0
 
 
 def get_parser(cfg: config.UAConfig):

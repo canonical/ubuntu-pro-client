@@ -29,16 +29,6 @@ Collect logs and relevant system information into a tarball.
 )
 
 
-@mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid, FakeConfig):
-    """Check that a UID != 0 will receive a message and exit non-zero"""
-    getuid.return_value = 1
-
-    cfg = FakeConfig()
-    with pytest.raises(NonRootUserError):
-        action_collect_logs(mock.MagicMock(), cfg=cfg)
-
-
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionCollectLogs:
     @mock.patch(M_PATH + "contract.get_available_resources")
@@ -70,14 +60,14 @@ class TestActionCollectLogs:
     # let's pretend all files exist
     @mock.patch(M_PATH + "os.path.isfile", return_value=True)
     @mock.patch(M_PATH + "system.write_file")
-    @mock.patch(M_PATH + "shutil.copy")
+    @mock.patch(M_PATH + "system.load_file")
     @mock.patch(M_PATH + "system.subp", return_value=(None, None))
     def test_collect_logs(
         self,
         m_subp,
-        m_copy,
+        _load_file,
         _write_file,
-        _isfile,
+        m_isfile,
         redact,
         _fopen,
         _tarfile,
@@ -132,35 +122,25 @@ class TestActionCollectLogs:
             ),
         ]
 
-        assert m_copy.call_count == 17
-        assert m_copy.call_args_list == [
-            mock.call("/etc/ubuntu-advantage/uaclient.conf", mock.ANY),
-            mock.call("/var/log/ubuntu-advantage.log", mock.ANY),
-            mock.call("/var/log/ubuntu-advantage-timer.log", mock.ANY),
-            mock.call("/var/log/ubuntu-advantage-daemon.log", mock.ANY),
-            mock.call(cfg.data_dir + "/jobs-status.json", mock.ANY),
-            mock.call("/etc/cloud/build.info", mock.ANY),
-            mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list", mock.ANY),
-            mock.call("/etc/apt/sources.list.d/ubuntu-cis.list", mock.ANY),
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-esm-apps.list", mock.ANY
-            ),
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-esm-infra.list", mock.ANY
-            ),
-            mock.call("/etc/apt/sources.list.d/ubuntu-fips.list", mock.ANY),
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-fips-updates.list", mock.ANY
-            ),
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-realtime-kernel.list", mock.ANY
-            ),
-            mock.call("/etc/apt/sources.list.d/ubuntu-ros.list", mock.ANY),
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-ros-updates.list", mock.ANY
-            ),
-            mock.call("/var/log/ubuntu-advantage.log", mock.ANY),
-            mock.call("/var/log/ubuntu-advantage.log.1", mock.ANY),
+        assert m_isfile.call_count == 17
+        assert m_isfile.call_args_list == [
+            mock.call("/etc/ubuntu-advantage/uaclient.conf"),
+            mock.call("/var/log/ubuntu-advantage.log"),
+            mock.call("/var/log/ubuntu-advantage-timer.log"),
+            mock.call("/var/log/ubuntu-advantage-daemon.log"),
+            mock.call(cfg.data_dir + "/jobs-status.json"),
+            mock.call("/etc/cloud/build.info"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-cis.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-esm-apps.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-esm-infra.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-fips.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-fips-updates.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-realtime-kernel.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-ros.list"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-ros-updates.list"),
+            mock.call("/var/log/ubuntu-advantage.log"),
+            mock.call("/var/log/ubuntu-advantage.log.1"),
         ]
         assert redact.call_count == 17
 
