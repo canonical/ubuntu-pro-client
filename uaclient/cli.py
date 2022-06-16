@@ -1,13 +1,11 @@
 """Client to manage Ubuntu Pro services on a machine."""
 
 import argparse
-import glob
 import json
 import logging
 import os
 import pathlib
 import re
-import shutil
 import sys
 import tarfile
 import tempfile
@@ -33,19 +31,13 @@ from uaclient import (
     security_status,
 )
 from uaclient import status as ua_status
-from uaclient import system, util, version
+from uaclient import util, version
 from uaclient.api.api import call_api
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
-from uaclient.defaults import (
-    CLOUD_BUILD_INFO,
-    DEFAULT_CONFIG_FILE,
-    DEFAULT_LOG_FORMAT,
-    DEFAULT_LOG_PREFIX,
-    PRINT_WRAP_WIDTH,
-)
+from uaclient.defaults import DEFAULT_LOG_FORMAT, PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlements_disable_order
 from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
@@ -53,11 +45,6 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
-
-# TODO: Better address service commands running on cli
-# It is not ideal for us to import an entitlement directly on the cli module.
-# We need to refactor this to avoid that type of coupling in the code.
-from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 from uaclient.jobs.update_messaging import (
     refresh_motd,
     update_apt_and_motd_messages,
@@ -81,15 +68,6 @@ UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
 UA_COLLECT_LOGS_FILE = "ua_logs.tar.gz"
-
-UA_SERVICES = (
-    "ua-timer.service",
-    "ua-timer.timer",
-    "ua-auto-attach.path",
-    "ua-auto-attach.service",
-    "ua-reboot-cmds.service",
-    "ubuntu-advantage.service",
-)
 
 event = event_logger.get_event_logger()
 
@@ -1435,97 +1413,17 @@ def action_attach(args, *, cfg):
         return ret
 
 
-def _write_command_output_to_file(
-    cmd, filename: str, return_codes: List[int] = None
-) -> None:
-    """Helper which runs a command and writes output or error to filename."""
-    try:
-        out, _ = system.subp(cmd.split(), rcs=return_codes)
-    except exceptions.ProcessExecutionError as e:
-        system.write_file("{}-error".format(filename), str(e))
-    else:
-        system.write_file(filename, out)
-
-
 def action_collect_logs(args, *, cfg: config.UAConfig):
     output_file = args.output or UA_COLLECT_LOGS_FILE
-
     with tempfile.TemporaryDirectory() as output_dir:
-
-        _write_command_output_to_file(
-            "cloud-id", "{}/cloud-id.txt".format(output_dir)
-        )
-        _write_command_output_to_file(
-            "pro status --format json", "{}/ua-status.json".format(output_dir)
-        )
-        _write_command_output_to_file(
-            "{} status".format(LIVEPATCH_CMD),
-            "{}/livepatch-status.txt".format(output_dir),
-        )
-        _write_command_output_to_file(
-            "systemctl list-timers --all",
-            "{}/systemd-timers.txt".format(output_dir),
-        )
-        _write_command_output_to_file(
-            (
-                "journalctl --boot=0 -o short-precise "
-                "{} "
-                "-u cloud-init-local.service "
-                "-u cloud-init-config.service -u cloud-config.service"
-            ).format(
-                " ".join(
-                    ["-u {}".format(s) for s in UA_SERVICES if ".service" in s]
-                )
-            ),
-            "{}/journalctl.txt".format(output_dir),
-        )
-
-        for service in UA_SERVICES:
-            _write_command_output_to_file(
-                "systemctl status {}".format(service),
-                "{}/{}.txt".format(output_dir, service),
-                return_codes=[0, 3],
-            )
-
-        # include cfg log files here because they could be set to non default
-        state_files = [
-            cfg.cfg_path or DEFAULT_CONFIG_FILE,
-            cfg.log_file,
-            cfg.timer_log_file,
-            cfg.daemon_log_file,
-            cfg.data_path("jobs-status"),
-            CLOUD_BUILD_INFO,
-            *(
-                entitlement.repo_list_file_tmpl.format(name=entitlement.name)
-                for entitlement in entitlements.ENTITLEMENT_CLASSES
-                if issubclass(entitlement, entitlements.repo.RepoEntitlement)
-            ),
-        ]
-
-        # also get default logrotated log files
-        for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
-            if os.path.isfile(f):
-                try:
-                    content = system.load_file(f)
-                except PermissionError as e:
-                    logging.warning(e)
-                    print("Warning: failed to include file {}".format(f))
-                content = util.redact_sensitive_logs(content)
-                if os.getuid() == 0:
-                    # if root, overwrite the original with redacted content
-                    system.write_file(f, content)
-                system.write_file(
-                    os.path.join(output_dir, os.path.basename(f)), content
-                )
-
+        actions.collect_logs(cfg, output_dir)
         try:
             with tarfile.open(output_file, "w:gz") as results:
                 results.add(output_dir, arcname="logs/")
         except PermissionError as e:
             logging.error(e)
-            print("Failed to create tarfile.")
             return 1
-        return 0
+    return 0
 
 
 def get_parser(cfg: config.UAConfig):

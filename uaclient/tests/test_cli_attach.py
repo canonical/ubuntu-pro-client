@@ -149,7 +149,7 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch(M_PATH + "system.subp")
+    @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self, m_subp, _m_getuid, capsys, FakeConfig, event
     ):

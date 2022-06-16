@@ -71,7 +71,7 @@ class TestActionAutoAttach:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
-    @mock.patch("uaclient.cli.system.subp")
+    @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to auto-attach if operation holds lock file."""
         cfg = FakeConfig()

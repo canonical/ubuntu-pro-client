@@ -69,7 +69,7 @@ class TestActionRefresh:
         else:
             action_refresh(mock.MagicMock(target=target), cfg=cfg)
 
-    @mock.patch("uaclient.cli.system.subp")
+    @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()

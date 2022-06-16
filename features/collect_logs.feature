@@ -6,11 +6,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Run collect-logs on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        And I verify that running `pro collect-logs` `as non-root` exits `1`
-        Then I will see the following on stderr:
-        """
-        This command must be run as root (try using sudo).
-        """
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
@@ -60,11 +55,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        And I verify that running `pro collect-logs` `as non-root` exits `1`
-        Then I will see the following on stderr:
-        """
-        This command must be run as root (try using sudo).
-        """
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
