@@ -103,7 +103,7 @@ class TestActionDetach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch("uaclient.cli.system.subp")
+    @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self, m_subp, m_getuid, m_prompt, FakeConfig, capsys, event
     ):
