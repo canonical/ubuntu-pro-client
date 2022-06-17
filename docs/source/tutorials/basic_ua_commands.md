@@ -1,4 +1,4 @@
-# Tutorial: cover base UA commands
+# Getting Started with UA
 
 The Ubuntu Advantage (UA) Tools provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. In this tutorial

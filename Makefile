@@ -8,6 +8,7 @@ clean:
 	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.gz *.tar.xz
 	rm -f azure-*-uaclient-ci-* ec2-uaclient-ci-* gcp-*-uaclient-ci-* lxd-container-*-uaclient-ci-* lxd-virtual-machine-*-uaclient-ci-*
 	rm -rf *.egg-info/ .tox/ .cache/ .mypy_cache/
+	rm -rf docs/build/
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '*__pycache__' -delete
 	$(MAKE) -C apt-hook clean
