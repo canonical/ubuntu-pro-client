@@ -50,6 +50,7 @@ def _get_data_files():
         ),
         (defaults.CONFIG_DEFAULTS["data_dir"], []),
         ("/lib/systemd/system", glob.glob("systemd/*")),
+        ("/etc/default/grub.d", ["grub.d/50ubuntu-pro-watermark"]),
     ]
 
 

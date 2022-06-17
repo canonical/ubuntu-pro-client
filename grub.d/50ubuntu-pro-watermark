@@ -1,0 +1,3 @@
+if [ -e "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
+    GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT is_ubuntu_pro"
+fi

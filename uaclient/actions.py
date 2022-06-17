@@ -8,6 +8,7 @@ from uaclient import (
     entitlements,
     event_logger,
     exceptions,
+    grub,
     messages,
 )
 from uaclient import status as ua_status
@@ -49,6 +50,8 @@ def attach_with_token(
         cfg.write_cache("instance-id", current_iid)
 
     update_apt_and_motd_messages(cfg)
+    # TODO only do this when?
+    grub.update()
 
 
 def auto_attach(
