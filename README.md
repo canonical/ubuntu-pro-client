@@ -36,44 +36,44 @@ Furthermore, UA is already installed on every Ubuntu system. Try it out by runni
 
 ### Tutorials
 
-* [Getting started with UA](./docs/tutorials/basic_ua_commands.md)
-* [Create a FIPS compliant Ubuntu Docker image](./docs/tutorials/create_a_fips_docker_image.md)
-* [Fixing vulnerabilities by CVE or USN using `ua fix`](./docs/tutorials/ua_fix_scenarios.md)
+* [Getting started with UA](./docs/source/tutorials/basic_ua_commands.md)
+* [Create a FIPS compliant Ubuntu Docker image](./docs/source/tutorials/create_a_fips_docker_image.md)
+* [Fixing vulnerabilities by CVE or USN using `ua fix`](./docs/source/tutorials/ua_fix_scenarios.md)
 
 ### How To Guides
 
-* [How to get an UA token and attach to a subscription](./docs/howtoguides/get_token_and_attach.md)
-* [How to Configure Proxies](./docs/howtoguides/configure_proxies.md)
-* [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
-* [How to Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
-* [How to Manually update MOTD and APT messages](./docs/howtoguides/update_motd_messages.md)
-* [How to enable CIS](./docs/howtoguides/enable_cis.md)
-* [How to enable CC EAL](./docs/howtoguides/enable_cc.md)
-* [How to enable ESM Infra](./docs/howtoguides/enable_esm_infra.md)
-* [How to enable FIPS](./docs/howtoguides/enable_fips.md)
-* [How to enable Livepatch](./docs/howtoguides/enable_livepatch.md)
-* [How to configure a timer job](./docs/howtoguides/configuring_timer_jobs.md)
-* [How to attach with a configuration file](./docs/howtoguides/how_to_attach_with_config_file.md)
-* [How to collect UA logs](./docs/howtoguides/how_to_collect_ua_logs.md)
-* [How to Simulate attach operation](./docs/howtoguides/how_to_simulate_attach.md)
-* [How to run ua fix in dry-run mode](./docs/howtoguides/how_to_run_ua_fix_in_dry_run_mode.md)
+* [How to get an UA token and attach to a subscription](./docs/source/howtoguides/get_token_and_attach.md)
+* [How to Configure Proxies](./docs/howtoguides/source/configure_proxies.md)
+* [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/source/howtoguides/enable_ua_in_dockerfile.md)
+* [How to Create a custom Golden Image based on Ubuntu Pro](./docs/source/howtoguides/create_pro_golden_image.md)
+* [How to Manually update MOTD and APT messages](./docs/source/howtoguides/update_motd_messages.md)
+* [How to enable CIS](./docs/source/howtoguides/enable_cis.md)
+* [How to enable CC EAL](./docs/source/howtoguides/enable_cc.md)
+* [How to enable ESM Infra](./docs/source/howtoguides/enable_esm_infra.md)
+* [How to enable FIPS](./docs/source/howtoguides/enable_fips.md)
+* [How to enable Livepatch](./docs/source/howtoguides/enable_livepatch.md)
+* [How to configure a timer job](./docs/source/howtoguides/configuring_timer_jobs.md)
+* [How to attach with a configuration file](./docs/source/howtoguides/how_to_attach_with_config_file.md)
+* [How to collect UA logs](./docs/source/howtoguides/how_to_collect_ua_logs.md)
+* [How to Simulate attach operation](./docs/source/howtoguides/how_to_simulate_attach.md)
+* [How to run ua fix in dry-run mode](./docs/source/howtoguides/how_to_run_ua_fix_in_dry_run_mode.md)
 
 ### Reference
 
-* [Ubuntu Release and Architecture Support Matrix](./docs/references/support_matrix.md)
-* [UA Network Requirements](./docs/references/network_requirements.md)
-* [PPAs with different versions of `ua`](./docs/references/ppas.md)
+* [Ubuntu Release and Architecture Support Matrix](./docs/source/references/support_matrix.md)
+* [UA Network Requirements](./docs/source/references/network_requirements.md)
+* [PPAs with different versions of `ua`](./docs/source/references/ppas.md)
 
 ### Explanation
 
-* [What is the daemon for? (And how to disable it)](./docs/explanations/what_is_the_daemon.md)
-* [What is Ubuntu PRO?](./docs/explanations/what_is_ubuntu_pro.md)
-* [What is the ubuntu-advantage-pro package?](./docs/explanations/what_is_the_ubuntu_advantage_pro_package.md)
-* [What are the timer jobs?](./docs/explanations/what_are_the_timer_jobs.md)
-* [What are the UA related MOTD messages?](./docs/explanations/motd_messages.md)
-* [What are the UA related APT messages?](./docs/explanations/apt_messages.md)
-* [How to interpret the security-status command](./docs/explanations/how_to_interpret_the_security_status_command.md)
-* [Why Trusty (14.04) is no longer supported](./docs/explanations/why_trusty_is_no_longer_supported.md)
+* [What is the daemon for? (And how to disable it)](./docs/source/explanations/what_is_the_daemon.md)
+* [What is Ubuntu PRO?](./docs/source/explanations/what_is_ubuntu_pro.md)
+* [What is the ubuntu-advantage-pro package?](./docs/source/explanations/what_is_the_ubuntu_advantage_pro_package.md)
+* [What are the timer jobs?](./docs/source/explanations/what_are_the_timer_jobs.md)
+* [What are the UA related MOTD messages?](./docs/source/explanations/motd_messages.md)
+* [What are the UA related APT messages?](./docs/source/explanations/apt_messages.md)
+* [How to interpret the security-status command](./docs/source/explanations/how_to_interpret_the_security_status_command.md)
+* [Why Trusty (14.04) is no longer supported](./docs/source/explanations/why_trusty_is_no_longer_supported.md)
 
 ## Project and community
 

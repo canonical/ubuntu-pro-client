@@ -42,3 +42,6 @@ apt-hook/hook
 apt-hook/ubuntu-advantage.pot
 apt-hook/json-hook
 apt-hook/json-hook-test
+
+# docs
+docs/build/
