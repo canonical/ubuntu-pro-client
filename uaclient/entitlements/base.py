@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from uaclient import config, contract, event_logger, exceptions, messages, util
+from uaclient import config, contract, event_logger, messages, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -379,14 +379,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             False is at least one of the required services is disabled
         """
         for required_service_cls in self.required_services:
-            try:
-                ent_status, _ = required_service_cls(
-                    self.cfg
-                ).application_status()
-                if ent_status != ApplicationStatus.ENABLED:
-                    return False
-            except exceptions.EntitlementNotFoundError:
-                pass
+            ent_status, _ = required_service_cls(self.cfg).application_status()
+            if ent_status != ApplicationStatus.ENABLED:
+                return False
 
         return True
 

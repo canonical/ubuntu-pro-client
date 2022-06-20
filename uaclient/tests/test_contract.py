@@ -633,10 +633,11 @@ class TestRequestUpdatedContract:
 
         assert "Machine token refresh fail" == str(exc.value)
 
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_service_token_refresh_failure(
-        self, client, get_machine_id, FakeConfig
+        self, client, get_machine_id, m_enable_order, FakeConfig
     ):
         """When attaching, error on any failed specific service refresh."""
 
@@ -652,6 +653,7 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        m_enable_order.return_value = ["ent2", "ent1"]
 
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
@@ -694,6 +696,7 @@ class TestRequestUpdatedContract:
             ),
         ),
     )
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
@@ -702,6 +705,7 @@ class TestRequestUpdatedContract:
         client,
         get_machine_id,
         process_entitlement_delta,
+        m_enable_order,
         first_error,
         second_error,
         ux_error_msg,
@@ -736,6 +740,7 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        m_enable_order.return_value = ["ent3", "ent2", "ent1"]
 
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         fake_client = FakeContractClient(cfg)
