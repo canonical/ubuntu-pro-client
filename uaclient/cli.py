@@ -1216,7 +1216,12 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     @return: 0 on success, 1 otherwise
     """
     to_disable = []
-    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
+    for ent_name in entitlements_disable_order(cfg):
+        try:
+            ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
+        except exceptions.EntitlementNotFoundError:
+            continue
+
         ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
         # For detach, we should not consider that a service
         # cannot be disabled because of dependent services,
@@ -1224,10 +1229,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         ret, _ = ent.can_disable(ignore_dependent_services=True)
         if ret:
             to_disable.append(ent)
-
-    to_disable.sort(
-        key=lambda ent: entitlements_disable_order(cfg).index(ent.name)
-    )
 
     if to_disable:
         suffix = "s" if len(to_disable) > 1 else ""

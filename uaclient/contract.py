@@ -322,23 +322,13 @@ def process_entitlements_delta(
     unexpected_error = False
 
     # We need to sort our entitlements because some of them
-    # depend on other service to be enable first. Additionally,
-    # we must be careful because no all entitlements that are
-    # provided by the contract are supported by UA.
-    def sort_entitlements(key_name):
-        ent_order = entitlements_enable_order(cfg)
+    # depend on other service to be enable first.
+    for name in entitlements_enable_order(cfg):
         try:
-            ent_pos = ent_order.index(key_name)
-        except ValueError:
-            ent_pos = len(ent_order)
+            new_entitlement = new_entitlements[name]
+        except KeyError:
+            continue
 
-        return ent_pos
-
-    sorted_entitlements = sorted(
-        new_entitlements.items(), key=lambda ent: sort_entitlements(ent[0])
-    )
-
-    for name, new_entitlement in sorted_entitlements:
         try:
             deltas, service_enabled = process_entitlement_delta(
                 cfg=cfg,
@@ -347,8 +337,6 @@ def process_entitlements_delta(
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
-        except exceptions.EntitlementNotFoundError:
-            continue
         except exceptions.UserFacingError:
             delta_error = True
             event.service_failed(name)

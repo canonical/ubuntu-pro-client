@@ -149,16 +149,16 @@ class TestActionDetach:
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],
     )
-    @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     @mock.patch("uaclient.cli.entitlements_disable_order")
+    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
     def test_entitlements_disabled_appropriately(
         self,
+        m_ent_factory,
         m_disable_order,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_entitlements,
         m_getuid,
         m_prompt,
         prompt_response,
@@ -181,34 +181,18 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_prompt.return_value = prompt_response
+        disabled_cls = entitlement_cls_mock_factory(True, name="test")
 
-        m_entitlements.ENTITLEMENT_CLASSES = [
-            entitlement_cls_mock_factory(False),
-            entitlement_cls_mock_factory(True, name="test"),
-            entitlement_cls_mock_factory(False),
-        ]
         m_disable_order.return_value = ["test"]
+        m_ent_factory.return_value = disabled_cls
 
         args = mock.MagicMock(assume_yes=assume_yes)
         return_code = action_detach(args, cfg=cfg)
 
-        # Check that can_disable is called correctly
-        for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
-            assert [
-                mock.call(ignore_dependent_services=True)
-            ] == ent_cls.return_value.can_disable.call_args_list
+        assert [
+            mock.call(ignore_dependent_services=True)
+        ] == disabled_cls.return_value.can_disable.call_args_list
 
-            assert [
-                mock.call(cfg=cfg, assume_yes=assume_yes)
-            ] == ent_cls.call_args_list
-
-        # Check that disable is only called when can_disable is true
-        for undisabled_cls in [
-            m_entitlements.ENTITLEMENT_CLASSES[0],
-            m_entitlements.ENTITLEMENT_CLASSES[2],
-        ]:
-            assert 0 == undisabled_cls.return_value.disable.call_count
-        disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
         if expect_disable:
             assert [
                 mock.call()
@@ -244,21 +228,21 @@ class TestActionDetach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_config_cache_deleted(
         self,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_entitlements,
+        m_disable_order,
         m_getuid,
         _m_prompt,
         FakeConfig,
         tmpdir,
     ):
         m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = []
+        m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
@@ -271,14 +255,14 @@ class TestActionDetach:
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-    @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_correct_message_emitted(
         self,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_entitlements,
+        m_disable_order,
         m_getuid,
         _m_prompt,
         capsys,
@@ -286,7 +270,7 @@ class TestActionDetach:
         tmpdir,
     ):
         m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = []
+        m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
@@ -301,21 +285,21 @@ class TestActionDetach:
         assert messages.DETACH_SUCCESS + "\n" == out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-    @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_returns_zero(
         self,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_entitlements,
+        m_disable_order,
         m_getuid,
         _m_prompt,
         FakeConfig,
         tmpdir,
     ):
         m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = []
+        m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
@@ -329,7 +313,7 @@ class TestActionDetach:
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @pytest.mark.parametrize(
-        "classes,expected_message,disabled_services",
+        "classes,disable_order,expected_message,disabled_services",
         [
             (
                 [
@@ -337,6 +321,7 @@ class TestActionDetach:
                     entitlement_cls_mock_factory(False, name="ent2"),
                     entitlement_cls_mock_factory(True, name="ent3"),
                 ],
+                ["ent1", "ent2", "ent3"],
                 dedent(
                     """\
                     Detach will disable the following services:
@@ -350,6 +335,7 @@ class TestActionDetach:
                     entitlement_cls_mock_factory(True, name="ent1"),
                     entitlement_cls_mock_factory(False, name="ent2"),
                 ],
+                ["ent1", "ent2"],
                 dedent(
                     """\
                     Detach will disable the following service:
@@ -359,20 +345,21 @@ class TestActionDetach:
             ),
         ],
     )
-    @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements_disable_order")
     def test_informational_message_emitted(
         self,
         m_disable_order,
+        m_ent_factory,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_entitlements,
         m_getuid,
         _m_prompt,
         capsys,
         classes,
+        disable_order,
         expected_message,
         disabled_services,
         FakeConfig,
@@ -380,8 +367,8 @@ class TestActionDetach:
         event,
     ):
         m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = classes
-        m_disable_order.return_value = disabled_services
+        m_ent_factory.side_effect = classes
+        m_disable_order.return_value = disable_order
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
@@ -400,6 +387,7 @@ class TestActionDetach:
 
         cfg = FakeConfig.for_attached_machine()
         fake_stdout = io.StringIO()
+        m_ent_factory.side_effect = classes
         with contextlib.redirect_stdout(fake_stdout):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
