@@ -91,37 +91,37 @@ def entitlements_disable_order(cfg: UAConfig) -> List[str]:
     """
     Return the entitlements disable order based on dependent services logic.
     """
-    return _sort_entitlements(cfg=cfg, key=SortOrder.DEPENDENT_SERVICES)
+    return _sort_entitlements(cfg=cfg, sort_order=SortOrder.DEPENDENT_SERVICES)
 
 
 def entitlements_enable_order(cfg: UAConfig) -> List[str]:
     """
     Return the entitlements enable order based on required services logic.
     """
-    return _sort_entitlements(cfg=cfg, key=SortOrder.REQUIRED_SERVICES)
+    return _sort_entitlements(cfg=cfg, sort_order=SortOrder.REQUIRED_SERVICES)
 
 
-def _visit_ent(
+def _sort_entitlements_visit(
     cfg: UAConfig,
     ent_cls: Type[UAEntitlement],
-    key: SortOrder,
+    sort_order: SortOrder,
     visited: Dict[str, bool],
     order: List[str],
 ):
     if ent_cls.name in visited:
         return
 
-    if key == SortOrder.REQUIRED_SERVICES:
+    if sort_order == SortOrder.REQUIRED_SERVICES:
         cls_list = ent_cls(cfg).required_services
     else:
         cls_list = ent_cls(cfg).dependent_services
 
     for cls_dependency in cls_list:
         if ent_cls.name not in visited:
-            _visit_ent(
+            _sort_entitlements_visit(
                 cfg=cfg,
                 ent_cls=cls_dependency,
-                key=key,
+                sort_order=sort_order,
                 visited=visited,
                 order=order,
             )
@@ -130,15 +130,15 @@ def _visit_ent(
     visited[str(ent_cls.name)] = True
 
 
-def _sort_entitlements(cfg: UAConfig, key: SortOrder) -> List[str]:
+def _sort_entitlements(cfg: UAConfig, sort_order: SortOrder) -> List[str]:
     order = []  # type: List[str]
     visited = {}  # type: Dict[str, bool]
 
     for ent_cls in ENTITLEMENT_CLASSES:
-        _visit_ent(
+        _sort_entitlements_visit(
             cfg=cfg,
             ent_cls=ent_cls,
-            key=key,
+            sort_order=sort_order,
             visited=visited,
             order=order,
         )
