@@ -7,7 +7,7 @@ import string
 import mock
 import pytest
 
-from uaclient import messages, status, version
+from uaclient import messages, status
 from uaclient.config import UAConfig
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
@@ -471,7 +471,7 @@ class TestStatus:
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
-                "version": version.get_version(features=cfg.features),
+                "version": mock.ANY,
                 "attached": True,
                 "machine_id": "test_machine_id",
                 "services": expected_services,
@@ -698,7 +698,7 @@ class TestStatus:
         expected = copy.deepcopy(status.DEFAULT_STATUS)
         expected.update(
             {
-                "version": version.get_version(features=cfg.features),
+                "version": mock.ANY,
                 "attached": True,
                 "machine_id": "test_machine_id",
                 "contract": {
@@ -836,6 +836,7 @@ class TestStatus:
             {
                 "execution_status": reboot_required,
                 "execution_details": details,
+                "features": {},
                 "notices": [],
                 "config_path": None,
                 "config": {"data_dir": mock.ANY},
