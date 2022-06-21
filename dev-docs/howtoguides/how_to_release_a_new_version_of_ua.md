@@ -256,6 +256,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
 1. Ensure the version tag is correct on github. The `version` git tag should point to the commit that was released as that version to ubuntu -updates. If changes were made in response to feedback during the release process, the tag may have to be moved.
 2. Bring in any changes that were made to the release branch into `main` via PR (e.g. Changelog edits).
+3. Move any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
 
 ## Cloud Images Update
 
