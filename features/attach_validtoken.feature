@@ -343,7 +343,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
            | bionic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
            | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
-           | jammy   | n/a         |enabled   | Canonical Livepatch service   | n/a       | cis        | n/a        |
+           | jammy   | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -404,7 +404,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | enabled   | n/a         | disabled  | cis        | disabled   |
            | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
            | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | enabled   | n/a         | n/a       | cis        | n/a        |
+           | jammy   | enabled   | n/a         | n/a       | usg        | n/a        |
 
     @series.all
     @uses.config.machine_type.gcp.generic
@@ -465,7 +465,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | n/a       | n/a         | disabled  | cis        | disabled   |
            | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
            | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | enabled   | n/a         | n/a       | cis        | n/a        |
+           | jammy   | enabled   | n/a         | n/a       | usg        | n/a        |
 
     @series.all
     @uses.config.machine_type.lxd.container
