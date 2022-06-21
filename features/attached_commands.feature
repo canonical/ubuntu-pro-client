@@ -343,7 +343,7 @@ Feature: Command behaviour when attached to an UA subscription
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Unattached status in a ubuntu machine with feature overrides
+    Scenario Outline: Attached status in a ubuntu machine with feature overrides
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
@@ -370,14 +370,30 @@ Feature: Command behaviour when attached to an UA subscription
         And I attach `contract_token` with sudo
         And I run `ua status --all` with sudo
         Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +no
-            """
-        When I run `ua --version` as non-root
-        Then I will see the uaclient version on stdout with features ` +disable_auto_attach +machine_token_overlay -other`
-        When I run `ua version` as non-root
-        Then I will see the uaclient version on stdout with features ` +disable_auto_attach +machine_token_overlay -other`
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +no
+        """
+        And stdout matches regexp:
+        """
+        FEATURES
+        disable_auto_attach: True
+        machine_token_overlay: /tmp/machine-token-overlay.json
+        other: False
+        """
+        When I run `ua status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +no
+        """
+        And stdout matches regexp:
+        """
+        FEATURES
+        disable_auto_attach: True
+        machine_token_overlay: /tmp/machine-token-overlay.json
+        other: False
+        """
         When I run `ua auto-attach` with sudo
         Then stdout matches regexp:
         """

@@ -157,8 +157,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-        features:
-          allow_xenial_fips_on_cloud: true
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
@@ -376,8 +374,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-        features:
-          allow_xenial_fips_on_cloud: true
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
@@ -648,8 +644,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-        features:
-          allow_xenial_fips_on_cloud: true
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
@@ -683,8 +677,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-        features:
-          allow_xenial_fips_on_cloud: true
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root

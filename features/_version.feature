@@ -21,12 +21,9 @@ Feature: UA is expected version
         {UACLIENT_BEHAVE_CHECK_VERSION}
         """
         When I run `ua version` with sudo
-        Then stdout matches regexp:
-        # We are adding that regex here to match possible config overrides
-        # we add. For example, on PRO machines we add a config override to
-        # disable auto-attach on boot
+        Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}.*
+        {UACLIENT_BEHAVE_CHECK_VERSION}
         """
         Examples: version
             | release |
@@ -48,12 +45,9 @@ Feature: UA is expected version
         {UACLIENT_BEHAVE_CHECK_VERSION}
         """
         When I run `ua version` with sudo
-        Then stdout matches regexp:
-        # We are adding that regex here to match possible config overrides
-        # we add. For example, on PRO machines we add a config override to
-        # disable auto-attach on boot
+        Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}.*
+        {UACLIENT_BEHAVE_CHECK_VERSION}
         """
         Examples: version
             | release |

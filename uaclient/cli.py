@@ -1510,7 +1510,7 @@ def get_parser(cfg: config.UAConfig):
     parser.add_argument(
         "--version",
         action="version",
-        version=get_version(),
+        version=version.get_version(),
         help="show version of {}".format(NAME),
     )
     parser._optionals.title = "Flags"
@@ -1641,15 +1641,8 @@ def action_status(args, *, cfg):
     return ret
 
 
-def get_version(_args=None, _cfg=None):
-    if _cfg is None:
-        _cfg = config.UAConfig()
-
-    return version.get_version(features=_cfg.features)
-
-
 def print_version(_args=None, cfg=None):
-    print(get_version(_args, cfg))
+    print(version.get_version())
 
 
 def _action_refresh_config(args, cfg: config.UAConfig):
