@@ -135,6 +135,9 @@ Feature: Unattached status
             ros-updates   +<ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
+            FEATURES
+            allow_beta: True
+
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/pro
             """ 
