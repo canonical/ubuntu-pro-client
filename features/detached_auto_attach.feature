@@ -10,10 +10,11 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         When I attach `contract_token` with sudo
         And I run `ua refresh` with sudo
         Then I will see the following on stdout:
-            """
-            Successfully processed your ua configuration.
-            Successfully refreshed your subscription.
-            """
+        """
+        Successfully processed your ua configuration.
+        Successfully refreshed your subscription.
+        Successfully updated UA related APT and MOTD messages.
+        """
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:
         """
