@@ -10,10 +10,9 @@ from uaclient import exceptions, util
 
 __VERSION__ = "27.9"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
-VERSION_TMPL = "{version}{feature_suffix}"
 
 
-def get_version(_args=None, features={}):
+def get_version():
     """Return the packaged version as a string
 
     Prefer the binary PACKAGED_VESION set by debian/rules to DEB_VERSION.
@@ -24,29 +23,18 @@ def get_version(_args=None, features={}):
       b. If run in a git-ubuntu pkg repo, upstream tags aren't visible,
          parse the debian/changelog in that case
     """
-    feature_suffix = ""
-    for key, value in sorted(features.items()):
-        feature_suffix += " {enabled}{name}".format(
-            enabled="+" if value else "-", name=key
-        )
     if not PACKAGED_VERSION.startswith("@@PACKAGED_VERSION"):
-        return VERSION_TMPL.format(
-            version=PACKAGED_VERSION, feature_suffix=feature_suffix
-        )
+        return PACKAGED_VERSION
     topdir = os.path.dirname(os.path.dirname(__file__))
     if os.path.exists(os.path.join(topdir, ".git")):
         cmd = ["git", "describe", "--abbrev=8", "--match=[0-9]*", "--long"]
         try:
             out, _ = util.subp(cmd)
-            return out.strip() + feature_suffix
+            return out.strip()
         except exceptions.ProcessExecutionError:
             # Rely on debian/changelog because we are in a git-ubuntu or other
             # packaging repo
             cmd = ["dpkg-parsechangelog", "-S", "version"]
             out, _ = util.subp(cmd)
-            return VERSION_TMPL.format(
-                version=out.strip(), feature_suffix=feature_suffix
-            )
-    return VERSION_TMPL.format(
-        version=__VERSION__, feature_suffix=feature_suffix
-    )
+            return out.strip()
+    return __VERSION__

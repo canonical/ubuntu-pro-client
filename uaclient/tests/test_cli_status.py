@@ -11,7 +11,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import exceptions, messages, status, version
+from uaclient import exceptions, messages, status
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.event_logger import EventLoggerMode
 from uaclient.tests.test_cli import M_PATH_UACONFIG
@@ -98,7 +98,7 @@ livepatch        no        {dash}         Canonical Livepatch service
 realtime-kernel  no        {dash}         Beta-version Ubuntu Kernel with PREEMPT_RT patches
 ros              no        {dash}         Security Updates for the Robot Operating System
 ros-updates      no        {dash}         All Updates for the Robot Operating System
-{notices}
+{notices}{features}
 Enable services with: ua enable <service>
 
                 Account: test_account
@@ -114,7 +114,7 @@ esm-infra        no        {dash}         UA Infra: Extended Security Maintenanc
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
-{notices}
+{notices}{features}
 Enable services with: ua enable <service>
 
                 Account: test_account
@@ -300,6 +300,16 @@ class TestActionStatus:
             ),
         ),
     )
+    @pytest.mark.parametrize(
+        "features,feature_status",
+        (
+            ({}, ""),
+            (
+                {"one": True, "other": False, "some": "thing"},
+                "\nFEATURES\none: True\nother: False\nsome: thing\n",
+            ),
+        ),
+    )
     def test_attached(
         self,
         _m_getuid,
@@ -310,6 +320,8 @@ class TestActionStatus:
         _m_contract_changed,
         notices,
         notice_status,
+        features,
+        feature_status,
         use_all,
         capsys,
         FakeConfig,
@@ -317,9 +329,14 @@ class TestActionStatus:
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("notices", notices)
-        assert 0 == action_status(
-            mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
-        )
+        with mock.patch(
+            "uaclient.config.UAConfig.features",
+            new_callable=mock.PropertyMock,
+            return_value=features,
+        ):
+            assert 0 == action_status(
+                mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
+            )
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
         printable_stdout = capsys.readouterr()[0].replace(" " * 17, " " * 8)
@@ -335,7 +352,11 @@ class TestActionStatus:
         if sys.stdout.encoding and "UTF-8" in sys.stdout.encoding.upper():
             expected_dash = "\u2014"
         assert (
-            status_tmpl.format(dash=expected_dash, notices=notice_status)
+            status_tmpl.format(
+                dash=expected_dash,
+                notices=notice_status,
+                features=feature_status,
+            )
             == printable_stdout
         )
 
@@ -486,13 +507,14 @@ class TestActionStatus:
                 "considered Experimental and may change"
             ),
             "_schema_version": "0.1",
-            "version": version.get_version(features=cfg.features),
+            "version": mock.ANY,
             "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
             "execution_details": messages.NO_ACTIVE_OPERATIONS,
             "attached": False,
             "machine_id": None,
             "effective": None,
             "expires": None,
+            "features": {},
             "notices": [],
             "services": expected_services,
             "environment_vars": expected_environment,
@@ -623,13 +645,14 @@ class TestActionStatus:
                 "considered Experimental and may change"
             ),
             "_schema_version": "0.1",
-            "version": version.get_version(features=cfg.features),
+            "version": mock.ANY,
             "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
             "execution_details": messages.NO_ACTIVE_OPERATIONS,
             "attached": True,
             "machine_id": "test_machine_id",
             "effective": effective,
             "expires": expires,
+            "features": {},
             "notices": [],
             "services": filtered_services,
             "environment_vars": expected_environment,
@@ -782,6 +805,7 @@ class TestActionStatus:
             "_schema_version": "0.1",
             "attached": False,
             "machine_id": None,
+            "features": {},
             "notices": [],
             "account": {
                 "created_at": "2019-06-14T06:45:50Z",
@@ -803,7 +827,7 @@ class TestActionStatus:
             "effective": None,
             "services": expected_services,
             "simulated": True,
-            "version": version.get_version(features=cfg.features),
+            "version": mock.ANY,
             "config_path": None,
             "config": {"data_dir": mock.ANY},
             "errors": [],
@@ -872,7 +896,9 @@ class TestActionStatus:
         # comparison
         out = out.replace(" " * 17, " " * 8)
 
-        expected_out = ATTACHED_STATUS.format(dash=expected_dash, notices="")
+        expected_out = ATTACHED_STATUS.format(
+            dash=expected_dash, notices="", features=""
+        )
         assert expected_out == out
 
     @pytest.mark.parametrize(

@@ -83,6 +83,7 @@ DEFAULT_STATUS = {
     "services": [],
     "execution_status": UserFacingConfigStatus.INACTIVE.value,
     "execution_details": messages.NO_ACTIVE_OPERATIONS,
+    "features": {},
     "notices": [],
     "contract": {
         "id": "",
@@ -152,7 +153,6 @@ def _attached_status(cfg) -> Dict[str, Any]:
     tech_support_level = UserFacingStatus.INAPPLICABLE.value
     response.update(
         {
-            "version": version.get_version(features=cfg.features),
             "machine_id": machineTokenInfo["machineId"],
             "attached": True,
             "origin": contractInfo.get("origin"),
@@ -214,7 +214,6 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return unattached status as a dict."""
 
     response = copy.deepcopy(DEFAULT_STATUS)
-    response["version"] = version.get_version(features=cfg.features)
 
     resources = get_available_resources(cfg)
     for resource in resources:
@@ -317,6 +316,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         "notices": notices,
         "config_path": cfg.cfg_path,
         "config": cfg.cfg,
+        "features": cfg.features,
     }
 
 
@@ -399,7 +399,6 @@ def simulate_status(
 
     response.update(
         {
-            "version": version.get_version(features=cfg.features),
             "contract": {
                 "id": contract_info.get("id", ""),
                 "name": contract_info.get("name", ""),
@@ -573,6 +572,12 @@ def format_tabular(status: Dict[str, Any]) -> str:
         ]
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
+
+        if status.get("features"):
+            content.append("\nFEATURES")
+            for key, value in sorted(status["features"].items()):
+                content.append("{}: {}".format(key, value))
+
         content.extend(["", messages.UNATTACHED.msg])
         return "\n".join(content)
 
@@ -598,6 +603,12 @@ def format_tabular(status: Dict[str, Any]) -> str:
                 status.get("notices") or [], header="NOTICES"
             )
         )
+
+    if status.get("features"):
+        content.append("\nFEATURES")
+        for key, value in sorted(status["features"].items()):
+            content.append("{}: {}".format(key, value))
+
     content.append("\nEnable services with: ua enable <service>")
     pairs = []
 
