@@ -46,3 +46,29 @@ Additionally, the **STATUS** column allows for three possible states:
 * **disabled**: service is not currently running
 * **n/a**: This means non-applicable. This can happen if the service cannot be enabled on the machine
   due to a non-contract restriction. For example, we cannot enable `livepatch` on a container.
+
+### Notices
+Notices are information regarding the UA status which either require some kind of action from the user, or may impact the experience with UA.
+
+For example, let's say FIPS was just enabled, but the system wasn't rebooted yet (which is needed for booting into the FIPS Kernel), the output of `ua status`  will contain:
+```bash
+NOTICES
+FIPS support requires system reboot to complete configuration.
+```
+After the system is rebooted, the notice will go away.
+
+Notices can always be resolved, and the way to resolve it should be explicit in the notice itself.
+
+### Features
+Features are extra configuration values that can be set/unset in `uaclient.conf`. Most of those are meant for development/testing purposes, but some can be used in fome application flows. For example, to always have beta services with the same flow as the non-beta (for enable, status, etc), `uaclient.conf` may have:
+```
+features:
+  allow_beta: True
+```
+In this case, the output of `ua status` will contain:
+```bash
+FEATURES
++allow_beta
+```
+
+Keep in mind that any feature defined like this will be listed, even if it is invalid or typed the wrong way. Those appear on status for information/debugging purposes.
