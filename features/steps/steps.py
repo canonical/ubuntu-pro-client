@@ -586,25 +586,16 @@ def then_i_will_see_on_stderr(context):
 
 
 @then("I will see the uaclient version on stdout")
-def then_i_will_see_the_uaclient_version_on_stdout(context, feature_str=""):
+def then_i_will_see_the_uaclient_version_on_stdout(context):
     python_import = "from uaclient.version import get_version"
 
     cmd = "python3 -c '{}; print(get_version())'".format(python_import)
 
     actual_version = context.process.stdout.strip()
     when_i_run_command(context, cmd, "as non-root")
-    expected_version = context.process.stdout.strip() + feature_str
+    expected_version = context.process.stdout.strip()
 
     assert_that(expected_version, equal_to(actual_version))
-
-
-@then("I will see the uaclient version on stdout with features `{features}`")
-def then_i_will_see_the_uaclient_version_with_feature_suffix(
-    context, features
-):
-    then_i_will_see_the_uaclient_version_on_stdout(
-        context, feature_str=features
-    )
 
 
 @then("I verify that the `{cmd_name}` command is not found")
