@@ -64,30 +64,36 @@ Feature: Ua fix command behaviour
             """
             USN-4539-1: AWL vulnerability
             Found CVEs:
-            https://ubuntu.com/security/CVE-2020-11728
+             - https://ubuntu.com/security/CVE-2020-11728
+
             1 affected source package is installed: awl
             \(1/1\) awl:
             A fix is available in Ubuntu standard updates.
             .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
+
             .*✔.* USN-4539-1 is resolved.
             """
         When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
-            https://ubuntu.com/security/CVE-2020-28196
+             - https://ubuntu.com/security/CVE-2020-28196
+
             1 affected source package is installed: krb5
             \(1/1\) krb5:
             A fix is available in Ubuntu standard updates.
             The update is already installed.
+
             .*✔.* CVE-2020-28196 is resolved.
             """
         When I run `pro fix CVE-2022-24959` as non-root
         Then stdout matches regexp:
             """
             CVE-2022-24959: Linux kernel vulnerabilities
-            https://ubuntu.com/security/CVE-2022-24959
+             - https://ubuntu.com/security/CVE-2022-24959
+
             No affected source packages are installed.
+
             .*✔.* CVE-2022-24959 does not affect your system.
             """
 
@@ -108,10 +114,12 @@ Feature: Ua fix command behaviour
         """
         USN-4539-1: AWL vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2020-11728
+         - https://ubuntu.com/security/CVE-2020-11728
+
         1 affected source package is installed: awl
         \(1/1\) awl:
         Sorry, no fix is available.
+
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
@@ -119,19 +127,23 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         CVE-2020-15180: MariaDB vulnerabilities
-        https://ubuntu.com/security/CVE-2020-15180
+         - https://ubuntu.com/security/CVE-2020-15180
+
         No affected source packages are installed.
+
         .*✔.* CVE-2020-15180 does not affect your system.
         """
         When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
         """
         CVE-2020-28196: Kerberos vulnerability
-        https://ubuntu.com/security/CVE-2020-28196
+         - https://ubuntu.com/security/CVE-2020-28196
+
         1 affected source package is installed: krb5
         \(1/1\) krb5:
         A fix is available in Ubuntu standard updates.
         The update is already installed.
+
         .*✔.* CVE-2020-28196 is resolved.
         """
         When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
@@ -141,13 +153,15 @@ Feature: Ua fix command behaviour
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
         CVE-2017-9233: Expat vulnerability
-        https://ubuntu.com/security/CVE-2017-9233
+         - https://ubuntu.com/security/CVE-2017-9233
+
         3 affected source packages are installed: expat, matanza, swish-e
         \(1/3, 2/3\) matanza, swish-e:
         Sorry, no fix is available.
         \(3/3\) expat:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y expat \}.*
+
         2 packages are still affected: matanza, swish-e
         .*✘.* CVE-2017-9233 is not resolved.
         """
@@ -155,13 +169,15 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         CVE-2017-9233: Expat vulnerability
-        https://ubuntu.com/security/CVE-2017-9233
+         - https://ubuntu.com/security/CVE-2017-9233
+
         3 affected source packages are installed: expat, matanza, swish-e
         \(1/3, 2/3\) matanza, swish-e:
         Sorry, no fix is available.
         \(3/3\) expat:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y expat \}.*
+
         2 packages are still affected: matanza, swish-e
         .*✘.* CVE-2017-9233 is not resolved.
         """
@@ -172,19 +188,23 @@ Feature: Ua fix command behaviour
         No packages will be installed when running this command..*
         USN-5079-2: curl vulnerabilities
         Found CVEs:
-        https://ubuntu.com/security/CVE-2021-22946
-        https://ubuntu.com/security/CVE-2021-22947
+         - https://ubuntu.com/security/CVE-2021-22946
+         - https://ubuntu.com/security/CVE-2021-22947
+
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
+
         .*The machine is not attached to an Ubuntu Pro subscription.
         To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
         \{ pro attach TOKEN \}.*
+
         .*Ubuntu Pro service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
         \{ pro enable esm-infra \}.*
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
+
         .*✔.* USN-5079-2 is resolved.
         """
         When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
@@ -192,8 +212,9 @@ Feature: Ua fix command behaviour
         """
         USN-5079-2: curl vulnerabilities
         Found CVEs:
-        https://ubuntu.com/security/CVE-2021-22946
-        https://ubuntu.com/security/CVE-2021-22947
+         - https://ubuntu.com/security/CVE-2021-22946
+         - https://ubuntu.com/security/CVE-2021-22947
+
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -206,6 +227,7 @@ Feature: Ua fix command behaviour
         Attach denied:
         Contract ".*" expired on .*
         Visit https://ubuntu.com/pro to manage contract tokens.
+
         1 package is still affected: curl
         .*✘.* USN-5079-2 is not resolved.
         """
@@ -214,8 +236,9 @@ Feature: Ua fix command behaviour
         """
         USN-5079-2: curl vulnerabilities
         Found CVEs:
-        https://ubuntu.com/security/CVE-2021-22946
-        https://ubuntu.com/security/CVE-2021-22947
+         - https://ubuntu.com/security/CVE-2021-22946
+         - https://ubuntu.com/security/CVE-2021-22947
+
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -233,6 +256,7 @@ Feature: Ua fix command behaviour
         And stdout matches regexp:
         """
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
+
         .*✔.* USN-5079-2 is resolved.
         """
         When I verify that running `pro fix USN-5051-2` `with sudo` exits `2`
@@ -240,11 +264,13 @@ Feature: Ua fix command behaviour
         """
         USN-5051-2: OpenSSL vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2021-3712
+         - https://ubuntu.com/security/CVE-2021-3712
+
         1 affected source package is installed: openssl
         \(1/1\) openssl:
         A fix is available in Ubuntu Pro: ESM Infra.
         .*\{ apt update && apt install --only-upgrade -y libssl1.0.0 openssl \}.*
+
         A reboot is required to complete fix operation.
         .*✘.* USN-5051-2 is not resolved.
         """
@@ -257,15 +283,18 @@ Feature: Ua fix command behaviour
         No packages will be installed when running this command..*
         USN-5378-4: Gzip vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2022-1271
+         - https://ubuntu.com/security/CVE-2022-1271
+
         2 affected source packages are installed: gzip, xz-utils
         \(1/2, 2/2\) gzip, xz-utils:
         A fix is available in Ubuntu Pro: ESM Infra.
+
         .*Ubuntu Pro service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
         \{ pro enable esm-infra \}.*
         .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
+
         .*✔.* USN-5378-4 is resolved.
         """
         When I run `pro fix USN-5378-4` `with sudo` and stdin `E`
@@ -273,7 +302,8 @@ Feature: Ua fix command behaviour
         """
         USN-5378-4: Gzip vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2022-1271
+         - https://ubuntu.com/security/CVE-2022-1271
+
         2 affected source packages are installed: gzip, xz-utils
         \(1/2, 2/2\) gzip, xz-utils:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -286,6 +316,7 @@ Feature: Ua fix command behaviour
         Updating package lists
         Ubuntu Pro: ESM Infra enabled
         .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
+
         .*✔.* USN-5378-4 is resolved.
         """
 
@@ -328,10 +359,12 @@ Feature: Ua fix command behaviour
         No packages will be installed when running this command..*
         USN-4539-1: AWL vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2020-11728
+         - https://ubuntu.com/security/CVE-2020-11728
+
         1 affected source package is installed: awl
         \(1/1\) awl:
         Ubuntu security engineers are investigating this issue.
+
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
@@ -340,10 +373,12 @@ Feature: Ua fix command behaviour
         """
         USN-4539-1: AWL vulnerability
         Found CVEs:
-        https://ubuntu.com/security/CVE-2020-11728
+         - https://ubuntu.com/security/CVE-2020-11728
+
         1 affected source package is installed: awl
         \(1/1\) awl:
         Ubuntu security engineers are investigating this issue.
+
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
@@ -351,11 +386,13 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         CVE-2020-28196: Kerberos vulnerability
-        https://ubuntu.com/security/CVE-2020-28196
+         - https://ubuntu.com/security/CVE-2020-28196
+
         1 affected source package is installed: krb5
         \(1/1\) krb5:
         A fix is available in Ubuntu standard updates.
         The update is already installed.
+
         .*✔.* CVE-2020-28196 is resolved.
         """
         When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
@@ -363,12 +400,14 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
-        https://ubuntu.com/security/CVE-2021-27135
+         - https://ubuntu.com/security/CVE-2021-27135
+
         1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         Package fixes cannot be installed.
         To install them, run this command as root \(try using sudo\)
+
         1 package is still affected: xterm
         .*✘.* CVE-2021-27135 is not resolved.
         """
@@ -378,33 +417,39 @@ Feature: Ua fix command behaviour
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
         CVE-2021-27135: xterm vulnerability
-        https://ubuntu.com/security/CVE-2021-27135
+         - https://ubuntu.com/security/CVE-2021-27135
+
         1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
+
         .*✔.* CVE-2021-27135 is resolved.
         """
         When I run `pro fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
-        https://ubuntu.com/security/CVE-2021-27135
+         - https://ubuntu.com/security/CVE-2021-27135
+
         1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
+
         .*✔.* CVE-2021-27135 is resolved.
         """
         When I run `pro fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
-        https://ubuntu.com/security/CVE-2021-27135
+         - https://ubuntu.com/security/CVE-2021-27135
+
         1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         The update is already installed.
+
         .*✔.* CVE-2021-27135 is resolved.
         """
         When I run `apt-get install libbz2-1.0=1.0.6-8.1 -y --allow-downgrades` with sudo
@@ -414,10 +459,12 @@ Feature: Ua fix command behaviour
         """
         USN-4038-3: bzip2 regression
         Found Launchpad bugs:
-        https://launchpad.net/bugs/1834494
+         - https://launchpad.net/bugs/1834494
+
         1 affected source package is installed: bzip2
         \(1/1\) bzip2:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y bzip2 libbz2-1.0 \}.*
+
         .*✔.* USN-4038-3 is resolved.
         """

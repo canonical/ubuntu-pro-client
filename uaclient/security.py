@@ -272,7 +272,7 @@ class CVE:
             break
         lines = [
             "{issue}: {title}".format(issue=self.id, title=title),
-            "https://ubuntu.com/security/{}".format(self.id),
+            " - https://ubuntu.com/security/{}".format(self.id),
         ]
         return "\n".join(lines)
 
@@ -374,11 +374,11 @@ class USN:
         if self.cves_ids:
             lines.append("Found CVEs:")
             for cve in self.cves_ids:
-                lines.append("https://ubuntu.com/security/{}".format(cve))
+                lines.append(" - https://ubuntu.com/security/{}".format(cve))
         elif self.references:
             lines.append("Found Launchpad bugs:")
             for reference in self.references:
-                lines.append(reference)
+                lines.append(" - " + reference)
 
         return "\n".join(lines)
 
@@ -746,12 +746,13 @@ def print_affected_packages_header(
     count = len(affected_pkg_status)
     if count == 0:
         print(
-            messages.SECURITY_AFFECTED_PKGS.format(
+            "\n"
+            + messages.SECURITY_AFFECTED_PKGS.format(
                 count="No", plural_str="s are"
             )
             + "."
         )
-        print(messages.SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id))
+        print("\n" + messages.SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id))
         return
 
     if count == 1:
@@ -759,13 +760,21 @@ def print_affected_packages_header(
     else:
         plural_str = "s are"
     msg = (
-        messages.SECURITY_AFFECTED_PKGS.format(
+        "\n"
+        + messages.SECURITY_AFFECTED_PKGS.format(
             count=count, plural_str=plural_str
         )
         + ": "
         + ", ".join(sorted(affected_pkg_status.keys()))
     )
-    print(textwrap.fill(msg, width=PRINT_WRAP_WIDTH, subsequent_indent="    "))
+    print(
+        textwrap.fill(
+            msg,
+            width=PRINT_WRAP_WIDTH,
+            subsequent_indent="    ",
+            replace_whitespace=False,
+        )
+    )
 
 
 def override_usn_release_package_status(
@@ -1039,6 +1048,7 @@ def prompt_for_affected_packages(
 
     unfixed_pkgs += released_pkgs_install_result.unfixed_pkgs
 
+    print()
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
 
@@ -1186,7 +1196,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 def _check_attached(cfg: UAConfig, dry_run: bool) -> bool:
     """Verify if machine is attached to an Ubuntu Pro subscription."""
     if dry_run:
-        print(messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
+        print("\n" + messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
         return True
     return _prompt_for_attach(cfg)
 
@@ -1209,7 +1219,8 @@ def _check_subscription_for_required_service(
         if applicability_status == ApplicabilityStatus.APPLICABLE:
             if dry_run:
                 print(
-                    messages.SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED.format(
+                    "\n"
+                    + messages.SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED.format(
                         service=ent.name
                     )
                 )
