@@ -37,7 +37,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b Create a new entry in the `debian/changelog` file:
 
-      * You can do that by running ` dch --newversion <version-name>`
+      * You can do that by running `dch --newversion <version-name>`
       * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10.1`, with the appropriate ua and ubuntu/devel version numbers.
       * Populate `debian/changelog` with the commits you have cherry-picked
       * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
@@ -74,7 +74,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 3. Build the package for all Ubuntu releases and upload to `ppa:ua-client/staging`
 
     a. Clone the repository in a clean directory and switch to the release branch
-      * *WARNING* Build the package in a clean environment. The reason for that is because the package
+      * *WARNING* Build the package in a clean environment. The reason is that the package
         will contain everything that it is present in the folder. If you are storing credentials or
         other sensible development information in your folder, they will be uploaded too when we send
         the package to the ppa. A clean environment is the safest way to perform this.
@@ -82,8 +82,8 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     b. Edit the changelog:
       * List yourself as the author of this release.
       * Edit the version number to look like: `27.2~20.04.1~rc1` (`<version>~<ubuntu-release-number>.<revno>~rc<release-candidate-number>`)
-      * Edit the ubuntu release name. Start with the ubuntu/devel release (e.g. `impish`).
-      * `git commit -m "throwaway"` Do **not** push this commit!
+      * Edit the ubuntu release name. Start with the ubuntu/devel release.
+      * `git add debian/changelog && git commit -m "throwaway"` Do **not** push this commit!
 
     c. `build-package`
       * This script will generate all the package artifacts in the parent directory as `../out`.
@@ -102,14 +102,14 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
 ## II. Release to Ubuntu (devel and SRU)
 
-> Note: `impish` is used throughout as a reference to the current devel release. This will change.
+> Note: `kinetic` is used throughout as a reference to the current devel release. This will change.
 
 1. Prepare SRU Launchpad bugs.
 
     a. We do this even before a succesful merge into ubuntu/devel because the context added to these bugs is useful for the Server Team reviewer.
 
     b. Create a new bug on Launchpad for ubuntu-advantage-tools and use the format defined [here](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) for the description.
-      * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Hirsute`, substituting version numbers and release names as necessary.
+      * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Jammy`, substituting version numbers and release names as necessary.
     
     c. For each Launchpad bug fixed by this release (which should all be referenced in our changelog), add the SRU template to the description and fill out each section.
       * Leave the original description in the bug at the bottom under the header `[Original Description]`.
@@ -128,94 +128,72 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * You may need to resolve conflicts, but hopefully these will be minimal.
       * You'll end up in a detached state
 
-    e. `git checkout -B upload-<this-version>-impish`
+    e. `git checkout -B upload-<this-version>-kinetic`
       * This creates a new local branch name based on your detached branch
 
-    f. Make sure the changelog version contains the release version in the name (For example, `27.1~21.10.1`)
+    f. Make sure the changelog version contains the release version in the name (For example, `27.1~22.10.1`)
 
-    g. `git push <your_launchpad_user> upload-<this-version>-impish`
+    g. `git push <your_launchpad_user> upload-<this-version>-kinetic`
 
     h. On Launchpad, create a merge proposal for this version which targets `ubuntu/devel`
-      * For an example, see the [27.0.2 merge proposal](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/402459)
-      * Add 2 review slots for `canonical-server` and `canonical-server-core-reviewers`
-3. Set up the MP for past Ubuntu releases based on the ubuntu/devel PR
+      * For an example, see the [27.9 merge proposal](https://code.launchpad.net/~orndorffgrant/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/422906)
+      * Add 2 review slots for `canonical-server-reporter` and `canonical-server-core-reviewers`
 
-    a. Create a PR for each target series based off your local `release-${UA_VERSION}-impish` branch:
-      * If you've followed the instructions precisely so far, you can just run `bash tools/create-lp-release-branches.sh`.
+4. Server Team Review and Pre-SRU Review
 
-    b. Create merge proposals for each SRU target release @ `https://code.launchpad.net/~<YOUR_LP_USER></YOUR_LAUNCHPAD_USER>/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/`. Make sure each MP targets your `upload-${UA_VERSION}-impish` branch (the branch you are MP-ing into ubuntu/devel).
-
-    c. Add both `canonical-server` and `canonical-server-core-reviewers` as review slots on each MP.
-
-4. Server Team Review
-
-    a. Ask in ~Server for a review of your MPs. Include a link to the primary MP into ubuntu/devel and mention the other MPs are only changelog MPs for the SRUs into past releases.
+    a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs (If you don't know who that is, ask in ~Server). Include a link to the MP into ubuntu/devel and to the SRU bug.
     
-    b. If they request changes, create a PR into the release branch on github and ask UAClient team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. You'll also need to rebase the other `upload-<this-version>-<series>` branches and force push them to launchpad. Then notify the Server Team member that you have addressed their requests.
+    b. If they request changes, create a PR into the release branch on github and ask UAClient team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
       * Some issues may just be filed for addressing in the future if they are not urgent or pertinent to this release.
       * Unless the changes are very minor, or only testing related, you should upload a new release candidate version to `ppa:ua-client/staging` as descibed in I.3.
       * After the release is finished, any commits that were merged directly into the release branch in this way should be brought back into `main` via a single PR.
 
-    c. Once review is complete and approved, confirm that Ubuntu Server approver will be tagging the PR with the appropriate `upload/<version>` tag so git-ubuntu will import rich commit history.
-
-    d. At this point the Server Team member should **not** upload the version to the devel release.
+    c. Once review is complete and approved, the Server Team member should **not** upload the version to the devel release.
       * If they do, then any changes to the code after this point will require a bump in the patch version of the release.
 
-    e. Ask Ubuntu Server approver if they also have upload rights to the proposed queue. If they do, request that they upload ubuntu-advantage-tools for all releases. If they do not, ask in ~Server channel for a Ubuntu Server team member with upload rights for an upload review of the MP for the proposed queue.
+    d. Now ask the SRU team for a pre-SRU review of the same MP. Mention that the exact same code will be released to all stable Ubuntu releases.
+      * Follow instructions in `II.4.b` if they request any changes.
 
-    f. Once upload review is complete and approved, confirm that Ubuntu Server approver will upload ua-tools via dput to the `-proposed` queue.
+    e. Once the SRU team member gives a pre-SRU approval, create the branches for each stable release. They should be named `upload-<this-version>-<codename>`.
+      * If you've followed the instructions precisely so far, you can just run `bash tools/create-lp-release-branches.sh`.
 
-    g. Check the [-proposed release queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=1&queue_text=ubuntu-advantage-tools) for presence of ua-tools in unapproved state for each supported release. Note: libera chat #ubuntu-release IRC channel has a bot that reports queued uploads of any package in a message like "Unapproved: ubuntu-advantage-tools .. version".
+    f. Ask Server team member sponsor to upload to devel, and then the SRU proposed queue using the stable release branches you just created.
+      * Ask them to tag the PR with the appropriate `upload/<version>` tag so git-ubuntu will import rich commit history.
+      * If they do not have upload rights to the proposed queue, ask in ~Server channel for a Ubuntu Server team member with upload rights for an upload review of the MP for the proposed queue.
 
-5. SRU Review
+    g. Check the [-proposed release queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=1&queue_text=ubuntu-advantage-tools) for presence of ubuntu-advantage-tools in unapproved state for each supported release. Note: libera chat #ubuntu-release IRC channel has a bot that reports queued uploads of any package in a message like "Unapproved: ubuntu-advantage-tools .. version".
 
-    a. Once unapproved ua-tools package is listed in the pending queue for each target release, [ping appropriate daily SRU vanguard for review of ua-tools into -proposed](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing)via the libera.chat #ubuntu-release channel
+    h. Tell the SRU team member who performed the pre-SRU review that the packages are in the -proposed release queue. They will need to actually approve the package to move into -proposed.
 
-    b. As soon as the SRU vanguard approves the packages, a bot in #ubuntu-release will announce that ubuntu-advantage-tools is accepted into the applicable -proposed pockets, or the [Xenial -proposed release rejection queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejections. Double check the SRU process bug for any actionable review feedback.
+5. -proposed verification and release to -updates
 
-    c. Once accepted into `-proposed` by an SRU vanguard [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), check `rmadison ubuntu-advantage-tools | grep -proposed` to see if the upload exists in -proposed yet.
+    a. As soon as the SRU vanguard approves the packages, a bot in #ubuntu-release will announce that ubuntu-advantage-tools is accepted into the applicable -proposed pockets, or the [Xenial -proposed release rejection queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejections. Double check the SRU process bug for any actionable review feedback.
+      * Once accepted into `-proposed` by an SRU vanguard [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), check `rmadison ubuntu-advantage-tools | grep -proposed` to see if the upload exists in -proposed yet.
+      * Also actually check that the packages are accessible in a container by [enabling proposed](https://wiki.ubuntu.com/Testing/EnableProposed) and updating the package.
 
-    d. Confirm availability in <devel>-proposed pocket via
-    ```bash
-    cat > setup_proposed.sh <<EOF
-    #/bin/bash
-    mirror=http://archive.ubuntu.com/ubuntu
-    echo deb \$mirror \$(lsb_release -sc)-proposed main | tee /etc/apt/sources.list.d/proposed.list
-    apt-get update -q;
-    apt-get install -qy ubuntu-advantage-tools;
-    apt-cache policy ubuntu-advantage-tools;
-    EOF
+    b. With the package in proposed, perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
 
-    lxc launch ubuntu-daily:impish dev-i;
-    lxc file push setup_proposed.sh
-    lxc exec dev-i -- bash /setup_proposed.sh
+    c. Perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
+      * There may also be one-time test scripts added in the `sru/` directory for this release
+
+    d. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:
     ```
-
-    e. With the package in proposed, perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
-
-    f. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
-
-    g. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:
-    ```
-    We have run the full ubuntu-advantage-tools integration test suite against the version in -proposed. The results are attached. All tests passed (or call out specific explained failures).
+    We have run the full ubuntu-advantage-tools integration test suite against the version in -proposed. The results are attached. All tests passed.
     
     You can verify the correct version was used by checking the output of the first test in each file, which prints the version number.
 
     I am marking the verification done for this SRU.
     ```
-    Change the tags on the bug from `verification-needed` to `verification-done` (including the verification tags for each release).
+    Change the tags on the bug from `verification-needed` to `verification-done` (including the verification tags for each ubuntu release).
 
-    h. For any other related Launchpad bugs that are fixed in this release. Perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
+    e. For any other related Launchpad bugs that are fixed in this release. Perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
 
-    i. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html).
+    f. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html).
     
-    j. After the pending sru page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
+    g. After the pending sru page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
 
-    k. Ping the Ubuntu Server team member who approved the version in step `II.4` to now upload to the devel release.
-
-    l. Check `rmadison ubuntu-advantage-tools` for updated version in devel release
-
-    m. Confirm availability in <devel-series>-updates pocket via `lxc launch ubuntu-daily:<devel-series> dev-i; lxc exec dev-i -- apt update; lxc exec dev-i -- apt-cache policy ubuntu-advantage-tools`
+    h. Check `rmadison ubuntu-advantage-tools` for updated version in -updates
+      * Also actually check that the packages are accessible in a container and updating the package.
 
 ## III. Post-release Updates
 
