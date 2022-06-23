@@ -147,7 +147,6 @@ bool count_security_packages_from_apt_stats_json(json_object *stats, security_pa
 
 std::string create_count_message(security_package_counts &counts) {
     std::vector<std::string> count_msgs;
-    bool wrote_security = false;
 
     if (counts.standard + counts.esm_infra + counts.esm_apps == 0) {
         return "";
@@ -155,32 +154,24 @@ std::string create_count_message(security_package_counts &counts) {
 
     if (counts.standard > 0) {
         std::stringstream ss;
-        ss << counts.standard << " standard security update";
+        ss << counts.standard << " standard LTS security update";
         if (counts.standard != 1) {
             ss << "s";
         }
         count_msgs.push_back(ss.str());
-        wrote_security = true;
     }
     if (counts.esm_infra > 0) {
         std::stringstream ss;
-        ss << counts.esm_infra << " esm-infra ";
-        if (!wrote_security) {
-            ss << "security ";
-        }
+        ss << counts.esm_infra << " esm-infra security ";
         ss << "update";
         if (counts.esm_infra != 1) {
             ss << "s";
         }
         count_msgs.push_back(ss.str());
-        wrote_security = true;
     }
     if (counts.esm_apps > 0) {
         std::stringstream ss;
-        ss << counts.esm_apps << " esm-apps ";
-        if (!wrote_security) {
-            ss << "security ";
-        }
+        ss << counts.esm_apps << " esm-apps security ";
         ss << "update";
         if (counts.esm_apps != 1) {
             ss << "s";
