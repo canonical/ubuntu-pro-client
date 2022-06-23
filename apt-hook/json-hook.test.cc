@@ -21,29 +21,29 @@ BOOST_AUTO_TEST_CASE(Test1) { count_message_test(0, 0, 0, ""); }
 BOOST_AUTO_TEST_CASE(Test2) { count_message_test(0, 0, 1, "1 esm-apps security update"); }
 BOOST_AUTO_TEST_CASE(Test3) { count_message_test(0, 0, 2, "2 esm-apps security updates"); }
 BOOST_AUTO_TEST_CASE(Test4) { count_message_test(0, 1, 0, "1 esm-infra security update"); }
-BOOST_AUTO_TEST_CASE(Test5) { count_message_test(0, 1, 1, "1 esm-infra security update and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test6) { count_message_test(0, 1, 2, "1 esm-infra security update and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test5) { count_message_test(0, 1, 1, "1 esm-infra security update and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test6) { count_message_test(0, 1, 2, "1 esm-infra security update and 2 esm-apps security updates"); }
 BOOST_AUTO_TEST_CASE(Test7) { count_message_test(0, 2, 0, "2 esm-infra security updates"); }
-BOOST_AUTO_TEST_CASE(Test8) { count_message_test(0, 2, 1, "2 esm-infra security updates and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test9) { count_message_test(0, 2, 2, "2 esm-infra security updates and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test10) { count_message_test(1, 0, 0, "1 standard security update"); }
-BOOST_AUTO_TEST_CASE(Test11) { count_message_test(1, 0, 1, "1 standard security update and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test12) { count_message_test(1, 0, 2, "1 standard security update and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test13) { count_message_test(1, 1, 0, "1 standard security update and 1 esm-infra update"); }
-BOOST_AUTO_TEST_CASE(Test14) { count_message_test(1, 1, 1, "1 standard security update, 1 esm-infra update and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test15) { count_message_test(1, 1, 2, "1 standard security update, 1 esm-infra update and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test16) { count_message_test(1, 2, 0, "1 standard security update and 2 esm-infra updates"); }
-BOOST_AUTO_TEST_CASE(Test17) { count_message_test(1, 2, 1, "1 standard security update, 2 esm-infra updates and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test18) { count_message_test(1, 2, 2, "1 standard security update, 2 esm-infra updates and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test19) { count_message_test(2, 0, 0, "2 standard security updates"); }
-BOOST_AUTO_TEST_CASE(Test20) { count_message_test(2, 0, 1, "2 standard security updates and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test21) { count_message_test(2, 0, 2, "2 standard security updates and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test22) { count_message_test(2, 1, 0, "2 standard security updates and 1 esm-infra update"); }
-BOOST_AUTO_TEST_CASE(Test23) { count_message_test(2, 1, 1, "2 standard security updates, 1 esm-infra update and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test24) { count_message_test(2, 1, 2, "2 standard security updates, 1 esm-infra update and 2 esm-apps updates"); }
-BOOST_AUTO_TEST_CASE(Test25) { count_message_test(2, 2, 0, "2 standard security updates and 2 esm-infra updates"); }
-BOOST_AUTO_TEST_CASE(Test26) { count_message_test(2, 2, 1, "2 standard security updates, 2 esm-infra updates and 1 esm-apps update"); }
-BOOST_AUTO_TEST_CASE(Test27) { count_message_test(2, 2, 2, "2 standard security updates, 2 esm-infra updates and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test8) { count_message_test(0, 2, 1, "2 esm-infra security updates and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test9) { count_message_test(0, 2, 2, "2 esm-infra security updates and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test10) { count_message_test(1, 0, 0, "1 standard LTS security update"); }
+BOOST_AUTO_TEST_CASE(Test11) { count_message_test(1, 0, 1, "1 standard LTS security update and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test12) { count_message_test(1, 0, 2, "1 standard LTS security update and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test13) { count_message_test(1, 1, 0, "1 standard LTS security update and 1 esm-infra security update"); }
+BOOST_AUTO_TEST_CASE(Test14) { count_message_test(1, 1, 1, "1 standard LTS security update, 1 esm-infra security update and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test15) { count_message_test(1, 1, 2, "1 standard LTS security update, 1 esm-infra security update and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test16) { count_message_test(1, 2, 0, "1 standard LTS security update and 2 esm-infra security updates"); }
+BOOST_AUTO_TEST_CASE(Test17) { count_message_test(1, 2, 1, "1 standard LTS security update, 2 esm-infra security updates and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test18) { count_message_test(1, 2, 2, "1 standard LTS security update, 2 esm-infra security updates and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test19) { count_message_test(2, 0, 0, "2 standard LTS security updates"); }
+BOOST_AUTO_TEST_CASE(Test20) { count_message_test(2, 0, 1, "2 standard LTS security updates and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test21) { count_message_test(2, 0, 2, "2 standard LTS security updates and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test22) { count_message_test(2, 1, 0, "2 standard LTS security updates and 1 esm-infra security update"); }
+BOOST_AUTO_TEST_CASE(Test23) { count_message_test(2, 1, 1, "2 standard LTS security updates, 1 esm-infra security update and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test24) { count_message_test(2, 1, 2, "2 standard LTS security updates, 1 esm-infra security update and 2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test25) { count_message_test(2, 2, 0, "2 standard LTS security updates and 2 esm-infra security updates"); }
+BOOST_AUTO_TEST_CASE(Test26) { count_message_test(2, 2, 1, "2 standard LTS security updates, 2 esm-infra security updates and 1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test27) { count_message_test(2, 2, 2, "2 standard LTS security updates, 2 esm-infra security updates and 2 esm-apps security updates"); }
 
 BOOST_AUTO_TEST_SUITE_END()
 
