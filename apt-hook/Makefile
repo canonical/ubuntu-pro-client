@@ -15,8 +15,10 @@ test:
 	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook-test json-hook.cc json-hook.test.cc -ljson-c -lboost_unit_test_framework $(LDLIBS)
 	./json-hook-test
 
-install: hook json-hook
+install-conf:
 	install -D -m 644 20apt-esm-hook.conf $(DESTDIR)/etc/apt/apt.conf.d/20apt-esm-hook.conf
+
+install: hook json-hook
 	install -D -m 755 hook $(DESTDIR)/usr/lib/ubuntu-advantage/apt-esm-hook
 	install -D -m 755 json-hook $(DESTDIR)/usr/lib/ubuntu-advantage/apt-esm-json-hook
 
