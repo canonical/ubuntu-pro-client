@@ -220,13 +220,37 @@ If set, ua will use the specified https proxy when making any https requests
 .TP
 .B
 \fBapt_http_proxy\fP
-If set, ua will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
+\fB[DEPRECATED]\fP If set, ua will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
 .TP
 .B
 \fBapt_https_proxy\fP
+\fB[DEPRECATED]\fP If set, ua will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
+.TP
+.B
+\fBglobal_apt_http_proxy\fP
+If set, ua will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+.TP
+.B
+\fBglobal_apt_https_proxy\fP
 If set, ua will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+.TP
+.B
+\fBua_apt_http_proxy\fP
+If set, ua will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+.TP
+.B
+\fBua_apt_https_proxy\fP
+If set, ua will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
 .TP
 .B
 \fB<job_name>_timer\fP
