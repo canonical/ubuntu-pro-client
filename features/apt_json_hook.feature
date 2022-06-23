@@ -13,7 +13,7 @@ Feature: APT JSON Hook
         Then stdout matches regexp:
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard security updates
+        2 standard LTS security updates
 
         """
 
@@ -41,7 +41,7 @@ Feature: APT JSON Hook
         Then stdout matches regexp:
         """
         4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard security updates and 2 esm-infra updates
+        2 standard LTS security updates and 2 esm-infra security updates
 
         """
 
@@ -51,7 +51,7 @@ Feature: APT JSON Hook
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard security updates and 1 esm-apps update
+        2 standard LTS security updates and 1 esm-apps security update
 
         """
 
@@ -61,7 +61,7 @@ Feature: APT JSON Hook
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 esm-infra security updates and 1 esm-apps update
+        2 esm-infra security updates and 1 esm-apps security update
 
         """
 
@@ -72,7 +72,7 @@ Feature: APT JSON Hook
         Then stdout matches regexp:
         """
         5 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard security updates, 2 esm-infra updates and 1 esm-apps update
+        2 standard LTS security updates, 2 esm-infra security updates and 1 esm-apps security update
 
         """
 
@@ -83,7 +83,7 @@ Feature: APT JSON Hook
         """
         Then stdout does not match regexp:
         """
-        standard security update
+        standard LTS security update
         """
         Then stdout does not match regexp:
         """
