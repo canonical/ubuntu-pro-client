@@ -127,6 +127,10 @@ are running `apt-get upgrade` or `apt-get dist-upgrade`, they are:
   to communicate with.
 
 
+> **Note**
+> Those hooks are only delivered on LTS releases. This is because the hooks will
+> not deliver useful messages on non-LTS due to lack of support for ESM services.
+
 ## How are APT configured to deliver those messages
 
 We currently ship the package the `20apt-esm-hook.conf` configuration that
