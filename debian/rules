@@ -4,6 +4,7 @@ export DH_VERBOSE=1
 include /usr/share/dpkg/pkg-info.mk
 
 include /etc/os-release
+
 # see https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1840091/comments/3
 
 # Bionic and Xenial each have older versions of distro-info that don't support
@@ -32,7 +33,10 @@ override_dh_auto_build:
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+# Hooks will only be delivered on LTS instances
+ifeq (LTS,$(findstring LTS,$(VERSION)))
 	make -C apt-hook test
+endif
 	python3 -m pytest
 	python3 -m flake8 uaclient
 endif
@@ -59,7 +63,15 @@ override_dh_systemd_start:
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
 	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
+
+	# We install the conf file even on non-LTS version to avoid issues on upgrade scenarios
+	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install-conf
+
+# Hooks will only be delivered on LTS instances
+ifeq (LTS,$(findstring LTS,$(VERSION)))
 	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install
+endif
+
 	# We want to guarantee that we are not shipping any conftest files
 	find $(CURDIR)/debian/ubuntu-advantage-tools -type f -name conftest.py -delete
 
