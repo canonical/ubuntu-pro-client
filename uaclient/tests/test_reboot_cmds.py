@@ -27,7 +27,7 @@ class TestMain:
             with mock.patch(
                 "uaclient.config.UAConfig.check_lock_info"
             ) as m_check_lock:
-                m_check_lock.return_value = (123, "ua auto-attach")
+                m_check_lock.return_value = (123, "pro auto-attach")
                 with mock.patch("time.sleep") as m_sleep:
                     main(cfg=cfg)
         assert [

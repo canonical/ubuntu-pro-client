@@ -69,7 +69,7 @@ stderr:
 
 
 class UAClientBehaveConfig:
-    """Store config options for UA client behave test runs.
+    """Store config options for Pro client behave test runs.
 
     This captures the configuration in one place, so that we have a single
     source of truth for test configuration (rather than having environment
@@ -468,10 +468,10 @@ FAILURE_FILES = (
     "/var/lib/cloud/instance/vendor-data.txt",
 )
 FAILURE_CMDS = {
-    "ua-version": ["ua", "version"],
+    "ua-version": ["pro", "version"],
     "cloud-init-analyze": ["cloud-init", "analyze", "show"],
     "cloud-init.status": ["cloud-init", "status", "--long"],
-    "status.json": ["ua", "status", "--all", "--format=json"],
+    "status.json": ["pro", "status", "--all", "--format=json"],
     "journal.log": ["journalctl", "-b", "0"],
     "systemd-analyze-blame": ["systemd-analyze", "blame"],
     "systemctl-status": ["systemctl", "status"],
@@ -786,10 +786,10 @@ def _install_uat_in_container(
                 conf_path
             )
         )
-        cmds.append("sudo ua status --wait")
-        cmds.append("sudo ua detach --assume-yes")
+        cmds.append("sudo pro status --wait")
+        cmds.append("sudo pro detach --assume-yes")
 
-    cmds.append("ua version")
+    cmds.append("pro version")
     instance = config.cloud_api.get_instance(container_id)
     for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)

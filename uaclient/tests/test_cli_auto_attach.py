@@ -30,7 +30,7 @@ HELP_OUTPUT = textwrap.dedent(
     """\
 usage: pro auto-attach [flags]
 
-Automatically attach an Ubuntu Advantage token on Ubuntu Pro images.
+Automatically attach on an Ubuntu Pro cloud instance.
 
 Flags:
   -h, --help  show this help message and exit
@@ -71,13 +71,13 @@ class TestActionAutoAttach:
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to auto-attach if operation holds lock file."""
         cfg = FakeConfig()
-        cfg.write_cache("lock", "123:ua disable")
+        cfg.write_cache("lock", "123:pro disable")
         with pytest.raises(LockHeldError) as err:
             action_auto_attach(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
-            "Unable to perform: ua auto-attach.\n"
-            "Operation in progress: ua disable (pid:123)"
+            "Unable to perform: pro auto-attach.\n"
+            "Operation in progress: pro disable (pid:123)"
         ) == err.value.msg
 
     @pytest.mark.parametrize(
@@ -284,7 +284,7 @@ class TestParser:
         assert "Flags" == m_parser._optionals.title
 
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "auto-attach"]):
+        with mock.patch("sys.argv", ["pro", "auto-attach"]):
             args = full_parser.parse_args()
         assert "auto-attach" == args.command
         assert "action_auto_attach" == args.action.__name__

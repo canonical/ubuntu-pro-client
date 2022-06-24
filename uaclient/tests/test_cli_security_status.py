@@ -28,8 +28,8 @@ installed packages based on the origin.
 - unknown: packages which don't have an installation source \(like local
   deb packages or packages for which the source was removed\)
 
-The summary contains basic information about UA and ESM. For a complete
-status on UA services, run 'ua status'
+The summary contains basic information about Ubuntu Pro and ESM. For a
+complete status on Ubuntu Pro services, run 'pro status'
 
 (optional arguments|options):
   -h, --help            show this help message and exit
@@ -125,7 +125,7 @@ class TestParser:
 
         full_parser = get_parser(FakeConfig())
         with mock.patch(
-            "sys.argv", ["ua", "security-status", "--format", "json"]
+            "sys.argv", ["pro", "security-status", "--format", "json"]
         ):
             args = full_parser.parse_args()
         assert "security-status" == args.command

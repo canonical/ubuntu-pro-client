@@ -774,7 +774,7 @@ class TestSetupAptConfig:
                 RepoTestEntitlement,
                 {},
                 exceptions.UserFacingError,
-                "Ubuntu Advantage server provided no aptKey directive for"
+                "Ubuntu Pro server provided no aptKey directive for"
                 " repotest.",
             ),
             (

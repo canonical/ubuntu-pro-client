@@ -305,7 +305,7 @@ class RepoEntitlement(base.UAEntitlement):
             if not obligations.get("enableByDefault"):
                 # services that are not enableByDefault need to obtain specific
                 # resource access for tokens. We want to refresh this every
-                # enable call because it is not refreshed by `ua refresh`.
+                # enable call because it is not refreshed by `pro refresh`.
                 client = contract.UAContractClient(self.cfg)
                 machine_access = client.request_resource_machine_access(
                     machine_token, self.name
@@ -322,7 +322,7 @@ class RepoEntitlement(base.UAEntitlement):
         aptKey = directives.get("aptKey")
         if not aptKey:
             raise exceptions.UserFacingError(
-                "Ubuntu Advantage server provided no aptKey directive for"
+                "Ubuntu Pro server provided no aptKey directive for"
                 " {}.".format(self.name)
             )
         repo_url = directives.get("aptURL")
@@ -380,7 +380,7 @@ class RepoEntitlement(base.UAEntitlement):
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
-        # which allows ua status to report correct info
+        # which allows pro status to report correct info
         if not silent:
             event.info(messages.APT_UPDATING_LISTS)
         try:

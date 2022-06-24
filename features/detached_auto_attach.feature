@@ -8,19 +8,19 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
     Scenario Outline: No detaching on manually attached machine on all clouds
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua refresh` with sudo
+        And I run `pro refresh` with sudo
         Then I will see the following on stdout:
         """
-        Successfully processed your ua configuration.
+        Successfully processed your pro configuration.
         Successfully refreshed your subscription.
-        Successfully updated UA related APT and MOTD messages.
+        Successfully updated Ubuntu Pro related APT and MOTD messages.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         esm-infra    +yes      +<esm-service> +Extended Security Maintenance for Infrastructure
