@@ -7,7 +7,7 @@ from uaclient.cli import action_refresh, main
 HELP_OUTPUT = """\
 usage: pro refresh [contract|config|messages] [flags]
 
-Refresh three distinct UA related artifacts in the system:
+Refresh three distinct Ubuntu Pro related artifacts in the system:
 
 * contract: Update contract details from the server.
 * config:   Reload the config file.
@@ -70,13 +70,13 @@ class TestActionRefresh:
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()
         with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua disable")
+            stream.write("123:pro disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_refresh(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
-            "Unable to perform: ua refresh.\n"
-            "Operation in progress: ua disable (pid:123)"
+            "Unable to perform: pro refresh.\n"
+            "Operation in progress: pro disable (pid:123)"
         ) == err.value.msg
 
     @mock.patch("logging.exception")

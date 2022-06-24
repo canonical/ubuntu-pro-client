@@ -284,7 +284,7 @@ def when_i_run_command_with_stdin(
 @when("I do a preflight check for `{contract_token}` {user_spec}")
 def when_i_preflight(context, contract_token, user_spec, verify_return=True):
     token = getattr(context.config, contract_token, "invalid_token")
-    command = "ua status --simulate-with-token {}".format(token)
+    command = "pro status --simulate-with-token {}".format(token)
     if user_spec == "with the all flag":
         command += " --all"
     if "formatted as" in user_spec:
@@ -366,7 +366,7 @@ def when_i_fix_a_issue_by_attaching(context, issue, token_type):
 
     when_i_run_command(
         context=context,
-        command="ua fix {}".format(issue),
+        command="pro fix {}".format(issue),
         user_spec="with sudo",
         stdin="a\n{}\n".format(token),
         verify_return=False,
@@ -377,7 +377,7 @@ def when_i_fix_a_issue_by_attaching(context, issue, token_type):
 def when_i_fix_a_issue_by_enabling_service(context, issue):
     when_i_run_command(
         context=context,
-        command="ua fix {}".format(issue),
+        command="pro fix {}".format(issue),
         user_spec="with sudo",
         stdin="e\n",
     )
@@ -388,7 +388,7 @@ def when_i_fix_a_issue_by_updating_expired_token(context, issue):
     token = getattr(context.config, "contract_token")
     when_i_run_command(
         context=context,
-        command="ua fix {}".format(issue),
+        command="pro fix {}".format(issue),
         user_spec="with sudo",
         stdin="r\n{}\n".format(token),
     )
@@ -454,7 +454,7 @@ def when_i_attach_staging_token(
         or token_type == "contract_token_staging_expired"
     ):
         change_contract_endpoint_to_staging(context, user_spec)
-    cmd = "ua attach {} {}".format(token, options).strip()
+    cmd = "pro attach {} {}".format(token, options).strip()
     when_i_run_command(context, cmd, user_spec, verify_return=False)
 
     if verify_return:
@@ -623,7 +623,7 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     "I verify that running attach `{spec}` with json response exits `{exit_codes}`"  # noqa
 )
 def when_i_verify_attach_with_json_response(context, spec, exit_codes):
-    cmd = "ua attach {} --format json".format(context.config.contract_token)
+    cmd = "pro attach {} --format json".format(context.config.contract_token)
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         context=context, cmd_name=cmd, spec=spec, exit_codes=exit_codes
     )
@@ -634,7 +634,7 @@ def when_i_verify_attach_with_json_response(context, spec, exit_codes):
 )
 def when_i_verify_attach_expired_token_with_json_response(context, spec):
     change_contract_endpoint_to_staging(context, user_spec="with sudo")
-    cmd = "ua attach {} --format json".format(
+    cmd = "pro attach {} --format json".format(
         context.config.contract_token_staging_expired
     )
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
@@ -989,7 +989,7 @@ def docker_image_is_not_larger(context, name, series, package):
     )
     base_image_size = int(context.process.stdout.strip())
 
-    # Get ua test deb size
+    # Get pro test deb size
     when_i_run_command(context, "du ubuntu-advantage-tools.deb", "with sudo")
     # Example out: "1234\tubuntu-advantage-tools.deb"
     ua_test_deb_size = (
@@ -1002,14 +1002,14 @@ def docker_image_is_not_larger(context, name, series, package):
     if custom_image_size > (base_image_size + ua_test_deb_size + extra_space):
         raise AssertionError(
             "Custom image size ({}) is over 2MB greater than the base image"
-            " size ({}) + ua test deb size ({})".format(
+            " size ({}) + pro test deb size ({})".format(
                 custom_image_size, base_image_size, ua_test_deb_size
             )
         )
     logging.debug(
         "custom image size ({})\n"
         "base image size ({})\n"
-        "ua test deb size ({})".format(
+        "pro test deb size ({})".format(
             custom_image_size, base_image_size, ua_test_deb_size
         )
     )

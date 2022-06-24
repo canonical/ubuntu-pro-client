@@ -18,7 +18,7 @@ HELP_OUTPUT = textwrap.dedent(
     """\
 usage: pro collect-logs \[flags\]
 
-Collect UA logs and relevant system information into a tarball.
+Collect logs and relevant system information into a tarball.
 
 (optional arguments|options):
   -h, --help            show this help message and exit
@@ -84,7 +84,7 @@ class TestActionCollectLogs:
 
         assert m_subp.call_args_list == [
             mock.call(["cloud-id"], rcs=None),
-            mock.call(["ua", "status", "--format", "json"], rcs=None),
+            mock.call(["pro", "status", "--format", "json"], rcs=None),
             mock.call(["/snap/bin/canonical-livepatch", "status"], rcs=None),
             mock.call(["systemctl", "list-timers", "--all"], rcs=None),
             mock.call(
@@ -170,7 +170,7 @@ class TestParser:
         assert "collect-logs" == m_parser.prog
 
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "collect-logs"]):
+        with mock.patch("sys.argv", ["pro", "collect-logs"]):
             args = full_parser.parse_args()
         assert "collect-logs" == args.command
         assert "action_collect_logs" == args.action.__name__

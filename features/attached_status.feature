@@ -6,9 +6,9 @@ Feature: Attached status
     Scenario Outline: Attached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua status --format json` as non-root
+        And I run `pro status --format json` as non-root
         Then stdout is a json matching the `ua_status` schema
-        When I run `ua status --format yaml` as non-root
+        When I run `pro status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_status` schema
 
         Examples: ubuntu release

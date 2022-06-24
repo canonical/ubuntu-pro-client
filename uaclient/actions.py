@@ -106,7 +106,7 @@ def status(
     show_beta: bool = False
 ):
     """
-    Construct the current UA status dictionary.
+    Construct the current Pro status dictionary.
     """
     if simulate_with_token:
         status, ret = ua_status.simulate_status(

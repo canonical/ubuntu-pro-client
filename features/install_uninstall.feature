@@ -1,4 +1,4 @@
-Feature: UA Install and Uninstall related tests
+Feature: Pro Install and Uninstall related tests
 
     @series.all
     @uses.config.machine_type.lxd.container

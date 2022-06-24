@@ -28,7 +28,7 @@ MERGE_ID_KEY_MAP = {
 }
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
-# Keys visible and configurable using `ua config set|unset|show` subcommands
+# Keys visible and configurable using `pro config set|unset|show` subcommands
 UA_CONFIGURABLE_KEYS = (
     "http_proxy",
     "https_proxy",
@@ -335,7 +335,7 @@ class UAConfig:
     def add_notice(self, label: str, description: str):
         """Add a notice message to notices cache.
 
-        Such notices are seen in the Notices section from ua status output.
+        Such notices are seen in the Notices section from pro status output.
         They are also present in the JSON status output.
         """
         notices = self.read_cache("notices") or []
@@ -791,14 +791,14 @@ def get_config_path() -> str:
 
 
 def parse_config(config_path=None):
-    """Parse known UA config file
+    """Parse known Pro config file
 
     Attempt to find configuration in cwd and fallback to DEFAULT_CONFIG_FILE.
     Any missing configuration keys will be set to CONFIG_DEFAULTS.
 
     Values are overridden by any environment variable with prefix 'UA_'.
 
-    @param config_path: Fullpath to ua configfile. If unspecified, use
+    @param config_path: Fullpath to pro configfile. If unspecified, use
         DEFAULT_CONFIG_FILE.
 
     @return: Dict of configuration values.
@@ -808,7 +808,7 @@ def parse_config(config_path=None):
     if not config_path:
         config_path = get_config_path()
 
-    LOG.debug("Using UA client configuration file at %s", config_path)
+    LOG.debug("Using client configuration file at %s", config_path)
     if os.path.exists(config_path):
         cfg.update(yaml.safe_load(util.load_file(config_path)))
     env_keys = {}

@@ -13,14 +13,14 @@ Feature: FIPS enablement in PRO cloud based machines
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` with sudo
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
             fips          +yes +disabled +NIST-certified core packages
             fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
             """
-            When I run `ua enable <fips-service> --assume-yes` with sudo
+            When I run `pro enable <fips-service> --assume-yes` with sudo
             Then stdout matches regexp:
                 """
                 Updating package lists
@@ -28,7 +28,7 @@ Feature: FIPS enablement in PRO cloud based machines
                 <fips-name> enabled
                 A reboot is required to complete install
                 """
-            When I run `ua status --all` with sudo
+            When I run `pro status --all` with sudo
             Then stdout matches regexp:
                 """
                 <fips-service> +yes                enabled
@@ -72,14 +72,14 @@ Feature: FIPS enablement in PRO cloud based machines
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` with sudo
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
             fips          +yes +disabled +NIST-certified core packages
             fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
             """
-            When I run `ua enable <fips-service> --assume-yes` with sudo
+            When I run `pro enable <fips-service> --assume-yes` with sudo
             Then stdout matches regexp:
                 """
                 Updating package lists
@@ -87,7 +87,7 @@ Feature: FIPS enablement in PRO cloud based machines
                 <fips-name> enabled
                 A reboot is required to complete install
                 """
-            When I run `ua status --all` with sudo
+            When I run `pro status --all` with sudo
             Then stdout matches regexp:
                 """
                 <fips-service> +yes                enabled
@@ -132,14 +132,14 @@ Feature: FIPS enablement in PRO cloud based machines
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` with sudo
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
             fips          +yes +disabled +NIST-certified core packages
             fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
             """
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -147,7 +147,7 @@ Feature: FIPS enablement in PRO cloud based machines
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled

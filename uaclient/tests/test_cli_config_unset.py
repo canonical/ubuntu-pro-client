@@ -8,11 +8,11 @@ from uaclient.exceptions import NonRootUserError
 HELP_OUTPUT = """\
 usage: pro unset <key> [flags]
 
-Unset Ubuntu Advantage configuration setting
+Unset Ubuntu Pro configuration setting
 
 positional arguments:
-  key         configuration key to unset from Ubuntu Advantage services. One
-              of: http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
+  key         configuration key to unset from Ubuntu Pro services. One of:
+              http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
               ua_apt_http_proxy, ua_apt_https_proxy, global_apt_http_proxy,
               global_apt_https_proxy, update_messaging_timer,
               update_status_timer, metering_timer
@@ -67,7 +67,7 @@ class TestMainConfigUnSet:
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestActionConfigUnSet:
     def test_set_error_on_non_root_user(self, getuid, _write_cfg, FakeConfig):
-        """Root is required to run ua config unset."""
+        """Root is required to run pro config unset."""
         getuid.return_value = 1
         args = mock.MagicMock(key="https_proxy")
         cfg = FakeConfig()

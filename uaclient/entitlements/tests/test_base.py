@@ -154,7 +154,7 @@ class TestUaEntitlement:
 
         expected_msg = (
             "Test Concrete Entitlement is not currently enabled\n"
-            "See: sudo ua status"
+            "See: sudo pro status"
         )
         assert expected_msg == fail.message.msg
 

@@ -1,9 +1,9 @@
 """
-Update messaging text for use in MOTD and APT custom Ubuntu Advantage messages.
+Update messaging text for use in MOTD and APT custom Ubuntu Pro messages.
 
 Messaging files will be emitted to /var/lib/ubuntu-advantage/message-* which
 will be sourced by apt-hook/hook.cc and various /etc/update-motd.d/ hooks to
-present updated text about Ubuntu Advantage service and token state.
+present updated text about Ubuntu Pro service and token state.
 """
 
 import enum
@@ -324,7 +324,7 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
 
     :param cfg: UAConfig instance for this environment.
     """
-    logging.debug("Updating UA messages for APT and MOTD.")
+    logging.debug("Updating Ubuntu Pro messages for APT and MOTD.")
     msg_dir = os.path.join(cfg.data_dir, "messages")
     if not os.path.exists(msg_dir):
         os.makedirs(msg_dir)

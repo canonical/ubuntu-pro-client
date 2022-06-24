@@ -30,11 +30,11 @@ HELP_OUTPUT = textwrap.dedent(
     """\
 usage: pro disable <service> [<service>] [flags]
 
-Disable an Ubuntu Advantage service.
+Disable an Ubuntu Pro service.
 
 Arguments:
-  service              the name(s) of the Ubuntu Advantage services to disable
-                       One of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
+  service              the name(s) of the Ubuntu Pro services to disable. One
+                       of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
                        updates, livepatch
 
 Flags:
@@ -473,10 +473,10 @@ class TestDisable:
         cfg = FakeConfig().for_attached_machine()
         args = mock.MagicMock()
         expected_error = messages.LOCK_HELD_ERROR.format(
-            lock_request="ua disable", lock_holder="ua enable", pid="123"
+            lock_request="pro disable", lock_holder="pro enable", pid="123"
         )
         with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua enable")
+            stream.write("123:pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)

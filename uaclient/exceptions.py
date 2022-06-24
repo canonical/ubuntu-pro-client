@@ -203,7 +203,7 @@ class AttachInvalidTokenError(UserFacingError):
 
 
 class LockHeldError(UserFacingError):
-    """An exception for when another ua operation is in progress
+    """An exception for when another pro operation is in progress
 
     :param lock_request: String of the command requesting the lock
     :param lock_holder: String of the command that currently holds the lock
