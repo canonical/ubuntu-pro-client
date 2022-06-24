@@ -1,37 +1,37 @@
 @uses.config.contract_token
-Feature: Command behaviour when attached to an UA subscription
+Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached refresh in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua refresh` `as non-root` exits `1`
+        Then I verify that running `pro refresh` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua refresh` with sudo
+        When I run `pro refresh` with sudo
         Then I will see the following on stdout:
             """
-            Successfully processed your ua configuration.
+            Successfully processed your pro configuration.
             Successfully refreshed your subscription.
-            Successfully updated UA related APT and MOTD messages.
+            Successfully updated Ubuntu Pro related APT and MOTD messages.
             """
-        When I run `ua refresh config` with sudo
+        When I run `pro refresh config` with sudo
         Then I will see the following on stdout:
             """
-            Successfully processed your ua configuration.
+            Successfully processed your pro configuration.
             """
-        When I run `ua refresh contract` with sudo
+        When I run `pro refresh contract` with sudo
         Then I will see the following on stdout:
             """
             Successfully refreshed your subscription.
             """
-        When I run `ua refresh messages` with sudo
+        When I run `pro refresh messages` with sudo
         Then I will see the following on stdout:
             """
-            Successfully updated UA related APT and MOTD messages.
+            Successfully updated Ubuntu Pro related APT and MOTD messages.
             """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
@@ -64,16 +64,16 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable livepatch` `as non-root` exits `1`
+        Then I verify that running `pro disable livepatch` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        And I verify that running `ua disable livepatch` `with sudo` exits `1`
+        And I verify that running `pro disable livepatch` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             Livepatch is not currently enabled
-            See: sudo ua status
+            See: sudo pro status
             """
 
         Examples: ubuntu release
@@ -89,44 +89,44 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable with json format
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable foobar --format json` `as non-root` exits `1`
+        Then I verify that running `pro disable foobar --format json` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        Then I verify that running `ua disable foobar --format json` `with sudo` exits `1`
+        Then I verify that running `pro disable foobar --format json` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        Then I verify that running `ua disable foobar --format json --assume-yes` `as non-root` exits `1`
+        Then I verify that running `pro disable foobar --format json --assume-yes` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `ua disable foobar --format json --assume-yes` `with sudo` exits `1`
+        And I verify that running `pro disable foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `ua disable livepatch --format json --assume-yes` `with sudo` exits `1`
+        And I verify that running `pro disable livepatch --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo ua status", "message_code": "service-already-disabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo pro status", "message_code": "service-already-disabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
-        And I verify that running `ua disable esm-infra esm-apps --format json --assume-yes` `with sudo` exits `0`
+        And I verify that running `pro disable esm-infra esm-apps --format json --assume-yes` `with sudo` exits `0`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
         """
-        When I run `ua enable esm-infra` with sudo
-        Then I verify that running `ua disable esm-infra foobar --format json --assume-yes` `with sudo` exits `1`
+        When I run `pro enable esm-infra` with sudo
+        Then I verify that running `pro disable esm-infra foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
@@ -147,28 +147,28 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable foobar` `as non-root` exits `1`
+        Then I verify that running `pro disable foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        And I verify that running `ua disable foobar` `with sudo` exits `1`
+        And I verify that running `pro disable foobar` `with sudo` exits `1`
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
             <msg>
             """
-        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        And I verify that running `pro disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua disable esm-infra` with sudo
+        When I run `pro disable esm-infra` with sudo
         Then I will see the following on stdout:
             """
             Updating package lists
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
@@ -186,29 +186,29 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario: Attached disable of a service in a ubuntu machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable foobar` `as non-root` exits `1`
+        Then I verify that running `pro disable foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        And I verify that running `ua disable foobar` `with sudo` exits `1`
+        And I verify that running `pro disable foobar` `with sudo` exits `1`
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
             Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
             ros, ros-updates, usg.
             """
-        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        And I verify that running `pro disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua disable esm-infra` with sudo
+        When I run `pro disable esm-infra` with sudo
         Then I will see the following on stdout:
             """
             Updating package lists
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
@@ -221,12 +221,12 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua detach` `as non-root` exits `1`
+        Then I verify that running `pro detach` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua detach --assume-yes` with sudo
+        When I run `pro detach --assume-yes` with sudo
         Then I will see the following on stdout:
             """
             Detach will disable the following services:
@@ -236,7 +236,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached.
             """
-       When I run `ua status --all` as non-root
+       When I run `pro status --all` as non-root
        Then stdout matches regexp:
           """
           SERVICE       +AVAILABLE  DESCRIPTION
@@ -259,29 +259,29 @@ Feature: Command behaviour when attached to an UA subscription
           """
        And stdout matches regexp:
           """
-          This machine is not attached to a UA subscription.
+          This machine is not attached to an Ubuntu Pro subscription.
           """
        And I verify that running `apt update` `with sudo` exits `0`
        When I attach `contract_token` with sudo
-       Then I verify that running `ua enable foobar --format json` `as non-root` exits `1`
+       Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-       Then I verify that running `ua enable foobar --format json` `with sudo` exits `1`
+       Then I verify that running `pro enable foobar --format json` `with sudo` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
            """
-       Then I verify that running `ua detach --format json --assume-yes` `as non-root` exits `1`
+       Then I verify that running `pro detach --format json --assume-yes` `as non-root` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
            """
-       When I run `ua detach --format json --assume-yes` with sudo
+       When I run `pro detach --format json --assume-yes` with sudo
        Then stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
@@ -300,12 +300,12 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua auto-attach` `as non-root` exits `1`
+        Then I verify that running `pro auto-attach` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I verify that running `ua auto-attach` `with sudo` exits `2`
+        When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
             """
             This machine is already attached
@@ -324,13 +324,13 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached show version in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua version` as non-root
+        And I run `pro version` as non-root
         Then I will see the uaclient version on stdout
-        When I run `ua version` with sudo
+        When I run `pro version` with sudo
         Then I will see the uaclient version on stdout
-        When I run `ua --version` as non-root
+        When I run `pro --version` as non-root
         Then I will see the uaclient version on stdout
-        When I run `ua --version` with sudo
+        When I run `pro --version` with sudo
         Then I will see the uaclient version on stdout
 
         Examples: ubuntu release
@@ -368,7 +368,7 @@ Feature: Command behaviour when attached to an UA subscription
           other: false
         """
         And I attach `contract_token` with sudo
-        And I run `ua status --all` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -381,7 +381,7 @@ Feature: Command behaviour when attached to an UA subscription
         machine_token_overlay: /tmp/machine-token-overlay.json
         other: False
         """
-        When I run `ua status --all` as non-root
+        When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -414,17 +414,17 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable esm-infra livepatch foobar` `as non-root` exits `1`
+        Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\)
             """
-        And I verify that running `ua disable esm-infra livepatch foobar` `with sudo` exits `1`
+        And I verify that running `pro disable esm-infra livepatch foobar` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             Updating package lists
             Livepatch is not currently enabled
-            See: sudo ua status
+            See: sudo pro status
             """
         And stderr matches regexp:
             """
@@ -432,14 +432,14 @@ Feature: Command behaviour when attached to an UA subscription
             Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,
             realtime-kernel, ros, ros-updates.
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         When I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
-        And I run `ua enable esm-infra` with sudo
+        And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -461,17 +461,17 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario: Attached disable of different services in a ubuntu machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable esm-infra livepatch foobar` `as non-root` exits `1`
+        Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\)
             """
-        And I verify that running `ua disable esm-infra livepatch foobar` `with sudo` exits `1`
+        And I verify that running `pro disable esm-infra livepatch foobar` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             Updating package lists
             Livepatch is not currently enabled
-            See: sudo ua status
+            See: sudo pro status
             """
         And stderr matches regexp:
             """
@@ -479,14 +479,14 @@ Feature: Command behaviour when attached to an UA subscription
             Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
             ros, ros-updates, usg.
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         When I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
-        And I run `ua enable esm-infra` with sudo
+        And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -502,7 +502,7 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Help command on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua help esm-infra` with sudo
+        And I run `pro help esm-infra` with sudo
         Then I will see the following on stdout:
         """
         Name:
@@ -522,20 +522,20 @@ Feature: Command behaviour when attached to an UA subscription
         It is enabled by default with Ubuntu Pro. You can find out more about
         the service at https://ubuntu.com/security/esm
         """
-        When I run `ua help esm-infra --format json` with sudo
+        When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
         """
         {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
         """
-        And I verify that running `ua help invalid-service` `with sudo` exits `1`
+        And I verify that running `pro help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
         """
         No help available for 'invalid-service'
         """
-        When I run `ua --help` as non-root
+        When I run `pro --help` as non-root
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -551,10 +551,10 @@ Feature: Command behaviour when attached to an UA subscription
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
-        When I run `ua help` with sudo
+        When I run `pro help` with sudo
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -570,10 +570,10 @@ Feature: Command behaviour when attached to an UA subscription
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
-        When I run `ua help --all` as non-root
+        When I run `pro help --all` as non-root
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -608,7 +608,7 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Help command on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua help esm-infra` with sudo
+        And I run `pro help esm-infra` with sudo
         Then I will see the following on stdout:
         """
         Name:
@@ -628,20 +628,20 @@ Feature: Command behaviour when attached to an UA subscription
         It is enabled by default with Ubuntu Pro. You can find out more about
         the service at https://ubuntu.com/security/esm
         """
-        When I run `ua help esm-infra --format json` with sudo
+        When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
         """
         {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
         """
-        And I verify that running `ua help invalid-service` `with sudo` exits `1`
+        And I verify that running `pro help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
         """
         No help available for 'invalid-service'
         """
-        When I run `ua --help` as non-root
+        When I run `pro --help` as non-root
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Extended Security Maintenance for Applications
@@ -657,10 +657,10 @@ Feature: Command behaviour when attached to an UA subscription
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
-        When I run `ua help` with sudo
+        When I run `pro help` with sudo
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Extended Security Maintenance for Applications
@@ -676,10 +676,10 @@ Feature: Command behaviour when attached to an UA subscription
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
-        When I run `ua help --all` as non-root
+        When I run `pro help --all` as non-root
         Then stdout matches regexp:
         """
-        Client to manage Ubuntu Advantage services on a machine.
+        Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Extended Security Maintenance for Applications
@@ -712,11 +712,11 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Enable command with invalid repositories in user machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable esm-infra` with sudo
+        And I run `pro disable esm-infra` with sudo
         And I run `add-apt-repository ppa:cloud-init-dev/daily -y` with sudo, retrying exit [1]
         And I run `apt update` with sudo
         And I run `sed -i 's/ubuntu/ubun/' /etc/apt/sources.list.d/<ppa_file>.list` with sudo
-        And I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
@@ -739,7 +739,7 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `systemctl stop ua-timer.timer` with sudo
         And I attach `contract_token` with sudo
-        Then I verify that running `ua config set update_messaging_timer=-2` `with sudo` exits `1`
+        Then I verify that running `pro config set update_messaging_timer=-2` `with sudo` exits `1`
         And stderr matches regexp:
         """
         Cannot set update_messaging_timer to -2: <value> for interval must be a positive integer.
@@ -754,14 +754,14 @@ Feature: Command behaviour when attached to an UA subscription
         """"
         "update_status":
         """
-        When I run `ua config show` with sudo
+        When I run `pro config show` with sudo
         Then stdout matches regexp:
         """
         update_messaging_timer  +21600
         update_status_timer     +43200
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I run `ua config set update_messaging_timer=0` with sudo
+        And I run `pro config set update_messaging_timer=0` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout does not match regexp:
@@ -913,7 +913,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
         And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         And I run `apt-get update` with sudo
-        When I run `ua security-status --format json` as non-root
+        When I run `pro security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
         """
@@ -952,7 +952,7 @@ Feature: Command behaviour when attached to an UA subscription
         "download_size": \d+
         """
         When I attach `contract_token` with sudo
-        And I run `ua security-status --format json` as non-root
+        And I run `pro security-status --format json` as non-root
         Then stdout matches regexp:
         """
         "_schema_version": "0.1"
@@ -977,19 +977,19 @@ Feature: Command behaviour when attached to an UA subscription
         """
         "download_size": \d+
         """
-        When I run `ua security-status --format yaml` as non-root
+        When I run `pro security-status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_security_status` schema
         And stdout matches regexp:
         """
         _schema_version: '0.1'
         """
-        When I verify that running `ua security-status --format unsupported` `as non-root` exits `2`
+        When I verify that running `pro security-status --format unsupported` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
         usage: security-status [-h] --format {json,yaml}
         argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml')
         """
-        When I verify that running `ua security-status` `as non-root` exits `2`
+        When I verify that running `pro security-status` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
         usage: security-status [-h] --format {json,yaml}

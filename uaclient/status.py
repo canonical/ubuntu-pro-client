@@ -609,7 +609,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
         for key, value in sorted(status["features"].items()):
             content.append("{}: {}".format(key, value))
 
-    content.append("\nEnable services with: ua enable <service>")
+    content.append("\nEnable services with: pro enable <service>")
     pairs = []
 
     account_name = status["account"]["name"]

@@ -48,7 +48,7 @@ AVAILABLE_RESOURCES = [
 
 ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
-Client to manage Ubuntu Advantage services on a machine.
+Client to manage Ubuntu Pro services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
  - cis: Security compliance and audit tools
@@ -72,7 +72,7 @@ Client to manage Ubuntu Advantage services on a machine.
 
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
-Client to manage Ubuntu Advantage services on a machine.
+Client to manage Ubuntu Pro services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
  - cis: Security compliance and audit tools
@@ -91,7 +91,7 @@ Client to manage Ubuntu Advantage services on a machine.
 )
 
 
-@pytest.fixture(params=["direct", "--help", "ua help", "ua help --all"])
+@pytest.fixture(params=["direct", "--help", "pro help", "pro help --all"])
 def get_help(request, capsys, FakeConfig):
     cfg = FakeConfig()
     if request.param == "direct":
@@ -106,7 +106,7 @@ def get_help(request, capsys, FakeConfig):
 
         def _get_help_output():
             parser = get_parser(cfg)
-            with mock.patch("sys.argv", ["ua", "--help"]):
+            with mock.patch("sys.argv", ["pro", "--help"]):
                 with pytest.raises(SystemExit):
                     parser.parse_args()
             out, _err = capsys.readouterr()
@@ -187,7 +187,9 @@ class TestCLIParser:
     def test_help_command_when_unnatached(
         self, m_attached, m_available_resources, out_format, expected_return
     ):
-        """Test help command for a valid service in an unnatached ua client."""
+        """
+        Test help command for a valid service in an unattached pro client.
+        """
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
@@ -241,7 +243,7 @@ class TestCLIParser:
     def test_help_command_when_attached(
         self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
     ):
-        """Test help command for a valid service in an attached ua client."""
+        """Test help command for a valid service in an attached pro client."""
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
@@ -550,8 +552,8 @@ class TestMain:
             (
                 LockHeldError(
                     pid="123",
-                    lock_request="ua reboot-cmds",
-                    lock_holder="ua auto-attach",
+                    lock_request="pro reboot-cmds",
+                    lock_holder="pro auto-attach",
                 ),
                 1,
             ),
@@ -676,7 +678,7 @@ class TestMain:
     ):
         cfg = FakeConfig()
         parser = get_parser(cfg)
-        with mock.patch("sys.argv", ["ua", "enable"]):
+        with mock.patch("sys.argv", ["pro", "enable"]):
             with pytest.raises(SystemExit) as excinfo:
                 parser.parse_args()
         assert 2 == excinfo.value.code

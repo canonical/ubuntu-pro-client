@@ -153,13 +153,13 @@ class TestActionAttach:
     ):
         """Check when an operation holds a lock file, attach cannot run."""
         cfg = FakeConfig()
-        cfg.write_cache("lock", "123:ua disable")
+        cfg.write_cache("lock", "123:pro disable")
         with pytest.raises(LockHeldError) as exc_info:
             action_attach(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
-            "Unable to perform: ua attach.\n"
-            "Operation in progress: ua disable (pid:123)"
+            "Unable to perform: pro attach.\n"
+            "Operation in progress: pro disable (pid:123)"
         ) == exc_info.value.msg
 
         with pytest.raises(SystemExit):
@@ -173,7 +173,7 @@ class TestActionAttach:
                     main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
         expected_msg = messages.LOCK_HELD_ERROR.format(
-            lock_request="ua attach", lock_holder="lock_holder", pid=1
+            lock_request="pro attach", lock_holder="lock_holder", pid=1
         )
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -633,7 +633,7 @@ class TestParser:
 
     def test_attach_parser_stores_token(self, _m_resources, FakeConfig):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "attach", "token"]):
+        with mock.patch("sys.argv", ["pro", "attach", "token"]):
             args = full_parser.parse_args()
         assert "token" == args.token
 
@@ -642,16 +642,16 @@ class TestParser:
     ):
         """Token required but parse_args allows none due to action_attach"""
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "attach"]):
+        with mock.patch("sys.argv", ["pro", "attach"]):
             args = full_parser.parse_args()
         assert None is args.token
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
         self, _m_resources, capsys, FakeConfig
     ):
-        """Contracts' dashboard URL is referenced by ua attach --help."""
+        """Contracts' dashboard URL is referenced by pro attach --help."""
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "attach", "--help"]):
+        with mock.patch("sys.argv", ["pro", "attach", "--help"]):
             with pytest.raises(SystemExit):
                 full_parser.parse_args()
         assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
@@ -661,7 +661,7 @@ class TestParser:
     ):
         full_parser = get_parser(FakeConfig())
         with mock.patch(
-            "sys.argv", ["ua", "attach", "--no-auto-enable", "token"]
+            "sys.argv", ["pro", "attach", "--no-auto-enable", "token"]
         ):
             args = full_parser.parse_args()
         assert not args.auto_enable
@@ -670,7 +670,7 @@ class TestParser:
         self, _m_resources, FakeConfig
     ):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "attach", "token"]):
+        with mock.patch("sys.argv", ["pro", "attach", "token"]):
             args = full_parser.parse_args()
         assert args.auto_enable
 
@@ -678,14 +678,14 @@ class TestParser:
         self, _m_resources, FakeConfig
     ):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "attach", "token"]):
+        with mock.patch("sys.argv", ["pro", "attach", "token"]):
             args = full_parser.parse_args()
         assert "cli" == args.format
 
     def test_attach_parser_accepts_format_flag(self, _m_resources, FakeConfig):
         full_parser = get_parser(FakeConfig())
         with mock.patch(
-            "sys.argv", ["ua", "attach", "token", "--format", "json"]
+            "sys.argv", ["pro", "attach", "token", "--format", "json"]
         ):
             args = full_parser.parse_args()
         assert "json" == args.format

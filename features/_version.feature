@@ -1,4 +1,4 @@
-Feature: UA is expected version
+Feature: Pro is expected version
 
     @series.all
     @uses.config.check_version
@@ -13,14 +13,14 @@ Feature: UA is expected version
     @uses.config.machine_type.gcp.generic
     @uses.config.machine_type.gcp.pro
     @uses.config.machine_type.gcp.pro.fips
-    Scenario Outline: Check ua version
+    Scenario Outline: Check pro version
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
         """
-        When I run `ua version` with sudo
+        When I run `pro version` with sudo
         Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
@@ -37,14 +37,14 @@ Feature: UA is expected version
     @uses.config.check_version
     @uses.config.machine_type.lxd.container
     @upgrade
-    Scenario Outline: Check ua version
+    Scenario Outline: Check pro version
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
         """
-        When I run `ua version` with sudo
+        When I run `pro version` with sudo
         Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}

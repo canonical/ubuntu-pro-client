@@ -22,7 +22,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
           https_proxy: http://<ci-proxy-ip>:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -40,18 +40,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
+        When I run `pro enable <cis_or_usg>` with sudo
+        And I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
             """
-        When I run `ua disable <cis_or_usg>` with sudo
+        When I run `pro disable <cis_or_usg>` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
@@ -93,7 +93,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
           https_proxy: http://<ci-proxy-ip>:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -111,18 +111,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
+        When I run `pro enable <cis_or_usg>` with sudo
+        And I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
             """
-        When I run `ua disable <cis_or_usg>` with sudo
+        When I run `pro disable <cis_or_usg>` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
@@ -164,7 +164,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
           https_proxy: http://<ci-proxy-ip>:3389
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -182,18 +182,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
-        When I run `ua enable <cis_or_usg>` with sudo
-        And I run `ua status` with sudo
+        When I run `pro enable <cis_or_usg>` with sudo
+        And I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
             """
-        When I run `ua disable <cis_or_usg>` with sudo
+        When I run `pro disable <cis_or_usg>` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
@@ -224,8 +224,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -243,7 +243,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
         """
-        When I run `ua status --all` as non-root
+        When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -271,7 +271,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
@@ -343,8 +343,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -362,7 +362,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
         """
-        When I run `ua status --all` as non-root
+        When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         SERVICE      +ENTITLED  STATUS    DESCRIPTION
@@ -390,7 +390,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
@@ -461,9 +461,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -481,7 +481,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
         """
-        When I run `ua status --all` as non-root
+        When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -509,7 +509,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.

@@ -1,11 +1,11 @@
 @uses.config.contract_token
-Feature: Build docker images with ua services
+Feature: Build docker images with pro services
 
     @slow
     @docker
     @series.focal
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Build docker images with ua services
+    Scenario Outline: Build docker images with pro services
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
         When I run `apt-get install -y docker.io jq` with sudo
@@ -23,7 +23,7 @@ Feature: Build docker images with ua services
 
             && apt-get install -f \
 
-            && ua attach --attach-config /run/secrets/ua-attach-config \
+            && pro attach --attach-config /run/secrets/ua-attach-config \
 
             # Normally an apt upgrade is recommended, but we dont do that here
             # in order to measure the image size bloat from just the enablement

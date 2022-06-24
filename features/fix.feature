@@ -14,7 +14,7 @@ Feature: Ua fix command behaviour
             """
         When I run `apt install ca-certificates -y` with sudo
         When I run `mv /etc/ssl/certs /etc/ssl/wronglocation` with sudo
-        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then stderr matches regexp:
             """
             Failed to access URL: https://.*
@@ -33,30 +33,30 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             Error: CVE-1800-123456 not found.
             """
-        When I verify that running `ua fix USN-12345-12` `as non-root` exits `1`
+        When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             Error: USN-12345-12 not found.
             """
-        When I verify that running `ua fix CVE-12345678-12` `as non-root` exits `1`
+        When I verify that running `pro fix CVE-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             Error: issue "CVE-12345678-12" is not recognized.
-            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
             """
-        When I verify that running `ua fix USN-12345678-12` `as non-root` exits `1`
+        When I verify that running `pro fix USN-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             Error: issue "USN-12345678-12" is not recognized.
-            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
             """
         When I run `apt install -y libawl-php=0.60-1 --allow-downgrades` with sudo
-        And I run `ua fix USN-4539-1` with sudo
+        And I run `pro fix USN-4539-1` with sudo
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -68,7 +68,7 @@ Feature: Ua fix command behaviour
             .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
             .*✔.* USN-4539-1 is resolved.
             """
-        When I run `ua fix CVE-2020-28196` as non-root
+        When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
@@ -79,7 +79,7 @@ Feature: Ua fix command behaviour
             The update is already installed.
             .*✔.* CVE-2020-28196 is resolved.
             """
-        When I run `ua fix CVE-2022-24959` as non-root
+        When I run `pro fix CVE-2022-24959` as non-root
         Then stdout matches regexp:
             """
             CVE-2022-24959: Linux kernel vulnerabilities
@@ -99,7 +99,7 @@ Feature: Ua fix command behaviour
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt install -y libawl-php` with sudo
         And I reboot the `<release>` machine
-        And I verify that running `ua fix USN-4539-1` `as non-root` exits `1`
+        And I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
@@ -111,7 +111,7 @@ Feature: Ua fix command behaviour
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
-        When I run `ua fix CVE-2020-15180` as non-root
+        When I run `pro fix CVE-2020-15180` as non-root
         Then stdout matches regexp:
         """
         CVE-2020-15180: MariaDB vulnerabilities
@@ -119,7 +119,7 @@ Feature: Ua fix command behaviour
         No affected source packages are installed.
         .*✔.* CVE-2020-15180 does not affect your system.
         """
-        When I run `ua fix CVE-2020-28196` as non-root
+        When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
         """
         CVE-2020-28196: Kerberos vulnerability
@@ -131,7 +131,7 @@ Feature: Ua fix command behaviour
         .*✔.* CVE-2020-28196 is resolved.
         """
         When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
-        And I verify that running `ua fix CVE-2017-9233 --dry-run` `as non-root` exits `1`
+        And I verify that running `pro fix CVE-2017-9233 --dry-run` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -147,7 +147,7 @@ Feature: Ua fix command behaviour
         2 packages are still affected: matanza, swish-e
         .*✘.* CVE-2017-9233 is not resolved.
         """
-        When I verify that running `ua fix CVE-2017-9233` `with sudo` exits `1`
+        When I verify that running `pro fix CVE-2017-9233` `with sudo` exits `1`
         Then stdout matches regexp:
         """
         CVE-2017-9233: Expat vulnerability
@@ -161,7 +161,7 @@ Feature: Ua fix command behaviour
         2 packages are still affected: matanza, swish-e
         .*✘.* CVE-2017-9233 is not resolved.
         """
-        When I run `ua fix USN-5079-2 --dry-run` as non-root
+        When I run `pro fix USN-5079-2 --dry-run` as non-root
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -173,13 +173,13 @@ Feature: Ua fix command behaviour
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
-        .*The machine is not attached to an Ubuntu Advantage \(UA\) subscription.
-        To proceed with the fix, a prompt would ask for a valid UA token.
-        \{ ua attach TOKEN \}.*
-        .*UA service: esm-infra is not enabled.
+        .*The machine is not attached to an Ubuntu Pro subscription.
+        To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
+        \{ pro attach TOKEN \}.*
+        .*Ubuntu Pro service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
-        \{ ua enable esm-infra \}.*
+        \{ pro enable esm-infra \}.*
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
         .*✔.* USN-5079-2 is resolved.
         """
@@ -198,7 +198,7 @@ Feature: Ua fix command behaviour
 
         Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
         > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
-        > .*\{ ua attach .*\}.*
+        > .*\{ pro attach .*\}.*
         Attach denied:
         Contract ".*" expired on .*
         Visit https://ubuntu.com/pro to manage contract tokens.
@@ -220,7 +220,7 @@ Feature: Ua fix command behaviour
 
         Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
         > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
-        > .*\{ ua attach .*\}.*
+        > .*\{ pro attach .*\}.*
         Updating package lists
         Ubuntu Pro: ESM Apps enabled
         Updating package lists
@@ -231,7 +231,7 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
         .*✔.* USN-5079-2 is resolved.
         """
-        When I verify that running `ua fix USN-5051-2` `with sudo` exits `2`
+        When I verify that running `pro fix USN-5051-2` `with sudo` exits `2`
         Then stdout matches regexp:
         """
         USN-5051-2: OpenSSL vulnerability
@@ -244,9 +244,9 @@ Feature: Ua fix command behaviour
         A reboot is required to complete fix operation.
         .*✘.* USN-5051-2 is not resolved.
         """
-        When I run `ua disable esm-infra` with sudo
+        When I run `pro disable esm-infra` with sudo
         And I run `apt-get install gzip -y` with sudo
-        And I run `ua fix USN-5378-4 --dry-run` as non-root
+        And I run `pro fix USN-5378-4 --dry-run` as non-root
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -257,14 +257,14 @@ Feature: Ua fix command behaviour
         2 affected source packages are installed: gzip, xz-utils
         \(1/2, 2/2\) gzip, xz-utils:
         A fix is available in Ubuntu Pro: ESM Infra.
-        .*UA service: esm-infra is not enabled.
+        .*Ubuntu Pro service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
-        \{ ua enable esm-infra \}.*
+        \{ pro enable esm-infra \}.*
         .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
         .*✔.* USN-5378-4 is resolved.
         """
-        When I run `ua fix USN-5378-4` `with sudo` and stdin `E`
+        When I run `pro fix USN-5378-4` `with sudo` and stdin `E`
         Then stdout matches regexp:
         """
         USN-5378-4: Gzip vulnerability
@@ -277,7 +277,7 @@ Feature: Ua fix command behaviour
         esm-infra enabled.
 
         Choose: \[E\]nable esm-infra \[C\]ancel
-        > .*\{ ua enable esm-infra \}.*
+        > .*\{ pro enable esm-infra \}.*
         One moment, checking your subscription first
         Updating package lists
         Ubuntu Pro: ESM Infra enabled
@@ -293,30 +293,30 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
         Error: CVE-1800-123456 not found.
         """
-        When I verify that running `ua fix USN-12345-12` `as non-root` exits `1`
+        When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
         Error: USN-12345-12 not found.
         """
-        When I verify that running `ua fix CVE-12345678-12` `as non-root` exits `1`
+        When I verify that running `pro fix CVE-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
         Error: issue "CVE-12345678-12" is not recognized.
-        Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+        Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
         """
-        When I verify that running `ua fix USN-12345678-12` `as non-root` exits `1`
+        When I verify that running `pro fix USN-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
         Error: issue "USN-12345678-12" is not recognized.
-        Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+        Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
         """
         When I run `apt install -y libawl-php` with sudo
-        And I verify that running `ua fix USN-4539-1 --dry-run` `as non-root` exits `1`
+        And I verify that running `pro fix USN-4539-1 --dry-run` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -330,7 +330,7 @@ Feature: Ua fix command behaviour
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
-        When I verify that running `ua fix USN-4539-1` `as non-root` exits `1`
+        When I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
@@ -342,7 +342,7 @@ Feature: Ua fix command behaviour
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
         """
-        When I run `ua fix CVE-2020-28196` as non-root
+        When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
         """
         CVE-2020-28196: Kerberos vulnerability
@@ -354,7 +354,7 @@ Feature: Ua fix command behaviour
         .*✔.* CVE-2020-28196 is resolved.
         """
         When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
-        And I verify that running `ua fix CVE-2021-27135` `as non-root` exits `1`
+        And I verify that running `pro fix CVE-2021-27135` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
@@ -367,7 +367,7 @@ Feature: Ua fix command behaviour
         1 package is still affected: xterm
         .*✘.* CVE-2021-27135 is not resolved.
         """
-        When I run `ua fix CVE-2021-27135 --dry-run` with sudo
+        When I run `pro fix CVE-2021-27135 --dry-run` with sudo
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -380,7 +380,7 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
         .*✔.* CVE-2021-27135 is resolved.
         """
-        When I run `ua fix CVE-2021-27135` with sudo
+        When I run `pro fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
@@ -391,7 +391,7 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
         .*✔.* CVE-2021-27135 is resolved.
         """
-        When I run `ua fix CVE-2021-27135` with sudo
+        When I run `pro fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
@@ -404,7 +404,7 @@ Feature: Ua fix command behaviour
         """
         When I run `apt-get install libbz2-1.0=1.0.6-8.1 -y --allow-downgrades` with sudo
         And I run `apt-get install bzip2=1.0.6-8.1 -y` with sudo
-        And I run `ua fix USN-4038-3` with sudo
+        And I run `pro fix USN-4038-3` with sudo
         Then stdout matches regexp:
         """
         USN-4038-3: bzip2 regression
