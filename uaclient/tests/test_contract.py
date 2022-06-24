@@ -677,7 +677,7 @@ class TestRequestUpdatedContract:
         (
             (
                 exceptions.UserFacingError(
-                    "Ubuntu Advantage server provided no aptKey directive for"
+                    "Ubuntu Pro server provided no aptKey directive for"
                     " esm-infra"
                 ),
                 (None, False),
@@ -688,7 +688,7 @@ class TestRequestUpdatedContract:
             # is raised as primary error_msg
             (
                 exceptions.UserFacingError(
-                    "Ubuntu Advantage server provided no aptKey directive for"
+                    "Ubuntu Pro server provided no aptKey directive for"
                     " esm-infra"
                 ),
                 RuntimeError("some APT error"),  # High-priority ordered 2

@@ -16,11 +16,11 @@ from uaclient.entitlements.entitlement_status import (
 HELP_OUTPUT = """\
 usage: pro enable <service> [<service>] [flags]
 
-Enable an Ubuntu Advantage service.
+Enable an Ubuntu Pro service.
 
 Arguments:
-  service              the name(s) of the Ubuntu Advantage services to enable.
-                       One of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
+  service              the name(s) of the Ubuntu Pro services to enable. One
+                       of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
                        updates, livepatch
 
 Flags:
@@ -109,7 +109,7 @@ class TestActionEnable:
         """Check inability to enable if operation holds lock file."""
         getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("lock", "123:ua disable")
+        cfg.write_cache("lock", "123:pro disable")
         args = mock.MagicMock()
 
         with pytest.raises(exceptions.LockHeldError) as err:
@@ -117,7 +117,7 @@ class TestActionEnable:
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
 
         expected_message = messages.LOCK_HELD_ERROR.format(
-            lock_request="ua enable", lock_holder="ua disable", pid="123"
+            lock_request="pro enable", lock_holder="pro disable", pid="123"
         )
         assert expected_message.msg == err.value.msg
 
@@ -132,7 +132,7 @@ class TestActionEnable:
                     main_error_handler(action_enable)(args, cfg)
 
         expected_msg = messages.LOCK_HELD_ERROR.format(
-            lock_request="ua enable", lock_holder="lock_holder", pid=1
+            lock_request="pro enable", lock_holder="lock_holder", pid=1
         )
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,

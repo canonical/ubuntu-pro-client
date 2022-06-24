@@ -19,17 +19,17 @@ UNATTACHED_UNPATCHED_STATUS = {
         }
     ],
     "origin": None,
-    "configStatusDetails": "No Ubuntu Advantage operations are running",
+    "configStatusDetails": "No Ubuntu Pro operations are running",
     "configStatus": "inactive",
 }
 
 # Note that (UN)ATTACHED_PATCHED_STATUS is only a capture of expected minimal
-# schema transformation performed by patch_status function to allow ua status
+# schema transformation performed by patch_status function to allow pro status
 # to work without errors for non-root user. It is not expected to be a full
 # representation of schema which will be written once a root user runs any
-# ua command which will rewrite the full latest schema to status.json.
+# pro command which will rewrite the full latest schema to status.json.
 UNATTACHED_PATCHED_STATUS = {
-    "execution_details": "No Ubuntu Advantage operations are running",
+    "execution_details": "No Ubuntu Pro operations are running",
     "_schema_version": "0.1",
     "origin": None,
     "account": {"name": "", "id": ""},
@@ -50,7 +50,7 @@ UNATTACHED_PATCHED_STATUS = {
 
 ATTACHED_UNPATCHED_STATUS = {
     "_doc": "Content provided in json response is currently considered ...",
-    "configStatusDetails": "Operation in progress: ua attach (pid:33140)",
+    "configStatusDetails": "Operation in progress: pro attach (pid:33140)",
     "configStatus": "active",
     "subscription": "chad.smith@canonical.com",
     "subscription-id": "cAKuvrqHend2ZHxUYTyJqXhULJ-4r2lpCzd1HLC_lrJg",
@@ -64,7 +64,7 @@ ATTACHED_UNPATCHED_STATUS = {
             "status": "disabled",
         }
     ],
-    "notices": [["Operation in progress: ua attach"]],
+    "notices": [["Operation in progress: pro attach"]],
     "attached": True,
     "account-id": "aAHQlZdfWiafnWvjDZCZDqZzDUComc8WF7IJnoG6GAmA",
     "account": "chad.smith@canonical.com",
@@ -76,7 +76,7 @@ ATTACHED_UNPATCHED_STATUS = {
 ATTACHED_PATCHED_STATUS = {
     "_doc": "Content provided in json response is currently considered ...",
     "origin": "free",
-    "execution_details": "Operation in progress: ua attach (pid:33140)",
+    "execution_details": "Operation in progress: pro attach (pid:33140)",
     "execution_status": "active",
     "expires": "9999-12-31T00:00:00+00:00",
     "contract": {
@@ -96,7 +96,7 @@ ATTACHED_PATCHED_STATUS = {
     ],
     "_schema_version": "0.1",
     "attached": True,
-    "notices": [["Operation in progress: ua attach"]],
+    "notices": [["Operation in progress: pro attach"]],
     "account": {
         "name": "chad.smith@canonical.com",
         "id": "aAHQlZdfWiafnWvjDZCZDqZzDUComc8WF7IJnoG6GAmA",

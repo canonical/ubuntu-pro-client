@@ -225,7 +225,7 @@ class CVEPackageStatus:
 
     @property
     def requires_ua(self) -> bool:
-        """Return True if the package requires an active UA subscription."""
+        """Return True if the package requires an active Pro subscription."""
         return bool(self.pocket_source != UBUNTU_STANDARD_UPDATES_POCKET)
 
     @property
@@ -1050,7 +1050,7 @@ def prompt_for_affected_packages(
 
 
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
-    """Alert the user when running UA on cloud with PRO support."""
+    """Alert the user when running Pro on cloud with PRO support."""
     cloud_type, _ = get_cloud_type()
     if cloud_type in PRO_CLOUDS:
         print(
@@ -1061,7 +1061,7 @@ def _inform_ubuntu_pro_existence_if_applicable() -> None:
 
 
 def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
-    """Attach to a UA subscription with a given token.
+    """Attach to an Ubuntu Pro subscription with a given token.
 
     :return: True if attach performed without errors.
     """
@@ -1069,7 +1069,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
 
     from uaclient import cli
 
-    print(colorize_commands([["ua", "attach", token]]))
+    print(colorize_commands([["pro", "attach", token]]))
     try:
         ret_code = cli.action_attach(
             argparse.Namespace(
@@ -1109,7 +1109,7 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
 
 
 def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
-    """Prompt for enable a ua service.
+    """Prompt for enable a pro service.
 
     :return: True if enable performed.
     """
@@ -1124,7 +1124,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     )
 
     if choice == "e":
-        print(colorize_commands([["ua", "enable", service]]))
+        print(colorize_commands([["pro", "enable", service]]))
         return bool(
             0
             == cli.action_enable(
@@ -1142,7 +1142,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
 
 def _check_attached(cfg: UAConfig, dry_run: bool) -> bool:
-    """Verify if machine is attached to an UA subscription."""
+    """Verify if machine is attached to an Ubuntu Pro subscription."""
     if dry_run:
         print(messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
         return True
@@ -1152,7 +1152,9 @@ def _check_attached(cfg: UAConfig, dry_run: bool) -> bool:
 def _check_subscription_for_required_service(
     pocket: str, cfg: UAConfig, dry_run: bool
 ) -> bool:
-    """Verify if the ua subscription has the required service enabled."""
+    """
+    Verify if the Ubuntu Pro subscription has the required service enabled.
+    """
     ent = _get_service_for_pocket(pocket, cfg)
 
     if ent:
@@ -1209,7 +1211,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     if choice == "r":
         print(messages.PROMPT_EXPIRED_ENTER_TOKEN)
         token = input("> ")
-        print(colorize_commands([["ua", "detach"]]))
+        print(colorize_commands([["pro", "detach"]]))
         cli.action_detach(
             argparse.Namespace(assume_yes=True, format="cli"), cfg
         )
@@ -1221,7 +1223,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
 def _check_subscription_is_expired(
     status_cache: Dict[str, Any], cfg: UAConfig, dry_run: bool
 ) -> bool:
-    """Check if user UA subscription is expired.
+    """Check if the Ubuntu Pro subscription is expired.
 
     :returns: True if subscription is expired and not renewed.
     """
@@ -1247,7 +1249,7 @@ def upgrade_packages_and_attach(
     """Upgrade available packages to fix a CVE.
 
     Upgrade all packages in upgrades_packages and, if necessary,
-    prompt regarding system attach prior to upgrading UA packages.
+    prompt regarding system attach prior to upgrading Ubuntu Pro packages.
 
     :return: True if package upgrade completed or unneeded, False otherwise.
     """

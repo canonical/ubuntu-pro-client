@@ -2,7 +2,7 @@
 This module is responsible for handling all events
 that must be raised to the user somehow. The main idea
 behind this module is to centralize all events that happens
-during the execution of UA commands and allows us to report
+during the execution of Pro commands and allows us to report
 those events in real time or through a machine-readable format.
 """
 

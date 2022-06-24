@@ -6,7 +6,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
+        Then I verify that running `pro enable <fips_service> --assume-yes` `with sudo` exits `1`
         And stdout matches regexp:
         """
         Ubuntu <release_title> does not provide a GCP optimized FIPS kernel
@@ -25,14 +25,14 @@ Feature: FIPS enablement in cloud based machines
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `ua disable fips --assume-yes` with sudo
+        When I run `pro disable fips --assume-yes` with sudo
         And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
         Then I will see the following on stdout:
         """
@@ -62,14 +62,14 @@ Feature: FIPS enablement in cloud based machines
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `ua disable fips --assume-yes` with sudo
+        When I run `pro disable fips --assume-yes` with sudo
         And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
         Then I will see the following on stdout:
         """
@@ -98,12 +98,12 @@ Feature: FIPS enablement in cloud based machines
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `ua disable fips --assume-yes` with sudo
+        When I run `pro disable fips --assume-yes` with sudo
         And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
         Then I will see the following on stdout:
         """
@@ -129,7 +129,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: Enable FIPS in an ubuntu Azure vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -137,7 +137,7 @@ Feature: FIPS enablement in cloud based machines
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -160,7 +160,7 @@ Feature: FIPS enablement in cloud based machines
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
         """
         Updating package lists
@@ -171,7 +171,7 @@ Feature: FIPS enablement in cloud based machines
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        And I run `ua status --all` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -192,9 +192,9 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: Attached FIPS in an ubuntu Xenial AWS vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
+        And I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -202,7 +202,7 @@ Feature: FIPS enablement in cloud based machines
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -231,7 +231,7 @@ Feature: FIPS enablement in cloud based machines
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
         """
         Updating package lists
@@ -255,7 +255,7 @@ Feature: FIPS enablement in cloud based machines
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -272,8 +272,8 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: Attached enable of FIPS in an ubuntu AWS vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `pro disable livepatch` with sudo
+        And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -281,7 +281,7 @@ Feature: FIPS enablement in cloud based machines
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -304,7 +304,7 @@ Feature: FIPS enablement in cloud based machines
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
         """
         Updating package lists
@@ -315,7 +315,7 @@ Feature: FIPS enablement in cloud based machines
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        And I run `ua status --all` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -335,7 +335,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -343,7 +343,7 @@ Feature: FIPS enablement in cloud based machines
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -366,7 +366,7 @@ Feature: FIPS enablement in cloud based machines
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
         """
         Updating package lists
@@ -377,7 +377,7 @@ Feature: FIPS enablement in cloud based machines
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        And I run `ua status --all` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled

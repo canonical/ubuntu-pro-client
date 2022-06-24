@@ -10,12 +10,12 @@ Feature: Command behaviour when unattached
             """
             .*\/lib\/systemd/system\/ua.*
             """
-        When I verify that running `ua auto-attach` `as non-root` exits `1`
+        When I verify that running `pro auto-attach` `as non-root` exits `1`
         Then stderr matches regexp:
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
             """
             Auto-attach image support is not available on lxd
@@ -58,7 +58,7 @@ Feature: Command behaviour when unattached
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
-          +Ubuntu Advantage subscription. Free for personal use.
+          +Ubuntu Pro subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/16-04
 
@@ -81,19 +81,19 @@ Feature: Command behaviour when unattached
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua <command>` `as non-root` exits `1`
+        When I verify that running `pro <command>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo).
             """
-        When I verify that running `ua <command>` `with sudo` exits `1`
+        When I verify that running `pro <command>` `with sudo` exits `1`
         Then stderr matches regexp:
             """
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """
 
-        Examples: ua commands
+        Examples: pro commands
            | release | command |
            | bionic  | detach  |
            | bionic  | refresh |
@@ -110,7 +110,7 @@ Feature: Command behaviour when unattached
     @uses.config.machine_type.lxd.container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua help esm-infra` as non-root
+        When I run `pro help esm-infra` as non-root
         Then I will see the following on stdout:
             """
             Name:
@@ -127,12 +127,12 @@ Feature: Command behaviour when unattached
             It is enabled by default with Ubuntu Pro. You can find out more about
             the service at https://ubuntu.com/security/esm
             """
-        When I run `ua help esm-infra --format json` with sudo
+        When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
             {"name": "esm-infra", "available": "yes", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
             """
-        When I verify that running `ua help invalid-service` `with sudo` exits `1`
+        When I verify that running `pro help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
             """
             No help available for 'invalid-service'
@@ -150,60 +150,60 @@ Feature: Command behaviour when unattached
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua <command> esm-infra` `as non-root` exits `1`
+        When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
         Then I will see the following on stderr:
           """
           This command must be run as root (try using sudo).
           """
-        When I verify that running `ua <command> esm-infra` `with sudo` exits `1`
+        When I verify that running `pro <command> esm-infra` `with sudo` exits `1`
         Then I will see the following on stderr:
           """
-          To use 'esm-infra' you need an Ubuntu Advantage subscription
+          To use 'esm-infra' you need an Ubuntu Pro subscription
           Personal and community subscriptions are available at no charge
           See https://ubuntu.com/pro
           """
-        When I verify that running `ua <command> esm-infra --format json --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro <command> esm-infra --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
-        When I verify that running `ua <command> unknown` `as non-root` exits `1`
+        When I verify that running `pro <command> unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
           """
           This command must be run as root (try using sudo).
           """
-        When I verify that running `ua <command> unknown` `with sudo` exits `1`
+        When I verify that running `pro <command> unknown` `with sudo` exits `1`
         Then I will see the following on stderr:
           """
           Cannot <command> unknown service 'unknown'.
           See https://ubuntu.com/pro
           """
-        When I verify that running `ua <command> unknown --format json --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro <command> unknown --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
           {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\nSee https://ubuntu.com/pro", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
-        When I verify that running `ua <command> esm-infra unknown` `as non-root` exits `1`
+        When I verify that running `pro <command> esm-infra unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo).
             """
-        When I verify that running `ua <command> esm-infra unknown` `with sudo` exits `1`
+        When I verify that running `pro <command> esm-infra unknown` `with sudo` exits `1`
         Then I will see the following on stderr:
           """
           Cannot <command> unknown service 'unknown'.
 
-          To use 'esm-infra' you need an Ubuntu Advantage subscription
+          To use 'esm-infra' you need an Ubuntu Pro subscription
           Personal and community subscriptions are available at no charge
           See https://ubuntu.com/pro
           """
-        When I verify that running `ua <command> esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro <command> esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
 
         Examples: ubuntu release

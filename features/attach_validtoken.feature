@@ -1,5 +1,5 @@
 @uses.config.contract_token
-Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
+Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         subscription using a valid token
 
     @series.impish
@@ -7,7 +7,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     Scenario Outline: Attached command in a non-lts ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua status --all` as non-root
+        And I run `pro status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -31,10 +31,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `apt-get update` with sudo, retrying exit [100]
         And I run `apt install update-motd` with sudo, retrying exit [100]
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y <downrev_pkg>` with sudo, retrying exit [100]
-        And I run `ua refresh messages` with sudo
+        And I run `pro refresh messages` with sudo
         Then stdout matches regexp:
         """
-        Successfully updated UA related APT and MOTD messages.
+        Successfully updated Ubuntu Pro related APT and MOTD messages.
         """
         When I run `update-motd` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
@@ -81,21 +81,21 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
-        When I verify that running `ua attach contract_token` `with sudo` exits `2`
+        When I verify that running `pro attach contract_token` `with sudo` exits `2`
         Then stderr matches regexp:
         """
         This machine is already attached to '.+'
-        To use a different subscription first run: sudo ua detach.
+        To use a different subscription first run: sudo pro detach.
         """
-        When I run `ua disable esm-apps --assume-yes` with sudo
+        When I run `pro disable esm-apps --assume-yes` with sudo
         And I run `apt update` with sudo
-        And I run `ua refresh messages` with sudo
+        And I run `pro refresh messages` with sudo
         And I run `update-motd` with sudo
         Then if `<release>` in `focal` and stdout matches regexp:
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
-          +Ubuntu Advantage subscription. Free for personal use.
+          +Ubuntu Pro subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/esm
 
@@ -110,7 +110,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
-          +Ubuntu Advantage subscription. Free for personal use.
+          +Ubuntu Pro subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/esm
 
@@ -124,7 +124,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
-          +Ubuntu Advantage subscription. Free for personal use.
+          +Ubuntu Pro subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/16-04
 
@@ -146,7 +146,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ additional security update\(s\) could have been applied via Ubuntu Pro: ESM Infra.
 
-        Renew your UA services at https:\/\/ubuntu.com\/pro
+        Renew your service at https:\/\/ubuntu.com\/pro
 
         """
         When I run `apt upgrade --dry-run` with sudo
@@ -155,7 +155,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         \*Your Ubuntu Pro: ESM Infra subscription has EXPIRED\*
         Enabling Ubuntu Pro: ESM Infra service would provide security updates for following packages:
           .*
-        \d+ esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
+        \d+ esm-infra security update\(s\) NOT APPLIED. Renew your service at
         https:\/\/ubuntu.com\/pro
 
         """
@@ -177,7 +177,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         token: <contract_token>
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
-        When I run `ua attach --attach-config /tmp/attach.yaml` with sudo
+        When I run `pro attach --attach-config /tmp/attach.yaml` with sudo
         Then stdout matches regexp:
         """
         esm-apps +yes +enabled
@@ -190,9 +190,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         <cis_or_usg> +yes +disabled
         """
-        When I run `ua detach --assume-yes` with sudo
+        When I run `pro detach --assume-yes` with sudo
         # don't allow both token on cli and config
-        Then I verify that running `ua attach TOKEN --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then I verify that running `pro attach TOKEN --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         Do not pass the TOKEN arg if you are using --attach-config.
@@ -207,7 +207,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           - <cis_or_usg>
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
-        When I run `ua attach --attach-config /tmp/attach.yaml` with sudo
+        When I run `pro attach --attach-config /tmp/attach.yaml` with sudo
         Then stdout matches regexp:
         """
         esm-apps +yes +enabled
@@ -220,7 +220,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         <cis_or_usg> +yes +enabled
         """
-        When I run `ua detach --assume-yes` with sudo
+        When I run `pro detach --assume-yes` with sudo
         # missing token
         When I create the file `/tmp/attach.yaml` with the following
         """
@@ -228,7 +228,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           - esm-apps
           - <cis_or_usg>
         """
-        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         Error while reading /tmp/attach.yaml: Got value with incorrect type for field
@@ -241,7 +241,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         enable_services: {cis: true}
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
-        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         Error while reading /tmp/attach.yaml: Got value with incorrect type for field
@@ -257,7 +257,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           - nonexistent2
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
-        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stdout matches regexp:
         """
         esm-apps +yes +enabled
@@ -473,7 +473,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             """
             {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         SERVICE      +ENTITLED  STATUS    DESCRIPTION
@@ -524,23 +524,23 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
        features:
          machine_token_overlay: "/tmp/machine-token-overlay.json"
        """
-       When I run `ua status` with sudo
+       When I run `pro status` with sudo
        Then stdout matches regexp:
        """
        A change has been detected in your contract.
-       Please run `sudo ua refresh`.
+       Please run `sudo pro refresh`.
        """
-       When I run `ua refresh contract` with sudo
+       When I run `pro refresh contract` with sudo
        Then stdout matches regexp:
        """
        Successfully refreshed your subscription.
        """
        When I run `sed -i '/^.*machine_token_overlay:/d' /etc/ubuntu-advantage/uaclient.conf` with sudo
-       And I run `ua status` with sudo
+       And I run `pro status` with sudo
        Then stdout does not match regexp:
        """
        A change has been detected in your contract.
-       Please run `sudo ua refresh`.
+       Please run `sudo pro refresh`.
        """
 
         Examples: ubuntu release livepatch status

@@ -8,15 +8,15 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `ua status --format json` with sudo
+        When I run `pro status --format json` with sudo
         Then stdout contains substring
         """
         {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured"}
         """
-        When I run `ua disable livepatch` with sudo
+        When I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable <fips-service>` `with sudo` and stdin `y`
+        And I run `pro enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             This will install the FIPS packages. The Livepatch service will be unavailable.
@@ -29,7 +29,7 @@ Feature: FIPS enablement in lxd VMs
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -45,7 +45,7 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `ua status --format json` with sudo
+        When I run `pro status --format json` with sudo
         Then stdout contains substring:
         """
         {"available": "yes", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled."}
@@ -62,12 +62,12 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout does not match regexp:
             """
             FIPS support requires system reboot to complete configuration
             """
-        When I run `ua disable <fips-service>` `with sudo` and stdin `y`
+        When I run `pro disable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             This will disable the FIPS entitlement but the FIPS packages will remain installed.
@@ -77,7 +77,7 @@ Feature: FIPS enablement in lxd VMs
             Updating package lists
             A reboot is required to complete disable operation
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             Disabling FIPS requires system reboot to complete operation
@@ -101,7 +101,7 @@ Feature: FIPS enablement in lxd VMs
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -110,20 +110,20 @@ Feature: FIPS enablement in lxd VMs
             """
             Disabling FIPS requires system reboot to complete operation
             """
-        When I run `ua enable <fips-service> --assume-yes --format json --assume-yes` with sudo
+        When I run `pro enable <fips-service> --assume-yes --format json --assume-yes` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
         When I reboot the `<release>` machine
-        And I run `ua disable <fips-service> --assume-yes --format json` with sudo
+        And I run `pro disable <fips-service> --assume-yes --format json` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -141,9 +141,9 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
+        And I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        When I run `ua enable <fips-service>` `with sudo` and stdin `y`
+        When I run `pro enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             This will install the FIPS packages including security updates.
@@ -156,7 +156,7 @@ Feature: FIPS enablement in lxd VMs
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -168,7 +168,7 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `ua status --format json` with sudo
+        When I run `pro status --format json` with sudo
         Then stdout contains substring:
         """
         {"available": "yes", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled."}
@@ -185,7 +185,7 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua disable <fips-service>` `with sudo` and stdin `y`
+        When I run `pro disable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             This will disable the FIPS entitlement but the FIPS packages will remain installed.
@@ -209,21 +209,21 @@ Feature: FIPS enablement in lxd VMs
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
             """
-        When I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
         Then stdout matches regexp:
             """
             Cannot enable FIPS because FIPS Updates was once enabled.
             """
         And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I run `pro enable <fips-service> --assume-yes` with sudo
         When I reboot the `<release>` machine
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes +enabled
@@ -232,8 +232,8 @@ Feature: FIPS enablement in lxd VMs
             """
             livepatch +yes +disabled
             """
-        When I run `ua enable livepatch --assume-yes` with sudo
-        When I run `ua status --all` with sudo
+        When I run `pro enable livepatch --assume-yes` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes +enabled
@@ -242,26 +242,26 @@ Feature: FIPS enablement in lxd VMs
             """
             livepatch +yes +enabled
             """
-        When I run `ua status --format json` with sudo
+        When I run `pro status --format json` with sudo
         Then stdout contains substring:
         """
         {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}, {"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled."}
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
-        And I run `ua enable <fips-service> --assume-yes --format json --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
+        And I run `pro enable <fips-service> --assume-yes --format json --assume-yes` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
         When I reboot the `<release>` machine
-        And I run `ua disable <fips-service> --assume-yes --format json` with sudo
+        And I run `pro disable <fips-service> --assume-yes --format json` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -279,7 +279,7 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes                disabled
@@ -288,7 +288,7 @@ Feature: FIPS enablement in lxd VMs
             """
             livepatch +yes                enabled
             """
-        When I run `ua enable fips-updates --assume-yes` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -296,7 +296,7 @@ Feature: FIPS enablement in lxd VMs
             FIPS Updates enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes                enabled
@@ -316,7 +316,7 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes                enabled
@@ -337,7 +337,7 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -345,7 +345,7 @@ Feature: FIPS enablement in lxd VMs
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -366,7 +366,7 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -384,7 +384,7 @@ Feature: FIPS enablement in lxd VMs
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
@@ -401,7 +401,7 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -409,7 +409,7 @@ Feature: FIPS enablement in lxd VMs
             <fips-name> enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                enabled
@@ -430,7 +430,7 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `pro disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -448,12 +448,12 @@ Feature: FIPS enablement in lxd VMs
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
             """
-        When I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
         Then stdout matches regexp:
             """
             Cannot enable FIPS because FIPS Updates was once enabled.
@@ -470,7 +470,7 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable fips-updates on fips enabled vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -478,7 +478,7 @@ Feature: FIPS enablement in lxd VMs
             FIPS enabled
             A reboot is required to complete install
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips +yes                enabled
@@ -489,7 +489,7 @@ Feature: FIPS enablement in lxd VMs
             """
             fips
             """
-        When I verify that running `ua enable fips-updates --assume-yes` `with sudo` exits `0`
+        When I verify that running `pro enable fips-updates --assume-yes` `with sudo` exits `0`
         Then stdout matches regexp:
             """
             One moment, checking your subscription first
@@ -499,7 +499,7 @@ Feature: FIPS enablement in lxd VMs
             FIPS Updates enabled
             A reboot is required to complete install.
             """
-            When I run `ua status --all` with sudo
+            When I run `pro status --all` with sudo
             Then stdout matches regexp:
                 """
                 fips-updates +yes                enabled
@@ -509,8 +509,8 @@ Feature: FIPS enablement in lxd VMs
                 fips +yes                n/a
                 """
             When I reboot the `<release>` machine
-            And  I run `ua enable livepatch` with sudo
-            And I run `ua status --all` with sudo
+            And  I run `pro enable livepatch` with sudo
+            And I run `pro status --all` with sudo
             Then stdout matches regexp:
                 """
                 fips-updates +yes                enabled
@@ -548,13 +548,13 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
         And I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro disable livepatch` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then stderr matches regexp:
         """
         Could not determine cloud, defaulting to generic FIPS package.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
         fips +yes                enabled
@@ -572,12 +572,12 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
         And I attach `contract_token` with sudo
-        And I run `ua enable fips --assume-yes` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
         Then stderr matches regexp:
         """
         Could not determine cloud, defaulting to generic FIPS package.
         """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
         fips +yes                enabled

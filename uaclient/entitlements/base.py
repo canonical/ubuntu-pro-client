@@ -829,7 +829,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     logging.warning(
                         "Unable to disable '%s' as recommended during contract"
                         " refresh. Service is still active. See"
-                        " `ua status`",
+                        " `pro status`",
                         self.name,
                     )
             # Clean up former entitled machine-access-<name> response cache

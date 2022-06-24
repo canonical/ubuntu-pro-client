@@ -22,7 +22,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     @uses.config.machine_type.lxd.container
     Scenario Outline: cloud-id-shim should run in postinst and on boot
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        # verify installing ua created the cloud-id file
+        # verify installing pro created the cloud-id file
         When I run `cat /run/cloud-init/cloud-id` with sudo
         Then I will see the following on stdout
         """
@@ -147,7 +147,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
         # verify detach starts it and it starts again after reboot
         When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
-        When I run `ua detach --assume-yes` with sudo
+        When I run `pro detach --assume-yes` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
@@ -247,7 +247,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I attach `contract_token` with sudo
-        When I run `ua detach --assume-yes` with sudo
+        When I run `pro detach --assume-yes` with sudo
         When I reboot the `<release>` machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
@@ -277,7 +277,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
@@ -313,7 +313,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
