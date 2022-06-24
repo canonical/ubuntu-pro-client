@@ -15,22 +15,21 @@ cis:
 
 esm-apps:
     help: |
-      UA Apps: Extended Security Maintenance is enabled by default on entitled
-      workloads. It provides access to a private PPA which includes available
-      high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-      and Ubuntu Universe repositories from the Ubuntu LTS release date until
+      Extended Security Maintenance for Applications is enabled by default
+      on entitled workloads. It provides access to a private PPA which includes
+      available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+      Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
       its end of life. You can find out more about the esm service at
       https://ubuntu.com/security/esm
 
 esm-infra:
    help: |
-     esm-infra provides access to a private ppa which includes available high
-     and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-     repository between the end of the standard Ubuntu LTS security
-     maintenance and its end of life. It is enabled by default with
-     Extended Security Maintenance (ESM) for UA Apps and UA Infra.
-     You can find our more about the esm service at
-     https://ubuntu.com/security/esm
+     Extended Security Maintenance for Infrastructure provides access
+     to a private ppa which includes available high and critical CVE fixes
+     for Ubuntu LTS packages in the Ubuntu Main repository between the end
+     of the standard Ubuntu LTS security maintenance and its end of life.
+     It is enabled by default with Ubuntu Pro. You can find out more about
+     the service at https://ubuntu.com/security/esm
 
 fips:
     help: |

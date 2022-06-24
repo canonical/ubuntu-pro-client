@@ -30,8 +30,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+            esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
@@ -101,8 +101,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+            esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
@@ -172,8 +172,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+            esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch-s> +Canonical Livepatch service
@@ -233,8 +233,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +enabled  +Canonical Livepatch service
@@ -251,8 +251,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +enabled  +Canonical Livepatch service
@@ -352,8 +352,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
@@ -370,8 +370,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
@@ -471,8 +471,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
@@ -489,8 +489,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service

@@ -13,8 +13,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis           +yes      +n/a      +Security compliance and audit tools
-            esm-apps      +yes      +n/a      +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-apps      +yes      +n/a      +Extended Security Maintenance for Applications
+            esm-infra     +yes      +n/a      +Extended Security Maintenance for Infrastructure
             fips          +yes      +n/a      +NIST-certified core packages
             fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
             livepatch     +yes      +n/a      +Canonical Livepatch service
@@ -54,7 +54,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
         """
@@ -67,8 +67,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +<fips> +NIST-certified core packages
         fips-updates +yes      +<fips> +NIST-certified core packages with priority security updates
         livepatch    +yes      +n/a      +<livepatch_desc>
@@ -142,9 +142,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
 
-        \*Your UA Infra: ESM subscription has EXPIRED\*
+        \*Your Ubuntu Pro: ESM Infra subscription has EXPIRED\*
 
-        \d+ additional security update\(s\) could have been applied via UA Infra: ESM.
+        \d+ additional security update\(s\) could have been applied via Ubuntu Pro: ESM Infra.
 
         Renew your UA services at https:\/\/ubuntu.com\/advantage
 
@@ -159,8 +159,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `apt upgrade --dry-run` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
-        \*Your UA Infra: ESM subscription has EXPIRED\*
-        Enabling UA Infra: ESM service would provide security updates for following packages:
+        \*Your Ubuntu Pro: ESM Infra subscription has EXPIRED\*
+        Enabling Ubuntu Pro: ESM Infra service would provide security updates for following packages:
           .*
         \d+ esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
         https:\/\/ubuntu.com\/advantage
@@ -310,7 +310,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
         """
@@ -323,7 +323,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +<fips_status>      +NIST-certified core packages
         fips-updates +yes      +<fips_status>      +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +<lp_desc>
@@ -371,7 +371,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
         """
@@ -384,7 +384,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
@@ -432,7 +432,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
         """
@@ -445,7 +445,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
@@ -488,8 +488,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
+        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
         """
 
         Examples: ubuntu release
@@ -506,7 +506,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
        When I attach `contract_token` with sudo
        Then stdout matches regexp:
        """
-       UA Infra: ESM enabled
+       Ubuntu Pro: ESM Infra enabled
        """
        And stdout matches regexp:
        """
@@ -514,7 +514,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
        """
        And stdout matches regexp:
        """
-       esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+       esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
        """
        When I create the file `/tmp/machine-token-overlay.json` with the following:
        """

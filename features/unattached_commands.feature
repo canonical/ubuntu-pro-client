@@ -120,18 +120,17 @@ Feature: Command behaviour when unattached
             <infra-status>
 
             Help:
-            esm-infra provides access to a private ppa which includes available high
-            and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-            repository between the end of the standard Ubuntu LTS security
-            maintenance and its end of life. It is enabled by default with
-            Extended Security Maintenance (ESM) for UA Apps and UA Infra.
-            You can find our more about the esm service at
-            https://ubuntu.com/security/esm
+            Extended Security Maintenance for Infrastructure provides access
+            to a private ppa which includes available high and critical CVE fixes
+            for Ubuntu LTS packages in the Ubuntu Main repository between the end
+            of the standard Ubuntu LTS security maintenance and its end of life.
+            It is enabled by default with Ubuntu Pro. You can find out more about
+            the service at https://ubuntu.com/security/esm
             """
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "available": "<infra-status>", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
+            {"name": "esm-infra", "available": "yes", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
             """
         When I verify that running `ua help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
