@@ -401,7 +401,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | enabled   | n/a         | disabled  | cis        | disabled   |
+           | xenial  | enabled   | disabled    | disabled  | cis        | disabled   |
            | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
            | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
            | jammy   | enabled   | n/a         | n/a       | usg        | n/a        |
