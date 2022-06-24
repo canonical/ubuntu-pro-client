@@ -1,12 +1,12 @@
 @uses.config.contract_token_staging
-Feature: Enable command behaviour when attached to an UA staging subscription
+Feature: Enable command behaviour when attached to an Ubuntu Pro staging subscription
 
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I run `ua status --all` as non-root
+        And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
         esm-apps      +yes                enabled            Extended Security Maintenance for Applications
@@ -77,12 +77,12 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
         esm-infra(-no)? \d+.*
         """
-        When I verify that running `ua enable esm-apps` `with sudo` exits `1`
+        When I verify that running `pro enable esm-apps` `with sudo` exits `1`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
         Ubuntu Pro: ESM Apps is already enabled.
-        See: sudo ua status
+        See: sudo pro status
         """
 
         Examples: ubuntu release

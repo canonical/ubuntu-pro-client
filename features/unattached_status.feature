@@ -4,18 +4,18 @@ Feature: Unattached status
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua status --format json` as non-root
+        When I run `pro status --format json` as non-root
         Then stdout is a json matching the `ua_status` schema
-        When I run `ua status --format yaml` as non-root
+        When I run `pro status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_status` schema
         When I run `sed -i 's/contracts.can/invalidurl.notcan/' /etc/ubuntu-advantage/uaclient.conf` with sudo
-        And I verify that running `ua status --format json` `as non-root` exits `1`
+        And I verify that running `pro status --format json` `as non-root` exits `1`
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
             """
             {"environment_vars": [], "errors": [{"message": "Failed to connect to authentication server\nCheck your Internet connection and try again.", "message_code": "connectivity-error", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
-        And I verify that running `ua status --format yaml` `as non-root` exits `1`
+        And I verify that running `pro status --format yaml` `as non-root` exits `1`
         Then stdout is a yaml matching the `ua_status` schema
         And I will see the following on stdout:
             """
@@ -44,7 +44,7 @@ Feature: Unattached status
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua status` as non-root
+        When I run `pro status` as non-root
         Then stdout matches regexp:
             """
             SERVICE       +AVAILABLE  DESCRIPTION
@@ -57,10 +57,10 @@ Feature: Unattached status
             livepatch     +<livepatch> +Canonical Livepatch service
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """
-        When I run `ua status --all` as non-root
+        When I run `pro status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       +AVAILABLE  DESCRIPTION
@@ -76,10 +76,10 @@ Feature: Unattached status
             ros-updates   +<ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +AVAILABLE  DESCRIPTION
@@ -92,10 +92,10 @@ Feature: Unattached status
             livepatch     +<livepatch> +Canonical Livepatch service
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +AVAILABLE  DESCRIPTION
@@ -111,7 +111,7 @@ Feature: Unattached status
             ros-updates   +<ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """ 
         When I append the following on uaclient config:
@@ -119,7 +119,7 @@ Feature: Unattached status
             features:
               allow_beta: true
             """
-        And I run `ua status` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             SERVICE       +AVAILABLE  DESCRIPTION
@@ -138,7 +138,7 @@ Feature: Unattached status
             FEATURES
             allow_beta: True
 
-            This machine is not attached to a UA subscription.
+            This machine is not attached to an Ubuntu Pro subscription.
             See https://ubuntu.com/pro
             """ 
 

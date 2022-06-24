@@ -9,7 +9,7 @@ we may have a livepatch change in the contract, allowing livepatch to be
 enabled on xenial. However, during the upgrade we cannot install livepatch on
 the system because the running kernel version will not be updated until reboot.
 
-UA client touches a flag file
+Pro client touches a flag file
 /var/lib/ubuntu-advantage/marker-reboot-cmds-required to indicate this script
 should run at next boot to process any pending/unresovled config operations.
 """

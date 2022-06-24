@@ -9,7 +9,7 @@ Running `ua status` as non-root users does not generate a new status.json with
 the updated status.json schema so the logic which renders ua status
 information will traceback on KeyErrors.
 
-Since we haven't introduced official schema versioning in UA client yet,
+Since we haven't introduced official schema versioning in Pro client yet,
 this patch is a stop-gap until official schema version handling is
 delivered.
 """

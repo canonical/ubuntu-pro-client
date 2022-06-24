@@ -86,7 +86,7 @@ fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
 
-This machine is not attached to a UA subscription.
+This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
 """  # noqa: E501
 
@@ -101,7 +101,7 @@ realtime-kernel  no        {dash}         Beta-version Ubuntu Kernel with PREEMP
 ros              no        {dash}         Security Updates for the Robot Operating System
 ros-updates      no        {dash}         All Updates for the Robot Operating System
 {notices}{features}
-Enable services with: ua enable <service>
+Enable services with: pro enable <service>
 
                 Account: test_account
            Subscription: test_contract
@@ -118,7 +118,7 @@ fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
 {notices}{features}
-Enable services with: ua enable <service>
+Enable services with: pro enable <service>
 
                 Account: test_account
            Subscription: test_contract
@@ -217,7 +217,7 @@ HELP_OUTPUT = textwrap.dedent(
     """\
 usage: pro status [flags]
 
-Report current status of Ubuntu Advantage services on system.
+Report current status of Ubuntu Pro services on system.
 
 This shows whether this machine is attached to an Ubuntu Advantage
 support contract. When attached, the report includes the specific
@@ -252,7 +252,7 @@ listed in the output.
 
 Flags:
   -h, --help            show this help message and exit
-  --wait                Block waiting on ua to complete
+  --wait                Block waiting on pro to complete
   --format {tabular,json,yaml}
                         output status in the specified format (default:
                         tabular)
@@ -422,7 +422,7 @@ class TestActionStatus:
         """Check that --wait will will block and poll until lock released."""
         cfg = FakeConfig()
         lock_file = cfg.data_path("lock")
-        cfg.write_cache("lock", "123:ua auto-attach")
+        cfg.write_cache("lock", "123:pro auto-attach")
 
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:
@@ -821,7 +821,7 @@ class TestActionStatus:
             },
             "environment_vars": [],
             "execution_status": "inactive",
-            "execution_details": "No Ubuntu Advantage operations are running",
+            "execution_details": "No Ubuntu Pro operations are running",
             "expires": "9999-12-31T00:00:00Z",
             "effective": None,
             "services": expected_services,
@@ -1074,7 +1074,7 @@ class TestStatusParser:
         with mock.patch(
             "sys.argv",
             [
-                "ua",
+                "pro",
                 "status",
                 "--format",
                 "json",

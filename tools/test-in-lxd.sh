@@ -17,8 +17,8 @@ if [ -n "$SHELL_BEFORE" ]; then
     set +x
     echo
     echo
-    echo "New version of ua has not been installed yet."
-    echo "After you exit the shell we'll upgrade ua and bring you right back."
+    echo "New version of pro has not been installed yet."
+    echo "After you exit the shell we'll upgrade pro and bring you right back."
     echo
     set -x
     lxc exec $name bash

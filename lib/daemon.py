@@ -7,7 +7,7 @@ from uaclient import daemon
 from uaclient.config import UAConfig
 from uaclient.defaults import DEFAULT_LOG_FORMAT
 
-LOG = logging.getLogger("ua")
+LOG = logging.getLogger("pro")
 
 
 def setup_logging(console_level, log_level, log_file, logger):
