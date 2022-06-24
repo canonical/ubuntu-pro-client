@@ -1,3 +1,4 @@
+import json
 from typing import Any, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions
@@ -183,6 +184,9 @@ class DataObject(DataValue):
             if new_val is not None or keep_none:
                 d[field.key] = new_val
         return d
+
+    def to_json(self, keep_null: bool = True) -> str:
+        return json.dumps(self.to_dict(keep_none=keep_null), sort_keys=True)
 
     @classmethod
     def from_dict(cls: Type[T], d: dict) -> T:
