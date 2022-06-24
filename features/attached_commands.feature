@@ -171,7 +171,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         And I verify that running `apt update` `with sudo` exits `0`
 
@@ -211,7 +211,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         And I verify that running `apt update` `with sudo` exits `0`
 
@@ -244,8 +244,8 @@ Feature: Command behaviour when attached to an UA subscription
           """
        Then stdout matches regexp:
           """
-          esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
-          esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
+          esm-apps      +<esm-apps> +Extended Security Maintenance for Applications
+          esm-infra     +yes        +Extended Security Maintenance for Infrastructure
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
           livepatch     +(yes|no)   +Canonical Livepatch service
@@ -419,7 +419,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         When I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
@@ -427,7 +427,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             Updating package lists
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             """
         And stdout does not match regexp:
             """
@@ -466,7 +466,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-infra    +yes      +disabled +Extended Security Maintenance for Infrastructure
             """
         When I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
@@ -474,7 +474,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             Updating package lists
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             """
         And stdout does not match regexp:
             """
@@ -488,35 +488,34 @@ Feature: Command behaviour when attached to an UA subscription
         When I attach `contract_token` with sudo
         And I run `ua help esm-infra` with sudo
         Then I will see the following on stdout:
-            """
-            Name:
-            esm-infra
+        """
+        Name:
+        esm-infra
 
-            Entitled:
-            yes
+        Entitled:
+        yes
 
-            Status:
-            <infra-status>
+        Status:
+        <infra-status>
 
-            Help:
-            esm-infra provides access to a private ppa which includes available high
-            and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-            repository between the end of the standard Ubuntu LTS security
-            maintenance and its end of life. It is enabled by default with
-            Extended Security Maintenance (ESM) for UA Apps and UA Infra.
-            You can find our more about the esm service at
-            https://ubuntu.com/security/esm
-            """
+        Help:
+        Extended Security Maintenance for Infrastructure provides access
+        to a private ppa which includes available high and critical CVE fixes
+        for Ubuntu LTS packages in the Ubuntu Main repository between the end
+        of the standard Ubuntu LTS security maintenance and its end of life.
+        It is enabled by default with Ubuntu Pro. You can find out more about
+        the service at https://ubuntu.com/security/esm
+        """
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
-            """
-            {"name": "esm-infra", "entitled": "yes", "status": "<infra-status>", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
-            """
+        """
+        {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+        """
         And I verify that running `ua help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
-            """
-            No help available for 'invalid-service'
-            """
+        """
+        No help available for 'invalid-service'
+        """
         When I run `ua --help` as non-root
         Then stdout matches regexp:
         """
@@ -525,9 +524,9 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
@@ -544,9 +543,9 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
@@ -563,9 +562,9 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
@@ -595,44 +594,43 @@ Feature: Command behaviour when attached to an UA subscription
         When I attach `contract_token` with sudo
         And I run `ua help esm-infra` with sudo
         Then I will see the following on stdout:
-            """
-            Name:
-            esm-infra
+        """
+        Name:
+        esm-infra
 
-            Entitled:
-            yes
+        Entitled:
+        yes
 
-            Status:
-            enabled
+        Status:
+        enabled
 
-            Help:
-            esm-infra provides access to a private ppa which includes available high
-            and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-            repository between the end of the standard Ubuntu LTS security
-            maintenance and its end of life. It is enabled by default with
-            Extended Security Maintenance (ESM) for UA Apps and UA Infra.
-            You can find our more about the esm service at
-            https://ubuntu.com/security/esm
-            """
+        Help:
+        Extended Security Maintenance for Infrastructure provides access
+        to a private ppa which includes available high and critical CVE fixes
+        for Ubuntu LTS packages in the Ubuntu Main repository between the end
+        of the standard Ubuntu LTS security maintenance and its end of life.
+        It is enabled by default with Ubuntu Pro. You can find out more about
+        the service at https://ubuntu.com/security/esm
+        """
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
-            """
-            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
-            """
+        """
+        {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+        """
         And I verify that running `ua help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
-            """
-            No help available for 'invalid-service'
-            """
+        """
+        No help available for 'invalid-service'
+        """
         When I run `ua --help` as non-root
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
@@ -649,9 +647,9 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
@@ -668,9 +666,9 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
-         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+         - esm-apps: Extended Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+         - esm-infra: Extended Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)

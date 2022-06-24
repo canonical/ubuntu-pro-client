@@ -32,8 +32,8 @@ API_V1_NOTICES = "notices.json"
 API_V1_NOTICE_TMPL = "notices/{notice}.json"
 
 UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
-UA_INFRA_POCKET = "UA Infra"
-UA_APPS_POCKET = "UA Apps"
+UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
+UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
 
 ReleasedPackagesInstallResult = NamedTuple(

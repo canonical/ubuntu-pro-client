@@ -21,7 +21,7 @@ This machine is now attached to 'UA Infra - Essential (Virtual)'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified FIPS modules
 fips-updates  yes       n/a       Uncertified security updates to FIPS modules
 livepatch     yes       n/a       Canonical Livepatch service
