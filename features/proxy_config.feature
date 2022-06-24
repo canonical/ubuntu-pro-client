@@ -259,6 +259,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
+        And I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -355,6 +356,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
+        And I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -554,6 +556,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
+        And I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -797,6 +800,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
+        And I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
