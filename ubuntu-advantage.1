@@ -1,20 +1,22 @@
-.TH "UBUNTU-ADVANTAGE" "1" "21 February 2020" "Canonical Ltd." "Ubuntu Advantage"
+.TH "UBUNTU-PRO" "1" "21 February 2020" "Canonical Ltd." "Ubuntu Pro"
 
 
 .SH NAME
-ubuntu-advantage \- Manage Ubuntu Advantage services from Canonical
+pro \- Manage Ubuntu Pro services from Canonical
 
 
 .SH SYNOPSIS
+.BR "pro" " <command> [<args>]"
+.br
 .BR "ua" " <command> [<args>]"
 .br
 .BR "ubuntu-advantage" " <command> [<args>]"
 
 
 .SH DESCRIPTION
-Ubuntu Advantage is a collection of services offered by Canonical to
-Ubuntu users. The Ubuntu Advantage command line tool is used to attach
-a system to an Ubuntu Advantage contract to then enable and disable
+Ubuntu Pro is a collection of services offered by Canonical to
+Ubuntu users. The Ubuntu Pro command line tool is used to attach
+a system to an Ubuntu Pro contract to then enable and disable
 services from Canonical. The available commands and services are
 described in more detail below.
 
@@ -22,7 +24,7 @@ described in more detail below.
 .SH COMMANDS
 .TP
 .BR "attach" " [--no-auto-enable] [--attach-config=/path/to/file.yaml] <token>"
-Connect an Ubuntu Advantage support contract to this machine.
+Connect an Ubuntu Pro support contract to this machine.
 
 The \fItoken\fR parameter can be obtained from
 https://auth.contracts.canonical.com/.
@@ -48,7 +50,7 @@ The exit code can be:
 
 .TP
 .B collect-logs [-o <file>| --output <file>]
-Create a tarball with all relevant UA logs and debug data.
+Create a tarball with all relevant logs and debug data.
 
 The \fI--output\fR parameter defines the path to the tarball. If not
 provided, the file is saved as \fBua_logs.tar.gz\fP in the current
@@ -56,16 +58,16 @@ directory.
 
 .TP
 .B detach
-Remove the Ubuntu Advantage support contract from this machine. This
+Remove the Ubuntu Pro support contract from this machine. This
 also disables all enabled services that can be.
 
 .TP
 .BR "disable" " [cc-eal|cis|esm|fips|fips-updates|livepatch|ros|ros-updates]"
-Disable this machine's access to an Ubuntu Advantage service.
+Disable this machine's access to an Ubuntu Pro service.
 
 .TP
 .BR "enable" " [cc-eal|cis|esm|fips|fips-updates|livepatch|ros|ros-updates]"
-Activate and configure this machine's access to an Ubuntu Advantage
+Activate and configure this machine's access to an Ubuntu Pro
 service.
 
 .TP
@@ -91,9 +93,9 @@ available ESM related content.
 
 .TP
 .BR "status" " [--format=tabular|json|yaml] [--simulate-with-token TOKEN] [--all]"
-Report current status of Ubuntu Advantage services on system.
+Report current status of Ubuntu Pro services on system.
 
-This shows whether this machine is attached to an Ubuntu Advantage
+This shows whether this machine is attached to an Ubuntu Pro
 support contract. When attached, the report includes the specific
 support contract details including contract name, expiry dates, and the
 status of each service on this system.
@@ -134,20 +136,20 @@ output.
 
 .TP
 .B version
-Show version of the Ubuntu Advantage package.
+Show version of the Ubuntu Pro package.
 
 .SH PRO UPGRADE DAEMON
-UA client sets up a daemon on supported platforms (currently GCP only) to
-detect if an Ubuntu Pro license is purchased for the machine. If a Pro license
+Ubuntu Pro client sets up a daemon on supported platforms (currently GCP only) to
+detect if an Ubuntu Pro license is purchased for the machine. If an Ubuntu Pro license
 is detected, then the machine is automatically attached.
-If you are uninterested in UA services, you can safely stop and disable the
+If you are uninterested in Ubuntu Pro services, you can safely stop and disable the
 daemon using systemctl:
 
 sudo systemctl stop ubuntu-advantage.service
 sudo systemctl disable ubuntu-advantage.service
 
 .SH TIMER JOBS
-UA client sets up a systemd timer to run jobs that need to be executed
+Ubuntu Pro client sets up a systemd timer to run jobs that need to be executed
 recurrently. The timer itself ticks every 5 minutes on average, and decides
 which jobs need to be executed based on their intervals.
 
@@ -167,28 +169,28 @@ updates.
 .TP
 .B
 \fBupdate_status\fP
-Makes sure the `ua status` command will have the latest information even when
+Makes sure the `pro status` command will have the latest information even when
 executed by a non-root user, updating the
 \fB/var/lib/ubuntu-advantage/status.json\fP file.
 
 
 .SH CONFIGURATION
-By default, Ubuntu Advantage client configuration options are read from
+By default, Ubuntu Pro client configuration options are read from
 \fB/etc/ubuntu-advantage/uaclient.conf\fB.
 
 The following configuration options are available:
 .TP
 .B
 \fBcontract_url\fP
-The ubuntu advantage contract server URL
+The Ubuntu Pro contract server URL
 .TP
 .B
 \fBsecurity_url\fP
-The ubuntu advantage security server URL
+The Ubuntu Pro security server URL
 .TP
 .B
 \fBdata_dir\fP
-Where Ubuntu Advantage client stores its data files
+Where Ubuntu Pro client stores its data files
 .TP
 .B
 \fBlog_level\fP
@@ -196,15 +198,15 @@ The logging level used when writing to \fBlog_file\fP
 .TP
 .B
 \fBlog_file\fP
-The log file for the Ubuntu Advantage client
+The log file for the Ubuntu Pro client cli
 .TP
 .B
 \fBtimer_log_file\fP
-The log file for the Ubuntu Advantage timer and timer jobs
+The log file for the Ubuntu Pro timer and timer jobs
 .TP
 .B
 \fBdaemon_log_file\fP
-The log file for the Ubuntu Advantage daemon
+The log file for the Ubuntu Pro daemon
 
 .P
 \fBThe following options must be nested under the "ua_config" key:\fP
@@ -212,43 +214,43 @@ The log file for the Ubuntu Advantage daemon
 .TP
 .B
 \fBhttp_proxy\fP
-If set, ua will use the specified http proxy when making any http requests
+If set, pro will use the specified http proxy when making any http requests
 .TP
 .B
 \fBhttps_proxy\fP
-If set, ua will use the specified https proxy when making any https requests
+If set, pro will use the specified https proxy when making any https requests
 .TP
 .B
 \fBapt_http_proxy\fP
-\fB[DEPRECATED]\fP If set, ua will configure apt to use the specified http proxy by writing a apt
+\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified http proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
 .TP
 .B
 \fBapt_https_proxy\fP
-\fB[DEPRECATED]\fP If set, ua will configure apt to use the specified https proxy by writing a apt
+\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified https proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
 .TP
 .B
 \fBglobal_apt_http_proxy\fP
-If set, ua will configure apt to use the specified http proxy by writing a apt
+If set, pro will configure apt to use the specified http proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
 prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
 .TP
 .B
 \fBglobal_apt_https_proxy\fP
-If set, ua will configure apt to use the specified https proxy by writing a apt
+If set, pro will configure apt to use the specified https proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
 prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
 .TP
 .B
 \fBua_apt_http_proxy\fP
-If set, ua will configure apt to use the specified http proxy by writing a apt
+If set, pro will configure apt to use the specified http proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
 to accessing resources from \fIesm.ubuntu.com\fB
 .TP
 .B
 \fBua_apt_https_proxy\fP
-If set, ua will configure apt to use the specified https proxy by writing a apt
+If set, pro will configure apt to use the specified https proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
 to accessing resources from \fIesm.ubuntu.com\fB
 .TP
@@ -278,7 +280,7 @@ For example, the following overrides the log_level found in uaclient.conf:
 .PP
 .nf
 .fam C
-  UA_LOG_LEVEL=info ua attach
+  UA_LOG_LEVEL=info pro attach
 .fam T
 .fi
 
@@ -301,7 +303,7 @@ Enables and installs the CIS Audit artifacts.
 .B "Extended Security Maintenance (esm)"
 Extended Security Maintenance ensures the ongoing security and
 integrity of systems running Ubuntu Long Term Support (LTS) releases
-through Ubuntu Advantage for Infrastructure.
+through Ubuntu Pro for Infrastructure.
 
 See https://ubuntu.com/esm for more information.
 

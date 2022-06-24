@@ -220,7 +220,7 @@ class DataObject(DataValue):
 class AttachActionsConfigFile(DataObject):
     """
     The format of the yaml file that can be passed with
-    ua attach --attach-config /path/to/file
+    pro attach --attach-config /path/to/file
     """
 
     fields = [

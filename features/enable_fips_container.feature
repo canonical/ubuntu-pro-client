@@ -10,7 +10,7 @@ Feature: FIPS enablement in lxd containers
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan openssl <libssl> libgcrypt20` with sudo, retrying exit [100]
-        And I run `ua enable fips<updates>` `with sudo` and stdin `y`
+        And I run `pro enable fips<updates>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             Warning: Enabling <fips-name> in a container.
@@ -28,7 +28,7 @@ Feature: FIPS enablement in lxd containers
             Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
             version.
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips<updates> +yes                enabled
@@ -47,12 +47,12 @@ Feature: FIPS enablement in lxd containers
         And I verify that `<libssl>-hmac` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         And I verify that `<additional-fips-packages>` are installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         When I reboot the `<release>` machine
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout does not match regexp:
             """
             FIPS support requires system reboot to complete configuration
             """
-        When I run `ua disable fips<updates>` `with sudo` and stdin `y`
+        When I run `pro disable fips<updates>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             This will disable the FIPS entitlement but the FIPS packages will remain installed.
@@ -65,7 +65,7 @@ Feature: FIPS enablement in lxd containers
             """
             A reboot is required to complete disable operation
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips<updates> +yes                disabled
@@ -104,7 +104,7 @@ Feature: FIPS enablement in lxd containers
     Scenario Outline: Try to enable FIPS after FIPS Updates in a lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes +disabled
@@ -113,8 +113,8 @@ Feature: FIPS enablement in lxd containers
             """
             fips +yes +disabled
             """
-        When I run `ua enable fips-updates --assume-yes` with sudo
-        When I run `ua status --all` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes +enabled
@@ -123,12 +123,12 @@ Feature: FIPS enablement in lxd containers
             """
             fips +yes +n/a
             """
-        When I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
         Then stdout matches regexp:
             """
             Cannot enable FIPS when FIPS Updates is enabled.
             """
-        When I run `ua status --all` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips-updates +yes +enabled

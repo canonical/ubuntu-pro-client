@@ -211,9 +211,9 @@ class TestDataPath:
 
 
 CFG_BASE_CONTENT = """\
-# Ubuntu-Advantage client config file.
-# If you modify this file, run "ua refresh config" to ensure changes are
-# picked up by Ubuntu-Advantage client.
+# Ubuntu Pro client config file.
+# If you modify this file, run "pro refresh config" to ensure changes are
+# picked up by Ubuntu Pro client.
 
 contract_url: https://contracts.canonical.com
 daemon_log_file: /var/log/ubuntu-advantage-daemon.log
@@ -225,9 +225,9 @@ timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
 CFG_FEATURES_CONTENT = """\
-# Ubuntu-Advantage client config file.
-# If you modify this file, run "ua refresh config" to ensure changes are
-# picked up by Ubuntu-Advantage client.
+# Ubuntu Pro client config file.
+# If you modify this file, run "pro refresh config" to ensure changes are
+# picked up by Ubuntu Pro client.
 
 contract_url: https://contracts.canonical.com
 daemon_log_file: /var/log/ubuntu-advantage-daemon.log

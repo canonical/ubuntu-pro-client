@@ -61,7 +61,10 @@ def get_origin_for_package(package: apt_package.Package) -> str:
 
 
 def get_service_name(origins: List[apt_package.Origin]) -> Tuple[str, str]:
-    "Translates the archive name in the version origin to a UA service name."
+    """
+    Translates the archive name in the version origin to an Ubuntu Pro service
+    name.
+    """
     for origin in origins:
         service = ORIGIN_INFORMATION_TO_SERVICE.get(
             (origin.origin, origin.archive)
@@ -74,7 +77,7 @@ def get_service_name(origins: List[apt_package.Origin]) -> Tuple[str, str]:
 def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
     """Defines the update status for a package based on the service name.
 
-    For ESM-[Infra|Apps] packages, first checks if UA is attached. If this is
+    For ESM-[Infra|Apps] packages, first checks if Pro is attached. If this is
     the case, also check for availability of the service.
     """
     if service_name == "standard-security" or (
@@ -109,7 +112,7 @@ def filter_security_updates(
 
 
 def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
-    """Returns the UA information based on the config object."""
+    """Returns the Pro information based on the config object."""
     ua_info = {
         "attached": False,
         "enabled_services": [],
@@ -134,9 +137,10 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
 
     The returned dict has a 'packages' key with a list of all installed
     packages which can receive security updates, with or without ESM,
-    reflecting the availability of the update based on the UA status.
+    reflecting the availability of the update based on the Pro status.
 
-    There is also a summary with the UA information and the package counts.
+    There is also a summary with the Ubuntu Pro information and the package
+    counts.
     """
     ua_info = get_ua_info(cfg)
 

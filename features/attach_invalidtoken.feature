@@ -1,21 +1,21 @@
 Feature: Command behaviour when trying to attach a machine to an Ubuntu
-         Advantage subscription using an invalid token
+         Pro subscription using an invalid token
 
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command failure on invalid token
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua attach INVALID_TOKEN` `with sudo` exits `1`
+        When I verify that running `pro attach INVALID_TOKEN` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             Invalid token. See https://ubuntu.com/pro
             """
-        When I verify that running `ua attach INVALID_TOKEN` `as non-root` exits `1`
+        When I verify that running `pro attach INVALID_TOKEN` `as non-root` exits `1`
         Then I will see the following on stderr:
              """
              This command must be run as root (try using sudo).
              """
-        When I verify that running `ua attach invalid-token --format json` `with sudo` exits `1`
+        When I verify that running `pro attach invalid-token --format json` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """

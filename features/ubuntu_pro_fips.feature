@@ -13,9 +13,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         features:
           allow_xenial_fips_on_cloud: true
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
         """
         esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -51,7 +51,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
@@ -97,7 +97,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        When I run `ua enable fips-updates --assume-yes` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
@@ -107,7 +107,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         FIPS Updates enabled
         A reboot is required to complete install.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         fips          +yes +n/a +NIST-certified core packages
@@ -134,7 +134,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout does not match regexp:
         """
         NOTICES
@@ -158,9 +158,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -194,9 +194,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         features:
           allow_xenial_fips_on_cloud: true
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -230,9 +230,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
         """
         esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -268,7 +268,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
@@ -314,7 +314,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        When I run `ua enable fips-updates --assume-yes` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
@@ -324,7 +324,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         FIPS Updates enabled
         A reboot is required to complete install.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         fips          +yes +n/a +NIST-certified core packages
@@ -351,7 +351,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout does not match regexp:
         """
         NOTICES
@@ -375,9 +375,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -411,9 +411,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         features:
           allow_xenial_fips_on_cloud: true
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -449,15 +449,15 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
         """
         fips          +yes +enabled +NIST-certified core packages
         fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
         """
-        When I run `ua enable fips-updates --assume-yes` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
@@ -467,7 +467,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         FIPS Updates enabled
         A reboot is required to complete install.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         fips          +yes +n/a +NIST-certified core packages
@@ -501,9 +501,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -539,7 +539,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
         Skipping attach: Instance '[0-9a-z\-]+' is already attached.
@@ -585,7 +585,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        When I run `ua enable fips-updates --assume-yes` with sudo
+        When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
@@ -595,7 +595,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         FIPS Updates enabled
         A reboot is required to complete install.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         fips          +yes +n/a +NIST-certified core packages
@@ -622,7 +622,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout does not match regexp:
         """
         NOTICES
@@ -645,9 +645,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications
@@ -678,9 +678,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I run `ua auto-attach` with sudo
-        And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
+        And I run `pro auto-attach` with sudo
+        And I run `pro status --wait` as non-root
+        And I run `pro status` as non-root
         Then stdout matches regexp:
             """
             esm-apps      +yes +enabled +Extended Security Maintenance for Applications

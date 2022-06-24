@@ -72,7 +72,7 @@ setuptools.setup(
     extras_require=dict(test=TEST_REQUIRES),
     author="Ubuntu Server Team",
     author_email="ubuntu-server@lists.ubuntu.com",
-    description=("Manage Ubuntu Advantage support entitlements"),
+    description=("Manage Ubuntu Pro support entitlements"),
     license="GPLv3",
     url="https://ubuntu.com/support",
     entry_points={

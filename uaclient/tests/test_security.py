@@ -637,7 +637,7 @@ class TestCVEPackageStatus:
         ),
     )
     def test_requires_ua_from_response(self, pocket, description, expected):
-        """requires_ua is derived from response pocket and description."""
+        """requires_pro is derived from response pocket and description."""
         cve_response = {"pocket": pocket, "description": description}
         pkg_status = CVEPackageStatus(cve_response=cve_response)
         assert expected is pkg_status.requires_ua
@@ -1461,7 +1461,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "\n"
                 + PROMPT_ENTER_TOKEN
                 + "\n"
-                + colorize_commands([["ua attach token"]])
+                + colorize_commands([["pro attach token"]])
                 + "\n"
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y pkg3"]]
@@ -1636,7 +1636,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "\n"
                 + PROMPT_ENTER_TOKEN
                 + "\n"
-                + colorize_commands([["ua attach token"]])
+                + colorize_commands([["pro attach token"]])
                 + "\n"
                 + SECURITY_UA_SERVICE_NOT_ENTITLED.format(service="esm-infra")
                 + "\n"
@@ -1731,7 +1731,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 )
                 + SECURITY_SERVICE_DISABLED.format(service="esm-infra")
                 + "\n"
-                + colorize_commands([["ua enable esm-infra"]])
+                + colorize_commands([["pro enable esm-infra"]])
                 + "\n"
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y pkg1"]]
@@ -1919,9 +1919,9 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "\n"
                 + PROMPT_EXPIRED_ENTER_TOKEN
                 + "\n"
-                + colorize_commands([["ua detach"]])
+                + colorize_commands([["pro detach"]])
                 + "\n"
-                + colorize_commands([["ua attach token"]])
+                + colorize_commands([["pro attach token"]])
                 + "\n"
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y pkg1"]]
@@ -1990,7 +1990,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 )
 
         out, err = capsys.readouterr()
-        assert expected in out
+        assert expected == out
 
     @pytest.mark.parametrize(
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",

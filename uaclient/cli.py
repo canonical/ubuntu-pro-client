@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-"""Client to manage Ubuntu Advantage services on a machine."""
+"""Client to manage Ubuntu Pro services on a machine."""
 
 import argparse
 import glob
@@ -263,8 +261,7 @@ def auto_attach_parser(parser):
     """Build or extend an arg parser for auto-attach subcommand."""
     parser.prog = "auto-attach"
     parser.description = (
-        "Automatically attach an Ubuntu Advantage token on Ubuntu Pro"
-        " images."
+        "Automatically attach on an Ubuntu Pro cloud instance."
     )
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = "Flags"
@@ -275,7 +272,7 @@ def collect_logs_parser(parser):
     """Build or extend an arg parser for 'collect-logs' subcommand."""
     parser.prog = "collect-logs"
     parser.description = (
-        "Collect UA logs and relevant system information into a tarball."
+        "Collect logs and relevant system information into a tarball."
     )
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser.add_argument(
@@ -306,14 +303,12 @@ def config_set_parser(parser):
     """Build or extend an arg parser for 'config set' subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="set <key>=<value>")
     parser.prog = "set"
-    parser.description = (
-        "Set and apply Ubuntu Advantage configuration settings"
-    )
+    parser.description = "Set and apply Ubuntu Pro configuration settings"
     parser._optionals.title = "Flags"
     parser.add_argument(
         "key_value_pair",
         help=(
-            "key=value pair to configure for Ubuntu Advantage services."
+            "key=value pair to configure for Ubuntu Pro services."
             " Key must be one of: {}".format(
                 ", ".join(config.UA_CONFIGURABLE_KEYS)
             )
@@ -326,11 +321,11 @@ def config_unset_parser(parser):
     """Build or extend an arg parser for 'config unset' subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="unset <key>")
     parser.prog = "unset"
-    parser.description = "Unset Ubuntu Advantage configuration setting"
+    parser.description = "Unset Ubuntu Pro configuration setting"
     parser.add_argument(
         "key",
         help=(
-            "configuration key to unset from Ubuntu Advantage services."
+            "configuration key to unset from Ubuntu Pro services."
             " One of: {}".format(", ".join(config.UA_CONFIGURABLE_KEYS))
         ),
         metavar="key",
@@ -343,25 +338,25 @@ def config_parser(parser):
     """Build or extend an arg parser for config subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="config <command>")
     parser.prog = "config"
-    parser.description = "Manage Ubuntu Advantage configuration"
+    parser.description = "Manage Ubuntu Pro configuration"
     parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
         title="Available Commands", dest="command", metavar=""
     )
     parser_show = subparsers.add_parser(
-        "show", help="show all Ubuntu Advantage configuration setting(s)"
+        "show", help="show all Ubuntu Pro configuration setting(s)"
     )
     parser_show.set_defaults(action=action_config_show)
     config_show_parser(parser_show)
 
     parser_set = subparsers.add_parser(
-        "set", help="set Ubuntu Advantage configuration setting"
+        "set", help="set Ubuntu Pro configuration setting"
     )
     parser_set.set_defaults(action=action_config_set)
     config_set_parser(parser_set)
 
     parser_unset = subparsers.add_parser(
-        "unset", help="unset Ubuntu Advantage configuration setting"
+        "unset", help="unset Ubuntu Pro configuration setting"
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset)
@@ -373,14 +368,14 @@ def attach_parser(parser):
     parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     parser.prog = "attach"
     parser.description = (
-        "Attach this machine to Ubuntu Advantage with a token obtained"
+        "Attach this machine to Ubuntu Pro with a token obtained"
         " from {}".format(defaults.BASE_UA_URL)
     )
     parser._optionals.title = "Flags"
     parser.add_argument(
         "token",
         nargs="?",  # action_attach asserts this required argument
-        help="token obtained for Ubuntu Advantage authentication: {}".format(
+        help="token obtained for Ubuntu Pro authentication: {}".format(
             UA_AUTH_TOKEN_URL
         ),
     )
@@ -456,8 +451,8 @@ def security_status_parser(parser):
         - unknown: packages which don't have an installation source (like local
           deb packages or packages for which the source was removed)
 
-        The summary contains basic information about UA and ESM. For a complete
-        status on UA services, run 'ua status'
+        The summary contains basic information about Ubuntu Pro and ESM. For a
+        complete status on Ubuntu Pro services, run 'pro status'
         """
     )
 
@@ -474,7 +469,7 @@ def refresh_parser(parser):
     """Build or extend an arg parser for refresh subcommand."""
     parser.prog = "refresh"
     parser.description = (
-        "Refresh existing Ubuntu Advantage contract and update services."
+        "Refresh existing Ubuntu Pro contract and update services."
     )
     parser.usage = USAGE_TMPL.format(
         name=NAME, command="refresh [contract|config|messages]"
@@ -484,7 +479,7 @@ def refresh_parser(parser):
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.description = textwrap.dedent(
         """\
-        Refresh three distinct UA related artifacts in the system:
+        Refresh three distinct Ubuntu Pro related artifacts in the system:
 
         * contract: Update contract details from the server.
         * config:   Reload the config file.
@@ -522,7 +517,7 @@ def action_fix(args, *, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
         msg = (
             'Error: issue "{}" is not recognized.\n'
-            'Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"'
+            'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
         ).format(args.security_issue)
         raise exceptions.UserFacingError(msg)
 
@@ -539,7 +534,7 @@ def detach_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="detach")
     parser.usage = usage
     parser.prog = "detach"
-    parser.description = "Detach this machine from Ubuntu Advantage services."
+    parser.description = "Detach this machine from Ubuntu Pro services."
     parser._optionals.title = "Flags"
     parser.add_argument(
         "--assume-yes",
@@ -562,7 +557,7 @@ def help_parser(parser, cfg: config.UAConfig):
     parser.usage = usage
     parser.prog = "help"
     parser.description = (
-        "Provide detailed information about Ubuntu Advantage services."
+        "Provide detailed information about Ubuntu Pro services."
     )
     parser._positionals.title = "Arguments"
     parser.add_argument(
@@ -600,7 +595,7 @@ def enable_parser(parser, cfg: config.UAConfig):
     usage = USAGE_TMPL.format(
         name=NAME, command="enable <service> [<service>]"
     )
-    parser.description = "Enable an Ubuntu Advantage service."
+    parser.description = "Enable an Ubuntu Pro service."
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
@@ -610,7 +605,7 @@ def enable_parser(parser, cfg: config.UAConfig):
         action="store",
         nargs="+",
         help=(
-            "the name(s) of the Ubuntu Advantage services to enable."
+            "the name(s) of the Ubuntu Pro services to enable."
             " One of: {}".format(
                 ", ".join(entitlements.valid_services(cfg=cfg))
             )
@@ -639,7 +634,7 @@ def disable_parser(parser, cfg: config.UAConfig):
     usage = USAGE_TMPL.format(
         name=NAME, command="disable <service> [<service>]"
     )
-    parser.description = "Disable an Ubuntu Advantage service."
+    parser.description = "Disable an Ubuntu Pro service."
     parser.usage = usage
     parser.prog = "disable"
     parser._positionals.title = "Arguments"
@@ -649,7 +644,7 @@ def disable_parser(parser, cfg: config.UAConfig):
         action="store",
         nargs="+",
         help=(
-            "the name(s) of the Ubuntu Advantage services to disable"
+            "the name(s) of the Ubuntu Pro services to disable."
             " One of: {}".format(
                 ", ".join(entitlements.valid_services(cfg=cfg))
             )
@@ -675,14 +670,14 @@ def status_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="status")
     parser.usage = usage
     parser.description = (
-        "Output the status information for Ubuntu Advantage services."
+        "Output the status information for Ubuntu Pro services."
     )
     parser.prog = "status"
     # This formatter_class ensures that our formatting below isn't lost
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.description = textwrap.dedent(
         """\
-        Report current status of Ubuntu Advantage services on system.
+        Report current status of Ubuntu Pro services on system.
 
         This shows whether this machine is attached to an Ubuntu Advantage
         support contract. When attached, the report includes the specific
@@ -721,7 +716,7 @@ def status_parser(parser):
         "--wait",
         action="store_true",
         default=False,
-        help="Block waiting on ua to complete",
+        help="Block waiting on pro to complete",
     )
     parser.add_argument(
         "--format",
@@ -851,7 +846,7 @@ def action_config_show(args, *, cfg, **kwargs):
         cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy
     ):
         print(
-            "\nError: Setting global apt proxy and ua scoped apt proxy at the"
+            "\nError: Setting global apt proxy and pro scoped apt proxy at the"
             " same time is unsupported. No apt proxy is set."
         )
 
@@ -912,7 +907,7 @@ def action_config_set(args, *, cfg, **kwargs):
         if unset_current:
             print(
                 messages.WARNING_APT_PROXY_OVERWRITE.format(
-                    current_proxy="ua scoped apt", previous_proxy="global apt"
+                    current_proxy="pro scoped apt", previous_proxy="global apt"
                 )
             )
         configure_apt_proxy(cfg, AptProxyScope.UACLIENT, set_key, set_value)
@@ -947,7 +942,7 @@ def action_config_set(args, *, cfg, **kwargs):
         if unset_current:
             print(
                 messages.WARNING_APT_PROXY_OVERWRITE.format(
-                    current_proxy="global apt", previous_proxy="ua scoped apt"
+                    current_proxy="global apt", previous_proxy="pro scoped apt"
                 )
             )
         configure_apt_proxy(cfg, AptProxyScope.GLOBAL, set_key, set_value)
@@ -1056,7 +1051,7 @@ def _create_enable_disable_unattached_msg(command, service_names, cfg):
 @verify_json_format_args
 @assert_root
 @assert_attached(_create_enable_disable_unattached_msg)
-@assert_lock_file("ua disable")
+@assert_lock_file("pro disable")
 def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
 
@@ -1128,7 +1123,7 @@ def _create_enable_entitlements_not_found_message(
 @verify_json_format_args
 @assert_root
 @assert_attached(_create_enable_disable_unattached_msg)
-@assert_lock_file("ua enable")
+@assert_lock_file("pro enable")
 def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
@@ -1197,7 +1192,7 @@ def action_enable(args, *, cfg, **kwargs):
 @verify_json_format_args
 @assert_root
 @assert_attached()
-@assert_lock_file("ua detach")
+@assert_lock_file("pro detach")
 def action_detach(args, *, cfg) -> int:
     """Perform the detach action for this machine.
 
@@ -1211,7 +1206,7 @@ def action_detach(args, *, cfg) -> int:
 
 
 def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
-    """Detach the machine from the active Ubuntu Advantage subscription,
+    """Detach the machine from the active Ubuntu Pro subscription,
 
     :param cfg: a ``config.UAConfig`` instance
     :param assume_yes: Assume a yes answer to any prompts requested.
@@ -1279,7 +1274,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
 
 @assert_root
-@assert_lock_file("ua auto-attach")
+@assert_lock_file("pro auto-attach")
 def action_auto_attach(args, *, cfg):
     disable_auto_attach = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
@@ -1325,7 +1320,7 @@ def action_auto_attach(args, *, cfg):
         prev_iid = cfg.read_cache("instance-id")
         if str(current_iid) == str(prev_iid):
             raise exceptions.AlreadyAttachedOnPROError(str(current_iid))
-        print("Re-attaching Ubuntu Advantage subscription on new instance")
+        print("Re-attaching Ubuntu Pro subscription on new instance")
         if _detach(cfg, assume_yes=True) != 0:
             raise exceptions.UserFacingError(
                 messages.DETACH_AUTOMATION_FAILURE
@@ -1343,7 +1338,7 @@ def action_auto_attach(args, *, cfg):
 
 @assert_not_attached
 @assert_root
-@assert_lock_file("ua attach")
+@assert_lock_file("pro attach")
 def action_attach(args, *, cfg):
     if not args.token and not args.attach_config:
         raise exceptions.UserFacingError(
@@ -1438,7 +1433,7 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             "cloud-id", "{}/cloud-id.txt".format(output_dir)
         )
         _write_command_output_to_file(
-            "ua status --format json", "{}/ua-status.json".format(output_dir)
+            "pro status --format json", "{}/ua-status.json".format(output_dir)
         )
         _write_command_output_to_file(
             "{} status".format(LIVEPATCH_CMD),
@@ -1523,7 +1518,7 @@ def get_parser(cfg: config.UAConfig):
     subparsers.required = True
     parser_attach = subparsers.add_parser(
         "attach",
-        help="attach this machine to an Ubuntu Advantage subscription",
+        help="attach this machine to an Ubuntu Pro subscription",
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
@@ -1534,34 +1529,34 @@ def get_parser(cfg: config.UAConfig):
     parser_auto_attach.set_defaults(action=action_auto_attach)
 
     parser_collect_logs = subparsers.add_parser(
-        "collect-logs", help="collect UA logs and debug information"
+        "collect-logs", help="collect Pro logs and debug information"
     )
     collect_logs_parser(parser_collect_logs)
     parser_collect_logs.set_defaults(action=action_collect_logs)
 
     parser_config = subparsers.add_parser(
-        "config", help="manage Ubuntu Advantage configuration on this machine"
+        "config", help="manage Ubuntu Pro configuration on this machine"
     )
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
 
     parser_detach = subparsers.add_parser(
         "detach",
-        help="remove this machine from an Ubuntu Advantage subscription",
+        help="remove this machine from an Ubuntu Pro subscription",
     )
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
 
     parser_disable = subparsers.add_parser(
         "disable",
-        help="disable a specific Ubuntu Advantage service on this machine",
+        help="disable a specific Ubuntu Pro service on this machine",
     )
     disable_parser(parser_disable, cfg=cfg)
     parser_disable.set_defaults(action=action_disable)
 
     parser_enable = subparsers.add_parser(
         "enable",
-        help="enable a specific Ubuntu Advantage service on this machine",
+        help="enable a specific Ubuntu Pro service on this machine",
     )
     enable_parser(parser_enable, cfg=cfg)
     parser_enable.set_defaults(action=action_enable)
@@ -1582,19 +1577,19 @@ def get_parser(cfg: config.UAConfig):
 
     parser_help = subparsers.add_parser(
         "help",
-        help="show detailed information about Ubuntu Advantage services",
+        help="show detailed information about Ubuntu Pro services",
     )
     help_parser(parser_help, cfg=cfg)
     parser_help.set_defaults(action=action_help)
 
     parser_refresh = subparsers.add_parser(
-        "refresh", help="refresh Ubuntu Advantage services"
+        "refresh", help="refresh Ubuntu Pro services"
     )
     parser_refresh.set_defaults(action=action_refresh)
     refresh_parser(parser_refresh)
 
     parser_status = subparsers.add_parser(
-        "status", help="current status of all Ubuntu Advantage services"
+        "status", help="current status of all Ubuntu Pro services"
     )
     parser_status.set_defaults(action=action_status)
     status_parser(parser_status)
@@ -1685,7 +1680,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
 
 
 @assert_root
-@assert_lock_file("ua refresh")
+@assert_lock_file("pro refresh")
 def action_refresh(args, *, cfg: config.UAConfig):
     if args.target is None or args.target == "config":
         _action_refresh_config(args, cfg)
@@ -1898,7 +1893,7 @@ def main(sys_argv=None):
     if ua_environment:
         logging.debug(
             util.redact_sensitive_logs(
-                "Executed with UA environment variables: %r" % ua_environment
+                "Executed with environment variables: %r" % ua_environment
             )
         )
     return args.action(args, cfg=cfg)

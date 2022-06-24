@@ -206,7 +206,7 @@ def build_debs(
 
     logging.info("--- Creating: {}".format(SOURCE_PR_UNTAR_DIR))
     if not os.path.exists(SOURCE_PR_UNTAR_DIR) or not cache_source:
-        # Delete cached folder for ua code
+        # Delete cached folder for pro code
         if os.path.exists(SOURCE_PR_UNTAR_DIR):
             shutil.rmtree(SOURCE_PR_UNTAR_DIR)
 

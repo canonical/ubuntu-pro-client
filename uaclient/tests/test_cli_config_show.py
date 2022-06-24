@@ -8,16 +8,16 @@ M_PATH = "uaclient.cli."
 HELP_OUTPUT = """\
 usage: pro config <command> [flags]
 
-Manage Ubuntu Advantage configuration
+Manage Ubuntu Pro configuration
 
 Flags:
   -h, --help  show this help message and exit
 
 Available Commands:
   
-    show      show all Ubuntu Advantage configuration setting(s)
-    set       set Ubuntu Advantage configuration setting
-    unset     unset Ubuntu Advantage configuration setting
+    show      show all Ubuntu Pro configuration setting(s)
+    set       set Ubuntu Pro configuration setting
+    unset     unset Ubuntu Pro configuration setting
 """  # noqa
 
 

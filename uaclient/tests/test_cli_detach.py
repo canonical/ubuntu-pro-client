@@ -112,12 +112,12 @@ class TestActionDetach:
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
         with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua enable")
+            stream.write("123:pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         expected_error_msg = messages.LOCK_HELD_ERROR.format(
-            lock_request="ua detach", lock_holder="ua enable", pid="123"
+            lock_request="pro detach", lock_holder="pro enable", pid="123"
         )
         assert expected_error_msg.msg == err.value.msg
 
@@ -424,7 +424,7 @@ class TestParser:
         self, _m_resources, FakeConfig
     ):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "detach", "--assume-yes"]):
+        with mock.patch("sys.argv", ["pro", "detach", "--assume-yes"]):
             args = full_parser.parse_args()
 
         assert args.assume_yes
@@ -434,7 +434,7 @@ class TestParser:
         self, _m_resources, FakeConfig
     ):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "detach"]):
+        with mock.patch("sys.argv", ["pro", "detach"]):
             args = full_parser.parse_args()
 
         assert not args.assume_yes
@@ -442,7 +442,7 @@ class TestParser:
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_detach_parser_with_json_format(self, _m_resources, FakeConfig):
         full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["ua", "detach", "--format", "json"]):
+        with mock.patch("sys.argv", ["pro", "detach", "--format", "json"]):
             args = full_parser.parse_args()
 
         assert "json" == args.format

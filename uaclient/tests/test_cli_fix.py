@@ -76,7 +76,7 @@ class TestActionFix:
 
             expected_msg = (
                 'Error: issue "{}" is not recognized.\n'
-                'Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"'
+                'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
             ).format(issue)
 
             assert expected_msg == str(excinfo.value)
