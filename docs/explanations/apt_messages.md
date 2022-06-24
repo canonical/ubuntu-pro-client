@@ -18,20 +18,20 @@ where we deliver those messages are:
     libfreetype6
     Use 'apt autoremove' to remove it.
      
-     *The following packages could receive security updates with UA Infra: ESM service enabled:
+     *The following packages could receive security updates with Ubuntu Pro: ESM Infra service enabled:
        libpam0g libpam-modules openssl ntfs-3g git-man libsystemd0 squashfs-tools git
        openssh-sftp-server udev libpam-runtime isc-dhcp-common libx11-6 libudev1 apport
        python3-apport systemd-sysv liblz4-1 libpam-systemd systemd libpam-modules-bin openssh-server
        libx11-data openssh-client libxml2 curl isc-dhcp-client python3-problem-report
        libcurl3-gnutls libssl1.0.0
-       Learn more about UA Infra: ESM service for Ubuntu 16.04 at https://ubuntu.com/16-04
+       Learn more about Ubuntu Pro: ESM Infra service for Ubuntu 16.04 at https://ubuntu.com/16-04
   ```
 
   Note that the ESM message is located in the middle of the `apt-get` command output. Additionally,
   if there are no packages to upgrade at the moment, we would instead deliver:
 
   ```
-  Enable UA Infra: ESM to receive additional future security updates.
+  Enable Ubuntu Pro: ESM Infra to receive additional future security updates.
   See https://ubuntu.com/16-04 or run: sudo ua status
   ```
 
@@ -56,8 +56,8 @@ where we deliver those messages are:
   message advertising `esm-infra` in the middle of the `apt` command:
 
   ```
-  *Your UA Infra: ESM subscription has EXPIRED*
-  Enabling UA Infra: ESM service would provide security updates for following packages:
+  *Your Ubuntu Pro: ESM Infra subscription has EXPIRED*
+  Enabling Ubuntu PRO: ESM Infra service would provide security updates for following packages:
     libpam0g libpam-modules openssl ntfs-3g git-man libsystemd0 squashfs-tools git
     openssh-sftp-server udev libpam-runtime isc-dhcp-common libx11-6 libudev1 apport python3-apport
     systemd-sysv liblz4-1 libpam-systemd systemd libpam-modules-bin openssh-server libx11-data
@@ -70,8 +70,8 @@ where we deliver those messages are:
   the message:
 
   ```
-  *Your UA Infra: ESM subscription has EXPIRED*
-  Enable UA Infra: ESM to receive additional future security updates.
+  *Your Ubuntu Pro: ESM Infra subscription has EXPIRED*
+  Enable Ubuntu Pro: ESM Infra to receive additional future security updates.
   See https://ubuntu.com/advantage or run: sudo ua status
   ```
 
@@ -79,7 +79,7 @@ where we deliver those messages are:
   we deliver the following message in the middle of the `apt-get` command:
 
   ```
-  CAUTION: Your UA Infra: ESM service will expire in 14 days.
+  CAUTION: Your Ubuntu Pro: ESM Infra service will expire in 14 days.
   Renew UA subscription at https://ubuntu.com/advantage to ensure
   continued security coverage for your applications.
   ```
@@ -89,7 +89,7 @@ where we deliver those messages are:
   of the `apt-get` command:
 
   ```
-  CAUTION: Your UA Infra: ESM service expired on 10 Sep 2021.
+  CAUTION: Your Ubuntu Pro: ESM Infra service expired on 10 Sep 2021.
   Renew UA subscription at https://ubuntu.com/advantage to ensure
   continued security coverage for your applications.
   Your grace period will expire in 8 days.
