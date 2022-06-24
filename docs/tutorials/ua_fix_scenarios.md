@@ -161,7 +161,7 @@ https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 1 affected package is installed: curl
 (1/1) curl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The update is not installed because this system is not attached to a
 subscription.
 
@@ -187,7 +187,7 @@ https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 1 affected package is installed: curl
 (1/1) curl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The update is not installed because this system is not attached to a
 subscription.
 
@@ -200,12 +200,12 @@ Enter your token (from https://ubuntu.com/advantage) to attach this system:
 { ua attach TOKEN }
 Enabling default service esm-infra
 Updating package lists
-UA Infra: ESM enabled
+Ubuntu Pro: ESM Infra enabled
 This machine is now attached to 'SUBSCRIPTION'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
@@ -234,7 +234,7 @@ https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 1 affected package is installed: curl
 (1/1) curl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The update is already installed.
 ✔ USN-5079-2 is resolved.
 ```
@@ -268,7 +268,7 @@ CVE-2021-44731: snapd vulnerabilities
 https://ubuntu.com/security/CVE-2021-44731
 1 affected package is installed: snapd
 (1/1) snapd:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The update is not installed because this system does not have
 esm-infra enabled.
 
@@ -277,7 +277,7 @@ Choose: [E]nable esm-infra [C]ancel
 { ua enable esm-infra }
 One moment, checking your subscription first
 Updating package lists
-UA Infra: ESM enabled
+Ubuntu Pro: ESM Infra enabled
 { apt update && apt install --only-upgrade -y ubuntu-core-launcher snapd }
 ✔ CVE-2021-44731 is resolved.
 ```
@@ -304,7 +304,7 @@ VE-2022-0778: OpenSSL vulnerability
 https://ubuntu.com/security/CVE-2022-0778
 1 affected package is installed: openssl
 (1/1) openssl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 { apt update && apt install --only-upgrade -y libssl1.0.0 openssl }
 A reboot is required to complete fix operation.
 ✘ CVE-2022-0778 is not resolved.
@@ -317,7 +317,7 @@ CVE-2022-0778: OpenSSL vulnerability
 https://ubuntu.com/security/CVE-2022-0778
 1 affected package is installed: openssl
 (1/1) openssl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The update is already installed.
 ✔ CVE-2022-0778 is resolved.
 ```

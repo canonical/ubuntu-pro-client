@@ -45,7 +45,7 @@ Feature: Proxy configuration
         # Just to verify that the machine is attached
         Then stdout matches regexp:
         """
-        esm-infra     +yes      +disabled      +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes      +disabled      +Extended Security Maintenance for Infrastructure
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -435,7 +435,7 @@ Feature: Proxy configuration
         # Just to verify that the machine is attached
         Then stdout matches regexp:
         """
-        esm-infra     +yes      +disabled      +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes      +disabled      +Extended Security Maintenance for Infrastructure
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -679,7 +679,7 @@ Feature: Proxy configuration
         # Just to verify that the machine is attached
         Then stdout matches regexp:
         """
-        esm-infra     +yes      +disabled      +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes      +disabled      +Extended Security Maintenance for Infrastructure
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine

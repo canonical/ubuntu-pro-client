@@ -82,7 +82,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        UA Infra: ESM is not available for Ubuntu .*
+        Ubuntu Pro: ESM Infra is not available for Ubuntu .*
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
@@ -106,7 +106,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         One moment, checking your subscription first
         Updating package lists
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         Examples: ubuntu release
             | release |
@@ -154,7 +154,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stdout is a json matching the `ua_operation` schema
         Then I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "message_code": "service-already-enabled", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "Ubuntu Pro: ESM Infra is already enabled.\nSee: sudo ua status", "message_code": "service-already-enabled", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         When I run `ua disable esm-infra` with sudo
         And I run `ua enable esm-infra --format json --assume-yes` with sudo
@@ -219,7 +219,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I will see the following on stdout:
             """
             One moment, checking your subscription first
-            UA Infra: ESM is already enabled.
+            Ubuntu Pro: ESM Infra is already enabled.
             See: sudo ua status
             """
         When I run `apt-cache policy` with sudo
@@ -275,7 +275,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            UA Infra: ESM is already enabled.
+            Ubuntu Pro: ESM Infra is already enabled.
             See: sudo ua status
             """
         When I run `apt-cache policy` with sudo
@@ -351,7 +351,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I will see the following on stdout:
             """
             One moment, checking your subscription first
-            This subscription is not entitled to UA Apps: ESM
+            This subscription is not entitled to Ubuntu Pro: ESM Apps
             For more information see: https://ubuntu.com/advantage.
             """
 
@@ -607,8 +607,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +enabled  +Canonical Livepatch service
@@ -623,8 +623,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +disabled +Canonical Livepatch service
@@ -678,7 +678,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             Updating package lists
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             Installing canonical-livepatch snap
             Canonical livepatch enabled
             """
@@ -717,7 +717,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             Updating package lists
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             Installing canonical-livepatch snap
             Canonical livepatch enabled
             """
@@ -749,7 +749,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             Updating package lists
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             """
         And stdout matches regexp:
             """
@@ -790,7 +790,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
-            UA Infra: ESM enabled
+            Ubuntu Pro: ESM Infra enabled
             """
         And stdout matches regexp:
             """
@@ -839,23 +839,23 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
         """
         When I verify that running `ua disable esm-apps` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
-        ROS ESM Security Updates depends on UA Apps: ESM.
-        Disable ROS ESM Security Updates and proceed to disable UA Apps: ESM\? \(y\/N\) Cannot disable UA Apps: ESM when ROS ESM Security Updates is enabled.
+        ROS ESM Security Updates depends on Ubuntu Pro: ESM Apps.
+        Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Cannot disable Ubuntu Pro: ESM Apps when ROS ESM Security Updates is enabled.
         """
         When I run `ua disable esm-apps` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
-        ROS ESM Security Updates depends on UA Apps: ESM.
-        Disable ROS ESM Security Updates and proceed to disable UA Apps: ESM\? \(y\/N\) Disabling dependent service: ROS ESM Security Updates
+        ROS ESM Security Updates depends on Ubuntu Pro: ESM Apps.
+        Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Disabling dependent service: ROS ESM Security Updates
         Updating package lists
         """
         When I run `ua status --all` as non-root
@@ -865,21 +865,21 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                disabled           UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                disabled           Extended Security Maintenance for Applications
         """
         When I verify that running `ua enable ros --beta` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
-        ROS ESM Security Updates cannot be enabled with UA Apps: ESM disabled.
-        Enable UA Apps: ESM and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when UA Apps: ESM is disabled.
+        ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
+        Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when Ubuntu Pro: ESM Apps is disabled.
         """
         When I run `ua enable ros --beta` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
-        ROS ESM Security Updates cannot be enabled with UA Apps: ESM disabled.
-        Enable UA Apps: ESM and proceed to enable ROS ESM Security Updates\? \(y\/N\) Enabling required service: UA Apps: ESM
-        UA Apps: ESM enabled
+        ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
+        Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Enabling required service: Ubuntu Pro: ESM Apps
+        Ubuntu Pro: ESM Apps enabled
         Updating package lists
         ROS ESM Security Updates enabled
         """
@@ -890,11 +890,11 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has permission `500`
@@ -959,11 +959,11 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
         """
         When I run `ua detach` `with sudo` and stdin `y`
         Then stdout matches regexp:
