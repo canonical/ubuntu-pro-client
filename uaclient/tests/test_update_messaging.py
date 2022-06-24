@@ -326,11 +326,11 @@ class Test_WriteESMServiceAPTMsgTemplates:
         machine. So, they've chosen to disable expired services.
         """
         if service_name == "esm-infra":
-            title = "UA Infra: ESM"
+            title = "Ubuntu Pro: ESM Infra"
             pkg_count_var = "{ESM_INFRA_PKG_COUNT}"
             pkg_names_var = "{ESM_INFRA_PACKAGES}"
         else:
-            title = "UA Apps: ESM"
+            title = "Ubuntu Pro: ESM Apps"
             pkg_count_var = "{ESM_APPS_PKG_COUNT}"
             pkg_names_var = "{ESM_APPS_PACKAGES}"
         get_platform_info.return_value = platform_info
@@ -432,7 +432,9 @@ class Test_WriteESMServiceAPTMsgTemplates:
         disabled_status = ApplicationStatus.ENABLED, ""
         m_ent_obj.application_status.return_value = disabled_status
         type(m_ent_obj).name = mock.PropertyMock(return_value="esm-apps")
-        type(m_ent_obj).title = mock.PropertyMock(return_value="UA Apps: ESM")
+        type(m_ent_obj).title = mock.PropertyMock(
+            return_value="Ubuntu Pro: ESM Apps"
+        )
         pkgs_tmpl = tmpdir.join("pkgs-msg.tmpl")
         no_pkgs_tmpl = tmpdir.join("no-pkgs-msg.tmpl")
         motd_pkgs_tmpl = tmpdir.join("motd-pkgs-msg.tmpl")
@@ -474,7 +476,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert False is os.path.exists(no_pkgs_msg_file)
         elif contract_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
             pkgs_msg = CONTRACT_EXPIRED_SOON_TMPL.format(
-                title="UA Apps: ESM",
+                title="Ubuntu Pro: ESM Apps",
                 remaining_days=remaining_days,
                 url=BASE_UA_URL,
             )
@@ -482,7 +484,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert pkgs_msg == no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
             pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
-                title="UA Apps: ESM",
+                title="Ubuntu Pro: ESM Apps",
                 expired_date=cfg.contract_expiry_datetime.strftime("%d %b %Y"),
                 remaining_days=remaining_days
                 + CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
@@ -494,12 +496,12 @@ class Test_WriteESMServiceAPTMsgTemplates:
             pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
                 pkg_num="{ESM_APPS_PKG_COUNT}",
                 pkg_names="{ESM_APPS_PACKAGES}",
-                title="UA Apps: ESM",
+                title="Ubuntu Pro: ESM Apps",
                 name="esm-apps",
                 url=BASE_UA_URL,
             )
             no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
-                title="UA Apps: ESM", url=BASE_UA_URL
+                title="Ubuntu Pro: ESM Apps", url=BASE_UA_URL
             )
             assert pkgs_msg == pkgs_tmpl.read()
             assert no_pkgs_msg == no_pkgs_tmpl.read()

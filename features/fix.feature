@@ -163,7 +163,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2021-22947
         1 affected source package is installed: curl
         \(1/1\) curl:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         .*The machine is not attached to an Ubuntu Advantage \(UA\) subscription.
         To proceed with the fix, a prompt would ask for a valid UA token.
         \{ ua attach TOKEN \}.*
@@ -183,7 +183,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2021-22947
         1 affected source package is installed: curl
         \(1/1\) curl:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         The update is not installed because this system is not attached to a
         subscription.
 
@@ -205,7 +205,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2021-22947
         1 affected source package is installed: curl
         \(1/1\) curl:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         The update is not installed because this system is not attached to a
         subscription.
 
@@ -213,9 +213,9 @@ Feature: Ua fix command behaviour
         > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
         > .*\{ ua attach .*\}.*
         Updating package lists
-        UA Apps: ESM enabled
+        Ubuntu Pro: ESM Apps enabled
         Updating package lists
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
         """
@@ -230,7 +230,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2021-3712
         1 affected source package is installed: openssl
         \(1/1\) openssl:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         .*\{ apt update && apt install --only-upgrade -y libssl1.0.0 openssl \}.*
         A reboot is required to complete fix operation.
         .*✘.* USN-5051-2 is not resolved.
@@ -247,7 +247,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2022-1271
         2 affected source packages are installed: gzip, xz-utils
         \(1/2, 2/2\) gzip, xz-utils:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         .*UA service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
@@ -263,7 +263,7 @@ Feature: Ua fix command behaviour
         https://ubuntu.com/security/CVE-2022-1271
         2 affected source packages are installed: gzip, xz-utils
         \(1/2, 2/2\) gzip, xz-utils:
-        A fix is available in UA Infra.
+        A fix is available in Ubuntu Pro: ESM Infra.
         The update is not installed because this system does not have
         esm-infra enabled.
 
@@ -271,7 +271,7 @@ Feature: Ua fix command behaviour
         > .*\{ ua enable esm-infra \}.*
         One moment, checking your subscription first
         Updating package lists
-        UA Infra: ESM enabled
+        Ubuntu Pro: ESM Infra enabled
         .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
         .*✔.* USN-5378-4 is resolved.
         """
@@ -407,5 +407,3 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y bzip2 libbz2-1.0 \}.*
         .*✔.* USN-4038-3 is resolved.
         """
-
-

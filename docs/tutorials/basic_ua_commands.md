@@ -59,7 +59,7 @@ It is expected for you to see an output similar to this one:
 ```
 SERVICE       AVAILABLE  DESCRIPTION
 cis           yes        Center for Internet Security Audit Tools
-esm-infra     yes        UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes        Extended Security Maintenance for Infrastructure
 fips          yes        NIST-certified core packages
 fips-updates  yes        NIST-certified core packages with priority security updates
 livepatch     yes        Canonical Livepatch service
@@ -96,12 +96,12 @@ It is expected for you to see an output similar to this one:
 ```
 Enabling default service esm-infra
 Updating package lists
-UA Infra: ESM enabled
+Ubuntu Pro: ESM Infra enabled
 This machine is now attached to 'USER ACCOUNT'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
@@ -194,7 +194,7 @@ And you should see:
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       enabled   Center for Internet Security Audit Tools
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
@@ -217,8 +217,7 @@ After running that command, let's now run `ua status` to see what happened to `c
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-apps      yes       enabled   UA Apps: Extended Security Maintenance (ESM)
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service

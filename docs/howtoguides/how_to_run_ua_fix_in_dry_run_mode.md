@@ -13,7 +13,7 @@ https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 1 affected source package is installed: curl
 (1/1) curl:
-A fix is available in UA Infra.
+A fix is available in Ubuntu Pro: ESM Infra.
 The machine is not attached to an Ubuntu Advantage (UA) subscription.
 To proceed with the fix, a prompt would ask for a valid UA token.
 { ua attach TOKEN }

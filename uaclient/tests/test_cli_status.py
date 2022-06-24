@@ -71,8 +71,8 @@ RESPONSE_CONTRACT_INFO = {
 
 SIMULATED_STATUS = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           UA Apps: Extended Security Maintenance (ESM)
-esm-infra        no         yes        yes           UA Infra: Extended Security Maintenance (ESM)
+esm-apps         yes        no         yes           Extended Security Maintenance for Applications
+esm-infra        no         yes        yes           Extended Security Maintenance for Infrastructure
 fips             no         no         no            NIST-certified core packages
 fips-updates     no         no         no            NIST-certified core packages with priority security updates
 livepatch        yes        yes        no            Canonical Livepatch service
@@ -80,8 +80,8 @@ livepatch        yes        yes        no            Canonical Livepatch service
 
 UNATTACHED_STATUS = """\
 SERVICE          AVAILABLE  DESCRIPTION
-esm-apps         yes        UA Apps: Extended Security Maintenance (ESM)
-esm-infra        no         UA Infra: Extended Security Maintenance (ESM)
+esm-apps         yes        Extended Security Maintenance for Applications
+esm-infra        no         Extended Security Maintenance for Infrastructure
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
@@ -92,8 +92,8 @@ See https://ubuntu.com/advantage
 
 ATTACHED_STATUS = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         UA Apps: Extended Security Maintenance (ESM)
-esm-infra        no        {dash}         UA Infra: Extended Security Maintenance (ESM)
+esm-apps         no        {dash}         Extended Security Maintenance for Applications
+esm-infra        no        {dash}         Extended Security Maintenance for Infrastructure
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
@@ -112,8 +112,8 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         UA Apps: Extended Security Maintenance (ESM)
-esm-infra        no        {dash}         UA Infra: Extended Security Maintenance (ESM)
+esm-apps         no        {dash}         Extended Security Maintenance for Applications
+esm-infra        no        {dash}         Extended Security Maintenance for Infrastructure
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
@@ -130,7 +130,7 @@ BETA_SVC_NAMES = ["realtime-kernel", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {
-        "description": "UA Apps: Extended Security Maintenance (ESM)",
+        "description": "Extended Security Maintenance for Applications",
         "description_override": None,
         "entitled": "no",
         "name": "esm-apps",
@@ -140,7 +140,7 @@ SERVICES_JSON_ALL = [
         "blocked_by": [],
     },
     {
-        "description": "UA Infra: Extended Security Maintenance (ESM)",
+        "description": "Extended Security Maintenance for Infrastructure",
         "description_override": None,
         "entitled": "no",
         "name": "esm-infra",
@@ -469,7 +469,7 @@ class TestActionStatus:
         expected_services = [
             {
                 "name": "esm-apps",
-                "description": "UA Apps: Extended Security Maintenance (ESM)",
+                "description": "Extended Security Maintenance for Applications",  # noqa
                 "available": "yes",
             },
             {
@@ -714,14 +714,14 @@ class TestActionStatus:
             {
                 "auto_enabled": "yes",
                 "available": "yes",
-                "description": "UA Apps: Extended Security Maintenance (ESM)",
+                "description": "Extended Security Maintenance for Applications",  # noqa
                 "entitled": "no",
                 "name": "esm-apps",
             },
             {
                 "auto_enabled": "yes",
                 "available": "no",
-                "description": "UA Infra: Extended Security Maintenance (ESM)",
+                "description": "Extended Security Maintenance for Infrastructure",  # noqa
                 "entitled": "yes",
                 "name": "esm-infra",
             },
