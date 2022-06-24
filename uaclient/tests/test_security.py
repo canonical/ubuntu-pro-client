@@ -612,12 +612,12 @@ class TestCVEPackageStatus:
     @pytest.mark.parametrize(
         "pocket,description,expected",
         (
-            ("esm-infra", "1.2", "UA Infra"),
-            ("esm-apps", "1.2", "UA Apps"),
+            ("esm-infra", "1.2", "Ubuntu Pro: ESM Infra"),
+            ("esm-apps", "1.2", "Ubuntu Pro: ESM Apps"),
             ("updates", "1.2esm", "Ubuntu standard updates"),
             ("security", "1.2esm", "Ubuntu standard updates"),
             (None, "1.2", "Ubuntu standard updates"),
-            (None, "1.2esm", "UA Infra"),
+            (None, "1.2esm", "Ubuntu Pro: ESM Infra"),
         ),
     )
     def test_pocket_source_from_response(self, pocket, description, expected):
@@ -663,7 +663,11 @@ class TestCVEPackageStatus:
                 "A fix is coming soon. Try again tomorrow.",
             ),
             ("ignored", "esm-infra", "Sorry, no fix is available."),
-            ("released", "esm-infra", "A fix is available in UA Infra."),
+            (
+                "released",
+                "esm-infra",
+                "A fix is available in Ubuntu Pro: ESM Infra.",
+            ),
             (
                 "released",
                 "security",
@@ -1097,7 +1101,7 @@ class TestPromptForAffectedPackages:
                     """\
                     1 affected source package is installed: slsrc
                     (1/1) slsrc:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + "\n".join(
@@ -1119,7 +1123,7 @@ class TestPromptForAffectedPackages:
                     """\
                     1 affected source package is installed: slsrc
                     (1/1) slsrc:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + "\n".join(
@@ -1157,7 +1161,7 @@ class TestPromptForAffectedPackages:
                 + textwrap.dedent(
                     """\
                     (2/2) slsrc:
-                    A fix is available in UA Apps.
+                    A fix is available in Ubuntu Pro: ESM Apps.
                     """
                 )
                 + "\n".join(
@@ -1246,7 +1250,7 @@ class TestPromptForAffectedPackages:
                 + textwrap.dedent(
                     """\
                     (12/15, 13/15) pkg12, pkg13:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + "\n".join(
@@ -1450,7 +1454,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + textwrap.dedent(
                     """\
                     (2/3) pkg3:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION
@@ -1466,7 +1470,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + textwrap.dedent(
                     """\
                     (3/3) pkg1:
-                    A fix is available in UA Apps.
+                    A fix is available in Ubuntu Pro: ESM Apps.
                     """
                 )
                 + colorize_commands(
@@ -1625,7 +1629,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION
@@ -1722,7 +1726,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_SERVICE_DISABLED.format(service="esm-infra")
@@ -1818,7 +1822,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_SERVICE_DISABLED.format(service="esm-infra")
@@ -1908,7 +1912,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
@@ -1999,7 +2003,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Infra.
+                    A fix is available in Ubuntu Pro: ESM Infra.
                     """
                 )
                 + SECURITY_UPDATE_NOT_INSTALLED_EXPIRED

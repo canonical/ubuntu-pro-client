@@ -7,7 +7,7 @@ When unattached, users will see the status table containing only three columns:
 SERVICE          AVAILABLE  DESCRIPTION
 cc-eal           no         Common Criteria EAL2 Provisioning Packages
 cis              no         Security compliance and audit tools
-esm-infra        yes        UA Infra: Extended Security Maintenance (ESM)
+esm-infra        yes        Extended Security Maintenance for Infrastructure
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
@@ -25,8 +25,7 @@ However, if we run the same command when attached, we have an output with 4 colu
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-apps      yes       enabled   UA Apps: Extended Security Maintenance (ESM)
-esm-infra     yes       enabled   UA Infra: Extended Security Maintenance (ESM)
+esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
