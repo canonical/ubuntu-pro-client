@@ -1,5 +1,7 @@
-from typing import List
+from collections import defaultdict
+from typing import Any, DefaultDict, List
 
+from uaclient.config import UAConfig
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -7,6 +9,14 @@ from uaclient.data_types import (
     IntDataValue,
     StringDataValue,
     data_list,
+)
+from uaclient.security_status import (
+    filter_security_updates,
+    get_installed_packages,
+    get_origin_for_package,
+    get_service_name,
+    get_ua_info,
+    get_update_status,
 )
 
 
@@ -17,6 +27,7 @@ class SecurityStatusPackageUpdate(DataObject):
         Field("service_name", StringDataValue),
         Field("origin", StringDataValue),
         Field("status", StringDataValue),
+        Field("download_size", IntDataValue),
     ]
 
     def __init__(
@@ -26,12 +37,14 @@ class SecurityStatusPackageUpdate(DataObject):
         service_name: str,
         origin: str,
         status: str,
+        download_size: int,
     ):
         self.package = package
         self.version = version
         self.service_name = service_name
         self.origin = origin
         self.status = status
+        self.download_size = download_size
 
 
 class SecurityStatusSummaryUA(DataObject):
@@ -118,5 +131,59 @@ class SecurityStatusResult(DataObject):
         self.packages = packages
 
 
-def status() -> SecurityStatusResult:
-    pass
+def status(cfg=None) -> SecurityStatusResult:
+    if cfg is None:
+        cfg = UAConfig()
+
+    ua_info = get_ua_info(cfg)
+
+    installed_packages = get_installed_packages()
+
+    package_count = defaultdict(int)  # type: DefaultDict[str, int]
+    update_count = defaultdict(int)  # type: DefaultDict[str, int]
+
+    for package in installed_packages:
+        package_origin = get_origin_for_package(package)
+        package_count[package_origin] += 1
+
+    security_upgradable_versions = filter_security_updates(installed_packages)
+
+    updates = []
+    for candidate in security_upgradable_versions:
+        service_name, origin_site = get_service_name(candidate.origins)
+        status = get_update_status(service_name, ua_info)
+        update_count[service_name] += 1
+        updates.append(
+            SecurityStatusPackageUpdate(
+                package=candidate.package.name,
+                version=candidate.version,
+                service_name=service_name,
+                status=status,
+                origin=origin_site,
+                download_size=candidate.size,
+            )
+        )
+
+    return SecurityStatusResult(
+        _schema="0.1",
+        summary=SecurityStatusSummary(
+            ua=SecurityStatusSummaryUA(
+                attached=ua_info["attached"],
+                enabled_services=ua_info["enabled_services"],
+                entitled_services=ua_info["entitled_services"],
+            ),
+            num_installed_packages=len(installed_packages),
+            num_main_packages=package_count["main"],
+            num_multiverse_packages=package_count["multiverse"],
+            num_restricted_packages=package_count["restricted"],
+            num_universe_packages=package_count["universe"],
+            num_third_party_packages=package_count["third-party"],
+            num_unknown_packages=package_count["unknown"],
+            num_esm_infra_packages=package_count["esm-infra"],
+            num_esm_apps_packages=package_count["esm-apps"],
+            num_standard_security_updates=update_count["standard-security"],
+            num_esm_infra_updates=update_count["esm-infra"],
+            num_esm_apps_updates=update_count["esm-apps"],
+        ),
+        packages=updates,
+    )

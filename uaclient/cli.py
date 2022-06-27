@@ -20,6 +20,7 @@ import yaml
 
 from uaclient import (
     actions,
+    api,
     config,
     contract,
     daemon,
@@ -519,15 +520,15 @@ def refresh_parser(parser):
 
 
 def action_security_status(args, *, cfg, **kwargs):
+    result = api.u.pro.security.status.v1.status().to_dict()
+    result[
+        "deprecated"
+    ] = "Please migrate to using the api: u.pro.security.status.v2"
     # For now, --format is mandatory so no need to check for it here.
     if args.format == "json":
-        print(json.dumps(security_status.security_status(cfg)))
+        print(json.dumps(result))
     else:
-        print(
-            yaml.safe_dump(
-                security_status.security_status(cfg), default_flow_style=False
-            )
-        )
+        print(yaml.safe_dump(result, default_flow_style=False))
     return 0
 
 
