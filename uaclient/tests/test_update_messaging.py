@@ -28,7 +28,6 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_SOON_TMPL,
     DISABLED_APT_PKGS_TMPL,
     DISABLED_MOTD_NO_PKGS_TMPL,
-    UBUNTU_NO_WARRANTY,
 )
 
 M_PATH = "uaclient.jobs.update_messaging."
@@ -63,69 +62,6 @@ class TestGetContractExpiryStatus:
 
 
 class TestWriteAPTAndMOTDTemplates:
-    @pytest.mark.parametrize(
-        "is_active_esm,contract_expiry_status,infra_enabled, no_warranty",
-        (
-            (True, ContractExpiryStatus.EXPIRED, True, True),
-            (True, ContractExpiryStatus.NONE, False, True),
-            (True, ContractExpiryStatus.ACTIVE, True, False),
-            (True, ContractExpiryStatus.EXPIRED_GRACE_PERIOD, False, True),
-            (True, ContractExpiryStatus.ACTIVE_EXPIRED_SOON, False, True),
-            (True, ContractExpiryStatus.ACTIVE, False, True),
-            (True, ContractExpiryStatus.EXPIRED_GRACE_PERIOD, True, False),
-            (True, ContractExpiryStatus.ACTIVE_EXPIRED_SOON, True, False),
-        ),
-    )
-    @mock.patch(M_PATH + "entitlements.entitlement_factory")
-    @mock.patch(M_PATH + "_write_esm_service_msg_templates")
-    @mock.patch(M_PATH + "util.is_active_esm")
-    @mock.patch(M_PATH + "get_contract_expiry_status")
-    def test_write_apps_or_infra_services_emits_no_warranty(
-        self,
-        get_contract_expiry_status,
-        util_is_active_esm,
-        write_esm_service_templates,
-        m_entitlement_factory,
-        is_active_esm,
-        contract_expiry_status,
-        infra_enabled,
-        no_warranty,
-        FakeConfig,
-    ):
-        util_is_active_esm.return_value = is_active_esm
-        if infra_enabled:
-            infra_status = ApplicationStatus.ENABLED
-        else:
-            infra_status = ApplicationStatus.DISABLED
-        infra_cls = mock.MagicMock()
-        infra_obj = infra_cls.return_value
-        infra_obj.application_status.return_value = (infra_status, "")
-        infra_obj.name = "esm-infra"
-
-        def factory_side_effect(cfg, name):
-            if name == "esm-infra":
-                return infra_cls
-            if name == "esm-apps":
-                return mock.MagicMock()
-
-        m_entitlement_factory.side_effect = factory_side_effect
-
-        get_contract_expiry_status.return_value = (
-            contract_expiry_status,
-            -12355,  # unused in this test
-        )
-        cfg = FakeConfig.for_attached_machine()
-        msg_dir = os.path.join(cfg.data_dir, "messages")
-        os.makedirs(msg_dir)
-
-        write_apt_and_motd_templates(cfg, "xenial")
-        assert [mock.call("xenial")] == util_is_active_esm.call_args_list
-        no_warranty_file = os.path.join(msg_dir, "ubuntu-no-warranty")
-        if no_warranty:
-            assert UBUNTU_NO_WARRANTY == util.load_file(no_warranty_file)
-        else:
-            assert False is os.path.exists(no_warranty_file)
-
     @pytest.mark.parametrize(
         "series,is_active_esm,contract_days,infra_enabled,"
         "esm_apps_beta,cfg_allow_beta,show_infra,show_apps",
