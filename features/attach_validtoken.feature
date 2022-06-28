@@ -146,7 +146,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ additional security update\(s\) could have been applied via Ubuntu Pro: ESM Infra.
 
-        Renew your UA services at https:\/\/ubuntu.com\/advantage
+        Renew your UA services at https:\/\/ubuntu.com\/pro
 
         """
         When I run `apt upgrade --dry-run` with sudo
@@ -156,7 +156,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Enabling Ubuntu Pro: ESM Infra service would provide security updates for following packages:
           .*
         \d+ esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
-        https:\/\/ubuntu.com\/advantage
+        https:\/\/ubuntu.com\/pro
 
         """
 

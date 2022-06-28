@@ -352,7 +352,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             This subscription is not entitled to Ubuntu Pro: ESM Apps
-            For more information see: https://ubuntu.com/advantage.
+            For more information see: https://ubuntu.com/pro.
             """
 
         Examples: not entitled services
