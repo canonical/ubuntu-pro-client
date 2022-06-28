@@ -87,7 +87,7 @@ fips-updates     no         NIST-certified core packages with priority security 
 livepatch        yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
-See https://ubuntu.com/advantage
+See https://ubuntu.com/pro
 """  # noqa: E501
 
 ATTACHED_STATUS = """\
@@ -888,7 +888,7 @@ class TestActionStatus:
                     {"message": "unauthorized"},
                 ),
                 exceptions.UserFacingError,
-                "Invalid token. See https://ubuntu.com/advantage",
+                "Invalid token. See https://ubuntu.com/pro",
             ),
         ),
     )
