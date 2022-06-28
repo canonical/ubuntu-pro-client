@@ -25,6 +25,7 @@ from uaclient import (
     config,
     contract,
     daemon,
+    defaults,
     entitlements,
     event_logger,
     exceptions,
@@ -373,7 +374,7 @@ def attach_parser(parser):
     parser.prog = "attach"
     parser.description = (
         "Attach this machine to Ubuntu Advantage with a token obtained"
-        " from https://ubuntu.com/advantage"
+        " from {}".format(defaults.BASE_UA_URL)
     )
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -1047,7 +1048,7 @@ def _create_enable_disable_unattached_msg(command, service_names, cfg):
         msg = messages.INVALID_SERVICE_OP_FAILURE.format(
             operation=command,
             invalid_service=", ".join(entitlements_not_found),
-            service_msg="See https://ubuntu.com/advantage",
+            service_msg="See {}".format(defaults.BASE_UA_URL),
         )
     return msg
 
