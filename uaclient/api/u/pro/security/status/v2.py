@@ -1,14 +1,7 @@
 from typing import List
 
 from uaclient.api.u.pro.security.status import v1
-from uaclient.data_types import (
-    BoolDataValue,
-    DataObject,
-    Field,
-    IntDataValue,
-    StringDataValue,
-    data_list,
-)
+from uaclient.data_types import DataObject, Field, IntDataValue, data_list
 
 SecurityStatusPackageUpdate = v1.SecurityStatusPackageUpdate
 SecurityStatusSummaryPro = v1.SecurityStatusSummaryUA
@@ -87,11 +80,15 @@ def status() -> SecurityStatusResult:
             num_multiverse_packages=v1_result.summary.num_multiverse_packages,
             num_restricted_packages=v1_result.summary.num_restricted_packages,
             num_universe_packages=v1_result.summary.num_universe_packages,
-            num_third_party_packages=v1_result.summary.num_third_party_packages,
+            num_third_party_packages=(
+                v1_result.summary.num_third_party_packages
+            ),
             num_unknown_packages=v1_result.summary.num_unknown_packages,
             num_esm_infra_packages=v1_result.summary.num_esm_infra_packages,
             num_esm_apps_packages=v1_result.summary.num_esm_apps_packages,
-            num_standard_security_updates=v1_result.summary.num_standard_security_updates,
+            num_standard_security_updates=(
+                v1_result.summary.num_standard_security_updates
+            ),
             num_esm_infra_updates=v1_result.summary.num_esm_infra_updates,
             num_esm_apps_updates=v1_result.summary.num_esm_apps_updates,
         ),

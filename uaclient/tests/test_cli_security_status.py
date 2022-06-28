@@ -38,7 +38,7 @@ complete status on Ubuntu Pro services, run 'pro status'
 )
 
 
-@mock.patch(M_PATH + "security_status.security_status")
+@mock.patch("uaclient.api.u.pro.security.status.v1.status")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestActionSecurityStatus:
     def test_security_status_help(
@@ -72,18 +72,22 @@ class TestActionSecurityStatus:
         cfg = FakeConfig()
         args = mock.MagicMock()
         args.format = output_format
+        m_security_status.return_value = mock.MagicMock()
+        m_security_status.return_value.to_dict = lambda: {"test": "test"}
+
+        expected_dict = {
+            "test": "test",
+            "deprecated": "Instead use `ua api u.pro.security.status.v2`",
+        }
+
         action_security_status(args, cfg=cfg)
 
         if output_format == "json":
-            assert m_dumps.call_args_list == [
-                mock.call(m_security_status.return_value)
-            ]
+            assert m_dumps.call_args_list == [mock.call(expected_dict)]
             assert m_safe_dump.call_count == 0
         else:
             assert m_safe_dump.call_args_list == [
-                mock.call(
-                    m_security_status.return_value, default_flow_style=False
-                )
+                mock.call(expected_dict, default_flow_style=False)
             ]
             assert m_dumps.call_count == 0
 

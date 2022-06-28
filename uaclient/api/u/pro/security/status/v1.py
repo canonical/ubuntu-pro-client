@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, DefaultDict, List
+from typing import DefaultDict, List  # noqa: F401
 
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -115,25 +115,24 @@ class SecurityStatusSummary(DataObject):
 
 class SecurityStatusResult(DataObject):
     fields = [
-        Field("_schema", StringDataValue),
+        Field("_schema_version", StringDataValue),
         Field("summary", SecurityStatusSummary),
         Field("packages", data_list(SecurityStatusPackageUpdate)),
     ]
 
     def __init__(
         self,
-        _schema: str,
+        _schema_version: str,
         summary: SecurityStatusSummary,
         packages: List[SecurityStatusPackageUpdate],
     ):
-        self._schema = _schema
+        self._schema_version = _schema_version
         self.summary = summary
         self.packages = packages
 
 
-def status(cfg=None) -> SecurityStatusResult:
-    if cfg is None:
-        cfg = UAConfig()
+def status() -> SecurityStatusResult:
+    cfg = UAConfig()
 
     ua_info = get_ua_info(cfg)
 
@@ -165,7 +164,7 @@ def status(cfg=None) -> SecurityStatusResult:
         )
 
     return SecurityStatusResult(
-        _schema="0.1",
+        _schema_version="0.1",
         summary=SecurityStatusSummary(
             ua=SecurityStatusSummaryUA(
                 attached=ua_info["attached"],

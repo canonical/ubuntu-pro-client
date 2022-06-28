@@ -10,7 +10,6 @@ from uaclient.security_status import (
     get_service_name,
     get_ua_info,
     get_update_status,
-    security_status,
 )
 
 M_PATH = "uaclient.security_status."
@@ -309,71 +308,3 @@ class TestSecurityStatus:
                 "more-than-one-update",
                 "more-than-one-update",
             ] == [v.package.name for v in filtered_versions]
-
-    @mock.patch(M_PATH + "status", return_value={"attached": False})
-    @mock.patch(
-        M_PATH + "get_service_name",
-        return_value=("esm-infra", "some.url.for.esm"),
-    )
-    @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
-    @mock.patch(M_PATH + "filter_security_updates")
-    @mock.patch(M_PATH + "Cache")
-    def test_security_status_format(
-        self,
-        m_cache,
-        m_filter_sec_updates,
-        _m_get_origin,
-        _m_service_name,
-        _m_status,
-        FakeConfig,
-    ):
-        """Make sure the output format matches the expected JSON"""
-        cfg = FakeConfig()
-        m_version = mock_version("1.0", size=123456)
-        m_package = mock_package("example_package", m_version)
-
-        m_cache.return_value = [m_package] * 10
-        m_filter_sec_updates.return_value = [m_version] * 2
-
-        expected_output = {
-            "_schema_version": "0.1",
-            "packages": [
-                {
-                    "package": "example_package",
-                    "version": "1.0",
-                    "service_name": "esm-infra",
-                    "status": "pending_attach",
-                    "origin": "some.url.for.esm",
-                    "download_size": 123456,
-                },
-                {
-                    "package": "example_package",
-                    "version": "1.0",
-                    "service_name": "esm-infra",
-                    "status": "pending_attach",
-                    "origin": "some.url.for.esm",
-                    "download_size": 123456,
-                },
-            ],
-            "summary": {
-                "ua": {
-                    "attached": False,
-                    "enabled_services": [],
-                    "entitled_services": [],
-                },
-                "num_installed_packages": 10,
-                "num_main_packages": 10,
-                "num_restricted_packages": 0,
-                "num_universe_packages": 0,
-                "num_multiverse_packages": 0,
-                "num_third_party_packages": 0,
-                "num_unknown_packages": 0,
-                "num_esm_infra_packages": 0,
-                "num_esm_apps_packages": 0,
-                "num_esm_infra_updates": 2,
-                "num_esm_apps_updates": 0,
-                "num_standard_security_updates": 0,
-            },
-        }
-
-        assert expected_output == security_status(cfg)

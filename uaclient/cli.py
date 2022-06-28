@@ -31,7 +31,6 @@ from uaclient import (
     lock,
     messages,
     security,
-    security_status,
 )
 from uaclient import status as ua_status
 from uaclient import util, version
@@ -521,9 +520,7 @@ def refresh_parser(parser):
 
 def action_security_status(args, *, cfg, **kwargs):
     result = api.u.pro.security.status.v1.status().to_dict()
-    result[
-        "deprecated"
-    ] = "Please migrate to using the api: u.pro.security.status.v2"
+    result["deprecated"] = "Instead use `ua api u.pro.security.status.v2`"
     # For now, --format is mandatory so no need to check for it here.
     if args.format == "json":
         print(json.dumps(result))
