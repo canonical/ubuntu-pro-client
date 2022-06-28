@@ -58,7 +58,7 @@ Feature: Unattached status
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -77,7 +77,7 @@ Feature: Unattached status
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -93,7 +93,7 @@ Feature: Unattached status
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
@@ -112,7 +112,7 @@ Feature: Unattached status
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """ 
         When I append the following on uaclient config:
             """
@@ -136,7 +136,7 @@ Feature: Unattached status
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """ 
 
         Examples: ubuntu release
@@ -158,7 +158,7 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
             cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
+            ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
             ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
             fips          +<fips>      +yes  +no   +NIST-certified core packages
             fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
@@ -189,7 +189,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
             """
-            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
@@ -197,7 +197,7 @@ Feature: Unattached status
             """
             environment_vars: []
             errors:
-            - message: Invalid token. See https://ubuntu.com/advantage
+            - message: Invalid token. See https://ubuntu.com/pro
               message_code: attach-invalid-token
               service: null
               type: system
@@ -246,7 +246,7 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
             cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
+            ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
             ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
             fips          +<fips>      +yes  +no   +NIST-certified core packages
             fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates

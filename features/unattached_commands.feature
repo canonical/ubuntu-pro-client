@@ -19,7 +19,7 @@ Feature: Command behaviour when unattached
         Then stderr matches regexp:
             """
             Auto-attach image support is not available on lxd
-            See: https://ubuntu.com/advantage
+            See: https://ubuntu.com/pro
             """
 
         Examples: ubuntu release
@@ -90,7 +90,7 @@ Feature: Command behaviour when unattached
         Then stderr matches regexp:
             """
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/pro
             """
 
         Examples: ua commands
@@ -160,13 +160,13 @@ Feature: Command behaviour when unattached
           """
           To use 'esm-infra' you need an Ubuntu Advantage subscription
           Personal and community subscriptions are available at no charge
-          See https://ubuntu.com/advantage
+          See https://ubuntu.com/pro
           """
         When I verify that running `ua <command> esm-infra --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
         When I verify that running `ua <command> unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
@@ -177,13 +177,13 @@ Feature: Command behaviour when unattached
         Then I will see the following on stderr:
           """
           Cannot <command> unknown service 'unknown'.
-          See https://ubuntu.com/advantage
+          See https://ubuntu.com/pro
           """
         When I verify that running `ua <command> unknown --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\nSee https://ubuntu.com/advantage", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\nSee https://ubuntu.com/pro", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
         When I verify that running `ua <command> esm-infra unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
@@ -197,13 +197,13 @@ Feature: Command behaviour when unattached
 
           To use 'esm-infra' you need an Ubuntu Advantage subscription
           Personal and community subscriptions are available at no charge
-          See https://ubuntu.com/advantage
+          See https://ubuntu.com/pro
           """
         When I verify that running `ua <command> esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
 
         Examples: ubuntu release
