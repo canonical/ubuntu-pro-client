@@ -23,7 +23,6 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_SOON_TMPL,
     DISABLED_APT_PKGS_TMPL,
     DISABLED_MOTD_NO_PKGS_TMPL,
-    UBUNTU_NO_WARRANTY,
 )
 
 
@@ -50,7 +49,6 @@ class ExternalMessage(enum.Enum):
     APT_PRE_INVOKE_SERVICE_STATUS = "apt-pre-invoke-esm-service-status"
     MOTD_ESM_SERVICE_STATUS = "motd-esm-service-status"
     ESM_ANNOUNCE = "motd-esm-announce"
-    UBUNTU_NO_WARRANTY = "ubuntu-no-warranty"
 
 
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
@@ -209,7 +207,6 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
     motd_apps_pkg_file = ExternalMessage.MOTD_APPS_PKGS.value
     motd_infra_no_pkg_file = ExternalMessage.MOTD_INFRA_NO_PKGS.value
     motd_infra_pkg_file = ExternalMessage.MOTD_INFRA_PKGS.value
-    no_warranty_file = ExternalMessage.UBUNTU_NO_WARRANTY.value
     msg_dir = os.path.join(cfg.data_dir, "messages")
 
     apps_cls = entitlements.entitlement_factory(cfg=cfg, name="esm-apps")
@@ -227,20 +224,10 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
     msg_esm_apps = False
     msg_esm_infra = False
     if util.is_active_esm(series):
-        no_warranty_msg = ""
-        if expiry_status in (
-            ContractExpiryStatus.EXPIRED,
-            ContractExpiryStatus.NONE,
-        ):
-            no_warranty_msg = UBUNTU_NO_WARRANTY
         if infra_inst.application_status()[0] != enabled_status:
             msg_esm_infra = True
-            no_warranty_msg = UBUNTU_NO_WARRANTY
         elif remaining_days <= defaults.CONTRACT_EXPIRY_PENDING_DAYS:
             msg_esm_infra = True
-        _write_template_or_remove(
-            no_warranty_msg, os.path.join(msg_dir, no_warranty_file)
-        )
     if not msg_esm_infra:
         # write_apt_and_motd_templates is only called if util.is_lts(series)
         msg_esm_apps = apps_valid
@@ -258,7 +245,7 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
         )
     else:
         _remove_msg_templates(
-            msg_dir=os.path.join(cfg.data_dir, "messages"),
+            msg_dir=msg_dir,
             msg_template_names=[
                 infra_pkg_file,
                 infra_no_pkg_file,
@@ -280,7 +267,7 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
         )
     else:
         _remove_msg_templates(
-            msg_dir=os.path.join(cfg.data_dir, "messages"),
+            msg_dir=msg_dir,
             msg_template_names=[
                 apps_pkg_file,
                 apps_no_pkg_file,
