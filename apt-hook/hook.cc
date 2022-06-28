@@ -50,7 +50,6 @@
 #define APT_PRE_INVOKE_INFRA_PKGS_TEMPLATE_PATH          "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl"
 #define APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH            "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra"
 #define APT_PRE_INVOKE_MESSAGE_STATIC_PATH               "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-esm-service-status"
-#define UBUNTU_NO_WARRANTY_STATIC_PATH                   "/var/lib/ubuntu-advantage/messages/ubuntu-no-warranty"
 
 
 #define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
@@ -273,15 +272,13 @@ static void process_all_templates(
       APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH,
       MOTD_INFRA_PKGS_STATIC_PATH,
    };
-   std::array<std::string, 3> apt_static_files = {
+   std::array<std::string, 2> apt_static_files = {
       APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH,
       APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH,
-      UBUNTU_NO_WARRANTY_STATIC_PATH
    };
-   std::array<std::string, 3> motd_static_files = {
+   std::array<std::string, 2> motd_static_files = {
       MOTD_APPS_PKGS_STATIC_PATH,
       MOTD_INFRA_PKGS_STATIC_PATH,
-      UBUNTU_NO_WARRANTY_STATIC_PATH
    };
 
    std::vector<std::string> template_file_names;
