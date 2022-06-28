@@ -149,13 +149,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Renew your UA services at https:\/\/ubuntu.com\/advantage
 
         """
-        Then if `<release>` in `xenial` and stdout matches regexp:
-        """
-
-        Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
-        applicable law.
-
-        """
         When I run `apt upgrade --dry-run` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
