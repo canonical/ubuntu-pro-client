@@ -188,11 +188,11 @@ Feature: Ua fix command behaviour
         subscription.
 
         Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
-        > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
+        > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
         > .*\{ ua attach .*\}.*
         Attach denied:
         Contract ".*" expired on .*
-        Visit https://ubuntu.com/advantage to manage contract tokens.
+        Visit https://ubuntu.com/pro to manage contract tokens.
         1 package is still affected: curl
         .*✘.* USN-5079-2 is not resolved.
         """
@@ -210,7 +210,7 @@ Feature: Ua fix command behaviour
         subscription.
 
         Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
-        > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
+        > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
         > .*\{ ua attach .*\}.*
         Updating package lists
         Ubuntu Pro: ESM Apps enabled
