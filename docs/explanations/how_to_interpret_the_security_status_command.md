@@ -35,6 +35,7 @@ packages:
   service_name: esm-infra
   status: upgrade_available
   version: 1:1.2.8.dfsg-2ubuntu4.3+esm1
+  download_size: 123456
 ```
 
 Let's understand what each key mean on the output of the `ua security-status` command:
@@ -99,3 +100,4 @@ Let's understand what each key mean on the output of the `ua security-status` co
     * **"upgrade_unavailable"**: The machine is attached, but the contract is not entitled to
       the service which provides the upgrade.
   * **`version`**: The update version.
+  * **`download_size`**: The number of bytes that would be downloaded in order to install the update.
