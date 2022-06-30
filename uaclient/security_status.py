@@ -171,6 +171,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
                 "service_name": service_name,
                 "status": status,
                 "origin": origin_site,
+                "download_size": candidate.size,
             }
         )
 

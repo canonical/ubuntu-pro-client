@@ -28,12 +28,15 @@ def mock_origin(
 
 
 def mock_version(
-    version: str, origin_list: List[mock.MagicMock] = []
+    version: str,
+    origin_list: List[mock.MagicMock] = [],
+    size: int = 1,
 ) -> mock.MagicMock:
     mock_version = mock.MagicMock()
     mock_version.__gt__ = lambda self, other: self.version > other.version
     mock_version.version = version
     mock_version.origins = origin_list
+    mock_version.size = size
     return mock_version
 
 
@@ -326,7 +329,7 @@ class TestSecurityStatus:
     ):
         """Make sure the output format matches the expected JSON"""
         cfg = FakeConfig()
-        m_version = mock_version("1.0")
+        m_version = mock_version("1.0", size=123456)
         m_package = mock_package("example_package", m_version)
 
         m_cache.return_value = [m_package] * 10
@@ -341,6 +344,7 @@ class TestSecurityStatus:
                     "service_name": "esm-infra",
                     "status": "pending_attach",
                     "origin": "some.url.for.esm",
+                    "download_size": 123456,
                 },
                 {
                     "package": "example_package",
@@ -348,6 +352,7 @@ class TestSecurityStatus:
                     "service_name": "esm-infra",
                     "status": "pending_attach",
                     "origin": "some.url.for.esm",
+                    "download_size": 123456,
                 },
             ],
             "summary": {
