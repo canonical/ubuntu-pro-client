@@ -83,6 +83,9 @@
           "origin": {
             "type": "string"
           },
+          "download_size": {
+            "type": "integer"
+          },
           "status": {
             "type": "string",
             "enum": [
