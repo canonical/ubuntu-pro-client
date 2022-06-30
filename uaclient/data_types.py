@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Type, TypeVar, Union
 from uaclient import exceptions
 
 INCORRECT_TYPE_ERROR_MESSAGE = (
-    "Expected value with type {type} but got value: {value}"
+    "Expected value with type {expected_type} but got type: {got_type}"
 )
 INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = (
     "Got value with incorrect type at index {index}: {nested_msg}"
@@ -14,10 +14,10 @@ INCORRECT_FIELD_TYPE_ERROR_MESSAGE = (
 
 
 class IncorrectTypeError(exceptions.UserFacingError):
-    def __init__(self, expected_type: str, got_value: Any):
+    def __init__(self, expected_type: str, got_type: str):
         super().__init__(
             INCORRECT_TYPE_ERROR_MESSAGE.format(
-                type=expected_type, value=repr(got_value)
+                expected_type=expected_type, got_type=got_type
             )
         )
 
@@ -58,7 +58,7 @@ class StringDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> str:
         if not isinstance(val, str):
-            raise IncorrectTypeError("string", val)
+            raise IncorrectTypeError("str", type(val).__name__)
         return val
 
 
@@ -72,7 +72,7 @@ class IntDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> int:
         if not isinstance(val, int) or isinstance(val, bool):
-            raise IncorrectTypeError("int", val)
+            raise IncorrectTypeError("int", type(val).__name__)
         return val
 
 
@@ -86,7 +86,7 @@ class BoolDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> bool:
         if not isinstance(val, bool):
-            raise IncorrectTypeError("bool", val)
+            raise IncorrectTypeError("bool", type(val).__name__)
         return val
 
 
@@ -101,7 +101,7 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
         @staticmethod
         def from_value(val: Any) -> List:
             if not isinstance(val, list):
-                raise IncorrectTypeError("list", val)
+                raise IncorrectTypeError("list", type(val).__name__)
             new_val = []
             for i, item in enumerate(val):
                 try:
@@ -193,7 +193,7 @@ class DataObject(DataValue):
             except KeyError:
                 if field.required:
                     raise IncorrectFieldTypeError(
-                        IncorrectTypeError(field.data_cls.__name__, None),
+                        IncorrectTypeError(field.data_cls.__name__, "null"),
                         field.key,
                     )
                 else:
@@ -209,7 +209,7 @@ class DataObject(DataValue):
     @classmethod
     def from_value(cls, val: Any):
         if not isinstance(val, dict):
-            raise IncorrectTypeError("dict", val)
+            raise IncorrectTypeError("dict", type(val).__name__)
         return cls.from_dict(val)
 
 

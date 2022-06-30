@@ -34,10 +34,10 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            (True, IncorrectTypeError("string", True)),
-            (1, IncorrectTypeError("string", 1)),
-            ([], IncorrectTypeError("string", [])),
-            ({}, IncorrectTypeError("string", {})),
+            (True, IncorrectTypeError("str", "bool")),
+            (1, IncorrectTypeError("str", "int")),
+            ([], IncorrectTypeError("str", "list")),
+            ({}, IncorrectTypeError("str", "dict")),
         ),
     )
     def test_string_data_value_error(self, val, error):
@@ -54,11 +54,11 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            (True, IncorrectTypeError("int", True)),
-            ("hello", IncorrectTypeError("int", "hello")),
-            ("1", IncorrectTypeError("int", "1")),
-            ([], IncorrectTypeError("int", [])),
-            ({}, IncorrectTypeError("int", {})),
+            (True, IncorrectTypeError("int", "bool")),
+            ("hello", IncorrectTypeError("int", "str")),
+            ("1", IncorrectTypeError("int", "str")),
+            ([], IncorrectTypeError("int", "list")),
+            ({}, IncorrectTypeError("int", "dict")),
         ),
     )
     def test_int_data_value_error(self, val, error):
@@ -75,10 +75,10 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            ("hello", IncorrectTypeError("bool", "hello")),
-            (1, IncorrectTypeError("bool", 1)),
-            ([], IncorrectTypeError("bool", [])),
-            ({}, IncorrectTypeError("bool", {})),
+            ("hello", IncorrectTypeError("bool", "str")),
+            (1, IncorrectTypeError("bool", "int")),
+            ([], IncorrectTypeError("bool", "list")),
+            ({}, IncorrectTypeError("bool", "dict")),
         ),
     )
     def test_bool_data_value_error(self, val, error):
@@ -106,28 +106,28 @@ class TestDataList:
     @pytest.mark.parametrize(
         "data_cls, val, error",
         (
-            (IntDataValue, "hello", IncorrectTypeError("list", "hello")),
-            (IntDataValue, 1, IncorrectTypeError("list", 1)),
-            (IntDataValue, {}, IncorrectTypeError("list", {})),
+            (IntDataValue, "hello", IncorrectTypeError("list", "str")),
+            (IntDataValue, 1, IncorrectTypeError("list", "int")),
+            (IntDataValue, {}, IncorrectTypeError("list", "dict")),
             (
                 IntDataValue,
                 ["one"],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("int", "one"), 0
+                    IncorrectTypeError("int", "str"), 0
                 ),
             ),
             (
                 IntDataValue,
                 [1, 2, 3, []],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("int", []), 3
+                    IncorrectTypeError("int", "list"), 3
                 ),
             ),
             (
                 StringDataValue,
                 ["one", "two", "three", {}],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("string", {}), 3
+                    IncorrectTypeError("str", "dict"), 3
                 ),
             ),
             (
@@ -135,7 +135,7 @@ class TestDataList:
                 [["one", "two"], ["three"], ["four", 5]],
                 IncorrectListElementTypeError(
                     IncorrectListElementTypeError(
-                        IncorrectTypeError("string", 5), 1
+                        IncorrectTypeError("str", "int"), 1
                     ),
                     2,
                 ),
@@ -316,7 +316,7 @@ class TestDataObject:
                     ],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectTypeError("StringDataValue", None), "string"
+                    IncorrectTypeError("StringDataValue", "null"), "string"
                 ),
             ),
             (
@@ -332,7 +332,7 @@ class TestDataObject:
                     ],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectTypeError("int", "1"), "integer"
+                    IncorrectTypeError("int", "str"), "integer"
                 ),
             ),
             (
@@ -349,7 +349,7 @@ class TestDataObject:
                 },
                 IncorrectFieldTypeError(
                     IncorrectFieldTypeError(
-                        IncorrectTypeError("string", 8), "string"
+                        IncorrectTypeError("str", "int"), "string"
                     ),
                     "obj",
                 ),
@@ -368,7 +368,7 @@ class TestDataObject:
                 },
                 IncorrectFieldTypeError(
                     IncorrectListElementTypeError(
-                        IncorrectTypeError("string", 2), 1
+                        IncorrectTypeError("str", "int"), 1
                     ),
                     "stringlist",
                 ),
@@ -388,17 +388,17 @@ class TestDataObject:
                 IncorrectFieldTypeError(
                     IncorrectListElementTypeError(
                         IncorrectFieldTypeError(
-                            IncorrectTypeError("int", "6"), "integer"
+                            IncorrectTypeError("int", "str"), "integer"
                         ),
                         0,
                     ),
                     "objlist",
                 ),
             ),
-            ("string", IncorrectTypeError("dict", "string")),
-            (1, IncorrectTypeError("dict", 1)),
-            (True, IncorrectTypeError("dict", True)),
-            ([], IncorrectTypeError("dict", [])),
+            ("string", IncorrectTypeError("dict", "str")),
+            (1, IncorrectTypeError("dict", "int")),
+            (True, IncorrectTypeError("dict", "bool")),
+            ([], IncorrectTypeError("dict", "list")),
         ),
     )
     def test_error(self, val, error):
