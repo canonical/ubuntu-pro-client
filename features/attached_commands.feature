@@ -941,6 +941,10 @@ Feature: Command behaviour when attached to an UA subscription
         """
         "status": "pending_attach"
         """
+        And stdout matches regexp:
+        """
+        "download_size": \d+
+        """
         When I attach `contract_token` with sudo
         And I run `ua security-status --format json` as non-root
         Then stdout matches regexp:
@@ -962,6 +966,10 @@ Feature: Command behaviour when attached to an UA subscription
         And stdout matches regexp:
         """
         "status": "upgrade_available"
+        """
+        And stdout matches regexp:
+        """
+        "download_size": \d+
         """
         When I run `ua security-status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_security_status` schema
