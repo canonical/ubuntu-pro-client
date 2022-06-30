@@ -443,7 +443,7 @@ class TestActionAttach:
             error=(
                 "Got value with "
                 'incorrect type for field\n"enable_services": '
-                "Expected value with type list but got value: 'cis'"
+                "Expected value with type list but got type: str"
             ),
         )
 

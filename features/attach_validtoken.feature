@@ -232,7 +232,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then stderr matches regexp:
         """
         Error while reading /tmp/attach.yaml: Got value with incorrect type for field
-        "token": Expected value with type StringDataValue but got value: None
+        "token": Expected value with type StringDataValue but got type: null
         """
         # other schema error
         When I create the file `/tmp/attach.yaml` with the following
@@ -245,7 +245,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then stderr matches regexp:
         """
         Error while reading /tmp/attach.yaml: Got value with incorrect type for field
-        "enable_services": Expected value with type list but got value: {\'cis\': True}
+        "enable_services": Expected value with type list but got type: dict
         """
         # invalid service name
         When I create the file `/tmp/attach.yaml` with the following
