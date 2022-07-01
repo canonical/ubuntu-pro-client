@@ -34,6 +34,7 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import util, version
+from uaclient.api.api import call_api
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
@@ -255,6 +256,23 @@ def assert_not_attached(f):
         return f(args, cfg=cfg)
 
     return new_f
+
+
+def api_parser(parser):
+    """Build or extend an arg parser for the api subcommand."""
+    parser.prog = "api"
+    parser.description = "Calls the Client API endpoints."
+    parser.add_argument(
+        "endpoint_path", metavar="endpoint", help="API endpoint to call"
+    )
+    parser.add_argument(
+        "--args",
+        dest="options",
+        default=[],
+        nargs="*",
+        help="Options to pass to the API endpoint, formatted as key=value",
+    )
+    return parser
 
 
 def auto_attach_parser(parser):
@@ -1271,6 +1289,12 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     event.process_events()
 
 
+def action_api(args, *, cfg):
+    result = call_api(args.endpoint_path, args.options)
+    print(result.to_json())
+    return 0 if result.result == "success" else 1
+
+
 @assert_root
 @assert_lock_file("pro auto-attach")
 def action_auto_attach(args, *, cfg):
@@ -1520,6 +1544,14 @@ def get_parser(cfg: config.UAConfig):
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
+
+    parser_api = subparsers.add_parser(
+        "api",
+        help="Calls the Client API endpoints.",
+    )
+    api_parser(parser_api)
+    parser_api.set_defaults(action=action_api)
+
     parser_auto_attach = subparsers.add_parser(
         "auto-attach", help="automatically attach on supported platforms"
     )
