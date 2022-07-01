@@ -12,7 +12,7 @@ from uaclient.messages import (
     API_UNKNOWN_ARG,
 )
 
-VALID_ENDPOINTS = []
+VALID_ENDPOINTS = ["u.pro.version.v1"]
 
 
 def call_api(endpoint_path: str, options: List[str]) -> APIResponse:
