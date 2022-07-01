@@ -6,7 +6,9 @@ from uaclient.data_types import (
     BoolDataValue,
     DataObject,
     DataValue,
+    EnumDataValue,
     Field,
+    IncorrectEnumValueError,
     IncorrectFieldTypeError,
     IncorrectListElementTypeError,
     IncorrectTypeError,
@@ -86,6 +88,96 @@ class TestDataValues:
             BoolDataValue.from_value(val)
         assert e.value.msg == error.msg
 
+    @pytest.mark.parametrize("enum_type", (str, int))
+    @pytest.mark.parametrize(
+        "val",
+        (
+            1,
+            3,
+            5,
+            7,
+        ),
+    )
+    def test_enum_value_success(self, val, enum_type):
+        class OddNumbers(EnumDataValue):
+            ONE = enum_type(1)
+            THREE = enum_type(3)
+            FIVE = enum_type(5)
+            SEVEN = enum_type(7)
+
+        result = OddNumbers.from_value(enum_type(val))
+        assert enum_type(val) == result.value
+        assert isinstance(result.value, enum_type)
+
+    @pytest.mark.parametrize("enum_type", (str, int))
+    @pytest.mark.parametrize(
+        "val",
+        (
+            1,
+            3,
+            5,
+            7,
+        ),
+    )
+    def test_enum_value_type_error(self, val, enum_type):
+        check_enum_type = str if enum_type == int else int
+
+        class OddNumbers(EnumDataValue):
+            ONE = enum_type(1)
+            THREE = enum_type(3)
+            FIVE = enum_type(5)
+            SEVEN = enum_type(7)
+
+        values = [i.value for i in OddNumbers]
+        error = IncorrectEnumValueError(values, OddNumbers)
+        with pytest.raises(type(error)) as e:
+            OddNumbers.from_value(check_enum_type(val))
+        assert e.value.msg == error.msg
+
+    @pytest.mark.parametrize("enum_type", (str, int))
+    @pytest.mark.parametrize(
+        "val",
+        (
+            2,
+            4,
+            6,
+            8,
+        ),
+    )
+    def test_enum_value_error(self, val, enum_type):
+        class OddNumbers(EnumDataValue):
+            ONE = enum_type(1)
+            THREE = enum_type(3)
+            FIVE = enum_type(5)
+            SEVEN = enum_type(7)
+
+        values = [i.value for i in OddNumbers]
+        error = IncorrectEnumValueError(values, OddNumbers)
+        with pytest.raises(type(error)) as e:
+            OddNumbers.from_value(enum_type(val))
+        assert e.value.msg == error.msg
+
+    @pytest.mark.parametrize(
+        "val",
+        (
+            True,
+            [1, 3, 5, 7],
+            {"type": "dict"},
+        ),
+    )
+    def test_enum_other_types_error(self, val):
+        class OddNumbers(EnumDataValue):
+            ONE = "one"
+            THREE = "three"
+            FIVE = "five"
+            SEVEN = "seven"
+
+        values = [i.value for i in OddNumbers]
+        error = IncorrectEnumValueError(values, OddNumbers)
+        with pytest.raises(type(error)) as e:
+            OddNumbers.from_value(val)
+        assert e.value.msg == error.msg
+
 
 class TestDataList:
     @pytest.mark.parametrize(
@@ -156,6 +248,13 @@ class ExampleNestedObject(DataObject):
         self.integer = integer
 
 
+class ExampleEnum(EnumDataValue):
+    ONE = "one"
+    TWO = "two"
+    THREE = "three"
+    FOUR = "four"
+
+
 class ExampleDataObject(DataObject):
     fields = [
         Field("string", StringDataValue),
@@ -170,6 +269,10 @@ class ExampleDataObject(DataObject):
         Field("integerlist_opt", data_list(IntDataValue), required=False),
         Field("objlist", data_list(ExampleNestedObject)),
         Field("objlist_opt", data_list(ExampleNestedObject), required=False),
+        Field("enum", ExampleEnum),
+        Field("enum_opt", ExampleEnum, required=False),
+        Field("enum_list", data_list(ExampleEnum)),
+        Field("enum_opt_list", data_list(ExampleEnum), required=False),
     ]
 
     def __init__(
@@ -186,7 +289,11 @@ class ExampleDataObject(DataObject):
         integerlist: List[IntDataValue],
         integerlist_opt: Optional[List[IntDataValue]],
         objlist: List[ExampleNestedObject],
-        objlist_opt: Optional[List[ExampleNestedObject]]
+        objlist_opt: Optional[List[ExampleNestedObject]],
+        enum_list: List[EnumDataValue],
+        enum_opt_list: Optional[List[EnumDataValue]],
+        enum: EnumDataValue,
+        enum_opt: Optional[EnumDataValue]
     ):
         self.string = string
         self.string_opt = string_opt
@@ -200,6 +307,10 @@ class ExampleDataObject(DataObject):
         self.integerlist_opt = integerlist_opt
         self.objlist = objlist
         self.objlist_opt = objlist_opt
+        self.enum_list = enum_list
+        self.enum_opt_list = enum_opt_list
+        self.enum = enum
+        self.enum_opt = enum_opt
 
 
 example_data_object_dict_no_optionals = {
@@ -212,6 +323,8 @@ example_data_object_dict_no_optionals = {
         {"string": "nestedstring2", "integer": 6},
         {"string": "nestedstring3", "integer": 7},
     ],
+    "enum_list": ["two", "three"],
+    "enum": "one",
 }
 example_data_object_dict_no_optionals_with_none = {
     "string": "string",
@@ -229,6 +342,10 @@ example_data_object_dict_no_optionals_with_none = {
         {"string": "nestedstring3", "integer": 7},
     ],
     "objlist_opt": None,
+    "enum": "one",
+    "enum_opt": None,
+    "enum_list": ["two", "three"],
+    "enum_opt_list": None,
 }
 example_data_object_dict_with_optionals = {
     "string": "string",
@@ -249,6 +366,23 @@ example_data_object_dict_with_optionals = {
         {"string": "nestedstring2_opt", "integer": 66},
         {"string": "nestedstring3_opt", "integer": 77},
     ],
+    "enum_list": ["two", "three"],
+    "enum": "one",
+    "enum_opt_list": ["one", "four"],
+    "enum_opt": "three",
+}
+example_data_object_dict_invalid_enum_values = {
+    "string": "string",
+    "integer": 1,
+    "obj": {"string": "nestedstring", "integer": 2},
+    "stringlist": ["one", "two"],
+    "integerlist": [3, 4, 5],
+    "objlist": [
+        {"string": "nestedstring2", "integer": 6},
+        {"string": "nestedstring3", "integer": 7},
+    ],
+    "enum_list": ["two", "three"],
+    "enum": "one",
 }
 
 
@@ -273,6 +407,10 @@ class TestDataObject:
         assert result.objlist[1].string == "nestedstring3"
         assert result.objlist[1].integer == 7
         assert result.objlist_opt is None
+        assert result.enum == ExampleEnum.ONE
+        assert result.enum_opt is None
+        assert result.enum_list == [ExampleEnum.TWO, ExampleEnum.THREE]
+        assert result.enum_opt_list is None
 
     def test_success_with_optionals(self):
         result = ExampleDataObject.from_dict(
@@ -300,6 +438,13 @@ class TestDataObject:
         assert result.objlist_opt[0].integer == 66
         assert result.objlist_opt[1].string == "nestedstring3_opt"
         assert result.objlist_opt[1].integer == 77
+        assert result.enum_opt_list == [
+            ExampleEnum.ONE,
+            ExampleEnum.FOUR,
+        ]
+        assert result.enum_list == [ExampleEnum.TWO, ExampleEnum.THREE]
+        assert result.enum == ExampleEnum.ONE
+        assert result.enum_opt == ExampleEnum.THREE
 
     @pytest.mark.parametrize(
         "val, error",
@@ -317,6 +462,26 @@ class TestDataObject:
                 },
                 IncorrectFieldTypeError(
                     IncorrectTypeError("StringDataValue", "null"), "string"
+                ),
+            ),
+            (
+                {
+                    "string": "string",
+                    "integer": 1,
+                    "obj": {"string": "nestedstring", "integer": 2},
+                    "stringlist": ["one", "two"],
+                    "integerlist": [3, 4, 5],
+                    "objlist": [
+                        {"string": "nestedstring2", "integer": 6},
+                        {"string": "nestedstring3", "integer": 7},
+                    ],
+                    "enum": "five",
+                },
+                IncorrectFieldTypeError(
+                    IncorrectEnumValueError(
+                        [i.value for i in ExampleEnum], ExampleEnum
+                    ),
+                    "enum",
                 ),
             ),
             (
