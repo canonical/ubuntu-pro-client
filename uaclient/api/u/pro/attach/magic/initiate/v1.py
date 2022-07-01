@@ -1,9 +1,18 @@
+from uaclient.api.api import APIEndpoint
+from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
 from uaclient.data_types import DataObject, Field, StringDataValue
 
 
-class MagicAttachInitiateResult(DataObject):
+class MagicAttachInitiateOptions(DataObject):
+    fields = [Field("email", StringDataValue)]
+
+    def __init__(self, email):
+        self.email = email
+
+
+class MagicAttachInitiateResult(DataObject, AdditionalInfo):
     fields = [
         Field("_schema", StringDataValue),
         Field("confirmation_code", StringDataValue),
@@ -27,12 +36,11 @@ class MagicAttachInitiateResult(DataObject):
         self.user_email = user_email
 
 
-def initiate(email: str, cfg: UAConfig = None) -> MagicAttachInitiateResult:
-    if cfg is None:
-        cfg = UAConfig()
-
+def initiate(
+    options: MagicAttachInitiateOptions, cfg: UAConfig
+) -> MagicAttachInitiateResult:
     contract = UAContractClient(cfg)
-    initiate_resp = contract.new_magic_attach_token(email)
+    initiate_resp = contract.new_magic_attach_token(options.email)
 
     return MagicAttachInitiateResult(
         _schema="0.1",
@@ -41,3 +49,11 @@ def initiate(email: str, cfg: UAConfig = None) -> MagicAttachInitiateResult:
         expires=initiate_resp["expires"],
         user_email=initiate_resp["userEmail"],
     )
+
+
+endpoint = APIEndpoint(
+    version="v1",
+    name="MagicAttachInitiate",
+    fn=initiate,
+    options_cls=MagicAttachInitiateOptions,
+)
