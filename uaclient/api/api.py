@@ -1,9 +1,10 @@
 from importlib import import_module
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 from uaclient.api.data_types import APIData, APIResponse, ErrorWarningObject
 from uaclient.api.errors import APIError, error_out
-from uaclient.data_types import DataObject, IncorrectFieldTypeError
+from uaclient.config import UAConfig
+from uaclient.data_types import IncorrectFieldTypeError
 from uaclient.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
@@ -12,10 +13,17 @@ from uaclient.messages import (
     API_UNKNOWN_ARG,
 )
 
-VALID_ENDPOINTS = ["u.pro.version.v1"]
+VALID_ENDPOINTS = [
+    "u.pro.version.v1",
+    "u.pro.attach.magic.initiate.v1",
+    "u.pro.attach.magic.wait.v1",
+    "u.pro.attach.magic.revoke.v1",
+]
 
 
-def call_api(endpoint_path: str, options: List[str]) -> APIResponse:
+def call_api(
+    endpoint_path: str, options: List[str], cfg: UAConfig
+) -> APIResponse:
     if endpoint_path not in VALID_ENDPOINTS:
         return error_out(
             APIError(
@@ -76,7 +84,7 @@ def call_api(endpoint_path: str, options: List[str]) -> APIResponse:
             )
 
         try:
-            result = endpoint.fn(options)
+            result = endpoint.fn(options, cfg)
         except Exception as e:
             return error_out(e)
 
@@ -91,7 +99,7 @@ def call_api(endpoint_path: str, options: List[str]) -> APIResponse:
                 )
             )
         try:
-            result = endpoint.fn()
+            result = endpoint.fn(cfg)
         except Exception as e:
             return error_out(e)
 
@@ -112,7 +120,7 @@ class APIEndpoint:
         version: str,
         name: str,
         fn: Callable,
-        options_cls: Optional[DataObject],
+        options_cls,
     ):
         self.version = version
         self.name = name

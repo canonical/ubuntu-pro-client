@@ -181,19 +181,17 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
-        url = API_V1_MAGIC_ATTACH
 
         try:
-            response, _ = self.request_url(url, headers=headers)
+            response, _ = self.request_url(
+                API_V1_MAGIC_ATTACH, headers=headers
+            )
+        except exceptions.ContractAPIError as e:
+            if hasattr(e, "code"):
+                if e.code == 401:
+                    raise exceptions.MagicAttachTokenError()
+            raise e
         except exceptions.UrlError as e:
-            if isinstance(e, exceptions.ContractAPIError):
-                if hasattr(e, "code"):
-                    if e.code == 401:
-                        raise exceptions.MagicAttachTokenExpired(
-                            magic_token=magic_token
-                        )
-                raise e
-
             logging.exception(str(e))
             raise exceptions.UserFacingError(
                 msg=messages.CONNECTIVITY_ERROR.msg,
@@ -205,20 +203,20 @@ class UAContractClient(serviceclient.UAServiceClient):
     def new_magic_attach_token(self, email: str) -> Dict[str, Any]:
         """Create a magic attach token for the user."""
         headers = self.headers()
-        url = API_V1_MAGIC_ATTACH
 
         try:
-            kwargs = {
-                "headers": headers,
-                "method": "POST",
-                "data": {"email": email},
-            }
-            response, _ = self.request_url(url, **kwargs)
+            response, _ = self.request_url(
+                API_V1_MAGIC_ATTACH,
+                headers=headers,
+                method="POST",
+                data={"email": email},
+            )
+        except exceptions.ContractAPIError as e:
+            if hasattr(e, "code"):
+                if e.code == 400:
+                    raise exceptions.MagicAttachInvalidEmail(email=email)
+            raise e
         except exceptions.UrlError as e:
-            if isinstance(e, exceptions.ContractAPIError):
-                if hasattr(e, "code"):
-                    if e.code == 400:
-                        raise exceptions.MagicAttachInvalidEmail(email=email)
             logging.exception(str(e))
             raise exceptions.UserFacingError(
                 msg=messages.CONNECTIVITY_ERROR.msg,
@@ -231,26 +229,21 @@ class UAContractClient(serviceclient.UAServiceClient):
         """Revoke a magic attach token for the user."""
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
-        url = API_V1_MAGIC_ATTACH
 
         try:
-            kwargs = {
-                "headers": headers,
-                "method": "DELETE",
-            }
-            self.request_url(url, **kwargs)
+            self.request_url(
+                API_V1_MAGIC_ATTACH,
+                headers=headers,
+                method="DELETE",
+            )
+        except exceptions.ContractAPIError as e:
+            if hasattr(e, "code"):
+                if e.code == 400:
+                    raise exceptions.MagicAttachTokenAlreadyActivated()
+                elif e.code == 401:
+                    raise exceptions.MagicAttachTokenError()
+            raise e
         except exceptions.UrlError as e:
-            if isinstance(e, exceptions.ContractAPIError):
-                if hasattr(e, "code"):
-                    if e.code == 400:
-                        raise exceptions.MagicAttachTokenExpiredOrActivated(
-                            magic_token=magic_token
-                        )
-                    elif e.code == 401:
-                        raise exceptions.MagicAttachTokenNotFound(
-                            magic_token=magic_token
-                        )
-                raise e
             logging.exception(str(e))
             raise exceptions.UserFacingError(
                 msg=messages.CONNECTIVITY_ERROR.msg,
