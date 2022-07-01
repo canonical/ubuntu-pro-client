@@ -8,7 +8,7 @@ import os.path
 
 from uaclient import exceptions, util
 
-__VERSION__ = "27.9"
+__VERSION__ = "27.10"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 
