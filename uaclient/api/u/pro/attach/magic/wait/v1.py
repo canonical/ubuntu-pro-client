@@ -1,12 +1,23 @@
 import time
 
 from uaclient import exceptions
+from uaclient.api.api import APIEndpoint
+from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
 from uaclient.data_types import DataObject, Field, StringDataValue
 
 
-class MagicAttachWaitResult(DataObject):
+class MagicAttachWaitOptions(DataObject):
+    fields = [
+        Field("magic_token", StringDataValue),
+    ]
+
+    def __init__(self, magic_token: str):
+        self.magic_token = magic_token
+
+
+class MagicAttachWaitResult(DataObject, AdditionalInfo):
     fields = [
         Field("_schema", StringDataValue),
         Field("confirmation_code", StringDataValue),
@@ -31,27 +42,23 @@ class MagicAttachWaitResult(DataObject):
         self.confirmation_code = confirmation_code
         self.token = token
         self.expires = expires
-        self.userEmail = user_email
+        self.user_email = user_email
         self.contract_id = contract_id
         self.contract_token = contract_token
 
 
 def wait(
-    magic_token: str,
-    wait_delay: int = 10,
-    cfg: UAConfig = None,
+    options: MagicAttachWaitOptions,
+    cfg: UAConfig,
 ) -> MagicAttachWaitResult:
-    if cfg is None:
-        cfg = UAConfig()
-
     contract = UAContractClient(cfg)
 
     while True:
         try:
             wait_resp = contract.get_magic_attach_token_info(
-                magic_token=magic_token
+                magic_token=options.magic_token
             )
-        except exceptions.MagicAttachTokenExpired:
+        except exceptions.MagicAttachTokenError:
             break
 
         if wait_resp.get("contractToken") is not None:
@@ -65,6 +72,14 @@ def wait(
                 contract_token=wait_resp["contractToken"],
             )
 
-        time.sleep(wait_delay)
+        time.sleep(10)
 
-    raise exceptions.MagicAttachTokenExpired(magic_token=magic_token)
+    raise exceptions.MagicAttachTokenError()
+
+
+endpoint = APIEndpoint(
+    version="v1",
+    name="MagicAttachWait",
+    fn=wait,
+    options_cls=MagicAttachWaitOptions,
+)
