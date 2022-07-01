@@ -1,3 +1,37 @@
+ubuntu-advantage-tools (27.10~22.10.1) kinetic; urgency=medium
+
+  * d/control:
+    - Add ca-certificates dependency
+    - Drop golang dependencies
+  * d/links
+    - add /usr/bin/pro as the new preferred cli entrypoint
+  * d/rules:
+    - Only install APT hooks on LTS series
+  * New upstream release 27.10 (LP: #1980990)
+    - api: add support for new api command for version and magic-attach
+    - apt-hook:
+      + update json hook messages
+      + replace golang with cpp for json-hook
+    - cli
+      + properly sort services for detach/attach (GH: #1831)
+      + collect-logs include rotated log files
+      + display UA features directly on status
+    - daemon: do not try enabling daemon during auto-attach (LP: #1980865)
+    - esm: Rename ESM service title and description
+    - esm-apps: make service non-beta
+    - fix:
+      + update ua portal url when asking for attach
+      + add --dry-run option
+    - gcp-pro: better error message for metadata endpoint error
+    - messages:
+      + remove warranty message from MOTD and APT
+      + update base UA url on all messages
+    - requests: Add default timeout for web requests
+    - timer: log when job start running
+    - security-status: include download size of package updates
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 01 Jul 2022 11:51:13 -0300
+
 ubuntu-advantage-tools (27.9~22.10.1) kinetic; urgency=medium
 
   * d/rules
