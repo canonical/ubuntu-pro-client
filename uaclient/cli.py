@@ -1290,7 +1290,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
 
 def action_api(args, *, cfg):
-    result = call_api(args.endpoint_path, args.options)
+    result = call_api(args.endpoint_path, args.options, cfg)
     print(result.to_json())
     return 0 if result.result == "success" else 1
 

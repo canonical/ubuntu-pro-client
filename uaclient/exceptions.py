@@ -202,33 +202,18 @@ class AttachInvalidTokenError(UserFacingError):
         )
 
 
-class MagicAttachTokenExpired(UserFacingError):
-    def __init__(self, magic_token: str):
-        msg = messages.MAGIC_ATTACH_EXPIRED_TOKEN.format(
-            magic_token=magic_token
-        )
+class MagicAttachTokenAlreadyActivated(UserFacingError):
+    def __init__(self):
+        msg = messages.MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED
         super().__init__(
             msg=msg.msg,
             msg_code=msg.name,
         )
 
 
-class MagicAttachTokenExpiredOrActivated(UserFacingError):
-    def __init__(self, magic_token: str):
-        msg = messages.MAGIC_ATTACH_TOKEN_EXPIRED_OR_ACTIVATED.format(
-            magic_token=magic_token
-        )
-        super().__init__(
-            msg=msg.msg,
-            msg_code=msg.name,
-        )
-
-
-class MagicAttachTokenNotFound(UserFacingError):
-    def __init__(self, magic_token: str):
-        msg = messages.MAGIC_ATTACH_TOKEN_NOT_FOUND.format(
-            magic_token=magic_token
-        )
+class MagicAttachTokenError(UserFacingError):
+    def __init__(self):
+        msg = messages.MAGIC_ATTACH_TOKEN_ERROR
         super().__init__(
             msg=msg.msg,
             msg_code=msg.name,
