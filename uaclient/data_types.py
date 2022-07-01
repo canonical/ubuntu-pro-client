@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions
@@ -11,6 +12,9 @@ INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = (
 )
 INCORRECT_FIELD_TYPE_ERROR_MESSAGE = (
     'Got value with incorrect type for field "{key}": {nested_msg}'
+)
+INCORRECT_ENUM_VALUE_ERROR_MESSAGE = (
+    "Value provided was not found in {enum_class}'s allowed: value: {values}"
 )
 
 
@@ -38,6 +42,13 @@ class IncorrectFieldTypeError(IncorrectTypeError):
         self.key = key
 
 
+class IncorrectEnumValueError(IncorrectTypeError):
+    def __init__(self, values: List[str], enum_class: Any):
+        self.msg = INCORRECT_ENUM_VALUE_ERROR_MESSAGE.format(
+            values=values, enum_class=repr(enum_class)
+        )
+
+
 class DataValue:
     """
     Generic data value to be extended by more specific typed data values.
@@ -48,6 +59,25 @@ class DataValue:
     @staticmethod
     def from_value(val: Any) -> Any:
         return val
+
+
+E = TypeVar("E", bound="EnumDataValue")
+
+
+class EnumDataValue(DataValue, Enum):
+    """
+    To be used for parsing enum values
+    from_value raises an error if the value is not in the enum class values
+    and returns the value if found.
+    """
+
+    @classmethod
+    def from_value(cls: Type[E], val: Any) -> E:
+        try:
+            return cls(val)
+        except ValueError:
+            values = [i.value for i in cls]
+            raise IncorrectEnumValueError(values, cls)
 
 
 class StringDataValue(DataValue):
@@ -116,7 +146,7 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
 
 
 def data_list_to_list(
-    val: List[Union["DataObject", list, str, int, bool]],
+    val: List[Union["DataObject", list, str, int, bool, Enum]],
     keep_none: bool = True,
 ) -> list:
     new_val = []  # type: list
@@ -125,6 +155,8 @@ def data_list_to_list(
             new_val.append(item.to_dict(keep_none))
         elif isinstance(item, list):
             new_val.append(data_list_to_list(item, keep_none))
+        elif isinstance(item, Enum):
+            new_val.append(item.value)
         else:
             new_val.append(item)
     return new_val
@@ -179,6 +211,8 @@ class DataObject(DataValue):
                 new_val = val.to_dict(keep_none)
             elif isinstance(val, list):
                 new_val = data_list_to_list(val, keep_none)
+            elif isinstance(val, Enum):
+                new_val = val.value
             else:
                 # simple type, just copy
                 new_val = val
