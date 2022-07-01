@@ -876,3 +876,20 @@ Open a browser to: {}""".format(
 NOTICE_REFRESH_CONTRACT_WARNING = """\
 A change has been detected in your contract.
 Please run `sudo pro refresh`."""
+
+API_BAD_ARGS_FORMAT = FormattedNamedMessage(
+    name="args-wrong-format", msg="'{arg}' is not formatted as 'key=value'"
+)
+API_INVALID_ENDPOINT = FormattedNamedMessage(
+    name="invalid-endpoint", msg="'{endpoint}' is not a valid endpoint"
+)
+API_UNKNOWN_ARG = FormattedNamedMessage(
+    name="unknown-argument", msg="Ignoring unknown argument '{arg}'"
+)
+API_MISSING_ARG = FormattedNamedMessage(
+    name="missing-argument",
+    msg="Missing argument '{arg}' for endpoint {endpoint}",
+)
+API_NO_ARG_FOR_ENDPOINT = FormattedNamedMessage(
+    name="no-argument-for-endpoint", msg="{endpoint} accepts no arguments"
+)
