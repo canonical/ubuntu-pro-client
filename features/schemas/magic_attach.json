@@ -1,0 +1,27 @@
+{
+    "type": "object",
+    "required": [ "_schema", "confirmation_code", "expires", "token", "user_email" ],
+    "properties": {
+        "_schema": {
+            "type": "string"
+        },
+        "confirmation_code": {
+        "type": "string"
+        },
+        "token": {
+        "type": "string"
+        },
+        "expires": {
+        "type": "string"
+        },
+        "user_email": {
+        "type": "string"
+        },
+        "contract_token": {
+            "type": "string"
+        },
+        "contract_id": {
+        "type": "string"
+        }
+    }
+}

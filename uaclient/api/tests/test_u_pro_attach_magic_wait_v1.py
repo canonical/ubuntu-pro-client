@@ -2,13 +2,16 @@ import mock
 import pytest
 
 from uaclient import exceptions
-from uaclient.api.u.pro.attach.magic.wait.v1 import wait
+from uaclient.api.u.pro.attach.magic.wait.v1 import (
+    MagicAttachWaitOptions,
+    wait,
+)
 
 
 @mock.patch("uaclient.contract.UAContractClient.get_magic_attach_token_info")
 class TestSimplifiedAttachWaitV1:
     @mock.patch("time.sleep")
-    def test_wait_succeds(self, m_sleep, m_attach_token_info):
+    def test_wait_succeds(self, m_sleep, m_attach_token_info, FakeConfig):
         magic_token = "test-id"
 
         m_attach_token_info.side_effect = [
@@ -24,7 +27,8 @@ class TestSimplifiedAttachWaitV1:
             },
         ]
 
-        expected_response = wait(magic_token=magic_token)
+        options = MagicAttachWaitOptions(magic_token=magic_token)
+        expected_response = wait(options, FakeConfig())
 
         assert expected_response.contract_token == "ctoken"
         assert expected_response.contract_id == "cid"
@@ -32,12 +36,13 @@ class TestSimplifiedAttachWaitV1:
         assert 2 == m_sleep.call_count
 
     @mock.patch("time.sleep")
-    def test_wait_fails(self, m_sleep, m_attach_token_info):
+    def test_wait_fails(self, m_sleep, m_attach_token_info, FakeConfig):
         magic_token = "test-id"
         m_attach_token_info.side_effect = [
             {},
-            exceptions.MagicAttachTokenExpired(magic_token=magic_token),
+            exceptions.MagicAttachTokenError(),
         ]
+        options = MagicAttachWaitOptions(magic_token=magic_token)
 
-        with pytest.raises(exceptions.MagicAttachTokenExpired):
-            wait(magic_token=magic_token)
+        with pytest.raises(exceptions.MagicAttachTokenError):
+            wait(options, FakeConfig())

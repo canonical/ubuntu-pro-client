@@ -298,6 +298,45 @@ def when_i_preflight(context, contract_token, user_spec, verify_return=True):
     )
 
 
+@when("I initiate the magic attach flow using the API for email `{email}`")
+def when_i_initiate_magic_attach(context, email):
+    when_i_run_command(
+        context=context,
+        command="pro api u.pro.attach.magic.initiate.v1 --args email={}".format(  # noqa
+            email
+        ),
+        user_spec="as non-root",
+    )
+
+    magic_attach_resp = json.loads(
+        context.process.stdout.strip(), cls=DatetimeAwareJSONDecoder
+    )
+
+    context.magic_token = magic_attach_resp["data"]["attributes"]["token"]
+
+
+@when("I revoke the magic attach token")
+def when_i_revoke_the_magic_attach_token(context):
+    when_i_run_command(
+        context=context,
+        command="pro api u.pro.attach.magic.revoke.v1 --args magic_token={}".format(  # noqa
+            context.magic_token
+        ),
+        user_spec="as non-root",
+    )
+
+
+@when("I wait for the magic attach token to be activated")
+def when_i_wait_for_magic_attach_token(context):
+    when_i_run_command(
+        context=context,
+        command="pro api u.pro.attach.magic.wait.v1 --args magic_token={}".format(  # noqa
+            context.magic_token
+        ),
+        user_spec="as non-root",
+    )
+
+
 @when(
     "I verify that a preflight check for `{contract_token}` {user_spec} exits {exit_codes}"  # noqa
 )
@@ -933,6 +972,21 @@ def stdout_matches_the_json_schema(context, output_format, schema):
         )
     with open("features/schemas/{}.json".format(schema), "r") as schema_file:
         jsonschema.validate(instance=instance, schema=json.load(schema_file))
+
+
+@then("the {output_format} API response data matches the `{schema}` schema")
+def api_response_matches_schema(context, output_format, schema):
+    if output_format == "json":
+        instance = json.loads(context.process.stdout.strip())
+    elif output_format == "yaml":
+        instance = yaml.load(
+            context.process.stdout.strip(), SafeLoaderWithoutDatetime
+        )
+    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
+        jsonschema.validate(
+            instance=instance.get("data", {}).get("attributes"),
+            schema=json.load(schema_file),
+        )
 
 
 @then("`{file_name}` is not present in any docker image layer")

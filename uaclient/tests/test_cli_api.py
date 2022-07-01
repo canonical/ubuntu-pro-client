@@ -41,9 +41,12 @@ class TestActionAPI:
         args = mock.MagicMock()
         args.endpoint_path = "example_endpoint"
         args.options = []
-        return_code = action_api(args, cfg=FakeConfig())
+        cfg = FakeConfig()
+        return_code = action_api(args, cfg=cfg)
         assert m_call_api.call_count == 1
-        assert m_call_api.call_args_list == [mock.call("example_endpoint", [])]
+        assert m_call_api.call_args_list == [
+            mock.call("example_endpoint", [], cfg)
+        ]
         assert m_call_api.return_value.to_json.call_count == 1
         assert return_code == expected_return
 

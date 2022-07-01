@@ -410,7 +410,7 @@ class TestUAContractClient:
 
     @pytest.mark.parametrize(
         "error_code,expected_exception",
-        ((401, exceptions.MagicAttachTokenExpired),),
+        ((401, exceptions.MagicAttachTokenError),),
     )
     def test_get_magic_attach_token_info_contract_error(
         self,
@@ -451,8 +451,8 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "error_code,expected_exception",
         (
-            (400, exceptions.MagicAttachTokenExpiredOrActivated),
-            (401, exceptions.MagicAttachTokenNotFound),
+            (400, exceptions.MagicAttachTokenAlreadyActivated),
+            (401, exceptions.MagicAttachTokenError),
         ),
     )
     def test_revoke_magic_attach_token_contract_error(
