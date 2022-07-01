@@ -35,6 +35,7 @@ class IncorrectFieldTypeError(IncorrectTypeError):
         self.msg = INCORRECT_FIELD_TYPE_ERROR_MESSAGE.format(
             key=key, nested_msg=err.msg
         )
+        self.key = key
 
 
 class DataValue:
