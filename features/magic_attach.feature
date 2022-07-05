@@ -8,7 +8,7 @@ Feature: Magic Attach endpoints
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "api-error", "meta": {}, "title": "Missing argument 'email' for endpoint u.pro.attach.magic.initiate.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'email\' for endpoint u.pro.attach.magic.initiate.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
         """
         When I verify that running `pro api u.pro.attach.magic.initiate.v1 --args email=invalid-email` `as non-root` exits `1`
         Then stdout is a json matching the `api_response` schema

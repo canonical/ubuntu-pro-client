@@ -7,6 +7,8 @@ from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
 from uaclient.data_types import DataObject, Field, StringDataValue
 
+MAXIMUM_ATTEMPTS = 70
+
 
 class MagicAttachWaitOptions(DataObject):
     fields = [
@@ -53,7 +55,9 @@ def wait(
 ) -> MagicAttachWaitResult:
     contract = UAContractClient(cfg)
 
-    while True:
+    num_attempts = 0
+
+    while num_attempts < MAXIMUM_ATTEMPTS:
         try:
             wait_resp = contract.get_magic_attach_token_info(
                 magic_token=options.magic_token
@@ -73,6 +77,7 @@ def wait(
             )
 
         time.sleep(10)
+        num_attempts += 1
 
     raise exceptions.MagicAttachTokenError()
 
