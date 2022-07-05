@@ -25,6 +25,8 @@ jobs:
         run: tox -e black -e isort
       - name: Mypy
         run: tox -e mypy
+      - name: Version Consistency
+        run: python3 ./tools/check-versions-are-consistent.py
   unit-tests:
     name: Matrix
     strategy:
