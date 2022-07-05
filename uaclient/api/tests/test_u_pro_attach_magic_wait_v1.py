@@ -1,6 +1,7 @@
 import mock
 import pytest
 
+import uaclient.api.u.pro.attach.magic.wait.v1 as api_wait
 from uaclient import exceptions
 from uaclient.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
@@ -46,3 +47,16 @@ class TestSimplifiedAttachWaitV1:
 
         with pytest.raises(exceptions.MagicAttachTokenError):
             wait(options, FakeConfig())
+
+    @mock.patch("time.sleep")
+    def test_wait_fails_after_maximum_attempts(
+        self, m_sleep, m_attach_token_info, FakeConfig
+    ):
+        magic_token = "test-id"
+        m_attach_token_info.side_effect = [{}, {}, {}]
+
+        options = MagicAttachWaitOptions(magic_token=magic_token)
+
+        with pytest.raises(exceptions.MagicAttachTokenError):
+            with mock.patch.object(api_wait, "MAXIMUM_ATTEMPTS", 2):
+                wait(options, FakeConfig())
