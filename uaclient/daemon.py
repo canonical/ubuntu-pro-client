@@ -1,5 +1,6 @@
 import logging
 import time
+from subprocess import TimeoutExpired
 
 from uaclient import actions, exceptions, lock, messages, util
 from uaclient.clouds import AutoAttachCloudInstance
@@ -12,15 +13,19 @@ LOG = logging.getLogger("ua.daemon")
 
 def start():
     try:
-        util.subp(["systemctl", "start", "ubuntu-advantage.service"])
-    except exceptions.ProcessExecutionError as e:
+        util.subp(
+            ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
+        )
+    except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
         LOG.warning(e)
 
 
 def stop():
     try:
-        util.subp(["systemctl", "stop", "ubuntu-advantage.service"])
-    except exceptions.ProcessExecutionError as e:
+        util.subp(
+            ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
+        )
+    except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
         LOG.warning(e)
 
 
