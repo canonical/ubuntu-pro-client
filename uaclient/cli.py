@@ -1216,7 +1216,10 @@ def action_detach(args, *, cfg) -> int:
 
     @return: 0 on success, 1 otherwise
     """
-    return _detach(cfg, assume_yes=args.assume_yes)
+    ret = _detach(cfg, assume_yes=args.assume_yes)
+    daemon.start()
+    event.process_events()
+    return ret
 
 
 def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
@@ -1257,10 +1260,8 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
     cfg.delete_cache()
-    daemon.start()
     update_apt_and_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)
-    event.process_events()
     return 0
 
 
