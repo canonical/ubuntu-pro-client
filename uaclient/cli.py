@@ -41,7 +41,6 @@ from uaclient.clouds import identity
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import (
     CLOUD_BUILD_INFO,
-    CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_FORMAT,
     DEFAULT_LOG_PREFIX,
@@ -1914,17 +1913,14 @@ def main(sys_argv=None):
     with util.disable_log_to_console():
         cfg.warn_about_invalid_keys()
 
-    ua_environment = [
+    pro_environment = [
         "{}={}".format(k, v)
-        for k, v in sorted(os.environ.items())
-        if k.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
-        or k.startswith("UA_FEATURES")
-        or k == "UA_CONFIG_FILE"
+        for k, v in sorted(util.get_pro_environment().items())
     ]
-    if ua_environment:
+    if pro_environment:
         logging.debug(
             util.redact_sensitive_logs(
-                "Executed with environment variables: %r" % ua_environment
+                "Executed with environment variables: %r" % pro_environment
             )
         )
     return args.action(args, cfg=cfg)

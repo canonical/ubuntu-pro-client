@@ -659,18 +659,24 @@ class TestMain:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
-    @mock.patch.dict(
-        os.environ, {"NOT_UA_ENV": "YES", "UA_FEATURES_WOW": "XYZ"}
+    @mock.patch(
+        "uaclient.cli.util.get_pro_environment",
+        return_value={"UA_ENV": "YES", "UA_FEATURES_WOW": "XYZ"},
     )
     def test_environment_is_logged(
-        self, _m_get_parser, _m_setup_logging, logging_sandbox, caplog_text
+        self,
+        _m_pro_environment,
+        _m_get_parser,
+        _m_setup_logging,
+        logging_sandbox,
+        caplog_text,
     ):
         main(["some", "args"])
 
         log = caplog_text()
 
+        assert "UA_ENV=YES" in log
         assert "UA_FEATURES_WOW=XYZ" in log
-        assert "NOT_UA_ENV=YES" not in log
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_argparse_errors_well_formatted(

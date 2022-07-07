@@ -16,11 +16,12 @@ from uaclient.messages import (
 
 
 class TestAPIErrors:
-    def test_error_out_fields(self):
+    @mock.patch("uaclient.api.errors.get_pro_environment")
+    def test_error_out_fields(self, _m_environment):
         error_response = error_out(None)
         assert isinstance(error_response, APIResponse)
         assert error_response._schema_version == "v1"
-        assert error_response.data == {}
+        assert error_response.data == {"meta": {"environment_vars": []}}
         assert error_response.result == "failure"
         assert len(error_response.errors) == 1
 
@@ -211,8 +212,30 @@ class TestAPICall:
         assert m_error_out.call_count == 1
         assert m_error_out.call_args[0][0] == exception
 
+    @pytest.mark.parametrize(
+        "env_return,env_list",
+        (
+            ({}, []),
+            (
+                {"UA_EXAMPLE_KEY1": "value1", "UA_EXAMPLE_KEY2": "value2"},
+                [
+                    {"name": "UA_EXAMPLE_KEY1", "value": "value1"},
+                    {"name": "UA_EXAMPLE_KEY2", "value": "value2"},
+                ],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.api.data_types.get_pro_environment")
     @mock.patch("uaclient.api.api.import_module")
-    def test_endpoint_function_warning(self, m_import_module, FakeConfig):
+    def test_endpoint_function_warning_and_meta(
+        self,
+        m_import_module,
+        m_environment,
+        env_return,
+        env_list,
+        FakeConfig,
+    ):
+        m_environment.return_value = env_return
         mock_endpoint = mock.MagicMock()
         mock_endpoint.fn.return_value.warnings = [
             ErrorWarningObject(
@@ -236,5 +259,8 @@ class TestAPICall:
         assert warning.code == "fn-specific"
         assert warning.meta == {"reason": "something"}
 
-        assert len(result.data.meta) == 1
-        assert result.data.meta == {"metadata": "information"}
+        assert len(result.data.meta) == 2
+        assert result.data.meta == {
+            "environment_vars": env_list,
+            "metadata": "information",
+        }

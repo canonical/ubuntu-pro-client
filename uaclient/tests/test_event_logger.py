@@ -92,10 +92,27 @@ class TestEventLogger:
             )
 
     @pytest.mark.parametrize(
+        "env_return,env_list",
+        (
+            ({}, []),
+            (
+                {"UA_EXAMPLE_KEY1": "value1", "UA_EXAMPLE_KEY2": "value2"},
+                [
+                    {"name": "UA_EXAMPLE_KEY1", "value": "value1"},
+                    {"name": "UA_EXAMPLE_KEY2", "value": "value2"},
+                ],
+            ),
+        ),
+    )
+    @pytest.mark.parametrize(
         "event_mode",
         (EventLoggerMode.CLI, EventLoggerMode.JSON, EventLoggerMode.YAML),
     )
-    def test_process_events_for_status(self, event_mode, event):
+    @mock.patch("uaclient.util.get_pro_environment")
+    def test_process_events_for_status(
+        self, m_environment, event_mode, env_return, env_list, event
+    ):
+        m_environment.return_value = env_return
         with mock.patch.object(event, "_event_logger_mode", event_mode):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
@@ -114,7 +131,7 @@ class TestEventLogger:
             expected_machine_out = {
                 "some_status_key": "some_status_information",
                 "a_list_of_things": ["first", "second", "third"],
-                "environment_vars": [],
+                "environment_vars": env_list,
                 "services": [],
                 "result": "failure",
                 "errors": [
