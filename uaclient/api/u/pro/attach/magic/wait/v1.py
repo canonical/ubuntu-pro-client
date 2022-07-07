@@ -5,7 +5,12 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
-from uaclient.data_types import DataObject, Field, StringDataValue
+from uaclient.data_types import (
+    DataObject,
+    Field,
+    IntDataValue,
+    StringDataValue,
+)
 
 MAXIMUM_ATTEMPTS = 70
 
@@ -22,10 +27,10 @@ class MagicAttachWaitOptions(DataObject):
 class MagicAttachWaitResult(DataObject, AdditionalInfo):
     fields = [
         Field("_schema", StringDataValue),
-        Field("confirmation_code", StringDataValue),
+        Field("user_code", StringDataValue),
         Field("token", StringDataValue),
         Field("expires", StringDataValue),
-        Field("user_email", StringDataValue),
+        Field("expires_in", IntDataValue),
         Field("contract_id", StringDataValue),
         Field("contract_token", StringDataValue),
     ]
@@ -33,18 +38,18 @@ class MagicAttachWaitResult(DataObject, AdditionalInfo):
     def __init__(
         self,
         _schema: str,
-        confirmation_code: str,
+        user_code: str,
         token: str,
         expires: str,
-        user_email: str,
+        expires_in: int,
         contract_id: str,
         contract_token: str,
     ):
         self._schema = _schema
-        self.confirmation_code = confirmation_code
+        self.user_code = user_code
         self.token = token
         self.expires = expires
-        self.user_email = user_email
+        self.expires_in = expires_in
         self.contract_id = contract_id
         self.contract_token = contract_token
 
@@ -68,10 +73,10 @@ def wait(
         if wait_resp.get("contractToken") is not None:
             return MagicAttachWaitResult(
                 _schema="0.1",
-                confirmation_code=wait_resp["confirmationCode"],
+                user_code=wait_resp["userCode"],
                 token=wait_resp["token"],
                 expires=wait_resp["expires"],
-                user_email=wait_resp["userEmail"],
+                expires_in=int(wait_resp["expiresIn"]),
                 contract_id=wait_resp["contractID"],
                 contract_token=wait_resp["contractToken"],
             )

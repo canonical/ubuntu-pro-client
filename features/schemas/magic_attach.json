@@ -1,27 +1,27 @@
 {
     "type": "object",
-    "required": [ "_schema", "confirmation_code", "expires", "token", "user_email" ],
+    "required": [ "_schema", "user_code", "expires", "expires_in", "token" ],
     "properties": {
         "_schema": {
-            "type": "string"
+          "type": "string"
         },
-        "confirmation_code": {
-        "type": "string"
+        "user_code": {
+          "type": "string"
         },
         "token": {
-        "type": "string"
+          "type": "string"
         },
         "expires": {
-        "type": "string"
+          "type": "string"
         },
-        "user_email": {
-        "type": "string"
+        "expires_in": {
+          "type": "integer"
         },
         "contract_token": {
             "type": "string"
         },
         "contract_id": {
-        "type": "string"
+          "type": "string"
         }
     }
 }
