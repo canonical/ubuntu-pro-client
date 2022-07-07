@@ -1217,7 +1217,8 @@ def action_detach(args, *, cfg) -> int:
     @return: 0 on success, 1 otherwise
     """
     ret = _detach(cfg, assume_yes=args.assume_yes)
-    daemon.start()
+    if ret == 0:
+        daemon.start()
     event.process_events()
     return ret
 
