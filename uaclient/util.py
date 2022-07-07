@@ -26,6 +26,7 @@ from urllib import error, request
 from urllib.parse import urlparse
 
 from uaclient import event_logger, exceptions, messages
+from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 from uaclient.types import MessagingOperations
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
@@ -982,3 +983,13 @@ def handle_unicode_characters(message: str) -> str:
         message = message.replace(messages.FAIL_X + " ", "")
 
     return message
+
+
+def get_pro_environment():
+    return {
+        k: v
+        for k, v in os.environ.items()
+        if k.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
+        or k.startswith("UA_FEATURES")
+        or k == "UA_CONFIG_FILE"
+    }
