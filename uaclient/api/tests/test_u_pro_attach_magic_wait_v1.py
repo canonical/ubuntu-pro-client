@@ -21,8 +21,8 @@ class TestSimplifiedAttachWaitV1:
             {
                 "token": magic_token,
                 "expires": "2100-06-09T18:14:55.323733Z",
-                "userEmail": "test@test.com",
-                "confirmationCode": "1234",
+                "expiresIn": "2000",
+                "userCode": "1234",
                 "contractToken": "ctoken",
                 "contractID": "cid",
             },

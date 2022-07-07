@@ -298,13 +298,11 @@ def when_i_preflight(context, contract_token, user_spec, verify_return=True):
     )
 
 
-@when("I initiate the magic attach flow using the API for email `{email}`")
-def when_i_initiate_magic_attach(context, email):
+@when("I initiate the magic attach flow")
+def when_i_initiate_magic_attach(context):
     when_i_run_command(
         context=context,
-        command="pro api u.pro.attach.magic.initiate.v1 --args email={}".format(  # noqa
-            email
-        ),
+        command="pro api u.pro.attach.magic.initiate.v1",
         user_spec="as non-root",
     )
 
@@ -454,6 +452,7 @@ def when_i_update_contract_field_to_new_value(
     )
 
 
+@when("I change contract to staging {user_spec}")
 def change_contract_endpoint_to_staging(context, user_spec):
     when_i_run_command(
         context,
