@@ -2,6 +2,7 @@ from typing import Dict, Optional
 
 from uaclient.api.data_types import APIResponse, ErrorWarningObject
 from uaclient.exceptions import UserFacingError
+from uaclient.util import get_pro_environment
 
 
 def error_out(exception: Exception) -> APIResponse:
@@ -21,7 +22,14 @@ def error_out(exception: Exception) -> APIResponse:
     return APIResponse(
         _schema_version="v1",
         result="failure",
-        data={},
+        data={
+            "meta": {
+                "environment_vars": [
+                    {"name": name, "value": value}
+                    for name, value in sorted(get_pro_environment().items())
+                ],
+            }
+        },
         errors=[error],
     )
 
