@@ -1475,3 +1475,23 @@ class TestShouldReboot:
             installed_pkgs=installed_pkgs,
             installed_pkgs_regex=installed_pkgs_regex,
         )
+
+
+class TestGetProEnvironment:
+    @mock.patch(
+        "os.environ",
+        {
+            "UA_CONFIG_FILE": "example_config_file",
+            "UA_INVALID_KEY": "some_value",
+            "NOT_EVEN_UA": "some_other_value",
+            "UA_FEATURES_WOW": "cool_feature",
+            "UA_LOG_LEVEL": "DEBUG",
+        },
+    )
+    def test_get_pro_environment(self):
+        expected = {
+            "UA_CONFIG_FILE": "example_config_file",
+            "UA_FEATURES_WOW": "cool_feature",
+            "UA_LOG_LEVEL": "DEBUG",
+        }
+        assert expected == util.get_pro_environment()

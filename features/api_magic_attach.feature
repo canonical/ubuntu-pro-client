@@ -9,14 +9,14 @@ Feature: Magic Attach endpoints
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'magic_token\' for endpoint u.pro.attach.magic.revoke.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"meta": {\"environment_vars\": \[]}}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'magic_token\' for endpoint u.pro.attach.magic.revoke.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
         """
         When I initiate the magic attach flow
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `magic_attach` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "expires": ".*", "expires_in": .*, "token": ".*", "user_code": ".*"}, "meta": {}, "type": "MagicAttachInitiate"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "expires": ".*", "expires_in": .*, "token": ".*", "user_code": ".*"}, "meta": {\"environment_vars\": \[]}, "type": "MagicAttachInitiate"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I create the file `/tmp/response-overlay.json` with the following:
         """
@@ -45,7 +45,7 @@ Feature: Magic Attach endpoints
         And the json API response data matches the `magic_attach` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "contract_id": "test-contract-id", "contract_token": "contract-token", "expires": "expire-date", "expires_in": 2000, "token": "testToken", "user_code": "123"}, "meta": {}, "type": "MagicAttachWait"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "contract_id": "test-contract-id", "contract_token": "contract-token", "expires": "expire-date", "expires_in": 2000, "token": "testToken", "user_code": "123"}, "meta": {\"environment_vars\": \[]}, "type": "MagicAttachWait"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -58,7 +58,7 @@ Feature: Magic Attach endpoints
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {}, "meta": {}, "type": "MagicAttachRevoke"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {}, "meta": {\"environment_vars\": \[]}, "type": "MagicAttachRevoke"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release

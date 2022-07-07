@@ -8,11 +8,8 @@ those events in real time or through a machine-readable format.
 
 import enum
 import json
-import os
 import sys
 from typing import Any, Dict, List, Optional, Set, Union  # noqa: F401
-
-from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 
 JSON_SCHEMA_VERSION = "0.1"
 EventFieldErrorType = Optional[Union[str, Dict[str, str]]]
@@ -43,12 +40,11 @@ class EventLoggerMode(enum.Enum):
 
 
 def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
+    from uaclient.util import get_pro_environment
+
     status["environment_vars"] = [
         {"name": name, "value": value}
-        for name, value in sorted(os.environ.items())
-        if name.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
-        or name.startswith("UA_FEATURES")
-        or name == "UA_CONFIG_FILE"
+        for name, value in sorted(get_pro_environment().items())
     ]
 
     if not status.get("simulated"):

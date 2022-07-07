@@ -1,6 +1,7 @@
 from typing import Dict, List, Union  # noqa: F401
 
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
+from uaclient.util import get_pro_environment
 from uaclient.version import get_version
 
 
@@ -16,9 +17,7 @@ class ErrorWarningObject(DataObject):
         Field("meta", DataObject),
     ]
 
-    def __init__(
-        self, *, title: str, code: str, meta: Union[DataObject, dict]
-    ):
+    def __init__(self, *, title: str, code: str, meta: dict):
         self.title = title
         self.code = code
         self.meta = meta
@@ -31,10 +30,16 @@ class APIData(DataObject):
         Field("meta", DataObject),
     ]
 
-    def __init__(self, *, type: str, attributes: DataObject, meta: DataObject):
+    def __init__(self, *, type: str, attributes: DataObject, meta: dict):
         self.type = type
         self.attributes = attributes
-        self.meta = meta
+        self.meta = {
+            "environment_vars": [
+                {"name": name, "value": value}
+                for name, value in sorted(get_pro_environment().items())
+            ],
+            **meta,
+        }
 
 
 class APIResponse(DataObject):
