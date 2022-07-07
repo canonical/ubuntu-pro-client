@@ -528,3 +528,29 @@ def setup_apt_proxy(
         util.remove_file(APT_PROXY_CONF_FILE)
     else:
         util.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
+
+
+def setup_unauthenticated_repo(
+    repo_filename: str,
+    repo_pref_filename: str,
+    repo_url: str,
+    keyring_file: str,
+    apt_origin: str,
+    suites: List[str],
+) -> None:
+    content = "# Written by ubuntu-advantage-tools"
+    for suite in suites:
+        content += "\n"
+        content += messages.REPO_FILE_CONTENT.format(
+            url=repo_url, apt_suite=suite
+        )
+    util.write_file(repo_filename, content)
+    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
+    destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
+    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
+    add_ppa_pinning(
+        repo_pref_filename,
+        repo_url,
+        apt_origin,
+        "never",
+    )

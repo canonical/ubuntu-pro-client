@@ -1,6 +1,7 @@
+import os
 from typing import Optional, Tuple, Type, Union  # noqa: F401
 
-from uaclient import util
+from uaclient import apt, util
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
@@ -9,6 +10,7 @@ from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
+    repo_url = "https://esm.ubuntu.com/{service}"
 
     @property
     def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:
@@ -33,6 +35,27 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
             update_apt_and_motd_messages(self.cfg)
         return disable_performed, fail
 
+    def setup_unauthenticated_repo(self):
+        if not os.path.exists(self.repo_list_file_tmpl.format(name=self.name)):
+            series = util.get_platform_info()["series"]
+            apt.setup_unauthenticated_repo(
+                repo_filename=self.repo_list_file_tmpl.format(name=self.name),
+                repo_pref_filename=self.repo_pref_file_tmpl.format(
+                    name=self.name
+                ),
+                repo_url=self.repo_url.format(service=self.apt_repo_name),
+                keyring_file=self.repo_key_file,
+                apt_origin=self.origin,
+                suites=[
+                    "{series}-{name}-security".format(
+                        series=series, name=self.apt_repo_name
+                    ),
+                    "{series}-{name}-updates".format(
+                        series=series, name=self.apt_repo_name
+                    ),
+                ],
+            )
+
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESMApps"
@@ -40,6 +63,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     title = "Ubuntu Pro: ESM Apps"
     description = "Extended Security Maintenance for Applications"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
+    apt_repo_name = "apps"
 
     @property
     def repo_pin_priority(self) -> Optional[str]:
@@ -67,6 +91,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "Ubuntu Pro: ESM Infra"
     description = "Extended Security Maintenance for Infrastructure"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    apt_repo_name = "infra"
 
     @property
     def repo_pin_priority(self) -> Optional[str]:
