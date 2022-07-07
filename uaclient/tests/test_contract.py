@@ -352,44 +352,17 @@ class TestUAContractClient:
     ):
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        email = "test@test.com"
         magic_attach_token_resp = (
             {
                 "token": "token",
                 "expires": "2100-06-09T18:14:55.323733Z",
-                "userEmail": email,
-                "confirmationCode": "1234",
+                "expiresIn": 600,
+                "userCode": "1234",
             },
         )
         request_url.return_value = (magic_attach_token_resp, None)
 
-        assert (
-            client.new_magic_attach_token(email=email)
-            == magic_attach_token_resp
-        )
-
-    @pytest.mark.parametrize(
-        "error_code,expected_exception",
-        ((400, exceptions.MagicAttachInvalidEmail),),
-    )
-    def test_new_magic_attach_token_contract_error(
-        self,
-        get_machine_id,
-        request_url,
-        error_code,
-        expected_exception,
-        FakeConfig,
-    ):
-        cfg = FakeConfig()
-        client = UAContractClient(cfg)
-        email = "invalid email"
-        request_url.side_effect = exceptions.ContractAPIError(
-            exceptions.UrlError("test", error_code),
-            error_response={},
-        )
-
-        with pytest.raises(expected_exception):
-            client.new_magic_attach_token(email=email)
+        assert client.new_magic_attach_token() == magic_attach_token_resp
 
     def test_new_magic_attach_token_fails(
         self,
@@ -399,11 +372,10 @@ class TestUAContractClient:
     ):
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        email = "test@test.com"
         request_url.side_effect = exceptions.UrlError("test")
 
         with pytest.raises(exceptions.UserFacingError) as exc_error:
-            client.new_magic_attach_token(email=email)
+            client.new_magic_attach_token()
 
         assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
         assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
