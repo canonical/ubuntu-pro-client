@@ -4,36 +4,31 @@ Feature: Magic Attach endpoints
     @uses.config.machine_type.lxd.container
     Scenario Outline: Call magic attach endpoints
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `pro api u.pro.attach.magic.initiate.v1` `as non-root` exits `1`
+        When I change contract to staging with sudo
+        And I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'email\' for endpoint u.pro.attach.magic.initiate.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'magic_token\' for endpoint u.pro.attach.magic.revoke.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
         """
-        When I verify that running `pro api u.pro.attach.magic.initiate.v1 --args email=invalid-email` `as non-root` exits `1`
-        Then stdout is a json matching the `api_response` schema
-        And stdout matches regexp:
-        """
-        {"_schema_version": "v1", "data": {}, "errors": \[{"code": "magic-attach-invalid-email", "meta": {}, "title": "invalid-email is not a valid email."}\], "result": "failure", "version": .*", "warnings": \[\]}
-        """
-        When I initiate the magic attach flow using the API for email `test@test.com`
+        When I initiate the magic attach flow
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `magic_attach` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "confirmation_code": ".*", "expires": ".*", "token": ".*", "user_email": "test@test.com"}, "meta": {}, "type": "MagicAttachInitiate"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "expires": ".*", "expires_in": .*, "token": ".*", "user_code": ".*"}, "meta": {}, "type": "MagicAttachInitiate"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I create the file `/tmp/response-overlay.json` with the following:
         """
         {
-            "https://contracts.canonical.com/v1/magic-attach": [
+            "https://contracts.staging.canonical.com/v1/magic-attach": [
             {
               "code": 200,
               "response": {
-                "confirmationCode": "123",
+                "userCode": "123",
                 "token": "testToken",
                 "expires": "expire-date",
-                "userEmail": "test@test.com",
+                "expiresIn": 2000,
                 "contractID": "test-contract-id",
                 "contractToken": "contract-token"
               }
@@ -50,11 +45,11 @@ Feature: Magic Attach endpoints
         And the json API response data matches the `magic_attach` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "confirmation_code": "123", "contract_id": "test-contract-id", "contract_token": "contract-token", "expires": "expire-date", "token": "testToken", "user_email": "test@test.com"}, "meta": {}, "type": "MagicAttachWait"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "contract_id": "test-contract-id", "contract_token": "contract-token", "expires": "expire-date", "expires_in": 2000, "token": "testToken", "user_code": "123"}, "meta": {}, "type": "MagicAttachWait"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
-        contract_url: 'https://contracts.canonical.com'
+        contract_url: 'https://contracts.staging.canonical.com'
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log

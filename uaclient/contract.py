@@ -200,7 +200,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         return response
 
-    def new_magic_attach_token(self, email: str) -> Dict[str, Any]:
+    def new_magic_attach_token(self) -> Dict[str, Any]:
         """Create a magic attach token for the user."""
         headers = self.headers()
 
@@ -209,13 +209,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 API_V1_MAGIC_ATTACH,
                 headers=headers,
                 method="POST",
-                data={"email": email},
             )
-        except exceptions.ContractAPIError as e:
-            if hasattr(e, "code"):
-                if e.code == 400:
-                    raise exceptions.MagicAttachInvalidEmail(email=email)
-            raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
             raise exceptions.UserFacingError(
