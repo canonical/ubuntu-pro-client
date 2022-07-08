@@ -784,6 +784,9 @@ REDACT_SENSITIVE_LOGS = [
     r"(\"identityToken\": \")[^\"]+",
     r"(response:\s+http://metadata/computeMetadata/v1/instance/"
     "service-accounts.*data: ).*",
+    r"(\'token\': \')[^\']+",
+    r"(\'userCode\': \')[^\']+",
+    r"(\'magic_token=)[^\']+",
 ]
 
 
