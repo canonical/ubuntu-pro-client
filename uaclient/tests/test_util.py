@@ -1169,6 +1169,18 @@ class TestRedactSensitiveLogs:
                 "http://metadata/computeMetadata/v1/instance/service-accounts/"
                 "default/identity?audience=contracts.canon, data: <REDACTED>",
             ),
+            (
+                "'token': 'SEKRET'",
+                "'token': '<REDACTED>'",
+            ),
+            (
+                "'userCode': 'SEKRET'",
+                "'userCode': '<REDACTED>'",
+            ),
+            (
+                "'magic_token=SEKRET'",
+                "'magic_token=<REDACTED>'",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):
