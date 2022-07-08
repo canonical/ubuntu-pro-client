@@ -32,9 +32,5 @@ def get_version():
             out, _ = util.subp(cmd)
             return out.strip()
         except exceptions.ProcessExecutionError:
-            # Rely on debian/changelog because we are in a git-ubuntu or other
-            # packaging repo
-            cmd = ["dpkg-parsechangelog", "-S", "version"]
-            out, _ = util.subp(cmd)
-            return out.strip()
+            pass
     return __VERSION__
