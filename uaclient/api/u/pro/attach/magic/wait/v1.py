@@ -68,6 +68,7 @@ def wait(
             wait_resp = contract.get_magic_attach_token_info(
                 magic_token=options.magic_token
             )
+            num_connection_errors = 0
         except exceptions.MagicAttachTokenError:
             break
         # If we have a flaky connectivity error, this part of the code
