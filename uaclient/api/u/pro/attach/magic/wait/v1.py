@@ -61,6 +61,7 @@ def wait(
     contract = UAContractClient(cfg)
 
     num_attempts = 0
+    num_connection_errors = 0
 
     while num_attempts < MAXIMUM_ATTEMPTS:
         try:
@@ -69,8 +70,17 @@ def wait(
             )
         except exceptions.MagicAttachTokenError:
             break
+        # If we have a flaky connectivity error, this part of the code
+        # will make sure that we try at least three more times before
+        # raising a ConnectivityError.
+        except exceptions.ConnectivityError as e:
+            if num_connection_errors < 3:
+                num_connection_errors += 1
+                wait_resp = None
+            else:
+                raise e
 
-        if wait_resp.get("contractToken") is not None:
+        if wait_resp and wait_resp.get("contractToken") is not None:
             return MagicAttachWaitResult(
                 _schema="0.1",
                 user_code=wait_resp["userCode"],
