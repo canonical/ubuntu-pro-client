@@ -81,7 +81,7 @@ class TestSimplifiedAttachWaitV1:
         assert 3 == m_sleep.call_count
 
     @mock.patch("time.sleep")
-    def test_wait_succeds_after_number_of_connectiviry_errors(
+    def test_wait_succeeds_after_number_of_connectivity_errors(
         self, m_sleep, m_attach_token_info, FakeConfig
     ):
         magic_token = "test-id"
