@@ -193,10 +193,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                msg=messages.CONNECTIVITY_ERROR.msg,
-                msg_code=messages.CONNECTIVITY_ERROR.name,
-            )
+            raise exceptions.ConnectivityError()
 
         return response
 

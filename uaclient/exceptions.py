@@ -202,6 +202,14 @@ class AttachInvalidTokenError(UserFacingError):
         )
 
 
+class ConnectivityError(UserFacingError):
+    def __init__(self):
+        super().__init__(
+            msg=messages.CONNECTIVITY_ERROR.msg,
+            msg_code=messages.CONNECTIVITY_ERROR.name,
+        )
+
+
 class MagicAttachTokenAlreadyActivated(UserFacingError):
     def __init__(self):
         msg = messages.MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED
