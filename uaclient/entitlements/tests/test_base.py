@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import config, messages, util
+from uaclient import messages, util
 from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -71,7 +71,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
 
 @pytest.fixture
-def concrete_entitlement_factory(tmpdir):
+def concrete_entitlement_factory(FakeConfig):
     def factory(
         *,
         entitled: bool,
@@ -84,7 +84,7 @@ def concrete_entitlement_factory(tmpdir):
         dependent_services: Tuple[Any, ...] = None,
         required_services: Tuple[Any, ...] = None
     ) -> ConcreteTestEntitlement:
-        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         machineToken = {
             "machineToken": "blah",
             "machineTokenInfo": {
@@ -98,7 +98,7 @@ def concrete_entitlement_factory(tmpdir):
                 }
             },
         }
-        cfg.write_cache("machine-token", machineToken)
+        cfg.machine_token_file.write(machineToken)
 
         if feature_overrides:
             cfg.cfg.update({"features": feature_overrides})
@@ -134,9 +134,9 @@ class TestUaEntitlement:
         entitlement = ConcreteTestEntitlement()
         assert "/var/lib/ubuntu-advantage" == entitlement.cfg.data_dir
 
-    def test_init_accepts_a_uaconfig(self):
+    def test_init_accepts_a_uaconfig(self, FakeConfig):
         """An instance of UAConfig can be passed to UAEntitlement."""
-        cfg = config.UAConfig(cfg={"data_dir": "/some/path"})
+        cfg = FakeConfig(cfg_overrides={"data_dir": "/some/path"})
         entitlement = ConcreteTestEntitlement(cfg)
         assert "/some/path" == entitlement.cfg.data_dir
 
@@ -896,7 +896,7 @@ class TestUaEntitlement:
             }
         }
         with mock.patch(
-            "uaclient.config.UAConfig.entitlements", m_entitlements
+            "uaclient.files.MachineTokenFile.entitlements", m_entitlements
         ):
             assert "something_else" == entitlement.presentation_name
 

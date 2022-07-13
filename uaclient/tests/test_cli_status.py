@@ -285,10 +285,15 @@ class TestActionStatus:
         _m_remove_notice,
         _m_contract_changed,
         capsys,
+        FakeConfig,
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 

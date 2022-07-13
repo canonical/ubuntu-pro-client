@@ -42,12 +42,18 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionCollectLogs:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_help(self, _m_resources, _getuid, capsys):
+    def test_collect_logs_help(
+        self, _m_resources, _getuid, capsys, FakeConfig
+    ):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
             ):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
 

@@ -30,7 +30,7 @@ def setup_logging(console_level, log_level, log_file, logger):
 
 def main() -> int:
 
-    cfg = UAConfig()
+    cfg = UAConfig(root_mode=True)
     setup_logging(
         logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG
     )

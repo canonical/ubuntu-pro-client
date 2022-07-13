@@ -111,8 +111,7 @@ class TestActionDetach:
         m_getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:pro enable")
+        cfg.write_cache("lock", "123:pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list

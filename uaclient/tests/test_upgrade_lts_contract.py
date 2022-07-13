@@ -112,6 +112,7 @@ class TestUpgradeLTSContract:
         m_is_attached,
         capsys,
         caplog_text,
+        FakeConfig,
     ):
         m_parse_os.return_value = {"VERSION_ID": "20.04"}
 
@@ -140,7 +141,11 @@ class TestUpgradeLTSContract:
             "upgrade-lts-contract succeeded after 3 retries",
         ]
 
-        process_contract_delta_after_apt_lock()
+        with mock.patch(
+            "lib.upgrade_lts_contract.UAConfig",
+            return_value=FakeConfig(),
+        ):
+            process_contract_delta_after_apt_lock()
 
         assert 1 == m_is_attached.call_count
         assert 1 == m_parse_os.call_count

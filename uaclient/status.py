@@ -165,17 +165,19 @@ def _attached_status(cfg) -> Dict[str, Any]:
                 "tech_support_level": tech_support_level,
             },
             "account": {
-                "name": cfg.accounts[0]["name"],
-                "id": cfg.accounts[0]["id"],
-                "created_at": cfg.accounts[0].get("createdAt", ""),
-                "external_account_ids": cfg.accounts[0].get(
+                "name": cfg.machine_token_file.accounts[0]["name"],
+                "id": cfg.machine_token_file.accounts[0]["id"],
+                "created_at": cfg.machine_token_file.accounts[0].get(
+                    "createdAt", ""
+                ),
+                "external_account_ids": cfg.machine_token_file.accounts[0].get(
                     "externalAccountIDs", []
                 ),
             },
         }
     )
     if contractInfo.get("effectiveTo"):
-        response["expires"] = cfg.contract_expiry_datetime
+        response["expires"] = cfg.machine_token_file.contract_expiry_datetime
     if contractInfo.get("effectiveFrom"):
         response["effective"] = contractInfo["effectiveFrom"]
 
@@ -202,7 +204,9 @@ def _attached_status(cfg) -> Dict[str, Any]:
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
-    support = cfg.entitlements.get("support", {}).get("entitlement")
+    support = cfg.machine_token_file.entitlements.get("support", {}).get(
+        "entitlement"
+    )
     if support:
         supportLevel = support.get("affordances", {}).get("supportLevel")
         if supportLevel:

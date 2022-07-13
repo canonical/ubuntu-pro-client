@@ -116,14 +116,15 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
 
 
 def data_list_to_list(
-    val: List[Union["DataObject", list, str, int, bool]]
+    val: List[Union["DataObject", list, str, int, bool]],
+    keep_none: bool = True,
 ) -> list:
     new_val = []  # type: list
     for item in val:
         if isinstance(item, DataObject):
-            new_val.append(item.to_dict())
+            new_val.append(item.to_dict(keep_none))
         elif isinstance(item, list):
-            new_val.append(data_list_to_list(item))
+            new_val.append(data_list_to_list(item, keep_none))
         else:
             new_val.append(item)
     return new_val
@@ -175,9 +176,9 @@ class DataObject(DataValue):
             new_val = None  # type: Any
 
             if isinstance(val, DataObject):
-                new_val = val.to_dict()
+                new_val = val.to_dict(keep_none)
             elif isinstance(val, list):
-                new_val = data_list_to_list(val)
+                new_val = data_list_to_list(val, keep_none)
             else:
                 # simple type, just copy
                 new_val = val
