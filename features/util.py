@@ -162,17 +162,13 @@ def repo_state_hash(
     return hashlib.md5(output_to_hash).hexdigest()
 
 
-def build_debs(
-    series: str, cache_source: bool = False, chroot: Optional[str] = None
-) -> List[str]:
+def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
 
     :param series: The target series to build the package for
     :param output_deb_dir: the target directory in which to copy deb artifacts
-    :param cache_source: If False, we will always rebuild the source environemt
-                         for sbuild
 
     :return: A list of file paths to debs created by the build.
     """
@@ -196,45 +192,42 @@ def build_debs(
         return [tools_deb_cache_path, pro_deb_cache_path]
 
     logging.info("--- Creating: {}".format(SOURCE_PR_TGZ))
-    if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
-        os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
 
-    if not os.path.exists(SOURCE_PR_TGZ) or not cache_source:
-        cwd = os.getcwd()
-        os.chdir("..")
-        subprocess.run(
-            [
-                "tar",
-                "-zcf",
-                SOURCE_PR_TGZ,
-                "--exclude-vcs",
-                "--exclude-vcs-ignores",
-                os.path.basename(cwd),
-            ],
-            check=True,
-        )
-        os.chdir(cwd)
+    cwd = os.getcwd()
+    os.chdir("..")
+    subprocess.run(
+        [
+            "tar",
+            "-zcf",
+            SOURCE_PR_TGZ,
+            "--exclude-vcs",
+            "--exclude-vcs-ignores",
+            os.path.basename(cwd),
+        ],
+        check=True,
+    )
+    os.chdir(cwd)
 
     logging.info("--- Creating: {}".format(SOURCE_PR_UNTAR_DIR))
-    if not os.path.exists(SOURCE_PR_UNTAR_DIR) or not cache_source:
-        # Delete cached folder for pro code
-        if os.path.exists(SOURCE_PR_UNTAR_DIR):
-            shutil.rmtree(SOURCE_PR_UNTAR_DIR)
 
-        os.makedirs(SOURCE_PR_UNTAR_DIR)
-        subprocess.run(
-            [
-                "tar",
-                "-xvf",
-                SOURCE_PR_TGZ,
-                "-C",
-                SOURCE_PR_UNTAR_DIR,
-                "--strip-components=1",
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-        )
+    # Delete cached folder for pro code
+    if os.path.exists(SOURCE_PR_UNTAR_DIR):
+        shutil.rmtree(SOURCE_PR_UNTAR_DIR)
+
+    os.makedirs(SOURCE_PR_UNTAR_DIR)
+    subprocess.run(
+        [
+            "tar",
+            "-xvf",
+            SOURCE_PR_TGZ,
+            "-C",
+            SOURCE_PR_UNTAR_DIR,
+            "--strip-components=1",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True,
+    )
 
     if os.path.exists(SBUILD_DIR):
         shutil.rmtree(SBUILD_DIR)

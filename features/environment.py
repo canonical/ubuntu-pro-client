@@ -116,7 +116,6 @@ class UAClientBehaveConfig:
     boolean_options = [
         "image_clean",
         "destroy_instances",
-        "cache_source",
         "ephemeral_instance",
         "snapshot_strategy",
     ]
@@ -156,7 +155,6 @@ class UAClientBehaveConfig:
         cloud_credentials_path: str = None,
         image_clean: bool = True,
         destroy_instances: bool = True,
-        cache_source: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
         machine_type: str = "lxd.container",
@@ -178,7 +176,6 @@ class UAClientBehaveConfig:
     ) -> None:
         # First, store the values we've detected
         self.cloud_credentials_path = cloud_credentials_path
-        self.cache_source = cache_source
         self.ephemeral_instance = ephemeral_instance
         self.snapshot_strategy = snapshot_strategy
         self.contract_token = contract_token
@@ -609,7 +606,6 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
         )
         deb_paths = build_debs(
             series=series,
-            cache_source=context.config.cache_source,
             chroot=context.config.sbuild_chroot,
         )
 
