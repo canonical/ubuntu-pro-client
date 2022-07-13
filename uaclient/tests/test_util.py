@@ -776,7 +776,7 @@ class TestGetMachineId:
     ):
         data_machine_id = tmpdir.mkdir("private").join("machine-id")
         cfg = FakeConfig().for_attached_machine(
-            machine_token={"some": "thing"}
+            machine_token={"some": "thing"},
         )
         # Need to initialize the property with a noop,
         # so load_file is not called after mocked

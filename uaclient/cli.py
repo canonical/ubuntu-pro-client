@@ -134,7 +134,8 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     @staticmethod
     def _get_service_descriptions() -> Tuple[List[str], List[str]]:
-        cfg = config.UAConfig()
+        root_mode = os.getuid() == 0
+        cfg = config.UAConfig(root_mode=root_mode)
 
         service_info_tmpl = " - {name}: {description}{url}"
         non_beta_services_desc = []
@@ -1260,6 +1261,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
     cfg.delete_cache()
+    cfg.machine_token_file.delete()
     update_apt_and_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)
     return 0
@@ -1888,7 +1890,8 @@ def main_error_handler(func):
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
-    cfg = config.UAConfig()
+    is_root = os.getuid() == 0
+    cfg = config.UAConfig(root_mode=is_root)
     parser = get_parser(cfg=cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:

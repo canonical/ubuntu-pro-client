@@ -98,9 +98,15 @@ def logging_sandbox():
 @pytest.fixture
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
-        def __init__(self, cfg_overrides={}, features_override=None) -> None:
-            cfg_overrides.update({"data_dir": tmpdir.strpath})
-            super().__init__(cfg_overrides)
+        def __init__(
+            self,
+            cfg_overrides={},
+            features_override=None,
+            root_mode: bool = True,
+        ) -> None:
+            if not cfg_overrides.get("data_dir"):
+                cfg_overrides.update({"data_dir": tmpdir.strpath})
+            super().__init__(cfg_overrides, root_mode=root_mode)
 
         @classmethod
         def for_attached_machine(
@@ -108,6 +114,7 @@ def FakeConfig(tmpdir):
             account_name: str = "test_account",
             machine_token: Dict[str, Any] = None,
             status_cache: Dict[str, Any] = None,
+            root_mode: bool = True,
         ):
             if not machine_token:
                 machine_token = {
@@ -138,8 +145,8 @@ def FakeConfig(tmpdir):
             if not status_cache:
                 status_cache = {"attached": True}
 
-            config = cls()
-            config.write_cache("machine-token", machine_token)
+            config = cls(root_mode=root_mode)
+            config.machine_token_file.write(machine_token)
             config.write_cache("status-cache", status_cache)
             return config
 
