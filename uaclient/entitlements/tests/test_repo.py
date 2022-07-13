@@ -86,7 +86,7 @@ class TestUserFacingStatus:
         no_entitlements["machineTokenInfo"]["contractInfo"][
             "resourceEntitlements"
         ].pop()
-        entitlement.cfg.write_cache("machine-token", no_entitlements)
+        entitlement.cfg.machine_token_file.write(no_entitlements)
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
         applicability, _details = entitlement.applicability_status()
         assert ApplicabilityStatus.APPLICABLE == applicability
@@ -481,6 +481,7 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "util.should_reboot")
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
@@ -499,10 +500,10 @@ class TestRepoEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
+        _m_getuid,
         entitlement,
         capsys,
         caplog_text,
-        tmpdir,
         packages,
         with_pre_install_msg,
         should_reboot,
@@ -830,10 +831,10 @@ class TestSetupAptConfig:
             affordances={"series": ["xenial"]},
             obligations={"enableByDefault": enable_by_default},
         )
-        machine_token = entitlement.cfg.read_cache("machine-token")
+        machine_token = entitlement.cfg.machine_token_file.machine_token
         # Drop resourceTokens values from base machine-token.
         machine_token["resourceTokens"] = []
-        entitlement.cfg.write_cache("machine-token", machine_token)
+        entitlement.cfg.machine_token_file.write(machine_token)
         entitlement.setup_apt_config()
         expected_msg = (
             "No resourceToken present in contract for service Repo Test"

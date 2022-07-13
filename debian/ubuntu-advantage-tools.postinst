@@ -117,7 +117,7 @@ check_service_is_beta() {
 from uaclient.config import UAConfig
 from uaclient.entitlements import entitlement_factory
 try:
-    cfg = UAConfig()
+    cfg = UAConfig(root_mode=True)
     ent_cls = entitlement_factory(cfg=cfg, name='${service_name}')
     allow_beta = cfg.features.get('allow_beta', False)
     print(all([ent_cls.is_beta, not allow_beta]))
@@ -244,7 +244,7 @@ add_notice() {
     /usr/bin/python3 -c "
 from uaclient.config import UAConfig
 from uaclient.messages import ${msg_name}
-cfg = UAConfig()
+cfg = UAConfig(root_mode=True)
 cfg.add_notice(label='', description=${msg_name})
 "
 }

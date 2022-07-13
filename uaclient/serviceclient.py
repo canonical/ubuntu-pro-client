@@ -30,7 +30,8 @@ class UAServiceClient(metaclass=abc.ABCMeta):
 
     def __init__(self, cfg: Optional[config.UAConfig] = None) -> None:
         if not cfg:
-            self.cfg = config.UAConfig()
+            root_mode = os.getuid() == 0
+            self.cfg = config.UAConfig(root_mode=root_mode)
         else:
             self.cfg = cfg
 

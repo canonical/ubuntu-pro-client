@@ -29,10 +29,14 @@ Flags:
 @mock.patch("os.getuid", return_value=0)
 class TestActionRefresh:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_refresh_help(self, _m_resources, _getuid, capsys):
+    def test_refresh_help(self, _m_resources, _getuid, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT in out
 
@@ -69,8 +73,7 @@ class TestActionRefresh:
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:pro disable")
+        cfg.write_cache("lock", "123:pro disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_refresh(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list

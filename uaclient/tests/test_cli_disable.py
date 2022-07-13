@@ -6,25 +6,30 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import config, entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, messages
 from uaclient.cli import action_disable, main, main_error_handler
 from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
 )
 
-ALL_SERVICE_MSG = "\n".join(
-    textwrap.wrap(
-        "Try "
-        + ", ".join(
-            entitlements.valid_services(cfg=config.UAConfig(), allow_beta=True)
+
+@pytest.fixture
+def all_service_msg(FakeConfig):
+    ALL_SERVICE_MSG = "\n".join(
+        textwrap.wrap(
+            "Try "
+            + ", ".join(
+                entitlements.valid_services(cfg=FakeConfig(), allow_beta=True)
+            )
+            + ".",
+            width=80,
+            break_long_words=False,
+            break_on_hyphens=False,
         )
-        + ".",
-        width=80,
-        break_long_words=False,
-        break_on_hyphens=False,
     )
-)
+    return ALL_SERVICE_MSG
+
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -49,10 +54,14 @@ Flags:
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_disable_help(self, _m_resources, _getuid, capsys):
+    def test_disable_help(self, _m_resources, _getuid, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
@@ -311,7 +320,13 @@ class TestDisable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template, FakeConfig, event
+        self,
+        m_getuid,
+        uid,
+        expected_error_template,
+        FakeConfig,
+        event,
+        all_service_msg,
     ):
         """Check invalid service name results in custom error message."""
         m_getuid.return_value = uid
@@ -323,7 +338,7 @@ class TestDisable:
             expected_error = expected_error_template.format(
                 operation="disable",
                 invalid_service="bogus",
-                service_msg=ALL_SERVICE_MSG,
+                service_msg=all_service_msg,
             )
         else:
             expected_error = expected_error_template
@@ -363,7 +378,9 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
-    def test_invalid_service_names(self, m_getuid, service, FakeConfig, event):
+    def test_invalid_service_names(
+        self, m_getuid, service, FakeConfig, event, all_service_msg
+    ):
         m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
@@ -372,7 +389,7 @@ class TestDisable:
         expected_error = expected_error_tmpl.format(
             operation="disable",
             invalid_service=", ".join(sorted(service)),
-            service_msg=ALL_SERVICE_MSG,
+            service_msg=all_service_msg,
         )
         with pytest.raises(exceptions.UserFacingError) as err:
             args.service = service
@@ -475,8 +492,7 @@ class TestDisable:
         expected_error = messages.LOCK_HELD_ERROR.format(
             lock_request="pro disable", lock_holder="pro enable", pid="123"
         )
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:pro enable")
+        cfg.write_cache("lock", "123:pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)

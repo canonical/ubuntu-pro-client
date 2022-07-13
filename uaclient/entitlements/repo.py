@@ -40,9 +40,9 @@ class RepoEntitlement(base.UAEntitlement):
         """debs to install on enablement"""
         packages = []
 
-        entitlement = self.cfg.entitlements.get(self.name, {}).get(
-            "entitlement", {}
-        )
+        entitlement = self.cfg.machine_token_file.entitlements.get(
+            self.name, {}
+        ).get("entitlement", {})
 
         if entitlement:
             directives = entitlement.get("directives", {})
@@ -92,7 +92,9 @@ class RepoEntitlement(base.UAEntitlement):
     def application_status(
         self,
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
-        entitlement_cfg = self.cfg.entitlements.get(self.name, {})
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name, {}
+        )
         directives = entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
         )
@@ -296,7 +298,7 @@ class RepoEntitlement(base.UAEntitlement):
             http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
         )
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
-        resource_cfg = self.cfg.entitlements.get(self.name)
+        resource_cfg = self.cfg.machine_token_file.entitlements.get(self.name)
         directives = resource_cfg["entitlement"].get("directives", {})
         obligations = resource_cfg["entitlement"].get("obligations", {})
         token = resource_cfg.get("resourceToken")
@@ -399,7 +401,9 @@ class RepoEntitlement(base.UAEntitlement):
         """
         series = util.get_platform_info()["series"]
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
-        entitlement = self.cfg.entitlements[self.name].get("entitlement", {})
+        entitlement = self.cfg.machine_token_file.entitlements[self.name].get(
+            "entitlement", {}
+        )
         access_directives = entitlement.get("directives", {})
         repo_url = access_directives.get("aptURL")
         if not repo_url:

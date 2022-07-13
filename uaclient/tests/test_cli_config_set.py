@@ -59,14 +59,25 @@ class TestMainConfigSet:
     )
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_set_error_with_help_on_invalid_key_value_pair(
-        self, _m_resources, _logging, _getuid, kv_pair, err_msg, capsys
+        self,
+        _m_resources,
+        _logging,
+        _getuid,
+        kv_pair,
+        err_msg,
+        capsys,
+        FakeConfig,
     ):
         """Exit 1 and print help on invalid key_value_pair input param."""
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "config", "set", kv_pair]
             ):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, err = capsys.readouterr()
         assert HELP_OUTPUT == out
         assert err_msg in err

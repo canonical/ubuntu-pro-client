@@ -37,11 +37,20 @@ Flags:
 class TestActionEnable:
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_enable_help(
-        self, _m_resources, _getuid, _request_updated_contract, capsys
+        self,
+        _m_resources,
+        _getuid,
+        _request_updated_contract,
+        capsys,
+        FakeConfig,
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
@@ -75,7 +84,11 @@ class TestActionEnable:
                     "json",
                 ],
             ):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
 
         expected_message = messages.NONROOT_USER
         expected = {

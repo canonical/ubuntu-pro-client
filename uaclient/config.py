@@ -4,13 +4,12 @@ import logging
 import os
 import re
 from collections import namedtuple
-from datetime import datetime
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 import yaml
 
-from uaclient import apt, event_logger, exceptions, messages, snap, util
+from uaclient import apt, event_logger, exceptions, files, messages, snap, util
 from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -78,7 +77,6 @@ class UAConfig:
     data_paths = {
         "instance-id": DataPath("instance-id", True, False),
         "machine-access-cis": DataPath("machine-access-cis.json", True, False),
-        "machine-token": DataPath("machine-token.json", True, False),
         "lock": DataPath("lock", True, False),
         "status-cache": DataPath("status.json", False, False),
         "notices": DataPath("notices.json", False, False),
@@ -91,9 +89,6 @@ class UAConfig:
         "jobs-status": DataPath("jobs-status.json", False, True),
     }  # type: Dict[str, DataPath]
 
-    _entitlements = None  # caching to avoid repetitive file reads
-    _machine_token = None  # caching to avoid repetitive file reading
-    _contract_expiry_datetime = None
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
     global_scoped_proxy_options = (
         "global_apt_http_proxy",
@@ -104,7 +99,12 @@ class UAConfig:
         "apt_https_proxy",
     )
 
-    def __init__(self, cfg: Dict[str, Any] = None, series: str = None) -> None:
+    def __init__(
+        self,
+        cfg: Dict[str, Any] = None,
+        series: str = None,
+        root_mode: bool = False,
+    ) -> None:
         """"""
         if cfg:
             self.cfg_path = None
@@ -115,14 +115,18 @@ class UAConfig:
             self.cfg, self.invalid_keys = parse_config(self.cfg_path)
 
         self.series = series
+        self.root_mode = root_mode
+        self._machine_token_file = None
 
     @property
-    def accounts(self):
-        """Return the list of accounts that apply to this authorized user."""
-        if self.is_attached:
-            accountInfo = self.machine_token["machineTokenInfo"]["accountInfo"]
-            return [accountInfo]
-        return []
+    def machine_token_file(self):
+        if not self._machine_token_file:
+            self._machine_token_file = files.MachineTokenFile(
+                self.data_dir,
+                self.root_mode,
+                self.features.get("machine_token_overlay"),
+            )
+        return self._machine_token_file
 
     @property
     def contract_url(self) -> str:
@@ -381,76 +385,9 @@ class UAConfig:
         )
 
     @property
-    def entitlements(self):
-        """Return configured entitlements keyed by entitlement named"""
-        if self._entitlements:
-            return self._entitlements
-        if not self.machine_token:
-            return {}
-        self._entitlements = self.get_entitlements_from_token(
-            self.machine_token
-        )
-        return self._entitlements
-
-    @staticmethod
-    def get_entitlements_from_token(machine_token: Dict):
-        """Return a dictionary of entitlements keyed by entitlement name.
-
-        Return an empty dict if no entitlements are present.
-        """
-        if not machine_token:
-            return {}
-
-        entitlements = {}
-        contractInfo = machine_token.get("machineTokenInfo", {}).get(
-            "contractInfo"
-        )
-        if not contractInfo:
-            return {}
-
-        tokens_by_name = dict(
-            (e.get("type"), e.get("token"))
-            for e in machine_token.get("resourceTokens", [])
-        )
-        ent_by_name = dict(
-            (e.get("type"), e)
-            for e in contractInfo.get("resourceEntitlements", [])
-        )
-        for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = {"entitlement": ent_value}
-            if entitlement_name in tokens_by_name:
-                entitlement_cfg["resourceToken"] = tokens_by_name[
-                    entitlement_name
-                ]
-            util.apply_contract_overrides(entitlement_cfg)
-            entitlements[entitlement_name] = entitlement_cfg
-        return entitlements
-
-    @property
-    def contract_expiry_datetime(self) -> datetime:
-        """Return a datetime of the attached contract expiration."""
-        if not self._contract_expiry_datetime:
-            self._contract_expiry_datetime = self.machine_token[
-                "machineTokenInfo"
-            ]["contractInfo"]["effectiveTo"]
-
-        return self._contract_expiry_datetime
-
-    @property
     def is_attached(self):
         """Report whether this machine configuration is attached to UA."""
         return bool(self.machine_token)  # machine_token is removed on detach
-
-    @property
-    def contract_remaining_days(self) -> int:
-        """Report num days until contract expiration based on effectiveTo
-
-        :return: A positive int representing the number of days the attached
-            contract remains in effect. Return a negative int for the number
-            of days beyond contract's effectiveTo date.
-        """
-        delta = self.contract_expiry_datetime.date() - datetime.utcnow().date()
-        return delta.days
 
     @property
     def features(self):
@@ -470,80 +407,7 @@ class UAConfig:
     @property
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
-        if not self._machine_token:
-            raw_machine_token = self.read_cache("machine-token")
-
-            machine_token_overlay_path = self.features.get(
-                "machine_token_overlay"
-            )
-
-            if raw_machine_token and machine_token_overlay_path:
-                machine_token_overlay = self.parse_machine_token_overlay(
-                    machine_token_overlay_path
-                )
-
-                if machine_token_overlay:
-                    depth_first_merge_overlay_dict(
-                        base_dict=raw_machine_token,
-                        overlay_dict=machine_token_overlay,
-                    )
-
-            self._machine_token = raw_machine_token
-
-        return self._machine_token
-
-    @property
-    def activity_token(self) -> "Optional[str]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get(
-                "activityToken"
-            )
-        return None
-
-    @property
-    def activity_id(self) -> "Optional[str]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get("activityID")
-        return None
-
-    @property
-    def activity_ping_interval(self) -> "Optional[int]":
-        if self.machine_token:
-            return self.machine_token.get("activityInfo", {}).get(
-                "activityPingInterval"
-            )
-        return None
-
-    @property
-    def contract_id(self):
-        if self.machine_token:
-            return (
-                self.machine_token.get("machineTokenInfo", {})
-                .get("contractInfo", {})
-                .get("id")
-            )
-        return None
-
-    def parse_machine_token_overlay(self, machine_token_overlay_path):
-        if not os.path.exists(machine_token_overlay_path):
-            raise exceptions.UserFacingError(
-                messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
-                    file_path=machine_token_overlay_path
-                )
-            )
-
-        try:
-            machine_token_overlay_content = util.load_file(
-                machine_token_overlay_path
-            )
-
-            return json.loads(machine_token_overlay_content)
-        except ValueError as e:
-            raise exceptions.UserFacingError(
-                messages.ERROR_JSON_DECODING_IN_FILE.format(
-                    error=str(e), file_path=machine_token_overlay_path
-                )
-            )
+        return self.machine_token_file.machine_token
 
     def data_path(self, key: Optional[str] = None) -> str:
         """Return the file path in the data directory represented by the key"""
@@ -577,9 +441,8 @@ class UAConfig:
             raise RuntimeError(
                 "Invalid or empty key provided to delete_cache_key"
             )
-        if key.startswith("machine-access") or key == "machine-token":
-            self._entitlements = None
-            self._machine_token = None
+        if key.startswith("machine-access"):
+            self._machine_token_file = None
         elif key == "lock":
             self.remove_notice("", "Operation in progress.*")
         cache_path = self.data_path(key)
@@ -615,9 +478,8 @@ class UAConfig:
             os.makedirs(data_dir)
             if os.path.basename(data_dir) == PRIVATE_SUBDIR:
                 os.chmod(data_dir, 0o700)
-        if key.startswith("machine-access") or key == "machine-token":
-            self._machine_token = None
-            self._entitlements = None
+        if key.startswith("machine-access"):
+            self._machine_token_file = None
         elif key == "lock":
             if ":" in content:
                 self.add_notice(
@@ -885,50 +747,3 @@ def apply_config_settings_override(override_key: str):
         return new_f
 
     return wrapper
-
-
-def depth_first_merge_overlay_dict(base_dict, overlay_dict):
-    """Merge the contents of overlay dict into base_dict not only on top-level
-    keys, but on all on the depths of the overlay_dict object. For example,
-    using these values as entries for the function:
-
-    base_dict = {"a": 1, "b": {"c": 2, "d": 3}}
-    overlay_dict = {"b": {"c": 10}}
-
-    Should update base_dict into:
-
-    {"a": 1, "b": {"c": 10, "d": 3}}
-
-    @param base_dict: The dict to be updated
-    @param overlay_dict: The dict with information to be added into base_dict
-    """
-
-    def update_dict_list(base_values, overlay_values, key):
-        values_to_append = []
-        id_key = MERGE_ID_KEY_MAP.get(key)
-        for overlay_value in overlay_values:
-            was_replaced = False
-            for base_value_idx, base_value in enumerate(base_values):
-                if base_value.get(id_key) == overlay_value.get(id_key):
-                    depth_first_merge_overlay_dict(base_value, overlay_value)
-                    was_replaced = True
-
-            if not was_replaced:
-                values_to_append.append(overlay_value)
-
-        base_values.extend(values_to_append)
-
-    for key, value in overlay_dict.items():
-        base_value = base_dict.get(key)
-        if isinstance(base_value, dict) and isinstance(value, dict):
-            depth_first_merge_overlay_dict(base_dict[key], value)
-        elif isinstance(base_value, list) and isinstance(value, list):
-            if len(base_value) and isinstance(base_value[0], dict):
-                update_dict_list(base_dict[key], value, key=key)
-            else:
-                """
-                Most other lists which aren't lists of dicts are lists of
-                strs. Replace that list # with the overlay value."""
-                base_dict[key] = value
-        else:
-            base_dict[key] = value

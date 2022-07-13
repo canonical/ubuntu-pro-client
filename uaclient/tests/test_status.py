@@ -8,7 +8,6 @@ import mock
 import pytest
 
 from uaclient import messages, status
-from uaclient.config import UAConfig
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     entitlement_factory,
@@ -37,10 +36,14 @@ DEFAULT_CFG_STATUS = {
 }
 M_PATH = "uaclient.entitlements."
 
-ALL_RESOURCES_AVAILABLE = [
-    {"name": name, "available": True}
-    for name in valid_services(cfg=UAConfig(), allow_beta=True)
-]
+
+@pytest.fixture
+def all_resources_available(FakeConfig):
+    resources = [
+        {"name": name, "available": True}
+        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+    ]
+    return resources
 
 
 @pytest.fixture(params=[True, False])
@@ -259,14 +262,19 @@ class TestFormatTabular:
         assert uf_descr in format_tabular(status_dict_attached)
 
 
+@pytest.fixture
+def esm_desc(FakeConfig):
+    return entitlement_factory(cfg=FakeConfig(), name="esm-infra").description
+
+
+@pytest.fixture
+def ros_desc(FakeConfig):
+    return entitlement_factory(cfg=FakeConfig(), name="ros").description
+
+
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 class TestStatus:
-    esm_desc = entitlement_factory(
-        cfg=UAConfig(), name="esm-infra"
-    ).description
-    ros_desc = entitlement_factory(cfg=UAConfig(), name="ros").description
-
     def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:
             if status == "enabled":
@@ -284,36 +292,9 @@ class TestStatus:
 
         return False
 
-    @pytest.mark.parametrize(
-        "show_beta,expected_services",
-        (
-            (
-                True,
-                [
-                    {
-                        "available": "yes",
-                        "name": "esm-infra",
-                        "description": esm_desc,
-                    },
-                    {
-                        "available": "no",
-                        "name": "ros",
-                        "description": ros_desc,
-                    },
-                ],
-            ),
-            (
-                False,
-                [
-                    {
-                        "available": "yes",
-                        "name": "esm-infra",
-                        "description": esm_desc,
-                    }
-                ],
-            ),
-        ),
-    )
+    @pytest.mark.parametrize("show_beta", (True, False))
+    @pytest.mark.usefixtures("esm_desc")
+    @pytest.mark.usefixtures("ros_desc")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.status.os.getuid", return_value=0)
     def test_root_unattached(
@@ -322,11 +303,33 @@ class TestStatus:
         m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
+        ros_desc,
+        esm_desc,
         show_beta,
-        expected_services,
         FakeConfig,
     ):
         """Test we get the correct status dict when unattached"""
+        if show_beta:
+            expected_services = [
+                {
+                    "available": "yes",
+                    "name": "esm-infra",
+                    "description": esm_desc,
+                },
+                {
+                    "available": "no",
+                    "name": "ros",
+                    "description": ros_desc,
+                },
+            ]
+        else:
+            expected_services = [
+                {
+                    "available": "yes",
+                    "name": "esm-infra",
+                    "description": esm_desc,
+                }
+            ]
         cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
@@ -446,7 +449,9 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(machine_token=token)
+        cfg = FakeConfig.for_attached_machine(
+            machine_token=token,
+        )
         if features_override:
             cfg.override_features(features_override)
 
@@ -548,11 +553,10 @@ class TestStatus:
         m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
-        tmpdir,
         FakeConfig,
     ):
         """Ensure that non-root run after root returns data"""
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
 
         # Run as root
         m_getuid.return_value = 0
@@ -561,8 +565,10 @@ class TestStatus:
         # Replicate an attach by modifying the underlying config and confirm
         # that we see different status
         other_cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("accounts", {"accounts": other_cfg.accounts})
-        cfg.write_cache("machine-token", other_cfg.machine_token)
+        cfg.write_cache(
+            "accounts", {"accounts": other_cfg.machine_token_file.accounts}
+        )
+        cfg.for_attached_machine()
         cfg.delete_cache_key("status-cache")
         assert status._attached_status(cfg=cfg) != before
 
@@ -581,9 +587,9 @@ class TestStatus:
         _m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
-        tmpdir,
+        FakeConfig,
     ):
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         status.status(cfg=cfg)
 
         assert 0o644 == stat.S_IMODE(
@@ -618,6 +624,7 @@ class TestStatus:
             ],
         ),
     )
+    @pytest.mark.usefixtures("all_resources_available")
     @mock.patch("uaclient.status.os.getuid", return_value=0)
     @mock.patch(
         M_PATH + "fips.FIPSCommonEntitlement.application_status",
@@ -646,6 +653,7 @@ class TestStatus:
         _m_getuid,
         _m_should_reboot,
         m_remove_notice,
+        all_resources_available,
         entitlements,
         features_override,
         show_beta,
@@ -668,7 +676,7 @@ class TestStatus:
             messages.NamedMessage("test-code", "esm-apps details"),
         )
         token = {
-            "availableResources": ALL_RESOURCES_AVAILABLE,
+            "availableResources": all_resources_available,
             "machineTokenInfo": {
                 "machineId": "test_machine_id",
                 "accountInfo": {
@@ -687,7 +695,8 @@ class TestStatus:
             },
         }
         cfg = FakeConfig.for_attached_machine(
-            account_name="accountname", machine_token=token
+            account_name="accountname",
+            machine_token=token,
         )
         if features_override:
             cfg.override_features(features_override)
@@ -775,6 +784,7 @@ class TestStatus:
 
         assert expected_calls == m_remove_notice.call_args_list
 
+    @pytest.mark.usefixtures("all_resources_available")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.status.os.getuid")
     def test_expires_handled_appropriately(
@@ -783,10 +793,11 @@ class TestStatus:
         _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
+        all_resources_available,
         FakeConfig,
     ):
         token = {
-            "availableResources": ALL_RESOURCES_AVAILABLE,
+            "availableResources": all_resources_available,
             "machineTokenInfo": {
                 "machineId": "test_machine_id",
                 "accountInfo": {"id": "1", "name": "accountname"},
@@ -801,7 +812,8 @@ class TestStatus:
             },
         }
         cfg = FakeConfig.for_attached_machine(
-            account_name="accountname", machine_token=token
+            account_name="accountname",
+            machine_token=token,
         )
 
         # Test that root's status works as expected (including the cache write)
@@ -818,12 +830,12 @@ class TestStatus:
 
     @mock.patch("uaclient.status.os.getuid")
     def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, m_getuid, _m_should_reboot, m_remove_notice, tmpdir
+        self, m_getuid, _m_should_reboot, m_remove_notice, FakeConfig
     ):
         m_getuid.return_value = 1000
 
         expected_status = {"pass": True}
-        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg = FakeConfig()
         cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
         cfg.write_cache("status-cache", expected_status)
 
@@ -934,7 +946,8 @@ class TestAttachedServiceStatus:
         FakeConfig,
     ):
         ent = ConcreteTestEntitlement(
-            blocking_incompatible_services=blocking_incompatible_services
+            cfg=FakeConfig(),
+            blocking_incompatible_services=blocking_incompatible_services,
         )
         service_status = status._attached_service_status(ent, [])
         assert service_status["blocked_by"] == expected_blocked_by

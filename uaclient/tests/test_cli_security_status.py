@@ -42,13 +42,17 @@ complete status on Ubuntu Pro services, run 'pro status'
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestActionSecurityStatus:
     def test_security_status_help(
-        self, _m_resources, _m_security_status, capsys
+        self, _m_resources, _m_security_status, capsys, FakeConfig
     ):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "security-status", "--help"]
             ):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
 
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
@@ -99,7 +103,11 @@ class TestActionSecurityStatus:
 
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", cmdline_args):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
 
         _, err = capsys.readouterr()
 
