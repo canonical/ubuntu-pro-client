@@ -38,7 +38,6 @@ FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
     additional_packages = FIPS_ADDITIONAL_PACKAGES
-
     return partial(
         entitlement_factory,
         request.param,
@@ -902,7 +901,6 @@ class TestFIPSEntitlementDisable:
         _m_should_reboot,
         m_handle_message_operations,
         entitlement,
-        tmpdir,
     ):
         """When can_disable, disable removes apt config and packages."""
         with mock.patch.object(

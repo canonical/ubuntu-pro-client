@@ -97,18 +97,26 @@ def get_help(request, capsys, FakeConfig):
     if request.param == "direct":
 
         def _get_help_output():
-            parser = get_parser(cfg)
-            help_file = io.StringIO()
-            parser.print_help(file=help_file)
-            return (help_file.getvalue(), "base")
+            with mock.patch(
+                "uaclient.config.UAConfig",
+                return_value=FakeConfig(),
+            ):
+                parser = get_parser(cfg)
+                help_file = io.StringIO()
+                parser.print_help(file=help_file)
+                return (help_file.getvalue(), "base")
 
     elif request.param == "--help":
 
         def _get_help_output():
             parser = get_parser(cfg)
             with mock.patch("sys.argv", ["pro", "--help"]):
-                with pytest.raises(SystemExit):
-                    parser.parse_args()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    with pytest.raises(SystemExit):
+                        parser.parse_args()
             out, _err = capsys.readouterr()
             return (out, "base")
 
@@ -116,7 +124,11 @@ def get_help(request, capsys, FakeConfig):
 
         def _get_help_output():
             with mock.patch("sys.argv", request.param.split(" ")):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
             out, _err = capsys.readouterr()
 
             if "--all" in request.param:
@@ -483,13 +495,18 @@ class TestMain:
         exception,
         expected_error_msg,
         expected_log,
+        FakeConfig,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exception
 
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         assert 0 == m_delete_cache_key.call_count
 
         exc = excinfo.value
@@ -526,13 +543,18 @@ class TestMain:
         exception,
         expected_error_msg,
         expected_log,
+        FakeConfig,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exception
 
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         assert 0 == m_delete_cache_key.call_count
 
         exc = excinfo.value

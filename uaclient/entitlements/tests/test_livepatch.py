@@ -269,7 +269,7 @@ class TestLivepatchUserFacingStatus:
         no_entitlements["machineTokenInfo"]["contractInfo"][
             "resourceEntitlements"
         ].pop()
-        entitlement.cfg.write_cache("machine-token", no_entitlements)
+        entitlement.cfg.machine_token_file.write(no_entitlements)
 
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED

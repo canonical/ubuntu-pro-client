@@ -153,7 +153,9 @@ class TestMeteringTimedJob:
     ):
         m_run_interval_seconds.return_value = config_value
         m_cfg = mock.MagicMock()
-        type(m_cfg).activity_ping_interval = mock.PropertyMock(
+        type(
+            m_cfg.machine_token_file
+        ).activity_ping_interval = mock.PropertyMock(
             return_value=activity_ping_interval_value
         )
 

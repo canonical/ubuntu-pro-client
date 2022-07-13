@@ -94,7 +94,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def presentation_name(self) -> str:
         """The user-facing name shown for this entitlement"""
         return (
-            self.cfg.entitlements.get(self.name, {})
+            self.cfg.machine_token_file.entitlements.get(self.name, {})
             .get("entitlement", {})
             .get("affordances", {})
             .get("presentedAs", self.name)
@@ -170,7 +170,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         @param config: Parsed configuration dictionary
         """
         if not cfg:
-            cfg = config.UAConfig()
+            root_mode = os.getuid() == 0
+            cfg = config.UAConfig(root_mode=root_mode)
         self.cfg = cfg
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
@@ -521,7 +522,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             platform passes all defined affordances, INAPPLICABLE if it doesn't
             meet all of the provided constraints.
         """
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name
+        )
         if not entitlement_cfg:
             return (
                 ApplicabilityStatus.APPLICABLE,
@@ -739,14 +742,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """Return whether the user is entitled to the entitlement or not"""
         if not self.cfg.is_attached:
             return ContractStatus.UNENTITLED
-        entitlement_cfg = self.cfg.entitlements.get(self.name, {})
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name, {}
+        )
         if entitlement_cfg and entitlement_cfg["entitlement"].get("entitled"):
             return ContractStatus.ENTITLED
         return ContractStatus.UNENTITLED
 
     def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""
-        entitlement_contract = self.cfg.entitlements.get(self.name, {})
+        entitlement_contract = self.cfg.machine_token_file.entitlements.get(
+            self.name, {}
+        )
         # TODO(No expiry per resource in MVP yet)
         expire_str = entitlement_contract.get("expires")
         if not expire_str:
@@ -872,7 +879,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
             return UserFacingStatus.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name
+        )
         if not entitlement_cfg:
             return (
                 UserFacingStatus.UNAVAILABLE,

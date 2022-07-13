@@ -76,7 +76,7 @@ def machine_access(
 
 
 @pytest.fixture
-def entitlement_factory(tmpdir):
+def entitlement_factory(tmpdir, FakeConfig):
     """
     A pytest fixture that returns a function that instantiates an entitlement
 
@@ -106,9 +106,8 @@ def entitlement_factory(tmpdir):
             cfg_arg = {"data_dir": tmpdir.strpath}
             if cfg_extension is not None:
                 cfg_arg.update(cfg_extension)
-            cfg = config.UAConfig(cfg=cfg_arg)
-            cfg.write_cache(
-                "machine-token",
+            cfg = FakeConfig(cfg_overrides=cfg_arg)
+            cfg.machine_token_file.write(
                 machine_token(
                     cls.name,
                     affordances=affordances,

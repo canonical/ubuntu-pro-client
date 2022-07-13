@@ -422,7 +422,7 @@ class TestESMEntitlementDisable:
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
     def test_disable_on_can_disable_true_removes_apt_config(
-        self, _m_platform_info, m_update_apt_and_motd_msgs, entitlement, tmpdir
+        self, _m_platform_info, m_update_apt_and_motd_msgs, entitlement
     ):
         """When can_disable, disable removes apt configuration"""
 

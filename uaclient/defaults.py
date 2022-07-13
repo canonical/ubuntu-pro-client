@@ -7,7 +7,11 @@ any of our dependencies installed.
 
 UAC_ETC_PATH = "/etc/ubuntu-advantage/"
 DEFAULT_DATA_DIR = "/var/lib/ubuntu-advantage"
-DEFAULT_MACHINE_TOKEN_PATH = DEFAULT_DATA_DIR + "/private/machine-token.json"
+MACHINE_TOKEN_FILE = "machine-token.json"
+PRIVATE_SUBDIR = "/private"
+DEFAULT_PRIVATE_MACHINE_TOKEN_PATH = (
+    DEFAULT_DATA_DIR + PRIVATE_SUBDIR + "/" + MACHINE_TOKEN_FILE
+)
 DEFAULT_CONFIG_FILE = UAC_ETC_PATH + "uaclient.conf"
 DEFAULT_HELP_FILE = UAC_ETC_PATH + "help_data.yaml"
 DEFAULT_UPGRADE_CONTRACT_FLAG_FILE = UAC_ETC_PATH + "request-update-contract"
@@ -49,3 +53,6 @@ CONFIG_FIELD_ENVVAR_ALLOWLIST = [
     "ua_log_level",
     "ua_security_url",
 ]
+
+ROOT_READABLE_MODE = 0o600
+WORLD_READABLE_MODE = 0o644

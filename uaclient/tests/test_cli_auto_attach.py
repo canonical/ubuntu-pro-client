@@ -58,12 +58,16 @@ def fake_instance_factory():
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_auto_attach_help(self, _m_resources, _getuid, capsys):
+    def test_auto_attach_help(self, _m_resources, _getuid, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
             ):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 

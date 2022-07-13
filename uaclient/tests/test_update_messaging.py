@@ -419,9 +419,11 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert pkgs_msg == pkgs_tmpl.read()
             assert pkgs_msg == no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
+            exp_dt = cfg.machine_token_file.contract_expiry_datetime
+            exp_dt = exp_dt.strftime("%d %b %Y")
             pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
                 title="Ubuntu Pro: ESM Apps",
-                expired_date=cfg.contract_expiry_datetime.strftime("%d %b %Y"),
+                expired_date=exp_dt,
                 remaining_days=remaining_days
                 + CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
                 url=BASE_UA_URL,

@@ -1787,8 +1787,7 @@ A fix is available in Ubuntu standard updates.\n"""
             return_value="esm-infra"
         )
 
-        cfg = FakeConfig()
-        cfg.for_attached_machine()
+        cfg = FakeConfig().for_attached_machine()
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
@@ -1877,8 +1876,7 @@ A fix is available in Ubuntu standard updates.\n"""
             return_value="esm-infra"
         )
 
-        cfg = FakeConfig()
-        cfg.for_attached_machine()
+        cfg = FakeConfig().for_attached_machine()
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
@@ -1966,12 +1964,11 @@ A fix is available in Ubuntu standard updates.\n"""
         m_cli_attach.return_value = 0
         m_is_pocket_beta_service.return_value = False
 
-        cfg = FakeConfig()
-        cfg.for_attached_machine(
+        cfg = FakeConfig().for_attached_machine(
             status_cache={
                 "expires": "1999-12-01T00:00:00Z",
                 "attached": True,
-            }
+            },
         )
         with mock.patch("uaclient.util._subp", side_effect=_subp):
             with mock.patch("uaclient.util.sys") as m_sys:
@@ -2037,12 +2034,11 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type.return_value = ("cloud", None)
         m_is_pocket_beta_service.return_value = False
 
-        cfg = FakeConfig()
-        cfg.for_attached_machine(
+        cfg = FakeConfig().for_attached_machine(
             status_cache={
                 "expires": "1999-12-01T00:00:00Z",
                 "attached": True,
-            }
+            },
         )
 
         with mock.patch("uaclient.util._subp", side_effect=_subp):

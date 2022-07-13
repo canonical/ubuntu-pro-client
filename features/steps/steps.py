@@ -25,7 +25,10 @@ from features.environment import (
     create_instance_with_uat_installed,
 )
 from features.util import InstallationSource, SafeLoaderWithoutDatetime
-from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
+from uaclient.defaults import (
+    DEFAULT_CONFIG_FILE,
+    DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
+)
 from uaclient.util import DatetimeAwareJSONDecoder
 
 CONTAINER_PREFIX = "ubuntu-behave-test"
@@ -449,7 +452,7 @@ def when_i_update_contract_field_to_new_value(
             contract_field,
             contract_field,
             new_value,
-            DEFAULT_MACHINE_TOKEN_PATH,
+            DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
         ),
         user_spec="with sudo",
     )
@@ -909,7 +912,7 @@ def verify_systemd_timer_ran_or_scheduled(
 def i_save_the_key_value_from_contract(context, key):
     when_i_run_command(
         context,
-        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "jq -r '.{}' {}".format(key, DEFAULT_PRIVATE_MACHINE_TOKEN_PATH),
         "with sudo",
     )
     output = context.process.stdout.strip()
@@ -937,7 +940,7 @@ def i_verify_that_key_value_has_been_updated(context, key):
     saved_value = _get_saved_attr(context, key)
     when_i_run_command(
         context,
-        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "jq -r '.{}' {}".format(key, DEFAULT_PRIVATE_MACHINE_TOKEN_PATH),
         "with sudo",
     )
     assert_that(context.process.stdout.strip(), not_(equal_to(saved_value)))
@@ -948,7 +951,7 @@ def i_verify_that_key_value_has_not_been_updated(context, key):
     saved_value = _get_saved_attr(context, key)
     when_i_run_command(
         context,
-        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "jq -r '.{}' {}".format(key, DEFAULT_PRIVATE_MACHINE_TOKEN_PATH),
         "with sudo",
     )
     assert_that(context.process.stdout.strip(), equal_to(saved_value))

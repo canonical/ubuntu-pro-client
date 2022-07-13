@@ -89,7 +89,8 @@ class MeteringTimedJob(TimedJob):
         job, we will select the greater value between those two choices.
         """
         return max(
-            cfg.activity_ping_interval or 0, super().run_interval_seconds(cfg)
+            cfg.machine_token_file.activity_ping_interval or 0,
+            super().run_interval_seconds(cfg),
         )
 
 
@@ -127,7 +128,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
-    cfg = UAConfig()
+    cfg = UAConfig(root_mode=True)
     current_time = datetime.now(timezone.utc)
 
     # The ua-timer logger should log everything to its file

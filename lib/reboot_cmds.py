@@ -151,6 +151,6 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    cfg = config.UAConfig()
+    cfg = config.UAConfig(root_mode=True)
     setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
     main(cfg=cfg)

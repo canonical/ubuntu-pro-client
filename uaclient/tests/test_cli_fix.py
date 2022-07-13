@@ -31,10 +31,14 @@ Flags:
 
 class TestActionFix:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_fix_help(self, _m_resources, capsys):
+    def test_fix_help(self, _m_resources, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "fix", "--help"]):
-                main()
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
