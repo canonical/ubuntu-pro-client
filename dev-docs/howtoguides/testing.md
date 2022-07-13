@@ -49,7 +49,7 @@ The testing can be overridden to install ubuntu-advantage-tools from other sourc
 
 `local` is particularly useful, as it runs the suite against the local code, thus including and validating the latest changes made. It is advised to run any related integration tests against local code changes before pushing them to be reviewed.
 
-> Note that, by default, we cache the source even when `UACLIENT_BEHAVE_INSTALL_FROM=local`. This means that if you change the python code locally and want to run the behave tests against your new version, you need to either delete the cache (`rm /tmp/uaclient_behave`) or also set `UACLIENT_BEHAVE_CACHE_SOURCE=0`.
+> Note that we cache the source when running with `UACLIENT_BEHAVE_INSTALL_FROM=local` based on a hash, calculated from the repository state. If you change the python code locally and run the behave tests against your new version, there will be new debs in the cache source with the new repo state hash.
 
 To run the tests, you can use `tox`:
 
