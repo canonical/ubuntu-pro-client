@@ -345,7 +345,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I run `pro auto-attach` with sudo
         And I run `pro status --wait` as non-root
-        And I run `pro status` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
