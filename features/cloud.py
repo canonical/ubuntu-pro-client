@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import pycloudlib  # type: ignore
 import toml
-import yaml
+from pycloudlib.cloud import ImageType  # type: ignore
 
 DEFAULT_CONFIG_PATH = "~/.config/pycloudlib.toml"
 
@@ -28,7 +28,6 @@ class Cloud:
     """
 
     name = ""
-    pro_ids_path = ""
 
     def __init__(
         self,
@@ -195,17 +194,13 @@ class Cloud:
                 "Must provide either series or image_name to launch azure"
             )
 
-        if "pro" in self.machine_type:
-            with open(self.pro_ids_path, "r") as stream:
-                pro_ids = yaml.safe_load(stream.read())
-            if "fips" in self.machine_type:
-                image_name = pro_ids[series + "-fips"]
-            else:
-                image_name = pro_ids[series]
-        else:
-            image_name = self.api.daily_image(release=series)
+        image_type = ImageType.GENERIC
+        if "pro.fips" in self.machine_type:
+            image_type = ImageType.PRO_FIPS
+        elif "pro" in self.machine_type:
+            image_type = ImageType.PRO
 
-        return image_name
+        return self.api.daily_image(release=series, image_type=image_type)
 
     def manage_ssh_key(
         self,
@@ -243,7 +238,6 @@ class EC2(Cloud):
     """Class that represents the EC2 cloud provider."""
 
     name = "aws"
-    pro_ids_path = "features/aws-ids.yaml"
 
     @property
     def pycloudlib_cls(self):
@@ -334,7 +328,6 @@ class Azure(Cloud):
     """Class that represents the Azure cloud provider."""
 
     name = "Azure"
-    pro_ids_path = "features/azure-ids.yaml"
 
     @property
     def pycloudlib_cls(self):
@@ -439,7 +432,6 @@ class GCP(Cloud):
     """Class that represents the Google Cloud Platform cloud provider."""
 
     name = "gcp"
-    pro_ids_path = "features/gcp-ids.yaml"
     cls_type = pycloudlib.GCE
 
     @property

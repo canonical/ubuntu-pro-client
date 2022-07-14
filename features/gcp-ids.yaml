@@ -1,6 +1,0 @@
-bionic: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1804-bionic-v20220510
-bionic-fips: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-fips-1804-bionic-v20220411a
-focal: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-2004-focal-v20220426
-focal-fips: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-fips-2004-focal-v20220411b
-jammy: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-2204-jammy-v20220506
-xenial: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1604-xenial-v20211213
