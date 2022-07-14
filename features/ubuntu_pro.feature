@@ -345,7 +345,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
-        And I run `ua status` as non-root
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
