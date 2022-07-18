@@ -55,6 +55,8 @@ Feature: Unattached status
             fips          +<fips>      +NIST-certified core packages
             fips-updates  +<fips>      +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +Canonical Livepatch service
+            ros           +<ros>       +Security Updates for the Robot Operating System
+            ros-updates   +<ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to an Ubuntu Pro subscription.
@@ -90,6 +92,8 @@ Feature: Unattached status
             fips          +<fips>      +NIST-certified core packages
             fips-updates  +<fips>      +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +Canonical Livepatch service
+            ros           +<ros>       +Security Updates for the Robot Operating System
+            ros-updates   +<ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to an Ubuntu Pro subscription.
@@ -157,33 +161,35 @@ Feature: Unattached status
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
-            ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-            ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            """
+        """
+        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
+        ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
+        fips          +<fips>      +yes  +no   +NIST-certified core packages
+        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
+        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
+        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
+        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
+        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        """
         When I do a preflight check for `contract_token` with the all flag
         Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +yes  +yes  +Extended Security Maintenance for Applications
-            esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-            realtime-kernel +<realtime-kernel> +yes  +no  +Beta-version Ubuntu Kernel with PREEMPT_RT patches
-            ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            """
+        """
+        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        ?esm-apps      +<esm-apps>  +yes  +yes  +Extended Security Maintenance for Applications
+        esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
+        fips          +<fips>      +yes  +no   +NIST-certified core packages
+        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
+        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
+        realtime-kernel +<realtime-kernel> +yes  +no  +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
+        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
+        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        """
         When I do a preflight check for `contract_token` formatted as json
         Then stdout is a json matching the `ua_status` schema
         When I do a preflight check for `contract_token` formatted as yaml
@@ -191,23 +197,24 @@ Feature: Unattached status
         When I verify that a preflight check for `invalid_token` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
-            """
-            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-            """
+        """
+        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+        """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         And I will see the following on stdout:
-            """
-            environment_vars: []
-            errors:
-            - message: Invalid token. See https://ubuntu.com/pro
-              message_code: attach-invalid-token
-              service: null
-              type: system
-            result: failure
-            services: []
-            warnings: []
-            """
+        """
+        environment_vars: []
+        errors:
+        - message: Invalid token. See https://ubuntu.com/pro
+          message_code: attach-invalid-token
+          service: null
+          type: system
+        result: failure
+        services: []
+        warnings: []
+        """
+
         Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg | realtime-kernel |
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
@@ -226,36 +233,38 @@ Feature: Unattached status
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
         And stdout matches regexp:
-            """
-            \"result\": \"failure\"
-            """
+        """
+        \"result\": \"failure\"
+        """
         And stdout matches regexp:
-            """
-            \"message\": \"Contract .* expired on .*\"
-            """
+        """
+        \"message\": \"Contract .* expired on .*\"
+        """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
-            """
-            errors:
-            - message: Contract .* expired on .*
-            """
+        """
+        errors:
+        - message: Contract .* expired on .*
+        """
         When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
         Then stdout matches regexp:
-            """
-            This token is not valid.
-            Contract \".*\" expired on .*
+        """
+        This token is not valid.
+        Contract \".*\" expired on .*
 
-            SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
-            ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-            ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            """
+        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
+        ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
+        fips          +<fips>      +yes  +no   +NIST-certified core packages
+        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
+        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
+        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
+        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
+        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        """
 
         Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg |

@@ -268,8 +268,10 @@ def esm_desc(FakeConfig):
 
 
 @pytest.fixture
-def ros_desc(FakeConfig):
-    return entitlement_factory(cfg=FakeConfig(), name="ros").description
+def realtime_desc(FakeConfig):
+    return entitlement_factory(
+        cfg=FakeConfig(), name="realtime-kernel"
+    ).description
 
 
 @mock.patch("uaclient.config.UAConfig.remove_notice")
@@ -293,8 +295,6 @@ class TestStatus:
         return False
 
     @pytest.mark.parametrize("show_beta", (True, False))
-    @pytest.mark.usefixtures("esm_desc")
-    @pytest.mark.usefixtures("ros_desc")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.status.os.getuid", return_value=0)
     def test_root_unattached(
@@ -303,7 +303,7 @@ class TestStatus:
         m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
-        ros_desc,
+        realtime_desc,
         esm_desc,
         show_beta,
         FakeConfig,
@@ -318,8 +318,8 @@ class TestStatus:
                 },
                 {
                     "available": "no",
-                    "name": "ros",
-                    "description": ros_desc,
+                    "name": "realtime-kernel",
+                    "description": realtime_desc,
                 },
             ]
         else:
@@ -333,7 +333,7 @@ class TestStatus:
         cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
-            {"name": "ros", "available": False},
+            {"name": "realtime-kernel", "available": False},
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["version"] = mock.ANY

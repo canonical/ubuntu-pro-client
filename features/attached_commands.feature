@@ -550,6 +550,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
         """
         When I run `pro help` with sudo
         Then stdout matches regexp:
@@ -569,6 +573,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
         """
         When I run `pro help --all` as non-root
         Then stdout matches regexp:
@@ -654,6 +662,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
@@ -673,6 +685,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
