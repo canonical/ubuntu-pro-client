@@ -76,6 +76,8 @@ esm-infra        no         yes        yes           Extended Security Maintenan
 fips             no         no         no            NIST-certified core packages
 fips-updates     no         no         no            NIST-certified core packages with priority security updates
 livepatch        yes        yes        no            Canonical Livepatch service
+ros              no         no         no            Security Updates for the Robot Operating System
+ros-updates      no         no         no            All Updates for the Robot Operating System
 """  # noqa: E501
 
 UNATTACHED_STATUS = """\
@@ -85,6 +87,8 @@ esm-infra        no         Extended Security Maintenance for Infrastructure
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
+ros              no         Security Updates for the Robot Operating System
+ros-updates      no         All Updates for the Robot Operating System
 
 This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
@@ -117,6 +121,8 @@ esm-infra        no        {dash}         Extended Security Maintenance for Infr
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
+ros              no        {dash}         Security Updates for the Robot Operating System
+ros-updates      no        {dash}         All Updates for the Robot Operating System
 {notices}{features}
 Enable services with: pro enable <service>
 
@@ -126,7 +132,7 @@ Enable services with: pro enable <service>
 Technical support level: n/a
 """  # noqa: E501
 
-BETA_SVC_NAMES = ["realtime-kernel", "ros", "ros-updates"]
+BETA_SVC_NAMES = ["realtime-kernel"]
 
 SERVICES_JSON_ALL = [
     {
@@ -738,7 +744,18 @@ class TestActionStatus:
         ), mock.patch.object(event, "_command", "status"):
             assert 0 == action_status(args, cfg=cfg)
 
-        expected_services = [
+        beta_services = [
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "Beta-version Ubuntu Kernel with PREEMPT_RT"
+                " patches",
+                "entitled": "no",
+                "name": "realtime-kernel",
+            },
+        ]
+
+        services = [
             {
                 "auto_enabled": "yes",
                 "available": "yes",
@@ -778,14 +795,6 @@ class TestActionStatus:
             {
                 "auto_enabled": "no",
                 "available": "no",
-                "description": "Beta-version Ubuntu Kernel with PREEMPT_RT"
-                " patches",
-                "entitled": "no",
-                "name": "realtime-kernel",
-            },
-            {
-                "auto_enabled": "no",
-                "available": "no",
                 "description": "Security Updates for the Robot Operating"
                 " System",
                 "entitled": "no",
@@ -800,8 +809,11 @@ class TestActionStatus:
             },
         ]
 
+        expected_services = sorted(
+            services + beta_services, key=lambda x: x["name"]
+        )
         if not use_all:
-            expected_services = expected_services[:-3]
+            expected_services = services
 
         expected = {
             "_doc": "Content provided in json response is currently considered"

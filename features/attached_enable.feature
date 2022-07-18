@@ -144,11 +144,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `pro enable ros foobar --format json --assume-yes` `with sudo` exits `1`
+        And I verify that running `pro enable realtime-kernel foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, realtime-kernel'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar", "realtime-kernel"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         And I verify that running `pro enable esm-infra --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
@@ -179,11 +179,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                         |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg. |
-           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg. |
+           | release | valid_services                                                                       |
+           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
+           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -192,36 +192,36 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable foobar` `as non-root` exits `1`
         And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
+        """
+        This command must be run as root (try using sudo).
+        """
         And I verify that running `pro enable foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
-            """
-            Cannot enable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
-            """
-        And I verify that running `pro enable ros foobar` `with sudo` exits `1`
+        """
+        Cannot enable unknown service 'foobar'.
+        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
+        """
+        And I verify that running `pro enable realtime-kernel foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
-            """
-            Cannot enable unknown service 'foobar, ros'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
-            """
+        """
+        Cannot enable unknown service 'foobar, realtime-kernel'.
+        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
+        """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Ubuntu Pro: ESM Infra is already enabled.
-            See: sudo pro status
-            """
+        """
+        One moment, checking your subscription first
+        Ubuntu Pro: ESM Infra is already enabled.
+        See: sudo pro status
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
@@ -248,36 +248,36 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable foobar` `as non-root` exits `1`
         And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
+        """
+        This command must be run as root (try using sudo).
+        """
         And I verify that running `pro enable foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
-            """
-            Cannot enable unknown service 'foobar'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg.
-            """
-        And I verify that running `pro enable ros foobar` `with sudo` exits `1`
+        """
+        Cannot enable unknown service 'foobar'.
+        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
+        """
+        And I verify that running `pro enable realtime-kernel foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
-            """
-            Cannot enable unknown service 'foobar, ros'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg.
-            """
+        """
+        Cannot enable unknown service 'foobar, realtime-kernel'.
+        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
+        """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Ubuntu Pro: ESM Infra is already enabled.
-            See: sudo pro status
-            """
+        """
+        One moment, checking your subscription first
+        Ubuntu Pro: ESM Infra is already enabled.
+        See: sudo pro status
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
@@ -527,10 +527,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             One moment, checking your subscription first
             """
-        Then I will see the following on stderr:
+        And stderr matches regexp:
             """
             Cannot enable unknown service 'usg'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
             """
 
         Examples: cis service
@@ -831,7 +831,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         ros           +yes                disabled           Security Updates for the Robot Operating System
         """
-        When I run `pro enable ros --assume-yes --beta` with sudo
+        When I run `pro enable ros --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
@@ -867,13 +867,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         esm-apps      +yes                disabled           Extended Security Maintenance for Applications
         """
-        When I verify that running `pro enable ros --beta` `with sudo` and stdin `N` exits `1`
+        When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
         ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
         Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when Ubuntu Pro: ESM Apps is disabled.
         """
-        When I run `pro enable ros --beta` `with sudo` and stdin `y`
+        When I run `pro enable ros` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
@@ -904,7 +904,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `apt install python3-catkin-pkg -y` with sudo
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-security-source>`
 
-        When I run `pro enable ros-updates --assume-yes --beta` with sudo
+        When I run `pro enable ros-updates --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
@@ -924,7 +924,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
         Updating package lists
         """
-        When I run `pro enable ros-updates --beta` `with sudo` and stdin `y`
+        When I run `pro enable ros-updates` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
@@ -947,7 +947,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable ros --assume-yes` with sudo
         When I run `pro disable esm-apps --assume-yes` with sudo
         When I run `pro disable esm-infra --assume-yes` with sudo
-        When I run `pro enable ros-updates --assume-yes --beta` with sudo
+        When I run `pro enable ros-updates --assume-yes` with sudo
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
