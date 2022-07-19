@@ -20,7 +20,6 @@ import yaml
 
 from uaclient import (
     actions,
-    api,
     config,
     contract,
     daemon,
@@ -35,6 +34,7 @@ from uaclient import (
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.api.api import call_api
+from uaclient.api.u.pro.security.status.v1 import status as security_status_v1
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
@@ -519,7 +519,7 @@ def refresh_parser(parser):
 
 
 def action_security_status(args, *, cfg, **kwargs):
-    result = api.u.pro.security.status.v1.status().to_dict()
+    result = security_status_v1().to_dict()
     result["deprecated"] = "Instead use `ua api u.pro.security.status.v2`"
     # For now, --format is mandatory so no need to check for it here.
     if args.format == "json":
