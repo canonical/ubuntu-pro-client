@@ -469,6 +469,10 @@ def clean_apt_files(*, _entitlements=None):
             util.remove_file(pref_file)
 
 
+def is_installed(pkg: str) -> bool:
+    return pkg in get_installed_packages()
+
+
 def get_installed_packages() -> List[str]:
     out, _ = util.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
     return out.splitlines()
