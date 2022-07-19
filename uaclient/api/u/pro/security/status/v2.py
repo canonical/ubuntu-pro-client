@@ -1,5 +1,7 @@
 from typing import List
 
+from uaclient.api.api import APIEndpoint
+from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.u.pro.security.status import v1
 from uaclient.data_types import DataObject, Field, IntDataValue, data_list
 
@@ -55,7 +57,7 @@ class SecurityStatusSummary(DataObject):
         self.num_esm_apps_updates = num_esm_apps_updates
 
 
-class SecurityStatusResult(DataObject):
+class SecurityStatusResult(DataObject, AdditionalInfo):
     fields = [
         Field("summary", SecurityStatusSummary),
         Field("updates", data_list(SecurityStatusPackageUpdate)),
@@ -70,8 +72,8 @@ class SecurityStatusResult(DataObject):
         self.updates = updates
 
 
-def status() -> SecurityStatusResult:
-    v1_result = v1.status()
+def status(cfg=None) -> SecurityStatusResult:
+    v1_result = v1.status(cfg=cfg)
     return SecurityStatusResult(
         summary=SecurityStatusSummary(
             pro=v1_result.summary.ua,
@@ -94,3 +96,8 @@ def status() -> SecurityStatusResult:
         ),
         updates=v1_result.packages,
     )
+
+
+endpoint = APIEndpoint(
+    version="v2", name="SecurityStatus", fn=status, options_cls=None
+)

@@ -38,7 +38,7 @@ complete status on Ubuntu Pro services, run 'pro status'
 )
 
 
-@mock.patch("uaclient.api.u.pro.security.status.v1.status")
+@mock.patch(M_PATH + "security_status_v1")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestActionSecurityStatus:
     def test_security_status_help(

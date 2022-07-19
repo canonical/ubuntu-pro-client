@@ -1,0 +1,66 @@
+type: object
+properties:
+  _schema_version:
+    type: string
+  summary:
+    type: object
+    properties:
+      ua:
+        type: object
+        properties:
+          attached:
+            type: boolean
+          enabled_services:
+            type: array
+            items:
+              type: string
+          entitled_services:
+            type: array
+            items:
+              type: string
+      num_installed_packages:
+        type: integer
+      num_main_packages:
+        type: integer
+      num_multiverse_packages:
+        type: integer
+      num_restricted_packages:
+        type: integer
+      num_universe_packages:
+        type: integer
+      num_third_party_packages:
+        type: integer
+      num_unknown_packages:
+        type: integer
+      num_esm_infra_packages:
+        type: integer
+      num_esm_apps_packages:
+        type: integer
+      num_esm_infra_updates:
+        type: integer
+      num_esm_apps_updates:
+        type: integer
+      num_standard_security_updates:
+        type: integer
+  packages:
+    type: array
+    items:
+      type: object
+      properties:
+        package:
+          type: string
+        version:
+          type: string
+        service_name:
+          type: string
+        origin:
+          type: string
+        download_size:
+          type: integer
+        status:
+          type: string
+          enum:
+            - upgrade_available
+            - pending_attach
+            - pending_enable
+            - upgrade_unavailable

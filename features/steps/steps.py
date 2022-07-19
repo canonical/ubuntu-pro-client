@@ -967,6 +967,21 @@ def i_restore_the_saved_key_value_on_contract(context, key):
     )
 
 
+def validate_json_schema_by_name(instance, schema):
+    json_schema_file_path = "features/schemas/{}.json".format(schema)
+    yaml_schema_file_path = "features/schemas/{}.yaml".format(schema)
+
+    schema_dict = None
+    if os.path.exists(json_schema_file_path):
+        with open(json_schema_file_path, "r") as schema_file:
+            schema_dict = json.load(schema_file)
+    else:
+        with open(yaml_schema_file_path, "r") as schema_file:
+            schema_dict = yaml.safe_load(schema_file)
+
+    jsonschema.validate(instance=instance, schema=schema_dict)
+
+
 @then("stdout is a {output_format} matching the `{schema}` schema")
 def stdout_matches_the_json_schema(context, output_format, schema):
     if output_format == "json":
@@ -975,8 +990,7 @@ def stdout_matches_the_json_schema(context, output_format, schema):
         instance = yaml.load(
             context.process.stdout.strip(), SafeLoaderWithoutDatetime
         )
-    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
-        jsonschema.validate(instance=instance, schema=json.load(schema_file))
+    validate_json_schema_by_name(instance, schema)
 
 
 @then("the {output_format} API response data matches the `{schema}` schema")
@@ -987,11 +1001,9 @@ def api_response_matches_schema(context, output_format, schema):
         instance = yaml.load(
             context.process.stdout.strip(), SafeLoaderWithoutDatetime
         )
-    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
-        jsonschema.validate(
-            instance=instance.get("data", {}).get("attributes"),
-            schema=json.load(schema_file),
-        )
+    validate_json_schema_by_name(
+        instance.get("data", {}).get("attributes"), schema
+    )
 
 
 @then("`{file_name}` is not present in any docker image layer")

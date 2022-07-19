@@ -1,6 +1,8 @@
 from collections import defaultdict
 from typing import DefaultDict, List  # noqa: F401
 
+from uaclient.api.api import APIEndpoint
+from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.data_types import (
     BoolDataValue,
@@ -113,7 +115,7 @@ class SecurityStatusSummary(DataObject):
         self.num_esm_apps_updates = num_esm_apps_updates
 
 
-class SecurityStatusResult(DataObject):
+class SecurityStatusResult(DataObject, AdditionalInfo):
     fields = [
         Field("_schema_version", StringDataValue),
         Field("summary", SecurityStatusSummary),
@@ -131,8 +133,9 @@ class SecurityStatusResult(DataObject):
         self.packages = packages
 
 
-def status() -> SecurityStatusResult:
-    cfg = UAConfig()
+def status(cfg=None) -> SecurityStatusResult:
+    if not cfg:
+        cfg = UAConfig()
 
     ua_info = get_ua_info(cfg)
 
@@ -186,3 +189,11 @@ def status() -> SecurityStatusResult:
         ),
         packages=updates,
     )
+
+
+endpoint = APIEndpoint(
+    version="v1",
+    name="SecurityStatus",
+    fn=status,
+    options_cls=None,
+)
