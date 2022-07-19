@@ -10,7 +10,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
 
 
 @mock.patch("uaclient.contract.UAContractClient.get_magic_attach_token_info")
-class TestSimplifiedAttachWaitV1:
+class TestMagicAttachWaitV1:
     @mock.patch("time.sleep")
     def test_wait_succeds(self, m_sleep, m_attach_token_info, FakeConfig):
         magic_token = "test-id"
