@@ -25,6 +25,7 @@ from uaclient.apt import (
     clean_apt_files,
     find_apt_list_files,
     get_installed_packages,
+    is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
@@ -1033,3 +1034,19 @@ class TestAptProxyConfig:
         out, err = capsys.readouterr()
         assert expected_out == out.strip()
         assert "" == err
+
+
+class TestAptIsInstalled:
+    @pytest.mark.parametrize(
+        "expected,installed_pkgs",
+        (
+            (True, ("foo", "test", "bar")),
+            (False, ("foo", "bar")),
+        ),
+    )
+    @mock.patch("uaclient.apt.get_installed_packages")
+    def test_is_installed_pkgs(
+        self, m_get_installed_pkgs, expected, installed_pkgs
+    ):
+        m_get_installed_pkgs.return_value = installed_pkgs
+        assert expected == is_installed("test")
