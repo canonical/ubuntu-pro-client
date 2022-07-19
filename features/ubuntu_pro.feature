@@ -318,10 +318,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I reboot the `<release>` machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
-
         Then stdout matches regexp:
         """
         .*status=0\/SUCCESS.*
+        """
+        When I run `ua api u.pro.attach.auto.should_auto_attach.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": true}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release
@@ -437,10 +441,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I reboot the `<release>` machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
-
         Then stdout matches regexp:
         """
         .*status=0\/SUCCESS.*
+        """
+        When I run `ua api u.pro.attach.auto.should_auto_attach.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": true}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release
@@ -556,10 +564,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I reboot the `<release>` machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
-
         Then stdout matches regexp:
         """
         .*status=0\/SUCCESS.*
+        """
+        When I run `ua api u.pro.attach.auto.should_auto_attach.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": true}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release
