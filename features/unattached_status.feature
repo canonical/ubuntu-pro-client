@@ -57,7 +57,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        livepatch       +yes       +Canonical Livepatch service
+        livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
 
@@ -75,7 +75,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        livepatch       +yes       +Canonical Livepatch service
+        livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
@@ -99,7 +99,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        livepatch       +yes       +Canonical Livepatch service
+        livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
 

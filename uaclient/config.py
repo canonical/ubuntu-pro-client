@@ -21,6 +21,7 @@ from uaclient import (
 from uaclient.defaults import (
     APT_NEWS_URL,
     BASE_CONTRACT_URL,
+    BASE_LIVEPATCH_URL,
     BASE_SECURITY_URL,
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
@@ -66,6 +67,7 @@ VALID_UA_CONFIG_KEYS = (
     "timer_log_file",
     "daemon_log_file",
     "ua_config",
+    "livepatch_url",
 )
 
 # A data path is a filename, an attribute ("private") indicating whether it
@@ -144,6 +146,10 @@ class UAConfig:
     @property
     def security_url(self) -> str:
         return self.cfg.get("security_url", BASE_SECURITY_URL)
+
+    @property
+    def livepatch_url(self) -> str:
+        return self.cfg.get("livepatch_url", BASE_LIVEPATCH_URL)
 
     @property
     def http_proxy(self) -> Optional[str]:

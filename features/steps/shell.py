@@ -13,20 +13,21 @@ from features.util import SUT, process_template_vars
 def when_i_retry_run_command(context, command, user_spec, exit_codes):
     when_i_run_command(context, command, user_spec, verify_return=False)
     retries = [5, 5, 10]  # Sleep times to wait between retries
-    while str(context.process.returncode) in exit_codes.split(","):
-        try:
-            time.sleep(retries.pop(0))
-        except IndexError:  # no more timeouts
-            logging.warning(
-                "Exhausted retries waiting for exit codes: %s", exit_codes
-            )
-            break
+    while len(retries) > 0 and str(
+        context.process.returncode
+    ) in exit_codes.split(","):
+        time.sleep(retries.pop(0))
         logging.info(
             "--- Retrying on exit {exit_code}: {command}".format(
                 exit_code=context.process.returncode, command=command
             )
         )
         when_i_run_command(context, command, user_spec, verify_return=False)
+    logging.warning(
+        "Exhausted retries waiting for exit codes: %s. Final exit code: %d",
+        exit_codes,
+        context.process.returncode,
+    )
     assert_that(context.process.returncode, equal_to(0))
 
 
