@@ -1,5 +1,7 @@
+import datetime
 from typing import Any, Dict, List, Optional
 
+from uaclient import defaults
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -9,7 +11,6 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.defaults import MESSAGES_DIR
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
 from uaclient.files.files import UAFile
 
@@ -131,4 +132,42 @@ timer_jobs_state_file = DataObjectFile(
 )
 
 
-apt_news_contents_file = UAFile("apt-news", directory=MESSAGES_DIR)
+apt_news_contents_file = UAFile("apt-news", directory=defaults.MESSAGES_DIR)
+
+
+class LivepatchSupportCacheData(DataObject):
+    fields = [
+        Field("version", StringDataValue),
+        Field("flavor", StringDataValue),
+        Field("arch", StringDataValue),
+        Field("codename", StringDataValue),
+        Field("supported", BoolDataValue, required=False),
+        Field("cached_at", DatetimeDataValue),
+    ]
+
+    def __init__(
+        self,
+        version: str,
+        flavor: str,
+        arch: str,
+        codename: str,
+        supported: Optional[bool],
+        cached_at: datetime.datetime,
+    ):
+        self.version = version
+        self.flavor = flavor
+        self.arch = arch
+        self.codename = codename
+        self.supported = supported
+        self.cached_at = cached_at
+
+
+livepatch_support_cache = DataObjectFile(
+    LivepatchSupportCacheData,
+    UAFile(
+        "livepatch-kernel-support-cache.json",
+        directory=defaults.UAC_TMP_PATH,
+        private=False,
+    ),
+    file_format=DataObjectFileFormat.JSON,
+)

@@ -249,7 +249,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
-          livepatch     +(yes|no)   +Canonical Livepatch service
+          livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
           realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System

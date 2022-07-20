@@ -80,6 +80,7 @@ class UserFacingStatus(enum.Enum):
     INACTIVE = "disabled"
     INAPPLICABLE = "n/a"
     UNAVAILABLE = "—"
+    WARNING = "warning"
 
 
 @enum.unique
