@@ -609,15 +609,22 @@ def depth_first_merge_overlay_dict(base_dict, overlay_dict):
             base_dict[key] = value
 
 
+ARCH_ALIASES = {
+    "x86_64": "amd64",
+    "i686": "i386",
+    "ppc64le": "ppc64el",
+    "aarch64": "arm64",
+    "armv7l": "armhf",
+}
+
+
+def standardize_arch_name(arch: str) -> str:
+    arch_lower = arch.lower()
+    return ARCH_ALIASES.get(arch_lower, arch_lower)
+
+
 def deduplicate_arches(arches: List[str]) -> List[str]:
     deduplicated_arches = set()
-    arch_aliases = {
-        "x86_64": "amd64",
-        "i686": "i386",
-        "ppc64le": "ppc64el",
-        "aarch64": "arm64",
-        "armv7l": "armhf",
-    }
     for arch in arches:
-        deduplicated_arches.add(arch_aliases.get(arch.lower(), arch))
+        deduplicated_arches.add(standardize_arch_name(arch))
     return sorted(list(deduplicated_arches))

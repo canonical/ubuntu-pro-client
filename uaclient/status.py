@@ -11,7 +11,7 @@ from uaclient import event_logger, exceptions, messages, util, version
 from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements import entitlement_factory, livepatch
 from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingAvailability,
@@ -47,6 +47,9 @@ STATUS_COLOR = {
         TxtColor.DISABLEGREY
         + UserFacingStatus.UNAVAILABLE.value
         + TxtColor.ENDC
+    ),
+    UserFacingStatus.WARNING.value: (
+        TxtColor.WARNINGYELLOW + UserFacingStatus.WARNING.value + TxtColor.ENDC
     ),
     ContractStatus.ENTITLED.value: (
         TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC
@@ -116,8 +119,9 @@ def _get_blocked_by_services(ent):
 
 
 def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
+    warning = None
     status_details = ""
-    description_override = None
+    description_override = ent.status_description_override()
     contract_status = ent.contract_status()
     available = "no" if ent.name in inapplicable_resources else "yes"
 
@@ -129,7 +133,12 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
             description_override = inapplicable_resources[ent.name]
         else:
             ent_status, details = ent.user_facing_status()
-            if details:
+            if ent_status == UserFacingStatus.WARNING:
+                warning = {
+                    "code": details.name,
+                    "message": details.msg,
+                }
+            elif details:
                 status_details = details.msg
 
             if ent_status == UserFacingStatus.INAPPLICABLE:
@@ -146,6 +155,7 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
         "description_override": description_override,
         "available": available,
         "blocked_by": blocked_by,
+        "warning": warning,
     }
 
 
@@ -236,6 +246,7 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
             ent_cls = entitlement_factory(
                 cfg=cfg, name=resource.get("name", "")
             )
+
         except exceptions.EntitlementNotFoundError:
             LOG.debug(
                 messages.AVAILABILITY_FROM_UNKNOWN_SERVICE.format(
@@ -244,10 +255,22 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
             )
             continue
 
+        # FIXME: we need a better generic unattached availability status
+        # that takes into account local information.
+        if (
+            ent_cls.name == "livepatch"
+            and livepatch.on_supported_kernel() is False
+        ):
+            lp = ent_cls(cfg)
+            descr_override = lp.status_description_override()
+        else:
+            descr_override = None
+
         response["services"].append(
             {
                 "name": resource.get("presentedAs", resource["name"]),
                 "description": ent_cls.description,
+                "description_override": descr_override,
                 "available": available,
             }
         )
@@ -547,7 +570,7 @@ def get_section_column_content(
     Content lines will be center-aligned based on max value length of first
     column.
     """
-    content = [""]
+    content = []
     if header:
         content.append(header)
     template_length = max([len(pair[0]) for pair in column_data])
@@ -595,7 +618,17 @@ def format_tabular(status: Dict[str, Any]) -> str:
             )
         ]
         for service in status["services"]:
-            content.append(STATUS_UNATTACHED_TMPL.format(**service))
+            descr_override = service.get("description_override")
+            description = (
+                descr_override if descr_override else service["description"]
+            )
+            content.append(
+                STATUS_UNATTACHED_TMPL.format(
+                    name=service["name"],
+                    available=service["available"],
+                    description=description,
+                )
+            )
 
         if status.get("notices"):
             content.extend(
@@ -610,8 +643,13 @@ def format_tabular(status: Dict[str, Any]) -> str:
                 content.append("{}: {}".format(key, value))
 
         content.extend(["", messages.UNATTACHED.msg])
+        if livepatch.on_supported_kernel() is False:
+            content.extend(
+                ["", messages.LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED]
+            )
         return "\n".join(content)
 
+    service_warnings = []
     content = [STATUS_HEADER]
     for service_status in status["services"]:
         entitled = service_status["entitled"]
@@ -625,15 +663,23 @@ def format_tabular(status: Dict[str, Any]) -> str:
             "status": colorize(service_status["status"]),
             "description": description,
         }
+        warning = service_status.get("warning", None)
+        if warning is not None:
+            warning_message = warning.get("message", None)
+            if warning_message is not None:
+                service_warnings.append(warning_message)
         content.append(STATUS_TMPL.format(**fmt_args))
     tech_support_level = status["contract"]["tech_support_level"]
 
-    if status.get("notices"):
-        content.extend(
-            get_section_column_content(
-                status.get("notices") or [], header="NOTICES"
+    if status.get("notices") or len(service_warnings) > 0:
+        content.append("")
+        content.append("NOTICES")
+        if status.get("notices"):
+            content.extend(
+                get_section_column_content(status.get("notices") or [])
             )
-        )
+        if len(service_warnings) > 0:
+            content.extend(service_warnings)
 
     if status.get("features"):
         content.append("\nFEATURES")
@@ -656,6 +702,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
         pairs.append(("Technical support level", colorize(tech_support_level)))
 
     if pairs:
+        content.append("")
         content.extend(get_section_column_content(column_data=pairs))
 
     return "\n".join(content)

@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import datetime
 import io
 import logging
 from functools import partial
@@ -21,12 +22,18 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.entitlements.livepatch import (
     LIVEPATCH_CMD,
     LivepatchEntitlement,
+    UALivepatchClient,
+    _on_supported_kernel_api,
+    _on_supported_kernel_cache,
+    _on_supported_kernel_cli,
     configure_livepatch_proxy,
     get_config_option_value,
+    on_supported_kernel,
     process_config_directives,
     unconfigure_livepatch_proxy,
 )
 from uaclient.entitlements.tests.conftest import machine_token
+from uaclient.files.state_files import LivepatchSupportCacheData
 from uaclient.snap import SNAP_CMD
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
@@ -66,6 +73,542 @@ def livepatch_entitlement_factory(entitlement_factory):
 @pytest.fixture
 def entitlement(livepatch_entitlement_factory):
     return livepatch_entitlement_factory()
+
+
+@mock.patch(M_PATH + "serviceclient.UAServiceClient.request_url")
+@mock.patch(M_PATH + "serviceclient.UAServiceClient.headers")
+class TestUALivepatchClient:
+    @pytest.mark.parametrize(
+        [
+            "version",
+            "flavor",
+            "arch",
+            "codename",
+            "expected_request_calls",
+        ],
+        [
+            (
+                "1.23-4",
+                "generic",
+                "x86_64",
+                "xenial",
+                [
+                    mock.call(
+                        "/v1/api/kernels/supported",
+                        headers=mock.ANY,
+                        query_params={
+                            "kernel-version": "1.23-4",
+                            "flavour": "generic",
+                            "architecture": "x86_64",
+                            "codename": "xenial",
+                        },
+                    )
+                ],
+            ),
+            (
+                "5.67-8",
+                "kvm",
+                "arm64",
+                "kinetic",
+                [
+                    mock.call(
+                        "/v1/api/kernels/supported",
+                        headers=mock.ANY,
+                        query_params={
+                            "kernel-version": "5.67-8",
+                            "flavour": "kvm",
+                            "architecture": "arm64",
+                            "codename": "kinetic",
+                        },
+                    )
+                ],
+            ),
+        ],
+    )
+    def test_is_kernel_supported_calls_api_with_correct_params(
+        self,
+        m_headers,
+        m_request_url,
+        version,
+        flavor,
+        arch,
+        codename,
+        expected_request_calls,
+    ):
+        m_request_url.return_value = ("mock", "mock")
+        lp_client = UALivepatchClient()
+        lp_client.is_kernel_supported(version, flavor, arch, codename)
+        assert m_request_url.call_args_list == expected_request_calls
+
+    @pytest.mark.parametrize(
+        [
+            "request_side_effect",
+            "expected",
+        ],
+        [
+            ([({"Supported": True}, None)], True),
+            ([({"Supported": False}, None)], False),
+            ([({}, None)], False),
+            ([([], None)], None),
+            ([("string", None)], None),
+            (exceptions.UrlError(mock.MagicMock()), None),
+            (Exception(), None),
+        ],
+    )
+    def test_is_kernel_supported_interprets_api_response(
+        self,
+        m_headers,
+        m_request_url,
+        request_side_effect,
+        expected,
+    ):
+        m_request_url.side_effect = request_side_effect
+        lp_client = UALivepatchClient()
+        assert lp_client.is_kernel_supported("", "", "", "") == expected
+
+
+class TestOnSupportedKernel:
+    @pytest.mark.parametrize(
+        [
+            "is_livepatch_installed",
+            "subp_side_effect",
+            "expected",
+        ],
+        [
+            (False, None, None),
+            (True, exceptions.ProcessExecutionError(mock.MagicMock()), None),
+            (True, [("{}", None)], None),
+            (True, [('{"Status": []}', None)], None),
+            (True, [('{"Status": [{}]}', None)], None),
+            (True, [('{"Status": [{"Livepatch": {}}]}', None)], None),
+            (
+                True,
+                [
+                    (
+                        '{"Status": [{"Supported": "supported"}]}',  # noqa: E501
+                        None,
+                    )
+                ],
+                True,
+            ),
+            (
+                True,
+                [
+                    (
+                        '{"Status": [{"Supported": "unsupported"}]}',  # noqa: E501
+                        None,
+                    )
+                ],
+                False,
+            ),
+            (
+                True,
+                [
+                    (
+                        '{"Status": [{"Supported": "unknown"}]}',  # noqa: E501
+                        None,
+                    )
+                ],
+                None,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "system.subp")
+    @mock.patch(M_PATH + "is_livepatch_installed")
+    def test_on_supported_kernel_cli(
+        self,
+        m_is_livepatch_installed,
+        m_subp,
+        is_livepatch_installed,
+        subp_side_effect,
+        expected,
+    ):
+        m_is_livepatch_installed.return_value = is_livepatch_installed
+        m_subp.side_effect = subp_side_effect
+        assert _on_supported_kernel_cli() == expected
+
+    @pytest.mark.parametrize(
+        [
+            "args",
+            "cache_contents",
+            "expected",
+        ],
+        [
+            # valid true
+            (
+                ("5.14-14", "generic", "x86_64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=True,
+                ),
+                (True, True),
+            ),
+            # valid false
+            (
+                ("5.14-14", "generic", "x86_64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=False,
+                ),
+                (True, False),
+            ),
+            # valid none
+            (
+                ("5.14-14", "generic", "x86_64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=None,
+                ),
+                (True, None),
+            ),
+            # invalid version doesn't match
+            (
+                ("5.14-13", "generic", "x86_64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=True,
+                ),
+                (False, None),
+            ),
+            # invalid flavor doesn't match
+            (
+                ("5.14-14", "kvm", "x86_64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=True,
+                ),
+                (False, None),
+            ),
+            # invalid arch doesn't match
+            (
+                ("5.14-14", "generic", "arm64", "focal"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=True,
+                ),
+                (False, None),
+            ),
+            # invalid codename doesn't match
+            (
+                ("5.14-14", "generic", "x86_64", "xenial"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=6),
+                    supported=True,
+                ),
+                (False, None),
+            ),
+            # invalid too old
+            (
+                ("5.14-14", "generic", "x86_64", "xenial"),
+                LivepatchSupportCacheData(
+                    version="5.14-14",
+                    flavor="generic",
+                    arch="x86_64",
+                    codename="focal",
+                    cached_at=datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=8),
+                    supported=True,
+                ),
+                (False, None),
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "state_files.livepatch_support_cache.read")
+    def test_on_supported_kernel_cache(
+        self,
+        m_cache_read,
+        args,
+        cache_contents,
+        expected,
+    ):
+        m_cache_read.return_value = cache_contents
+        assert _on_supported_kernel_cache(*args) == expected
+
+    @pytest.mark.parametrize(
+        [
+            "args",
+            "is_kernel_supported",
+            "expected_cache_write_call_args",
+            "expected",
+        ],
+        [
+            (
+                ("5.14-14", "generic", "x86_64", "focal"),
+                True,
+                [
+                    mock.call(
+                        LivepatchSupportCacheData(
+                            version="5.14-14",
+                            flavor="generic",
+                            arch="x86_64",
+                            codename="focal",
+                            supported=True,
+                            cached_at=mock.ANY,
+                        )
+                    )
+                ],
+                True,
+            ),
+            (
+                ("5.14-14", "kvm", "arm64", "focal"),
+                False,
+                [
+                    mock.call(
+                        LivepatchSupportCacheData(
+                            version="5.14-14",
+                            flavor="kvm",
+                            arch="arm64",
+                            codename="focal",
+                            supported=False,
+                            cached_at=mock.ANY,
+                        )
+                    )
+                ],
+                False,
+            ),
+            (
+                ("4.14-14", "kvm", "arm64", "xenial"),
+                None,
+                [
+                    mock.call(
+                        LivepatchSupportCacheData(
+                            version="4.14-14",
+                            flavor="kvm",
+                            arch="arm64",
+                            codename="xenial",
+                            supported=None,
+                            cached_at=mock.ANY,
+                        )
+                    )
+                ],
+                None,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "state_files.livepatch_support_cache.write")
+    @mock.patch(M_PATH + "UALivepatchClient.is_kernel_supported")
+    def test_on_supported_kernel_api(
+        self,
+        m_is_kernel_supported,
+        m_cache_write,
+        args,
+        is_kernel_supported,
+        expected_cache_write_call_args,
+        expected,
+    ):
+        m_is_kernel_supported.return_value = is_kernel_supported
+        assert _on_supported_kernel_api(*args) == expected
+        assert m_cache_write.call_args_list == expected_cache_write_call_args
+
+    @pytest.mark.parametrize(
+        [
+            "cli_result",
+            "get_kernel_info_result",
+            "standardize_arch_name_result",
+            "get_platform_info_result",
+            "cache_result",
+            "api_result",
+            "cache_call_args",
+            "api_call_args",
+            "expected",
+        ],
+        [
+            # cli result true
+            (
+                True,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                True,
+            ),
+            # cli result false
+            (
+                False,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                False,
+            ),
+            # insufficient kernel info
+            (
+                None,
+                system.KernelInfo(
+                    uname_release="",
+                    proc_version_signature_version="",
+                    flavor=None,
+                    major=5,
+                    minor=6,
+                    abi=7,
+                    patch=None,
+                ),
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                None,
+            ),
+            # cache result true
+            (
+                None,
+                system.KernelInfo(
+                    uname_release="",
+                    proc_version_signature_version="",
+                    flavor="generic",
+                    major=5,
+                    minor=6,
+                    abi=7,
+                    patch=None,
+                ),
+                "amd64",
+                {"series": "xenial"},
+                (True, True),
+                None,
+                [mock.call("5.6", "generic", "amd64", "xenial")],
+                [],
+                True,
+            ),
+            # cache result false
+            (
+                None,
+                system.KernelInfo(
+                    uname_release="",
+                    proc_version_signature_version="",
+                    flavor="generic",
+                    major=5,
+                    minor=6,
+                    abi=7,
+                    patch=None,
+                ),
+                "amd64",
+                {"series": "xenial"},
+                (True, False),
+                None,
+                [mock.call("5.6", "generic", "amd64", "xenial")],
+                [],
+                False,
+            ),
+            # cache result none
+            (
+                None,
+                system.KernelInfo(
+                    uname_release="",
+                    proc_version_signature_version="",
+                    flavor="generic",
+                    major=5,
+                    minor=6,
+                    abi=7,
+                    patch=None,
+                ),
+                "amd64",
+                {"series": "xenial"},
+                (True, None),
+                None,
+                [mock.call("5.6", "generic", "amd64", "xenial")],
+                [],
+                None,
+            ),
+            # api result true
+            (
+                None,
+                system.KernelInfo(
+                    uname_release="",
+                    proc_version_signature_version="",
+                    flavor="generic",
+                    major=5,
+                    minor=6,
+                    abi=7,
+                    patch=None,
+                ),
+                "amd64",
+                {"series": "xenial"},
+                (False, None),
+                True,
+                [mock.call("5.6", "generic", "amd64", "xenial")],
+                [mock.call("5.6", "generic", "amd64", "xenial")],
+                True,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "_on_supported_kernel_api")
+    @mock.patch(M_PATH + "_on_supported_kernel_cache")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "util.standardize_arch_name")
+    @mock.patch(M_PATH + "system.get_lscpu_arch")
+    @mock.patch(M_PATH + "system.get_kernel_info")
+    @mock.patch(M_PATH + "_on_supported_kernel_cli")
+    def test_on_supported_kernel(
+        self,
+        m_supported_cli,
+        m_get_kernel_info,
+        m_get_lscpu_arch,
+        m_standardize_arch_name,
+        m_get_platform_info,
+        m_supported_cache,
+        m_supported_api,
+        cli_result,
+        get_kernel_info_result,
+        standardize_arch_name_result,
+        get_platform_info_result,
+        cache_result,
+        api_result,
+        cache_call_args,
+        api_call_args,
+        expected,
+    ):
+        m_supported_cli.return_value = cli_result
+        m_get_kernel_info.return_value = get_kernel_info_result
+        m_standardize_arch_name.return_value = standardize_arch_name_result
+        m_get_platform_info.return_value = get_platform_info_result
+        m_supported_cache.return_value = cache_result
+        m_supported_api.return_value = api_result
+        assert on_supported_kernel.__wrapped__() == expected
+        assert m_supported_cache.call_args_list == cache_call_args
+        assert m_supported_api.call_args_list == api_call_args
 
 
 class TestConfigureLivepatchProxy:
@@ -241,11 +784,18 @@ class TestLivepatchContractStatus:
 
 class TestLivepatchUserFacingStatus:
     @mock.patch(
+        "uaclient.entitlements.livepatch.on_supported_kernel",
+        return_value=None,
+    )
+    @mock.patch(
         "uaclient.entitlements.livepatch.system.is_container",
-        return_value=False,
+        return_value=True,
     )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
-        self, _m_is_container, livepatch_entitlement_factory
+        self,
+        _m_is_container,
+        _m_on_supported_kernel,
+        livepatch_entitlement_factory,
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
         affordances = copy.deepcopy(DEFAULT_AFFORDANCES)
@@ -259,10 +809,7 @@ class TestLivepatchUserFacingStatus:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == UserFacingStatus.INAPPLICABLE
-        expected_details = (
-            "Livepatch is not available for Ubuntu 16.04 LTS"
-            " (Xenial Xerus)."
-        )
+        expected_details = "Cannot install Livepatch on a container."
         assert expected_details == details.msg
 
     def test_user_facing_status_unavailable_on_unentitled(self, entitlement):
@@ -402,169 +949,6 @@ class TestLivepatchEntitlementCanEnable:
             assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
         assert [mock.call()] == m_container.call_args_list
-
-    @mock.patch(
-        "uaclient.system.get_kernel_info",
-        return_value=system.KernelInfo(
-            uname_release="4.4.0-140-notgeneric",
-            proc_version_signature_version="",
-            major=4,
-            minor=4,
-            patch=0,
-            abi="140",
-            flavor="notgeneric",
-        ),
-    )
-    @mock.patch(
-        "uaclient.system.get_platform_info",
-        return_value=PLATFORM_INFO_SUPPORTED,
-    )
-    def test_can_enable_false_on_unsupported_kernel_flavor(
-        self,
-        _m_platform,
-        _m_kernel_info,
-        _m_is_container,
-        _m_livepatch_status,
-        _m_fips_status,
-        entitlement,
-    ):
-        """When on an unsupported kernel, can_enable returns False."""
-        entitlement = LivepatchEntitlement(entitlement.cfg)
-        result, reason = entitlement.can_enable()
-        assert False is result
-        assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-        msg = (
-            "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
-            "Supported flavors are: generic, lowlatency."
-        )
-        assert msg == reason.message.msg
-
-    @pytest.mark.parametrize(
-        "kernel_info,meets_min_version",
-        (
-            (
-                system.KernelInfo(
-                    uname_release="3.5.0-00-generic",
-                    proc_version_signature_version="",
-                    major=3,
-                    minor=5,
-                    patch=0,
-                    abi="00",
-                    flavor="generic",
-                ),
-                False,
-            ),
-            (
-                system.KernelInfo(
-                    uname_release="4.2.9-00-generic",
-                    proc_version_signature_version="",
-                    major=4,
-                    minor=2,
-                    patch=9,
-                    abi="00",
-                    flavor="generic",
-                ),
-                False,
-            ),
-            (
-                system.KernelInfo(
-                    uname_release="4.3.0-00-generic",
-                    proc_version_signature_version="",
-                    major=4,
-                    minor=3,
-                    patch=0,
-                    abi="00",
-                    flavor="generic",
-                ),
-                False,
-            ),
-            (
-                system.KernelInfo(
-                    uname_release="4.4.0-00-generic",
-                    proc_version_signature_version="",
-                    major=4,
-                    minor=4,
-                    patch=0,
-                    abi="00",
-                    flavor="generic",
-                ),
-                True,
-            ),
-            (
-                system.KernelInfo(
-                    uname_release="4.10.0-00-generic",
-                    proc_version_signature_version="",
-                    major=4,
-                    minor=10,
-                    patch=0,
-                    abi="00",
-                    flavor="generic",
-                ),
-                True,
-            ),
-            (
-                system.KernelInfo(
-                    uname_release="5.0.0-00-generic",
-                    proc_version_signature_version="",
-                    major=5,
-                    minor=0,
-                    patch=0,
-                    abi="00",
-                    flavor="generic",
-                ),
-                True,
-            ),
-        ),
-    )
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch(
-        "uaclient.system.get_platform_info",
-        return_value=PLATFORM_INFO_SUPPORTED,
-    )
-    def test_can_enable_false_on_unsupported_min_kernel_version(
-        self,
-        _m_platform,
-        m_kernel_info,
-        _m_is_container,
-        _m_livepatch_status,
-        _m_fips_status,
-        kernel_info,
-        meets_min_version,
-        entitlement,
-    ):
-        """When on an unsupported kernel version, can_enable returns False."""
-        m_kernel_info.return_value = kernel_info
-        entitlement = LivepatchEntitlement(entitlement.cfg)
-        if meets_min_version:
-            assert (True, None) == entitlement.can_enable()
-        else:
-            result, reason = entitlement.can_enable()
-            assert False is result
-            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-            msg = (
-                "Livepatch is not available for kernel {}.\n"
-                "Minimum kernel version required: 4.4.".format(
-                    kernel_info.uname_release
-                )
-            )
-            assert msg == reason.message.msg
-
-    def test_can_enable_false_on_unsupported_architecture(
-        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
-    ):
-        """When on an unsupported architecture, can_enable returns False."""
-        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_kernel["arch"] = "ppc64le"
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            m_platform.return_value = unsupported_kernel
-            result, reason = entitlement.can_enable()
-            assert False is result
-            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-            msg = (
-                "Livepatch is not available for platform ppc64le.\n"
-                "Supported platforms are: amd64."
-            )
-            assert msg == reason.message.msg
 
     def test_can_enable_false_on_containers(
         self, m_is_container, _m_livepatch_status, _m_fips_status, entitlement
@@ -732,7 +1116,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.apt.run_apt_install_command")
     @mock.patch("uaclient.apt.run_apt_update_command")
-    @mock.patch("uaclient.system.which", return_value=False)
+    @mock.patch("uaclient.system.which", return_value=None)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -797,7 +1181,8 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch(
-        "uaclient.system.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
+        "uaclient.system.which",
+        side_effect=lambda cmd: cmd if cmd == "/usr/bin/snap" else None,
     )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -844,7 +1229,8 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch("uaclient.system.subp")
     @mock.patch(
-        "uaclient.system.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
+        "uaclient.system.which",
+        side_effect=lambda cmd: cmd if cmd == "/usr/bin/snap" else None,
     )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -882,7 +1268,9 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
-    @mock.patch("uaclient.system.which", side_effect=[True, True])
+    @mock.patch(
+        "uaclient.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
+    )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -935,7 +1323,9 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
-    @mock.patch("uaclient.system.which", side_effect=[True, True])
+    @mock.patch(
+        "uaclient.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
+    )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -1036,7 +1426,7 @@ class TestLivepatchEntitlementEnable:
         caplog_text,
         event,
     ):
-        m_which.side_effect = [True, False]
+        m_which.side_effect = ["/path/to/exe", None]
         m_is_installed.return_value = True
 
         stderr_msg = (
@@ -1131,7 +1521,7 @@ class TestLivepatchEntitlementEnable:
         m_is_installed,
         entitlement,
     ):
-        m_which.side_effect = [False, True]
+        m_which.side_effect = [None, "/path/to/exe"]
         m_is_installed.return_value = True
         stderr_msg = "test error"
 
@@ -1168,7 +1558,7 @@ class TestLivepatchEntitlementEnable:
 
 
 class TestLivepatchApplicationStatus:
-    @pytest.mark.parametrize("which_result", ((True), (False)))
+    @pytest.mark.parametrize("which_result", (("/path/to/exe"), (None)))
     @pytest.mark.parametrize("subp_raise_exception", ((True), (False)))
     @mock.patch("uaclient.system.which")
     @mock.patch("uaclient.system.subp")
@@ -1193,7 +1583,7 @@ class TestLivepatchApplicationStatus:
             assert details is None
 
     @mock.patch("time.sleep")
-    @mock.patch("uaclient.system.which", return_value=True)
+    @mock.patch("uaclient.system.which", return_value="/path/to/exe")
     def test_status_command_retry_on_application_status(
         self, m_which, m_sleep, entitlement
     ):

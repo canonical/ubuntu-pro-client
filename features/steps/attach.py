@@ -1,11 +1,9 @@
-import logging
-import time
-
 from behave import when
 
 from features.steps.contract import change_contract_endpoint_to_staging
 from features.steps.shell import (
     then_i_verify_that_running_cmd_with_spec_exits_with_codes,
+    when_i_retry_run_command,
     when_i_run_command,
 )
 
@@ -32,22 +30,10 @@ def when_i_attach_staging_token(
     ):
         change_contract_endpoint_to_staging(context, user_spec)
     cmd = "pro attach {} {}".format(token, options).strip()
-    when_i_run_command(context, cmd, user_spec, verify_return=False)
-
     if verify_return:
-        retries = [5, 5, 10]  # Sleep times to wait between retries
-        while context.process.returncode != 0:
-            try:
-                time.sleep(retries.pop(0))
-            except IndexError:  # no more timeouts
-                logging.warning("Exhausted retries waiting for exit code: 0")
-                break
-            logging.info(
-                "--- Retrying on exit {exit_code}: {cmd}".format(
-                    exit_code=context.process.returncode, cmd=cmd
-                )
-            )
-            when_i_run_command(context, cmd, user_spec, verify_return=False)
+        when_i_retry_run_command(context, cmd, user_spec, ERROR_CODE)
+    else:
+        when_i_run_command(context, cmd, user_spec, verify_return=False)
 
 
 @when("I attempt to attach `{token_type}` {user_spec}")
