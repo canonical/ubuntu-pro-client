@@ -42,6 +42,7 @@ class TxtColor:
     OKGREEN = "\033[92m"
     DISABLEGREY = "\033[37m"
     INFOBLUE = "\033[94m"
+    WARNINGYELLOW = "\033[93m"
     FAIL = "\033[91m"
     BOLD = "\033[1m"
     ENDC = "\033[0m"
@@ -1134,3 +1135,13 @@ INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-enum-value",
     "Value provided was not found in {enum_class}'s allowed: value: {values}",
 )
+
+LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
+    name="livepatch-kernel-not-supported",
+    msg="""\
+The current kernel ({version}, {arch}) is not supported by livepatch.
+Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""",  # noqa: E501
+)
+LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
+LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = "Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels"  # noqa: E501

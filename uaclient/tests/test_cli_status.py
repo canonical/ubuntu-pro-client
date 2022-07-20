@@ -159,6 +159,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Expanded Security Maintenance for Infrastructure",
@@ -169,6 +170,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "NIST-certified core packages",
@@ -179,6 +181,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "no",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": (
@@ -191,6 +194,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "no",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Canonical Livepatch service",
@@ -201,6 +205,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Ubuntu kernel with PREEMPT_RT patches integrated",
@@ -211,6 +216,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "no",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Security Updates for the Robot Operating System",
@@ -221,6 +227,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "no",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "All Updates for the Robot Operating System",
@@ -231,6 +238,7 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "no",
         "blocked_by": [],
+        "warning": None,
     },
 ]
 
@@ -244,6 +252,7 @@ SERVICES_JSON = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Expanded Security Maintenance for Infrastructure",
@@ -254,6 +263,7 @@ SERVICES_JSON = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
     {
         "description": "Canonical Livepatch service",
@@ -264,6 +274,7 @@ SERVICES_JSON = [
         "status_details": "",
         "available": "yes",
         "blocked_by": [],
+        "warning": None,
     },
 ]
 
@@ -317,6 +328,9 @@ Flags:
 )
 
 
+@mock.patch(
+    "uaclient.entitlements.livepatch.on_supported_kernel", return_value=None
+)
 @mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(
@@ -336,6 +350,7 @@ class TestActionStatus:
         _m_get_available_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         capsys,
         FakeConfig,
     ):
@@ -382,6 +397,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         features,
         feature_status,
         notices,
@@ -440,6 +456,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         use_all,
         capsys,
         FakeConfig,
@@ -467,6 +484,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         use_all,
         capsys,
         FakeConfig,
@@ -494,6 +512,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         capsys,
         FakeConfig,
     ):
@@ -546,6 +565,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         environ,
         format_type,
         event_logger_mode,
@@ -579,6 +599,7 @@ class TestActionStatus:
             {
                 "name": service["name"],
                 "description": service["description"],
+                "description_override": service["description_override"],
                 "available": service["available"],
             }
             for service in services
@@ -651,6 +672,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         use_all,
         environ,
         format_type,
@@ -780,6 +802,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         use_all,
         format_type,
         event_logger_mode,
@@ -927,6 +950,7 @@ class TestActionStatus:
         m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
@@ -955,6 +979,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         encoding,
         expected_dash,
         use_all,
@@ -1015,6 +1040,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         exception_to_throw,
         exception_type,
         exception_message,
@@ -1065,6 +1091,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         format_type,
         event_logger_mode,
         token_to_use,
@@ -1121,6 +1148,7 @@ class TestActionStatus:
         _m_get_available_resources,
         _m_should_reboot,
         _m_contract_changed,
+        _m_on_supported_kernel,
         contract_changed,
         is_attached,
         capsys,
