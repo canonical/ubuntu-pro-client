@@ -4,7 +4,7 @@ Before=cloud-config.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/ua auto-attach
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/auto_attach.py
 TimeoutSec=0
 
 [Install]
