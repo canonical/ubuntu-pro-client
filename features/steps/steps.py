@@ -59,7 +59,7 @@ def add_test_name_suffix(context, series, prefix):
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
-def given_a_machine(context, series):
+def given_a_machine(context, series, custom_user_data=None):
     if series in context.reuse_container:
         context.instances = {}
         context.container_name = context.reuse_container[series]
@@ -103,7 +103,7 @@ def given_a_machine(context, series):
         )
     else:
         inst = create_instance_with_uat_installed(
-            context, series, instance_name
+            context, series, instance_name, custom_user_data
         )
 
     context.series = series
@@ -141,6 +141,14 @@ def when_i_take_a_snapshot(context):
             )
 
     context.add_cleanup(cleanup_image)
+
+
+@given(
+    "a `{series}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa
+)
+def given_a_machine_with_user_data(context, series):
+    custom_user_data = context.text
+    given_a_machine(context, series, custom_user_data)
 
 
 @when("I have the `{series}` debs under test in `{dest}`")

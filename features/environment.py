@@ -614,7 +614,10 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
 
 
 def create_instance_with_uat_installed(
-    context: Context, series: str, name: str
+    context: Context,
+    series: str,
+    name: str,
+    custom_user_data: Optional[str] = None,
 ) -> pycloudlib.instance.BaseInstance:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
@@ -627,6 +630,10 @@ def create_instance_with_uat_installed(
         it.
     :param series:
        A string representing the series name to create
+    :param name:
+       A string representing the instance name
+    :param custom_user_data:
+       A string representing custom userdata to be added to the instance
 
     :return: A pycloudlib Instance
     """
@@ -639,6 +646,9 @@ def create_instance_with_uat_installed(
         return
 
     user_data = _get_user_data_for_instance(context.config, series)
+
+    if custom_user_data:
+        user_data += "\n{}".format(custom_user_data)
 
     logging.info(
         "--- Launching VM to create a base image with ubuntu-advantage"
@@ -714,7 +724,7 @@ def _get_user_data_for_instance(
         ppa_url=ppa, ppa_keyid=ppa_keyid
     )
 
-    logging.debug("User data:\n" + user_data)
+    logging.info("-- user data:\n" + user_data)
     return user_data
 
 

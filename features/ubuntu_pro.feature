@@ -580,3 +580,83 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
            | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | usg        |
+
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    @uses.config.machine_type.aws.pro
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: Auto-attach service works on Pro Machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `systemctl start ua-auto-attach.service` with sudo
+        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        And I reboot the `<release>` machine
+        And I run `pro status --wait` with sudo
+        And I run `pro security-status --format json` with sudo
+        Then stdout matches regexp:
+        """
+        "attached": true
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    @uses.config.machine_type.aws.pro
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
+        Given a `<release>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
+        # This user_data should not do anything, just guarantee that the ua-auto-attach service
+        # # does nothing
+        """
+        ubuntu_advantage:
+        """
+        When I run `cloud-init query userdata` with sudo
+        Then stdout matches regexp:
+        """
+        ubuntu_advantage:
+        """
+        # On GCP, this service will auto-attach the machine automatically after we override
+        # the uaclient.conf file. To guarantee that we are not auto-attaching on reboot
+        # through the ua-auto-attach.service, we are masking it
+        When I run `systemctl mask ubuntu-advantage.service` with sudo
+        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        And I reboot the `<release>` machine
+        And I run `pro status --wait` with sudo
+        And I run `pro security-status --format json` with sudo
+        Then stdout matches regexp:
+        """
+        "attached": false
+        """
+        When I run `cat /var/log/ubuntu-advantage.log` with sudo
+        Then stdout matches regexp:
+        """
+        cloud-init userdata has ubuntu-advantage key.
+        """
+        And stdout matches regexp:
+        """
+        Skipping auto-attach and deferring to cloud-init to setup and configure auto-attach
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
