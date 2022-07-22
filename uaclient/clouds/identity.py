@@ -3,7 +3,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import clouds, exceptions, util
+from uaclient import clouds, exceptions, system
 from uaclient.config import apply_config_settings_override
 
 CLOUD_TYPE_TO_TITLE = {
@@ -26,7 +26,7 @@ def get_instance_id() -> Optional[str]:
     """Query cloud instance-id from cmdline."""
     try:
         # Present in cloud-init on >= Xenial
-        out, _err = util.subp(["cloud-init", "query", "instance_id"])
+        out, _err = system.subp(["cloud-init", "query", "instance_id"])
         return out.strip()
     except exceptions.ProcessExecutionError:
         pass
@@ -37,10 +37,10 @@ def get_instance_id() -> Optional[str]:
 @lru_cache(maxsize=None)
 @apply_config_settings_override("cloud_type")
 def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
-    if util.which("cloud-id"):
+    if system.which("cloud-id"):
         # Present in cloud-init on >= Xenial
         try:
-            out, _err = util.subp(["cloud-id"])
+            out, _err = system.subp(["cloud-id"])
             return (out.strip(), None)
         except exceptions.ProcessExecutionError:
             return (None, NoCloudTypeReason.CLOUD_ID_ERROR)

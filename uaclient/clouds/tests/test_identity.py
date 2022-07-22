@@ -13,7 +13,7 @@ M_PATH = "uaclient.clouds.identity."
 
 
 class TestGetInstanceID:
-    @mock.patch(M_PATH + "util.subp", return_value=("my-iid\n", ""))
+    @mock.patch(M_PATH + "system.subp", return_value=("my-iid\n", ""))
     def test_use_cloud_init_query(self, m_subp):
         """Get instance_id from cloud-init query."""
         assert "my-iid" == get_instance_id()
@@ -22,7 +22,7 @@ class TestGetInstanceID:
         ] == m_subp.call_args_list
 
     @mock.patch(
-        M_PATH + "util.subp",
+        M_PATH + "system.subp",
         side_effect=exceptions.ProcessExecutionError(
             "cloud-init query instance_id"
         ),
@@ -36,16 +36,16 @@ class TestGetInstanceID:
 
 
 class TestGetCloudType:
-    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
-    @mock.patch(M_PATH + "util.subp", return_value=("somecloud\n", ""))
+    @mock.patch(M_PATH + "system.which", return_value="/usr/bin/cloud-id")
+    @mock.patch(M_PATH + "system.subp", return_value=("somecloud\n", ""))
     def test_use_cloud_id_when_available(self, m_subp, m_which):
         """Use cloud-id utility to discover cloud type."""
         assert ("somecloud", None) == get_cloud_type.__wrapped__()
         assert [mock.call("cloud-id")] == m_which.call_args_list
 
-    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
+    @mock.patch(M_PATH + "system.which", return_value="/usr/bin/cloud-id")
     @mock.patch(
-        M_PATH + "util.subp",
+        M_PATH + "system.subp",
         side_effect=exceptions.ProcessExecutionError("cloud-id"),
     )
     def test_error_when_cloud_id_fails(self, m_subp, m_which):
@@ -71,9 +71,9 @@ class TestGetCloudType:
             ),
         ),
     )
-    @mock.patch("uaclient.util.load_file")
-    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
-    @mock.patch(M_PATH + "util.subp", return_value=("test", ""))
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch(M_PATH + "system.which", return_value="/usr/bin/cloud-id")
+    @mock.patch(M_PATH + "system.subp", return_value=("test", ""))
     def test_cloud_type_when_using_settings_override(
         self, m_subp, m_which, m_load_file, settings_overrides
     ):

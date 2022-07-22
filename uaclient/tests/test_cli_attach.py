@@ -149,7 +149,7 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "system.subp")
     def test_lock_file_exists(
         self, m_subp, _m_getuid, capsys, FakeConfig, event
     ):
@@ -244,7 +244,7 @@ class TestActionAttach:
             (UserFacingError, "Unable to attach default services"),
         ),
     )
-    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
@@ -286,7 +286,7 @@ class TestActionAttach:
         ), "Did not persist on disk status during attach failure"
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(
@@ -361,7 +361,7 @@ class TestActionAttach:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("auto_enable", (True, False))
-    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
@@ -538,7 +538,7 @@ class TestActionAttach:
 
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
-    @mock.patch("uaclient.util.apply_contract_overrides")
+    @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_attach_when_one_service_fails_to_enable(

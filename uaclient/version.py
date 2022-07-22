@@ -6,7 +6,7 @@ any of our dependencies installed.
 """
 import os.path
 
-from uaclient import exceptions, util
+from uaclient import exceptions, system
 
 __VERSION__ = "28.0"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
@@ -29,7 +29,7 @@ def get_version():
     if os.path.exists(os.path.join(topdir, ".git")):
         cmd = ["git", "describe", "--abbrev=8", "--match=[0-9]*", "--long"]
         try:
-            out, _ = util.subp(cmd)
+            out, _ = system.subp(cmd)
             return out.strip()
         except exceptions.ProcessExecutionError:
             pass

@@ -18,13 +18,13 @@ import copy
 import json
 import logging
 
-from uaclient import util
+from uaclient import system, util
 from uaclient.cli import setup_logging
 
 
 def patch_status_json_schema_0_1(status_file: str):
     """Patch incompatible status.json file schema to align with version 0.1."""
-    content = util.load_file(status_file)
+    content = system.load_file(status_file)
     try:
         status = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
     except ValueError as e:
@@ -60,7 +60,7 @@ def patch_status_json_schema_0_1(status_file: str):
                 str(e)
             )
         )
-    util.write_file(status_file, status_content)
+    system.write_file(status_file, status_content)
 
 
 if __name__ == "__main__":

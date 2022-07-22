@@ -100,7 +100,7 @@ class TestUAAutoAttachAzureInstance:
         ),
     )
     @mock.patch(M_PATH + "os.path.exists")
-    @mock.patch(M_PATH + "util.load_file")
+    @mock.patch(M_PATH + "system.load_file")
     def test_is_viable_based_on_dmi_chassis_asset_tag_or_ovf_env(
         self, load_file, m_exists, chassis_asset_tag, ovf_env_exists, viable
     ):

@@ -5,7 +5,7 @@ import mock
 from uaclient.version import get_version
 
 
-@mock.patch("uaclient.util.subp")
+@mock.patch("uaclient.system.subp")
 class TestGetVersion:
     @mock.patch("uaclient.version.os.path.exists", return_value=True)
     def test_get_version_returns_packaged_version(self, m_exists, m_subp):

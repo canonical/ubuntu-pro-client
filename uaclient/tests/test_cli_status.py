@@ -271,7 +271,7 @@ Flags:
 
 @mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
 @mock.patch("uaclient.config.UAConfig.remove_notice")
-@mock.patch("uaclient.util.should_reboot", return_value=False)
+@mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(
     "uaclient.status.get_available_resources",
     return_value=RESPONSE_AVAILABLE_SERVICES,
@@ -414,7 +414,7 @@ class TestActionStatus:
         assert SIMULATED_STATUS == capsys.readouterr()[0]
 
     @mock.patch("uaclient.version.get_version", return_value="test_version")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch(M_PATH + "time.sleep")
     def test_wait_blocks_until_lock_released(
         self,

@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from uaclient import event_logger, messages, util
+from uaclient import event_logger, messages, system, util
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
 from uaclient.types import MessagingOperationsDict, StaticAffordance
@@ -21,7 +21,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
-        reboot_required = util.should_reboot(
+        reboot_required = system.should_reboot(
             installed_pkgs=set(self.packages),
             installed_pkgs_regex=set(["linux-.*-realtime"]),
         )
@@ -54,7 +54,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
         return (
             (
                 messages.REALTIME_ERROR_INSTALL_ON_CONTAINER,
-                lambda: util.is_container(),
+                lambda: system.is_container(),
                 False,
             ),
         )

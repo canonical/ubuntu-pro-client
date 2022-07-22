@@ -2,7 +2,15 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import apt, event_logger, exceptions, messages, snap, util
+from uaclient import (
+    apt,
+    event_logger,
+    exceptions,
+    messages,
+    snap,
+    system,
+    util,
+)
 from uaclient.entitlements.base import IncompatibleService, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import StaticAffordance
@@ -33,9 +41,9 @@ def unconfigure_livepatch_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not util.which(LIVEPATCH_CMD):
+    if not system.which(LIVEPATCH_CMD):
         return
-    util.subp(
+    system.subp(
         [LIVEPATCH_CMD, "config", "{}-proxy=".format(protocol_type)],
         retry_sleeps=retry_sleeps,
     )
@@ -64,13 +72,13 @@ def configure_livepatch_proxy(
         )
 
     if http_proxy:
-        util.subp(
+        system.subp(
             [LIVEPATCH_CMD, "config", "http-proxy={}".format(http_proxy)],
             retry_sleeps=retry_sleeps,
         )
 
     if https_proxy:
-        util.subp(
+        system.subp(
             [LIVEPATCH_CMD, "config", "https-proxy={}".format(https_proxy)],
             retry_sleeps=retry_sleeps,
         )
@@ -82,7 +90,7 @@ def get_config_option_value(key: str) -> Optional[str]:
     :param protocol: can be any valid livepatch config option
     :return: the value of the livepatch config option, or None if not set
     """
-    out, _ = util.subp([LIVEPATCH_CMD, "config"])
+    out, _ = system.subp([LIVEPATCH_CMD, "config"])
     match = re.search("^{}: (.*)$".format(key), out, re.MULTILINE)
     value = match.group(1) if match else None
     if value:
@@ -115,7 +123,7 @@ class LivepatchEntitlement(UAEntitlement):
 
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
-        # Use a lambda so we can mock util.is_container in tests
+        # Use a lambda so we can mock system.is_container in tests
         from uaclient.entitlements.fips import FIPSEntitlement
 
         fips_ent = FIPSEntitlement(self.cfg)
@@ -127,7 +135,7 @@ class LivepatchEntitlement(UAEntitlement):
         return (
             (
                 messages.LIVEPATCH_ERROR_INSTALL_ON_CONTAINER,
-                lambda: util.is_container(),
+                lambda: system.is_container(),
                 False,
             ),
             (
@@ -142,7 +150,7 @@ class LivepatchEntitlement(UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which(snap.SNAP_CMD):
+        if not system.which(snap.SNAP_CMD):
             event.info("Installing snapd")
             event.info(messages.APT_UPDATING_LISTS)
             try:
@@ -153,7 +161,7 @@ class LivepatchEntitlement(UAEntitlement):
                     " Ignoring apt-get update failure: %s",
                     str(e),
                 )
-            util.subp(
+            system.subp(
                 ["apt-get", "install", "--assume-yes", "snapd"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
@@ -164,7 +172,7 @@ class LivepatchEntitlement(UAEntitlement):
             )
 
         try:
-            util.subp(
+            system.subp(
                 [snap.SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
             )
         except exceptions.ProcessExecutionError as e:
@@ -185,10 +193,10 @@ class LivepatchEntitlement(UAEntitlement):
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
 
-        if not util.which(LIVEPATCH_CMD):
+        if not system.which(LIVEPATCH_CMD):
             event.info("Installing canonical-livepatch snap")
             try:
-                util.subp(
+                system.subp(
                     [snap.SNAP_CMD, "install", "canonical-livepatch"],
                     capture=True,
                     retry_sleeps=snap.SNAP_INSTALL_RETRIES,
@@ -239,12 +247,12 @@ class LivepatchEntitlement(UAEntitlement):
                     self.title,
                 )
                 try:
-                    util.subp([LIVEPATCH_CMD, "disable"])
+                    system.subp([LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
                     logging.error(str(e))
                     return False
             try:
-                util.subp(
+                system.subp(
                     [LIVEPATCH_CMD, "enable", livepatch_token], capture=True
                 )
             except exceptions.ProcessExecutionError as e:
@@ -265,9 +273,9 @@ class LivepatchEntitlement(UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which(LIVEPATCH_CMD):
+        if not system.which(LIVEPATCH_CMD):
             return True
-        util.subp([LIVEPATCH_CMD, "disable"], capture=True)
+        system.subp([LIVEPATCH_CMD, "disable"], capture=True)
         return True
 
     def application_status(
@@ -275,11 +283,11 @@ class LivepatchEntitlement(UAEntitlement):
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         status = (ApplicationStatus.ENABLED, None)
 
-        if not util.which(LIVEPATCH_CMD):
+        if not system.which(LIVEPATCH_CMD):
             return (ApplicationStatus.DISABLED, messages.LIVEPATCH_NOT_ENABLED)
 
         try:
-            util.subp(
+            system.subp(
                 [LIVEPATCH_CMD, "status"], retry_sleeps=LIVEPATCH_RETRIES
             )
         except exceptions.ProcessExecutionError as e:
@@ -354,7 +362,7 @@ def process_config_directives(cfg):
     directives = cfg.get("entitlement", {}).get("directives", {})
     ca_certs = directives.get("caCerts")
     if ca_certs:
-        util.subp(
+        system.subp(
             [LIVEPATCH_CMD, "config", "ca-certs={}".format(ca_certs)],
             capture=True,
         )
@@ -362,7 +370,7 @@ def process_config_directives(cfg):
     if remote_server.endswith("/"):
         remote_server = remote_server[:-1]
     if remote_server:
-        util.subp(
+        system.subp(
             [
                 LIVEPATCH_CMD,
                 "config",

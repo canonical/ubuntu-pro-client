@@ -21,7 +21,7 @@ import sys
 from uaclient import config, contract, exceptions, lock, messages
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.util import subp
+from uaclient.system import subp
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
