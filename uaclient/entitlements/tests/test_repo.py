@@ -59,7 +59,7 @@ def entitlement(entitlement_factory):
 
 
 class TestUserFacingStatus:
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_inapplicable_on_inapplicable_applicability_status(
         self, m_platform_info, entitlement
     ):
@@ -78,7 +78,7 @@ class TestUserFacingStatus:
         uf_status, _ = entitlement.user_facing_status()
         assert UserFacingStatus.INAPPLICABLE == uf_status
 
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_unavailable_on_unentitled(self, m_platform_info, entitlement):
         """When unentitled, return UNAVAILABLE."""
         no_entitlements = copy.deepcopy(machine_token("blah"))
@@ -271,7 +271,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -331,7 +331,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -447,8 +447,8 @@ class TestRepoEnable:
             ),
         ),
     )
-    @mock.patch(M_PATH + "util.subp", return_value=("", ""))
-    @mock.patch(M_PATH + "util.should_reboot")
+    @mock.patch(M_PATH + "system.subp", return_value=("", ""))
+    @mock.patch(M_PATH + "system.should_reboot")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(
         RepoTestEntitlement, "can_disable", return_value=(True, None)
@@ -483,11 +483,11 @@ class TestRepoEnable:
     @pytest.mark.parametrize("packages", (["a"], [], None))
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "util.should_reboot")
-    @mock.patch(M_PATH + "util.subp", return_value=("", ""))
+    @mock.patch(M_PATH + "system.should_reboot")
+    @mock.patch(M_PATH + "system.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "os.path.exists", return_value=True)
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch.object(
         RepoTestEntitlement, "can_enable", return_value=(True, None)
     )
@@ -597,7 +597,7 @@ class TestRepoEnable:
         assert expected_output == stdout
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "system.subp")
     def test_failed_install_removes_apt_config_and_packages(
         self, m_subp, _m_setup_apt_proxy, entitlement
     ):
@@ -648,7 +648,7 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_disable_apt_auth_only_false_removes_all_apt_config(
         self,
         m_get_platform,
@@ -680,7 +680,7 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_repo_from_apt_auth_file")
     @mock.patch(M_PATH + "apt.restore_commented_apt_list_file")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_disable_apt_auth_only_removes_authentication_for_repo(
         self,
         m_get_platform,
@@ -711,7 +711,7 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_repo_pin_priority_never_configures_repo_pinning_on_remove(
         self,
         m_get_platform,
@@ -737,12 +737,12 @@ class TestRemoveAptConfig:
             )
         ] == m_add_ppa_pinning.call_args_list
 
-    @mock.patch(M_PATH + "util.remove_file")
+    @mock.patch(M_PATH + "system.remove_file")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch(M_PATH + "util.apply_contract_overrides")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_repo_pin_priority_int_removes_apt_preferences(
         self,
         _m_contract_overrides,
@@ -870,7 +870,7 @@ class TestSetupAptConfig:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
-    @mock.patch(M_PATH + "util.apply_contract_overrides")
+    @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_install_prerequisite_packages(
         self,
         _m_contract_overrides,
@@ -897,7 +897,7 @@ class TestSetupAptConfig:
         assert install_call in m_run_apt_install_command.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_setup_error_with_repo_pin_priority_and_missing_origin(
         self, m_get_platform_info, _setup_apt_proxy, entitlement_factory
     ):
@@ -914,11 +914,11 @@ class TestSetupAptConfig:
         )
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "util.remove_file")
+    @mock.patch(M_PATH + "system.remove_file")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch(M_PATH + "util.apply_contract_overrides")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_setup_with_repo_pin_priority_never_removes_apt_preferences_file(
         self,
         _m_contract_overrides,
@@ -950,8 +950,8 @@ class TestSetupAptConfig:
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_update_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
-    @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch(M_PATH + "util.apply_contract_overrides")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
         self,
         _m_apply_overrides,
@@ -988,14 +988,14 @@ class TestSetupAptConfig:
 
 class TestCheckAptURLIsApplied:
     @pytest.mark.parametrize("apt_url", (("test"), (None)))
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     def test_check_apt_url_for_commented_apt_source_file(
         self, m_load_file, apt_url, entitlement
     ):
         m_load_file.return_value = "#test1\n#test2\n"
         assert not entitlement._check_apt_url_is_applied(apt_url)
 
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     def test_check_apt_url_when_delta_apt_url_is_none(
         self, m_load_file, entitlement
     ):
@@ -1005,7 +1005,7 @@ class TestCheckAptURLIsApplied:
     @pytest.mark.parametrize(
         "apt_url,expected", (("test", True), ("blah", False))
     )
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     def test_check_apt_url_inspects_apt_source_file(
         self, m_load_file, apt_url, expected, entitlement
     ):

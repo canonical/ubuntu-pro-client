@@ -665,7 +665,7 @@ class TestUaEntitlement:
         ),
     )
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "example"}
+        "uaclient.system.get_platform_info", return_value={"series": "example"}
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
         self, m_platform_info, concrete_entitlement_factory, orig_access, delta

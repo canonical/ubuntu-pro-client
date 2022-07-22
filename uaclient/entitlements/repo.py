@@ -5,7 +5,15 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt, contract, event_logger, exceptions, messages, util
+from uaclient import (
+    apt,
+    contract,
+    event_logger,
+    exceptions,
+    messages,
+    system,
+    util,
+)
 from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
@@ -56,7 +64,9 @@ class RepoEntitlement(base.UAEntitlement):
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
-        reboot_required = util.should_reboot(installed_pkgs=set(self.packages))
+        reboot_required = system.should_reboot(
+            installed_pkgs=set(self.packages)
+        )
         event.needs_reboot(reboot_required)
         return reboot_required
 
@@ -134,7 +144,7 @@ class RepoEntitlement(base.UAEntitlement):
         # to regenerate the apt file, regardless of the apt url delta
         if all(
             line.startswith("#")
-            for line in util.load_file(apt_file).strip().split("\n")
+            for line in system.load_file(apt_file).strip().split("\n")
         ):
             return False
 
@@ -145,7 +155,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         # If the delta is already in the file, we won't reconfigure it
         # again
-        return bool(apt_url in util.load_file(apt_file))
+        return bool(apt_url in system.load_file(apt_file))
 
     def process_contract_deltas(
         self,
@@ -356,7 +366,7 @@ class RepoEntitlement(base.UAEntitlement):
                 )
             else:
                 # Remove disabling apt pref file
-                util.remove_file(repo_pref_file)
+                system.remove_file(repo_pref_file)
 
         prerequisite_pkgs = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
@@ -399,7 +409,7 @@ class RepoEntitlement(base.UAEntitlement):
         :param run_apt_update: If after removing the apt update
             command after removing the apt files.
         """
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         entitlement = self.cfg.machine_token_file.entitlements[self.name].get(
             "entitlement", {}
@@ -431,7 +441,7 @@ class RepoEntitlement(base.UAEntitlement):
                     self.repo_pin_priority,
                 )
             else:
-                util.remove_file(repo_pref_file)
+                system.remove_file(repo_pref_file)
 
         if run_apt_update:
             if not silent:

@@ -1,7 +1,7 @@
 import os
 from typing import Optional, Tuple, Type, Union  # noqa: F401
 
-from uaclient import apt, util
+from uaclient import apt, system
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
@@ -37,7 +37,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
 
     def setup_unauthenticated_repo(self):
         if not os.path.exists(self.repo_list_file_tmpl.format(name=self.name)):
-            series = util.get_platform_info()["series"]
+            series = system.get_platform_info()["series"]
             apt.setup_unauthenticated_repo(
                 repo_filename=self.repo_list_file_tmpl.format(name=self.name),
                 repo_pref_filename=self.repo_pref_file_tmpl.format(
@@ -68,20 +68,20 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     @property
     def repo_pin_priority(self) -> Optional[str]:
         """All LTS should pin esm-apps."""
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
 
         if self.valid_service:
-            if util.is_lts(series):
+            if system.is_lts(series):
                 return "never"
         return None
 
     @property
     def disable_apt_auth_only(self) -> bool:
         """All LTS remove APT auth files upon disable"""
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
 
         if self.valid_service:
-            return util.is_lts(series)
+            return system.is_lts(series)
         return False
 
 
@@ -96,7 +96,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     @property
     def repo_pin_priority(self) -> Optional[str]:
         """Once a release goes into EOL it is entitled to ESM Infra."""
-        if util.is_active_esm(util.get_platform_info()["series"]):
+        if system.is_active_esm(system.get_platform_info()["series"]):
             return "never"
         return None  # No pinning on non-ESM releases
 
@@ -107,4 +107,4 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
         Leave unauthenticated APT sources on disk with never pinning to ensure
         visibility to UA ESM: Infra packages for MOTD/APT messaging.
         """
-        return util.is_active_esm(util.get_platform_info()["series"])
+        return system.is_active_esm(system.get_platform_info()["series"])

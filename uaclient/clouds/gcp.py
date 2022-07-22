@@ -5,7 +5,7 @@ import os
 from typing import Any, Dict, List, Optional  # noqa: F401
 from urllib.error import HTTPError
 
-from uaclient import exceptions, messages, util
+from uaclient import exceptions, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger("ua.clouds.gcp")
@@ -79,7 +79,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     def is_viable(self) -> bool:
         """This machine is a viable GCPInstance"""
         if os.path.exists(DMI_PRODUCT_NAME):
-            product_name = util.load_file(DMI_PRODUCT_NAME)
+            product_name = system.load_file(DMI_PRODUCT_NAME)
             if GCP_PRODUCT_NAME == product_name.strip():
                 return True
 
@@ -103,7 +103,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
         )
 
     def should_poll_for_pro_license(self) -> bool:
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
         if series not in GCP_LICENSES:
             LOG.info("This series isn't supported for GCP auto-attach.")
             return False
@@ -130,5 +130,5 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
         license_ids = [license["id"] for license in licenses]
         self.etag = headers.get("ETag", None)
 
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
         return GCP_LICENSES.get(series) in license_ids

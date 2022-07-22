@@ -16,7 +16,7 @@ from uaclient.daemon import (
 M_PATH = "uaclient.daemon."
 
 
-@mock.patch(M_PATH + "util.subp")
+@mock.patch(M_PATH + "system.subp")
 class TestStart:
     def test_start_success(self, m_subp):
         start()
@@ -45,7 +45,7 @@ class TestStart:
         assert [mock.call(err)] == m_log_warning.call_args_list
 
 
-@mock.patch(M_PATH + "util.subp")
+@mock.patch(M_PATH + "system.subp")
 class TestStop:
     def test_stop_success(self, m_subp):
         stop()
@@ -174,7 +174,7 @@ class TestAttemptAutoAttach:
 @mock.patch(M_PATH + "UAAutoAttachGCPInstance.is_pro_license_present")
 @mock.patch(M_PATH + "UAAutoAttachGCPInstance.should_poll_for_pro_license")
 @mock.patch(M_PATH + "cloud_instance_factory")
-@mock.patch(M_PATH + "util.is_current_series_lts")
+@mock.patch(M_PATH + "system.is_current_series_lts")
 @mock.patch(M_PATH + "util.is_config_value_true")
 class TestPollForProLicense:
     @pytest.mark.parametrize(

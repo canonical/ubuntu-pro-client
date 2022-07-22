@@ -38,9 +38,9 @@ class TestCISEntitlementCanEnable:
 class TestCISEntitlementEnable:
     @mock.patch("uaclient.apt.run_apt_cache_policy_command")
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.util.should_reboot")
-    @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.should_reboot")
+    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         m_platform_info,

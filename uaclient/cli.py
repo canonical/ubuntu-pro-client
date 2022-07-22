@@ -33,7 +33,7 @@ from uaclient import (
     security_status,
 )
 from uaclient import status as ua_status
-from uaclient import util, version
+from uaclient import system, util, version
 from uaclient.api.api import call_api
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -1440,11 +1440,11 @@ def _write_command_output_to_file(
 ) -> None:
     """Helper which runs a command and writes output or error to filename."""
     try:
-        out, _ = util.subp(cmd.split(), rcs=return_codes)
+        out, _ = system.subp(cmd.split(), rcs=return_codes)
     except exceptions.ProcessExecutionError as e:
-        util.write_file("{}-error".format(filename), str(e))
+        system.write_file("{}-error".format(filename), str(e))
     else:
-        util.write_file(filename, out)
+        system.write_file(filename, out)
 
 
 # We have to assert root here, because the logs are not non-root user readable
@@ -1507,9 +1507,9 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
         # also get default logrotated log files
         for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
             if os.path.isfile(f):
-                log_content = util.load_file(f)
+                log_content = system.load_file(f)
                 log_content = util.redact_sensitive_logs(log_content)
-                util.write_file(f, log_content)
+                system.write_file(f, log_content)
                 shutil.copy(f, output_dir)
 
         with tarfile.open(output_file, "w:gz") as results:

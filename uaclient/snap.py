@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-from uaclient import apt, event_logger, exceptions, messages, util
+from uaclient import apt, event_logger, exceptions, messages, system
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -33,7 +33,7 @@ def configure_snap_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not util.which(SNAP_CMD):
+    if not system.which(SNAP_CMD):
         logging.debug(
             "Skipping configure snap proxy. {} does not exist.".format(
                 SNAP_CMD
@@ -45,13 +45,13 @@ def configure_snap_proxy(
         event.info(messages.SETTING_SERVICE_PROXY.format(service="snap"))
 
     if http_proxy:
-        util.subp(
+        system.subp(
             ["snap", "set", "system", "proxy.http={}".format(http_proxy)],
             retry_sleeps=retry_sleeps,
         )
 
     if https_proxy:
-        util.subp(
+        system.subp(
             ["snap", "set", "system", "proxy.https={}".format(https_proxy)],
             retry_sleeps=retry_sleeps,
         )
@@ -69,14 +69,14 @@ def unconfigure_snap_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not util.which(SNAP_CMD):
+    if not system.which(SNAP_CMD):
         logging.debug(
             "Skipping unconfigure snap proxy. {} does not exist.".format(
                 SNAP_CMD
             )
         )
         return
-    util.subp(
+    system.subp(
         ["snap", "unset", "system", "proxy.{}".format(protocol_type)],
         retry_sleeps=retry_sleeps,
     )
@@ -89,7 +89,7 @@ def get_config_option_value(key: str) -> Optional[str]:
     :return: the value of the snap config option, or None if not set
     """
     try:
-        out, _ = util.subp(["snap", "get", "system", key])
+        out, _ = system.subp(["snap", "get", "system", key])
         return out.strip()
     except exceptions.ProcessExecutionError:
         return None

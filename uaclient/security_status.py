@@ -7,7 +7,7 @@ from apt import package as apt_package
 
 from uaclient.config import UAConfig
 from uaclient.status import status
-from uaclient.util import get_platform_info
+from uaclient.system import get_platform_info
 
 series = get_platform_info()["series"]
 
