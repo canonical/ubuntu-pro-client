@@ -1,8 +1,9 @@
+import datetime
 import json
 from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar, Union
 
-from uaclient import exceptions
+from uaclient import exceptions, util
 
 INCORRECT_TYPE_ERROR_MESSAGE = (
     "Expected value with type {expected_type} but got type: {got_type}"
@@ -122,6 +123,20 @@ class BoolDataValue(DataValue):
         return val
 
 
+class DatetimeDataValue(DataValue):
+    """
+    This expects that value is a datetime.
+    from_value raises an error if the value is not a datetime and returns
+    the datetime itself if it is a datetime.
+    """
+
+    @staticmethod
+    def from_value(val: Any) -> datetime.datetime:
+        if not isinstance(val, datetime.datetime):
+            raise IncorrectTypeError("datetime", type(val).__name__)
+        return val
+
+
 def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
     """
     To be used for parsing lists of a certain DataValue type.
@@ -222,7 +237,11 @@ class DataObject(DataValue):
         return d
 
     def to_json(self, keep_null: bool = True) -> str:
-        return json.dumps(self.to_dict(keep_none=keep_null), sort_keys=True)
+        return json.dumps(
+            self.to_dict(keep_none=keep_null),
+            sort_keys=True,
+            cls=util.DatetimeAwareJSONEncoder,
+        )
 
     @classmethod
     def from_dict(cls: Type[T], d: dict) -> T:
