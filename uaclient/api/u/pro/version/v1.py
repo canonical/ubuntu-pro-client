@@ -19,7 +19,11 @@ class VersionResult(DataObject, AdditionalInfo):
         self.installed_version = installed_version
 
 
-def version(cfg: UAConfig) -> VersionResult:
+def version() -> VersionResult:
+    return _version(UAConfig())
+
+
+def _version(cfg: UAConfig) -> VersionResult:
     try:
         version = get_version()
     except Exception as e:
@@ -30,6 +34,6 @@ def version(cfg: UAConfig) -> VersionResult:
 endpoint = APIEndpoint(
     version="v1",
     name="Version",
-    fn=version,
+    fn=_version,
     options_cls=None,
 )

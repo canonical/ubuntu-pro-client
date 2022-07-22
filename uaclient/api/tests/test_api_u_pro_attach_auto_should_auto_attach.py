@@ -3,7 +3,7 @@ import pytest
 
 from uaclient import exceptions
 from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import (
-    should_auto_attach,
+    _should_auto_attach,
 )
 
 M_PATH = "uaclient.api.u.pro.attach.auto.should_auto_attach.v1"
@@ -28,7 +28,7 @@ class TestShouldAutoAttachV1:
         FakeConfig,
     ):
         m_get_installed_pkgs.return_value = installed_pkgs
-        assert expected == should_auto_attach(FakeConfig()).should_auto_attach
+        assert expected == _should_auto_attach(FakeConfig()).should_auto_attach
 
     @pytest.mark.parametrize(
         "cloud_exception",
@@ -46,4 +46,4 @@ class TestShouldAutoAttachV1:
         FakeConfig,
     ):
         m_cloud_factory.side_effect = cloud_exception(cloud_type="test")
-        assert False is should_auto_attach(FakeConfig()).should_auto_attach
+        assert False is _should_auto_attach(FakeConfig()).should_auto_attach

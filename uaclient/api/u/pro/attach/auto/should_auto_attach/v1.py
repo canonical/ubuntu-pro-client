@@ -16,7 +16,11 @@ class ShouldAutoAttachResult(DataObject, AdditionalInfo):
         self.should_auto_attach = should_auto_attach
 
 
-def should_auto_attach(cfg: UAConfig):
+def should_auto_attach() -> ShouldAutoAttachResult:
+    return _should_auto_attach(UAConfig())
+
+
+def _should_auto_attach(cfg: UAConfig) -> ShouldAutoAttachResult:
     try:
         cloud_instance_factory()
     except exceptions.CloudFactoryError:
@@ -32,6 +36,6 @@ def should_auto_attach(cfg: UAConfig):
 endpoint = APIEndpoint(
     version="v1",
     name="ShouldAutoAttach",
-    fn=should_auto_attach,
+    fn=_should_auto_attach,
     options_cls=None,
 )
