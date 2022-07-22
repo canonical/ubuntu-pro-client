@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 import pytest
@@ -6,6 +7,7 @@ from uaclient.data_types import (
     BoolDataValue,
     DataObject,
     DataValue,
+    DatetimeDataValue,
     EnumDataValue,
     Field,
     IncorrectEnumValueError,
@@ -86,6 +88,35 @@ class TestDataValues:
     def test_bool_data_value_error(self, val, error):
         with pytest.raises(type(error)) as e:
             BoolDataValue.from_value(val)
+        assert e.value.msg == error.msg
+
+    @pytest.mark.parametrize(
+        "val",
+        (
+            datetime.datetime(
+                2001, 2, 3, 4, 5, 6, tzinfo=datetime.timezone.utc
+            ),
+            datetime.datetime(2001, 2, 3, 4, 5, 6),
+        ),
+    )
+    def test_datetime_data_value_success(self, val):
+        result = DatetimeDataValue.from_value(val)
+        assert val == result
+        assert isinstance(result, datetime.datetime)
+
+    @pytest.mark.parametrize(
+        "val, error",
+        (
+            ("hello", IncorrectTypeError("datetime", "str")),
+            (1, IncorrectTypeError("datetime", "int")),
+            (False, IncorrectTypeError("datetime", "bool")),
+            ([], IncorrectTypeError("datetime", "list")),
+            ({}, IncorrectTypeError("datetime", "dict")),
+        ),
+    )
+    def test_datetime_data_value_error(self, val, error):
+        with pytest.raises(type(error)) as e:
+            DatetimeDataValue.from_value(val)
         assert e.value.msg == error.msg
 
     @pytest.mark.parametrize("enum_type", (str, int))
@@ -273,6 +304,10 @@ class ExampleDataObject(DataObject):
         Field("enum_opt", ExampleEnum, required=False),
         Field("enum_list", data_list(ExampleEnum)),
         Field("enum_opt_list", data_list(ExampleEnum), required=False),
+        Field("dt", DatetimeDataValue),
+        Field("dt_opt", DatetimeDataValue, required=False),
+        Field("dtlist", data_list(DatetimeDataValue)),
+        Field("dtlist_opt", data_list(DatetimeDataValue), required=False),
     ]
 
     def __init__(
@@ -293,7 +328,11 @@ class ExampleDataObject(DataObject):
         enum_list: List[EnumDataValue],
         enum_opt_list: Optional[List[EnumDataValue]],
         enum: EnumDataValue,
-        enum_opt: Optional[EnumDataValue]
+        enum_opt: Optional[EnumDataValue],
+        dt: datetime.datetime,
+        dt_opt: Optional[datetime.datetime],
+        dtlist: List[datetime.datetime],
+        dtlist_opt: Optional[List[datetime.datetime]]
     ):
         self.string = string
         self.string_opt = string_opt
@@ -311,6 +350,10 @@ class ExampleDataObject(DataObject):
         self.enum_opt_list = enum_opt_list
         self.enum = enum
         self.enum_opt = enum_opt
+        self.dt = dt
+        self.dt_opt = dt_opt
+        self.dtlist = dtlist
+        self.dtlist_opt = dtlist_opt
 
 
 example_data_object_dict_no_optionals = {
@@ -325,6 +368,11 @@ example_data_object_dict_no_optionals = {
     ],
     "enum_list": ["two", "three"],
     "enum": "one",
+    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+    "dtlist": [
+        datetime.datetime(2001, 1, 1, 1, 1, 1),
+        datetime.datetime(2002, 2, 2, 2, 2, 2),
+    ],
 }
 example_data_object_dict_no_optionals_with_none = {
     "string": "string",
@@ -346,6 +394,13 @@ example_data_object_dict_no_optionals_with_none = {
     "enum_opt": None,
     "enum_list": ["two", "three"],
     "enum_opt_list": None,
+    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+    "dt_opt": None,
+    "dtlist": [
+        datetime.datetime(2001, 1, 1, 1, 1, 1),
+        datetime.datetime(2002, 2, 2, 2, 2, 2),
+    ],
+    "dtlist_opt": None,
 }
 example_data_object_dict_with_optionals = {
     "string": "string",
@@ -370,19 +425,16 @@ example_data_object_dict_with_optionals = {
     "enum": "one",
     "enum_opt_list": ["one", "four"],
     "enum_opt": "three",
-}
-example_data_object_dict_invalid_enum_values = {
-    "string": "string",
-    "integer": 1,
-    "obj": {"string": "nestedstring", "integer": 2},
-    "stringlist": ["one", "two"],
-    "integerlist": [3, 4, 5],
-    "objlist": [
-        {"string": "nestedstring2", "integer": 6},
-        {"string": "nestedstring3", "integer": 7},
+    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+    "dt_opt": datetime.datetime(2002, 2, 2, 2, 2, 2),
+    "dtlist": [
+        datetime.datetime(2001, 1, 1, 1, 1, 1),
+        datetime.datetime(2002, 2, 2, 2, 2, 2),
     ],
-    "enum_list": ["two", "three"],
-    "enum": "one",
+    "dtlist_opt": [
+        datetime.datetime(2003, 3, 3, 3, 3, 3),
+        datetime.datetime(2004, 4, 4, 4, 4, 4),
+    ],
 }
 
 
@@ -411,6 +463,13 @@ class TestDataObject:
         assert result.enum_opt is None
         assert result.enum_list == [ExampleEnum.TWO, ExampleEnum.THREE]
         assert result.enum_opt_list is None
+        assert result.dt == datetime.datetime(2001, 1, 1, 1, 1, 1)
+        assert result.dt_opt is None
+        assert result.dtlist == [
+            datetime.datetime(2001, 1, 1, 1, 1, 1),
+            datetime.datetime(2002, 2, 2, 2, 2, 2),
+        ]
+        assert result.dtlist_opt is None
 
     def test_success_with_optionals(self):
         result = ExampleDataObject.from_dict(
@@ -445,10 +504,40 @@ class TestDataObject:
         assert result.enum_list == [ExampleEnum.TWO, ExampleEnum.THREE]
         assert result.enum == ExampleEnum.ONE
         assert result.enum_opt == ExampleEnum.THREE
+        assert result.dt == datetime.datetime(2001, 1, 1, 1, 1, 1)
+        assert result.dt_opt == datetime.datetime(2002, 2, 2, 2, 2, 2)
+        assert result.dtlist == [
+            datetime.datetime(2001, 1, 1, 1, 1, 1),
+            datetime.datetime(2002, 2, 2, 2, 2, 2),
+        ]
+        assert result.dtlist_opt == [
+            datetime.datetime(2003, 3, 3, 3, 3, 3),
+            datetime.datetime(2004, 4, 4, 4, 4, 4),
+        ]
 
     @pytest.mark.parametrize(
         "val, error",
         (
+            (
+                {
+                    "string": "string",
+                    "integer": 1,
+                    "obj": {"string": "nestedstring", "integer": 2},
+                    "stringlist": ["one", "two"],
+                    "integerlist": [3, 4, 5],
+                    "objlist": [
+                        {"string": "nestedstring2", "integer": 6},
+                        {"string": "nestedstring3", "integer": 7},
+                    ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": "2001",
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
+                },
+                IncorrectFieldTypeError(
+                    IncorrectTypeError("datetime", "str"), "dt"
+                ),
+            ),
             (
                 {
                     "integer": 1,
@@ -459,6 +548,10 @@ class TestDataObject:
                         {"string": "nestedstring2", "integer": 6},
                         {"string": "nestedstring3", "integer": 7},
                     ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectTypeError("StringDataValue", "null"), "string"
@@ -476,6 +569,9 @@ class TestDataObject:
                         {"string": "nestedstring3", "integer": 7},
                     ],
                     "enum": "five",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectEnumValueError(
@@ -495,6 +591,10 @@ class TestDataObject:
                         {"string": "nestedstring2", "integer": 6},
                         {"string": "nestedstring3", "integer": 7},
                     ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectTypeError("int", "str"), "integer"
@@ -511,6 +611,10 @@ class TestDataObject:
                         {"string": "nestedstring2", "integer": 6},
                         {"string": "nestedstring3", "integer": 7},
                     ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectFieldTypeError(
@@ -530,6 +634,10 @@ class TestDataObject:
                         {"string": "nestedstring2", "integer": 6},
                         {"string": "nestedstring3", "integer": 7},
                     ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectListElementTypeError(
@@ -549,6 +657,10 @@ class TestDataObject:
                         {"string": "nestedstring2", "integer": "6"},
                         {"string": "nestedstring3", "integer": 7},
                     ],
+                    "enum": "one",
+                    "enum_list": ["one"],
+                    "dt": datetime.datetime(2001, 1, 1, 1, 1, 1),
+                    "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
                     IncorrectListElementTypeError(
@@ -588,3 +700,21 @@ class TestDataObject:
                 example_data_object_dict_no_optionals
             ).to_dict()
         )
+
+    @pytest.mark.parametrize(
+        "d,j",
+        (
+            (
+                example_data_object_dict_no_optionals,
+                """\
+{"dt": "2001-01-01T01:01:01", "dt_opt": null, "dtlist": ["2001-01-01T01:01:01", "2002-02-02T02:02:02"], "dtlist_opt": null, "enum": "one", "enum_list": ["two", "three"], "enum_opt": null, "enum_opt_list": null, "integer": 1, "integer_opt": null, "integerlist": [3, 4, 5], "integerlist_opt": null, "obj": {"integer": 2, "string": "nestedstring"}, "obj_opt": null, "objlist": [{"integer": 6, "string": "nestedstring2"}, {"integer": 7, "string": "nestedstring3"}], "objlist_opt": null, "string": "string", "string_opt": null, "stringlist": ["one", "two"], "stringlist_opt": null}""",  # noqa: E501
+            ),
+            (
+                example_data_object_dict_with_optionals,
+                """\
+{"dt": "2001-01-01T01:01:01", "dt_opt": "2002-02-02T02:02:02", "dtlist": ["2001-01-01T01:01:01", "2002-02-02T02:02:02"], "dtlist_opt": ["2003-03-03T03:03:03", "2004-04-04T04:04:04"], "enum": "one", "enum_list": ["two", "three"], "enum_opt": "three", "enum_opt_list": ["one", "four"], "integer": 1, "integer_opt": 11, "integerlist": [3, 4, 5], "integerlist_opt": [33, 44, 55], "obj": {"integer": 2, "string": "nestedstring"}, "obj_opt": {"integer": 22, "string": "nestedstring_opt"}, "objlist": [{"integer": 6, "string": "nestedstring2"}, {"integer": 7, "string": "nestedstring3"}], "objlist_opt": [{"integer": 66, "string": "nestedstring2_opt"}, {"integer": 77, "string": "nestedstring3_opt"}], "string": "string", "string_opt": "string_opt", "stringlist": ["one", "two"], "stringlist_opt": ["one_opt", "two_opt"]}""",  # noqa: E501
+            ),
+        ),
+    )
+    def test_to_json(self, d, j):
+        assert ExampleDataObject.from_dict(d).to_json() == j
