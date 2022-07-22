@@ -1,14 +1,14 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.version.v1 import VersionError, VersionResult, version
+from uaclient.api.u.pro.version.v1 import VersionError, VersionResult, _version
 from uaclient.exceptions import UserFacingError
 
 
 class TestVersionV1:
     @mock.patch("uaclient.api.u.pro.version.v1.get_version", return_value="28")
     def test_version(self, _m_get_version, FakeConfig):
-        result = version(FakeConfig())
+        result = _version(cfg=FakeConfig())
         assert isinstance(result, VersionResult)
         assert result.installed_version == "28"
 
@@ -19,7 +19,7 @@ class TestVersionV1:
         )
 
         with pytest.raises(VersionError) as excinfo:
-            version(FakeConfig())
+            _version(FakeConfig())
 
         assert excinfo.errisinstance(VersionError)
         assert excinfo.value.msg == "('something wrong', 'fn-specific')"

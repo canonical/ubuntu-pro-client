@@ -5,14 +5,14 @@ import uaclient.api.u.pro.attach.magic.wait.v1 as api_wait
 from uaclient import exceptions
 from uaclient.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
-    wait,
+    _wait,
 )
 
 
 @mock.patch("uaclient.contract.UAContractClient.get_magic_attach_token_info")
 class TestMagicAttachWaitV1:
     @mock.patch("time.sleep")
-    def test_wait_succeds(self, m_sleep, m_attach_token_info, FakeConfig):
+    def test_wait_succeeds(self, m_sleep, m_attach_token_info, FakeConfig):
         magic_token = "test-id"
 
         m_attach_token_info.side_effect = [
@@ -29,7 +29,7 @@ class TestMagicAttachWaitV1:
         ]
 
         options = MagicAttachWaitOptions(magic_token=magic_token)
-        expected_response = wait(options, FakeConfig())
+        expected_response = _wait(options, FakeConfig())
 
         assert expected_response.contract_token == "ctoken"
         assert expected_response.contract_id == "cid"
@@ -46,7 +46,7 @@ class TestMagicAttachWaitV1:
         options = MagicAttachWaitOptions(magic_token=magic_token)
 
         with pytest.raises(exceptions.MagicAttachTokenError):
-            wait(options, FakeConfig())
+            _wait(options, FakeConfig())
 
     @mock.patch("time.sleep")
     def test_wait_fails_after_maximum_attempts(
@@ -59,7 +59,7 @@ class TestMagicAttachWaitV1:
 
         with pytest.raises(exceptions.MagicAttachTokenError):
             with mock.patch.object(api_wait, "MAXIMUM_ATTEMPTS", 2):
-                wait(options, FakeConfig())
+                _wait(options, FakeConfig())
 
     @mock.patch("time.sleep")
     def test_wait_fails_after_number_of_connectiviry_errors(
@@ -76,7 +76,7 @@ class TestMagicAttachWaitV1:
         options = MagicAttachWaitOptions(magic_token=magic_token)
 
         with pytest.raises(exceptions.ConnectivityError):
-            wait(options, FakeConfig())
+            _wait(options, FakeConfig())
 
         assert 3 == m_sleep.call_count
 
@@ -100,7 +100,7 @@ class TestMagicAttachWaitV1:
         ]
 
         options = MagicAttachWaitOptions(magic_token=magic_token)
-        expected_response = wait(options, FakeConfig())
+        expected_response = _wait(options, FakeConfig())
 
         assert expected_response.contract_token == "ctoken"
         assert expected_response.contract_id == "cid"
