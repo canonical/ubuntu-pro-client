@@ -9,7 +9,16 @@ from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 import yaml
 
-from uaclient import apt, event_logger, exceptions, files, messages, snap, util
+from uaclient import (
+    apt,
+    event_logger,
+    exceptions,
+    files,
+    messages,
+    snap,
+    system,
+    util,
+)
 from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -303,10 +312,10 @@ class UAConfig:
         no_lock = (-1, "")
         if not os.path.exists(lock_path):
             return no_lock
-        lock_content = util.load_file(lock_path)
+        lock_content = system.load_file(lock_path)
         [lock_pid, lock_holder] = lock_content.split(":")
         try:
-            util.subp(["ps", lock_pid])
+            system.subp(["ps", lock_pid])
             return (int(lock_pid), lock_holder)
         except exceptions.ProcessExecutionError:
             if os.getuid() != 0:
@@ -321,7 +330,7 @@ class UAConfig:
                 lock_pid,
                 lock_holder,
             )
-            util.remove_file(lock_path)
+            system.remove_file(lock_path)
             return no_lock
 
     @property
@@ -366,7 +375,7 @@ class UAConfig:
         if notices:
             self.write_cache("notices", notices)
         elif os.path.exists(self.data_path("notices")):
-            util.remove_file(self.data_path("notices"))
+            system.remove_file(self.data_path("notices"))
 
     @property
     def log_file(self) -> str:
@@ -433,7 +442,7 @@ class UAConfig:
         (This is a separate method to allow easier disabling of deletion during
         tests.)
         """
-        util.remove_file(cache_path)
+        system.remove_file(cache_path)
 
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
@@ -461,7 +470,7 @@ class UAConfig:
     def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
         cache_path = self.data_path(key)
         try:
-            content = util.load_file(cache_path)
+            content = system.load_file(cache_path)
         except Exception:
             if not os.path.exists(cache_path) and not silent:
                 logging.debug("File does not exist: %s", cache_path)
@@ -492,7 +501,7 @@ class UAConfig:
         if key in self.data_paths:
             if not self.data_paths[key].private:
                 mode = 0o644
-        util.write_file(filepath, content, mode=mode)
+        system.write_file(filepath, content, mode=mode)
 
     def process_config(self):
         for prop in (
@@ -627,7 +636,7 @@ class UAConfig:
         }
 
         content += yaml.dump(cfg_dict, default_flow_style=False)
-        util.write_file(config_path, content)
+        system.write_file(config_path, content)
 
     def warn_about_invalid_keys(self):
         if self.invalid_keys is not None:
@@ -672,7 +681,7 @@ def parse_config(config_path=None):
 
     LOG.debug("Using client configuration file at %s", config_path)
     if os.path.exists(config_path):
-        cfg.update(yaml.safe_load(util.load_file(config_path)))
+        cfg.update(yaml.safe_load(system.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
         key = key.lower()
@@ -689,7 +698,7 @@ def parse_config(config_path=None):
                 # with it
                 if value.endswith("yaml"):
                     if os.path.exists(value):
-                        value = yaml.safe_load(util.load_file(value))
+                        value = yaml.safe_load(system.load_file(value))
                     else:
                         raise exceptions.UserFacingError(
                             "Could not find yaml file: {}".format(value)

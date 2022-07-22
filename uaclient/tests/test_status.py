@@ -275,7 +275,7 @@ def realtime_desc(FakeConfig):
 
 
 @mock.patch("uaclient.config.UAConfig.remove_notice")
-@mock.patch("uaclient.util.should_reboot", return_value=False)
+@mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:
     def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:

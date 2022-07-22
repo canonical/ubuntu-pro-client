@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from typing import Dict, Optional
 
-from uaclient import defaults, event_logger, exceptions, messages, util
+from uaclient import defaults, event_logger, exceptions, messages, system, util
 from uaclient.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
@@ -41,18 +41,18 @@ class UAFile:
             os.makedirs(self._directory)
             if os.path.basename(self._directory) == defaults.PRIVATE_SUBDIR:
                 os.chmod(self._directory, 0o700)
-        util.write_file(self.path, content, file_mode)
+        system.write_file(self.path, content, file_mode)
 
     def read(self) -> Optional[str]:
         content = None
         try:
-            content = util.load_file(self.path)
+            content = system.load_file(self.path)
         except FileNotFoundError:
             LOG.debug("File does not exist: {}".format(self.path))
         return content
 
     def delete(self):
-        util.remove_file(self.path)
+        system.remove_file(self.path)
 
 
 class MachineTokenFile:
@@ -144,7 +144,7 @@ class MachineTokenFile:
             )
 
         try:
-            machine_token_overlay_content = util.load_file(
+            machine_token_overlay_content = system.load_file(
                 machine_token_overlay_path
             )
 
@@ -183,6 +183,8 @@ class MachineTokenFile:
 
         Return an empty dict if no entitlements are present.
         """
+        from uaclient.contract import apply_contract_overrides
+
         if not machine_token:
             return {}
 
@@ -207,7 +209,7 @@ class MachineTokenFile:
                 entitlement_cfg["resourceToken"] = tokens_by_name[
                     entitlement_name
                 ]
-            util.apply_contract_overrides(entitlement_cfg)
+            apply_contract_overrides(entitlement_cfg)
             entitlements[entitlement_name] = entitlement_cfg
         return entitlements
 

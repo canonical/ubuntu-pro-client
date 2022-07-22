@@ -2,7 +2,7 @@ import logging
 import time
 from subprocess import TimeoutExpired
 
-from uaclient import actions, exceptions, lock, messages, util
+from uaclient import actions, exceptions, lock, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
@@ -13,7 +13,7 @@ LOG = logging.getLogger("ua.daemon")
 
 def start():
     try:
-        util.subp(
+        system.subp(
             ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
         )
     except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
@@ -22,7 +22,7 @@ def start():
 
 def stop():
     try:
-        util.subp(
+        system.subp(
             ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
         )
     except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
@@ -63,7 +63,7 @@ def poll_for_pro_license(cfg: UAConfig):
     if cfg.is_attached:
         LOG.debug("Already attached, shutting down")
         return
-    if not util.is_current_series_lts():
+    if not system.is_current_series_lts():
         LOG.debug("Not on LTS, shutting down")
         return
 

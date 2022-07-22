@@ -23,8 +23,8 @@ class TestConfigureSnapProxy:
             (None, None, [1, 2]),
         ),
     )
-    @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which", return_value=True)
+    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.system.which", return_value=True)
     def test_configure_snap_proxy(
         self, m_which, m_subp, http_proxy, https_proxy, retry_sleeps, capsys
     ):
@@ -75,7 +75,7 @@ class TestConfigureSnapProxy:
             ("proxy.https", ("value", ""), "value"),
         ],
     )
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     def test_get_config_option_value(
         self, m_util_subp, key, subp_side_effect, expected_ret
     ):
@@ -92,8 +92,8 @@ class TestUnconfigureSnapProxy:
         "snap_installed, protocol_type, retry_sleeps",
         ((True, "http", None), (True, "https", [1]), (True, "http", [])),
     )
-    @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which")
+    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.system.which")
     def test_unconfigure_snap_proxy(
         self, which, subp, snap_installed, protocol_type, retry_sleeps
     ):

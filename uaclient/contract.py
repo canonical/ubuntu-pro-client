@@ -7,6 +7,7 @@ from uaclient import (
     exceptions,
     messages,
     serviceclient,
+    system,
     util,
 )
 from uaclient.config import UAConfig
@@ -26,6 +27,8 @@ API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
 
 API_V1_MAGIC_ATTACH = "/v1/magic-attach"
+
+OVERRIDE_SELECTOR_WEIGHTS = {"series_overrides": 1, "series": 2, "cloud": 3}
 
 event = event_logger.get_event_logger()
 
@@ -53,7 +56,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         self.cfg.machine_token_file.write(machine_token)
 
-        util.get_machine_id.cache_clear()
+        system.get_machine_id.cache_clear()
         machine_id = machine_token.get("machineTokenInfo", {}).get(
             "machineId", data.get("machineId")
         )
@@ -113,7 +116,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         @return: Dict of the JSON response containing entitlement accessInfo.
         """
         if not machine_id:
-            machine_id = util.get_machine_id(self.cfg)
+            machine_id = system.get_machine_id(self.cfg)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
@@ -146,7 +149,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         contract_id = self.cfg.machine_token_file.contract_id
         machine_token = self.cfg.machine_token.get("machineToken")
-        machine_id = util.get_machine_id(self.cfg)
+        machine_id = system.get_machine_id(self.cfg)
 
         request_data = self._get_activity_info(machine_id)
         url = API_V1_MACHINE_ACTIVITY.format(
@@ -312,7 +315,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             response["expires"] = headers["expires"]
         if not detach:
             self.cfg.machine_token_file.write(response)
-            util.get_machine_id.cache_clear()
+            system.get_machine_id.cache_clear()
             machine_id = response.get("machineTokenInfo", {}).get(
                 "machineId", data.get("machineId")
             )
@@ -322,8 +325,8 @@ class UAContractClient(serviceclient.UAServiceClient):
     def _get_platform_data(self, machine_id):
         """Return a dict of platform-related data for contract requests"""
         if not machine_id:
-            machine_id = util.get_machine_id(self.cfg)
-        platform = util.get_platform_info()
+            machine_id = system.get_machine_id(self.cfg)
+        platform = system.get_platform_info()
         platform_os = platform.copy()
         arch = platform_os.pop("arch")
         return {
@@ -334,7 +337,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def _get_platform_basic_info(self):
         """Return a dict of platform basic info for some contract requests"""
-        platform = util.get_platform_info()
+        platform = system.get_platform_info()
         return {
             "architecture": platform["arch"],
             "series": platform["series"],
@@ -346,7 +349,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
         if not machine_id:
-            machine_id = util.get_machine_id(self.cfg)
+            machine_id = system.get_machine_id(self.cfg)
 
         # If the activityID is null we should provide the endpoint
         # with the instance machine id as the activityID
@@ -467,7 +470,7 @@ def process_entitlement_delta(
     from uaclient.entitlements import entitlement_factory
 
     if series_overrides:
-        util.apply_contract_overrides(new_access)
+        apply_contract_overrides(new_access)
 
     deltas = util.get_dict_deltas(orig_access, new_access)
     ret = False
@@ -652,3 +655,84 @@ def is_contract_changed(cfg: UAConfig) -> bool:
         if deltas:
             return True
     return False
+
+
+def _get_override_weight(
+    override_selector: Dict[str, str], selector_values: Dict[str, str]
+) -> int:
+    override_weight = 0
+    for selector, value in override_selector.items():
+        if (selector, value) not in selector_values.items():
+            return 0
+        override_weight += OVERRIDE_SELECTOR_WEIGHTS[selector]
+
+    return override_weight
+
+
+def _select_overrides(
+    entitlement: Dict[str, Any], series_name: str, cloud_type: str
+) -> Dict[int, Dict[str, Any]]:
+    overrides = {}
+
+    selector_values = {"series": series_name, "cloud": cloud_type}
+
+    series_overrides = entitlement.pop("series", {}).pop(series_name, {})
+    if series_overrides:
+        overrides[
+            OVERRIDE_SELECTOR_WEIGHTS["series_overrides"]
+        ] = series_overrides
+
+    general_overrides = entitlement.pop("overrides", [])
+    for override in general_overrides:
+        weight = _get_override_weight(
+            override.pop("selector"), selector_values
+        )
+        if weight:
+            overrides[weight] = override
+
+    return overrides
+
+
+def apply_contract_overrides(
+    orig_access: Dict[str, Any], series: Optional[str] = None
+) -> None:
+    """Apply series-specific overrides to an entitlement dict.
+
+    This function mutates orig_access dict by applying any series-overrides to
+    the top-level keys under 'entitlement'. The series-overrides are sparse
+    and intended to supplement existing top-level dict values. So, sub-keys
+    under the top-level directives, obligations and affordance sub-key values
+    will be preserved if unspecified in series-overrides.
+
+    To more clearly indicate that orig_access in memory has already had
+    the overrides applied, the 'series' key is also removed from the
+    orig_access dict.
+
+    :param orig_access: Dict with original entitlement access details
+    """
+    from uaclient.clouds.identity import get_cloud_type
+
+    if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
+        raise RuntimeError(
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            " {}".format(orig_access)
+        )
+
+    series_name = (
+        system.get_platform_info()["series"] if series is None else series
+    )
+    cloud_type, _ = get_cloud_type()
+    orig_entitlement = orig_access.get("entitlement", {})
+
+    overrides = _select_overrides(orig_entitlement, series_name, cloud_type)
+
+    for _weight, overrides_to_apply in sorted(overrides.items()):
+        for key, value in overrides_to_apply.items():
+            current = orig_access["entitlement"].get(key)
+            if isinstance(current, dict):
+                # If the key already exists and is a dict,
+                # update that dict using the override
+                current.update(value)
+            else:
+                # Otherwise, replace it wholesale
+                orig_access["entitlement"][key] = value

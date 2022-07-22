@@ -27,7 +27,7 @@ import time
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.contract import process_entitlements_delta
-from uaclient.util import parse_os_release, subp
+from uaclient.system import parse_os_release, subp
 
 version_to_codename = {
     "14.04": "trusty",

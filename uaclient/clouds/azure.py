@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict
 from urllib.error import HTTPError
 
-from uaclient import exceptions, util
+from uaclient import exceptions, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_BASE_URL = "http://169.254.169.254/metadata/"
@@ -44,7 +44,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
     def is_viable(self) -> bool:
         """This machine is a viable AzureInstance"""
         if os.path.exists(DMI_CHASSIS_ASSET_TAG):
-            chassis_asset_tag = util.load_file(DMI_CHASSIS_ASSET_TAG)
+            chassis_asset_tag = system.load_file(DMI_CHASSIS_ASSET_TAG)
             if AZURE_CHASSIS_ASSET_TAG == chassis_asset_tag.strip():
                 return True
         return os.path.exists(AZURE_OVF_ENV_FILE)

@@ -8,8 +8,8 @@ M_ENT = "uaclient.entitlements.esm."
 
 class TestEOLStatus:
     @mock.patch(M_ENT + "ESMBaseEntitlement.setup_unauthenticated_repo")
-    @mock.patch("uaclient.util.get_platform_info")
-    @mock.patch("uaclient.util.is_active_esm", return_value=False)
+    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.is_active_esm", return_value=False)
     def test_repo_not_set_on_attached_machine(
         self,
         _is_active_esm,
@@ -24,8 +24,8 @@ class TestEOLStatus:
         assert setup_unauthenticated_repo.call_count == 0
 
     @mock.patch(M_ENT + "ESMBaseEntitlement.setup_unauthenticated_repo")
-    @mock.patch("uaclient.util.get_platform_info")
-    @mock.patch("uaclient.util.is_active_esm", return_value=False)
+    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.is_active_esm", return_value=False)
     def test_repo_not_set_on_active_esm(
         self,
         _is_active_esm,
@@ -39,9 +39,9 @@ class TestEOLStatus:
         assert get_platform_info.call_count == 1
         assert setup_unauthenticated_repo.call_count == 0
 
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch(M_ENT + "apt.setup_unauthenticated_repo")
-    @mock.patch("uaclient.util.is_active_esm", return_value=True)
+    @mock.patch("uaclient.system.is_active_esm", return_value=True)
     def test_esm_infra_repo_set_on_unattached(
         self,
         _is_active_esm,

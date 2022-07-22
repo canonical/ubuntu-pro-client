@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import apt, exceptions, messages, serviceclient, util
+from uaclient import apt, exceptions, messages, serviceclient, system, util
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
@@ -310,7 +310,7 @@ class CVE:
         if hasattr(self, "_packages_status"):
             return self._packages_status  # type: ignore
         self._packages_status = {}
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
         for package in self.response["packages"]:
             for pkg_status in package["statuses"]:
                 if pkg_status["release_codename"] == series:
@@ -398,7 +398,7 @@ class USN:
         """
         if hasattr(self, "_release_packages"):
             return self._release_packages
-        series = util.get_platform_info()["series"]
+        series = system.get_platform_info()["series"]
         self._release_packages = {}  # type: Dict[str, Dict[str, Any]]
         # Organize source and binary packages under a common source package key
         for pkg in self.response.get("release_packages", {}).get(series, []):
@@ -451,7 +451,7 @@ def query_installed_source_pkg_versions() -> Dict[str, Dict[str, str]]:
     with keys binary_pkg and version.
     """
     status_field = "${db:Status-Status}"
-    out, _err = util.subp(
+    out, _err = system.subp(
         [
             "dpkg-query",
             "-f=${Package},${Source},${Version}," + status_field + "\n",
@@ -1014,7 +1014,7 @@ def prompt_for_affected_packages(
                 if unfixed_pkgs
                 else FixStatus.SYSTEM_NON_VULNERABLE
             )
-        elif util.should_reboot(
+        elif system.should_reboot(
             installed_pkgs=released_pkgs_install_result.installed_pkgs
         ):
             # we successfully installed some packages, but
@@ -1304,7 +1304,7 @@ def upgrade_packages_and_attach(
 def version_cmp_le(version1: str, version2: str) -> bool:
     """Return True when version1 is less than or equal to version2."""
     try:
-        util.subp(["dpkg", "--compare-versions", version1, "le", version2])
+        system.subp(["dpkg", "--compare-versions", version1, "le", version2])
         return True
     except exceptions.ProcessExecutionError:
         return False

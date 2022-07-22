@@ -9,7 +9,7 @@ from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 
 M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
-M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
+M_GETPLATFORM = M_REPOPATH + "system.get_platform_info"
 
 
 @pytest.fixture(params=[ESMAppsEntitlement, ESMInfraEntitlement])
@@ -26,8 +26,8 @@ class TestESMRepoPinPriority:
             ("focal", False, None),
         ),
     )
-    @mock.patch("uaclient.util.is_active_esm")
-    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    @mock.patch("uaclient.system.is_active_esm")
+    @mock.patch("uaclient.entitlements.esm.system.get_platform_info")
     def test_esm_infra_repo_pin_priority_never_on_active_esm(
         self,
         m_get_platform_info,
@@ -63,8 +63,8 @@ class TestESMRepoPinPriority:
             ("focal", True, None),
         ),
     )
-    @mock.patch("uaclient.util.is_lts")
-    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    @mock.patch("uaclient.system.is_lts")
+    @mock.patch("uaclient.entitlements.esm.system.get_platform_info")
     @mock.patch("uaclient.entitlements.UAConfig")
     def test_esm_apps_repo_pin_priority_never_on_lts(
         self,
@@ -109,8 +109,8 @@ class TestESMDisableAptAuthOnly:
             ("focal", False, False),
         ),
     )
-    @mock.patch("uaclient.util.is_active_esm")
-    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    @mock.patch("uaclient.system.is_active_esm")
+    @mock.patch("uaclient.entitlements.esm.system.get_platform_info")
     def test_esm_infra_disable_apt_auth_only_is_true_when_active_esm(
         self,
         m_get_platform_info,
@@ -136,8 +136,8 @@ class TestESMDisableAptAuthOnly:
             ("groovy", False, False, True, False),  # not is_lts fails
         ),
     )
-    @mock.patch("uaclient.util.is_lts")
-    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    @mock.patch("uaclient.system.is_lts")
+    @mock.patch("uaclient.entitlements.esm.system.get_platform_info")
     @mock.patch("uaclient.entitlements.UAConfig")
     def test_esm_apps_disable_apt_auth_only_is_true_on_lts(
         self,
@@ -169,7 +169,7 @@ class TestESMDisableAptAuthOnly:
         assert is_lts_calls == m_is_lts.call_args_list
 
 
-@mock.patch("uaclient.util.is_lts", return_value=True)
+@mock.patch("uaclient.system.is_lts", return_value=True)
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
 @mock.patch("uaclient.apt.setup_apt_proxy")
@@ -214,12 +214,12 @@ class TestESMInfraEntitlementEnable:
             m_add_apt = stack.enter_context(
                 mock.patch("uaclient.apt.add_auth_apt_repo")
             )
-            stack.enter_context(mock.patch("uaclient.util.is_active_esm"))
+            stack.enter_context(mock.patch("uaclient.system.is_active_esm"))
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
             m_subp = stack.enter_context(
-                mock.patch("uaclient.util.subp", return_value=("", ""))
+                mock.patch("uaclient.system.subp", return_value=("", ""))
             )
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, "can_enable")
@@ -233,7 +233,7 @@ class TestESMInfraEntitlementEnable:
                 )
             )
             m_remove_file = stack.enter_context(
-                mock.patch("uaclient.util.remove_file")
+                mock.patch("uaclient.system.remove_file")
             )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
@@ -331,9 +331,9 @@ class TestESMInfraEntitlementEnable:
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
-            stack.enter_context(mock.patch("uaclient.util.is_active_esm"))
+            stack.enter_context(mock.patch("uaclient.system.is_active_esm"))
             m_subp = stack.enter_context(
-                mock.patch("uaclient.util.subp", side_effect=fake_subp)
+                mock.patch("uaclient.system.subp", side_effect=fake_subp)
             )
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, "can_enable")
@@ -350,7 +350,7 @@ class TestESMInfraEntitlementEnable:
                 )
             )
             m_remove_file = stack.enter_context(
-                mock.patch("uaclient.util.remove_file")
+                mock.patch("uaclient.system.remove_file")
             )
 
             m_can_enable.return_value = (True, None)
@@ -399,7 +399,7 @@ class TestESMInfraEntitlementEnable:
 @mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=(False, None))
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
@@ -419,7 +419,7 @@ class TestESMEntitlementDisable:
         assert 0 == m_remove_apt.call_count
 
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_disable_on_can_disable_true_removes_apt_config(
         self, _m_platform_info, m_update_apt_and_motd_msgs, entitlement

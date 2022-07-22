@@ -2,7 +2,7 @@ import logging
 from typing import Any, Dict
 from urllib.error import HTTPError
 
-from uaclient import exceptions, util
+from uaclient import exceptions, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
@@ -95,7 +95,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     def is_viable(self) -> bool:
         """This machine is a viable AWSInstance"""
         try:
-            hypervisor_uuid = util.load_file(SYS_HYPERVISOR_PRODUCT_UUID)
+            hypervisor_uuid = system.load_file(SYS_HYPERVISOR_PRODUCT_UUID)
             if "ec2" == hypervisor_uuid[0:3]:
                 return True
         except FileNotFoundError:
@@ -103,8 +103,8 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
             # types, fall through
             pass
         # Both DMI product_uuid and product_serial start with 'ec2'
-        dmi_uuid = util.load_file(DMI_PRODUCT_UUID).lower()
-        dmi_serial = util.load_file(DMI_PRODUCT_SERIAL).lower()
+        dmi_uuid = system.load_file(DMI_PRODUCT_UUID).lower()
+        dmi_serial = system.load_file(DMI_PRODUCT_SERIAL).lower()
         if "ec2" == dmi_uuid[0:3] == dmi_serial[0:3]:
             return True
         return False

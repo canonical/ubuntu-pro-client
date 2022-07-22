@@ -1138,7 +1138,7 @@ class TestParseConfig:
         assert expected_msg == excinfo.value.msg
 
     @mock.patch("uaclient.config.os.path.exists")
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     def test_parse_reads_yaml_from_environ_values(
         self, m_load_file, m_path_exists
     ):
@@ -1244,7 +1244,7 @@ class TestMachineTokenOverlay:
         },
     }
 
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.files.MachineTokenFile.read")
     @mock.patch("uaclient.config.os.path.exists", return_value=True)
     def test_machine_token_update_with_overlay(
@@ -1325,7 +1325,7 @@ class TestMachineTokenOverlay:
 
         assert expected_msg == str(excinfo.value)
 
-    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.files.MachineTokenFile.read")
     @mock.patch("uaclient.config.os.path.exists", return_value=True)
     def test_machine_token_overlay_json_decode_error(
