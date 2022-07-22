@@ -69,9 +69,9 @@ class TestActionCollectLogs:
     @mock.patch(M_PATH + "util.redact_sensitive_logs", return_value="test")
     # let's pretend all files exist
     @mock.patch(M_PATH + "os.path.isfile", return_value=True)
-    @mock.patch(M_PATH + "util.write_file")
+    @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "shutil.copy")
-    @mock.patch(M_PATH + "util.subp", return_value=(None, None))
+    @mock.patch(M_PATH + "system.subp", return_value=(None, None))
     def test_collect_logs(
         self,
         m_subp,

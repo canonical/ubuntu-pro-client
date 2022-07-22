@@ -9,7 +9,7 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, util
+from uaclient import apt, exceptions, messages, system
 from uaclient.apt import (
     APT_AUTH_COMMENT,
     APT_CONFIG_GLOBAL_PROXY_HTTP,
@@ -44,7 +44,7 @@ POST_INSTALL_APT_CACHE_NO_UPDATES = """
 
 
 class TestAddPPAPinning:
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_write_apt_pin_file_to_apt_preferences(self, m_platform, tmpdir):
         """Write proper apt pin file to specified apt_preference_file."""
         m_platform.return_value = {"series": "xenial"}
@@ -61,11 +61,11 @@ class TestAddPPAPinning:
             Pin: release o=MYORIG, n=xenial
             Pin-Priority: 1003\n"""
         )
-        assert expected_pref == util.load_file(pref_file)
+        assert expected_pref == system.load_file(pref_file)
 
 
 class TestFindAptListFilesFromRepoSeries:
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     def test_find_all_apt_list_files_from_apt_config_key(self, m_subp, tmpdir):
         """Find all matching apt list files from apt-config dir."""
         m_subp.return_value = ("key='{}'".format(tmpdir.strpath), "")
@@ -82,13 +82,13 @@ class TestFindAptListFilesFromRepoSeries:
             ]
         )
         for path in paths:
-            util.write_file(path, "")
+            system.write_file(path, "")
 
         assert paths[1:] == find_apt_list_files(repo_url, "xenial")
 
 
 class TestRemoveAptListFiles:
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     def test_remove_all_apt_list_files_from_apt_config_key(
         self, m_subp, tmpdir
     ):
@@ -106,14 +106,14 @@ class TestRemoveAptListFiles:
             ).strpath,
         ]
         for path in paths:
-            util.write_file(path, "")
+            system.write_file(path, "")
 
         assert None is remove_apt_list_files(repo_url, "xenial")
         assert [nomatch_file] == glob.glob("{}/*".format(tmpdir.strpath))
 
 
 class TestValidAptCredentials:
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("os.path.exists", return_value=False)
     def test_passes_when_missing_apt_helper(self, m_exists, m_subp):
         """When apt-helper tool is absent perform no validation."""
@@ -125,7 +125,7 @@ class TestValidAptCredentials:
         assert 0 == m_subp.call_count
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_passes_on_valid_creds(
         self, m_exists, m_subp, m_temporary_directory
@@ -184,7 +184,7 @@ class TestValidAptCredentials:
         ),
     )
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
         self,
@@ -231,7 +231,7 @@ class TestValidAptCredentials:
         assert [apt_helper_call] == m_subp.call_args_list
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
         self, m_exists, m_subp, m_temporary_directory
@@ -276,11 +276,11 @@ class TestValidAptCredentials:
 
 class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_add_auth_apt_repo_writes_sources_file(
         self,
@@ -309,18 +309,18 @@ class TestAddAuthAptRepo:
             "deb http://fakerepo/ubuntu xenial main\n"
             "# deb-src http://fakerepo/ubuntu xenial main\n"
         )
-        assert expected_content == util.load_file(repo_file)
+        assert expected_content == system.load_file(repo_file)
         src_keyfile = os.path.join(KEYRINGS_DIR, "keyring")
         dest_keyfile = os.path.join(APT_KEYS_DIR, "keyring")
         gpg_export_calls = [mock.call(src_keyfile, dest_keyfile)]
         assert gpg_export_calls == m_gpg_export.call_args_list
 
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
         self,
@@ -361,14 +361,14 @@ class TestAddAuthAptRepo:
             # deb-src http://fakerepo/ubuntu xenial-updates main
         """
         )
-        assert expected_content == util.load_file(repo_file)
+        assert expected_content == system.load_file(repo_file)
 
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
         self,
@@ -406,14 +406,14 @@ class TestAddAuthAptRepo:
             # deb-src http://fakerepo/ubuntu xenial-updates main
         """
         )
-        assert expected_content == util.load_file(repo_file)
+        assert expected_content == system.load_file(repo_file)
 
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
         self,
@@ -442,14 +442,14 @@ class TestAddAuthAptRepo:
             "machine fakerepo/ login user password password"
             "{}\n".format(APT_AUTH_COMMENT)
         )
-        assert expected_content == util.load_file(auth_file)
+        assert expected_content == system.load_file(auth_file)
 
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
         self,
@@ -478,7 +478,7 @@ class TestAddAuthAptRepo:
             "machine fakerepo/ login bearer password"
             " SOMELONGTOKEN{}\n".format(APT_AUTH_COMMENT)
         )
-        assert expected_content == util.load_file(auth_file)
+        assert expected_content == system.load_file(auth_file)
 
 
 class TestAddAptAuthConfEntry:
@@ -488,7 +488,7 @@ class TestAddAptAuthConfEntry:
     ):
         """Replace old credentials for this repo_url on the same line."""
         auth_file = tmpdir.join("auth.conf").strpath
-        util.write_file(
+        system.write_file(
             auth_file,
             dedent(
                 """\
@@ -513,7 +513,7 @@ class TestAddAptAuthConfEntry:
         """
         )
         expected_content = content_template.format(APT_AUTH_COMMENT)
-        assert expected_content == util.load_file(auth_file)
+        assert expected_content == system.load_file(auth_file)
 
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_insert_repo_subroutes_before_existing_repo_basepath(
@@ -521,7 +521,7 @@ class TestAddAptAuthConfEntry:
     ):
         """Insert new repo_url before first matching url base path."""
         auth_file = tmpdir.join("auth.conf").strpath
-        util.write_file(
+        system.write_file(
             auth_file,
             dedent(
                 """\
@@ -549,7 +549,7 @@ class TestAddAptAuthConfEntry:
         """
         )
         expected_content = content_template.format(APT_AUTH_COMMENT)
-        assert expected_content == util.load_file(auth_file)
+        assert expected_content == system.load_file(auth_file)
 
 
 class TestCleanAptFiles:
@@ -579,7 +579,7 @@ class TestCleanAptFiles:
         return TestRepo
 
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.util.remove_file")
+    @mock.patch("uaclient.system.remove_file")
     def test_removals_for_repo_entitlements(
         self, m_remove_file, _m_path_exists
     ):
@@ -640,9 +640,9 @@ def remove_auth_apt_repo_kwargs(request):
 
 
 class TestRemoveAuthAptRepo:
-    @mock.patch("uaclient.apt.util.subp")
+    @mock.patch("uaclient.apt.system.subp")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.util.remove_file")
+    @mock.patch("uaclient.apt.system.remove_file")
     def test_repo_file_deleted(
         self, m_remove_file, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
@@ -655,8 +655,8 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_filename) in m_remove_file.call_args_list
 
-    @mock.patch("uaclient.apt.util.subp")
-    @mock.patch("uaclient.apt.util.remove_file")
+    @mock.patch("uaclient.apt.system.subp")
+    @mock.patch("uaclient.apt.system.remove_file")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
     def test_remove_from_auth_file_called(
         self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs
@@ -670,9 +670,9 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_url) in m_remove_repo.call_args_list
 
-    @mock.patch("uaclient.apt.util.subp")
+    @mock.patch("uaclient.apt.system.subp")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.util.remove_file")
+    @mock.patch("uaclient.apt.system.remove_file")
     def test_keyring_file_deleted_if_given(
         self, m_remove_file, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
@@ -694,8 +694,8 @@ class TestRemoveAuthAptRepo:
 
 
 class TestRemoveRepoFromAptAuthFile:
-    @mock.patch("uaclient.util.remove_file")
-    @mock.patch("uaclient.apt.util.write_file")
+    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.apt.system.write_file")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_auth_file_doesnt_exist_means_we_dont_remove_or_write_it(
         self, m_get_apt_auth_file, m_write_file, m_remove_file, tmpdir
@@ -722,8 +722,8 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.util.remove_file")
-    @mock.patch("uaclient.apt.util.write_file")
+    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.apt.system.write_file")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_file_removal(
         self,
@@ -774,7 +774,7 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.util.remove_file")
+    @mock.patch("uaclient.system.remove_file")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_file_rewrite(
         self,
@@ -835,7 +835,7 @@ class TestRestoreCommentAptListFile:
 
 
 class TestGetInstalledPackages:
-    @mock.patch("uaclient.apt.util.subp", return_value=("", ""))
+    @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
     def test_correct_command_called(self, m_subp):
         get_installed_packages()
 
@@ -844,15 +844,15 @@ class TestGetInstalledPackages:
         )
         assert [expected_call] == m_subp.call_args_list
 
-    @mock.patch("uaclient.apt.util.subp", return_value=("", ""))
+    @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
     def test_empty_output_means_empty_list(self, m_subp):
         assert [] == get_installed_packages()
 
-    @mock.patch("uaclient.apt.util.subp", return_value=("a\nb\n", ""))
+    @mock.patch("uaclient.apt.system.subp", return_value=("a\nb\n", ""))
     def test_lines_are_split(self, m_subp):
         assert ["a", "b"] == get_installed_packages()
 
-    @mock.patch("uaclient.apt.util.subp", return_value=("a\nb", ""))
+    @mock.patch("uaclient.apt.system.subp", return_value=("a\nb", ""))
     def test_assert_missing_eof_newline_works(self, m_subp):
         assert ["a", "b"] == get_installed_packages()
 
@@ -904,7 +904,7 @@ class TestRunAptCommand:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.util.subp")
+    @mock.patch("uaclient.apt.system.subp")
     def test_run_apt_command_with_invalid_repositories(
         self, m_subp, error_list, output_list
     ):
@@ -920,7 +920,7 @@ class TestRunAptCommand:
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg
 
-    @mock.patch("uaclient.apt.util.subp")
+    @mock.patch("uaclient.apt.system.subp")
     def test_run_update_command_clean_apt_cache_policy_cache(self, m_subp):
         m_subp.side_effect = [
             ("policy1", ""),
@@ -938,7 +938,7 @@ class TestRunAptCommand:
         assert "policy2" == run_apt_cache_policy_command()
         run_apt_cache_policy_command.cache_clear()
 
-    @mock.patch("uaclient.apt.util.subp")
+    @mock.patch("uaclient.apt.system.subp")
     def test_failed_run_update_command_clean_apt_cache_policy_cache(
         self, m_subp
     ):
@@ -1015,8 +1015,8 @@ class TestAptProxyConfig:
             ),
         ],
     )
-    @mock.patch("uaclient.util.write_file")
-    @mock.patch("uaclient.util.remove_file")
+    @mock.patch("uaclient.system.write_file")
+    @mock.patch("uaclient.system.remove_file")
     def test_setup_apt_proxy_config(
         self,
         m_util_remove_file,

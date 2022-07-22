@@ -12,7 +12,7 @@ import os
 from os.path import exists
 from typing import List, Tuple
 
-from uaclient import config, defaults, entitlements, util
+from uaclient import config, defaults, entitlements, system, util
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
     ANNOUNCE_ESM_TMPL,
@@ -81,11 +81,11 @@ def _write_template_or_remove(msg: str, tmpl_file: str):
     When msg is empty, remove both tmpl_file and the generated msg.
     """
     if msg:
-        util.write_file(tmpl_file, msg)
+        system.write_file(tmpl_file, msg)
     else:
-        util.remove_file(tmpl_file)
+        system.remove_file(tmpl_file)
         if tmpl_file.endswith(".tmpl"):
-            util.remove_file(tmpl_file.replace(".tmpl", ""))
+            system.remove_file(tmpl_file.replace(".tmpl", ""))
 
 
 def _remove_msg_templates(msg_dir: str, msg_template_names: List[str]):
@@ -121,8 +121,8 @@ def _write_esm_service_msg_templates(
     tmpl_pkg_count_var = "{{{}_PKG_COUNT}}".format(tmpl_prefix)
     tmpl_pkg_names_var = "{{{}_PACKAGES}}".format(tmpl_prefix)
 
-    platform_info = util.get_platform_info()
-    is_active_esm = util.is_active_esm(platform_info["series"])
+    platform_info = system.get_platform_info()
+    is_active_esm = system.is_active_esm(platform_info["series"])
     if is_active_esm and ent.name == "esm-infra":
         release = platform_info["release"]
         ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
@@ -225,13 +225,13 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
     enabled_status = ApplicationStatus.ENABLED
     msg_esm_apps = False
     msg_esm_infra = False
-    if util.is_active_esm(series):
+    if system.is_active_esm(series):
         if infra_inst.application_status()[0] != enabled_status:
             msg_esm_infra = True
         elif remaining_days <= defaults.CONTRACT_EXPIRY_PENDING_DAYS:
             msg_esm_infra = True
     if not msg_esm_infra:
-        # write_apt_and_motd_templates is only called if util.is_lts(series)
+        # write_apt_and_motd_templates is only called if system.is_lts(series)
         msg_esm_apps = apps_valid
 
     if msg_esm_infra:
@@ -298,8 +298,8 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     esm_news_file = os.path.join(msg_dir, ExternalMessage.ESM_ANNOUNCE.value)
-    platform_info = util.get_platform_info()
-    is_active_esm = util.is_active_esm(platform_info["series"])
+    platform_info = system.get_platform_info()
+    is_active_esm = system.is_active_esm(platform_info["series"])
     if is_active_esm:
         ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
             hyphenatedrelease=platform_info["release"].replace(".", "-")
@@ -307,11 +307,11 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
     else:
         ua_esm_url = defaults.BASE_ESM_URL
     if apps_not_beta and apps_not_enabled:
-        util.write_file(
+        system.write_file(
             esm_news_file, "\n" + ANNOUNCE_ESM_TMPL.format(url=ua_esm_url)
         )
     else:
-        util.remove_file(esm_news_file)
+        system.remove_file(esm_news_file)
 
 
 def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
@@ -331,21 +331,23 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     if not os.path.exists(msg_dir):
         os.makedirs(msg_dir)
 
-    series = util.get_platform_info()["series"]
-    if not util.is_lts(series):
+    series = system.get_platform_info()["series"]
+    if not system.is_lts(series):
         # ESM is only on LTS releases. Remove all messages and templates.
         for msg_enum in ExternalMessage:
             msg_path = os.path.join(msg_dir, msg_enum.value)
-            util.remove_file(msg_path)
+            system.remove_file(msg_path)
             if msg_path.endswith(".tmpl"):
-                util.remove_file(msg_path.replace(".tmpl", ""))
+                system.remove_file(msg_path.replace(".tmpl", ""))
         return True
 
     # Announce ESM availabilty on active ESM LTS releases
     write_esm_announcement_message(cfg, series)
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
-    util.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"])
+    system.subp(
+        ["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"]
+    )
     return True
 
 
@@ -357,8 +359,8 @@ def refresh_motd():
         # since this command should already be triggered by
         # update-notifier apt hooks
         try:
-            util.subp([UPDATE_NOTIFIER_MOTD_SCRIPT, "--force"])
+            system.subp([UPDATE_NOTIFIER_MOTD_SCRIPT, "--force"])
         except Exception as exc:
             logging.exception(exc)
 
-    util.subp(["sudo", "systemctl", "restart", "motd-news.service"])
+    system.subp(["sudo", "systemctl", "restart", "motd-news.service"])

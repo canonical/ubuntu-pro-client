@@ -7,7 +7,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-from uaclient import event_logger, exceptions, messages, util, version
+from uaclient import event_logger, exceptions, messages, system, util, version
 from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
@@ -348,7 +348,7 @@ def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
         cfg.write_cache("status-cache", response)
 
         # Try to remove fix reboot notices if not applicable
-        if not util.should_reboot():
+        if not system.should_reboot():
             cfg.remove_notice(
                 "",
                 messages.ENABLE_REBOOT_REQUIRED_TMPL.format(

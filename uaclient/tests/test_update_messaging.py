@@ -4,7 +4,7 @@ import os
 import mock
 import pytest
 
-from uaclient import util
+from uaclient import system
 from uaclient.defaults import (
     BASE_ESM_URL,
     BASE_UA_URL,
@@ -86,7 +86,7 @@ class TestWriteAPTAndMOTDTemplates:
     @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_remove_msg_templates")
     @mock.patch(M_PATH + "_write_esm_service_msg_templates")
-    @mock.patch(M_PATH + "util.is_active_esm")
+    @mock.patch(M_PATH + "system.is_active_esm")
     @mock.patch(M_PATH + "get_contract_expiry_status")
     def test_write_apps_or_infra_services_mutually_exclusive(
         self,
@@ -237,8 +237,8 @@ class Test_WriteESMServiceAPTMsgTemplates:
             ),
         ),
     )
-    @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch(M_PATH + "util.is_active_esm", return_value=True)
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.is_active_esm", return_value=True)
     @mock.patch(
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
@@ -344,8 +344,8 @@ class Test_WriteESMServiceAPTMsgTemplates:
             ),
         ),
     )
-    @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch(M_PATH + "util.is_active_esm")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.is_active_esm")
     @mock.patch(
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
@@ -381,8 +381,8 @@ class Test_WriteESMServiceAPTMsgTemplates:
         motd_no_pkgs_tmpl.write("oldcache")
         no_pkgs_msg_file = no_pkgs_tmpl.strpath.replace(".tmpl", "")
         pkgs_msg_file = pkgs_tmpl.strpath.replace(".tmpl", "")
-        util.write_file(no_pkgs_msg_file, "oldcache")
-        util.write_file(pkgs_msg_file, "oldcache")
+        system.write_file(no_pkgs_msg_file, "oldcache")
+        system.write_file(pkgs_msg_file, "oldcache")
 
         now = datetime.datetime.utcnow()
         expire_date = now + datetime.timedelta(days=remaining_days)
@@ -511,8 +511,8 @@ class TestWriteESMAnnouncementMessage:
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
     @mock.patch(M_PATH + "entitlements.entitlement_factory")
-    @mock.patch(M_PATH + "util.is_active_esm")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.is_active_esm")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_message_based_on_beta_status_and_count_until_active_esm(
         self,
         get_platform_info,
@@ -529,7 +529,7 @@ class TestWriteESMAnnouncementMessage:
         FakeConfig,
     ):
         get_platform_info.return_value = {"series": series, "release": release}
-        util.is_active_esm.return_value = is_active_esm
+        system.is_active_esm.return_value = is_active_esm
 
         cfg = FakeConfig.for_attached_machine()
         msg_dir = os.path.join(cfg.data_dir, "messages")
@@ -554,7 +554,7 @@ class TestWriteESMAnnouncementMessage:
         if expected is None:
             assert False is os.path.exists(esm_news_path)
         else:
-            assert expected == util.load_file(esm_news_path)
+            assert expected == system.load_file(esm_news_path)
 
 
 class TestUpdateAPTandMOTDMessages:
@@ -567,12 +567,12 @@ class TestUpdateAPTandMOTDMessages:
             ("groovy", False, False, None),
         ),
     )
-    @mock.patch(M_PATH + "util.is_lts")
-    @mock.patch(M_PATH + "util.is_active_esm")
+    @mock.patch(M_PATH + "system.is_lts")
+    @mock.patch(M_PATH + "system.is_active_esm")
     @mock.patch(M_PATH + "write_apt_and_motd_templates")
     @mock.patch(M_PATH + "write_esm_announcement_message")
-    @mock.patch(M_PATH + "util.subp")
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.subp")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_motd_and_apt_templates_written_separately(
         self,
         get_platform_info,
@@ -606,8 +606,8 @@ class TestUpdateAPTandMOTDMessages:
             os.makedirs(msg_dir)
             for msg_enum in ExternalMessage:
                 msg_path = os.path.join(msg_dir, msg_enum.value)
-                util.write_file(msg_path, "old")
-                util.write_file(msg_path.replace(".tmpl", ""), "old")
+                system.write_file(msg_path, "old")
+                system.write_file(msg_path.replace(".tmpl", ""), "old")
 
         update_apt_and_motd_messages(cfg)
         os.path.exists(os.path.join(cfg.data_dir, "messages"))

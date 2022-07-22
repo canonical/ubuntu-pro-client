@@ -13,6 +13,8 @@ from uaclient.contract import (
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     UAContractClient,
+    _get_override_weight,
+    apply_contract_overrides,
     get_available_resources,
     get_contract_information,
     is_contract_changed,
@@ -39,7 +41,7 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 
 
 @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
-@mock.patch("uaclient.contract.util.get_machine_id")
+@mock.patch("uaclient.contract.system.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
         "machine_id_response", (("contract-machine-id"), None)
@@ -49,7 +51,7 @@ class TestUAContractClient:
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.util.get_platform_info")
+    @mock.patch("uaclient.contract.system.get_platform_info")
     def test__request_machine_token_update(
         self,
         get_platform_info,
@@ -138,7 +140,7 @@ class TestUAContractClient:
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.util.get_platform_info")
+    @mock.patch("uaclient.contract.system.get_platform_info")
     @mock.patch.object(UAContractClient, "_get_platform_data")
     def test_get_updated_contract_info(
         self,
@@ -528,7 +530,7 @@ class TestProcessEntitlementDeltas:
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(
-        "uaclient.util.get_platform_info",
+        "uaclient.system.get_platform_info",
         return_value={"series": "fake_series"},
     )
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
@@ -698,7 +700,7 @@ class TestRequestUpdatedContract:
             ),
         ),
     )
-    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
         self,
@@ -735,7 +737,7 @@ class TestRequestUpdatedContract:
 
         assert error_msg.msg == str(exc.value.msg)
 
-    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_machine_token_refresh_failure(
         self, client, get_machine_id, FakeConfig
@@ -759,7 +761,7 @@ class TestRequestUpdatedContract:
         assert "Machine token refresh fail" == str(exc.value)
 
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_service_token_refresh_failure(
         self, client, get_machine_id, m_enable_order, FakeConfig
@@ -825,7 +827,7 @@ class TestRequestUpdatedContract:
     )
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch(M_PATH + "process_entitlement_delta")
-    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_due_to_unexpected_process_entitlement_delta(
         self,
@@ -892,7 +894,7 @@ class TestRequestUpdatedContract:
 
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch(M_PATH + "process_entitlement_delta")
-    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_machine_token_and_services(
         self,
@@ -1015,3 +1017,243 @@ class TestContractChanged:
         }
         cfg = FakeConfig().for_attached_machine()
         assert is_contract_changed(cfg) == has_contract_changed
+
+
+class TestApplyContractOverrides:
+    @pytest.mark.parametrize(
+        "override_selector,expected_weight",
+        (
+            ({"selector1": "valueX", "selector2": "valueZ"}, 0),
+            ({"selector1": "valueA", "selector2": "valueZ"}, 0),
+            ({"selector1": "valueX", "selector2": "valueB"}, 0),
+            ({"selector1": "valueA"}, 1),
+            ({"selector2": "valueB"}, 2),
+            ({"selector1": "valueA", "selector2": "valueB"}, 3),
+        ),
+    )
+    def test_get_override_weight(self, override_selector, expected_weight):
+        selector_values = {"selector1": "valueA", "selector2": "valueB"}
+        selector_weights = {"selector1": 1, "selector2": 2}
+        with mock.patch(
+            "uaclient.contract.OVERRIDE_SELECTOR_WEIGHTS", selector_weights
+        ):
+            assert expected_weight == _get_override_weight(
+                override_selector, selector_values
+            )
+
+    def test_error_on_non_entitlement_dict(self):
+        """Raise a runtime error when seeing invalid dict type."""
+        with pytest.raises(RuntimeError) as exc:
+            apply_contract_overrides({"some": "dict"})
+        error = (
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            " {'some': 'dict'}"
+        )
+        assert error == str(exc.value)
+
+    @pytest.mark.parametrize("include_overrides", (True, False))
+    @mock.patch(
+        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type", return_value=(None, "")
+    )
+    def test_return_same_dict_when_no_overrides_match(
+        self, _m_cloud_type, _m_platform_info, include_overrides
+    ):
+        orig_access = {
+            "entitlement": {
+                "affordances": {"some_affordance": ["ubuntuX"]},
+                "directives": {"some_directive": ["ubuntuX"]},
+                "obligations": {"some_obligation": False},
+            }
+        }
+        # exactly the same
+        expected = {
+            "entitlement": {
+                "affordances": {"some_affordance": ["ubuntuX"]},
+                "directives": {"some_directive": ["ubuntuX"]},
+                "obligations": {"some_obligation": False},
+            }
+        }
+        if include_overrides:
+            orig_access["entitlement"].update(
+                {
+                    "series": {
+                        "dontMatch": {
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-series-overriden"]
+                            }
+                        }
+                    },
+                    "overrides": [
+                        {
+                            "selector": {"series": "dontMatch"},
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-series-overriden"]
+                            },
+                        },
+                        {
+                            "selector": {"cloud": "dontMatch"},
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-cloud-overriden"]
+                            },
+                        },
+                    ],
+                }
+            )
+
+        apply_contract_overrides(orig_access)
+        assert expected == orig_access
+
+    @mock.patch(
+        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    def test_missing_keys_are_included(self, _m_platform_info):
+        orig_access = {
+            "entitlement": {
+                "series": {"ubuntuX": {"directives": {"suites": ["ubuntuX"]}}}
+            }
+        }
+        expected = {"entitlement": {"directives": {"suites": ["ubuntuX"]}}}
+
+        apply_contract_overrides(orig_access)
+
+        assert expected == orig_access
+
+    @pytest.mark.parametrize(
+        "series_selector,cloud_selector,series_cloud_selector,expected_value",
+        (
+            # apply_overrides_when_only_series_match
+            ("no-match", "no-match", "no-match", "old_series_overriden"),
+            # series selector is applied over old series override
+            ("ubuntuX", "no-match", "no-match", "series_overriden"),
+            # cloud selector is applied over series override
+            ("no-match", "cloudX", "no-match", "cloud_overriden"),
+            # cloud selector is applied over series selector
+            ("ubuntuX", "cloudX", "no-match", "cloud_overriden"),
+            # cloud and series together are applied over others
+            ("ubuntuX", "cloudX", "cloudX", "both_overriden"),
+        ),
+    )
+    @mock.patch(
+        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("cloudX", None),
+    )
+    def test_applies_contract_overrides_respecting_weight(
+        self,
+        _m_cloud_type,
+        _m_platform_info,
+        series_selector,
+        cloud_selector,
+        series_cloud_selector,
+        expected_value,
+    ):
+        """Apply the expected overrides to orig_access dict when called."""
+        orig_access = {
+            "entitlement": {
+                "affordances": {"some_affordance": ["original_affordance"]},
+                "series": {
+                    "ubuntuX": {
+                        "affordances": {
+                            "some_affordance": ["old_series_overriden"]
+                        }
+                    }
+                },
+                "overrides": [
+                    {
+                        "selector": {"series": series_selector},
+                        "affordances": {
+                            "some_affordance": ["series_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {"cloud": cloud_selector},
+                        "affordances": {
+                            "some_affordance": ["cloud_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {
+                            "series": series_selector,
+                            "cloud": series_cloud_selector,
+                        },
+                        "affordances": {"some_affordance": ["both_overriden"]},
+                    },
+                ],
+            }
+        }
+
+        expected = {
+            "entitlement": {
+                "affordances": {"some_affordance": [expected_value]}
+            }
+        }
+
+        apply_contract_overrides(orig_access)
+        assert orig_access == expected
+
+    @mock.patch(
+        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("cloudX", None),
+    )
+    def test_different_overrides_applied_together(
+        self, _m_cloud_type, _m_platform_info
+    ):
+        """Apply different overrides from different matching selectors."""
+        orig_access = {
+            "entitlement": {
+                "affordances": {"some_affordance": ["original_affordance"]},
+                "directives": {"some_directive": ["original_directive"]},
+                "obligations": {"some_obligation": False},
+                "series": {
+                    "ubuntuX": {
+                        "affordances": {
+                            "new_affordance": ["new_affordance_value"]
+                        }
+                    }
+                },
+                "overrides": [
+                    {
+                        "selector": {"series": "ubuntuX"},
+                        "affordances": {
+                            "some_affordance": ["series_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {"cloud": "cloudX"},
+                        "directives": {"some_directive": ["cloud_overriden"]},
+                    },
+                    {
+                        "selector": {"series": "ubuntuX", "cloud": "cloudX"},
+                        "obligations": {
+                            "new_obligation": True,
+                            "some_obligation": True,
+                        },
+                    },
+                ],
+            }
+        }
+
+        expected = {
+            "entitlement": {
+                "affordances": {
+                    "new_affordance": ["new_affordance_value"],
+                    "some_affordance": ["series_overriden"],
+                },
+                "directives": {"some_directive": ["cloud_overriden"]},
+                "obligations": {
+                    "new_obligation": True,
+                    "some_obligation": True,
+                },
+            }
+        }
+
+        apply_contract_overrides(orig_access)
+        assert orig_access == expected

@@ -1,6 +1,6 @@
 import os
 
-from uaclient import util
+from uaclient import system
 from uaclient.files import MachineTokenFile, UAFile
 
 
@@ -11,7 +11,7 @@ class TestUAFile:
         content = "dummy file words"
         file.write(content)
         path = os.path.join(tmpdir.strpath, file_name)
-        res = util.load_file(path)
+        res = system.load_file(path)
         assert res == file.read()
         assert res == content
 

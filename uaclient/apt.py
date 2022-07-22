@@ -9,7 +9,7 @@ import tempfile
 from functools import lru_cache
 from typing import Dict, List, Optional
 
-from uaclient import event_logger, exceptions, gpg, messages, util
+from uaclient import event_logger, exceptions, gpg, messages, system
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -60,7 +60,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
         return
     try:
         with tempfile.TemporaryDirectory() as tmpd:
-            util.subp(
+            system.subp(
                 [
                     "/usr/lib/apt/apt-helper",
                     "download-file",
@@ -158,7 +158,7 @@ def run_apt_command(
     :raise UserFacingError: on issues running apt-cache policy.
     """
     try:
-        out, _err = util.subp(
+        out, _err = system.subp(
             cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
         )
     except exceptions.ProcessExecutionError as e:
@@ -256,7 +256,7 @@ def add_auth_apt_repo(
     except ValueError:  # Then we have a bearer token
         username = "bearer"
         password = credentials
-    series = util.get_platform_info()["series"]
+    series = system.get_platform_info()["series"]
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
     assert_valid_apt_credentials(repo_url, username, password)
@@ -295,7 +295,7 @@ def add_auth_apt_repo(
                 maybe_comment=maybe_comment, url=repo_url, suite=suite
             )
         )
-    util.write_file(repo_filename, content)
+    system.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
     source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
     destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
@@ -309,7 +309,7 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
     if os.path.exists(apt_auth_file):
-        orig_content = util.load_file(apt_auth_file)
+        orig_content = system.load_file(apt_auth_file)
     else:
         orig_content = ""
     repo_auth_line = (
@@ -340,7 +340,7 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     if not added_new_auth:
         new_lines.append(repo_auth_line)
     new_lines.append("")
-    util.write_file(apt_auth_file, "\n".join(new_lines), mode=0o600)
+    system.write_file(apt_auth_file, "\n".join(new_lines), mode=0o600)
 
 
 def remove_repo_from_apt_auth_file(repo_url):
@@ -350,39 +350,39 @@ def remove_repo_from_apt_auth_file(repo_url):
         repo_path = repo_path[:-1]
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
-        apt_auth = util.load_file(apt_auth_file)
+        apt_auth = system.load_file(apt_auth_file)
         auth_prefix = "machine {repo_path}/ login".format(repo_path=repo_path)
         content = "\n".join(
             [line for line in apt_auth.splitlines() if auth_prefix not in line]
         )
         if not content:
-            util.remove_file(apt_auth_file)
+            system.remove_file(apt_auth_file)
         else:
-            util.write_file(apt_auth_file, content, mode=0o600)
+            system.write_file(apt_auth_file, content, mode=0o600)
 
 
 def remove_auth_apt_repo(
     repo_filename: str, repo_url: str, keyring_file: str = None
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
-    util.remove_file(repo_filename)
+    system.remove_file(repo_filename)
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-        util.remove_file(keyring_file)
+        system.remove_file(keyring_file)
     remove_repo_from_apt_auth_file(repo_url)
 
 
 def restore_commented_apt_list_file(filename: str) -> None:
     """Uncomment commented deb lines in the given file."""
     if os.path.exists(filename):
-        file_content = util.load_file(filename)
+        file_content = system.load_file(filename)
         file_content = file_content.replace("# deb ", "deb ")
-        util.write_file(filename, file_content)
+        system.write_file(filename, file_content)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
-    series = util.get_platform_info()["series"]
+    series = system.get_platform_info()["series"]
     _protocol, repo_path = repo_url.split("://")
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
@@ -393,18 +393,18 @@ def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
             origin=origin, priority=priority, series=series
         )
     )
-    util.write_file(apt_preference_file, content)
+    system.write_file(apt_preference_file, content)
 
 
 def get_apt_auth_file_from_apt_config():
     """Return to patch to the system configured APT auth file."""
-    out, _err = util.subp(
+    out, _err = system.subp(
         ["apt-config", "shell", "key", APT_CONFIG_AUTH_PARTS_DIR]
     )
     if out:  # then auth.conf.d parts is present
         return out.split("'")[1] + "90ubuntu-advantage"
     else:  # then use configured /etc/apt/auth.conf
-        out, _err = util.subp(
+        out, _err = system.subp(
             ["apt-config", "shell", "key", APT_CONFIG_AUTH_FILE]
         )
         return out.split("'")[1].rstrip("/")
@@ -416,7 +416,9 @@ def find_apt_list_files(repo_url, series):
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
     lists_dir = "/var/lib/apt/lists"
-    out, _err = util.subp(["apt-config", "shell", "key", APT_CONFIG_LISTS_DIR])
+    out, _err = system.subp(
+        ["apt-config", "shell", "key", APT_CONFIG_LISTS_DIR]
+    )
     if out:  # then lists dir is present in config
         lists_dir = out.split("'")[1]
 
@@ -433,7 +435,7 @@ def find_apt_list_files(repo_url, series):
 def remove_apt_list_files(repo_url, series):
     """Remove any apt list files present for this repo_url and series."""
     for path in find_apt_list_files(repo_url, series):
-        util.remove_file(path)
+        system.remove_file(path)
 
 
 def clean_apt_files(*, _entitlements=None):
@@ -460,17 +462,17 @@ def clean_apt_files(*, _entitlements=None):
                 "Removing apt source file: {}".format(repo_file),
                 file_type=sys.stderr,
             )
-            util.remove_file(repo_file)
+            system.remove_file(repo_file)
         if os.path.exists(pref_file):
             event.info(
                 "Removing apt preferences file: {}".format(pref_file),
                 file_type=sys.stderr,
             )
-            util.remove_file(pref_file)
+            system.remove_file(pref_file)
 
 
 def get_installed_packages() -> List[str]:
-    out, _ = util.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
+    out, _ = system.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
     return out.splitlines()
 
 
@@ -525,9 +527,9 @@ def setup_apt_proxy(
         apt_proxy_config = messages.APT_PROXY_CONFIG_HEADER + apt_proxy_config
 
     if apt_proxy_config == "":
-        util.remove_file(APT_PROXY_CONF_FILE)
+        system.remove_file(APT_PROXY_CONF_FILE)
     else:
-        util.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
+        system.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
 
 
 def setup_unauthenticated_repo(
@@ -544,7 +546,7 @@ def setup_unauthenticated_repo(
         content += messages.REPO_FILE_CONTENT.format(
             url=repo_url, apt_suite=suite
         )
-    util.write_file(repo_filename, content)
+    system.write_file(repo_filename, content)
     source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
     destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
     gpg.export_gpg_key(source_keyring_file, destination_keyring_file)

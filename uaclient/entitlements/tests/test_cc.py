@@ -62,7 +62,7 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         ),
     )
     @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_inapplicable_on_invalid_affordances(
         self,
         m_platform_info,
@@ -89,8 +89,8 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
 
 
 class TestCommonCriteriaEntitlementCanEnable:
-    @mock.patch("uaclient.util.subp", return_value=("", ""))
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.subp", return_value=("", ""))
+    @mock.patch("uaclient.system.get_platform_info")
     def test_can_enable_true_on_entitlement_inactive(
         self, m_platform_info, _m_subp, capsys, FakeConfig
     ):
@@ -116,11 +116,11 @@ class TestCommonCriteriaEntitlementEnable:
         itertools.product([False, True], repeat=2),
     )
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.util.should_reboot")
-    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.system.should_reboot")
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.run_apt_cache_policy_command")
-    @mock.patch("uaclient.util.get_platform_info")
-    @mock.patch("uaclient.util.apply_contract_overrides")
+    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.contract.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_contract_overrides,

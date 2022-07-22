@@ -90,7 +90,7 @@ class TestUAAutoAttachGCPInstance:
         ),
     )
     @mock.patch(M_PATH + "os.path.exists")
-    @mock.patch(M_PATH + "util.load_file")
+    @mock.patch(M_PATH + "system.load_file")
     def test_is_viable_based_on_dmi_product_name(
         self, load_file, m_exists, product_name, viable
     ):
@@ -240,7 +240,7 @@ class TestUAAutoAttachGCPInstance:
             ),
         ),
     )
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch(M_PATH + "util.readurl")
     def test_is_license_present(
         self,
@@ -278,7 +278,7 @@ class TestUAAutoAttachGCPInstance:
             ({"series": "jammy"}, True),
         ),
     )
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "system.get_platform_info")
     def test_should_poll_for_license(
         self, m_get_platform_info, platform_info, expected_result
     ):

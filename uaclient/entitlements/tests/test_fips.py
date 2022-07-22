@@ -10,7 +10,7 @@ from functools import partial
 import mock
 import pytest
 
-from uaclient import apt, defaults, exceptions, messages, util
+from uaclient import apt, defaults, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -30,7 +30,7 @@ from uaclient.entitlements.fips import (
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
-M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
+M_GETPLATFORM = M_REPOPATH + "system.get_platform_info"
 FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
 
 
@@ -89,8 +89,8 @@ class TestFIPSEntitlementDefaults:
             ),
         ),
     )
-    @mock.patch("uaclient.util.is_container")
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.is_container")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_conditional_packages(
         self,
         m_get_platform_info,
@@ -172,7 +172,7 @@ class TestFIPSEntitlementDefaults:
         else:
             assert False, "Unknown entitlement {}".format(entitlement.name)
 
-    @mock.patch("uaclient.util.is_container", return_value=True)
+    @mock.patch("uaclient.system.is_container", return_value=True)
     def test_messaging_on_containers(
         self, _m_is_container, fips_entitlement_factory
     ):
@@ -288,7 +288,7 @@ class TestFIPSEntitlementEnable:
                 )
             )
             m_subp = stack.enter_context(
-                mock.patch("uaclient.util.subp", return_value=("", ""))
+                mock.patch("uaclient.system.subp", return_value=("", ""))
             )
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, "can_enable")
@@ -307,7 +307,7 @@ class TestFIPSEntitlementEnable:
                 mock.patch.object(type(entitlement), "packages", m_packages)
             )
             stack.enter_context(
-                mock.patch("uaclient.util.is_container", return_value=False)
+                mock.patch("uaclient.system.is_container", return_value=False)
             )
 
             m_can_enable.return_value = (True, None)
@@ -457,7 +457,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
     )
     def test_enable_returns_false_on_missing_suites_directive(
         self,
@@ -538,7 +538,7 @@ class TestFIPSEntitlementEnable:
 
         with contextlib.ExitStack() as stack:
             stack.enter_context(
-                mock.patch("uaclient.util.subp", side_effect=fake_subp)
+                mock.patch("uaclient.system.subp", side_effect=fake_subp)
             )
             stack.enter_context(
                 mock.patch.object(
@@ -573,11 +573,11 @@ class TestFIPSEntitlementEnable:
     @mock.patch(
         "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
     )
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
     @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.is_container", return_value=False)
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_fips_enable_fails_when_livepatch_service_is_enabled(
         self,
         m_is_container,
@@ -616,7 +616,7 @@ class TestFIPSEntitlementEnable:
         M_LIVEPATCH_PATH + "application_status",
         return_value=((ApplicationStatus.DISABLED, "")),
     )
-    @mock.patch("uaclient.util.is_container", return_value=False)
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_enable_fails_when_fips_update_service_is_enabled(
         self,
         m_is_container,
@@ -651,7 +651,7 @@ class TestFIPSEntitlementEnable:
         M_LIVEPATCH_PATH + "application_status",
         return_value=((ApplicationStatus.DISABLED, "")),
     )
-    @mock.patch("uaclient.util.is_container", return_value=False)
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_enable_fails_when_fips_updates_service_once_enabled(
         self,
         m_is_container,
@@ -675,10 +675,10 @@ class TestFIPSEntitlementEnable:
             )
             assert expected_msg.strip() == reason.message.msg.strip()
 
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.is_container", return_value=False)
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_enable_fails_when_on_xenial_cloud_instance(
         self,
         m_is_container,
@@ -702,11 +702,11 @@ class TestFIPSEntitlementEnable:
             Ubuntu Xenial does not provide a GCP optimized FIPS kernel"""
             assert expected_msg.strip() in reason.message.msg.strip()
 
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.is_container", return_value=False)
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_enable_fails_when_on_gcp_instance_with_default_fips(
         self,
         m_is_container,
@@ -842,7 +842,7 @@ class TestFIPSEntitlementEnable:
 class TestFIPSEntitlementRemovePackages:
     @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
     @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
-    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_remove_packages_only_removes_if_package_is_installed(
         self,
@@ -874,7 +874,7 @@ class TestFIPSEntitlementRemovePackages:
             assert 0 == m_subp.call_count
 
     @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
-    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_remove_packages_output_message_when_fail(
         self, m_get_installed_packages, m_subp, _m_get_platform, entitlement
@@ -890,9 +890,9 @@ class TestFIPSEntitlementRemovePackages:
 
 
 @mock.patch("uaclient.util.handle_message_operations", return_value=True)
-@mock.patch("uaclient.util.should_reboot", return_value=True)
+@mock.patch("uaclient.system.should_reboot", return_value=True)
 @mock.patch(
-    "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+    "uaclient.system.get_platform_info", return_value={"series": "xenial"}
 )
 class TestFIPSEntitlementDisable:
     def test_disable_on_can_disable_true_removes_apt_config_and_packages(
@@ -920,7 +920,7 @@ class TestFIPSEntitlementDisable:
         ] == entitlement.cfg.read_cache("notices")
 
 
-@mock.patch("uaclient.util.should_reboot")
+@mock.patch("uaclient.system.should_reboot")
 class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize(
         "super_application_status",
@@ -950,7 +950,7 @@ class TestFIPSEntitlementApplicationStatus:
         entitlement,
     ):
         m_should_reboot.return_value = should_reboot
-        orig_load_file = util.load_file
+        orig_load_file = system.load_file
 
         def fake_load_file(path):
             if path == "/proc/sys/crypto/fips_enabled":
@@ -981,7 +981,7 @@ class TestFIPSEntitlementApplicationStatus:
             M_PATH + "repo.RepoEntitlement.application_status",
             return_value=(ApplicationStatus.ENABLED, msg),
         ):
-            with mock.patch("uaclient.util.load_file") as m_load_file:
+            with mock.patch("uaclient.system.load_file") as m_load_file:
                 m_load_file.side_effect = fake_load_file
                 with mock.patch("os.path.exists") as m_path_exists:
                     m_path_exists.side_effect = fake_exists
@@ -1152,7 +1152,7 @@ class TestFipsSetupAPTConfig:
 
 class TestFipsEntitlementPackages:
     @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_packages_is_list(self, m_platform_info, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
 
@@ -1163,7 +1163,7 @@ class TestFipsEntitlementPackages:
         assert isinstance(entitlement.packages, list)
 
     @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_fips_required_packages_included(
         self, m_platform_info, _mock, entitlement
     ):
@@ -1177,7 +1177,7 @@ class TestFipsEntitlementPackages:
             set(entitlement.packages)
         )
 
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_currently_installed_packages_are_included_in_packages(
         self, m_platform_info, entitlement
     ):
@@ -1189,7 +1189,7 @@ class TestFipsEntitlementPackages:
         assert sorted(FIPS_ADDITIONAL_PACKAGES) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     def test_multiple_packages_calls_dont_mutate_state(
         self, m_platform_info, m_get_installed_packages, entitlement
     ):
@@ -1226,7 +1226,7 @@ class TestFipsEntitlementPackages:
     )
     @mock.patch("uaclient.util.is_config_value_true")
     @mock.patch(M_PATH + "get_cloud_type")
-    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.apt.get_installed_packages")
     def test_packages_are_override_on_cloud_instance(
         self,

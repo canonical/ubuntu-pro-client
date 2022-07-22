@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Type
 from urllib import error
 from urllib.parse import urlencode
 
-from uaclient import config, exceptions, util, version
+from uaclient import config, exceptions, system, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
@@ -125,7 +125,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             self._response_overlay = {}
         else:
             self._response_overlay = json.loads(
-                util.load_file(response_overlay_path)
+                system.load_file(response_overlay_path)
             )
         return self._response_overlay.get(url, [])
 

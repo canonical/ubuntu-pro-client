@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from uaclient import config, contract, event_logger, messages, util
+from uaclient import config, contract, event_logger, messages, system, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -534,7 +534,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if functor() != expected_result:
                 return ApplicabilityStatus.INAPPLICABLE, error_message
         affordances = entitlement_cfg["entitlement"].get("affordances", {})
-        platform = util.get_platform_info()
+        platform = system.get_platform_info()
         affordance_arches = affordances.get("architectures", None)
         if (
             affordance_arches is not None
@@ -675,7 +675,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
-        return util.should_reboot()
+        return system.should_reboot()
 
     def _check_for_reboot_msg(
         self, operation: str, silent: bool = False
@@ -812,7 +812,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
         if not transition_to_unentitled:
             if delta_entitlement:
-                util.apply_contract_overrides(deltas)
+                contract.apply_contract_overrides(deltas)
                 delta_entitlement = deltas["entitlement"]
             if orig_access and "entitled" in delta_entitlement:
                 transition_to_unentitled = delta_entitlement["entitled"] in (

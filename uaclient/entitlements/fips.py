@@ -4,7 +4,7 @@ import re
 from itertools import groupby
 from typing import List, Optional, Tuple  # noqa: F401
 
-from uaclient import apt, event_logger, exceptions, messages, util
+from uaclient import apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
@@ -121,9 +121,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         2. Install the corresponding hmac version of that package
            when available.
         """
-        series = util.get_platform_info().get("series", "")
+        series = system.get_platform_info().get("series", "")
 
-        if util.is_container():
+        if system.is_container():
             return FIPS_CONTAINER_CONDITIONAL_PACKAGES.get(series, [])
 
         return FIPS_CONDITIONAL_PACKAGES.get(series, [])
@@ -185,7 +185,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         @param operation: The operation being executed.
         @param silent: Boolean set True to silence print/log of messages
         """
-        reboot_required = util.should_reboot()
+        reboot_required = system.should_reboot()
         event.needs_reboot(reboot_required)
         if reboot_required:
             if not silent:
@@ -239,7 +239,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if cloud_id is None:
             cloud_id = ""
 
-        series = util.get_platform_info().get("series", "")
+        series = system.get_platform_info().get("series", "")
         blocked_message = messages.FIPS_BLOCK_ON_CLOUD.format(
             series=series.title(), cloud=cloud_titles.get(cloud_id)
         )
@@ -271,7 +271,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if cfg_disable_fips_metapackage_override:
             return packages
 
-        series = util.get_platform_info().get("series")
+        series = system.get_platform_info().get("series")
         if series not in ("bionic", "focal"):
             return packages
 
@@ -294,7 +294,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     @property
     def packages(self) -> List[str]:
-        if util.is_container():
+        if system.is_container():
             return []
         packages = super().packages
         return self._replace_metapackage_on_cloud_instance(packages)
@@ -304,7 +304,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         super_status, super_msg = super().application_status()
 
-        if util.is_container() and not util.should_reboot():
+        if system.is_container() and not system.should_reboot():
             self.cfg.remove_notice(
                 "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
             )
@@ -314,13 +314,13 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
             # We are now only removing the notice if there is no reboot
             # required information regarding the fips metapackage we install.
-            if not util.should_reboot(set(self.packages)):
+            if not system.should_reboot(set(self.packages)):
                 self.cfg.remove_notice(
                     "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
                 )
 
             self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
-            if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
+            if system.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
@@ -466,7 +466,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     @property
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
-        if util.is_container():
+        if system.is_container():
             pre_enable_prompt = (
                 messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
                     title=self.title
@@ -533,7 +533,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     @property
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
-        if util.is_container():
+        if system.is_container():
             pre_enable_prompt = (
                 messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
                     title=self.title
