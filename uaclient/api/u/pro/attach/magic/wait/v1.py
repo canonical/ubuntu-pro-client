@@ -26,7 +26,6 @@ class MagicAttachWaitOptions(DataObject):
 
 class MagicAttachWaitResult(DataObject, AdditionalInfo):
     fields = [
-        Field("_schema", StringDataValue),
         Field("user_code", StringDataValue),
         Field("token", StringDataValue),
         Field("expires", StringDataValue),
@@ -37,7 +36,6 @@ class MagicAttachWaitResult(DataObject, AdditionalInfo):
 
     def __init__(
         self,
-        _schema: str,
         user_code: str,
         token: str,
         expires: str,
@@ -45,7 +43,6 @@ class MagicAttachWaitResult(DataObject, AdditionalInfo):
         contract_id: str,
         contract_token: str,
     ):
-        self._schema = _schema
         self.user_code = user_code
         self.token = token
         self.expires = expires
@@ -56,7 +53,12 @@ class MagicAttachWaitResult(DataObject, AdditionalInfo):
 
 def wait(
     options: MagicAttachWaitOptions,
-    cfg: UAConfig,
+) -> MagicAttachWaitResult:
+    return _wait(options, UAConfig())
+
+
+def _wait(
+    options: MagicAttachWaitOptions, cfg: UAConfig
 ) -> MagicAttachWaitResult:
     contract = UAContractClient(cfg)
 
@@ -83,7 +85,6 @@ def wait(
 
         if wait_resp and wait_resp.get("contractToken") is not None:
             return MagicAttachWaitResult(
-                _schema="0.1",
                 user_code=wait_resp["userCode"],
                 token=wait_resp["token"],
                 expires=wait_resp["expires"],
@@ -101,6 +102,6 @@ def wait(
 endpoint = APIEndpoint(
     version="v1",
     name="MagicAttachWait",
-    fn=wait,
+    fn=_wait,
     options_cls=MagicAttachWaitOptions,
 )

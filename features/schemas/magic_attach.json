@@ -1,10 +1,7 @@
 {
     "type": "object",
-    "required": [ "_schema", "user_code", "expires", "expires_in", "token" ],
+    "required": [ "user_code", "expires", "expires_in", "token" ],
     "properties": {
-        "_schema": {
-          "type": "string"
-        },
         "user_code": {
           "type": "string"
         },

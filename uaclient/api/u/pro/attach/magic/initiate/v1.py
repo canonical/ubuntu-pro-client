@@ -12,7 +12,6 @@ from uaclient.data_types import (
 
 class MagicAttachInitiateResult(DataObject, AdditionalInfo):
     fields = [
-        Field("_schema", StringDataValue),
         Field("user_code", StringDataValue),
         Field("token", StringDataValue),
         Field("expires", StringDataValue),
@@ -21,25 +20,26 @@ class MagicAttachInitiateResult(DataObject, AdditionalInfo):
 
     def __init__(
         self,
-        _schema: str,
         user_code: str,
         token: str,
         expires: str,
         expires_in: int,
     ):
-        self._schema = _schema
         self.user_code = user_code
         self.token = token
         self.expires = expires
         self.expires_in = expires_in
 
 
-def initiate(cfg: UAConfig) -> MagicAttachInitiateResult:
+def initiate() -> MagicAttachInitiateResult:
+    return _initiate(UAConfig())
+
+
+def _initiate(cfg: UAConfig) -> MagicAttachInitiateResult:
     contract = UAContractClient(cfg)
     initiate_resp = contract.new_magic_attach_token()
 
     return MagicAttachInitiateResult(
-        _schema="0.1",
         user_code=initiate_resp["userCode"],
         token=initiate_resp["token"],
         expires=initiate_resp["expires"],
@@ -50,6 +50,6 @@ def initiate(cfg: UAConfig) -> MagicAttachInitiateResult:
 endpoint = APIEndpoint(
     version="v1",
     name="MagicAttachInitiate",
-    fn=initiate,
+    fn=_initiate,
     options_cls=None,
 )

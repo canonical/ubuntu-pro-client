@@ -18,7 +18,13 @@ class MagicAttachRevokeResult(DataObject, AdditionalInfo):
     pass
 
 
-def revoke(options: MagicAttachRevokeOptions, cfg: UAConfig) -> DataObject:
+def revoke(options: MagicAttachRevokeOptions) -> MagicAttachRevokeResult:
+    return _revoke(options, UAConfig())
+
+
+def _revoke(
+    options: MagicAttachRevokeOptions, cfg: UAConfig
+) -> MagicAttachRevokeResult:
     contract = UAContractClient(cfg)
     contract.revoke_magic_attach_token(options.magic_token)
 
@@ -28,6 +34,6 @@ def revoke(options: MagicAttachRevokeOptions, cfg: UAConfig) -> DataObject:
 endpoint = APIEndpoint(
     version="v1",
     name="MagicAttachRevoke",
-    fn=revoke,
+    fn=_revoke,
     options_cls=MagicAttachRevokeOptions,
 )
