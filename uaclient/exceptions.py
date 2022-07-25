@@ -444,3 +444,11 @@ class CancelProLicensePolling(IsProLicensePresentError):
 
 class DelayProLicensePolling(IsProLicensePresentError):
     pass
+
+
+class InvalidFileFormatError(UserFacingError):
+    def __init__(self, file_name: str, file_format: str) -> None:
+        msg = messages.INVALID_FILE_FORMAT.format(
+            file_name=file_name, file_format=file_format
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
