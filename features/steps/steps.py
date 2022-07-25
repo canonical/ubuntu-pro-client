@@ -74,13 +74,13 @@ def given_a_machine(context, series, custom_user_data=None):
 
     instance_name = add_test_name_suffix(context, series, CONTAINER_PREFIX)
 
-    if context.config.snapshot_strategy:
+    if context.config.snapshot_strategy and not custom_user_data:
         if series not in context.series_image_name:
             build_container_name = add_test_name_suffix(
                 context, series, IMAGE_BUILD_PREFIX
             )
             image_inst = create_instance_with_uat_installed(
-                context, series, build_container_name
+                context, series, build_container_name, custom_user_data
             )
 
             image_name = add_test_name_suffix(context, series, IMAGE_PREFIX)
@@ -92,6 +92,7 @@ def given_a_machine(context, series, custom_user_data=None):
                 image_name=image_name,
                 cloud_api=context.config.cloud_api,
             )
+
             context.series_image_name[series] = image_id
             image_inst.delete(wait=False)
 
