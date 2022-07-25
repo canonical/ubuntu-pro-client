@@ -20,8 +20,11 @@ REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
 
 @lru_cache(maxsize=None)
 def get_machine_id(cfg) -> str:
-    """Get system's unique machine-id or create our own in data_dir."""
-    # Generate, cache our own uuid if not present in config or on the system
+    """
+    Get system's unique machine-id or create our own in data_dir.
+    We first check for the machine-id in machine-token.json before
+    looking at the system file.
+    """
 
     if cfg.machine_token:
         cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
