@@ -3,9 +3,20 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, Optional
+from enum import Enum
+from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
-from uaclient import defaults, event_logger, exceptions, messages, system, util
+import yaml
+
+from uaclient import (
+    data_types,
+    defaults,
+    event_logger,
+    exceptions,
+    messages,
+    system,
+    util,
+)
 from uaclient.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
@@ -54,6 +65,61 @@ class UAFile:
 
     def delete(self):
         system.remove_file(self.path)
+
+
+class DataObjectFileFormat(Enum):
+    JSON = "json"
+    YAML = "yaml"
+
+
+DOFType = TypeVar("DOFType", bound=data_types.DataObject)
+
+
+class DataObjectFile(Generic[DOFType]):
+    def __init__(
+        self,
+        data_object_cls: Type[DOFType],
+        ua_file: UAFile,
+        file_format: DataObjectFileFormat = DataObjectFileFormat.JSON,
+    ):
+        self.data_object_cls = data_object_cls
+        self.ua_file = ua_file
+        self.file_format = file_format
+
+    def read(self) -> Optional[DOFType]:
+        raw_data = self.ua_file.read()
+        if raw_data is None:
+            return None
+
+        parsed_data = None
+        if self.file_format == DataObjectFileFormat.JSON:
+            try:
+                parsed_data = json.loads(raw_data)
+            except json.JSONDecodeError:
+                raise exceptions.InvalidFileFormatError(
+                    self.ua_file.path, "json"
+                )
+        elif self.file_format == DataObjectFileFormat.YAML:
+            try:
+                parsed_data = yaml.safe_load(raw_data)
+            except yaml.parser.ParserError:
+                raise exceptions.InvalidFileFormatError(
+                    self.ua_file.path, "yaml"
+                )
+
+        if parsed_data is None:
+            return None
+
+        return self.data_object_cls.from_dict(parsed_data)
+
+    def write(self, content: DOFType):
+        if self.file_format == DataObjectFileFormat.JSON:
+            str_content = content.to_json()
+        elif self.file_format == DataObjectFileFormat.YAML:
+            data = content.to_dict()
+            str_content = yaml.dump(data, default_flow_style=False)
+
+        self.ua_file.write(str_content)
 
 
 class MachineTokenFile:

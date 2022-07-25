@@ -918,3 +918,7 @@ API_MISSING_ARG = FormattedNamedMessage(
 API_NO_ARG_FOR_ENDPOINT = FormattedNamedMessage(
     name="api-no-argument-for-endpoint", msg="{endpoint} accepts no arguments"
 )
+
+INVALID_FILE_FORMAT = FormattedNamedMessage(
+    name="invalid-file-format", msg="{file_name} is not valid {file_format}"
+)
