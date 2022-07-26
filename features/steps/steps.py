@@ -24,7 +24,11 @@ from features.environment import (
     capture_container_as_image,
     create_instance_with_uat_installed,
 )
-from features.util import InstallationSource, SafeLoaderWithoutDatetime
+from features.util import (
+    InstallationSource,
+    SafeLoaderWithoutDatetime,
+    cleanup_instance,
+)
 from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
@@ -102,33 +106,41 @@ def given_a_machine(context, series):
             context, series, instance_name
         )
 
+    context.series = series
     context.instances = {"uaclient": inst}
 
     context.container_name = context.config.cloud_manager.get_instance_id(
         context.instances["uaclient"]
     )
 
-    def cleanup_instance() -> None:
-        if not context.config.destroy_instances:
-            logging.info(
-                "--- Leaving instance running: {}".format(
-                    context.instances["uaclient"].name
-                )
-            )
-            return
-        try:
-            context.instances["uaclient"].delete(wait=False)
-        except RuntimeError as e:
-            logging.error(
-                "Failed to delete instance: {}\n{}".format(
-                    context.instances["uaclient"].name, str(e)
-                )
-            )
-
-    context.add_cleanup(cleanup_instance)
+    context.add_cleanup(cleanup_instance(context, "uaclient"))
     logging.info(
         "--- instance ip: {}".format(context.instances["uaclient"].ip)
     )
+
+
+@when("I take a snapshot of the machine")
+def when_i_take_a_snapshot(context):
+    cloud = context.config.cloud_manager
+    inst = context.instances["uaclient"]
+
+    snapshot = cloud.api.snapshot(inst)
+
+    context.instance_snapshot = snapshot
+
+    def cleanup_image() -> None:
+        try:
+            context.config.cloud_manager.api.delete_image(
+                context.instance_snapshot
+            )
+        except RuntimeError as e:
+            logging.error(
+                "Failed to delete image: {}\n{}".format(
+                    context.instance_snapshot, str(e)
+                )
+            )
+
+    context.add_cleanup(cleanup_image)
 
 
 @when("I have the `{series}` debs under test in `{dest}`")
@@ -208,24 +220,22 @@ def launch_machine(context, series, instance_name, ports=None):
         **kwargs
     )
 
-    def cleanup_instance() -> None:
-        if not context.config.destroy_instances:
-            logging.info(
-                "--- Leaving instance running: {}".format(
-                    context.instances[instance_name].name
-                )
-            )
-            return
-        try:
-            context.instances[instance_name].delete(wait=False)
-        except RuntimeError as e:
-            logging.error(
-                "Failed to delete instance: {}\n{}".format(
-                    context.instances[instance_name].name, str(e)
-                )
-            )
+    context.add_cleanup(cleanup_instance(context, instance_name))
 
-    context.add_cleanup(cleanup_instance)
+
+@when("I launch a `{instance_name}` machine from the snapshot")
+def launch_machine_from_snapshot(context, instance_name):
+    now = datetime.datetime.now()
+    date_prefix = now.strftime("-%s%f")
+    name = CONTAINER_PREFIX + date_prefix + "-" + instance_name
+
+    context.instances[instance_name] = context.config.cloud_manager.launch(
+        context.series,
+        instance_name=name,
+        image_name=context.instance_snapshot,
+    )
+
+    context.add_cleanup(cleanup_instance(context, instance_name))
 
 
 @when("I add this text on `{file_name}` on `{instance_name}` above `{line}`")
@@ -280,7 +290,7 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
 
 @when("I run `{command}` `{user_spec}` and stdin `{stdin}`")
 def when_i_run_command_with_stdin(
-    context, command, user_spec, stdin, instance_name="uaclient"
+    context, command, user_spec, stdin, instancedebug_name="uaclient"
 ):
     when_i_run_command(
         context=context, command=command, user_spec=user_spec, stdin=stdin
@@ -553,8 +563,18 @@ def when_i_delete_file(context, file_path):
 
 
 @when("I reboot the `{series}` machine")
-def when_i_reboot_the_machine(context, series):
+def when_i_reboot_the_series_machine(context, series):
+    when_i_reboot_the_machine(context)
+
+
+@when("I reboot the machine")
+def when_i_reboot_the_machine(context):
     context.instances["uaclient"].restart(wait=True)
+
+
+@when("I reboot the machine: `{machine}`")
+def when_i_reboot_the_machine_name(context, machine):
+    context.instances[machine].restart(wait=True)
 
 
 @when("I wait `{seconds}` seconds")
@@ -935,13 +955,21 @@ def _get_saved_attr(context, key):
     return saved_value
 
 
+@then(
+    "I verify that `{key}` value has been updated on the contract on the `{machine}` machine"  # noqa: E501
+)
+def i_verify_that_key_value_has_been_updated_on_machine(context, key, machine):
+    i_verify_that_key_value_has_been_updated(context, key, machine)
+
+
 @then("I verify that `{key}` value has been updated on the contract")
-def i_verify_that_key_value_has_been_updated(context, key):
+def i_verify_that_key_value_has_been_updated(context, key, machine="uaclient"):
     saved_value = _get_saved_attr(context, key)
-    when_i_run_command(
+    when_i_run_command_on_machine(
         context,
         "jq -r '.{}' {}".format(key, DEFAULT_PRIVATE_MACHINE_TOKEN_PATH),
         "with sudo",
+        instance_name=machine,
     )
     assert_that(context.process.stdout.strip(), not_(equal_to(saved_value)))
 

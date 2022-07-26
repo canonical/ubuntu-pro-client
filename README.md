@@ -39,6 +39,7 @@ Furthermore, UA is already installed on every Ubuntu system. Try it out by runni
 * [Getting started with UA](./docs/source/tutorials/basic_ua_commands.md)
 * [Create a FIPS compliant Ubuntu Docker image](./docs/source/tutorials/create_a_fips_docker_image.md)
 * [Fixing vulnerabilities by CVE or USN using `ua fix`](./docs/source/tutorials/ua_fix_scenarios.md)
+* [Create a Custom Ubuntu Pro Cloud Image with FIPS Updates](./docs/source/tutorials/create_a_fips_updates_pro_cloud_image.md)
 
 ### How To Guides
 
