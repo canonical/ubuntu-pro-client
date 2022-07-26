@@ -288,3 +288,24 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
         k: [r for r in v if r[0] != "tag:yaml.org,2002:timestamp"]
         for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()
     }
+
+
+def cleanup_instance(context, instance_name):
+    def _cleanup_instance():
+        if not context.config.destroy_instances:
+            logging.info(
+                "--- Leaving instance running: {}".format(
+                    context.instances[instance_name].name
+                )
+            )
+            return
+        try:
+            context.instances[instance_name].delete(wait=False)
+        except RuntimeError as e:
+            logging.error(
+                "Failed to delete instance: {}\n{}".format(
+                    context.instances[instance_name].name, str(e)
+                )
+            )
+
+    return _cleanup_instance
