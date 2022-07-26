@@ -2,46 +2,19 @@ import mock
 import pytest
 
 from lib.auto_attach import check_cloudinit_userdata_for_ua_info, main
-from uaclient.exceptions import (
-    AlreadyAttachedOnPROError,
-    ProcessExecutionError,
-)
+from uaclient.exceptions import AlreadyAttachedOnPROError
 
 
 class TestCheckCloudinitUserdataForUAInfo:
-    @mock.patch("lib.auto_attach.which")
-    def test_check_cloudinit_data_returns_false_if_no_cloudinit(self, m_which):
-        m_which.return_value = False
-        assert False is check_cloudinit_userdata_for_ua_info()
-
-    @mock.patch("lib.auto_attach.subp")
-    @mock.patch("lib.auto_attach.which")
-    def test_check_cloudinit_data_returns_false_if_query_error(
-        self, m_which, m_subp
+    @mock.patch("lib.auto_attach.get_cloudinit_init_stage")
+    def test_check_cloudinit_data_returns_false_if_no_cloudinit(
+        self, m_get_cloudinit_stage
     ):
-        m_which.return_value = True
-        m_subp.side_effect = ProcessExecutionError("test")
-
-        assert False is check_cloudinit_userdata_for_ua_info()
-
-    @mock.patch("lib.auto_attach.subp")
-    @mock.patch("lib.auto_attach.which")
-    def test_check_cloudinit_data_returns_false_if_yaml_error(
-        self, m_which, m_subp
-    ):
-        m_which.return_value = True
-        m_subp.return_value = (
-            """\
-            [invalid, yaml]:
-              - test
-            """,
-            "",
-        )
-
+        m_get_cloudinit_stage.return_value = None
         assert False is check_cloudinit_userdata_for_ua_info()
 
     @pytest.mark.parametrize(
-        "expected,userdata",
+        "expected,cloud_cfg",
         (
             (
                 False,
@@ -49,28 +22,27 @@ class TestCheckCloudinitUserdataForUAInfo:
             ),
             (
                 False,
-                """\
-                #cloud-config
-                runcmd:
-                  - echo "test"
-                """,
+                {
+                    "runcmd": ["echo test", "echo test2"],
+                    "cloud_config_modules": ["ubuntu-advantage", "test"],
+                },
             ),
             (
                 True,
-                """\
-                #cloud-config
-                ubuntu_advantage:
-                 - echo "test"
-                """,
+                {
+                    "ubuntu_advantage": {"token": "TOKEN"},
+                    "cloud_config_modules": ["ubuntu-advantage", "test"],
+                },
             ),
         ),
     )
-    @mock.patch("lib.auto_attach.subp")
-    @mock.patch("lib.auto_attach.which")
-    def test_check_cloudinit_data(self, m_which, m_subp, expected, userdata):
-        m_which.return_value = True
-        m_subp.return_value = (userdata, "")
-
+    @mock.patch("lib.auto_attach.get_cloudinit_init_stage")
+    def test_check_cloudinit_data(
+        self, m_get_cloudinit_stage, expected, cloud_cfg
+    ):
+        init_mock = mock.MagicMock()
+        type(init_mock).cfg = mock.PropertyMock(return_value=cloud_cfg)
+        m_get_cloudinit_stage.return_value = init_mock
         assert expected is check_cloudinit_userdata_for_ua_info()
 
 
@@ -117,12 +89,10 @@ class TestMain:
         caplog_text,
     ):
         m_check_cloudinit.return_value = False
-        m_cli_auto_attach.side_effect = AlreadyAttachedOnPROError(
-            instance_id="inst"
-        )
+        m_cli_auto_attach.side_effect = AlreadyAttachedOnPROError()
         main(cfg=FakeConfig())
 
         assert (
-            "Skipping attach: Instance 'inst' is already attached."
+            "Skipping auto-attach: Instance is already attached."
             in caplog_text()
         )

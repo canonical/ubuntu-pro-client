@@ -4,43 +4,41 @@
 Perform auto-attach operation
 
 On Ubuntu Pro machines, we try to perform an auto-attach operation
-on first boot. This happens through a systemd unit that triggers
-that executes this script on every boot. However, if we detect
-that cloud-init has user data related to ua, we cannot run
+on first boot. This happens through a systemd unit that executes
+this script on every boot. However, if we detect
+that cloud-init has user data related to ua, we don't run
 auto-attach here, since cloud-init will drive this operation on
 their side.
 """
 import logging
-
-import yaml
+import sys
 
 from uaclient.cli import action_auto_attach, setup_logging
 from uaclient.config import UAConfig
-from uaclient.exceptions import (
-    AlreadyAttachedOnPROError,
-    ProcessExecutionError,
-)
-from uaclient.util import subp, which
+from uaclient.exceptions import AlreadyAttachedOnPROError
+
+try:
+    import cloudinit.stages as ci_stages  # type: ignore
+except ImportError:
+    pass
+
+
+def get_cloudinit_init_stage():
+    if "cloudinit.stages" in sys.modules:
+        return ci_stages.Init()
+
+    return None
 
 
 def check_cloudinit_userdata_for_ua_info():
-    if not which("cloud-init"):
+    init = get_cloudinit_init_stage()
+
+    # if init is None, this means we were not able to import the cloud-init
+    # module.
+    if init is None:
         return False
 
-    try:
-        userdata, _ = subp(["cloud-init", "query", "userdata"])
-    except ProcessExecutionError:
-        # if we cannot query the userdata, we should not block auto-attach
-        return False
-
-    try:
-        userdata_dict = yaml.safe_load(userdata)
-    except Exception:
-        # if there is any error parsing the userdata, we should not block
-        # auto-attach
-        return False
-
-    if userdata_dict and "ubuntu_advantage" in userdata_dict.keys():
+    if init.cfg and "ubuntu_advantage" in init.cfg.keys():
         return True
 
     return False
