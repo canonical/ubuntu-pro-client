@@ -648,7 +648,8 @@ def create_instance_with_uat_installed(
     user_data = _get_user_data_for_instance(context.config, series)
 
     if custom_user_data:
-        user_data += "\n{}".format(custom_user_data)
+        prefix = "" if user_data else "#cloud-config"
+        user_data += "{}\n{}".format(prefix, custom_user_data)
 
     logging.info(
         "--- Launching VM to create a base image with ubuntu-advantage"
