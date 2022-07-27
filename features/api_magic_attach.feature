@@ -4,8 +4,7 @@ Feature: Magic Attach endpoints
     @uses.config.machine_type.lxd.container
     Scenario Outline: Call magic attach endpoints
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I change contract to staging with sudo
-        And I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
+        When I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
@@ -21,7 +20,7 @@ Feature: Magic Attach endpoints
         When I create the file `/tmp/response-overlay.json` with the following:
         """
         {
-            "https://contracts.staging.canonical.com/v1/magic-attach": [
+            "https://contracts.canonical.com/v1/magic-attach": [
             {
               "code": 200,
               "response": {
@@ -47,14 +46,7 @@ Feature: Magic Attach endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"_schema": "0.1", "contract_id": "test-contract-id", "contract_token": "contract-token", "expires": "expire-date", "expires_in": 2000, "token": "testToken", "user_code": "123"}, "meta": {\"environment_vars\": \[]}, "type": "MagicAttachWait"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.staging.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        """
-        And I revoke the magic attach token
+        When I revoke the magic attach token
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
