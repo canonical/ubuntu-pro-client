@@ -49,12 +49,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -266,12 +266,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -537,12 +537,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`

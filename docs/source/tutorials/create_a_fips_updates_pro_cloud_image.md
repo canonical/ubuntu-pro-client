@@ -30,6 +30,11 @@ And verify that `fips-updates` is enabled in the output of `ua status`
 sudo ua status
 ```
 
+Also remove the machine-id so that it is regenerated for each instance launch from the snapshot.
+```bash
+sudo rm /etc/machine-id
+```
+
 ## Step 3: Snapshot the instance as a cloud image
 
 Cloud-specific instructions are here:
@@ -41,15 +46,20 @@ Cloud-specific instructions are here:
 
 Use your specific cloud to launch a new instance from your custom image.
 
-You will need to re-enable fips-updates on each instance that is launched from the custom image.
-
-This won't require a reboot and is only necessary to ensure the instance gets updates to fips packages when they become available.
-
-```bash
-sudo ua enable fips-updates --assume-yes
-```
-
-You can easily script this using [cloud-init](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd)
-
 > **Note**
-> In a future version, this step will not be necessary.
+> For versions prior to 27.11, you will need to re-enable fips-updates on each instance that is launched from the custom image.
+>
+> This won't require a reboot and is only necessary to ensure the instance gets updates to fips packages when they become available.
+>
+> ```bash
+> sudo ua enable fips-updates --assume-yes
+> ```
+>
+> You can easily script this using [cloud-init user-data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time
+> ```yaml
+> #cloud-config
+> # Enable fips-updates after pro auto-attach and reboot after cloud-init completes
+> runcmd:
+>   - 'ua status --wait'
+>   - 'ua enable fips-updates --assume-yes'
+> ```

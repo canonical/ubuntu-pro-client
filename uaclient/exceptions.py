@@ -155,8 +155,8 @@ class AlreadyAttachedOnPROError(UserFacingError):
 
     exit_code = 0
 
-    def __init__(self, instance_id: str):
-        msg = messages.ALREADY_ATTACHED_ON_PRO.format(instance_id=instance_id)
+    def __init__(self):
+        msg = messages.ALREADY_ATTACHED_ON_PRO
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
