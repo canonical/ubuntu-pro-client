@@ -2,7 +2,6 @@ import copy
 import json
 import logging
 import os
-import re
 from collections import namedtuple
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
@@ -26,6 +25,7 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
 )
+from uaclient.files import NoticeFile
 
 LOG = logging.getLogger(__name__)
 
@@ -126,6 +126,7 @@ class UAConfig:
         self.series = series
         self.root_mode = root_mode
         self._machine_token_file = None
+        self._notice_file = None
 
     @property
     def machine_token_file(self):
@@ -136,6 +137,12 @@ class UAConfig:
                 self.features.get("machine_token_overlay"),
             )
         return self._machine_token_file
+
+    @property
+    def notice_file(self):
+        if not self._notice_file:
+            self._notice_file = NoticeFile(self.data_dir, self.root_mode)
+        return self._notice_file
 
     @property
     def contract_url(self) -> str:
@@ -345,38 +352,6 @@ class UAConfig:
         except AttributeError:
             return getattr(logging, CONFIG_DEFAULTS["log_level"])
 
-    def add_notice(self, label: str, description: str):
-        """Add a notice message to notices cache.
-
-        Such notices are seen in the Notices section from pro status output.
-        They are also present in the JSON status output.
-        """
-        notices = self.read_cache("notices") or []
-        notice = [label, description]
-        if notice not in notices:
-            notices.append(notice)
-            self.write_cache("notices", notices)
-
-    def remove_notice(self, label_regex: str, descr_regex: str):
-        """Remove matching notices if present.
-
-        :param label_regex: Regex used to remove notices with matching labels.
-        :param descr_regex: Regex used to remove notices with matching
-            descriptions.
-        """
-        notices = []
-        cached_notices = self.read_cache("notices")
-        if cached_notices:
-            for notice_label, notice_descr in cached_notices:
-                if re.match(label_regex, notice_label):
-                    if re.match(descr_regex, notice_descr):
-                        continue
-                notices.append((notice_label, notice_descr))
-        if notices:
-            self.write_cache("notices", notices)
-        elif os.path.exists(self.data_path("notices")):
-            system.remove_file(self.data_path("notices"))
-
     @property
     def log_file(self) -> str:
         return self.cfg.get("log_file", CONFIG_DEFAULTS["log_file"])
@@ -453,7 +428,7 @@ class UAConfig:
         if key.startswith("machine-access"):
             self._machine_token_file = None
         elif key == "lock":
-            self.remove_notice("", "Operation in progress.*")
+            self.notice_file.remove("", "Operation in progress.*")
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
@@ -491,7 +466,7 @@ class UAConfig:
             self._machine_token_file = None
         elif key == "lock":
             if ":" in content:
-                self.add_notice(
+                self.notice_file.add(
                     "",
                     "Operation in progress: {}".format(content.split(":")[1]),
                 )

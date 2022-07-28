@@ -1024,7 +1024,7 @@ def prompt_for_affected_packages(
                 operation="fix operation"
             )
             print(reboot_msg)
-            cfg.add_notice("", reboot_msg)
+            cfg.notice_file.add("", reboot_msg)
             print(
                 util.handle_unicode_characters(
                     messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)

@@ -12,7 +12,7 @@ M_PATH_UACONFIG = "uaclient.config.UAConfig."
 @pytest.mark.parametrize("lock_cls", (SingleAttemptLock, SpinLock))
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch(M_PATH_UACONFIG + "add_notice")
+@mock.patch("uaclient.files.NoticeFile.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestLockCommon:
     def test_creates_and_releases_lock(
@@ -71,7 +71,7 @@ class TestLockCommon:
 
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch(M_PATH_UACONFIG + "add_notice")
+@mock.patch("uaclient.files.NoticeFile.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestSingleAttemptLock:
     @mock.patch(M_PATH_UACONFIG + "check_lock_info", return_value=(10, "held"))

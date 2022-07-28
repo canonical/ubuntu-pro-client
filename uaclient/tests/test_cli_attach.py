@@ -245,7 +245,7 @@ class TestActionAttach:
         ),
     )
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
@@ -287,7 +287,7 @@ class TestActionAttach:
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
@@ -362,7 +362,7 @@ class TestActionAttach:
 
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(

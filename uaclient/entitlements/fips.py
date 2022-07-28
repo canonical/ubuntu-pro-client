@@ -195,11 +195,13 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     )
                 )
             if operation == "install":
-                self.cfg.add_notice(
+                self.cfg.notice_file.add(
                     "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
                 )
             elif operation == "disable operation":
-                self.cfg.add_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
+                self.cfg.notice_file.add(
+                    "", messages.FIPS_DISABLE_REBOOT_REQUIRED
+                )
 
     def _allow_fips_on_cloud_instance(
         self, series: str, cloud_id: str
@@ -305,7 +307,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
 
         if system.is_container() and not system.should_reboot():
-            self.cfg.remove_notice(
+            self.cfg.notice_file.remove(
                 "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
             )
             return super_status, super_msg
@@ -315,21 +317,21 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             # We are now only removing the notice if there is no reboot
             # required information regarding the fips metapackage we install.
             if not system.should_reboot(set(self.packages)):
-                self.cfg.remove_notice(
+                self.cfg.notice_file.remove(
                     "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
                 )
 
-            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
+            self.cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
             if system.load_file(self.FIPS_PROC_FILE).strip() == "1":
-                self.cfg.remove_notice(
+                self.cfg.notice_file.remove(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return super_status, super_msg
             else:
-                self.cfg.remove_notice(
+                self.cfg.notice_file.remove(
                     "", messages.FIPS_DISABLE_REBOOT_REQUIRED
                 )
-                self.cfg.add_notice(
+                self.cfg.notice_file.add(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return (
@@ -339,7 +341,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     ),
                 )
         else:
-            self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
+            self.cfg.notice_file.remove(
+                "", messages.FIPS_DISABLE_REBOOT_REQUIRED
+            )
 
         if super_status != ApplicationStatus.ENABLED:
             return super_status, super_msg
@@ -375,10 +379,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.remove_notice(
+            self.cfg.notice_file.remove(
                 "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
-            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
+            self.cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
             return True
 
         return False
@@ -503,7 +507,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 "defaulting to generic FIPS package."
             )
         if super()._perform_enable(silent=silent):
-            self.cfg.remove_notice("", messages.FIPS_INSTALL_OUT_OF_DATE)
+            self.cfg.notice_file.remove("", messages.FIPS_INSTALL_OUT_OF_DATE)
             return True
 
         return False
@@ -564,7 +568,9 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
+            self.cfg.notice_file.remove(
+                "", messages.FIPS_DISABLE_REBOOT_REQUIRED
+            )
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )
