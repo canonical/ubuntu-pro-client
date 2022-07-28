@@ -1279,6 +1279,9 @@ def action_api(args, *, cfg):
 @assert_root
 @assert_lock_file("pro auto-attach")
 def action_auto_attach(args, *, cfg):
+    if cfg.is_attached:
+        raise exceptions.AlreadyAttachedOnPROError()
+
     disable_auto_attach = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
     )
@@ -1317,17 +1320,6 @@ def action_auto_attach(args, *, cfg):
         raise exceptions.UserFacingError(
             messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
         )
-
-    current_iid = identity.get_instance_id()
-    if cfg.is_attached:
-        prev_iid = cfg.read_cache("instance-id")
-        if str(current_iid) == str(prev_iid):
-            raise exceptions.AlreadyAttachedOnPROError(str(current_iid))
-        print("Re-attaching Ubuntu Pro subscription on new instance")
-        if _detach(cfg, assume_yes=True) != 0:
-            raise exceptions.UserFacingError(
-                messages.DETACH_AUTOMATION_FAILURE
-            )
 
     try:
         actions.auto_attach(cfg, instance)

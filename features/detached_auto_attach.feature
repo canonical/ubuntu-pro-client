@@ -18,7 +18,7 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
         """
-        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        Skipping auto-attach: Instance is already attached.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
