@@ -80,13 +80,31 @@ class TestNotices:
         self, notices, expected, tmpdir, FakeConfig
     ):
         cfg = FakeConfig()
-        assert None is cfg.read_cache("notices")
+        assert None is cfg.notice_file.read()
         for notice in notices:
-            cfg.add_notice(*notice)
+            cfg.notice_file.add(*notice)
         if notices:
-            assert expected == cfg.read_cache("notices")
+            assert expected == cfg.notice_file.read()
         else:
-            assert None is cfg.read_cache("notices")
+            assert None is cfg.notice_file.read()
+
+    @pytest.mark.parametrize(
+        "notices,expected",
+        (
+            ([], []),
+            ([["a", "a1"]], [["a", "a1"]]),
+            ([["a", "a1"], ["a", "a1"]], [["a", "a1"]]),
+        ),
+    )
+    def test_add_notice_fails_as_nonroot(
+        self, notices, expected, tmpdir, FakeConfig
+    ):
+        cfg = FakeConfig(root_mode=False)
+        assert None is cfg.notice_file.read()
+        for notice in notices:
+            with pytest.raises(exceptions.NonRootUserError):
+                cfg.notice_file.add(*notice)
+        assert None is cfg.notice_file.read()
 
     @pytest.mark.parametrize(
         "notices,removes,expected",
@@ -106,10 +124,10 @@ class TestNotices:
     ):
         cfg = FakeConfig()
         for notice in notices:
-            cfg.add_notice(*notice)
+            cfg.notice_file.add(*notice)
         for label, descr in removes:
-            cfg.remove_notice(label, descr)
-        assert expected == cfg.read_cache("notices")
+            cfg.notice_file.remove(label, descr)
+        assert expected == cfg.notice_file.read()
 
 
 class TestEntitlements:

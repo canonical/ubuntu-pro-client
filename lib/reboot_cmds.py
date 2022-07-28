@@ -82,8 +82,10 @@ def fix_pro_pkg_holds(cfg):
                         )
                     )
                     sys.exit(1)
-                cfg.remove_notice("", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg)
-                cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
+                cfg.notice_file.remove(
+                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+                )
+                cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
 
 
 def refresh_contract(cfg):
@@ -98,7 +100,7 @@ def refresh_contract(cfg):
 def process_remaining_deltas(cfg):
     cmd = "/usr/bin/python3 /usr/lib/ubuntu-advantage/upgrade_lts_contract.py"
     run_command(cmd=cmd, cfg=cfg)
-    cfg.remove_notice("", messages.LIVEPATCH_LTS_REBOOT_REQUIRED)
+    cfg.notice_file.remove("", messages.LIVEPATCH_LTS_REBOOT_REQUIRED)
 
 
 def process_reboot_operations(cfg):
@@ -122,13 +124,13 @@ def process_reboot_operations(cfg):
             process_remaining_deltas(cfg)
 
             cfg.delete_cache_key("marker-reboot-cmds")
-            cfg.remove_notice("", messages.REBOOT_SCRIPT_FAILED)
+            cfg.notice_file.remove("", messages.REBOOT_SCRIPT_FAILED)
             logging.debug("Successfully ran all commands on reboot.")
         except Exception as e:
             msg = "Failed running commands on reboot."
             msg += str(e)
             logging.error(msg)
-            cfg.add_notice("", messages.REBOOT_SCRIPT_FAILED)
+            cfg.notice_file.add("", messages.REBOOT_SCRIPT_FAILED)
 
 
 def main(cfg):

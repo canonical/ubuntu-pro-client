@@ -81,7 +81,7 @@ class TestFixProPkgHolds:
     @mock.patch("sys.exit")
     @mock.patch(M_FIPS_PATH + "install_packages")
     @mock.patch(M_FIPS_PATH + "setup_apt_config")
-    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     def test_calls_setup_apt_config_and_install_packages_when_enabled(
         self,
         m_remove_notice,
@@ -148,7 +148,7 @@ class TestProcessRebootOperations:
     @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
     @mock.patch("uaclient.config.UAConfig.delete_cache_key")
     @mock.patch("uaclient.config.UAConfig.check_lock_info")
-    @mock.patch("uaclient.config.UAConfig.add_notice")
+    @mock.patch("uaclient.files.NoticeFile.add")
     @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
     def test_process_reboot_operations_create_notice_when_it_fails(
         self,

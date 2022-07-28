@@ -48,7 +48,7 @@ class SingleAttemptLock:
             "lock", "{}:{}".format(os.getpid(), self.lock_holder)
         )
         notice_msg = "Operation in progress: {}".format(self.lock_holder)
-        self.cfg.add_notice("", notice_msg)
+        self.cfg.notice_file.add("", notice_msg)
         clear_lock_file = functools.partial(self.cfg.delete_cache_key, "lock")
 
     def __exit__(self, _exc_type, _exc_value, _traceback):

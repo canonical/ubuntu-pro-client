@@ -1644,7 +1644,9 @@ def action_status(args, *, cfg):
     if cfg.is_attached:
         try:
             if contract.is_contract_changed(cfg):
-                cfg.add_notice("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+                cfg.notice_file.add(
+                    "", messages.NOTICE_REFRESH_CONTRACT_WARNING
+                )
         except exceptions.UrlError as e:
             with util.disable_log_to_console():
                 err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
@@ -1721,7 +1723,7 @@ def action_refresh(args, *, cfg: config.UAConfig):
 
     if args.target is None or args.target == "contract":
         _action_refresh_contract(args, cfg)
-        cfg.remove_notice("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+        cfg.notice_file.remove("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
 
     if args.target is None or args.target == "messages":
         _action_refresh_messages(args, cfg)

@@ -14,7 +14,6 @@ import yaml
 from uaclient import exceptions, messages, status
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.event_logger import EventLoggerMode
-from uaclient.tests.test_cli import M_PATH_UACONFIG
 
 M_PATH = "uaclient.cli."
 
@@ -270,7 +269,7 @@ Flags:
 
 
 @mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
-@mock.patch("uaclient.config.UAConfig.remove_notice")
+@mock.patch("uaclient.files.NoticeFile.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(
     "uaclient.status.get_available_resources",
@@ -1040,7 +1039,7 @@ class TestActionStatus:
             (False, False),
         ),
     )
-    @mock.patch(M_PATH_UACONFIG + "add_notice")
+    @mock.patch("uaclient.files.NoticeFile.add")
     def test_is_contract_changed(
         self,
         m_add_notice,
