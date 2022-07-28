@@ -305,10 +305,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             """
             This command must be run as root \(try using sudo\).
             """
-        When I verify that running `pro auto-attach` `with sudo` exits `2`
+        When I verify that running `pro auto-attach` `with sudo` exits `0`
         Then stderr matches regexp:
             """
-            This machine is already attached
+            Skipping auto-attach: Instance is already attached.
             """
 
         Examples: ubuntu release
@@ -394,7 +394,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         machine_token_overlay: /tmp/machine-token-overlay.json
         other: False
         """
-        When I run `ua auto-attach` with sudo
+        When I run `pro detach --assume-yes` with sudo
+        When I run `pro auto-attach` with sudo
         Then stdout matches regexp:
         """
         Skipping auto-attach. Config disable_auto_attach is set.

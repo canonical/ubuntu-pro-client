@@ -569,10 +569,10 @@ ALREADY_ATTACHED = FormattedNamedMessage(
     ),
 )
 
-ALREADY_ATTACHED_ON_PRO = FormattedNamedMessage(
+ALREADY_ATTACHED_ON_PRO = NamedMessage(
     "already-attached-on-pro",
     """\
-Skipping attach: Instance '{instance_id}' is already attached.""",
+Skipping auto-attach: Instance is already attached.""",
 )
 
 CONNECTIVITY_ERROR = NamedMessage(
