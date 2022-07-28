@@ -141,11 +141,11 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
 def _attached_status(cfg) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
 
-    cfg.remove_notice(
+    cfg.notice_file.remove(
         "",
         messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(operation=".*"),
     )
-    cfg.remove_notice("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+    cfg.notice_file.remove("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]
@@ -156,7 +156,7 @@ def _attached_status(cfg) -> Dict[str, Any]:
             "machine_id": machineTokenInfo["machineId"],
             "attached": True,
             "origin": contractInfo.get("origin"),
-            "notices": cfg.read_cache("notices") or [],
+            "notices": cfg.notice_file.read() or [],
             "contract": {
                 "id": contractInfo["id"],
                 "name": contractInfo["name"],
@@ -298,7 +298,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     status_val = userStatus.INACTIVE.value
     status_desc = messages.NO_ACTIVE_OPERATIONS
     (lock_pid, lock_holder) = cfg.check_lock_info()
-    notices = cfg.read_cache("notices") or []
+    notices = cfg.notice_file.read() or []
     if lock_pid > 0:
         status_val = userStatus.ACTIVE.value
         status_desc = messages.LOCK_HELD.format(
@@ -349,7 +349,7 @@ def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
 
         # Try to remove fix reboot notices if not applicable
         if not system.should_reboot():
-            cfg.remove_notice(
+            cfg.notice_file.remove(
                 "",
                 messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation="fix operation"
