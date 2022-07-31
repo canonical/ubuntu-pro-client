@@ -1,7 +1,9 @@
 import copy
 import enum
+import json
 import os
 import socket
+import subprocess
 import textwrap
 from collections import defaultdict
 from datetime import datetime
@@ -572,6 +574,23 @@ def fix_security_issue_id(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
+
+        # Check livepatch status for CVE in fixes
+        status = subprocess.run(
+            ["canonical-livepatch", "status", "--verbose", "--format=json"],
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout
+        if status:
+            parsed_patch = json.loads(status)["Status"][0]["Livepatch"]
+            if cve.id.lower() in parsed_patch.get("Fixes", ""):
+                print(
+                    messages.CVE_FIXED_BY_LIVEPATCH.format(
+                        issue=cve.id,
+                        version=parsed_patch.get("Version", "N/A"),
+                    )
+                )
+
         affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
         )
