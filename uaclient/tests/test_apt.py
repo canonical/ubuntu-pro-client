@@ -27,6 +27,7 @@ from uaclient.apt import (
     compare_versions,
     find_apt_list_files,
     get_apt_cache_policy,
+    get_apt_cache_time,
     get_installed_packages,
     is_installed,
     remove_apt_list_files,
@@ -1076,3 +1077,15 @@ class TestCompareVersion:
         """compare_versions returns True when the comparison is accurate."""
         with mock.patch("uaclient.system._subp", side_effect=_subp):
             assert expected_result is compare_versions(ver1, ver2, relation)
+
+
+class TestAptCacheTime:
+    @pytest.mark.parametrize(
+        "file_exists,expected", ((True, 1.23), (False, None))
+    )
+    @mock.patch("os.stat")
+    @mock.patch("os.path.exists")
+    def test_get_apt_cache_time(self, m_exists, m_stat, file_exists, expected):
+        m_stat.return_value.st_mtime = 1.23
+        m_exists.return_value = file_exists
+        assert expected == get_apt_cache_time()
