@@ -122,17 +122,23 @@ def status(
     cfg: config.UAConfig,
     *,
     simulate_with_token: Optional[str] = None,
-    show_beta: bool = False
+    show_beta: bool = False,
+    show_all: bool = False
 ):
     """
     Construct the current Pro status dictionary.
     """
     if simulate_with_token:
         status, ret = ua_status.simulate_status(
-            cfg=cfg, token=simulate_with_token, show_beta=show_beta
+            cfg=cfg,
+            token=simulate_with_token,
+            show_beta=show_beta,
+            show_all=show_all,
         )
     else:
-        status = ua_status.status(cfg=cfg, show_beta=show_beta)
+        status = ua_status.status(
+            cfg=cfg, show_beta=show_beta, show_all=show_all
+        )
         ret = 0
 
     return status, ret

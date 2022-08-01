@@ -47,16 +47,12 @@ def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
         for name, value in sorted(get_pro_environment().items())
     ]
 
-    if not status.get("simulated"):
-        available_services = [
-            service
-            for service in status.get("services", [])
-            if service.get("available", "yes") == "yes"
-        ]
-        status["services"] = available_services
-
     # We don't need the origin info in the json output
     status.pop("origin", "")
+
+    # In case there is an error during status and the services were
+    # not processed
+    status.setdefault("services", [])
 
     return status
 
