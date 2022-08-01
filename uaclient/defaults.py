@@ -6,12 +6,14 @@ any of our dependencies installed.
 """
 
 UAC_ETC_PATH = "/etc/ubuntu-advantage/"
+UAC_TMP_PATH = "/tmp/ubuntu-advantage/"
 DEFAULT_DATA_DIR = "/var/lib/ubuntu-advantage"
 MACHINE_TOKEN_FILE = "machine-token.json"
 PRIVATE_SUBDIR = "/private"
 DEFAULT_PRIVATE_MACHINE_TOKEN_PATH = (
     DEFAULT_DATA_DIR + PRIVATE_SUBDIR + "/" + MACHINE_TOKEN_FILE
 )
+CANDIDATE_CACHE_PATH = UAC_TMP_PATH + "candidate-version"
 DEFAULT_CONFIG_FILE = UAC_ETC_PATH + "uaclient.conf"
 DEFAULT_HELP_FILE = UAC_ETC_PATH + "help_data.yaml"
 DEFAULT_UPGRADE_CONTRACT_FLAG_FILE = UAC_ETC_PATH + "request-update-contract"
