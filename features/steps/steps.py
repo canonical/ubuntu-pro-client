@@ -1161,6 +1161,20 @@ def when_i_create_local_ppas(context, release, next_release):
     )
 
 
+@when("I verify root and non-root `{cmd}` calls have the same output")
+def root_vs_nonroot_cmd_comparison(context, cmd):
+    when_i_run_command(context, cmd, "with sudo")
+    root_status_stdout = context.process.stdout.strip()
+    root_status_stderr = context.process.stderr.strip()
+
+    when_i_run_command(context, cmd, "as non-root")
+    nonroot_status_stdout = context.process.stdout.strip()
+    nonroot_status_stderr = context.process.stderr.strip()
+
+    assert_that(root_status_stdout, nonroot_status_stdout)
+    assert root_status_stderr == nonroot_status_stderr
+
+
 def create_local_ppa(context, release):
     when_i_run_command_on_machine(
         context,
