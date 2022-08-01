@@ -42,11 +42,13 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(exceptions.GCPProAccountError, retry_sleeps=[1, 2, 5])
+    @util.retry(exceptions.GCPProAccountError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         try:
             headers = {"Metadata-Flavor": "Google"}
-            url_response, _headers = util.readurl(TOKEN_URL, headers=headers)
+            url_response, _headers = util.readurl(
+                TOKEN_URL, headers=headers, timeout=1
+            )
         except HTTPError as e:
             body = getattr(e, "body", None)
             error_desc = None
