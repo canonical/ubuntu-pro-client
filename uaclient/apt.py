@@ -570,3 +570,14 @@ def setup_unauthenticated_repo(
         apt_origin,
         "never",
     )
+
+
+def compare_versions(version1: str, version2: str, relation: str) -> bool:
+    """Return True comparing version1 to version2 with the given relation."""
+    try:
+        system.subp(
+            ["dpkg", "--compare-versions", version1, relation, version2]
+        )
+        return True
+    except exceptions.ProcessExecutionError:
+        return False
