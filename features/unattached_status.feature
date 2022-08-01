@@ -40,121 +40,209 @@ Feature: Unattached status
            | jammy   |
            | kinetic |
 
-    @series.all
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  DESCRIPTION
-            cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
-            ?esm-infra     +<esm-infra>     +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +NIST-certified core packages
-            fips-updates  +<fips>      +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +Canonical Livepatch service
-            ros           +<ros>       +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Security compliance and audit tools)?
-
-            This machine is not attached to an Ubuntu Pro subscription.
-            See https://ubuntu.com/pro
-            """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  DESCRIPTION
-            cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps     +<esm-apps>  +Extended Security Maintenance for Applications
-            esm-infra     +<esm-infra>     +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +NIST-certified core packages
-            fips-updates  +<fips>      +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +Canonical Livepatch service
-            realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
-            ros           +<ros>       +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Security compliance and audit tools)?
-
-            This machine is not attached to an Ubuntu Pro subscription.
-            See https://ubuntu.com/pro
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  DESCRIPTION
-            cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
-            ?esm-infra     +<esm-infra>     +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +NIST-certified core packages
-            fips-updates  +<fips>      +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +Canonical Livepatch service
-            ros           +<ros>       +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Security compliance and audit tools)?
-
-            This machine is not attached to an Ubuntu Pro subscription.
-            See https://ubuntu.com/pro
-            """
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  DESCRIPTION
-            cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
-            esm-infra     +<esm-infra>     +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +NIST-certified core packages
-            fips-updates  +<fips>      +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +Canonical Livepatch service
-            realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
-            ros           +<ros>       +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Security compliance and audit tools)?
-
-            This machine is not attached to an Ubuntu Pro subscription.
-            See https://ubuntu.com/pro
-            """ 
-        When I append the following on uaclient config:
-            """
-            features:
-              allow_beta: true
-            """
+        When I verify root and non-root `pro status` calls have the same output
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            SERVICE       +AVAILABLE  DESCRIPTION
-            cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      +<esm-apps>  +Extended Security Maintenance for Applications
-            esm-infra     +<esm-infra>     +Extended Security Maintenance for Infrastructure
-            fips          +<fips>      +NIST-certified core packages
-            fips-updates  +<fips>      +NIST-certified core packages with priority security updates
-            livepatch     +<livepatch> +Canonical Livepatch service
-            realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
-            ros           +<ros>       +Security Updates for the Robot Operating System
-            ros-updates   +<ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Security compliance and audit tools)?
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +Security compliance and audit tools
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        ros             +yes       +Security Updates for the Robot Operating System
+        ros-updates     +yes       +All Updates for the Robot Operating System
 
-            FEATURES
-            allow_beta: True
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +Security compliance and audit tools
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        realtime-kernel +no        +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +yes       +Security Updates for the Robot Operating System
+        ros-updates     +yes       +All Updates for the Robot Operating System
 
-            This machine is not attached to an Ubuntu Pro subscription.
-            See https://ubuntu.com/pro
-            """ 
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I append the following on uaclient config:
+        """
+        features:
+            allow_beta: true
+        """
+        And I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +Security compliance and audit tools
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        ros             +yes       +Security Updates for the Robot Operating System
+        ros-updates     +yes       +All Updates for the Robot Operating System
+
+        FEATURES
+        allow_beta: True
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """ 
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg | realtime-kernel |
-           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
-           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
-           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
-           | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg | yes             |
-           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
+           | release |
+           | xenial  |
+           | bionic  |
 
-    @series.all
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Unattached status in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify root and non-root `pro status` calls have the same output
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        usg             +yes       +Security compliance and audit tools
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        realtime-kernel +no        +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +no        +Security Updates for the Robot Operating System
+        ros-updates     +no        +All Updates for the Robot Operating System
+        usg             +yes       +Security compliance and audit tools
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I append the following on uaclient config:
+        """
+        features:
+            allow_beta: true
+        """
+        When I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +yes       +NIST-certified core packages
+        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        usg             +yes       +Security compliance and audit tools
+
+        FEATURES
+        allow_beta: True
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """ 
+
+        Examples: ubuntu release
+           | release |
+           | focal   |
+
+    @series.jammy
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Unattached status in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        livepatch       +yes       +Canonical Livepatch service
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        fips            +no        +NIST-certified core packages
+        fips-updates    +no        +NIST-certified core packages with priority security updates
+        livepatch       +yes       +Canonical Livepatch service
+        realtime-kernel +yes       +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +no        +Security Updates for the Robot Operating System
+        ros-updates     +no        +All Updates for the Robot Operating System
+        usg             +no        +Security compliance and audit tools
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """
+        When I append the following on uaclient config:
+        """
+        features:
+            allow_beta: true
+        """
+        When I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Extended Security Maintenance for Applications
+        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        livepatch       +yes       +Canonical Livepatch service
+        realtime-kernel +yes       +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+
+        FEATURES
+        allow_beta: True
+
+        This machine is not attached to an Ubuntu Pro subscription.
+        See https://ubuntu.com/pro
+        """ 
+
+        Examples: ubuntu release
+           | release |
+           | jammy   |
+
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
@@ -162,33 +250,31 @@ Feature: Unattached status
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
         """
-        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-        ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
-        ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-        fips          +<fips>      +yes  +no   +NIST-certified core packages
-        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
-        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
-        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +yes       +no           +Security compliance and audit tools
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
+        ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
         """
         When I do a preflight check for `contract_token` with the all flag
         Then stdout matches regexp:
         """
-        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-        ?esm-apps      +<esm-apps>  +yes  +yes  +Extended Security Maintenance for Applications
-        esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-        fips          +<fips>      +yes  +no   +NIST-certified core packages
-        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-        realtime-kernel +<realtime-kernel> +yes  +no  +Beta-version Ubuntu Kernel with PREEMPT_RT patches
-        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
-        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
-        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +yes       +no           +Security compliance and audit tools
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        realtime-kernel +no        +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
+        ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
         """
         When I do a preflight check for `contract_token` formatted as json
         Then stdout is a json matching the `ua_status` schema
@@ -216,15 +302,130 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg | realtime-kernel |
-           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
-           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
-           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
-           | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg | yes             |
-           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
+           | release |
+           | xenial  |
+           | bionic  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token
+    Scenario Outline: Simulate status in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I do a preflight check for `contract_token` without the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        usg             +yes       +yes       +no           +Security compliance and audit tools
+        """
+        When I do a preflight check for `contract_token` with the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        realtime-kernel +no        +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +no        +yes       +no           +Security Updates for the Robot Operating System
+        ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
+        usg             +yes       +yes       +no           +Security compliance and audit tools
+        """
+        When I do a preflight check for `contract_token` formatted as json
+        Then stdout is a json matching the `ua_status` schema
+        When I do a preflight check for `contract_token` formatted as yaml
+        Then stdout is a yaml matching the `ua_status` schema
+        When I verify that a preflight check for `invalid_token` formatted as json exits 1
+        Then stdout is a json matching the `ua_status` schema
+        And I will see the following on stdout:
+        """
+        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+        """
+        When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
+        Then stdout is a yaml matching the `ua_status` schema
+        And I will see the following on stdout:
+        """
+        environment_vars: []
+        errors:
+        - message: Invalid token. See https://ubuntu.com/pro
+          message_code: attach-invalid-token
+          service: null
+          type: system
+        result: failure
+        services: []
+        warnings: []
+        """
+
+        Examples: ubuntu release
+           | release |
+           | focal   |
+
+    @series.jammy
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token
+    Scenario Outline: Simulate status in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I do a preflight check for `contract_token` without the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        """
+        When I do a preflight check for `contract_token` with the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +no        +yes       +no           +NIST-certified core packages
+        fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        realtime-kernel +yes       +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        ros             +no        +yes       +no           +Security Updates for the Robot Operating System
+        ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
+        usg             +no        +yes       +no           +Security compliance and audit tools
+        """
+        When I do a preflight check for `contract_token` formatted as json
+        Then stdout is a json matching the `ua_status` schema
+        When I do a preflight check for `contract_token` formatted as yaml
+        Then stdout is a yaml matching the `ua_status` schema
+        When I verify that a preflight check for `invalid_token` formatted as json exits 1
+        Then stdout is a json matching the `ua_status` schema
+        And I will see the following on stdout:
+        """
+        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+        """
+        When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
+        Then stdout is a yaml matching the `ua_status` schema
+        And I will see the following on stdout:
+        """
+        environment_vars: []
+        errors:
+        - message: Invalid token. See https://ubuntu.com/pro
+          message_code: attach-invalid-token
+          service: null
+          type: system
+        result: failure
+        services: []
+        warnings: []
+        """
+
+        Examples: ubuntu release
+           | release |
+           | jammy   |
 
 
-    @series.all
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
@@ -253,23 +454,100 @@ Feature: Unattached status
         This token is not valid.
         Contract \".*\" expired on .*
 
-        SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-        cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-        ?esm-apps      +<esm-apps>  +yes +yes +Extended Security Maintenance for Applications
-        ?esm-infra     +<esm-infra> +yes  +yes  +Extended Security Maintenance for Infrastructure
-        fips          +<fips>      +yes  +no   +NIST-certified core packages
-        fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
-        livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
-        ros           +<ros>       +yes  +no   +Security Updates for the Robot Operating System
-        ros-updates   +<ros>       +yes  +no   +All Updates for the Robot Operating System
-        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+        cis             +yes       +yes       +no           +Security compliance and audit tools
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
+        ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
         """
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg |
-           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg |
-           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | release |
+           | xenial  |
+           | bionic  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token_staging_expired
+    Scenario Outline: Simulate status with expired token in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
+        And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
+        Then stdout is a json matching the `ua_status` schema
+        And stdout matches regexp:
+        """
+        \"result\": \"failure\"
+        """
+        And stdout matches regexp:
+        """
+        \"message\": \"Contract .* expired on .*\"
+        """
+        When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
+        Then stdout is a yaml matching the `ua_status` schema
+        Then stdout matches regexp:
+        """
+        errors:
+        - message: Contract .* expired on .*
+        """
+        When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
+        Then stdout matches regexp:
+        """
+        This token is not valid.
+        Contract \".*\" expired on .*
+
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        usg             +yes       +yes       +no           +Security compliance and audit tools
+        """
+
+        Examples: ubuntu release
+           | release |
+           | focal   |
+
+    @series.jammy
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token_staging_expired
+    Scenario Outline: Simulate status with expired token in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
+        And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
+        Then stdout is a json matching the `ua_status` schema
+        And stdout matches regexp:
+        """
+        \"result\": \"failure\"
+        """
+        And stdout matches regexp:
+        """
+        \"message\": \"Contract .* expired on .*\"
+        """
+        When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
+        Then stdout is a yaml matching the `ua_status` schema
+        Then stdout matches regexp:
+        """
+        errors:
+        - message: Contract .* expired on .*
+        """
+        When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
+        Then stdout matches regexp:
+        """
+        This token is not valid.
+        Contract \".*\" expired on .*
+
+        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        """
+
+        Examples: ubuntu release
+           | release |
+           | jammy   |

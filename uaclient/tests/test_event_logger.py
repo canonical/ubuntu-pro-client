@@ -121,6 +121,7 @@ class TestEventLogger:
                     {
                         "some_status_key": "some_status_information",
                         "a_list_of_things": ["first", "second", "third"],
+                        "services": [],
                     }
                 )
                 event.info(info_msg="test")
