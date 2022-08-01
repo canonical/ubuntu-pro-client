@@ -53,7 +53,6 @@ from uaclient.security import (
     prompt_for_affected_packages,
     query_installed_source_pkg_versions,
     upgrade_packages_and_attach,
-    version_cmp_le,
 )
 from uaclient.status import colorize_commands
 
@@ -244,23 +243,6 @@ class TestGetCVEAffectedPackageStatus:
             assert expected_status == package_status.response
         else:
             assert expected_status == affected_packages
-
-
-class TestVersionCmpLe:
-    @pytest.mark.parametrize(
-        "ver1,ver2,is_lessorequal",
-        (
-            ("1.0", "2.0", True),
-            ("2.0", "2.0", True),
-            ("2.1~18.04.1", "2.1", True),
-            ("2.1", "2.1~18.04.1", False),
-            ("2.1", "2.0", False),
-        ),
-    )
-    def test_version_cmp_le(self, ver1, ver2, is_lessorequal, _subp):
-        """version_cmp_le returns True when ver1 less than or equal to ver2."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
-            assert is_lessorequal is version_cmp_le(ver1, ver2)
 
 
 class TestCVE:

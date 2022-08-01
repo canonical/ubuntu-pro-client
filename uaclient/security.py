@@ -515,7 +515,9 @@ def merge_usn_released_binary_package_versions(
                     else:
                         prev_version = usn_src_pkg[bin_pkg]["version"]
                         current_version = binary_pkg_md["version"]
-                        if not version_cmp_le(current_version, prev_version):
+                        if not apt.compare_versions(
+                            current_version, prev_version, "le"
+                        ):
                             # binary_version is greater than prev_version
                             usn_src_pkg[bin_pkg] = binary_pkg_md
     return usn_pkg_versions
@@ -664,7 +666,9 @@ def get_affected_packages_from_cves(cves, installed_packages):
                 affected_pkgs[pkg_name] = pkg_status
             else:
                 current_ver = affected_pkgs[pkg_name].fixed_version
-                if not version_cmp_le(current_ver, pkg_status.fixed_version):
+                if not apt.compare_versions(
+                    current_ver, pkg_status.fixed_version, "le"
+                ):
                     affected_pkgs[pkg_name] = pkg_status
 
     return affected_pkgs
@@ -1019,7 +1023,7 @@ def prompt_for_affected_packages(
                         )
                     fixed_pkg = usn_released_src[binary_pkg]
                     fixed_version = fixed_pkg["version"]  # type: ignore
-                    if not version_cmp_le(fixed_version, version):
+                    if not apt.compare_versions(fixed_version, version, "le"):
                         binary_pocket_pkgs[pkg_status.pocket_source].append(
                             binary_pkg
                         )
@@ -1336,12 +1340,3 @@ def upgrade_packages_and_attach(
         )
 
     return True
-
-
-def version_cmp_le(version1: str, version2: str) -> bool:
-    """Return True when version1 is less than or equal to version2."""
-    try:
-        system.subp(["dpkg", "--compare-versions", version1, "le", version2])
-        return True
-    except exceptions.ProcessExecutionError:
-        return False
