@@ -9,11 +9,12 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, system
+from uaclient import exceptions, messages, system
 from uaclient.apt import (
     APT_AUTH_COMMENT,
     APT_CONFIG_GLOBAL_PROXY_HTTP,
     APT_CONFIG_GLOBAL_PROXY_HTTPS,
+    APT_HELPER_TIMEOUT,
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
@@ -23,6 +24,7 @@ from uaclient.apt import (
     add_ppa_pinning,
     assert_valid_apt_credentials,
     clean_apt_files,
+    compare_versions,
     find_apt_list_files,
     get_apt_cache_policy,
     get_installed_packages,
@@ -30,6 +32,7 @@ from uaclient.apt import (
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
+    restore_commented_apt_list_file,
     run_apt_update_command,
     setup_apt_proxy,
 )
@@ -252,7 +255,7 @@ class TestValidAptCredentials:
         error_msg = (
             "Cannot validate credentials for APT repo. Timeout"
             " after {} seconds trying to reach fakerepo.".format(
-                apt.APT_HELPER_TIMEOUT
+                APT_HELPER_TIMEOUT
             )
         )
         assert error_msg == excinfo.value.msg
@@ -269,7 +272,7 @@ class TestValidAptCredentials:
                 "http://user:pwd@fakerepo/ubuntu/pool/",
                 expected_path,
             ],
-            timeout=apt.APT_HELPER_TIMEOUT,
+            timeout=APT_HELPER_TIMEOUT,
             retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
@@ -830,7 +833,7 @@ class TestRestoreCommentAptListFile:
         list_file = tmpdir.join("list_file")
         list_file.write(before)
 
-        apt.restore_commented_apt_list_file(list_file.strpath)
+        restore_commented_apt_list_file(list_file.strpath)
 
         assert expected == list_file.read()
 
@@ -1050,3 +1053,26 @@ class TestAptIsInstalled:
     ):
         m_get_installed_pkgs.return_value = installed_pkgs
         assert expected == is_installed("test")
+
+
+class TestCompareVersion:
+    @pytest.mark.parametrize(
+        "ver1,ver2,relation,expected_result",
+        (
+            ("1.0", "2.0", "le", True),
+            ("1.0", "2.0", "gt", False),
+            ("2.0", "2.0", "lt", False),
+            ("2.0", "2.0", "eq", True),
+            ("2.0", "2.0", "gt", False),
+            ("2.1~18.04.1", "2.1", "le", True),
+            ("2.1", "2.1~18.04.1", "le", False),
+            ("2.10", "2.9", "ge", True),
+            ("2.10", "2.9", "lt", False),
+        ),
+    )
+    def test_compare_versions(
+        self, ver1, ver2, relation, expected_result, _subp
+    ):
+        """compare_versions returns True when the comparison is accurate."""
+        with mock.patch("uaclient.system._subp", side_effect=_subp):
+            assert expected_result is compare_versions(ver1, ver2, relation)
