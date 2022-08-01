@@ -102,10 +102,23 @@ DEFAULT_STATUS = {
 }  # type: Dict[str, Any]
 
 
+def _get_blocked_by_services(ent):
+    return [
+        {
+            "name": service.entitlement.name,
+            "reason_code": service.named_msg.name,
+            "reason": service.named_msg.msg,
+        }
+        for service in ent.blocking_incompatible_services()
+    ]
+
+
 def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
     status_details = ""
     description_override = None
     contract_status = ent.contract_status()
+    available = "no" if ent.name in inapplicable_resources else "yes"
+
     if contract_status == ContractStatus.UNENTITLED:
         ent_status = UserFacingStatus.UNAVAILABLE
     else:
@@ -117,14 +130,10 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
             if details:
                 status_details = details.msg
 
-    blocked_by = [
-        {
-            "name": service.entitlement.name,
-            "reason_code": service.named_msg.name,
-            "reason": service.named_msg.msg,
-        }
-        for service in ent.blocking_incompatible_services()
-    ]
+            if ent_status == UserFacingStatus.INAPPLICABLE:
+                available = "no"
+
+    blocked_by = _get_blocked_by_services(ent)
 
     return {
         "name": ent.presentation_name,
@@ -133,7 +142,7 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
         "status": ent_status.value,
         "status_details": status_details,
         "description_override": description_override,
-        "available": "yes" if ent.name not in inapplicable_resources else "no",
+        "available": available,
         "blocked_by": blocked_by,
     }
 
@@ -324,8 +333,10 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     }
 
 
-def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
-    """Return status as a dict
+def status(
+    cfg: UAConfig, show_beta: bool = False, show_all: bool = False
+) -> Dict[str, Any]:
+    """Return status as a dict, using a cache for non-root users
 
     When unattached, get available resources from the contract service
     to report detailed availability of different resources for this
@@ -352,7 +363,15 @@ def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
                 ),
             )
 
-    response = _handle_beta_resources(cfg, show_beta, response)
+    response = _handle_beta_resources(cfg, show_beta or show_all, response)
+
+    if not show_all:
+        available_services = [
+            service
+            for service in response.get("services", [])
+            if service.get("available", "yes") == "yes"
+        ]
+        response["services"] = available_services
 
     return response
 
@@ -374,7 +393,7 @@ def _get_entitlement_information(
 
 
 def simulate_status(
-    cfg, token: str, show_beta: bool = False
+    cfg, token: str, show_beta: bool = False, show_all: bool = False
 ) -> Tuple[Dict[str, Any], int]:
     """Get a status dictionary based on a token.
 
@@ -488,6 +507,14 @@ def simulate_status(
 
     response.update(_get_config_status(cfg))
     response = _handle_beta_resources(cfg, show_beta, response)
+
+    if not show_all:
+        available_services = [
+            service
+            for service in response.get("services", [])
+            if service.get("available", "yes") == "yes"
+        ]
+        response["services"] = available_services
 
     return response, ret
 

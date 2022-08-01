@@ -62,20 +62,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
-        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        """
-        And stdout matches regexp:
-        """
         esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
         esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
-        fips         +yes      +<fips> +NIST-certified core packages
-        fips-updates +yes      +<fips> +NIST-certified core packages with priority security updates
-        livepatch    +yes      +n/a      +<livepatch_desc>
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg> +yes      +<cis>        +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -311,19 +299,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
-        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        """
-        And stdout matches regexp:
-        """
         esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
-        fips         +yes      +<fips_status>      +NIST-certified core packages
-        fips-updates +yes      +<fips_status>      +NIST-certified core packages with priority security updates
-        livepatch    +yes      +<lp_status>  +<lp_desc>
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -372,19 +348,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
-        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        """
-        And stdout matches regexp:
-        """
         esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
-        fips         +yes      +<fips_status> +NIST-certified core packages
-        fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
-        livepatch    +yes      +<lp_status>  +Canonical Livepatch service
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -433,19 +397,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
-        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        """
-        And stdout matches regexp:
-        """
         esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
-        fips         +yes      +<fips_status> +NIST-certified core packages
-        fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
-        livepatch    +yes      +<lp_status>  +Canonical Livepatch service
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -475,11 +427,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
             """
         When I run `pro status` with sudo
         Then stdout matches regexp:
-        """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
-        cc-eal        +yes +<cc-eal>  +Common Criteria EAL2 Provisioning Packages
-        """
-        And stdout matches regexp:
         """
         esm-apps      +yes +enabled +Extended Security Maintenance for Applications
         esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
