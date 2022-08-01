@@ -23,12 +23,12 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    @util.retry(HTTPError, retry_sleeps=[1, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         responses = {}
         for key, url in sorted(IMDS_URLS.items()):
             url_response, _headers = util.readurl(
-                url, headers={"Metadata": "true"}
+                url, headers={"Metadata": "true"}, timeout=1
             )
             if key == "pkcs7":
                 responses[key] = url_response["signature"]

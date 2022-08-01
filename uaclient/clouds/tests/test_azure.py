@@ -21,7 +21,7 @@ class TestUAAutoAttachAzureInstance:
     def test_identity_doc_from_azure_url_pkcs7(self, readurl):
         """Return attested signature and compute info as Azure identity doc"""
 
-        def fake_readurl(url, headers):
+        def fake_readurl(url, headers, timeout):
             if "attested/document" in url:
                 return {"signature": "attestedWOOT!==="}, {"header": "stuff"}
             elif "instance/compute" in url:
@@ -38,8 +38,8 @@ class TestUAAutoAttachAzureInstance:
         url1 = IMDS_BASE_URL + "instance/compute?api-version=2020-09-01"
         url2 = IMDS_BASE_URL + "attested/document?api-version=2020-09-01"
         assert [
-            mock.call(url1, headers={"Metadata": "true"}),
-            mock.call(url2, headers={"Metadata": "true"}),
+            mock.call(url1, headers={"Metadata": "true"}, timeout=1),
+            mock.call(url2, headers={"Metadata": "true"}, timeout=1),
         ] == readurl.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -51,7 +51,7 @@ class TestUAAutoAttachAzureInstance:
     ):
         """Retries backoff before failing to get Azure.identity_doc"""
 
-        def fake_someurlerrors(url, headers):
+        def fake_someurlerrors(url, headers, timeout):
             if readurl.call_count <= fail_count:
                 raise HTTPError(
                     "http://me",
@@ -78,7 +78,7 @@ class TestUAAutoAttachAzureInstance:
                 "compute": {"computekey": "computeval"},
             } == instance.identity_doc
 
-        expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
+        expected_sleep_calls = [mock.call(1), mock.call(1), mock.call(1)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
             "HTTP Error 701: funky error msg Retrying 3 more times.",
