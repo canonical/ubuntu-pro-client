@@ -10,7 +10,7 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages
+from uaclient import apt, exceptions, messages, system
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
@@ -349,10 +349,57 @@ class TestLivepatchProcessConfigDirectives:
 class TestLivepatchEntitlementCanEnable:
     @pytest.mark.parametrize(
         "supported_kernel_ver",
-        ("4.4.0-00-generic", "5.0.0-00-generic", "4.19.0-00-generic"),
+        (
+            system.KernelInfo(
+                uname_release="4.4.0-00-generic",
+                proc_version_signature_full="",
+                proc_version_signature_version="",
+                version="4.4.0",
+                major=4,
+                minor=4,
+                patch=0,
+                abi="00",
+                subrev="",
+                hwerev="",
+                flavor="generic",
+            ),
+            system.KernelInfo(
+                uname_release="5.0.0-00-generic",
+                proc_version_signature_full="",
+                proc_version_signature_version="",
+                version="5.0.0",
+                major=5,
+                minor=0,
+                patch=0,
+                abi="00",
+                subrev="",
+                hwerev="",
+                flavor="generic",
+            ),
+            system.KernelInfo(
+                uname_release="4.19.0-00-generic",
+                proc_version_signature_full="",
+                proc_version_signature_version="",
+                version="4.19.0",
+                major=4,
+                minor=19,
+                patch=0,
+                abi="00",
+                subrev="",
+                hwerev="",
+                flavor="generic",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch(
+        "uaclient.system.get_platform_info",
+        return_value=PLATFORM_INFO_SUPPORTED,
     )
     def test_can_enable_true_on_entitlement_inactive(
         self,
+        _m_platform,
+        m_kernel_info,
         _m_is_container,
         _m_livepatch_status,
         _m_fips_status,
@@ -361,90 +408,186 @@ class TestLivepatchEntitlementCanEnable:
         entitlement,
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
-        supported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        supported_kernel["kernel"] = supported_kernel_ver
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            with mock.patch("uaclient.system.is_container") as m_container:
-                m_platform.return_value = supported_kernel
-                m_container.return_value = False
-                assert (True, None) == entitlement.can_enable()
+        m_kernel_info.return_value = supported_kernel_ver
+        with mock.patch("uaclient.system.is_container") as m_container:
+            m_container.return_value = False
+            assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
         assert [mock.call()] == m_container.call_args_list
 
-    def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
-    ):
-        """False when on a kernel less or equal to minKernelVersion."""
-        unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            m_platform.return_value = unsupported_min_kernel
-            entitlement = LivepatchEntitlement(entitlement.cfg)
-            result, reason = entitlement.can_enable()
-            assert False is result
-            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-            msg = (
-                "Livepatch is not available for kernel 4.2.9-00-generic.\n"
-                "Minimum kernel version required: 4.4."
-            )
-            assert msg == reason.message.msg
-
-    def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
-    ):
-        """When on an unsupported kernel, can_enable returns False."""
-        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_kernel["kernel"] = "4.4.0-140-notgeneric"
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            m_platform.return_value = unsupported_kernel
-            entitlement = LivepatchEntitlement(entitlement.cfg)
-            result, reason = entitlement.can_enable()
-            assert False is result
-            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-            msg = (
-                "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
-                "Supported flavors are: generic, lowlatency."
-            )
-            assert msg == reason.message.msg
-
-    @pytest.mark.parametrize(
-        "kernel_version,meets_min_version",
-        (
-            ("3.5.0-00-generic", False),
-            ("4.3.0-00-generic", False),
-            ("4.4.0-00-generic", True),
-            ("4.10.0-00-generic", True),
-            ("5.0.0-00-generic", True),
+    @mock.patch(
+        "uaclient.system.get_kernel_info",
+        return_value=system.KernelInfo(
+            uname_release="4.4.0-140-notgeneric",
+            proc_version_signature_full="",
+            proc_version_signature_version="",
+            version="4.4.0",
+            major=4,
+            minor=4,
+            patch=0,
+            abi="140",
+            subrev="",
+            hwerev="",
+            flavor="notgeneric",
         ),
     )
-    def test_can_enable_false_on_unsupported_min_kernel_version(
+    @mock.patch(
+        "uaclient.system.get_platform_info",
+        return_value=PLATFORM_INFO_SUPPORTED,
+    )
+    def test_can_enable_false_on_unsupported_kernel_flavor(
         self,
+        _m_platform,
+        _m_kernel_info,
         _m_is_container,
         _m_livepatch_status,
         _m_fips_status,
-        kernel_version,
+        entitlement,
+    ):
+        """When on an unsupported kernel, can_enable returns False."""
+        entitlement = LivepatchEntitlement(entitlement.cfg)
+        result, reason = entitlement.can_enable()
+        assert False is result
+        assert CanEnableFailureReason.INAPPLICABLE == reason.reason
+        msg = (
+            "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
+            "Supported flavors are: generic, lowlatency."
+        )
+        assert msg == reason.message.msg
+
+    @pytest.mark.parametrize(
+        "kernel_info,meets_min_version",
+        (
+            (
+                system.KernelInfo(
+                    uname_release="3.5.0-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="3.5.0",
+                    major=3,
+                    minor=5,
+                    patch=0,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                False,
+            ),
+            (
+                system.KernelInfo(
+                    uname_release="4.2.9-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="4.2.9",
+                    major=4,
+                    minor=2,
+                    patch=9,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                False,
+            ),
+            (
+                system.KernelInfo(
+                    uname_release="4.3.0-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="4.3.0",
+                    major=4,
+                    minor=3,
+                    patch=0,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                False,
+            ),
+            (
+                system.KernelInfo(
+                    uname_release="4.4.0-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="4.4.0",
+                    major=4,
+                    minor=4,
+                    patch=0,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                True,
+            ),
+            (
+                system.KernelInfo(
+                    uname_release="4.10.0-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="4.10.0",
+                    major=4,
+                    minor=10,
+                    patch=0,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                True,
+            ),
+            (
+                system.KernelInfo(
+                    uname_release="5.0.0-00-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="5.0.0",
+                    major=5,
+                    minor=0,
+                    patch=0,
+                    abi="00",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+                True,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch(
+        "uaclient.system.get_platform_info",
+        return_value=PLATFORM_INFO_SUPPORTED,
+    )
+    def test_can_enable_false_on_unsupported_min_kernel_version(
+        self,
+        _m_platform,
+        m_kernel_info,
+        _m_is_container,
+        _m_livepatch_status,
+        _m_fips_status,
+        kernel_info,
         meets_min_version,
         entitlement,
     ):
         """When on an unsupported kernel version, can_enable returns False."""
-        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_kernel["kernel"] = kernel_version
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            m_platform.return_value = unsupported_kernel
-            entitlement = LivepatchEntitlement(entitlement.cfg)
-            if meets_min_version:
-                assert (True, None) == entitlement.can_enable()
-            else:
-                result, reason = entitlement.can_enable()
-                assert False is result
-                assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-                msg = (
-                    "Livepatch is not available for kernel {}.\n"
-                    "Minimum kernel version required: 4.4.".format(
-                        kernel_version
-                    )
+        m_kernel_info.return_value = kernel_info
+        entitlement = LivepatchEntitlement(entitlement.cfg)
+        if meets_min_version:
+            assert (True, None) == entitlement.can_enable()
+        else:
+            result, reason = entitlement.can_enable()
+            assert False is result
+            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
+            msg = (
+                "Livepatch is not available for kernel {}.\n"
+                "Minimum kernel version required: 4.4.".format(
+                    kernel_info.uname_release
                 )
-                assert msg == reason.message.msg
+            )
+            assert msg == reason.message.msg
 
     def test_can_enable_false_on_unsupported_architecture(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
