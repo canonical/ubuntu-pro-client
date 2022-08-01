@@ -5,9 +5,9 @@ import subprocess
 import time
 import uuid
 from functools import lru_cache
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
-from uaclient import exceptions, util
+from uaclient import exceptions, messages, util
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -16,6 +16,127 @@ DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
+
+RE_KERNEL_UNAME = (
+    r"^"
+    r"(?P<version>[\d]+[.-][\d]+[.-][\d]+)"
+    r"-"
+    r"(?P<abi>[\d]+)"
+    r"-"
+    r"(?P<flavor>[A-Za-z0-9_-]+)"
+    r"$"
+)
+RE_KERNEL_PROC_VERSION_SIGNATURE = (
+    r"^"
+    r"(?P<version>[\d]+[.-][\d]+[.-][\d]+)"
+    r"-"
+    r"(?P<abi>[\d]+)"
+    r"[.-]"
+    r"(?P<subrev>[\d]+)"
+    r"(~(?P<hwerev>[\d.]+))?"
+    r"-"
+    r"(?P<flavor>[A-Za-z0-9_-]+)"
+    r"$"
+)
+RE_KERNEL_VERSION_SPLIT = (
+    r"^"
+    r"(?P<major>[\d]+)"
+    r"[.-]"
+    r"(?P<minor>[\d]+)"
+    r"[.-]"
+    r"(?P<patch>[\d]+)"
+    r"$"
+)
+
+KernelInfo = NamedTuple(
+    "KernelInfo",
+    [
+        ("uname_release", str),
+        ("proc_version_signature_full", str),
+        ("proc_version_signature_version", str),
+        ("version", str),
+        ("major", int),
+        ("minor", int),
+        ("patch", int),
+        ("abi", str),
+        ("subrev", str),
+        ("hwerev", str),
+        ("flavor", str),
+    ],
+)
+
+
+@lru_cache(maxsize=None)
+def get_kernel_info() -> KernelInfo:
+    uname_release = os.uname().release
+
+    proc_version_signature_full = ""
+    proc_version_signature_version = ""
+    try:
+        proc_version_signature_full = load_file("/proc/version_signature")
+        proc_version_signature_version = proc_version_signature_full.split()[1]
+    except Exception:
+        logging.warning(
+            "failed to process /proc/version_signature. "
+            "using uname for all kernel info"
+        )
+
+    if proc_version_signature_version != "":
+        match = re.match(
+            RE_KERNEL_PROC_VERSION_SIGNATURE, proc_version_signature_version
+        )
+        if match is None:
+            err_msg = messages.KERNEL_PARSE_ERROR.format(
+                kernel=proc_version_signature_version
+            )
+            raise exceptions.UserFacingError(
+                msg=err_msg.msg,
+                msg_code=err_msg.code,
+            )
+        version = match.group("version")
+        abi = match.group("abi")
+        subrev = match.group("subrev")
+        hwerev = match.group("hwerev") or ""
+        flavor = match.group("flavor")
+    else:
+        match = re.match(RE_KERNEL_UNAME, uname_release)
+        if match is None:
+            err_msg = messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
+            raise exceptions.UserFacingError(
+                msg=err_msg.msg,
+                msg_code=err_msg.code,
+            )
+        version = match.group("version")
+        abi = match.group("abi")
+        subrev = ""
+        hwerev = ""
+        flavor = match.group("flavor")
+
+    version_split_match = re.match(RE_KERNEL_VERSION_SPLIT, version)
+    if version_split_match is None:
+        err_msg = messages.KERNEL_VERSION_SPLIT_ERROR.format(version=version)
+        raise exceptions.UserFacingError(
+            msg=err_msg.msg,
+            msg_code=err_msg.code,
+        )
+
+    major = int(version_split_match.group("major"))
+    minor = int(version_split_match.group("minor"))
+    patch = int(version_split_match.group("patch"))
+
+    return KernelInfo(
+        uname_release=uname_release,
+        proc_version_signature_full=proc_version_signature_full,
+        proc_version_signature_version=proc_version_signature_version,
+        version=version,
+        major=major,
+        minor=minor,
+        patch=patch,
+        abi=abi,
+        subrev=subrev,
+        hwerev=hwerev,
+        flavor=flavor,
+    )
 
 
 @lru_cache(maxsize=None)
@@ -78,8 +199,7 @@ def get_platform_info() -> Dict[str, str]:
         }
     )
 
-    uname = os.uname()
-    platform_info["kernel"] = uname.release
+    platform_info["kernel"] = get_kernel_info().uname_release
     out, _err = subp(["dpkg", "--print-architecture"])
     platform_info["arch"] = out.strip()
 
