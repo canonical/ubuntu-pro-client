@@ -1,5 +1,4 @@
 import logging
-import posix
 import subprocess
 import uuid
 
@@ -59,6 +58,112 @@ BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
 VERSION_CODENAME=xenial
 UBUNTU_CODENAME=xenial
 """
+
+
+class TestGetKernelInfo:
+    @pytest.mark.parametrize(
+        "uname_release, proc_version_signature_side_effect, expected",
+        (
+            (
+                "5.14.0-1024-oem",
+                "Ubuntu 5.14.0-1024.26-oem 5.15.100",
+                system.KernelInfo(
+                    uname_release="5.14.0-1024-oem",
+                    proc_version_signature_full="Ubuntu 5.14.0-1024.26-oem 5.15.100",  # noqa: E501
+                    proc_version_signature_version="5.14.0-1024.26-oem",
+                    version="5.14.0",
+                    major=5,
+                    minor=14,
+                    patch=0,
+                    abi="1024",
+                    subrev="26",
+                    hwerev="",
+                    flavor="oem",
+                ),
+            ),
+            (
+                "4.4.0-21-generic",
+                "Ubuntu 4.4.0-21.37-generic 4.15.100",
+                system.KernelInfo(
+                    uname_release="4.4.0-21-generic",
+                    proc_version_signature_full="Ubuntu 4.4.0-21.37-generic 4.15.100",  # noqa: E501
+                    proc_version_signature_version="4.4.0-21.37-generic",
+                    version="4.4.0",
+                    major=4,
+                    minor=4,
+                    patch=0,
+                    abi="21",
+                    subrev="37",
+                    hwerev="",
+                    flavor="generic",
+                ),
+            ),
+            (
+                "5.4.0-52-generic",
+                "Ubuntu 5.4.0-52.37-generic 5.15.100",
+                system.KernelInfo(
+                    uname_release="5.4.0-52-generic",
+                    proc_version_signature_full="Ubuntu 5.4.0-52.37-generic 5.15.100",  # noqa: E501
+                    proc_version_signature_version="5.4.0-52.37-generic",
+                    version="5.4.0",
+                    major=5,
+                    minor=4,
+                    patch=0,
+                    abi="52",
+                    subrev="37",
+                    hwerev="",
+                    flavor="generic",
+                ),
+            ),
+            (
+                "5.4.0-52-generic",
+                "Ubuntu 5.4.0-52.37~20.04-generic 5.15.100",
+                system.KernelInfo(
+                    uname_release="5.4.0-52-generic",
+                    proc_version_signature_full="Ubuntu 5.4.0-52.37~20.04-generic 5.15.100",  # noqa: E501
+                    proc_version_signature_version="5.4.0-52.37~20.04-generic",
+                    version="5.4.0",
+                    major=5,
+                    minor=4,
+                    patch=0,
+                    abi="52",
+                    subrev="37",
+                    hwerev="20.04",
+                    flavor="generic",
+                ),
+            ),
+            (
+                "5.4.0-52-generic",
+                Exception(),
+                system.KernelInfo(
+                    uname_release="5.4.0-52-generic",
+                    proc_version_signature_full="",
+                    proc_version_signature_version="",
+                    version="5.4.0",
+                    major=5,
+                    minor=4,
+                    patch=0,
+                    abi="52",
+                    subrev="",
+                    hwerev="",
+                    flavor="generic",
+                ),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.os.uname")
+    def test_get_kernel_info(
+        self,
+        m_uname,
+        m_load_file,
+        uname_release,
+        proc_version_signature_side_effect,
+        expected,
+    ):
+        m_uname.return_value = mock.MagicMock(release=uname_release)
+        m_load_file.side_effect = [proc_version_signature_side_effect]
+        assert system.get_kernel_info.__wrapped__() == expected
 
 
 class TestIsLTS:
@@ -298,12 +403,14 @@ class TestGetPlatformInfo:
         }
 
         with mock.patch("uaclient.system.parse_os_release") as m_parse:
-            with mock.patch("uaclient.util.os.uname") as m_uname:
+            with mock.patch(
+                "uaclient.system.get_kernel_info"
+            ) as m_get_kernel_info:
                 with mock.patch("uaclient.system.subp") as m_subp:
                     m_parse.return_value = parse_dict
                     # (sysname, nodename, release, version, machine)
-                    m_uname.return_value = posix.uname_result(
-                        ("", "", "kernel-ver", "", "aarch64")
+                    m_get_kernel_info.return_value = mock.MagicMock(
+                        uname_release="kernel-ver"
                     )
                     m_subp.return_value = ("arm64\n", "")
                     # Use __wrapped__ to avoid hitting the
