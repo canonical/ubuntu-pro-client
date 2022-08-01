@@ -35,7 +35,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    @util.retry(HTTPError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         response, _headers = self._get_imds_url_response()
         return {"pkcs7": response}
