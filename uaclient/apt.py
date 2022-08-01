@@ -30,6 +30,9 @@ APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
 CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
+APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
+APT_LISTS_PATH = "/var/lib/apt/lists"
+
 # Since we generally have a person at the command line prompt. Don't loop
 # for 5 minutes like charmhelpers because we expect the human to notice and
 # resolve to apt conflict or try again.
@@ -581,3 +584,12 @@ def compare_versions(version1: str, version2: str, relation: str) -> bool:
         return True
     except exceptions.ProcessExecutionError:
         return False
+
+
+def get_apt_cache_time() -> Optional[float]:
+    cache_time = None
+    if os.path.exists(APT_UPDATE_SUCCESS_STAMP_PATH):
+        cache_time = os.stat(APT_UPDATE_SUCCESS_STAMP_PATH).st_mtime
+    elif os.path.exists(APT_LISTS_PATH):
+        cache_time = os.stat(APT_LISTS_PATH).st_mtime
+    return cache_time
