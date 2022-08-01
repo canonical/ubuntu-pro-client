@@ -159,7 +159,7 @@ class TestUAAutoAttachAWSInstance:
         else:
             assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
 
-        expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
+        expected_sleep_calls = [mock.call(0.5), mock.call(1), mock.call(1)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
             "HTTP Error 702: funky error msg Retrying 3 more times.",
