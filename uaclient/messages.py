@@ -27,6 +27,7 @@ class FormattedNamedMessage(NamedMessage):
 class TxtColor:
     OKGREEN = "\033[92m"
     DISABLEGREY = "\033[37m"
+    INFOBLUE = "\033[94m"
     FAIL = "\033[91m"
     BOLD = "\033[1m"
     ENDC = "\033[0m"
@@ -34,6 +35,7 @@ class TxtColor:
 
 OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
+BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
