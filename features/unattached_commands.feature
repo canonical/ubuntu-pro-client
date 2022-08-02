@@ -218,3 +218,61 @@ Feature: Command behaviour when unattached
           | kinetic | disable  |
           | jammy   | enable   |
           | jammy   | disable  |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Check for newer versions of the client in an ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        #  Make sure we have a fresh, just rebooted, environment
+        When I reboot the machine
+        Then I verify that no files exist matching `/tmp/ubuntu-advantage/candidate-version`
+        When I run `pro status` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        And I verify that files exist matching `/tmp/ubuntu-advantage/candidate-version`
+        # We forge a candidate to see results
+        When I delete the file `/tmp/ubuntu-advantage/candidate-version`
+        And I create the file `/tmp/ubuntu-advantage/candidate-version` with the following
+        """
+        99.9.9
+        """
+        And I run `chmod 777 /tmp/ubuntu-advantage/candidate-version` with sudo
+        And I run `pro status` as non-root
+        Then stderr matches regexp:
+        """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
+        """
+        When I run `pro status --format json` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run `pro config show` as non-root
+        Then stderr matches regexp:
+        """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
+        """
+        When I run `pro api u.pro.version.v1` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run `apt-get update` with sudo
+        # apt-get update will bring a new candidate, which is the current installed version
+        And I run `pro status` as non-root
+        Then I will see the following on stderr
+        """
+        """
+
+        Examples: ubuntu release
+          | release |
+          | xenial  |
+          | bionic  |
+          | focal   |
+          | jammy   |
+          | kinetic |
