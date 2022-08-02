@@ -69,6 +69,16 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 
 UA_COLLECT_LOGS_FILE = "ua_logs.tar.gz"
 
+NEW_VERSION_NOTICE = (
+    "\n"
+    + messages.BLUE_INFO
+    + """\
+ A new version is available: {version}
+Please run:
+    sudo apt-get install ubuntu-advantage-tools
+to get the latest version with new features and bug fixes."""
+)
+
 event = event_logger.get_event_logger()
 
 
@@ -1676,6 +1686,22 @@ def action_help(args, *, cfg):
     return 0
 
 
+def _warn_about_new_version(cmd_args=None) -> None:
+    # If no args, then it was called from the main error handler.
+    # We don't want to show this text for the "api" CLI output,
+    # or for --format json|yaml
+    if (
+        cmd_args
+        and cmd_args.command == "api"
+        or getattr(cmd_args, "format", "") in ("json", "yaml")
+    ):
+        return
+
+    new_version = version.check_for_new_version()
+    if new_version:
+        logging.warning(NEW_VERSION_NOTICE.format(version=new_version))
+
+
 def setup_logging(console_level, log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
@@ -1758,6 +1784,9 @@ def main_error_handler(func):
 
             lock.clear_lock_file_if_present()
             event.process_events()
+
+            _warn_about_new_version()
+
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
@@ -1773,6 +1802,9 @@ def main_error_handler(func):
                 # Only clear the lock if it is ours.
                 lock.clear_lock_file_if_present()
             event.process_events()
+
+            _warn_about_new_version()
+
             sys.exit(exc.exit_code)
         except Exception as e:
             with util.disable_log_to_console():
@@ -1785,6 +1817,9 @@ def main_error_handler(func):
                 error_msg=getattr(e, "msg", str(e)), error_type="exception"
             )
             event.process_events()
+
+            _warn_about_new_version()
+
             sys.exit(1)
 
     return wrapper
@@ -1830,7 +1865,11 @@ def main(sys_argv=None):
                 "Executed with environment variables: %r" % pro_environment
             )
         )
-    return args.action(args, cfg=cfg)
+    return_value = args.action(args, cfg=cfg)
+
+    _warn_about_new_version(args)
+
+    return return_value
 
 
 if __name__ == "__main__":
