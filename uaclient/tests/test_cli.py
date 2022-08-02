@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import re
 import socket
 import stat
 import sys
@@ -902,3 +903,62 @@ class TestGetValidEntitlementNames:
 
         assert expected_ents_found == actual_ents_found
         assert expected_ents_not_found == actual_ents_not_found
+
+
+expected_notice = r""".*[info].* A new version is available: 1.2.3
+Please run:
+    sudo apt-get install ubuntu-advantage-tools
+to get the latest version with new features and bug fixes.
+"""
+
+
+# There is a fixture for this function to avoid leaking, as it is called in
+# the main CLI function. So, instead of importing it directly, we are using
+# the reference for the fixture to test it.
+class TestWarnAboutNewVersion:
+    @pytest.mark.parametrize("new_version", (None, "1.2.3"))
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("uaclient.cli.version.check_for_new_version")
+    def test_warn_about_new_version(
+        self,
+        m_check_version,
+        new_version,
+        caplog_text,
+        _warn_about_new_version,
+    ):
+        m_check_version.return_value = new_version
+
+        _warn_about_new_version()
+
+        if new_version:
+            assert re.search(expected_notice, caplog_text())
+        else:
+            assert not re.search(expected_notice, caplog_text())
+
+    @pytest.mark.parametrize("command", ("api", "status"))
+    @pytest.mark.parametrize("out_format", (None, "tabular", "json"))
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch(
+        "uaclient.cli.version.check_for_new_version", return_value="1.2.3"
+    )
+    def test_dont_show_for_api_calls(
+        self,
+        _m_check_version,
+        caplog_text,
+        command,
+        out_format,
+        _warn_about_new_version,
+    ):
+        args = mock.MagicMock()
+        args.command = command
+        args.format = out_format
+
+        if not out_format:
+            del args.format
+
+        _warn_about_new_version(args)
+
+        if command != "api" and out_format != "json":
+            assert re.search(expected_notice, caplog_text())
+        else:
+            assert not re.search(expected_notice, caplog_text())

@@ -30,6 +30,20 @@ def _subp():
         yield original
 
 
+@pytest.yield_fixture(scope="session", autouse=True)
+def _warn_about_new_version():
+    """
+    A fixture that mocks cli._warn_about_new_version for all tests.
+    If a test needs the actual _warn_about_new_version, this fixture yields it,
+    so just add an argument to the test named "_warn_about_new_version".
+    """
+    from uaclient.cli import _warn_about_new_version
+
+    original = _warn_about_new_version
+    with mock.patch("uaclient.cli._warn_about_new_version"):
+        yield original
+
+
 @pytest.fixture
 def caplog_text(request):
     """
