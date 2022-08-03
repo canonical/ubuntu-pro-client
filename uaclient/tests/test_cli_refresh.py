@@ -84,7 +84,7 @@ class TestActionRefresh:
 
     @mock.patch("logging.exception")
     @mock.patch("uaclient.contract.request_updated_contract")
-    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     def test_refresh_contract_error_on_failure_to_update_contract(
         self,
         m_remove_notice,
@@ -109,7 +109,7 @@ class TestActionRefresh:
         ] != m_remove_notice.call_args_list
 
     @mock.patch("uaclient.contract.request_updated_contract")
-    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     def test_refresh_contract_happy_path(
         self,
         m_remove_notice,
@@ -230,7 +230,7 @@ class TestActionRefresh:
 
     @mock.patch("uaclient.contract.request_updated_contract")
     @mock.patch("uaclient.config.UAConfig.process_config")
-    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
+    @mock.patch("uaclient.files.NoticeFile.remove")
     def test_refresh_all_happy_path(
         self,
         m_remove_notice,
