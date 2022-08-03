@@ -198,6 +198,7 @@ class TestProcessContractDeltas:
         m_enable,
         entitlement,
         capsys,
+        event,
     ):
         """Log a message when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
@@ -411,6 +412,7 @@ class TestRepoEnable:
         perform_enable_call_count,
         entitlement,
         capsys,
+        event,
     ):
         with mock.patch(
             M_PATH + "RepoEntitlement.messaging",
@@ -465,6 +467,7 @@ class TestRepoEnable:
         retval,
         entitlement,
         capsys,
+        event,
     ):
         messaging = {
             "pre_disable": pre_disable_msg,
@@ -504,6 +507,7 @@ class TestRepoEnable:
         entitlement,
         capsys,
         caplog_text,
+        event,
         packages,
         with_pre_install_msg,
         should_reboot,

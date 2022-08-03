@@ -1076,7 +1076,11 @@ class TestFipsEntitlementInstallPackages:
     @mock.patch(M_PATH + "apt.get_installed_packages")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
     def test_install_packages_dont_fail_if_conditional_pkgs_not_installed(
-        self, m_run_apt_install, m_installed_pkgs, fips_entitlement_factory
+        self,
+        m_run_apt_install,
+        m_installed_pkgs,
+        fips_entitlement_factory,
+        event,
     ):
 
         conditional_pkgs = ["b", "c"]

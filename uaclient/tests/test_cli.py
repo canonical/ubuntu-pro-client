@@ -20,10 +20,10 @@ from uaclient.cli import (
     assert_not_attached,
     assert_root,
     get_parser,
-    get_valid_entitlement_names,
     main,
     setup_logging,
 )
+from uaclient.entitlements import get_valid_entitlement_names
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
@@ -493,6 +493,7 @@ class TestMain:
         capsys,
         logging_sandbox,
         caplog_text,
+        event,
         exception,
         expected_error_msg,
         expected_log,
@@ -591,6 +592,7 @@ class TestMain:
         capsys,
         logging_sandbox,
         caplog_text,
+        event,
         exception,
         expected_exit_code,
     ):
