@@ -307,7 +307,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
 
         if system.is_container() and not system.should_reboot():
-            self.cfg.notice_file.remove(
+            self.cfg.notice_file.try_remove(
                 "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
             )
             return super_status, super_msg
@@ -317,21 +317,23 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             # We are now only removing the notice if there is no reboot
             # required information regarding the fips metapackage we install.
             if not system.should_reboot(set(self.packages)):
-                self.cfg.notice_file.remove(
+                self.cfg.notice_file.try_remove(
                     "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
                 )
 
-            self.cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
+            self.cfg.notice_file.try_remove(
+                "", messages.FIPS_REBOOT_REQUIRED_MSG
+            )
             if system.load_file(self.FIPS_PROC_FILE).strip() == "1":
-                self.cfg.notice_file.remove(
+                self.cfg.notice_file.try_remove(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return super_status, super_msg
             else:
-                self.cfg.notice_file.remove(
+                self.cfg.notice_file.try_remove(
                     "", messages.FIPS_DISABLE_REBOOT_REQUIRED
                 )
-                self.cfg.notice_file.add(
+                self.cfg.notice_file.try_add(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return (
@@ -341,7 +343,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     ),
                 )
         else:
-            self.cfg.notice_file.remove(
+            self.cfg.notice_file.try_remove(
                 "", messages.FIPS_DISABLE_REBOOT_REQUIRED
             )
 
@@ -379,10 +381,12 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.remove(
+            self.cfg.notice_file.try_remove(
                 "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
-            self.cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
+            self.cfg.notice_file.try_remove(
+                "", messages.FIPS_REBOOT_REQUIRED_MSG
+            )
             return True
 
         return False
@@ -507,7 +511,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 "defaulting to generic FIPS package."
             )
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.remove("", messages.FIPS_INSTALL_OUT_OF_DATE)
+            self.cfg.notice_file.try_remove(
+                "", messages.FIPS_INSTALL_OUT_OF_DATE
+            )
             return True
 
         return False
@@ -568,7 +574,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.remove(
+            self.cfg.notice_file.try_remove(
                 "", messages.FIPS_DISABLE_REBOOT_REQUIRED
             )
             services_once_enabled = (

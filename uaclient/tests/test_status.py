@@ -296,10 +296,8 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.status.os.getuid", return_value=0)
     def test_root_unattached(
         self,
-        _m_getuid,
         m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
@@ -393,10 +391,8 @@ class TestStatus:
         return_value=(ApplicationStatus.DISABLED, ""),
     )
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_root_attached(
         self,
-        _m_getuid,
         m_get_avail_resources,
         _m_livepatch_status,
         _m_should_reboot,
@@ -421,7 +417,7 @@ class TestStatus:
                     "id": "acct-1",
                     "name": "test_account",
                     "createdAt": "2019-06-14T06:45:50Z",
-                    "externalAccountIDs": [{"IDs": ["id1"], "Origin": "AWS"}],
+                    "externalAccountIDs": [{"IDs": ["id1"], "origin": "AWS"}],
                 },
                 "contractInfo": {
                     "id": "cid",
@@ -502,7 +498,7 @@ class TestStatus:
                         2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
                     ),
                     "external_account_ids": [
-                        {"IDs": ["id1"], "Origin": "AWS"}
+                        {"IDs": ["id1"], "origin": "AWS"}
                     ],
                 },
             }
@@ -524,10 +520,8 @@ class TestStatus:
             assert expected == status.status(cfg=cfg, show_beta=show_beta)
 
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
-        m_getuid,
         m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
@@ -536,54 +530,31 @@ class TestStatus:
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
-        m_getuid.return_value = 1000
-        cfg = FakeConfig()
+        cfg = FakeConfig(root_mode=False)
         nonroot_status = status.status(cfg=cfg)
 
-        m_getuid.return_value = 0
+        cfg = FakeConfig(root_mode=True)
         root_unattached_status = status.status(cfg=cfg)
 
         assert root_unattached_status == nonroot_status
 
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.status.os.getuid")
-    def test_root_followed_by_nonroot(
+    def test_root_and_non_root_are_same_attached(
         self,
-        m_getuid,
         m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
         FakeConfig,
     ):
-        """Ensure that non-root run after root returns data"""
-        cfg = FakeConfig()
-
-        # Run as root
-        m_getuid.return_value = 0
-        before = copy.deepcopy(status.status(cfg=cfg))
-
-        # Replicate an attach by modifying the underlying config and confirm
-        # that we see different status
-        other_cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache(
-            "accounts", {"accounts": other_cfg.machine_token_file.accounts}
-        )
-        cfg.for_attached_machine()
-        cfg.delete_cache_key("status-cache")
-        assert status._attached_status(cfg=cfg) != before
-
-        # Run as regular user and confirm that we see the result from
-        # last time we called .status()
-        m_getuid.return_value = 1000
-        after = status.status(cfg=cfg)
-
-        assert before == after
+        root_cfg = FakeConfig.for_attached_machine()
+        root_status = status.status(cfg=root_cfg)
+        normal_cfg = FakeConfig(root_mode=False)
+        normal_status = status.status(cfg=normal_cfg)
+        assert normal_status == root_status
 
     @mock.patch("uaclient.status.get_available_resources", return_value=[])
-    @mock.patch("uaclient.status.os.getuid", return_value=0)
     def test_cache_file_is_written_world_readable(
         self,
-        _m_getuid,
         _m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
@@ -625,7 +596,6 @@ class TestStatus:
         ),
     )
     @pytest.mark.usefixtures("all_resources_available")
-    @mock.patch("uaclient.status.os.getuid", return_value=0)
     @mock.patch(
         M_PATH + "fips.FIPSCommonEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
@@ -650,7 +620,6 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_livepatch_status,
         _m_fips_status,
-        _m_getuid,
         _m_should_reboot,
         m_remove_notice,
         all_resources_available,
@@ -683,7 +652,7 @@ class TestStatus:
                     "id": "1",
                     "name": "accountname",
                     "createdAt": "2019-06-14T06:45:50Z",
-                    "externalAccountIDs": [{"IDs": ["id1"], "Origin": "AWS"}],
+                    "externalAccountIDs": [{"IDs": ["id1"], "origin": "AWS"}],
                 },
                 "contractInfo": {
                     "id": "contract-1",
@@ -726,7 +695,7 @@ class TestStatus:
                         2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
                     ),
                     "external_account_ids": [
-                        {"IDs": ["id1"], "Origin": "AWS"}
+                        {"IDs": ["id1"], "origin": "AWS"}
                     ],
                 },
             }
@@ -786,10 +755,8 @@ class TestStatus:
 
     @pytest.mark.usefixtures("all_resources_available")
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.status.os.getuid")
     def test_expires_handled_appropriately(
         self,
-        m_getuid,
         _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
@@ -817,7 +784,6 @@ class TestStatus:
         )
 
         # Test that root's status works as expected (including the cache write)
-        m_getuid.return_value = 0
         expected_dt = datetime.datetime(
             2020, 7, 18, 0, 0, 0, tzinfo=datetime.timezone.utc
         )
@@ -825,26 +791,30 @@ class TestStatus:
 
         # Test that the read from the status cache work properly for non-root
         # users
-        m_getuid.return_value = 1000
+        cfg = FakeConfig(root_mode=False)
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
-    @mock.patch("uaclient.status.os.getuid")
-    def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, m_getuid, _m_should_reboot, m_remove_notice, FakeConfig
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
+    def test_nonroot_user_does_not_use_cache(
+        self,
+        _m_get_available_resources,
+        _m_should_reboot,
+        m_remove_notice,
+        FakeConfig,
     ):
-        m_getuid.return_value = 1000
 
-        expected_status = {"pass": True}
+        cached_status = {"pass": True}
         cfg = FakeConfig()
         cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
-        cfg.write_cache("status-cache", expected_status)
+        cfg.write_cache("status-cache", cached_status)
+        before = status.status(cfg=cfg)
 
         # Even non-root users can update execution_status details
         details = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation="configuration changes"
         )
         reboot_required = UserFacingConfigStatus.REBOOTREQUIRED.value
-        expected_status.update(
+        cached_status.update(
             {
                 "execution_status": reboot_required,
                 "execution_details": details,
@@ -855,7 +825,8 @@ class TestStatus:
             }
         )
 
-        assert expected_status == status.status(cfg=cfg)
+        assert cached_status != status.status(cfg=cfg)
+        assert before == status.status(cfg=cfg)
 
 
 ATTACHED_SERVICE_STATUS_PARAMETERS = [
@@ -893,7 +864,6 @@ class TestAttachedServiceStatus:
         uf_status,
         in_inapplicable_resources,
         expected_status,
-        FakeConfig,
     ):
         ent = mock.MagicMock()
         ent.name = "test_entitlement"

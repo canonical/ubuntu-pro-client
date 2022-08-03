@@ -676,7 +676,7 @@ class TestActionStatus:
                 "id": "acct-1",
                 "name": "test_account",
                 "created_at": account_created_at,
-                "external_account_ids": [{"IDs": ["id1"], "Origin": "AWS"}],
+                "external_account_ids": [{"IDs": ["id1"], "origin": "AWS"}],
             },
             "config_path": None,
             "config": {"data_dir": mock.ANY},
