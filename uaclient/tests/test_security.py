@@ -2296,7 +2296,7 @@ class TestFixSecurityIssueId:
                                 "Fixes": [
                                     {
                                         "Name": "cve-2013-1798",
-                                        "Description": "Andrew Honig reported a flaw in the way KVM (Kernel-based Virtual \nMachine) emulated the IOAPIC. A privileged guest user could exploit \nthis flaw to read host memory or cause a denial of service (crash the \nhost).",
+                                        "Description": "Mock Description",
                                         "Bug": "",
                                         "Patched": True,
                                     }
@@ -2318,7 +2318,8 @@ class TestFixSecurityIssueId:
         exp_ret,
         FakeConfig,
     ):
-        """fix_security_id returns system not vulnerable when issue_id fixed by livepatch"""
+        """fix_security_id returns system not vulnerable when issue_id fixed
+        by livepatch"""
         subp.return_value = json.dumps(livepatch_status), ""
         with mock.patch(
             "uaclient.security.query_installed_source_pkg_versions"
