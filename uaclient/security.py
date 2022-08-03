@@ -3,7 +3,6 @@ import enum
 import json
 import os
 import socket
-import subprocess
 import textwrap
 from collections import defaultdict
 from datetime import datetime
@@ -566,16 +565,14 @@ def fix_security_issue_id(
     if "CVE" in issue_id:
         # Check livepatch status for CVE in fixes before checking CVE api
         try:
-            status_stdout = subprocess.run(
+            status_stdout, _ = system.subp(
                 [
                     "canonical-livepatch",
                     "status",
                     "--verbose",
                     "--format=json",
-                ],
-                capture_output=True,
-                encoding="utf-8",
-            ).stdout
+                ]
+            )
         except exceptions.ProcessExecutionError:
             pass
         if status_stdout:
@@ -583,21 +580,22 @@ def fix_security_issue_id(
                 parsed_patch = json.loads(status_stdout)["Status"][0][
                     "Livepatch"
                 ]
-            except (KeyError, IndexError):
-                pass
-            if parsed_patch:
-                fixes = parsed_patch.get("Fixes", [])
-                if any(
-                    fix.Name is issue_id.lower() and fix.Patched
-                    for fix in fixes
-                ):
-                    print(
-                        messages.CVE_FIXED_BY_LIVEPATCH.format(
-                            issue=issue_id,
-                            version=parsed_patch.get("Version", "N/A"),
+
+                if parsed_patch:
+                    fixes = parsed_patch.get("Fixes", [])
+                    if any(
+                        fix.Name is issue_id.lower() and fix.Patched
+                        for fix in fixes
+                    ):
+                        print(
+                            messages.CVE_FIXED_BY_LIVEPATCH.format(
+                                issue=issue_id,
+                                version=parsed_patch.get("Version", "N/A"),
+                            )
                         )
-                    )
-                    return FixStatus.SYSTEM_NON_VULNERABLE
+                        return FixStatus.SYSTEM_NON_VULNERABLE
+            except (ValueError, KeyError, IndexError):
+                pass
 
         try:
             cve = client.get_cve(cve_id=issue_id)
