@@ -559,7 +559,7 @@ def when_i_create_file_with_content(context, file_path):
     text = context.text.replace('"', '\\"')
     if "<ci-proxy-ip>" in text and "proxy" in context.instances:
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
-    cmd = "printf '{}\n' > {}".format(text, file_path)
+    cmd = "printf '{}' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
     when_i_run_command(context, cmd, "with sudo")
 
