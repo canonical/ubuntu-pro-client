@@ -27,3 +27,7 @@ from the architecture of the project to how you should test any code changes.
 * [Directory layout](./dev-docs/references/directory_layout.md)
 * [Daily Builds](./dev-docs/references/daily_builds.md)
 * [Version String Formatting](./contributing-docs/references/version_string_formatting.md)
+
+### Explanation
+
+* [How auto-attach works](./dev-docs/explanations/how_auto_attach_works.md)
