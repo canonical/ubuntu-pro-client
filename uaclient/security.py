@@ -564,6 +564,41 @@ def fix_security_issue_id(
     }
 
     if "CVE" in issue_id:
+        # Check livepatch status for CVE in fixes before checking CVE api
+        try:
+            status_stdout = subprocess.run(
+                [
+                    "canonical-livepatch",
+                    "status",
+                    "--verbose",
+                    "--format=json",
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            ).stdout
+        except exceptions.ProcessExecutionError:
+            pass
+        if status_stdout:
+            try:
+                parsed_patch = json.loads(status_stdout)["Status"][0][
+                    "Livepatch"
+                ]
+            except (KeyError, IndexError):
+                pass
+            if parsed_patch:
+                fixes = parsed_patch.get("Fixes", [])
+                if any(
+                    fix.Name is issue_id.lower() and fix.Patched
+                    for fix in fixes
+                ):
+                    print(
+                        messages.CVE_FIXED_BY_LIVEPATCH.format(
+                            issue=issue_id,
+                            version=parsed_patch.get("Version", "N/A"),
+                        )
+                    )
+                    return FixStatus.SYSTEM_NON_VULNERABLE
+
         try:
             cve = client.get_cve(cve_id=issue_id)
             usns = client.get_notices(details=issue_id)
@@ -574,22 +609,6 @@ def fix_security_issue_id(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
-
-        # Check livepatch status for CVE in fixes
-        status = subprocess.run(
-            ["canonical-livepatch", "status", "--verbose", "--format=json"],
-            capture_output=True,
-            encoding="utf-8",
-        ).stdout
-        if status:
-            parsed_patch = json.loads(status)["Status"][0]["Livepatch"]
-            if cve.id.lower() in parsed_patch.get("Fixes", ""):
-                print(
-                    messages.CVE_FIXED_BY_LIVEPATCH.format(
-                        issue=cve.id,
-                        version=parsed_patch.get("Version", "N/A"),
-                    )
-                )
 
         affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
