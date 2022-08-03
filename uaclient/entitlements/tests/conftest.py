@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from uaclient import config
+from uaclient import config, event_logger
 
 
 def machine_token(
@@ -128,3 +128,11 @@ def entitlement_factory(tmpdir, FakeConfig):
         return cls(cfg, **args)
 
     return factory_func
+
+
+@pytest.fixture
+def event():
+    event = event_logger.get_event_logger()
+    event.reset()
+
+    return event

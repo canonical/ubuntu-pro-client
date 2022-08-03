@@ -130,6 +130,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_should_reboot,
         m_setup_apt_proxy,
         capsys,
+        event,
         apt_transport_https,
         ca_certificates,
         tmpdir,

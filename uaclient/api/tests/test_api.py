@@ -134,8 +134,11 @@ class TestAPICall:
             )
             assert arg.msg_code == API_NO_ARG_FOR_ENDPOINT.name
 
+    @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
     @mock.patch("uaclient.api.api.import_module")
-    def test_warning_on_extra_args(self, m_import_module, FakeConfig):
+    def test_warning_on_extra_args(
+        self, m_import_module, _m_new_version, FakeConfig
+    ):
         mock_endpoint = mock.MagicMock()
         mock_endpoint.fn.return_value.warnings = []
         mock_endpoint.options_cls.fields = []
@@ -226,12 +229,14 @@ class TestAPICall:
             ),
         ),
     )
+    @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
     @mock.patch("uaclient.api.data_types.get_pro_environment")
     @mock.patch("uaclient.api.api.import_module")
     def test_endpoint_function_warning_and_meta(
         self,
         m_import_module,
         m_environment,
+        _m_new_version_api,
         env_return,
         env_list,
         FakeConfig,

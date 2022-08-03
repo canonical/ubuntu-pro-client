@@ -12,7 +12,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import List, Optional, Tuple  # noqa
+from typing import List, Tuple  # noqa
 
 import yaml
 
@@ -34,11 +34,13 @@ from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.api.api import call_api
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
-from uaclient.clouds import identity
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import DEFAULT_LOG_FORMAT, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlements_disable_order
+from uaclient.entitlements import (
+    create_enable_entitlements_not_found_message,
+    entitlements_disable_order,
+    get_valid_entitlement_names,
+)
 from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
     CanDisableFailure,
@@ -795,25 +797,6 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     return ret
 
 
-def get_valid_entitlement_names(names: List[str], cfg: config.UAConfig):
-    """Return a list of valid entitlement names.
-
-    :param names: List of entitlements to validate
-    :return: a tuple of List containing the valid and invalid entitlements
-    """
-    entitlements_found = []
-
-    for ent_name in names:
-        if ent_name in entitlements.valid_services(
-            cfg=cfg, allow_beta=True, all_names=True
-        ):
-            entitlements_found.append(ent_name)
-
-    entitlements_not_found = sorted(set(names) - set(entitlements_found))
-
-    return entitlements_found, entitlements_not_found
-
-
 def action_config(args, *, cfg, **kwargs):
     """Perform the config action.
 
@@ -1112,33 +1095,6 @@ def action_disable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
-def _create_enable_entitlements_not_found_message(
-    entitlements_not_found, cfg: config.UAConfig, *, allow_beta: bool
-) -> messages.NamedMessage:
-    """
-    Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
-    based on the attempted services and valid services.
-    """
-    valid_services_names = entitlements.valid_services(
-        cfg=cfg, allow_beta=allow_beta
-    )
-    valid_names = ", ".join(valid_services_names)
-    service_msg = "\n".join(
-        textwrap.wrap(
-            "Try " + valid_names + ".",
-            width=80,
-            break_long_words=False,
-            break_on_hyphens=False,
-        )
-    )
-
-    return messages.INVALID_SERVICE_OP_FAILURE.format(
-        operation="enable",
-        invalid_service=", ".join(entitlements_not_found),
-        service_msg=service_msg,
-    )
-
-
 @verify_json_format_args
 @assert_root
 @assert_attached(_create_enable_disable_unattached_msg)
@@ -1198,7 +1154,7 @@ def action_enable(args, *, cfg, **kwargs):
             ret = False
 
     if entitlements_not_found:
-        msg = _create_enable_entitlements_not_found_message(
+        msg = create_enable_entitlements_not_found_message(
             entitlements_not_found, cfg=cfg, allow_beta=args.beta
         )
         event.services_failed(entitlements_not_found)
@@ -1305,44 +1261,11 @@ def action_auto_attach(args, *, cfg):
     if cfg.is_attached:
         raise exceptions.AlreadyAttachedOnPROError()
 
-    disable_auto_attach = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.disable_auto_attach"
-    )
-    if disable_auto_attach:
-        msg = "Skipping auto-attach. Config disable_auto_attach is set."
-        logging.debug(msg)
-        print(msg)
+    skip_auto_attach = actions.should_disable_auto_attach(cfg)
+    if skip_auto_attach:
         return 0
 
-    instance = None  # type: Optional[AutoAttachCloudInstance]
-    try:
-        instance = identity.cloud_instance_factory()
-    except exceptions.CloudFactoryError as e:
-        if cfg.is_attached:
-            # We are attached on non-Pro Image, just report already attached
-            raise exceptions.AlreadyAttachedError(cfg)
-        if isinstance(e, exceptions.CloudFactoryNoCloudError):
-            raise exceptions.UserFacingError(
-                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
-            )
-        if isinstance(e, exceptions.CloudFactoryNonViableCloudError):
-            raise exceptions.UserFacingError(messages.UNSUPPORTED_AUTO_ATTACH)
-        if isinstance(e, exceptions.CloudFactoryUnsupportedCloudError):
-            raise exceptions.NonAutoAttachImageError(
-                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-                    cloud_type=e.cloud_type
-                )
-            )
-        # we shouldn't get here, but this is a reasonable default just in case
-        raise exceptions.UserFacingError(
-            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
-        )
-
-    if not instance:
-        # we shouldn't get here, but this is a reasonable default just in case
-        raise exceptions.UserFacingError(
-            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
-        )
+    instance = actions.get_cloud_instance(cfg)
 
     try:
         actions.auto_attach(cfg, instance)
@@ -1418,7 +1341,7 @@ def action_attach(args, *, cfg):
                     event.service_processed(name)
 
             if not_found:
-                msg = _create_enable_entitlements_not_found_message(
+                msg = create_enable_entitlements_not_found_message(
                     not_found, cfg=cfg, allow_beta=True
                 )
                 event.info(msg.msg, file_type=sys.stderr)

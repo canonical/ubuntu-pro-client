@@ -82,7 +82,7 @@ class TestConfigureLivepatchProxy:
     )
     @mock.patch("uaclient.system.subp")
     def test_configure_livepatch_proxy(
-        self, m_subp, http_proxy, https_proxy, retry_sleeps, capsys
+        self, m_subp, http_proxy, https_proxy, retry_sleeps, capsys, event
     ):
         configure_livepatch_proxy(http_proxy, https_proxy, retry_sleeps)
         expected_calls = []
@@ -792,6 +792,7 @@ class TestLivepatchEntitlementEnable:
         m_validate_proxy,
         capsys,
         caplog_text,
+        event,
         entitlement,
         apt_update_success,
     ):
@@ -852,6 +853,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         capsys,
+        event,
         entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
@@ -934,6 +936,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         capsys,
+        event,
         entitlement,
     ):
         """Do not attempt to install livepatch snap when it is present."""
@@ -1065,6 +1068,7 @@ class TestLivepatchEntitlementEnable:
         entitlement,
         capsys,
         caplog_text,
+        event,
     ):
         m_which.side_effect = [True, False]
         m_installed_pkgs.return_value = ["snapd"]

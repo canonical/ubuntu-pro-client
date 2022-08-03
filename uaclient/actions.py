@@ -14,6 +14,7 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import system, util
+from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.defaults import (
     CLOUD_BUILD_INFO,
@@ -71,7 +72,9 @@ def attach_with_token(
 
 
 def auto_attach(
-    cfg: config.UAConfig, cloud: clouds.AutoAttachCloudInstance
+    cfg: config.UAConfig,
+    cloud: clouds.AutoAttachCloudInstance,
+    allow_enable=True,
 ) -> None:
     """
     :raise UrlError: On unexpected connectivity issues to contract
@@ -95,7 +98,7 @@ def auto_attach(
 
     token = tokenResponse["contractToken"]
 
-    attach_with_token(cfg, token=token, allow_enable=True)
+    attach_with_token(cfg, token=token, allow_enable=allow_enable)
 
 
 def enable_entitlement_by_name(
@@ -220,3 +223,52 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             system.write_file(
                 os.path.join(output_dir, os.path.basename(f)), content
             )
+
+
+def should_disable_auto_attach(cfg: config.UAConfig) -> bool:
+    disable_auto_attach = util.is_config_value_true(
+        config=cfg.cfg, path_to_value="features.disable_auto_attach"
+    )
+    if disable_auto_attach:
+        msg = "Skipping auto-attach. Config disable_auto_attach is set."
+        logging.debug(msg)
+        print(msg)
+
+    return disable_auto_attach
+
+
+def get_cloud_instance(
+    cfg: config.UAConfig,
+) -> AutoAttachCloudInstance:
+    instance = None  # type: Optional[AutoAttachCloudInstance]
+    try:
+        instance = identity.cloud_instance_factory()
+    except exceptions.CloudFactoryError as e:
+        if cfg.is_attached:
+            # We are attached on non-Pro Image, just report already attached
+            raise exceptions.AlreadyAttachedError(cfg)
+        if isinstance(e, exceptions.CloudFactoryNoCloudError):
+            raise exceptions.UserFacingError(
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
+                msg_code="auto-attach-cloud-type-error",
+            )
+        if isinstance(e, exceptions.CloudFactoryNonViableCloudError):
+            raise exceptions.UserFacingError(messages.UNSUPPORTED_AUTO_ATTACH)
+        if isinstance(e, exceptions.CloudFactoryUnsupportedCloudError):
+            raise exceptions.NonAutoAttachImageError(
+                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                    cloud_type=e.cloud_type
+                ),
+                msg_code="auto-attach-unsupported-cloud-type-error",
+            )
+        # we shouldn't get here, but this is a reasonable default just in case
+        raise exceptions.UserFacingError(
+            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
+        )
+
+    if not instance:
+        # we shouldn't get here, but this is a reasonable default just in case
+        raise exceptions.UserFacingError(
+            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
+        )
+    return instance

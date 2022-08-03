@@ -21,6 +21,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.wait.v1",
     "u.pro.attach.magic.revoke.v1",
     "u.pro.attach.auto.should_auto_attach.v1",
+    "u.pro.attach.auto.full_auto_attach.v1",
 ]
 
 

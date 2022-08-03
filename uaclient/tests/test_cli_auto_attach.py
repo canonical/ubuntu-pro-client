@@ -98,7 +98,7 @@ class TestActionAutoAttach:
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.auto_attach")
     @mock.patch(
-        M_PATH + "identity.cloud_instance_factory",
+        M_ID_PATH + "cloud_instance_factory",
         side_effect=fake_instance_factory,
     )
     def test_disable_auto_attach_config(
