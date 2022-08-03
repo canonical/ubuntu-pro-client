@@ -350,6 +350,10 @@ class NoticeFile:
         self.is_root = root_mode
 
     def add(self, label: str, description: str):
+        """
+        Adds a notice to the notices.json file.
+        Raises a NonRootUserError if the user is not root.
+        """
         if self.is_root:
             notices = self.read() or []
             notice = [label, description]
@@ -359,7 +363,21 @@ class NoticeFile:
         else:
             raise exceptions.NonRootUserError
 
+    def try_add(self, label: str, description: str):
+        """
+        Adds a notice to the notices.json file.
+        Logs a warning when adding as non-root
+        """
+        try:
+            self.add(label, description)
+        except exceptions.NonRootUserError:
+            event.warning("Trying to add notice as non-root user")
+
     def remove(self, label_regex: str, descr_regex: str):
+        """
+        Removes a notice to the notices.json file.
+        Raises a NonRootUserError if the user is not root.
+        """
         if self.is_root:
             notices = []
             cached_notices = self.read() or []
@@ -375,6 +393,16 @@ class NoticeFile:
                 self.file.delete()
         else:
             raise exceptions.NonRootUserError
+
+    def try_remove(self, label_regex: str, descr_regex: str):
+        """
+        Removes a notice to the notices.json file.
+        Logs  a warning when removing as non-root
+        """
+        try:
+            self.remove(label_regex, descr_regex)
+        except exceptions.NonRootUserError:
+            event.warning("Trying to remove notice as non-root user")
 
     def read(self):
         content = self.file.read()

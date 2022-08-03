@@ -127,7 +127,7 @@ def FakeConfig(tmpdir):
                             "name": account_name,
                             "createdAt": "2019-06-14T06:45:50Z",
                             "externalAccountIDs": [
-                                {"IDs": ["id1"], "Origin": "AWS"}
+                                {"IDs": ["id1"], "origin": "AWS"}
                             ],
                         },
                         "contractInfo": {

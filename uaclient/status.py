@@ -5,7 +5,7 @@ import sys
 import textwrap
 from collections import OrderedDict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import event_logger, exceptions, messages, system, util, version
 from uaclient.config import UAConfig
@@ -138,14 +138,14 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
     }
 
 
-def _attached_status(cfg) -> Dict[str, Any]:
+def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
 
-    cfg.notice_file.remove(
+    cfg.notice_file.try_remove(
         "",
         messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(operation=".*"),
     )
-    cfg.notice_file.remove("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+    cfg.notice_file.try_remove("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]
@@ -325,7 +325,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
 
 
 def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
-    """Return status as a dict, using a cache for non-root users
+    """Return status as a dict
 
     When unattached, get available resources from the contract service
     to report detailed availability of different resources for this
@@ -333,18 +333,14 @@ def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
 
     Write the status-cache when called by root.
     """
-    if os.getuid() != 0:
-        response = cast("Dict[str, Any]", cfg.read_cache("status-cache"))
-        if not response:
-            response = _unattached_status(cfg)
-    elif not cfg.is_attached:
-        response = _unattached_status(cfg)
-    else:
+    if cfg.is_attached:
         response = _attached_status(cfg)
+    else:
+        response = _unattached_status(cfg)
 
     response.update(_get_config_status(cfg))
 
-    if os.getuid() == 0:
+    if cfg.root_mode:
         cfg.write_cache("status-cache", response)
 
         # Try to remove fix reboot notices if not applicable
