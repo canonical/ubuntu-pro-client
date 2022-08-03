@@ -1546,7 +1546,7 @@ def action_status(args, *, cfg):
     if cfg.is_attached:
         try:
             if contract.is_contract_changed(cfg):
-                cfg.notice_file.add(
+                cfg.notice_file.try_add(
                     "", messages.NOTICE_REFRESH_CONTRACT_WARNING
                 )
         except exceptions.UrlError as e:

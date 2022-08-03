@@ -938,6 +938,24 @@ class TestFIPSEntitlementApplicationStatus:
 
         assert (super_application_status, msg) == application_status
 
+    @pytest.mark.parametrize(
+        "super_application_status",
+        [s for s in ApplicationStatus if s is not ApplicationStatus.ENABLED],
+    )
+    def test_non_root_does_not_fail(
+        self, _m_should_reboot, super_application_status, FakeConfig
+    ):
+        cfg = FakeConfig(root_mode=False)
+        entitlement = FIPSUpdatesEntitlement(cfg)
+        msg = "sure is some status here"
+        with mock.patch(
+            M_PATH + "repo.RepoEntitlement.application_status",
+            return_value=(super_application_status, msg),
+        ):
+            application_status = entitlement.application_status()
+
+        assert (super_application_status, msg) == application_status
+
     @pytest.mark.parametrize("should_reboot", ((True), (False)))
     @pytest.mark.parametrize("path_exists", ((True), (False)))
     @pytest.mark.parametrize("proc_content", (("0"), ("1")))
@@ -1284,7 +1302,7 @@ class TestFipsEntitlementPackages:
 
 class TestFIPSUpdatesEntitlementEnable:
     @pytest.mark.parametrize("enable_ret", ((True), (False)))
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.NoticeFile.try_remove")
     @mock.patch(
         "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
     )
@@ -1303,7 +1321,7 @@ class TestFIPSUpdatesEntitlementEnable:
         cfg = mock.MagicMock()
         cfg.read_cache = m_read_cache
         cfg.write_cache = m_write_cache
-        cfg.notice_file.remove = m_remove_notice
+        cfg.notice_file.try_remove = m_remove_notice
 
         fips_updates_ent = entitlement_factory(FIPSUpdatesEntitlement, cfg=cfg)
         assert fips_updates_ent._perform_enable() == enable_ret
