@@ -2086,7 +2086,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.config.UAConfig.add_notice")
+    @mock.patch("uaclient.files.NoticeFile.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("os.getuid", return_value=0)
@@ -2157,7 +2157,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.config.UAConfig.add_notice")
+    @mock.patch("uaclient.files.NoticeFile.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("os.getuid", return_value=0)

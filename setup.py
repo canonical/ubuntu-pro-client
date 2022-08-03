@@ -50,6 +50,10 @@ def _get_data_files():
         ),
         (defaults.CONFIG_DEFAULTS["data_dir"], []),
         ("/lib/systemd/system", glob.glob("systemd/*")),
+        (
+            "/usr/share/apport/package-hooks",
+            ["apport/source_ubuntu-advantage-tools.py"],
+        ),
     ]
 
 

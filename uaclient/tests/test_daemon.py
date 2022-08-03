@@ -113,7 +113,7 @@ class TestAttemptAutoAttach:
         err = exceptions.LockHeldError("test", "test_holder", 1)
         m_spin_lock.side_effect = err
         cfg = FakeConfig()
-        cfg.add_notice = mock.MagicMock()
+        cfg.notice_file.add = mock.MagicMock()
         cloud = mock.MagicMock()
 
         attempt_auto_attach(cfg, cloud)
@@ -129,7 +129,7 @@ class TestAttemptAutoAttach:
                     operation="test_holder"
                 ),
             )
-        ] == cfg.add_notice.call_args_list
+        ] == cfg.notice_file.add.call_args_list
         assert [
             mock.call("Failed to auto attach")
         ] == m_log_debug.call_args_list
@@ -148,7 +148,7 @@ class TestAttemptAutoAttach:
         err = Exception()
         m_auto_attach.side_effect = err
         cfg = FakeConfig()
-        cfg.add_notice = mock.MagicMock()
+        cfg.notice_file.add = mock.MagicMock()
         cloud = mock.MagicMock()
 
         attempt_auto_attach(cfg, cloud)
@@ -160,7 +160,7 @@ class TestAttemptAutoAttach:
         assert [mock.call(err)] == m_log_exception.call_args_list
         assert [
             mock.call("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
-        ] == cfg.add_notice.call_args_list
+        ] == cfg.notice_file.add.call_args_list
         assert [mock.call()] == m_clear_lock.call_args_list
         assert [
             mock.call("Failed to auto attach")

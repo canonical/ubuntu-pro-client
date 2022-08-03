@@ -1,5 +1,7 @@
+import glob
 import logging
-from typing import Optional  # noqa: F401
+import os
+from typing import List, Optional  # noqa: F401
 
 from uaclient import (
     clouds,
@@ -11,10 +13,27 @@ from uaclient import (
     messages,
 )
 from uaclient import status as ua_status
+from uaclient import system, util
 from uaclient.clouds import identity
+from uaclient.defaults import (
+    CLOUD_BUILD_INFO,
+    DEFAULT_CONFIG_FILE,
+    DEFAULT_LOG_PREFIX,
+)
+from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 
 LOG = logging.getLogger("ua.actions")
 event = event_logger.get_event_logger()
+
+
+UA_SERVICES = (
+    "ua-timer.service",
+    "ua-timer.timer",
+    "ua-auto-attach.path",
+    "ua-auto-attach.service",
+    "ua-reboot-cmds.service",
+    "ubuntu-advantage.service",
+)
 
 
 def attach_with_token(
@@ -117,3 +136,85 @@ def status(
         ret = 0
 
     return status, ret
+
+
+def _write_command_output_to_file(
+    cmd, filename: str, return_codes: List[int] = None
+) -> None:
+    """Helper which runs a command and writes output or error to filename."""
+    try:
+        out, _ = system.subp(cmd.split(), rcs=return_codes)
+    except exceptions.ProcessExecutionError as e:
+        system.write_file("{}-error".format(filename), str(e))
+    else:
+        system.write_file(filename, out)
+
+
+def collect_logs(cfg: config.UAConfig, output_dir: str):
+    """
+    Write all relevant Ubuntu Pro logs to the specified directory
+    """
+    _write_command_output_to_file(
+        "cloud-id", "{}/cloud-id.txt".format(output_dir)
+    )
+    _write_command_output_to_file(
+        "pro status --format json", "{}/ua-status.json".format(output_dir)
+    )
+    _write_command_output_to_file(
+        "{} status".format(LIVEPATCH_CMD),
+        "{}/livepatch-status.txt".format(output_dir),
+    )
+    _write_command_output_to_file(
+        "systemctl list-timers --all",
+        "{}/systemd-timers.txt".format(output_dir),
+    )
+    _write_command_output_to_file(
+        (
+            "journalctl --boot=0 -o short-precise "
+            "{} "
+            "-u cloud-init-local.service "
+            "-u cloud-init-config.service -u cloud-config.service"
+        ).format(
+            " ".join(
+                ["-u {}".format(s) for s in UA_SERVICES if ".service" in s]
+            )
+        ),
+        "{}/journalctl.txt".format(output_dir),
+    )
+
+    for service in UA_SERVICES:
+        _write_command_output_to_file(
+            "systemctl status {}".format(service),
+            "{}/{}.txt".format(output_dir, service),
+            return_codes=[0, 3],
+        )
+
+    # include cfg log files here because they could be set to non default
+    state_files = [
+        cfg.cfg_path or DEFAULT_CONFIG_FILE,
+        cfg.log_file,
+        cfg.timer_log_file,
+        cfg.daemon_log_file,
+        cfg.data_path("jobs-status"),
+        CLOUD_BUILD_INFO,
+        *(
+            entitlement.repo_list_file_tmpl.format(name=entitlement.name)
+            for entitlement in entitlements.ENTITLEMENT_CLASSES
+            if issubclass(entitlement, entitlements.repo.RepoEntitlement)
+        ),
+    ]
+
+    # also get default logrotated log files
+    for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
+        if os.path.isfile(f):
+            try:
+                content = system.load_file(f)
+            except PermissionError as e:
+                logging.warning(e)
+            content = util.redact_sensitive_logs(content)
+            if os.getuid() == 0:
+                # if root, overwrite the original with redacted content
+                system.write_file(f, content)
+            system.write_file(
+                os.path.join(output_dir, os.path.basename(f)), content
+            )

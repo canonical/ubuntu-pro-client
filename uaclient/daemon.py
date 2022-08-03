@@ -37,7 +37,7 @@ def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
             actions.auto_attach(cfg, cloud)
     except exceptions.LockHeldError as e:
         LOG.error(e)
-        cfg.add_notice(
+        cfg.notice_file.add(
             "",
             messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
                 operation=e.lock_holder
@@ -47,7 +47,7 @@ def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
         return
     except Exception as e:
         LOG.exception(e)
-        cfg.add_notice("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+        cfg.notice_file.add("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
         lock.clear_lock_file_if_present()
         LOG.debug("Failed to auto attach")
         return
