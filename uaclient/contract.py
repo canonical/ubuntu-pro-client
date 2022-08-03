@@ -1,4 +1,5 @@
 import logging
+import socket
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
@@ -38,6 +39,7 @@ class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = "contract_url"
     api_error_cls = exceptions.ContractAPIError
 
+    @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def request_contract_machine_attach(self, contract_token, machine_id=None):
         """Requests machine attach to the provided machine_id.
 
@@ -81,6 +83,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return response_data
 
+    @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def request_auto_attach_contract_token(
         self, *, instance: clouds.AutoAttachCloudInstance
     ):
