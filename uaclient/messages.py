@@ -74,7 +74,8 @@ SECURITY_AFFECTED_PKGS = (
 USN_FIXED = "{issue} is addressed."
 CVE_FIXED = "{issue} is resolved."
 CVE_FIXED_BY_LIVEPATCH = (
-    "{issue} is resolved by livepatch patch version: {version}."
+    OKGREEN_CHECK
+    + " {issue} is resolved by livepatch patch version: {version}."
 )
 SECURITY_URL = "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
 SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED = """\

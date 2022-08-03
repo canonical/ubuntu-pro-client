@@ -584,7 +584,7 @@ def fix_security_issue_id(
                 if parsed_patch:
                     fixes = parsed_patch.get("Fixes", [])
                     if any(
-                        fix.Name is issue_id.lower() and fix.Patched
+                        fix["Name"] is issue_id.lower() and fix["Patched"]
                         for fix in fixes
                     ):
                         print(
