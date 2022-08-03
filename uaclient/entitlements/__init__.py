@@ -1,6 +1,8 @@
 import enum
+import textwrap
 from typing import Dict, List, Type  # noqa: F401
 
+from uaclient import messages
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
 from uaclient.entitlements.base import UAEntitlement  # noqa: F401
@@ -144,3 +146,46 @@ def _sort_entitlements(cfg: UAConfig, sort_order: SortOrder) -> List[str]:
         )
 
     return order
+
+
+def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
+    """Return a list of valid entitlement names.
+
+    :param names: List of entitlements to validate
+    :return: a tuple of List containing the valid and invalid entitlements
+    """
+    entitlements_found = []
+
+    for ent_name in names:
+        if ent_name in valid_services(
+            cfg=cfg, allow_beta=True, all_names=True
+        ):
+            entitlements_found.append(ent_name)
+
+    entitlements_not_found = sorted(set(names) - set(entitlements_found))
+
+    return entitlements_found, entitlements_not_found
+
+
+def create_enable_entitlements_not_found_message(
+    entitlements_not_found, cfg: UAConfig, *, allow_beta: bool
+) -> messages.NamedMessage:
+    """
+    Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
+    based on the attempted services and valid services.
+    """
+    valid_services_names = valid_services(cfg=cfg, allow_beta=allow_beta)
+    valid_names = ", ".join(valid_services_names)
+    service_msg = "\n".join(
+        textwrap.wrap(
+            "Try " + valid_names + ".",
+            width=80,
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+    )
+    return messages.INVALID_SERVICE_OP_FAILURE.format(
+        operation="enable",
+        invalid_service=", ".join(entitlements_not_found),
+        service_msg=service_msg,
+    )

@@ -809,6 +809,10 @@ GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
     "For more information, "
     "see https://cloud.google.com/iam/docs/service-accounts",
 )
+FULL_AUTO_ATTACH_ERROR = NamedMessage(
+    "full-auto-attach-error",
+    "full_auto_attach was not successful",
+)
 
 LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (

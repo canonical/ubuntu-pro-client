@@ -49,6 +49,7 @@ class TestCISEntitlementEnable:
         m_setup_apt_proxy,
         m_apt_policy,
         capsys,
+        event,
         entitlement,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""

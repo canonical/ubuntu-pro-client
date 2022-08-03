@@ -1031,6 +1031,7 @@ class TestAptProxyConfig:
         expected_write_calls,
         expected_out,
         capsys,
+        event,
     ):
         setup_apt_proxy(**kwargs)
         assert expected_remove_calls == m_util_remove_file.call_args_list
