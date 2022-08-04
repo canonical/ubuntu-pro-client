@@ -941,3 +941,10 @@ LSCPU_ARCH_PARSE_ERROR = NamedMessage(
     name="lscpu-arch-parse-error",
     msg="Failed to parse architecture from output of lscpu",
 )
+
+WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
+    name="new-version-available",
+    msg="A new version of the client is available: {version}. \
+Please upgrade to the latest version to get the new features \
+and bug fixes.",
+)

@@ -12,6 +12,7 @@ from uaclient.messages import (
     API_MISSING_ARG,
     API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
+    WARN_NEW_VERSION_AVAILABLE,
 )
 
 
@@ -264,3 +265,41 @@ class TestAPICall:
             "environment_vars": env_list,
             "metadata": "information",
         }
+
+    @pytest.mark.parametrize("api_error", (False, True))
+    @mock.patch("uaclient.api.api.check_for_new_version", return_value="1.2.3")
+    @mock.patch(
+        "uaclient.api.errors.check_for_new_version", return_value="1.2.3"
+    )
+    @mock.patch("uaclient.api.api.import_module")
+    def test_warning_for_new_version(
+        self,
+        m_import_module,
+        _m_new_version_error,
+        _m_new_version_api,
+        api_error,
+        FakeConfig,
+    ):
+        mock_endpoint = mock.MagicMock()
+        if api_error:
+            exception = UserFacingError("something is wrong")
+            mock_endpoint.fn.side_effect = exception
+        else:
+            mock_endpoint.fn.return_value.warnings = []
+
+        m_import_module.return_value.endpoint = mock_endpoint
+
+        with mock.patch(
+            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+        ):
+
+            result = call_api("example_endpoint", [], FakeConfig())
+
+        assert len(result.warnings) == 1
+        warning = result.warnings[0]
+        assert (
+            warning.title
+            == WARN_NEW_VERSION_AVAILABLE.format(version="1.2.3").msg
+        )
+        assert warning.code == WARN_NEW_VERSION_AVAILABLE.name
+        assert warning.meta == {}

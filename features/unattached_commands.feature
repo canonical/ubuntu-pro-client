@@ -259,6 +259,16 @@ Feature: Command behaviour when unattached
         to get the latest version with new features and bug fixes.
         """
         When I run `pro api u.pro.version.v1` as non-root
+        Then stdout matches regexp
+        """
+        \"code\": \"new-version-available\"
+        """
+        When I verify that running `pro api u.pro.version.inexistent` `as non-root` exits `1`
+        Then stdout matches regexp
+        """
+        \"code\": \"new-version-available\"
+        """
+        When I run `pro api u.pro.version.v1` as non-root
         Then I will see the following on stderr
         """
         """
