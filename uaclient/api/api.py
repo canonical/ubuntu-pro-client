@@ -11,7 +11,9 @@ from uaclient.messages import (
     API_MISSING_ARG,
     API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
+    WARN_NEW_VERSION_AVAILABLE,
 )
+from uaclient.version import check_for_new_version
 
 VALID_ENDPOINTS = [
     "u.pro.version.v1",
@@ -103,6 +105,18 @@ def call_api(
             result = endpoint.fn(cfg)
         except Exception as e:
             return error_out(e)
+
+    new_version = check_for_new_version()
+    if new_version:
+        option_warnings.append(
+            ErrorWarningObject(
+                title=WARN_NEW_VERSION_AVAILABLE.format(
+                    version=new_version
+                ).msg,
+                code=WARN_NEW_VERSION_AVAILABLE.name,
+                meta={},
+            )
+        )
 
     return APIResponse(
         _schema_version=endpoint.version,
