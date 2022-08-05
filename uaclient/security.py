@@ -1,5 +1,6 @@
 import copy
 import enum
+import json
 import os
 import socket
 import textwrap
@@ -562,6 +563,41 @@ def fix_security_issue_id(
     }
 
     if "CVE" in issue_id:
+        # Check livepatch status for CVE in fixes before checking CVE api
+        status_stdout = None
+        try:
+            status_stdout, _ = system.subp(
+                [
+                    "canonical-livepatch",
+                    "status",
+                    "--verbose",
+                    "--format=json",
+                ]
+            )
+        except exceptions.ProcessExecutionError:
+            pass
+        if status_stdout:
+            try:
+                parsed_patch = json.loads(status_stdout)["Status"][0][
+                    "Livepatch"
+                ]
+
+                if parsed_patch:
+                    fixes = parsed_patch.get("Fixes", [])
+                    if any(
+                        fix["Name"] == issue_id.lower() and fix["Patched"]
+                        for fix in fixes
+                    ):
+                        print(
+                            messages.CVE_FIXED_BY_LIVEPATCH.format(
+                                issue=issue_id,
+                                version=parsed_patch.get("Version", "N/A"),
+                            )
+                        )
+                        return FixStatus.SYSTEM_NON_VULNERABLE
+            except (ValueError, KeyError, IndexError):
+                pass
+
         try:
             cve = client.get_cve(cve_id=issue_id)
             usns = client.get_notices(details=issue_id)
@@ -572,6 +608,7 @@ def fix_security_issue_id(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
+
         affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
         )
