@@ -926,3 +926,8 @@ KERNEL_VERSION_SPLIT_ERROR = FormattedNamedMessage(
     name="kernel-version-split-error",
     msg="Failed to split kernel version: {version}",
 )
+
+LSCPU_ARCH_PARSE_ERROR = NamedMessage(
+    name="lscpu-arch-parse-error",
+    msg="Failed to parse architecture from output of lscpu",
+)
