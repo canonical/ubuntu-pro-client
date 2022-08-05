@@ -5,59 +5,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import exceptions, system
-
-PRIVACY_POLICY_URL = (
-    "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
-)
-
-OS_RELEASE_DISCO = """\
-NAME="Ubuntu"
-VERSION="19.04 (Disco Dingo)"
-ID=ubuntu
-ID_LIKE=debian
-PRETTY_NAME="Ubuntu Disco Dingo (development branch)"
-VERSION_ID="19.04"
-HOME_URL="https://www.ubuntu.com/"
-SUPPORT_URL="https://help.ubuntu.com/"
-BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="{}"
-VERSION_CODENAME=disco
-UBUNTU_CODENAME=disco
-""".format(
-    PRIVACY_POLICY_URL
-)
-
-OS_RELEASE_BIONIC = """\
-NAME="Ubuntu"
-VERSION="18.04.1 LTS (Bionic Beaver)"
-ID=ubuntu
-ID_LIKE=debian
-PRETTY_NAME="Ubuntu 18.04.1 LTS"
-VERSION_ID="18.04"
-HOME_URL="https://www.ubuntu.com/"
-SUPPORT_URL="https://help.ubuntu.com/"
-BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="{}"
-VERSION_CODENAME=bionic
-UBUNTU_CODENAME=bionic
-""".format(
-    PRIVACY_POLICY_URL
-)
-
-OS_RELEASE_XENIAL = """\
-NAME="Ubuntu"
-VERSION="16.04.5 LTS (Xenial Xerus)"
-ID=ubuntu
-ID_LIKE=debian
-PRETTY_NAME="Ubuntu 16.04.5 LTS"
-VERSION_ID="16.04"
-HOME_URL="http://www.ubuntu.com/"
-SUPPORT_URL="http://help.ubuntu.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
-VERSION_CODENAME=xenial
-UBUNTU_CODENAME=xenial
-"""
+from uaclient import exceptions, messages, system
 
 
 class TestGetKernelInfo:
@@ -164,6 +112,119 @@ class TestGetKernelInfo:
         m_uname.return_value = mock.MagicMock(release=uname_release)
         m_load_file.side_effect = [proc_version_signature_side_effect]
         assert system.get_kernel_info.__wrapped__() == expected
+
+
+class TestGetLscpuArch:
+    @pytest.mark.parametrize(
+        "stdout, expected",
+        (
+            (
+                """\
+Architecture:            x86_64
+  CPU op-mode(s):        32-bit, 64-bit
+  Address sizes:         39 bits physical, 48 bits virtual
+  Byte Order:            Little Endian
+CPU(s):                  8
+  On-line CPU(s) list:   0-7
+""",
+                "x86_64",
+            ),
+            (
+                """\
+Architecture:            aarch64
+""",
+                "aarch64",
+            ),
+            (
+                """\
+CPU(s):                  8
+  On-line CPU(s) list:   0-7
+Architecture:            x86_64
+  CPU op-mode(s):        32-bit, 64-bit
+  Address sizes:         39 bits physical, 48 bits virtual
+  Byte Order:            Little Endian
+""",
+                "x86_64",
+            ),
+            (
+                """\
+  CPU(s):                  8
+    On-line CPU(s) list:   0-7
+
+  Architecture:            x86_64
+    CPU op-mode(s):        32-bit, 64-bit
+    Address sizes:         39 bits physical, 48 bits virtual
+    Byte Order:            Little Endian
+""",
+                "x86_64",
+            ),
+            (
+                """Architecture: x86_64""",
+                "x86_64",
+            ),
+            (
+                """Architecture:x86_64""",
+                "x86_64",
+            ),
+            (
+                """       Architecture:         x86_64         """,
+                "x86_64",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_get_lscpu_arch_success(self, m_subp, stdout, expected):
+        m_subp.return_value = (stdout, "")
+        assert system.get_lscpu_arch.__wrapped__() == expected
+        assert m_subp.call_args_list == [mock.call(["lscpu"])]
+
+    @pytest.mark.parametrize(
+        "stdout",
+        (
+            "Architecture            x86_64",
+            "Architectur:            x86_64",
+            "rchitecture:            x86_64",
+            "architecture:            x86_64",
+            ":            x86_64",
+            "Architecture:",
+            "Architecture: ",
+            "Architecture:           ",
+            "",
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_get_lscpu_arch_error(self, m_subp, stdout):
+        m_subp.return_value = (stdout, "")
+        with pytest.raises(exceptions.UserFacingError) as e:
+            system.get_lscpu_arch.__wrapped__()
+            assert e.msg_code == messages.LSCPU_ARCH_PARSE_ERROR.name
+
+
+class TestGetDpkgArch:
+    @pytest.mark.parametrize(
+        "stdout, expected",
+        (
+            (
+                "amd64",
+                "amd64",
+            ),
+            (
+                "arm64\n",
+                "arm64",
+            ),
+            (
+                "   arm64    \n",
+                "arm64",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_get_dpkg_arch(self, m_subp, stdout, expected):
+        m_subp.return_value = (stdout, "")
+        assert system.get_dpkg_arch.__wrapped__() == expected
+        assert m_subp.call_args_list == [
+            mock.call(["dpkg", "--print-architecture"])
+        ]
 
 
 class TestIsLTS:
@@ -323,44 +384,142 @@ class TestIsContainer:
 
 
 class TestParseOSRelease:
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    def test_parse_os_release(self, caplog_text, tmpdir):
+    @pytest.mark.parametrize(
+        "content, expected",
+        (
+            (
+                """\
+NAME="Ubuntu"
+VERSION="16.04.5 LTS (Xenial Xerus)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 16.04.5 LTS"
+VERSION_ID="16.04"
+HOME_URL="http://www.ubuntu.com/"
+SUPPORT_URL="http://help.ubuntu.com/"
+BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
+VERSION_CODENAME=xenial
+UBUNTU_CODENAME=xenial
+""",
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "16.04.5 LTS (Xenial Xerus)",
+                    "ID": "ubuntu",
+                    "ID_LIKE": "debian",
+                    "PRETTY_NAME": "Ubuntu 16.04.5 LTS",
+                    "VERSION_ID": "16.04",
+                    "HOME_URL": "http://www.ubuntu.com/",
+                    "SUPPORT_URL": "http://help.ubuntu.com/",
+                    "BUG_REPORT_URL": "http://bugs.launchpad.net/ubuntu/",
+                    "VERSION_CODENAME": "xenial",
+                    "UBUNTU_CODENAME": "xenial",
+                },
+            ),
+            (
+                """\
+NAME="Ubuntu"
+VERSION="18.04.1 LTS (Bionic Beaver)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 18.04.1 LTS"
+VERSION_ID="18.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=bionic
+UBUNTU_CODENAME=bionic
+""",
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "18.04.1 LTS (Bionic Beaver)",
+                    "ID": "ubuntu",
+                    "ID_LIKE": "debian",
+                    "PRETTY_NAME": "Ubuntu 18.04.1 LTS",
+                    "VERSION_ID": "18.04",
+                    "HOME_URL": "https://www.ubuntu.com/",
+                    "SUPPORT_URL": "https://help.ubuntu.com/",
+                    "BUG_REPORT_URL": "https://bugs.launchpad.net/ubuntu/",
+                    "PRIVACY_POLICY_URL": "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy",  # noqa: E501
+                    "VERSION_CODENAME": "bionic",
+                    "UBUNTU_CODENAME": "bionic",
+                },
+            ),
+            (
+                """\
+PRETTY_NAME="Ubuntu 22.04.1 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+VERSION="22.04.1 LTS (Jammy Jellyfish)"
+VERSION_CODENAME=jammy
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=jammy
+""",
+                {
+                    "PRETTY_NAME": "Ubuntu 22.04.1 LTS",
+                    "NAME": "Ubuntu",
+                    "VERSION_ID": "22.04",
+                    "VERSION": "22.04.1 LTS (Jammy Jellyfish)",
+                    "VERSION_CODENAME": "jammy",
+                    "ID": "ubuntu",
+                    "ID_LIKE": "debian",
+                    "HOME_URL": "https://www.ubuntu.com/",
+                    "SUPPORT_URL": "https://help.ubuntu.com/",
+                    "BUG_REPORT_URL": "https://bugs.launchpad.net/ubuntu/",
+                    "PRIVACY_POLICY_URL": "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy",  # noqa: E501
+                    "UBUNTU_CODENAME": "jammy",
+                },
+            ),
+            (
+                """\
+PRETTY_NAME="Ubuntu Kinetic Kudu (development branch)"
+NAME="Ubuntu"
+VERSION_ID="22.10"
+VERSION="22.10 (Kinetic Kudu)"
+VERSION_CODENAME=kinetic
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=kinetic
+LOGO=ubuntu-logo
+""",
+                {
+                    "PRETTY_NAME": "Ubuntu Kinetic Kudu (development branch)",
+                    "NAME": "Ubuntu",
+                    "VERSION_ID": "22.10",
+                    "VERSION": "22.10 (Kinetic Kudu)",
+                    "VERSION_CODENAME": "kinetic",
+                    "ID": "ubuntu",
+                    "ID_LIKE": "debian",
+                    "HOME_URL": "https://www.ubuntu.com/",
+                    "SUPPORT_URL": "https://help.ubuntu.com/",
+                    "BUG_REPORT_URL": "https://bugs.launchpad.net/ubuntu/",
+                    "PRIVACY_POLICY_URL": "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy",  # noqa: E501
+                    "UBUNTU_CODENAME": "kinetic",
+                    "LOGO": "ubuntu-logo",
+                },
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    def test_parse_os_release(self, m_load_file, content, expected):
         """parse_os_release returns a dict of values from /etc/os-release."""
-        release_file = tmpdir.join("os-release")
-        release_file.write(OS_RELEASE_XENIAL)
-        expected = {
-            "BUG_REPORT_URL": "http://bugs.launchpad.net/ubuntu/",
-            "HOME_URL": "http://www.ubuntu.com/",
-            "ID": "ubuntu",
-            "ID_LIKE": "debian",
-            "NAME": "Ubuntu",
-            "PRETTY_NAME": "Ubuntu 16.04.5 LTS",
-            "SUPPORT_URL": "http://help.ubuntu.com/",
-            "UBUNTU_CODENAME": "xenial",
-            "VERSION": "16.04.5 LTS (Xenial Xerus)",
-            "VERSION_CODENAME": "xenial",
-            "VERSION_ID": "16.04",
-        }
-        assert expected == system.parse_os_release(release_file.strpath)
-        # Add a 2nd call for lru_cache test
-        system.parse_os_release(release_file.strpath)
-
-        os_release_reads = len(
-            [
-                line
-                for line in caplog_text().splitlines()
-                if "os-release" in line
-            ]
-        )
-        assert (
-            1 == os_release_reads
-        ), "lru_cache expected 1 read but found {}".format(os_release_reads)
+        m_load_file.return_value = content
+        assert expected == system.parse_os_release.__wrapped__()
+        assert m_load_file.call_args_list == [mock.call("/etc/os-release")]
 
 
 class TestGetPlatformInfo:
-    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.system.parse_os_release")
-    def test_get_platform_info_error_no_version(self, m_parse, m_subp):
+    def test_get_platform_info_error_no_version(self, m_parse):
         """get_platform_info errors when it cannot parse os-release."""
         m_parse.return_value = {"VERSION": "junk"}
         with pytest.raises(RuntimeError) as excinfo:
@@ -373,49 +532,95 @@ class TestGetPlatformInfo:
         assert expected_msg == str(excinfo.value)
 
     @pytest.mark.parametrize(
-        "series,release,version,os_release_content",
+        "os_release, arch, kernel, expected",
         [
-            ("xenial", "16.04", "16.04 LTS (Xenial Xerus)", OS_RELEASE_XENIAL),
             (
-                "bionic",
-                "18.04",
-                "18.04 LTS (Bionic Beaver)",
-                OS_RELEASE_BIONIC,
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "16.04.5 LTS (Xenial Xerus)",
+                },
+                "arm64",
+                "kernel-ver1",
+                {
+                    "arch": "arm64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver1",
+                    "release": "16.04",
+                    "series": "xenial",
+                    "type": "Linux",
+                    "version": "16.04 LTS (Xenial Xerus)",
+                },
             ),
-            ("disco", "19.04", "19.04 (Disco Dingo)", OS_RELEASE_DISCO),
+            (
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "18.04.1 LTS (Bionic Beaver)",
+                },
+                "amd64",
+                "kernel-ver2",
+                {
+                    "arch": "amd64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver2",
+                    "release": "18.04",
+                    "series": "bionic",
+                    "type": "Linux",
+                    "version": "18.04 LTS (Bionic Beaver)",
+                },
+            ),
+            (
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "22.04.1 LTS (Jammy Jellyfish)",
+                },
+                "arm64",
+                "kernel-ver3",
+                {
+                    "arch": "arm64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver3",
+                    "release": "22.04",
+                    "series": "jammy",
+                    "type": "Linux",
+                    "version": "22.04 LTS (Jammy Jellyfish)",
+                },
+            ),
+            (
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "22.10 LTS (Kinetic Kudu)",
+                },
+                "amd64",
+                "kernel-ver4",
+                {
+                    "arch": "amd64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver4",
+                    "release": "22.10",
+                    "series": "kinetic",
+                    "type": "Linux",
+                    "version": "22.10 LTS (Kinetic Kudu)",
+                },
+            ),
         ],
     )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.system.get_dpkg_arch")
+    @mock.patch("uaclient.system.parse_os_release")
     def test_get_platform_info_with_version(
-        self, series, release, version, os_release_content, tmpdir
+        self,
+        m_parse_os_release,
+        m_get_dpkg_arch,
+        m_get_kernel_info,
+        os_release,
+        arch,
+        kernel,
+        expected,
     ):
-        release_file = tmpdir.join("os-release")
-        release_file.write(os_release_content)
-        parse_dict = system.parse_os_release(release_file.strpath)
-
-        expected = {
-            "arch": "arm64",
-            "distribution": "Ubuntu",
-            "kernel": "kernel-ver",
-            "release": release,
-            "series": series,
-            "type": "Linux",
-            "version": version,
-        }
-
-        with mock.patch("uaclient.system.parse_os_release") as m_parse:
-            with mock.patch(
-                "uaclient.system.get_kernel_info"
-            ) as m_get_kernel_info:
-                with mock.patch("uaclient.system.subp") as m_subp:
-                    m_parse.return_value = parse_dict
-                    # (sysname, nodename, release, version, machine)
-                    m_get_kernel_info.return_value = mock.MagicMock(
-                        uname_release="kernel-ver"
-                    )
-                    m_subp.return_value = ("arm64\n", "")
-                    # Use __wrapped__ to avoid hitting the
-                    # lru_cached value across tests
-                    assert expected == system.get_platform_info.__wrapped__()
+        m_parse_os_release.return_value = os_release
+        m_get_dpkg_arch.return_value = arch
+        m_get_kernel_info.return_value = mock.MagicMock(uname_release=kernel)
+        assert expected == system.get_platform_info.__wrapped__()
 
 
 class TestGetMachineId:

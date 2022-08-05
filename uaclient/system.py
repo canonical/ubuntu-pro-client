@@ -140,6 +140,29 @@ def get_kernel_info() -> KernelInfo:
 
 
 @lru_cache(maxsize=None)
+def get_lscpu_arch() -> str:
+    """used for livepatch"""
+    out, _err = subp(["lscpu"])
+    for line in out.splitlines():
+        if line.strip().startswith("Architecture:"):
+            arch = line.split(":")[1].strip()
+            if arch:
+                return arch
+            else:
+                break
+    error_msg = messages.LSCPU_ARCH_PARSE_ERROR
+    raise exceptions.UserFacingError(
+        msg=error_msg.msg, msg_code=error_msg.name
+    )
+
+
+@lru_cache(maxsize=None)
+def get_dpkg_arch() -> str:
+    out, _err = subp(["dpkg", "--print-architecture"])
+    return out.strip()
+
+
+@lru_cache(maxsize=None)
 def get_machine_id(cfg) -> str:
     """
     Get system's unique machine-id or create our own in data_dir.
@@ -200,8 +223,7 @@ def get_platform_info() -> Dict[str, str]:
     )
 
     platform_info["kernel"] = get_kernel_info().uname_release
-    out, _err = subp(["dpkg", "--print-architecture"])
-    platform_info["arch"] = out.strip()
+    platform_info["arch"] = get_dpkg_arch()
 
     return platform_info
 
