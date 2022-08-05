@@ -564,6 +564,7 @@ def fix_security_issue_id(
 
     if "CVE" in issue_id:
         # Check livepatch status for CVE in fixes before checking CVE api
+        status_stdout = None
         try:
             status_stdout, _ = system.subp(
                 [
