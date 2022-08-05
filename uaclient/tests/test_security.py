@@ -1,5 +1,6 @@
 import copy
 import datetime
+import json
 import textwrap
 from collections import defaultdict
 
@@ -2278,6 +2279,53 @@ class TestGetUSNAffectedPackagesStatus:
 
 
 class TestFixSecurityIssueId:
+    @pytest.mark.parametrize(
+        "issue_id,livepatch_status,exp_ret",
+        (
+            (
+                "cve-2013-1798",
+                {
+                    "Status": [
+                        {
+                            "Kernel": "4.4.0-210.242-generic",
+                            "Running": True,
+                            "Livepatch": {
+                                "CheckState": "checked",
+                                "State": "applied",
+                                "Version": "87.1",
+                                "Fixes": [
+                                    {
+                                        "Name": "cve-2013-1798",
+                                        "Description": "Mock Description",
+                                        "Bug": "",
+                                        "Patched": True,
+                                    }
+                                ],
+                            },
+                        }
+                    ]
+                },
+                FixStatus.SYSTEM_NON_VULNERABLE,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_patched_msg_when_issue_id_fixed_by_livepatch(
+        self,
+        subp,
+        issue_id,
+        livepatch_status,
+        exp_ret,
+        FakeConfig,
+    ):
+        """fix_security_id returns system not vulnerable when issue_id fixed
+        by livepatch"""
+        subp.return_value = json.dumps(livepatch_status), ""
+        with mock.patch(
+            "uaclient.security.query_installed_source_pkg_versions"
+        ):
+            assert exp_ret == fix_security_issue_id(FakeConfig(), issue_id)
+
     @pytest.mark.parametrize(
         "issue_id", (("CVE-1800-123456"), ("USN-12345-12"))
     )
