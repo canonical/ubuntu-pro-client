@@ -17,8 +17,8 @@ Feature: Ua fix command behaviour
            | xenial  |
            | bionic  |
            | focal   |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.focal
     @uses.config.machine_type.lxd.container

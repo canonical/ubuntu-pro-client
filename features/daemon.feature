@@ -14,8 +14,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | release |
             | bionic  |
             | focal   |
-            | impish  |
             | jammy   |
+            | kinetic |
 
     @series.lts
     @uses.config.contract_token
@@ -207,7 +207,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   |
             | jammy   |
 
-    @series.impish
+    @series.kinetic
     @uses.config.contract_token
     @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon does not start on gcp generic non lts
@@ -228,7 +228,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Examples: version
             | release |
-            | impish  |
+            | kinetic |
 
     @series.all
     @uses.config.contract_token
@@ -262,8 +262,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | xenial  |
             | bionic  |
             | focal   |
-            | impish  |
             | jammy   |
+            | kinetic |
 
     @series.lts
     @uses.config.machine_type.aws.pro

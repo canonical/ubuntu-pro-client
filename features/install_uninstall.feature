@@ -12,8 +12,8 @@ Feature: Pro Install and Uninstall related tests
            | xenial  |
            | bionic  |
            | focal   |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.lts
     @uses.config.contract_token

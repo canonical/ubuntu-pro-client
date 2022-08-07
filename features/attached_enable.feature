@@ -29,7 +29,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | bionic  |
 
     @series.focal
-    @series.impish
+    @series.jammy
+    @series.kinetic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -48,8 +49,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Examples: ubuntu release
             | release | version    | full_name        |
             | focal   | 20.04 LTS  | Focal Fossa      |
-            | impish  | 21.10      | Impish Indri     |
-            | jammy   | 22.04      | Jammy Jellyfish  |
+            | jammy   | 22.04 LTS  | Jammy Jellyfish  |
+            | kinetic | 22.10      | Kinetic Kudu     |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -314,8 +315,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.lts
     @uses.config.machine_type.lxd.container

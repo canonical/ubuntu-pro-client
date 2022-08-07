@@ -30,8 +30,8 @@ Feature: Pro is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | impish  |
             | jammy   |
+            | kinetic |
 
     @series.all
     @uses.config.check_version
@@ -54,5 +54,5 @@ Feature: Pro is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | impish  |
-            | jammy  |
+            | jammy   |
+            | kinetic |

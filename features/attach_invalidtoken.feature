@@ -27,8 +27,8 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | xenial  |
            | bionic  |
            | focal   |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -54,5 +54,5 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | xenial  |
            | bionic  |
            | focal   |
-           | impish  |
            | jammy   |
+           | kinetic |

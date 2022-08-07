@@ -274,7 +274,7 @@ class TestUAAutoAttachGCPInstance:
             ({"series": "xenial"}, True),
             ({"series": "bionic"}, True),
             ({"series": "focal"}, True),
-            ({"series": "impish"}, False),
+            ({"series": "non_lts"}, False),
             ({"series": "jammy"}, True),
         ),
     )
