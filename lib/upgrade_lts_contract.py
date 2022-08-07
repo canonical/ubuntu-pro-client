@@ -34,20 +34,21 @@ version_to_codename = {
     "16.04": "xenial",
     "18.04": "bionic",
     "20.04": "focal",
-    "21.10": "impish",
     "22.04": "jammy",
+    "22.10": "kinetic",
 }
 
+# We consider the past release for LTSs to be the last LTS,
+# because we don't have any services available on non-LTS.
+# This makes it safer for us to try to process contract deltas.
+# For example, we had "jammy": "focal" even when Impish was
+# still supported.
 current_codename_to_past_codename = {
     "xenial": "trusty",
     "bionic": "xenial",
     "focal": "bionic",
-    "impish": "focal",
-    # We are considering the past release for Jammy to be Focal
-    # because we don't have any services available on Impish.
-    # Therefore, it is safer for us to try to process contract deltas
-    # using Focal
     "jammy": "focal",
+    "kinetic": "jammy",
 }
 
 

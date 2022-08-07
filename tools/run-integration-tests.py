@@ -12,8 +12,8 @@ SERIES_TO_VERSION = {
     "xenial": "16.04",
     "bionic": "18.04",
     "focal": "20.04",
-    "impish": "21.10",
     "jammy": "22.04",
+    "kinetic": "22.10",
 }
 
 TOKEN_TO_ENVVAR = {
@@ -23,18 +23,19 @@ TOKEN_TO_ENVVAR = {
 }
 
 PLATFORM_SERIES_TESTS = {
-    "azuregeneric": ["xenial", "bionic", "focal"],
-    "azurepro": ["xenial", "bionic", "focal"],
+    "azuregeneric": ["xenial", "bionic", "focal", "jammy"],
+    "azurepro": ["xenial", "bionic", "focal", "jammy"],
     "azurepro-fips": ["xenial", "bionic", "focal"],
-    "awsgeneric": ["xenial", "bionic", "focal"],
-    "awspro": ["xenial", "bionic", "focal"],
+    "awsgeneric": ["xenial", "bionic", "focal", "jammy"],
+    "awspro": ["xenial", "bionic", "focal", "jammy"],
     "awspro-fips": ["xenial", "bionic", "focal"],
     "docker": ["focal"],
-    "gcpgeneric": ["xenial", "bionic", "focal", "impish", "jammy"],
-    "gcppro": ["xenial", "bionic", "focal"],
-    "lxd": ["xenial", "bionic", "focal", "impish", "jammy"],
-    "vm": ["xenial", "bionic", "focal"],
-    "upgrade": ["xenial", "bionic", "focal", "impish"],
+    "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "kinetic"],
+    "gcppro": ["xenial", "bionic", "focal", "jammy"],
+    "gcppro-fips": ["bionic", "focal"],
+    "lxd": ["xenial", "bionic", "focal", "jammy", "kinetic"],
+    "vm": ["xenial", "bionic", "focal", "jammy"],
+    "upgrade": ["xenial", "bionic", "focal", "jammy"],
 }
 
 
