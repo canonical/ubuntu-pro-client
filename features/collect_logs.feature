@@ -46,8 +46,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | xenial  |
           | bionic  |
           | focal   |
-          | impish  |
           | jammy   |
+          | kinetic |
 
     @series.lts
     @uses.config.machine_type.lxd.container

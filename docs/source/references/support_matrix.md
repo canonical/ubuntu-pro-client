@@ -14,6 +14,8 @@ Below is a list of platforms and releases ubuntu-advantage-tools supports
 | Focal          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Active SRU of all features |
 | Groovy         | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Last release 27.1          |
 | Hirsute        | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Last release 27.5          |
-| Impish         | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Active SRU of all features |
+| Impish         | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Last release 27.9          |
+| Jammy          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Active SRU of all features |
+| Kinetic        | amd64, arm64, armhf, ppc64el, riscv64, s390x       | Active SRU of all features |
 
 Note: ppc64el will not have all APT messaging due to insufficient golang support

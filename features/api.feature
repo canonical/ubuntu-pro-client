@@ -20,8 +20,8 @@ Feature: Client behaviour for the API endpoints
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -48,5 +48,5 @@ Feature: Client behaviour for the API endpoints
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
