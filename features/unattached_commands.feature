@@ -27,8 +27,8 @@ Feature: Command behaviour when unattached
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.xenial
     @uses.config.machine_type.lxd.container
@@ -101,8 +101,8 @@ Feature: Command behaviour when unattached
            | focal   | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
-           | impish  | detach  |
-           | impish  | refresh |
+           | kinetic | detach  |
+           | kinetic | refresh |
            | jammy   | detach  |
            | jammy   | refresh |
 
@@ -117,7 +117,7 @@ Feature: Command behaviour when unattached
             esm-infra
 
             Available:
-            <infra-status>
+            <infra-available>
 
             Help:
             Extended Security Maintenance for Infrastructure provides access
@@ -130,7 +130,7 @@ Feature: Command behaviour when unattached
         When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "available": "yes", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+            {"name": "esm-infra", "available": "<infra-available>", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
             """
         When I verify that running `pro help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
@@ -139,12 +139,12 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ubuntu release
-           | release  | infra-status |
-           | bionic   | yes          |
-           | focal    | yes          |
-           | xenial   | yes          |
-           | impish   | no           |
-           | jammy    | yes           |
+           | release  | infra-available |
+           | bionic   | yes             |
+           | focal    | yes             |
+           | xenial   | yes             |
+           | kinetic  | no              |
+           | jammy    | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -214,7 +214,7 @@ Feature: Command behaviour when unattached
           | bionic  | disable  |
           | focal   | enable   |
           | focal   | disable  |
-          | impish  | enable   |
-          | impish  | disable  |
+          | kinetic | enable   |
+          | kinetic | disable  |
           | jammy   | enable   |
           | jammy   | disable  |

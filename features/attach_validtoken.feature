@@ -2,7 +2,7 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         subscription using a valid token
 
-    @series.impish
+    @series.kinetic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached command in a non-lts ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -22,7 +22,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
         Examples: ubuntu release
             | release |
-            | impish  |
+            | kinetic |
 
     @series.lts
     @uses.config.machine_type.lxd.container

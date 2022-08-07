@@ -55,9 +55,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
-
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -81,8 +80,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -316,8 +315,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -338,8 +337,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -406,8 +405,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.xenial
     @series.bionic
@@ -526,7 +525,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
         """
-        {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+        {"name": "esm-infra", "entitled": "yes", "status": "<infra-status>", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
         """
         And I verify that running `pro help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
@@ -609,7 +608,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | infra-status |
            | bionic  | enabled      |
            | xenial  | enabled      |
-           | impish  | n/a          |
+           | kinetic | n/a          |
 
     @series.jammy
     @series.focal
@@ -844,8 +843,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | xenial  |
            | bionic  |
            | focal   |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.lts
     @uses.config.machine_type.lxd.container

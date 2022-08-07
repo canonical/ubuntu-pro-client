@@ -37,8 +37,8 @@ Feature: Unattached status
            | bionic  |
            | focal   |
            | xenial  |
-           | impish  |
            | jammy   |
+           | kinetic |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -151,8 +151,8 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
-           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
            | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg | yes             |
+           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -220,8 +220,8 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
-           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
            | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg | yes             |
+           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
 
 
     @series.all
@@ -271,5 +271,5 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
            | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg |
+           | kinetic | no       | no     | cis | no            | no   | no        | no  | no        |     |
