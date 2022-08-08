@@ -1550,7 +1550,6 @@ def get_parser(cfg: config.UAConfig):
 def action_status(args, *, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    show_beta = args.all if args else False
     show_all = args.all if args else False
     token = args.simulate_with_token if args else None
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
@@ -1568,7 +1567,7 @@ def action_status(args, *, cfg):
                 logging.warning(err_msg)
                 event.warning(err_msg)
     status, ret = actions.status(
-        cfg, simulate_with_token=token, show_beta=show_beta, show_all=show_all
+        cfg, simulate_with_token=token, show_all=show_all
     )
     config_active = bool(status["execution_status"] == active_value)
 
@@ -1579,7 +1578,6 @@ def action_status(args, *, cfg):
             status, ret = actions.status(
                 cfg,
                 simulate_with_token=token,
-                show_beta=show_beta,
                 show_all=show_all,
             )
         event.info("")

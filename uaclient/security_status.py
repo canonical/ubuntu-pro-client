@@ -119,7 +119,7 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
         "entitled_services": [],
     }  # type: Dict[str, Any]
 
-    status_dict = status(cfg=cfg, show_beta=True)
+    status_dict = status(cfg=cfg, show_all=True)
     if status_dict["attached"]:
         ua_info["attached"] = True
         for service in status_dict["services"]:
