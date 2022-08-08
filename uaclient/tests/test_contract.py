@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import socket
 
 import mock
@@ -30,6 +31,7 @@ from uaclient.messages import (
     ATTACH_FORBIDDEN_NEVER,
     ATTACH_FORBIDDEN_NOT_YET,
     ATTACH_INVALID_TOKEN,
+    INVALID_PRO_IMAGE,
     UNEXPECTED_ERROR,
 )
 from uaclient.status import UserFacingStatus
@@ -1282,3 +1284,38 @@ class TestApplyContractOverrides:
 
         apply_contract_overrides(orig_access)
         assert orig_access == expected
+
+
+@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+class TestRequestAutoAttach:
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    def test_request_for_invalid_pro_image(
+        self, m_request_url, caplog_text, FakeConfig
+    ):
+        cfg = FakeConfig()
+        contract = UAContractClient(cfg)
+
+        error_response = {
+            "code": "contract not found",
+            "message": (
+                'missing product mapping for subscription "test", '
+                'plan "pro-image", product "pro-product", '
+                'publisher "canonical", sku "pro-sku"'
+            ),
+        }
+        m_request_url.side_effect = exceptions.ContractAPIError(
+            exceptions.UrlError("test", 400),
+            error_response=error_response,
+        )
+
+        with pytest.raises(exceptions.InvalidProImage) as exc_error:
+            contract.request_auto_attach_contract_token(
+                instance=mock.MagicMock()
+            )
+
+        expected_message = INVALID_PRO_IMAGE.format(
+            msg=error_response["message"]
+        )
+        assert expected_message.msg == exc_error.value.msg
+        assert error_response["message"] in caplog_text()
+        assert exc_error.value.msg_code == "invalid-pro-image"
