@@ -258,13 +258,13 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
     return response
 
 
-def _handle_beta_resources(cfg, show_beta, response) -> Dict[str, Any]:
+def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
     """Remove beta services from response dict if needed"""
     config_allow_beta = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.allow_beta"
     )
-    show_beta |= config_allow_beta
-    if show_beta:
+    show_all |= config_allow_beta
+    if show_all:
         return response
 
     new_response = copy.deepcopy(response)
@@ -333,9 +333,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     }
 
 
-def status(
-    cfg: UAConfig, show_beta: bool = False, show_all: bool = False
-) -> Dict[str, Any]:
+def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
     """Return status as a dict, using a cache for non-root users
 
     When unattached, get available resources from the contract service
@@ -363,7 +361,7 @@ def status(
                 ),
             )
 
-    response = _handle_beta_resources(cfg, show_beta or show_all, response)
+    response = _handle_beta_resources(cfg, show_all, response)
 
     if not show_all:
         available_services = [
@@ -393,7 +391,7 @@ def _get_entitlement_information(
 
 
 def simulate_status(
-    cfg, token: str, show_beta: bool = False, show_all: bool = False
+    cfg, token: str, show_all: bool = False
 ) -> Tuple[Dict[str, Any], int]:
     """Get a status dictionary based on a token.
 
@@ -506,7 +504,7 @@ def simulate_status(
             response["contract"]["tech_support_level"] = supportLevel
 
     response.update(_get_config_status(cfg))
-    response = _handle_beta_resources(cfg, show_beta, response)
+    response = _handle_beta_resources(cfg, show_all, response)
 
     if not show_all:
         available_services = [
