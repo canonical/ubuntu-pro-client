@@ -277,8 +277,8 @@ def realtime_desc(FakeConfig):
 @mock.patch("uaclient.files.NoticeFile.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:
-    def check_beta(self, cls, show_beta, uacfg=None, status=""):
-        if not show_beta:
+    def check_beta(self, cls, show_all, uacfg=None, status=""):
+        if not show_all:
             if status == "enabled":
                 return False
 
@@ -340,9 +340,7 @@ class TestStatus:
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
-            assert expected == status.status(
-                cfg=cfg, show_beta=False, show_all=show_all
-            )
+            assert expected == status.status(cfg=cfg, show_all=show_all)
 
             expected_calls = [
                 mock.call(
@@ -578,7 +576,6 @@ class TestStatus:
         assert expected_calls == m_remove_notice.call_args_list
 
     @pytest.mark.parametrize("show_all", (True, False))
-    @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
         "features_override", ((None), ({"allow_beta": False}))
     )
@@ -625,7 +622,6 @@ class TestStatus:
         all_resources_available,
         entitlements,
         features_override,
-        show_beta,
         show_all,
         FakeConfig,
     ):
@@ -716,7 +712,7 @@ class TestStatus:
                 continue
 
             if not show_all and self.check_beta(
-                cls, show_beta, cfg, expected_status
+                cls, show_all, cfg, expected_status
             ):
                 continue
 
@@ -738,9 +734,7 @@ class TestStatus:
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
-            assert expected == status.status(
-                cfg=cfg, show_beta=show_beta, show_all=show_all
-            )
+            assert expected == status.status(cfg=cfg, show_all=show_all)
 
         assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
