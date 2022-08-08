@@ -93,12 +93,20 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the contract-token.
         """
-        response, _headers = self.request_url(
-            API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(
-                cloud_type=instance.cloud_type
-            ),
-            data=instance.identity_doc,
-        )
+        try:
+            response, _headers = self.request_url(
+                API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(
+                    cloud_type=instance.cloud_type
+                ),
+                data=instance.identity_doc,
+            )
+        except exceptions.ContractAPIError as e:
+            msg = e.api_error.get("message", "")
+            if msg:
+                logging.debug(msg)
+                raise exceptions.InvalidProImage(error_msg=msg)
+            raise e
+
         self.cfg.write_cache("contract-token", response)
         return response
 
@@ -513,12 +521,8 @@ def _create_attach_forbidden_message(
     e: exceptions.ContractAPIError,
 ) -> messages.NamedMessage:
     msg = messages.ATTACH_EXPIRED_TOKEN
-    if (
-        hasattr(e, "api_errors")
-        and len(e.api_errors) > 0
-        and "info" in e.api_errors[0]
-    ):
-        info = e.api_errors[0]["info"]
+    if hasattr(e, "api_error") and "info" in e.api_error:
+        info = e.api_error["info"]
         contract_id = info["contractId"]
         reason = info["reason"]
         reason_msg = None
