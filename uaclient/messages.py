@@ -940,3 +940,7 @@ WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
 Please upgrade to the latest version to get the new features \
 and bug fixes.",
 )
+
+INVALID_PRO_IMAGE = FormattedNamedMessage(
+    name="invalid-pro-image", msg="Error on Pro Image:\n{msg}"
+)

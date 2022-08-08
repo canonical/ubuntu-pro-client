@@ -659,3 +659,21 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  |
            | focal   |
            | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.aws.generic
+    Scenario Outline: Unregistered Pro machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running `pro auto-attach` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Error on Pro Image:
+        missing instance information
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
