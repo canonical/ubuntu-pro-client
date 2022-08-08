@@ -302,6 +302,12 @@ class SecurityAPIMetadataError(UserFacingError):
         )
 
 
+class InvalidProImage(UserFacingError):
+    def __init__(self, error_msg: str):
+        msg = messages.INVALID_PRO_IMAGE.format(msg=error_msg)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
 class GCPProAccountError(UserFacingError):
     """An exception raised when GCP Pro service account is not enabled"""
 
@@ -382,40 +388,35 @@ class ProcessExecutionError(IOError):
 class ContractAPIError(UrlError):
     def __init__(self, e, error_response):
         super().__init__(e, e.code, e.headers, e.url)
-        if "error_list" in error_response:
-            self.api_errors = error_response["error_list"]
-        else:
-            self.api_errors = [error_response]
-        for api_error in self.api_errors:
-            api_error["code"] = api_error.get("title", api_error.get("code"))
+
+        if error_response is None:
+            error_response = {}
+
+        self.api_error = error_response
 
     def __contains__(self, error_code):
-        for api_error in self.api_errors:
-            if error_code == api_error.get("code"):
-                return True
-            if api_error.get("message", "").startswith(error_code):
-                return True
+        if error_code == self.api_error.get("code"):
+            return True
+        if self.api_error.get("message", "").startswith(error_code):
+            return True
+
         return False
 
     def __get__(self, error_code, default=None):
-        for api_error in self.api_errors:
-            if api_error["code"] == error_code:
-                return api_error["detail"]
+        if self.api_error.get("code") == error_code:
+            return self.api_error.get("message")
         return default
 
     def __str__(self):
         prefix = super().__str__()
-        details = []
-        for err in self.api_errors:
-            if not err.get("extra"):
-                details.append(err.get("detail", err.get("message", "")))
-            else:
-                for extra in err["extra"].values():
-                    if isinstance(extra, list):
-                        details.extend(extra)
-                    else:
-                        details.append(extra)
-        return prefix + ": [" + self.url + "]" + ", ".join(details)
+        return (
+            prefix
+            + ": ["
+            + self.url
+            + "]"
+            + ", "
+            + self.api_error.get("message", "")
+        )
 
 
 class SecurityAPIError(UrlError):

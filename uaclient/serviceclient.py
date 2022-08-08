@@ -154,9 +154,17 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             return response["response"], response.get("headers", {})
         # Must be an error
         e = error.URLError(response["response"])
-        raise exceptions.UrlError(
+        url_exception = exceptions.UrlError(
             e,
             code=response["code"],
             headers=response.get("headers", {}),
             url=url,
         )
+
+        if response.get("type") == "contract":
+            raise exceptions.ContractAPIError(
+                url_exception,
+                error_response=response["response"],
+            )
+        else:
+            raise url_exception
