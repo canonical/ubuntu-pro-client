@@ -30,53 +30,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro staging subscri
         \s*\*\*\* .* 500
         \s*500 https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        When I run `mkdir -p /var/lib/ubuntu-advantage/messages` with sudo
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-infra.tmpl` with the following
-        """
-        esm-infra-no {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}\n
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl` with the following
-        """
-        esm-infra {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}\n
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps.tmpl` with the following
-        """
-        esm-apps {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}\n
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-apps.tmpl` with the following
-        """
-        esm-apps-no {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}\n
-        """
-        When I run `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` with sudo
-        When I run `cat /var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps(-no)? \d+:(.*)?
-        """
-        When I run `cat /var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra` with sudo
-        Then stdout matches regexp:
-        """
-        esm-infra(-no)? \d+:(.*)?
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl` with the following
-        """
-        esm-infra {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}\n
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-infra.tmpl` with the following
-        """
-        esm-infra-no {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}\n
-        """
-        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps.tmpl` with the following
-        """
-        esm-apps {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES}\n
-        """
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps(-no)? \d+.*
-
-        esm-infra(-no)? \d+.*
-        """
         When I verify that running `pro enable esm-apps` `with sudo` exits `1`
         Then stdout matches regexp
         """
