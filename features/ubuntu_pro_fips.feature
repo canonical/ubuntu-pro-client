@@ -118,7 +118,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         NOTICES
         FIPS support requires system reboot to complete configuration.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
         """
@@ -335,7 +335,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         NOTICES
         FIPS support requires system reboot to complete configuration.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
         """
@@ -473,7 +473,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         fips          +yes +n/a +NIST-certified core packages
         fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
         """
@@ -606,7 +606,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         NOTICES
         FIPS support requires system reboot to complete configuration.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `uname -r` as non-root
         Then stdout matches regexp:
         """

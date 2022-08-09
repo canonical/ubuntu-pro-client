@@ -52,7 +52,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
           name: fips-updates
           status: enabled
         """
-        When I reboot the machine: `clone`
+        When I reboot the `clone` machine
         When I run `pro status --format yaml` `with sudo` on the `clone` machine
         Then stdout matches regexp:
         """
