@@ -5,29 +5,35 @@ import mock
 import pytest
 
 from uaclient import system
-from uaclient.defaults import (
-    BASE_ESM_URL,
-    BASE_UA_URL,
-    CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
-)
+from uaclient.defaults import BASE_UA_URL, CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.jobs.update_messaging import (
+    AWS_PRO_URL,
+    AZURE_PRO_URL,
+    AZURE_XENIAL_URL,
+    GCP_PRO_URL,
+    XENIAL_ESM_URL,
     ContractExpiryStatus,
     ExternalMessage,
     _write_esm_service_msg_templates,
+    get_contextual_esm_info_url,
     get_contract_expiry_status,
     update_apt_and_motd_messages,
     write_apt_and_motd_templates,
     write_esm_announcement_message,
 )
 from uaclient.messages import (
-    ANNOUNCE_ESM_TMPL,
+    ANNOUNCE_ESM_APPS_TMPL,
+    CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
-    CONTRACT_EXPIRED_SOON_TMPL,
+    CONTRACT_EXPIRED_APT_SOON_TMPL,
+    CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
+    CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
+    CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
+    CONTRACT_EXPIRED_MOTD_SOON_TMPL,
+    DISABLED_APT_NO_PKGS_TMPL,
     DISABLED_APT_PKGS_TMPL,
-    DISABLED_MOTD_NO_PKGS_TMPL,
 )
 
 M_PATH = "uaclient.jobs.update_messaging."
@@ -59,6 +65,42 @@ class TestGetContractExpiryStatus:
             expected_status,
             contract_remaining_days,
         ) == get_contract_expiry_status(cfg)
+
+
+class TestGetContextualESMInfoURL:
+    @pytest.mark.parametrize(
+        "cloud, series, expected",
+        (
+            (None, "xenial", (XENIAL_ESM_URL, " for 16.04")),
+            (None, "bionic", (BASE_UA_URL, "")),
+            (None, "focal", (BASE_UA_URL, "")),
+            (None, "jammy", (BASE_UA_URL, "")),
+            ("aws", "xenial", (XENIAL_ESM_URL, " for 16.04")),
+            ("aws", "bionic", (AWS_PRO_URL, " on AWS")),
+            ("aws", "focal", (AWS_PRO_URL, " on AWS")),
+            ("aws", "jammy", (AWS_PRO_URL, " on AWS")),
+            ("azure", "xenial", (AZURE_XENIAL_URL, " for 16.04 on Azure")),
+            ("azure", "bionic", (AZURE_PRO_URL, " on Azure")),
+            ("azure", "focal", (AZURE_PRO_URL, " on Azure")),
+            ("azure", "jammy", (AZURE_PRO_URL, " on Azure")),
+            ("gce", "xenial", (XENIAL_ESM_URL, " for 16.04")),
+            ("gce", "bionic", (GCP_PRO_URL, " on GCP")),
+            ("gce", "focal", (GCP_PRO_URL, " on GCP")),
+            ("gce", "jammy", (GCP_PRO_URL, " on GCP")),
+            ("somethingelse", "xenial", (XENIAL_ESM_URL, " for 16.04")),
+            ("somethingelse", "bionic", (BASE_UA_URL, "")),
+            ("somethingelse", "focal", (BASE_UA_URL, "")),
+            ("somethingelse", "jammy", (BASE_UA_URL, "")),
+        ),
+    )
+    @mock.patch("uaclient.jobs.update_messaging.system.get_platform_info")
+    @mock.patch("uaclient.jobs.update_messaging.identity.get_cloud_type")
+    def test_get_contextual_esm_info_url(
+        self, m_get_cloud_type, m_get_platform_info, cloud, series, expected
+    ):
+        m_get_cloud_type.return_value = (cloud, None)
+        m_get_platform_info.return_value = {"series": series}
+        assert get_contextual_esm_info_url.__wrapped__() == expected
 
 
 class TestWriteAPTAndMOTDTemplates:
@@ -201,39 +243,39 @@ class TestWriteAPTAndMOTDTemplates:
 class Test_WriteESMServiceAPTMsgTemplates:
     @pytest.mark.parametrize(
         "service_name,contract_expiry,expect_messages,platform_info,"
-        "eol_release,url",
+        "url,context",
         (
             (
                 "esm-apps",
                 ContractExpiryStatus.ACTIVE,
                 True,
                 {"series": "xenial", "release": "16.04"},
-                "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
+                " for 16.04",
             ),
             (
                 "esm-infra",
                 ContractExpiryStatus.ACTIVE,
                 True,
                 {"series": "xenial", "release": "16.04"},
-                "for Ubuntu 16.04 ",
-                "https://ubuntu.com/16-04",
+                XENIAL_ESM_URL,
+                " for 16.04",
             ),
             (
                 "esm-apps",
                 ContractExpiryStatus.ACTIVE,
                 True,
                 {"series": "xenial", "release": "16.04"},
-                "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
+                " for 16.04",
             ),
             (
                 "esm-apps",
                 ContractExpiryStatus.EXPIRED,
                 False,
                 {"series": "xenial", "release": "16.04"},
-                "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
+                " for 16.04",
             ),
         ),
     )
@@ -251,8 +293,8 @@ class Test_WriteESMServiceAPTMsgTemplates:
         contract_expiry,
         expect_messages,
         platform_info,
-        eol_release,
         url,
+        context,
         FakeConfig,
         tmpdir,
     ):
@@ -261,13 +303,10 @@ class Test_WriteESMServiceAPTMsgTemplates:
         This represents customer chosen disabling of service on an attached
         machine. So, they've chosen to disable expired services.
         """
+        get_contextual_esm_info_url.cache_clear()
         if service_name == "esm-infra":
-            title = "Ubuntu Pro: ESM Infra"
-            pkg_count_var = "{ESM_INFRA_PKG_COUNT}"
             pkg_names_var = "{ESM_INFRA_PACKAGES}"
         else:
-            title = "Ubuntu Pro: ESM Apps"
-            pkg_count_var = "{ESM_APPS_PKG_COUNT}"
             pkg_names_var = "{ESM_APPS_PACKAGES}"
         get_platform_info.return_value = platform_info
         m_entitlement_cls = mock.MagicMock()
@@ -275,7 +314,6 @@ class Test_WriteESMServiceAPTMsgTemplates:
         disabled_status = ApplicationStatus.DISABLED, ""
         m_ent_obj.application_status.return_value = disabled_status
         type(m_ent_obj).name = mock.PropertyMock(return_value=service_name)
-        type(m_ent_obj).title = mock.PropertyMock(return_value=title)
         pkgs_file = tmpdir.join("pkgs-msg")
         no_pkgs_file = tmpdir.join("no-pkgs-msg")
         motd_pkgs_file = tmpdir.join("motd-pkgs-msg")
@@ -293,16 +331,15 @@ class Test_WriteESMServiceAPTMsgTemplates:
         if expect_messages:
             assert (
                 DISABLED_APT_PKGS_TMPL.format(
-                    title=title,
-                    pkg_num=pkg_count_var,
+                    service=m_ent_obj.name,
                     pkg_names=pkg_names_var,
-                    eol_release=eol_release,
+                    context=context,
                     url=url,
                 )
                 == pkgs_file.read()
             )
             assert (
-                DISABLED_MOTD_NO_PKGS_TMPL.format(title=title, url=url)
+                DISABLED_APT_NO_PKGS_TMPL.format(context=context, url=url)
                 == no_pkgs_file.read()
             )
         else:
@@ -411,38 +448,48 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert False is os.path.exists(pkgs_msg_file)
             assert False is os.path.exists(no_pkgs_msg_file)
         elif contract_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = CONTRACT_EXPIRED_SOON_TMPL.format(
-                title="Ubuntu Pro: ESM Apps",
+            pkgs_msg = CONTRACT_EXPIRED_APT_SOON_TMPL.format(
                 remaining_days=remaining_days,
-                url=BASE_UA_URL,
             )
             assert pkgs_msg == pkgs_tmpl.read()
             assert pkgs_msg == no_pkgs_tmpl.read()
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_SOON_TMPL.format(
+                remaining_days=remaining_days,
+            )
+            assert motd_pkgs_msg == motd_pkgs_tmpl.read()
+            assert motd_pkgs_msg == motd_no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
             exp_dt = cfg.machine_token_file.contract_expiry_datetime
             exp_dt = exp_dt.strftime("%d %b %Y")
-            pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
-                title="Ubuntu Pro: ESM Apps",
+            pkgs_msg = CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL.format(
                 expired_date=exp_dt,
                 remaining_days=remaining_days
                 + CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
-                url=BASE_UA_URL,
             )
             assert pkgs_msg == pkgs_tmpl.read()
             assert pkgs_msg == no_pkgs_tmpl.read()
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
+                expired_date=exp_dt,
+                remaining_days=remaining_days
+                + CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
+            )
+            assert motd_pkgs_msg == motd_pkgs_tmpl.read()
+            assert motd_pkgs_msg == motd_no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED:
             pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
-                pkg_num="{ESM_APPS_PKG_COUNT}",
+                service="esm-apps",
                 pkg_names="{ESM_APPS_PACKAGES}",
-                title="Ubuntu Pro: ESM Apps",
-                name="esm-apps",
-                url=BASE_UA_URL,
             )
-            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
-                title="Ubuntu Pro: ESM Apps", url=BASE_UA_URL
-            )
+            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL
             assert pkgs_msg == pkgs_tmpl.read()
             assert no_pkgs_msg == no_pkgs_tmpl.read()
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
+                pkg_num="{ESM_APPS_PKG_COUNT}",
+                service="esm-apps",
+            )
+            motd_no_pkgs_msg = CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
+            assert motd_pkgs_msg == motd_pkgs_tmpl.read()
+            assert motd_no_pkgs_msg == motd_no_pkgs_tmpl.read()
 
 
 class TestWriteESMAnnouncementMessage:
@@ -460,8 +507,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
+                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=XENIAL_ESM_URL),
             ),
             # allow_beta uaclient.config overrides is_beta and days_until_esm
             (
@@ -471,8 +517,7 @@ class TestWriteESMAnnouncementMessage:
                 True,
                 True,
                 False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
+                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=XENIAL_ESM_URL),
             ),
             # when esm-apps already enabled don't show
             ("xenial", "16.04", True, False, True, True, None),
@@ -483,18 +528,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
-            ),
-            # Once Bionic transitions to ESM support, emit 18-04 messaging
-            (
-                "bionic",
-                "18.04",
-                True,
-                False,
-                None,
-                False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/18-04"),
+                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=BASE_UA_URL),
             ),
             (
                 "focal",
@@ -503,7 +537,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
+                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=BASE_UA_URL),
             ),
         ),
     )
@@ -528,6 +562,7 @@ class TestWriteESMAnnouncementMessage:
         expected,
         FakeConfig,
     ):
+        get_contextual_esm_info_url.cache_clear()
         get_platform_info.return_value = {"series": series, "release": release}
         system.is_active_esm.return_value = is_active_esm
 

@@ -236,8 +236,7 @@ def is_lts(series: str) -> bool:
 
 @lru_cache(maxsize=None)
 def is_current_series_lts() -> bool:
-    series = get_platform_info()["series"]
-    return is_lts(series)
+    return is_lts(get_platform_info()["series"])
 
 
 @lru_cache(maxsize=None)

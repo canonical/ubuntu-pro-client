@@ -312,7 +312,6 @@ static void process_all_templates(
    for (uint i = 0; i < apt_static_files.size(); i++) {
        std::ifstream message_file(apt_static_files[i]);
        if (message_file.is_open()) {
-           apt_pre_invoke_msg << std::endl;
            apt_pre_invoke_msg << message_file.rdbuf();
            message_file.close();
        };

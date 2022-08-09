@@ -214,8 +214,9 @@ SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
 To install them, run this command as root (try using sudo)"""
 
-# MOTD and APT command messaging
-ANNOUNCE_ESM_TMPL = """\
+# BEGIN MOTD and APT command messaging
+
+ANNOUNCE_ESM_APPS_TMPL = """\
  * Introducing Extended Security Maintenance for Applications.
    Receive updates to over 30,000 software packages with your
    Ubuntu Pro subscription. Free for personal use.
@@ -223,54 +224,53 @@ ANNOUNCE_ESM_TMPL = """\
      {url}
 """
 
-CONTRACT_EXPIRED_SOON_TMPL = """\
-CAUTION: Your {title} service will expire in {remaining_days} days.
-Renew your subscription at {url} to ensure continued security
+CONTRACT_EXPIRED_MOTD_SOON_TMPL = """\
+CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
+Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
 """
+CONTRACT_EXPIRED_APT_SOON_TMPL = "\n" + CONTRACT_EXPIRED_MOTD_SOON_TMPL
 
-CONTRACT_EXPIRED_GRACE_PERIOD_TMPL = """\
-CAUTION: Your {title} service expired on {expired_date}.
-Renew your subscription at {url} to ensure continued security
+CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL = """\
+CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
+Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
 Your grace period will expire in {remaining_days} days.
 """
-
-CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
-*Your {title} subscription has EXPIRED*
-
-{pkg_num} additional security update(s) could have been applied via {title}.
-
-Renew your service at {url}
-"""
-
-CONTRACT_EXPIRED_APT_PKGS_TMPL = """\
-*Your {title} subscription has EXPIRED*
-Enabling {title} service would provide security updates for following packages:
-  {pkg_names}
-{pkg_num} {name} security update(s) NOT APPLIED. Renew your service at
-{url}
-"""
-
-DISABLED_MOTD_NO_PKGS_TMPL = """\
-Enable {title} to receive additional future security updates.
-See {url} or run: sudo pro status
-"""
-
-CONTRACT_EXPIRED_APT_NO_PKGS_TMPL = (
-    """\
-*Your {title} subscription has EXPIRED*
-"""
-    + DISABLED_MOTD_NO_PKGS_TMPL
+CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL = (
+    "\n" + CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL
 )
 
+CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
+*Your Ubuntu Pro subscription has EXPIRED*
+{pkg_num} additional security update(s) require Ubuntu Pro with '{service}' enabled.
+Renew your service at https://ubuntu.com/pro
+"""  # noqa: E501
+
+CONTRACT_EXPIRED_APT_PKGS_TMPL = """\
+
+*Your Ubuntu Pro subscription has EXPIRED*
+The following security updates require Ubuntu Pro with '{service}' enabled:
+  {pkg_names}
+Renew your service at https://ubuntu.com/pro
+"""
+
+CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL = """\
+*Your Ubuntu Pro subscription has EXPIRED*
+Renew your service at https://ubuntu.com/pro
+"""
+CONTRACT_EXPIRED_APT_NO_PKGS_TMPL = "\n" + CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
 
 DISABLED_APT_PKGS_TMPL = """\
-*The following packages could receive security updates \
-with {title} service enabled:
+The following security updates require Ubuntu Pro with '{service}' enabled:
   {pkg_names}
-Learn more about {title} service {eol_release}at {url}
-"""
+Learn more about Ubuntu Pro{context} at {url}"""
+
+DISABLED_APT_NO_PKGS_TMPL = """\
+Receive additional future security updates with Ubuntu Pro.
+Learn more about Ubuntu Pro{context} at {url}"""
+
+# END MOTD and APT command messaging
 
 APT_PROXY_CONFIG_HEADER = """\
 /*

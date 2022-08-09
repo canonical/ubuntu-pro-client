@@ -9,21 +9,32 @@ present updated text about Ubuntu Pro service and token state.
 import enum
 import logging
 import os
+from functools import lru_cache
 from os.path import exists
 from typing import List, Tuple
 
 from uaclient import config, defaults, entitlements, system, util
+from uaclient.clouds import identity
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
-    ANNOUNCE_ESM_TMPL,
+    ANNOUNCE_ESM_APPS_TMPL,
+    CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
+    CONTRACT_EXPIRED_APT_SOON_TMPL,
+    CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
+    CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
-    CONTRACT_EXPIRED_SOON_TMPL,
+    CONTRACT_EXPIRED_MOTD_SOON_TMPL,
+    DISABLED_APT_NO_PKGS_TMPL,
     DISABLED_APT_PKGS_TMPL,
-    DISABLED_MOTD_NO_PKGS_TMPL,
 )
+
+XENIAL_ESM_URL = "https://ubuntu.com/16-04"
+AZURE_PRO_URL = "https://ubuntu.com/azure/pro"
+AZURE_XENIAL_URL = "https://ubuntu.com/16-04/azure"
+AWS_PRO_URL = "https://ubuntu.com/aws/pro"
+GCP_PRO_URL = "https://ubuntu.com/gcp/pro"
 
 
 @enum.unique
@@ -75,6 +86,40 @@ def get_contract_expiry_status(
     return ContractExpiryStatus.ACTIVE, remaining_days
 
 
+@lru_cache(maxsize=None)
+def get_contextual_esm_info_url() -> Tuple[str, str]:
+    cloud, _ = identity.get_cloud_type()
+    series = system.get_platform_info()["series"]
+
+    is_aws = False
+    is_gcp = False
+    is_azure = False
+    non_azure_cloud = False
+    if cloud is not None:
+        is_aws = cloud.startswith("aws")
+        is_gcp = cloud.startswith("gce")
+        is_azure = cloud.startswith("azure")
+        non_azure_cloud = not is_azure
+
+    is_xenial = series == "xenial"
+
+    if cloud is None and not is_xenial:
+        return (defaults.BASE_UA_URL, "")
+    if (cloud is None or non_azure_cloud) and is_xenial:
+        return (XENIAL_ESM_URL, " for 16.04")
+    if is_azure and not is_xenial:
+        return (AZURE_PRO_URL, " on Azure")
+    if is_azure and is_xenial:
+        return (AZURE_XENIAL_URL, " for 16.04 on Azure")
+    if is_aws and not is_xenial:
+        return (AWS_PRO_URL, " on AWS")
+    if is_gcp and not is_xenial:
+        return (GCP_PRO_URL, " on GCP")
+
+    # default case
+    return (defaults.BASE_UA_URL, "")
+
+
 def _write_template_or_remove(msg: str, tmpl_file: str):
     """Write a template to tmpl_file.
 
@@ -121,67 +166,54 @@ def _write_esm_service_msg_templates(
     tmpl_pkg_count_var = "{{{}_PKG_COUNT}}".format(tmpl_prefix)
     tmpl_pkg_names_var = "{{{}_PACKAGES}}".format(tmpl_prefix)
 
-    platform_info = system.get_platform_info()
-    is_active_esm = system.is_active_esm(platform_info["series"])
-    if is_active_esm and ent.name == "esm-infra":
-        release = platform_info["release"]
-        ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
-            hyphenatedrelease=release.replace(".", "-")
-        )
-        eol_release = "for Ubuntu {release} ".format(release=release)
-    else:
-        eol_release = ""
-        ua_esm_url = defaults.BASE_ESM_URL
     if ent.application_status()[0] == ApplicationStatus.ENABLED:
         if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = CONTRACT_EXPIRED_SOON_TMPL.format(
-                title=ent.title,
+            pkgs_msg = CONTRACT_EXPIRED_APT_SOON_TMPL.format(
                 remaining_days=remaining_days,
-                url=defaults.BASE_UA_URL,
             )
-            # Same cautionary message when contract is about to expire
-            motd_pkgs_msg = motd_no_pkgs_msg = no_pkgs_msg = pkgs_msg
+            no_pkgs_msg = pkgs_msg
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_SOON_TMPL.format(
+                remaining_days=remaining_days,
+            )
+            motd_no_pkgs_msg = motd_pkgs_msg
         elif expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
             grace_period_remaining = (
                 defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
             )
-            exp_dt = cfg.machine_token_file.contract_expiry_datetime
-            exp_dt = exp_dt.strftime("%d %b %Y")
-            pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
-                title=ent.title,
+            exp_dt = cfg.machine_token_file.contract_expiry_datetime.strftime(
+                "%d %b %Y"
+            )
+            pkgs_msg = CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL.format(
                 expired_date=exp_dt,
                 remaining_days=grace_period_remaining,
-                url=defaults.BASE_UA_URL,
             )
-            # Same cautionary message when in grace period
-            motd_pkgs_msg = motd_no_pkgs_msg = no_pkgs_msg = pkgs_msg
+            no_pkgs_msg = pkgs_msg
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
+                expired_date=exp_dt,
+                remaining_days=grace_period_remaining,
+            )
+            motd_no_pkgs_msg = motd_pkgs_msg
         elif expiry_status == ContractExpiryStatus.EXPIRED:
             pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
-                pkg_num=tmpl_pkg_count_var,
+                service=ent.name,
                 pkg_names=tmpl_pkg_names_var,
-                title=ent.title,
-                name=ent.name,
-                url=defaults.BASE_UA_URL,
             )
-            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
-                title=ent.title, url=defaults.BASE_UA_URL
-            )
-            motd_no_pkgs_msg = no_pkgs_msg
+            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
-                title=ent.title,
                 pkg_num=tmpl_pkg_count_var,
-                url=defaults.BASE_UA_URL,
+                service=ent.name,
             )
+            motd_no_pkgs_msg = CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
     elif expiry_status != ContractExpiryStatus.EXPIRED:  # Service not enabled
+        url, context = get_contextual_esm_info_url()
         pkgs_msg = DISABLED_APT_PKGS_TMPL.format(
-            title=ent.title,
-            pkg_num=tmpl_pkg_count_var,
+            service=ent.name,
             pkg_names=tmpl_pkg_names_var,
-            eol_release=eol_release,
-            url=ua_esm_url,
+            context=context,
+            url=url,
         )
-        no_pkgs_msg = DISABLED_MOTD_NO_PKGS_TMPL.format(
-            title=ent.title, url=ua_esm_url
+        no_pkgs_msg = DISABLED_APT_NO_PKGS_TMPL.format(
+            context=context, url=url
         )
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
@@ -298,17 +330,11 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     esm_news_file = os.path.join(msg_dir, ExternalMessage.ESM_ANNOUNCE.value)
-    platform_info = system.get_platform_info()
-    is_active_esm = system.is_active_esm(platform_info["series"])
-    if is_active_esm:
-        ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
-            hyphenatedrelease=platform_info["release"].replace(".", "-")
-        )
-    else:
-        ua_esm_url = defaults.BASE_ESM_URL
     if apps_not_beta and apps_not_enabled:
+        url, _ = get_contextual_esm_info_url()
         system.write_file(
-            esm_news_file, "\n" + ANNOUNCE_ESM_TMPL.format(url=ua_esm_url)
+            esm_news_file,
+            "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=url),
         )
     else:
         system.remove_file(esm_news_file)

@@ -66,21 +66,18 @@ Those messages are generated directly by two different sources:
     message after the `update-notifier` message:
 
     ```
-    *Your Ubuntu Pro: ESM Infra subscription has EXPIRED*
-
-    2 additional security updates could have been applied via Ubuntu Pro: ESM Infra.
-    Renew your UA services at https://ubuntu.com/advantage
-
-    Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
+    *Your Ubuntu Pro subscription has EXPIRED*
+    2 additional security update(s) require Ubuntu Pro with 'esm-infra' enabled.
+    Renew your service at https://ubuntu.com/pro
     ```
 
   * **subscription about to expire**: When the UA subscription is about to expire, we deliver the
     following message after the `update-notifier` message:
 
     ```
-    CAUTION: Your Ubuntu Pro: ESM Infra service will expire in 5 days.
-    Renew UA subscription at https://ubuntu.com/advantage to ensure
-    continued security coverage for your applications.
+    CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
+    Renew your subscription at https://ubuntu.com/pro to ensure continued security
+    coverage for your applications.
     ```
 
   * **subscription expired but within grace period**: When the UA subscription is expired, but is
@@ -88,9 +85,9 @@ Those messages are generated directly by two different sources:
     script:
 
     ```
-    CAUTION: Your Ubuntu Pro: ESM Infra service expired on 10 Sep 2021.
-    Renew UA subscription at https://ubuntu.com/advantage to ensure
-    continued security coverage for your applications.
+    CAUTION: Your Ubuntu Pro subscription expired on 10 Sep 2021.
+    Renew your subscription at https://ubuntu.com/pro to ensure continued security
+    coverage for your applications.
     Your grace period will expire in 9 days.
     ```
 
