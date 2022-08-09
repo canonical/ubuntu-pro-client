@@ -316,7 +316,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
         """
         """
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
         """
@@ -439,7 +439,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
         """
         """
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
         """
@@ -562,7 +562,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
         """
         """
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
         """

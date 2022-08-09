@@ -46,7 +46,7 @@ Feature: FIPS enablement in lxd containers
         And I verify that `<libssl>` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         And I verify that `<libssl>-hmac` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         And I verify that `<additional-fips-packages>` are installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
-        When I reboot the `<release>` machine
+        When I reboot the machine
         When I run `pro status --all` with sudo
         Then stdout does not match regexp:
             """

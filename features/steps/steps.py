@@ -562,17 +562,12 @@ def when_i_delete_file(context, file_path):
     when_i_run_command(context, cmd, "with sudo")
 
 
-@when("I reboot the `{series}` machine")
-def when_i_reboot_the_series_machine(context, series):
-    when_i_reboot_the_machine(context)
-
-
 @when("I reboot the machine")
 def when_i_reboot_the_machine(context):
     context.instances["uaclient"].restart(wait=True)
 
 
-@when("I reboot the machine: `{machine}`")
+@when("I reboot the `{machine}` machine")
 def when_i_reboot_the_machine_name(context, machine):
     context.instances[machine].restart(wait=True)
 

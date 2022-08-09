@@ -40,7 +40,7 @@ Feature: FIPS enablement in cloud based machines
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -77,7 +77,7 @@ Feature: FIPS enablement in cloud based machines
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -111,7 +111,7 @@ Feature: FIPS enablement in cloud based machines
         openssh-server was already not hold.
         strongswan was already not hold.
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -149,7 +149,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -170,7 +170,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
@@ -220,7 +220,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -241,7 +241,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -293,7 +293,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -314,7 +314,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
@@ -355,7 +355,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -376,7 +376,7 @@ Feature: FIPS enablement in cloud based machines
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
