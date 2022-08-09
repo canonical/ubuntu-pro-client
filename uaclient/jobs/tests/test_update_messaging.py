@@ -12,9 +12,15 @@ from uaclient.defaults import (
 )
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.jobs.update_messaging import (
+    AWS_PRO_URL,
+    AZURE_PRO_URL,
+    AZURE_XENIAL_URL,
+    GCP_PRO_URL,
+    XENIAL_ESM_URL,
     ContractExpiryStatus,
     ExternalMessage,
     _write_esm_service_msg_templates,
+    get_contextual_esm_info_url,
     get_contract_expiry_status,
     update_apt_and_motd_messages,
     write_apt_and_motd_templates,
@@ -59,6 +65,42 @@ class TestGetContractExpiryStatus:
             expected_status,
             contract_remaining_days,
         ) == get_contract_expiry_status(cfg)
+
+
+class TestGetContextualESMInfoURL:
+    @pytest.mark.parametrize(
+        "cloud, series, expected",
+        (
+            (None, "xenial", XENIAL_ESM_URL),
+            (None, "bionic", BASE_ESM_URL),
+            (None, "focal", BASE_ESM_URL),
+            (None, "jammy", BASE_ESM_URL),
+            ("aws", "xenial", XENIAL_ESM_URL),
+            ("aws", "bionic", AWS_PRO_URL),
+            ("aws", "focal", AWS_PRO_URL),
+            ("aws", "jammy", AWS_PRO_URL),
+            ("azure", "xenial", AZURE_XENIAL_URL),
+            ("azure", "bionic", AZURE_PRO_URL),
+            ("azure", "focal", AZURE_PRO_URL),
+            ("azure", "jammy", AZURE_PRO_URL),
+            ("gce", "xenial", XENIAL_ESM_URL),
+            ("gce", "bionic", GCP_PRO_URL),
+            ("gce", "focal", GCP_PRO_URL),
+            ("gce", "jammy", GCP_PRO_URL),
+            ("somethingelse", "xenial", XENIAL_ESM_URL),
+            ("somethingelse", "bionic", BASE_ESM_URL),
+            ("somethingelse", "focal", BASE_ESM_URL),
+            ("somethingelse", "jammy", BASE_ESM_URL),
+        ),
+    )
+    @mock.patch("uaclient.jobs.update_messaging.system.get_platform_info")
+    @mock.patch("uaclient.jobs.update_messaging.identity.get_cloud_type")
+    def test_get_contextual_esm_info_url(
+        self, m_get_cloud_type, m_get_platform_info, cloud, series, expected
+    ):
+        m_get_cloud_type.return_value = (cloud, None)
+        m_get_platform_info.return_value = {"series": series}
+        assert get_contextual_esm_info_url.__wrapped__() == expected
 
 
 class TestWriteAPTAndMOTDTemplates:
@@ -209,7 +251,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
                 True,
                 {"series": "xenial", "release": "16.04"},
                 "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
             ),
             (
                 "esm-infra",
@@ -217,7 +259,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
                 True,
                 {"series": "xenial", "release": "16.04"},
                 "for Ubuntu 16.04 ",
-                "https://ubuntu.com/16-04",
+                XENIAL_ESM_URL,
             ),
             (
                 "esm-apps",
@@ -225,7 +267,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
                 True,
                 {"series": "xenial", "release": "16.04"},
                 "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
             ),
             (
                 "esm-apps",
@@ -233,7 +275,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
                 False,
                 {"series": "xenial", "release": "16.04"},
                 "",
-                BASE_ESM_URL,
+                XENIAL_ESM_URL,
             ),
         ),
     )
@@ -261,6 +303,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
         This represents customer chosen disabling of service on an attached
         machine. So, they've chosen to disable expired services.
         """
+        get_contextual_esm_info_url.cache_clear()
         if service_name == "esm-infra":
             title = "Ubuntu Pro: ESM Infra"
             pkg_count_var = "{ESM_INFRA_PKG_COUNT}"
@@ -460,8 +503,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url=XENIAL_ESM_URL),
             ),
             # allow_beta uaclient.config overrides is_beta and days_until_esm
             (
@@ -471,8 +513,7 @@ class TestWriteESMAnnouncementMessage:
                 True,
                 True,
                 False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url=XENIAL_ESM_URL),
             ),
             # when esm-apps already enabled don't show
             ("xenial", "16.04", True, False, True, True, None),
@@ -483,7 +524,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url=BASE_ESM_URL),
             ),
             # Once Bionic transitions to ESM support, emit 18-04 messaging
             (
@@ -493,8 +534,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n"
-                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/18-04"),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url=BASE_ESM_URL),
             ),
             (
                 "focal",
@@ -503,7 +543,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url=BASE_ESM_URL),
             ),
         ),
     )
@@ -528,6 +568,7 @@ class TestWriteESMAnnouncementMessage:
         expected,
         FakeConfig,
     ):
+        get_contextual_esm_info_url.cache_clear()
         get_platform_info.return_value = {"series": series, "release": release}
         system.is_active_esm.return_value = is_active_esm
 
