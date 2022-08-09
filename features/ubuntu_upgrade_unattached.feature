@@ -11,7 +11,7 @@ Feature: Upgrade between releases when uaclient is unattached
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
         And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
         """
         [Sources]
@@ -19,7 +19,7 @@ Feature: Upgrade between releases when uaclient is unattached
         """
         And I run `sed -i 's/Prompt=lts/Prompt=<prompt>/' /etc/update-manager/release-upgrades` with sudo
         And I run `do-release-upgrade <devel_release> --frontend DistUpgradeViewNonInteractive` `with sudo` and stdin `y\n`
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And I run `lsb_release -cs` as non-root
         Then I will see the following on stdout:
         """

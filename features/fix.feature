@@ -89,7 +89,7 @@ Feature: Ua fix command behaviour
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt install -y libawl-php` with sudo
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
         Then stdout matches regexp:
         """

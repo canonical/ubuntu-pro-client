@@ -89,7 +89,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Real-Time Kernel is already enabled.
             See: sudo pro status
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         When I run `uname -r` as non-root
         Then stdout matches regexp:
             """

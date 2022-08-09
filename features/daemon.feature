@@ -34,7 +34,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         lxd
         """
         # verify the shim service runs on boot and creates the cloud-id file
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -136,7 +136,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -162,7 +162,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         daemon ending
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
@@ -194,7 +194,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
 
         # Verify manual stop & disable persists across reboot
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -248,7 +248,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I attach `contract_token` with sudo
         When I run `pro detach --assume-yes` with sudo
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -287,7 +287,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -328,7 +328,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         daemon starting
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
