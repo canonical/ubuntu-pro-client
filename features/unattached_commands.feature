@@ -52,18 +52,6 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
-        When I run `ua refresh messages` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout matches regexp:
-        """
-        \* Introducing Extended Security Maintenance for Applications.
-          +Receive updates to over 30,000 software packages with your
-          +Ubuntu Pro subscription. Free for personal use.
-
-            +https:\/\/ubuntu.com\/16-04
-
-        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
-        """
         When I create the file `/etc/apt/sources.list.d/empty-release-origin.list` with the following
         """
         deb [ allow-insecure=yes ] https://packages.irods.org/apt xenial main
