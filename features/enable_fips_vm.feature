@@ -51,7 +51,7 @@ Feature: FIPS enablement in lxd VMs
         {"available": "yes", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled."}
         """
 
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -87,7 +87,7 @@ Feature: FIPS enablement in lxd VMs
         """
         .*Installed: \(none\)
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -116,7 +116,7 @@ Feature: FIPS enablement in lxd VMs
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `pro disable <fips-service> --assume-yes --format json` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
@@ -174,7 +174,7 @@ Feature: FIPS enablement in lxd VMs
         {"available": "yes", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled."}
         """
 
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -195,7 +195,7 @@ Feature: FIPS enablement in lxd VMs
             Updating package lists
             A reboot is required to complete disable operation
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -222,7 +222,7 @@ Feature: FIPS enablement in lxd VMs
         And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        When I reboot the `<release>` machine
+        When I reboot the machine
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
@@ -254,7 +254,7 @@ Feature: FIPS enablement in lxd VMs
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And I run `pro disable <fips-service> --assume-yes --format json` with sudo
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
@@ -305,7 +305,7 @@ Feature: FIPS enablement in lxd VMs
             """
             livepatch +yes                enabled
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -355,7 +355,7 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -372,7 +372,7 @@ Feature: FIPS enablement in lxd VMs
             Updating package lists
             A reboot is required to complete disable operation
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -419,7 +419,7 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -436,7 +436,7 @@ Feature: FIPS enablement in lxd VMs
             Updating package lists
             A reboot is required to complete disable operation
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
@@ -483,7 +483,7 @@ Feature: FIPS enablement in lxd VMs
             """
             fips +yes                enabled
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -508,7 +508,7 @@ Feature: FIPS enablement in lxd VMs
                 """
                 fips +yes                n/a
                 """
-            When I reboot the `<release>` machine
+            When I reboot the machine
             And  I run `pro enable livepatch` with sudo
             And I run `pro status --all` with sudo
             Then stdout matches regexp:

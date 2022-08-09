@@ -40,7 +40,7 @@ Feature: FIPS enablement in PRO cloud based machines
             """
             .*Installed: \(none\)
             """
-            When I reboot the `<release>` machine
+            When I reboot the machine
             And  I run `uname -r` as non-root
             Then stdout matches regexp:
                 """
@@ -99,7 +99,7 @@ Feature: FIPS enablement in PRO cloud based machines
             """
             .*Installed: \(none\)
             """
-            When I reboot the `<release>` machine
+            When I reboot the machine
             And  I run `uname -r` as non-root
             Then stdout matches regexp:
                 """
@@ -159,7 +159,7 @@ Feature: FIPS enablement in PRO cloud based machines
             """
             .*Installed: \(none\)
             """
-        When I reboot the `<release>` machine
+        When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
             """
