@@ -94,6 +94,7 @@ class CanEnableFailureReason(enum.Enum):
     IS_BETA = object()
     INCOMPATIBLE_SERVICE = object()
     INACTIVE_REQUIRED_SERVICES = object()
+    ACCESS_ONLY_NOT_SUPPORTED = object()
 
 
 class CanEnableFailure:

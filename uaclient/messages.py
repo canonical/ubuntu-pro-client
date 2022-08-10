@@ -114,6 +114,7 @@ Error: The current Ubuntu Pro subscription is not entitled to: {service}.
 Without it, we cannot fix the system."""
 APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
+ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
 UNABLE_TO_DETERMINE_CLOUD_TYPE = (
     """\
@@ -960,4 +961,9 @@ and bug fixes.",
 
 INVALID_PRO_IMAGE = FormattedNamedMessage(
     name="invalid-pro-image", msg="Error on Pro Image:\n{msg}"
+)
+
+ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
+    name="enable-access-only-not-supported",
+    msg="{title} does not support being enabled with --access-only",
 )

@@ -103,3 +103,40 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Examples: ubuntu release
             | release |
             | jammy   |
+
+    @series.jammy
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Enable Real-Time Kernel service access-only
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `pro enable realtime-kernel --beta --access-only` with sudo
+        Then stdout matches regexp:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Skipping installing packages: ubuntu-realtime
+        Real-Time Kernel access enabled
+        """
+        Then stdout does not match regexp:
+        """
+        A reboot is required to complete install.
+        """
+        When I run `apt-cache policy ubuntu-realtime` as non-root
+        Then stdout matches regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
+        """
+        When I run `apt-get install -y ubuntu-realtime` with sudo
+        When I reboot the machine
+        When I run `uname -r` as non-root
+        Then stdout matches regexp:
+        """
+        realtime
+        """
+        Examples: ubuntu release
+            | release |
+            | jammy   |

@@ -14,6 +14,7 @@ class CISEntitlement(repo.RepoEntitlement):
     description = "Security compliance and audit tools"
     repo_key_file = "ubuntu-advantage-cis.gpg"
     apt_noninteractive = True
+    supports_access_only = True
 
     @property
     def messaging(self) -> MessagingOperationsDict:

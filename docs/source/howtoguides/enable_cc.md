@@ -7,6 +7,8 @@ point releases.
 Common Criteria is supported only on 16.04 and 18.04. For more information on it,
 please see https://ubuntu.com/security/cc
 
+## Enable and auto-install
+
 To enable it through UA, please run:
 
 ```console
@@ -21,4 +23,30 @@ been installed.
 Installing CC EAL2 packages
 CC EAL2 enabled
 Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
+```
+
+## Enable and manually install
+
+> **Note**
+> The --access-only flag is introduced in version 27.11
+
+If you would like to enable access to the CC EAL apt repository but not install the packages right away, use the `--access-only` flag while enabling.
+
+```console
+$ sudo ua enable cc-eal --access-only
+```
+
+With that extra flag you'll see output like the following:
+
+```
+One moment, checking your subscription first
+Updating package lists
+Skipping installing packages: ubuntu-commoncriteria
+CC EAL2 access enabled
+```
+
+To install the packages you can then run:
+
+```console
+$ sudo apt install ubuntu-commoncriteria
 ```

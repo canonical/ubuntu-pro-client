@@ -638,6 +638,14 @@ def enable_parser(parser, cfg: config.UAConfig):
         help="do not prompt for confirmation before performing the enable",
     )
     parser.add_argument(
+        "--access-only",
+        action="store_true",
+        help=(
+            "do not auto-install packages. Valid for cc-eal, cis and "
+            "realtime-kernel."
+        ),
+    )
+    parser.add_argument(
         "--beta", action="store_true", help="allow beta service to be enabled"
     )
     parser.add_argument(
@@ -1120,7 +1128,11 @@ def action_enable(args, *, cfg, **kwargs):
     for ent_name in entitlements_found:
         try:
             ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg, ent_name, assume_yes=args.assume_yes, allow_beta=args.beta
+                cfg,
+                ent_name,
+                assume_yes=args.assume_yes,
+                allow_beta=args.beta,
+                access_only=args.access_only,
             )
             ua_status.status(cfg=cfg)  # Update the status cache
 

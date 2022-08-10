@@ -106,7 +106,8 @@ def enable_entitlement_by_name(
     name: str,
     *,
     assume_yes: bool = False,
-    allow_beta: bool = False
+    allow_beta: bool = False,
+    access_only: bool = False
 ):
     """
     Constructs an entitlement based on the name provided. Passes kwargs onto
@@ -116,7 +117,11 @@ def enable_entitlement_by_name(
     """
     ent_cls = entitlements.entitlement_factory(cfg=cfg, name=name)
     entitlement = ent_cls(
-        cfg, assume_yes=assume_yes, allow_beta=allow_beta, called_name=name
+        cfg,
+        assume_yes=assume_yes,
+        allow_beta=allow_beta,
+        called_name=name,
+        access_only=access_only,
     )
     return entitlement.enable()
 
