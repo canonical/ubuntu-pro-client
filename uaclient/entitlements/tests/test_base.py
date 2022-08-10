@@ -30,15 +30,18 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         cfg=None,
         disable=None,
         enable=None,
-        applicability_status=None,
-        application_status=None,
+        applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+        application_status=(ApplicationStatus.DISABLED, ""),
         allow_beta=False,
+        supports_access_only=False,
+        access_only=False,
         dependent_services=None,
         required_services=None,
         blocking_incompatible_services=None,
         **kwargs
     ):
-        super().__init__(cfg, allow_beta=allow_beta)
+        super().__init__(cfg, allow_beta=allow_beta, access_only=access_only)
+        self.supports_access_only = supports_access_only
         self._disable = disable
         self._enable = enable
         self._applicability_status = applicability_status
@@ -75,10 +78,18 @@ def concrete_entitlement_factory(FakeConfig):
     def factory(
         *,
         entitled: bool,
-        applicability_status: Tuple[ApplicabilityStatus, str] = None,
-        application_status: Tuple[ApplicationStatus, str] = None,
+        applicability_status: Tuple[ApplicabilityStatus, str] = (
+            ApplicabilityStatus.APPLICABLE,
+            "",
+        ),
+        application_status: Tuple[ApplicationStatus, str] = (
+            ApplicationStatus.DISABLED,
+            "",
+        ),
         feature_overrides: Optional[Dict[str, str]] = None,
         allow_beta: bool = False,
+        supports_access_only: bool = False,
+        access_only: bool = False,
         enable: bool = False,
         disable: bool = False,
         dependent_services: Tuple[Any, ...] = None,
@@ -108,6 +119,8 @@ def concrete_entitlement_factory(FakeConfig):
             applicability_status=applicability_status,
             application_status=application_status,
             allow_beta=allow_beta,
+            supports_access_only=supports_access_only,
+            access_only=access_only,
             enable=enable,
             disable=disable,
             dependent_services=dependent_services,
@@ -230,6 +243,28 @@ class TestUaEntitlement:
         assert (
             reason.message.msg
             == messages.UNENTITLED.format(
+                title=ConcreteTestEntitlement.title
+            ).msg
+        )
+
+    def test_can_enable_false_on_access_only_not_supported(
+        self, concrete_entitlement_factory
+    ):
+        """When entitlement contract is not enabled, can_enable is False."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            supports_access_only=False,
+            access_only=True,
+        )
+
+        can_enable, reason = entitlement.can_enable()
+        assert not can_enable
+        assert (
+            reason.reason == CanEnableFailureReason.ACCESS_ONLY_NOT_SUPPORTED
+        )
+        assert (
+            reason.message.msg
+            == messages.ENABLE_ACCESS_ONLY_NOT_SUPPORTED.format(
                 title=ConcreteTestEntitlement.title
             ).msg
         )

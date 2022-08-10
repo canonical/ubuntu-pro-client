@@ -95,6 +95,7 @@ def entitlement_factory(tmpdir, FakeConfig):
         entitled: bool = True,
         allow_beta: bool = False,
         called_name: str = "",
+        access_only: bool = False,
         assume_yes: Optional[bool] = None,
         suites: List[str] = None,
         additional_packages: List[str] = None,
@@ -122,7 +123,11 @@ def entitlement_factory(tmpdir, FakeConfig):
         if services_once_enabled:
             cfg.write_cache("services-once-enabled", services_once_enabled)
 
-        args = {"allow_beta": allow_beta, "called_name": called_name}
+        args = {
+            "allow_beta": allow_beta,
+            "called_name": called_name,
+            "access_only": access_only,
+        }
         if assume_yes is not None:
             args["assume_yes"] = assume_yes
         return cls(cfg, **args)

@@ -1174,6 +1174,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
                     assume_yes=True,
                     beta=False,
                     format="cli",
+                    access_only=False,
                 ),
                 cfg,
             )

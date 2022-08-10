@@ -28,6 +28,26 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | xenial  |
             | bionic  |
 
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Enable cc-eal with --access-only
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `pro enable cc-eal --access-only` with sudo
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Skipping installing packages: ubuntu-commoncriteria
+        CC EAL2 access enabled
+        """
+        Then I verify that running `apt-get install ubuntu-commoncriteria` `with sudo` exits `0`
+        Examples: ubuntu release
+            | release |
+            | xenial  |
+            | bionic  |
+
     @series.focal
     @series.jammy
     @series.kinetic
@@ -369,15 +389,25 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I verify that running `pro enable cis --access-only` `with sudo` exits `0`
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Skipping installing packages: usg-cisbenchmark usg-common
+        CIS Audit access enabled
+        Visit https://ubuntu.com/security/cis to learn how to use CIS
+        """
+        When I run `pro disable cis` with sudo
         And I verify that running `pro enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Updating package lists
-            Installing CIS Audit packages
-            CIS Audit enabled
-            Visit https://ubuntu.com/security/cis to learn how to use CIS
-            """
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Installing CIS Audit packages
+        CIS Audit enabled
+        Visit https://ubuntu.com/security/cis to learn how to use CIS
+        """
         When I run `apt-cache policy usg-cisbenchmark` as non-root
         Then stdout does not match regexp:
         """
@@ -629,6 +659,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +disabled +Canonical Livepatch service
+        """
+        When I verify that running `pro enable livepatch --access-only` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Livepatch does not support being enabled with --access-only
         """
 
         Examples: ubuntu release

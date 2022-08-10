@@ -83,10 +83,18 @@ class RepoEntitlement(base.UAEntitlement):
         """
         self.setup_apt_config(silent=silent)
 
-        self.install_packages()
-
-        event.info(messages.ENABLED_TMPL.format(title=self.title))
-        self._check_for_reboot_msg(operation="install")
+        if self.supports_access_only and self.access_only:
+            packages_str = (
+                ": " + " ".join(self.packages)
+                if len(self.packages) > 0
+                else ""
+            )
+            event.info("Skipping installing packages{}".format(packages_str))
+            event.info(messages.ACCESS_ENABLED_TMPL.format(title=self.title))
+        else:
+            self.install_packages()
+            event.info(messages.ENABLED_TMPL.format(title=self.title))
+            self._check_for_reboot_msg(operation="install")
         return True
 
     def _perform_disable(self, silent=False):
