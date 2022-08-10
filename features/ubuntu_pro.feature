@@ -595,7 +595,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And I run `pro status --wait` with sudo
         And I run `pro security-status --format json` with sudo
         Then stdout matches regexp:
@@ -637,7 +637,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I reboot the `<release>` machine
+        And I reboot the machine
         And I run `pro status --wait` with sudo
         And I run `pro security-status --format json` with sudo
         Then stdout matches regexp:
