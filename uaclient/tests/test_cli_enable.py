@@ -27,6 +27,8 @@ Flags:
   -h, --help           show this help message and exit
   --assume-yes         do not prompt for confirmation before performing the
                        enable
+  --access-only        do not auto-install packages. Valid for cc-eal, cis and
+                       realtime-kernel.
   --beta               allow beta service to be enabled
   --format {cli,json}  output enable in the specified format (default: cli)
 """
@@ -402,6 +404,7 @@ class TestActionEnable:
         args.service = ["testitlement"]
         args.assume_yes = assume_yes
         args.beta = False
+        args.access_only = False
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -415,6 +418,7 @@ class TestActionEnable:
                 assume_yes=assume_yes,
                 allow_beta=False,
                 called_name="testitlement",
+                access_only=False,
             )
         ] == m_entitlement_cls.call_args_list
 
@@ -469,6 +473,7 @@ class TestActionEnable:
         assume_yes = False
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
+        args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = False
 
@@ -498,6 +503,7 @@ class TestActionEnable:
                     assume_yes=assume_yes,
                     allow_beta=False,
                     called_name=m_ent_cls.name,
+                    access_only=False,
                 )
             ] == m_ent_cls.call_args_list
 
@@ -578,6 +584,7 @@ class TestActionEnable:
         assume_yes = False
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
+        args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
@@ -638,6 +645,7 @@ class TestActionEnable:
                     assume_yes=assume_yes,
                     allow_beta=beta_flag,
                     called_name=m_ent_cls.name,
+                    access_only=False,
                 )
             ] == m_ent_cls.call_args_list
 
@@ -845,6 +853,7 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
 
         args_mock = mock.MagicMock()
+        args_mock.access_only = False
         args_mock.assume_yes = False
         args_mock.beta = allow_beta
         args_mock.service = ["testitlement"]
@@ -864,6 +873,7 @@ class TestActionEnable:
                 assume_yes=False,
                 allow_beta=allow_beta,
                 called_name="testitlement",
+                access_only=False,
             )
         ] == m_entitlement_cls.call_args_list
 

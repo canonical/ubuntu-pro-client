@@ -46,6 +46,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Whether that entitlement is in beta stage
     is_beta = False
 
+    # Whether the entitlement supports the --access-only flag
+    supports_access_only = False
+
     # Help info message for the entitlement
     _help_info = None  # type: str
 
@@ -158,6 +161,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         assume_yes: bool = False,
         allow_beta: bool = False,
         called_name: str = "",
+        access_only: bool = False,
     ) -> None:
         """Setup UAEntitlement instance
 
@@ -169,6 +173,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         self.cfg = cfg
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
+        self.access_only = access_only
         self._called_name = called_name
         self._valid_service = None
 
@@ -187,7 +192,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # using Union instead of Optional here to signal that it may expand to
     # support additional reason types in the future.
     def enable(
-        self, silent: bool = False
+        self,
+        silent: bool = False,
     ) -> Tuple[bool, Union[None, CanEnableFailure]]:
         """Enable specific entitlement.
 
@@ -345,6 +351,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
                     ),
                 )
+
+        if not self.supports_access_only and self.access_only:
+            return (
+                False,
+                CanEnableFailure(
+                    CanEnableFailureReason.ACCESS_ONLY_NOT_SUPPORTED,
+                    messages.ENABLE_ACCESS_ONLY_NOT_SUPPORTED.format(
+                        title=self.title
+                    ),
+                ),
+            )
 
         return (True, None)
 
