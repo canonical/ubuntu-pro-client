@@ -1,9 +1,13 @@
-from typing import Tuple
+from typing import Optional, Tuple  # noqa: F401
 
 from uaclient import event_logger, messages, system, util
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
-from uaclient.types import MessagingOperationsDict, StaticAffordance
+from uaclient.types import (  # noqa: F401
+    MessagingOperations,
+    MessagingOperationsDict,
+    StaticAffordance,
+)
 
 event = event_logger.get_event_logger()
 
@@ -18,6 +22,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-advantage-realtime-kernel.gpg"
     is_beta = True
     apt_noninteractive = True
+    supports_access_only = True
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
@@ -63,8 +68,9 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     def messaging(
         self,
     ) -> MessagingOperationsDict:
-        return {
-            "pre_enable": [
+        pre_enable = None  # type: Optional[MessagingOperations]
+        if not self.access_only:
+            pre_enable = [
                 (
                     util.prompt_for_confirmation,
                     {
@@ -73,7 +79,9 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                         "default": True,
                     },
                 )
-            ],
+            ]
+        return {
+            "pre_enable": pre_enable,
             "pre_disable": [
                 (
                     util.prompt_for_confirmation,

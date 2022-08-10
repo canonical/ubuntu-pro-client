@@ -629,6 +629,41 @@ class TestRepoEnable:
         assert 1 == m_rac.call_count
 
 
+class TestPerformEnable:
+    @pytest.mark.parametrize(
+        "supports_access_only, access_only, expected_install_calls",
+        (
+            (False, False, [mock.call()]),
+            (False, True, [mock.call()]),
+            (True, False, [mock.call()]),
+            (True, True, []),
+        ),
+    )
+    @mock.patch(M_PATH + "RepoEntitlement._check_for_reboot_msg")
+    @mock.patch(M_PATH + "RepoEntitlement.install_packages")
+    @mock.patch(M_PATH + "RepoEntitlement.setup_apt_config")
+    def test_access_only_skips_install(
+        self,
+        _m_setup_apt_config,
+        m_install_packages,
+        _m_check_for_reboot_msg,
+        supports_access_only,
+        access_only,
+        expected_install_calls,
+        entitlement_factory,
+    ):
+        with mock.patch.object(
+            RepoTestEntitlement, "supports_access_only", supports_access_only
+        ):
+            entitlement = entitlement_factory(
+                RepoTestEntitlement,
+                affordances={"series": ["xenial"]},
+                access_only=access_only,
+            )
+            entitlement._perform_enable()
+            assert m_install_packages.call_args_list == expected_install_calls
+
+
 class TestRemoveAptConfig:
     def test_missing_aptURL(self, entitlement_factory):
         # Make aptURL missing
