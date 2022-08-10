@@ -10,6 +10,18 @@ Feature: Magic Attach endpoints
         """
         {"_schema_version": "v1", "data": {"meta": {\"environment_vars\": \[]}}, "errors": \[{"code": "api-missing-argument", "meta": {}, "title": "Missing argument \'magic_token\' for endpoint u.pro.attach.magic.revoke.v1"}\], "result": "failure", "version": ".*", "warnings": \[\]}
         """
+        When I verify that running `pro api u.pro.attach.magic.wait.v1 --args magic_token=INVALID` `as non-root` exits `1`
+        Then stdout is a json matching the `api_response` schema
+        And stdout matches regexp:
+        """ 
+        {"_schema_version": "v1", "data": {"meta": {"environment_vars": \[\]}}, "errors": \[{"code": "magic-attach-token-error", "meta": {}, "title": "The magic attach token is invalid, has expired or never existed"}\], "result": "failure", "version": ".*", "warnings": \[\]}
+        """
+        When I verify that running `pro api u.pro.attach.magic.revoke.v1 --args magic_token=INVALID` `as non-root` exits `1`
+        Then stdout is a json matching the `api_response` schema
+        And stdout matches regexp:
+        """ 
+        {"_schema_version": "v1", "data": {"meta": {"environment_vars": \[\]}}, "errors": \[{"code": "magic-attach-token-error", "meta": {}, "title": "The magic attach token is invalid, has expired or never existed"}\], "result": "failure", "version": ".*", "warnings": \[\]}
+        """
         When I initiate the magic attach flow
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `magic_attach` schema
