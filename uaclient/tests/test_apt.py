@@ -24,12 +24,12 @@ from uaclient.apt import (
     assert_valid_apt_credentials,
     clean_apt_files,
     find_apt_list_files,
+    get_apt_cache_policy,
     get_installed_packages,
     is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
-    run_apt_cache_policy_command,
     run_apt_update_command,
     setup_apt_proxy,
 )
@@ -929,15 +929,15 @@ class TestRunAptCommand:
             ("policy2", ""),
         ]
 
-        assert "policy1" == run_apt_cache_policy_command()
+        assert "policy1" == get_apt_cache_policy()
         # Confirming that caching is happening
-        assert "policy1" == run_apt_cache_policy_command()
+        assert "policy1" == get_apt_cache_policy()
 
         run_apt_update_command()
 
         # Confirm cache was cleared
-        assert "policy2" == run_apt_cache_policy_command()
-        run_apt_cache_policy_command.cache_clear()
+        assert "policy2" == get_apt_cache_policy()
+        get_apt_cache_policy.cache_clear()
 
     @mock.patch("uaclient.apt.system.subp")
     def test_failed_run_update_command_clean_apt_cache_policy_cache(
@@ -949,16 +949,16 @@ class TestRunAptCommand:
             ("policy2", ""),
         ]
 
-        assert "policy1" == run_apt_cache_policy_command()
+        assert "policy1" == get_apt_cache_policy()
         # Confirming that caching is happening
-        assert "policy1" == run_apt_cache_policy_command()
+        assert "policy1" == get_apt_cache_policy()
 
         with pytest.raises(exceptions.UserFacingError):
             run_apt_update_command()
 
         # Confirm cache was cleared
-        assert "policy2" == run_apt_cache_policy_command()
-        run_apt_cache_policy_command.cache_clear()
+        assert "policy2" == get_apt_cache_policy()
+        get_apt_cache_policy.cache_clear()
 
 
 class TestAptProxyConfig:
