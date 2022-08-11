@@ -118,7 +118,7 @@ class TestCommonCriteriaEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.run_apt_cache_policy_command")
+    @mock.patch("uaclient.apt.get_apt_cache_policy")
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
