@@ -1047,9 +1047,7 @@ class TestFIPSEntitlementApplicationStatus:
     def test_fips_does_not_show_enabled_when_fips_updates_is(
         self, _m_should_reboot, entitlement
     ):
-        with mock.patch(
-            "uaclient.apt.run_apt_cache_policy_command"
-        ) as m_apt_policy:
+        with mock.patch("uaclient.apt.get_apt_cache_policy") as m_apt_policy:
             m_apt_policy.return_value = (
                 "1001 http://FIPS-UPDATES/ubuntu"
                 " xenial-updates/main amd64 Packages\n"

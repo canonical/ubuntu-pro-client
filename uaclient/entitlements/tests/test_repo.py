@@ -1036,7 +1036,7 @@ class TestApplicationStatus:
             (500, "https://esm.ubuntu.com/ubuntu", True),
         ),
     )
-    @mock.patch(M_PATH + "apt.run_apt_cache_policy_command")
+    @mock.patch(M_PATH + "apt.get_apt_cache_policy")
     def test_enabled_status_by_apt_policy(
         self, m_run_apt_policy, pin, policy_url, enabled, entitlement_factory
     ):

@@ -182,12 +182,22 @@ def run_apt_command(
 
 
 @lru_cache(maxsize=None)
-def run_apt_cache_policy_command(
+def get_apt_cache_policy(
     error_msg: Optional[str] = None,
     env: Optional[Dict[str, str]] = {},
 ) -> str:
     return run_apt_command(
         cmd=["apt-cache", "policy"], error_msg=error_msg, env=env
+    )
+
+
+def get_apt_cache_policy_for_package(
+    package: str,
+    error_msg: Optional[str] = None,
+    env: Optional[Dict[str, str]] = {},
+) -> str:
+    return run_apt_command(
+        cmd=["apt-cache", "policy", package], error_msg=error_msg, env=env
     )
 
 
@@ -207,7 +217,7 @@ def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
         # Whenever we run an apt-get update command, we must invalidate
         # the existing apt-cache policy cache. Otherwise, we could provide
         # users with incorrect values.
-        run_apt_cache_policy_command.cache_clear()
+        get_apt_cache_policy.cache_clear()
 
     return out
 
