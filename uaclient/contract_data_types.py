@@ -52,6 +52,17 @@ class AvailableResource(DataObject):
         self.presentedAs = presentedAs
 
 
+class ExternalID(DataObject):
+    fields = [
+        Field("origin", StringDataValue, False),
+        Field("IDs", data_list(StringDataValue), False),
+    ]
+
+    def __init__(self, origin: Optional[str], IDs: Optional[List[str]]):
+        self.origin = origin
+        self.IDs = IDs
+
+
 class AccountInfo(DataObject):
     fields = [
         Field("name", StringDataValue, False),
@@ -59,6 +70,7 @@ class AccountInfo(DataObject):
         Field("createdAt", StringDataValue, False),
         Field("type", StringDataValue, False),
         Field("userRoleOnAccount", StringDataValue, False),
+        Field("externalAccountIDs", data_list(ExternalID), False),
     ]
 
     def __init__(
@@ -68,12 +80,14 @@ class AccountInfo(DataObject):
         createdAt: Optional[str],
         type: Optional[str],
         userRoleOnAccount: Optional[str],
+        externalAccountIDs: Optional[List[str]],
     ):
         self.name = name
         self.id = id
-        self.createAt = createdAt
+        self.createdAt = createdAt
         self.type = type
         self.userRoleOnAccount = userRoleOnAccount
+        self.externalAccountIDs = externalAccountIDs
 
 
 class Affordances(DataObject):
