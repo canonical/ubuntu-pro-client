@@ -20,4 +20,4 @@ packages or security updates.
 - The `update_status` job makes sure the `ua status` command will have the latest
 information even when executed by a non-root user, updating the
 `/var/lib/ubuntu-advantage/status.json` file.
-- The `metering` will inform Canonical on which services are enable on the machine.
+- The `metering` will inform Canonical on which services are enabled on the machine.
