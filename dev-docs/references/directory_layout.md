@@ -17,4 +17,15 @@ The following describes the intent of UA client related directories:
 | ./apt-conf.d/ | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM security-related components. If apt proxy settings are configured, an additional apt config file will be placed here to configure the apt proxy. |
 | /etc/ubuntu-advantage/uaclient.conf | Configuration file for the UA client.|
 | /var/lib/ubuntu-advantage/private | `root` read-only directory containing Contract API responses, machine-tokens and service credentials |
+| /var/lib/ubuntu-advantage/machine-token.json | `world` readable file containing redacted Contract API responses, machine-tokens and service credentials |
 | /var/log/ubuntu-advantage.log | `root` read-only log of ubuntu-advantage operations |
+
+## Note
+
+We have two `machine-token.json` files, located at:
+- /var/lib/ubuntu-advantage/private/machine-token.json
+- /var/lib/ubuntu-advantage/machine-token.json
+
+The first file, located in the `private` directory, is root read-only. We have another world readable file in the `/var/lib/ubuntu-advantage` directory.
+
+The latter is currently being used when calling the `pro status` command as a non-root user. This file is redacted to remove any sensitive user data.
