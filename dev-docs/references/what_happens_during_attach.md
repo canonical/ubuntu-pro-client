@@ -9,6 +9,7 @@ After running the command `ua attach TOKEN`, UA will perform the following steps
   token, service credentials, affordances, directives and obligations to allow
   enabling and disabling Ubuntu Advantage services
 * UA client writes the machine token API response to the root-readonly
-  /var/lib/ubuntu-advantage/private/machine-token.json
+  /var/lib/ubuntu-advantage/private/machine-token.json and a version with secrets redacted to the world-readable
+  file /var/lib/ubuntu-advantage/machine-token.json.
 * UA client auto-enables any services defined with
   `obligations:{enableByDefault: true}`
