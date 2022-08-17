@@ -19,7 +19,9 @@ Feature: Build docker images with pro services
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && dpkg -i /ua.deb \
+            && dpkg -i /ua.deb | true \
+
+            && apt-get install -f \
 
             && pro attach --attach-config /run/secrets/ua-attach-config \
 
@@ -75,4 +77,3 @@ Feature: Build docker images with pro services
            | focal   | xenial            | [ esm-infra ]  | curl              | esm                  |
            | focal   | bionic            | [ fips ]       | openssl           | fips                 |
            | focal   | focal             | [ esm-apps ]   | hello             | esm                  |
-
