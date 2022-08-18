@@ -173,7 +173,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
            | bionic  | libkrad0=1.16-2build1       | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
            | focal   | hello=2.10-2ubuntu2         | n/a       | usg        | disabled | disabled | Canonical Livepatch service   |
-           | jammy   | hello=2.10-2ubuntu4         | n/a       | usg        | n/a      | n/a      | Available with the HWE kernel |
+           | jammy   | hello=2.10-2ubuntu4         | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
