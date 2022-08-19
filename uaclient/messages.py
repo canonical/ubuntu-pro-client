@@ -551,6 +551,14 @@ SNAPD_NOT_PROPERLY_INSTALLED = FormattedNamedMessage(
     ),
 )
 
+SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
+    "ssl-verification-error-ca-certificate",
+    """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please install "ca-certificates" and try again.""",
+)
+
 SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = FormattedNamedMessage(
     "ssl-verification-error-openssl-config",
     """\
