@@ -494,6 +494,11 @@ MAGIC_ATTACH_INVALID_EMAIL = FormattedNamedMessage(
     "{email} is not a valid email.",
 )
 
+MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
+    "magic-attach-service-unavailable",
+    "Service unavailable, please try again later.",
+)
+
 REQUIRED_SERVICE_NOT_FOUND = FormattedNamedMessage(
     "required-service-not-found", "Required service {service} not found."
 )

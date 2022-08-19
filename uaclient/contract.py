@@ -193,6 +193,8 @@ class UAContractClient(serviceclient.UAServiceClient):
             if hasattr(e, "code"):
                 if e.code == 401:
                     raise exceptions.MagicAttachTokenError()
+                elif e.code == 503:
+                    raise exceptions.MagicAttachUnavailable()
             raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
@@ -210,6 +212,10 @@ class UAContractClient(serviceclient.UAServiceClient):
                 headers=headers,
                 method="POST",
             )
+        except exceptions.ContractAPIError as e:
+            if e.code == 503:
+                raise exceptions.MagicAttachUnavailable()
+            raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
             raise exceptions.UserFacingError(
@@ -236,6 +242,8 @@ class UAContractClient(serviceclient.UAServiceClient):
                     raise exceptions.MagicAttachTokenAlreadyActivated()
                 elif e.code == 401:
                     raise exceptions.MagicAttachTokenError()
+                elif e.code == 503:
+                    raise exceptions.MagicAttachUnavailable()
             raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
