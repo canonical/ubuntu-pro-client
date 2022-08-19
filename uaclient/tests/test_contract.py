@@ -372,25 +372,49 @@ class TestUAContractClient:
 
         assert client.new_magic_attach_token() == magic_attach_token_resp
 
+    @pytest.mark.parametrize(
+        "raised_exception,expected_exception,message",
+        (
+            (
+                exceptions.UrlError("test"),
+                exceptions.UserFacingError,
+                messages.CONNECTIVITY_ERROR,
+            ),
+            (
+                exceptions.ContractAPIError(
+                    exceptions.UrlError("test", code=503),
+                    error_response={},
+                ),
+                exceptions.MagicAttachUnavailable,
+                messages.MAGIC_ATTACH_UNAVAILABLE,
+            ),
+        ),
+    )
     def test_new_magic_attach_token_fails(
         self,
         get_machine_id,
         request_url,
         FakeConfig,
+        raised_exception,
+        expected_exception,
+        message,
     ):
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        request_url.side_effect = exceptions.UrlError("test")
+        request_url.side_effect = raised_exception
 
-        with pytest.raises(exceptions.UserFacingError) as exc_error:
+        with pytest.raises(expected_exception) as exc_error:
             client.new_magic_attach_token()
 
-        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
-        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+        assert message.msg == exc_error.value.msg
+        assert message.name == exc_error.value.msg_code
 
     @pytest.mark.parametrize(
         "error_code,expected_exception",
-        ((401, exceptions.MagicAttachTokenError),),
+        (
+            (401, exceptions.MagicAttachTokenError),
+            (503, exceptions.MagicAttachUnavailable),
+        ),
     )
     def test_get_magic_attach_token_info_contract_error(
         self,
@@ -433,6 +457,7 @@ class TestUAContractClient:
         (
             (400, exceptions.MagicAttachTokenAlreadyActivated),
             (401, exceptions.MagicAttachTokenError),
+            (503, exceptions.MagicAttachUnavailable),
         ),
     )
     def test_revoke_magic_attach_token_contract_error(
