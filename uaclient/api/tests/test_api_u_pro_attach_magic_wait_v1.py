@@ -106,3 +106,42 @@ class TestMagicAttachWaitV1:
         assert expected_response.contract_id == "cid"
         assert 4 == m_attach_token_info.call_count
         assert 3 == m_sleep.call_count
+
+    @mock.patch("time.sleep")
+    def test_wait_succeeds_after_unavailable_server(
+        self, m_sleep, m_attach_token_info, FakeConfig
+    ):
+        magic_token = "test-id"
+        m_attach_token_info.side_effect = [
+            exceptions.ConnectivityError(),
+            exceptions.MagicAttachUnavailable(),
+            exceptions.MagicAttachUnavailable(),
+            {
+                "token": magic_token,
+                "expires": "2100-06-09T18:14:55.323733Z",
+                "expiresIn": "2000",
+                "userCode": "1234",
+            },
+            {
+                "token": magic_token,
+                "expires": "2100-06-09T18:14:55.323733Z",
+                "expiresIn": "2000",
+                "userCode": "1234",
+                "contractToken": "ctoken",
+                "contractID": "cid",
+            },
+        ]
+
+        options = MagicAttachWaitOptions(magic_token=magic_token)
+        expected_response = _wait(options, FakeConfig())
+
+        assert expected_response.contract_token == "ctoken"
+        assert expected_response.contract_id == "cid"
+        assert 5 == m_attach_token_info.call_count
+        assert 4 == m_sleep.call_count
+        assert [
+            mock.call(10),
+            mock.call(30),
+            mock.call(30),
+            mock.call(10),
+        ] == m_sleep.call_args_list

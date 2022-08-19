@@ -237,6 +237,15 @@ class MagicAttachInvalidEmail(UserFacingError):
         )
 
 
+class MagicAttachUnavailable(UserFacingError):
+    def __init__(self):
+        msg = messages.MAGIC_ATTACH_UNAVAILABLE
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+        )
+
+
 class LockHeldError(UserFacingError):
     """An exception for when another pro operation is in progress
 

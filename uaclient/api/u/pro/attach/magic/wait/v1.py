@@ -64,8 +64,11 @@ def _wait(
 
     num_attempts = 0
     num_connection_errors = 0
+    wait_time = 10
 
     while num_attempts < MAXIMUM_ATTEMPTS:
+        wait_resp = None
+
         try:
             wait_resp = contract.get_magic_attach_token_info(
                 magic_token=options.magic_token
@@ -73,13 +76,19 @@ def _wait(
             num_connection_errors = 0
         except exceptions.MagicAttachTokenError:
             break
+        # If the server is unavailable we will bump the wait
+        # time. We will return to the normal amount if we can
+        # successfully reach the server and we verify that
+        # the contractToken information is still not being
+        # returned
+        except exceptions.MagicAttachUnavailable:
+            wait_time = 30
         # If we have a flaky connectivity error, this part of the code
         # will make sure that we try at least three more times before
         # raising a ConnectivityError.
         except exceptions.ConnectivityError as e:
             if num_connection_errors < 3:
                 num_connection_errors += 1
-                wait_resp = None
             else:
                 raise e
 
@@ -92,8 +101,10 @@ def _wait(
                 contract_id=wait_resp["contractID"],
                 contract_token=wait_resp["contractToken"],
             )
+        elif wait_resp:
+            wait_time = 10
 
-        time.sleep(10)
+        time.sleep(wait_time)
         num_attempts += 1
 
     raise exceptions.MagicAttachTokenError()
