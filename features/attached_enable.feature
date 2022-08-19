@@ -1065,3 +1065,34 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         Stderr: E: Unable to locate package some-package-aws
         """
+
+    @series.xenial
+    @uses.config.contract_token
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: APT auth file is edited correctly on enable
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
+        Then I will see the following on stdout:
+        """
+        2 /etc/apt/auth.conf.d/90ubuntu-advantage
+        """
+        # simulate a scenario where the line should get replaced
+        When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage /etc/apt/auth.conf.d/90ubuntu-advantage.backup` with sudo
+        When I run `pro disable esm-infra` with sudo
+        When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage.backup /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
+        When I run `pro enable esm-infra` with sudo
+        When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
+        Then I will see the following on stdout:
+        """
+        2 /etc/apt/auth.conf.d/90ubuntu-advantage
+        """
+        When I run `pro enable cis` with sudo
+        When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
+        Then I will see the following on stdout:
+        """
+        3 /etc/apt/auth.conf.d/90ubuntu-advantage
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
