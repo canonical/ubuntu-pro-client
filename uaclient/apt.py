@@ -319,14 +319,14 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     """Add or replace an apt auth line in apt's auth.conf file or conf.d."""
     apt_auth_file = get_apt_auth_file_from_apt_config()
     _protocol, repo_path = repo_url.split("://")
-    if repo_path.endswith("/"):  # strip trailing slash
-        repo_path = repo_path[:-1]
+    if not repo_path.endswith("/"):  # ensure trailing slash
+        repo_path += "/"
     if os.path.exists(apt_auth_file):
         orig_content = system.load_file(apt_auth_file)
     else:
         orig_content = ""
     repo_auth_line = (
-        "machine {repo_path}/ login {login} password {password}"
+        "machine {repo_path} login {login} password {password}"
         "{cmt}".format(
             repo_path=repo_path,
             login=login,
@@ -337,18 +337,20 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     added_new_auth = False
     new_lines = []
     for line in orig_content.splitlines():
-        machine_match = re.match(r"machine\s+(?P<repo_url>[.\-\w]+)/?.*", line)
-        if machine_match:
-            matched_repo = machine_match.group("repo_url")
-            if matched_repo == repo_path:
-                # Replace old auth with new auth at same line
-                new_lines.append(repo_auth_line)
-                added_new_auth = True
-                continue
-            if matched_repo in repo_path:
-                # Insert our repo before. We are a more specific apt repo match
-                new_lines.append(repo_auth_line)
-                added_new_auth = True
+        if not added_new_auth:
+            split_line = line.split()
+            if len(split_line) >= 2:
+                curr_line_repo = split_line[1]
+                if curr_line_repo == repo_path:
+                    # Replace old auth with new auth at same line
+                    new_lines.append(repo_auth_line)
+                    added_new_auth = True
+                    continue
+                if curr_line_repo in repo_path:
+                    # Insert our repo before.
+                    # We are a more specific apt repo match
+                    new_lines.append(repo_auth_line)
+                    added_new_auth = True
         new_lines.append(line)
     if not added_new_auth:
         new_lines.append(repo_auth_line)
