@@ -35,7 +35,6 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
-         ca-certificates,
          python3-apt,
          python3-pkg-resources,
          ${extra:Depends}
