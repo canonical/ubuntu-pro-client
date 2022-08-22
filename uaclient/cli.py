@@ -56,6 +56,7 @@ USAGE_TMPL = "{name} {command} [flags]"
 EPILOG_TMPL = (
     "Use {name} {command} --help for more information about a command."
 )
+TRY_HELP = "Try 'pro --help' for more information."
 
 STATUS_HEADER_TMPL = """\
 Account: {account}
@@ -102,6 +103,18 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         self.print_usage(sys.stderr)
+        # In some cases (e.g. `pro --wrong-flag`) argparse errors out asking
+        # for required arguments, but the error message it gives us doesn't
+        # include any info about what required args it expects.
+        # In python versions prior to 3.9 there is no `exit_on_error` param
+        # to ArgumentParser, and as a result, there is no built-in way of
+        # catching the ArgumentError exception and handling it ourselves.
+        # Instead we just look for the buggy error message.
+        # Rather than try to fill in what arguments argparse was hoping for,
+        # we just suggest the user runs `--help` which should cover most
+        # use cases.
+        if message == "the following arguments are required: ":
+            message = TRY_HELP
         self.exit(2, message + "\n")
 
     def print_help(self, file=None, show_all=False):
@@ -1839,7 +1852,7 @@ def main(sys_argv=None):
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
-        print("Try 'pro --help' for more information.")
+        print(TRY_HELP)
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     set_event_mode(args)
