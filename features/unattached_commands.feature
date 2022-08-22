@@ -112,39 +112,45 @@ Feature: Command behaviour when unattached
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
         Then I will see the following on stdout:
-            """
-            Name:
-            esm-infra
+        """
+        Name:
+        esm-infra
 
-            Available:
-            <infra-available>
+        Available:
+        <infra-available>
 
-            Help:
-            Extended Security Maintenance for Infrastructure provides access
-            to a private ppa which includes available high and critical CVE fixes
-            for Ubuntu LTS packages in the Ubuntu Main repository between the end
-            of the standard Ubuntu LTS security maintenance and its end of life.
-            It is enabled by default with Ubuntu Pro. You can find out more about
-            the service at https://ubuntu.com/security/esm
-            """
+        Help:
+        Extended Security Maintenance for Infrastructure provides access
+        to a private ppa which includes available high and critical CVE fixes
+        for Ubuntu LTS packages in the Ubuntu Main repository between the end
+        of the standard Ubuntu LTS security maintenance and its end of life.
+        It is enabled by default with Ubuntu Pro. You can find out more about
+        the service at https://ubuntu.com/security/esm
+        """
         When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
-            """
-            {"name": "esm-infra", "available": "<infra-available>", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
-            """
+        """
+        {"name": "esm-infra", "available": "<infra-available>", "help": "Extended Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+        """
         When I verify that running `pro help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
-            """
-            No help available for 'invalid-service'
-            """
+        """
+        No help available for 'invalid-service'
+        """
+        When I verify that running `pro --wrong-flag` `with sudo` exits `2`
+        Then I will see the following on stderr:
+        """
+        usage: pro <command> [flags]
+        Try 'pro --help' for more information.
+        """
 
         Examples: ubuntu release
            | release  | infra-available |
+           | xenial   | yes             |
            | bionic   | yes             |
            | focal    | yes             |
-           | xenial   | yes             |
-           | kinetic  | no              |
            | jammy    | yes             |
+           | kinetic  | no              |
 
     @series.all
     @uses.config.machine_type.lxd.container
