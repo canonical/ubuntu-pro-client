@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import re
@@ -13,6 +14,7 @@ REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
 ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
+DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
@@ -46,6 +48,10 @@ RE_KERNEL_VERSION_SPLIT = (
     r"[.-]"
     r"(?P<patch>[\d]+)"
     r"$"
+)
+
+DistroInfo = NamedTuple(
+    "DistroInfo", [("eol", datetime.date), ("eol_esm", datetime.date)]
 )
 
 KernelInfo = NamedTuple(
@@ -240,6 +246,12 @@ def is_current_series_lts() -> bool:
 
 
 @lru_cache(maxsize=None)
+def is_supported(series: str) -> bool:
+    out, _err = subp(["/usr/bin/ubuntu-distro-info", "--supported"])
+    return series in out
+
+
+@lru_cache(maxsize=None)
 def is_active_esm(series: str) -> bool:
     """Return True when Ubuntu series supports ESM and is actively in ESM."""
     if not is_lts(series):
@@ -287,6 +299,29 @@ def parse_os_release(release_file: Optional[str] = None) -> Dict[str, str]:
         if value:
             data[key] = value.strip().strip('"')
     return data
+
+
+@lru_cache(maxsize=None)
+def get_distro_info(series: str) -> DistroInfo:
+    try:
+        lines = load_file(DISTRO_INFO_CSV).splitlines()
+    except FileNotFoundError:
+        raise exceptions.UserFacingError(messages.MISSING_DISTRO_INFO_FILE)
+    for line in lines:
+        values = line.split(",")
+        if values[2] == series:
+            if series == "xenial":
+                eol_esm = "2026-04-23"
+            else:
+                eol_esm = values[7] if "LTS" in values[0] else values[5]
+            return DistroInfo(
+                eol=datetime.datetime.strptime(values[5], "%Y-%m-%d").date(),
+                eol_esm=datetime.datetime.strptime(eol_esm, "%Y-%m-%d").date(),
+            )
+
+    raise exceptions.UserFacingError(
+        messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format(series)
+    )
 
 
 def which(program: str) -> Optional[str]:
