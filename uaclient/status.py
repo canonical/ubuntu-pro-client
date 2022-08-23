@@ -571,6 +571,14 @@ def get_section_column_content(
     return content
 
 
+def format_expires(expires: datetime) -> str:
+    try:
+        expires = expires.astimezone()
+    except ValueError:
+        pass
+    return expires.strftime("%c %Z")
+
+
 def format_tabular(status: Dict[str, Any]) -> str:
     """Format status dict for tabular output."""
     if not status.get("attached"):
@@ -646,7 +654,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
         pairs.append(("Subscription", contract_name))
 
     if status["origin"] != "free":
-        pairs.append(("Valid until", str(status["expires"])))
+        pairs.append(("Valid until", format_expires(status["expires"])))
         pairs.append(("Technical support level", colorize(tech_support_level)))
 
     if pairs:
