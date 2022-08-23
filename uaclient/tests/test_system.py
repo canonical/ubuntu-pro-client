@@ -335,6 +335,19 @@ class TestIsLTS:
         ] == subp.call_args_list
 
 
+class TestIsSupported:
+    @pytest.mark.parametrize(
+        "series,expected", (("sup1", True), ("unsup", False))
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_return_supported_series(self, subp, series, expected):
+        subp.return_value = "sup1\nsup2\nsup3", ""
+        assert expected is system.is_supported.__wrapped__(series)
+        assert [
+            mock.call(["/usr/bin/ubuntu-distro-info", "--supported"])
+        ] == subp.call_args_list
+
+
 class TestIsActiveESM:
     @pytest.mark.parametrize(
         "series, is_lts, days_until_esm,expected",
@@ -603,6 +616,51 @@ LOGO=ubuntu-logo
         m_load_file.return_value = content
         assert expected == system.parse_os_release.__wrapped__()
         assert m_load_file.call_args_list == [mock.call("/etc/os-release")]
+
+
+@mock.patch("uaclient.system.load_file")
+class TestGetDistroInfo:
+    content = """\
+version,codename,series,created,release,eol,eol-server,eol-esm
+16.04 LTS,Xenial Xerus,xenial,2015-10-22,2016-04-21,2021-04-21,2021-04-21,2024-04-23
+20.04 LTS,Focal Fossa,focal,2019-10-17,2020-04-23,2025-04-23,2025-04-23,2030-04-23
+22.10,Kinetic Kudu,kinetic,2022-04-21,2022-10-20,2023-07-20
+"""  # noqa: E501
+
+    def test_get_distro_info(self, m_load_file):
+        m_load_file.return_value = self.content
+
+        xenial_di = system.get_distro_info.__wrapped__("xenial")
+        assert 4 == xenial_di.eol.month
+        assert 2021 == xenial_di.eol.year
+        assert 4 == xenial_di.eol_esm.month
+        assert 2026 == xenial_di.eol_esm.year
+
+        focal_di = system.get_distro_info.__wrapped__("focal")
+        assert 4 == focal_di.eol.month
+        assert 2025 == focal_di.eol.year
+        assert 4 == focal_di.eol_esm.month
+        assert 2030 == focal_di.eol_esm.year
+
+        kinetic_di = system.get_distro_info.__wrapped__("kinetic")
+        assert 7 == kinetic_di.eol.month
+        assert 2023 == kinetic_di.eol.year
+        assert 7 == kinetic_di.eol_esm.month
+        assert 2023 == kinetic_di.eol_esm.year
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            system.get_distro_info.__wrapped__("nonexistent")
+        assert (
+            messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format("nonexistent")
+            == excinfo.value.msg
+        )
+
+    def test_no_csv_file(self, m_load_file):
+        m_load_file.side_effect = FileNotFoundError
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            system.get_distro_info.__wrapped__("focal")
+        assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.msg
 
 
 class TestGetPlatformInfo:
