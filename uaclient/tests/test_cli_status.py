@@ -127,7 +127,7 @@ Enable services with: pro enable <service>
 
                 Account: test_account
            Subscription: test_contract
-            Valid until: 2040-05-08 19:02:26+00:00
+            Valid until: formatteddate
 Technical support level: n/a
 """  # noqa: E501
 
@@ -142,7 +142,7 @@ Enable services with: pro enable <service>
 
                 Account: test_account
            Subscription: test_contract
-            Valid until: 2040-05-08 19:02:26+00:00
+            Valid until: formatteddate
 Technical support level: n/a
 """  # noqa: E501
 
@@ -371,6 +371,7 @@ class TestActionStatus:
             ),
         ),
     )
+    @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_attached(
         self,
         _m_getuid,
@@ -379,6 +380,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         _m_contract_changed,
+        _m_format_expires,
         notices,
         notice_status,
         features,
@@ -941,6 +943,7 @@ class TestActionStatus:
         "encoding,expected_dash",
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
+    @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_getuid,
@@ -949,6 +952,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         _m_contract_changed,
+        _m_format_expires,
         encoding,
         expected_dash,
         use_all,

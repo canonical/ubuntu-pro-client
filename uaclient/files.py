@@ -215,7 +215,10 @@ class MachineTokenFile:
                 machine_token_overlay_path
             )
 
-            return json.loads(machine_token_overlay_content)
+            return json.loads(
+                machine_token_overlay_content,
+                cls=util.DatetimeAwareJSONDecoder,
+            )
         except ValueError as e:
             raise exceptions.UserFacingError(
                 messages.ERROR_JSON_DECODING_IN_FILE.format(
