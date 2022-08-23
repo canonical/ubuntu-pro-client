@@ -11,7 +11,7 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
 
-         \* Introducing Extended Security Maintenance for Applications\.
+         \* Introducing Expanded Security Maintenance for Applications\.
            Receive updates to over 30,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
@@ -24,7 +24,7 @@ Feature: MOTD Messages
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
         """
-         \* Introducing Extended Security Maintenance for Applications\.
+         \* Introducing Expanded Security Maintenance for Applications\.
            Receive updates to over 30,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
@@ -45,7 +45,7 @@ Feature: MOTD Messages
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-         \* Introducing Extended Security Maintenance for Applications\.
+         \* Introducing Expanded Security Maintenance for Applications\.
            Receive updates to over 30,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
@@ -66,7 +66,7 @@ Feature: MOTD Messages
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-         \* Introducing Extended Security Maintenance for Applications\.
+         \* Introducing Expanded Security Maintenance for Applications\.
            Receive updates to over 30,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
@@ -87,7 +87,7 @@ Feature: MOTD Messages
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-         \* Introducing Extended Security Maintenance for Applications\.
+         \* Introducing Expanded Security Maintenance for Applications\.
            Receive updates to over 30,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 

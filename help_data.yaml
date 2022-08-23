@@ -15,7 +15,7 @@ cis:
 
 esm-apps:
     help: |
-      Extended Security Maintenance for Applications is enabled by default
+      Expanded Security Maintenance for Applications is enabled by default
       on entitled workloads. It provides access to a private PPA which includes
       available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
       Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
@@ -24,7 +24,7 @@ esm-apps:
 
 esm-infra:
    help: |
-     Extended Security Maintenance for Infrastructure provides access
+     Expanded Security Maintenance for Infrastructure provides access
      to a private ppa which includes available high and critical CVE fixes
      for Ubuntu LTS packages in the Ubuntu Main repository between the end
      of the standard Ubuntu LTS security maintenance and its end of life.
