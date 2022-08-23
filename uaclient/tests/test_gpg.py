@@ -72,4 +72,4 @@ class TestExportGPGKey:
 
         assert "Ubuntu Common Criteria EAL2" in dest_out
         # ESM didn't get exported
-        assert "Extended Security Maintenance" not in dest_out
+        assert "Expanded Security Maintenance" not in dest_out

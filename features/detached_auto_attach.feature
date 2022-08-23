@@ -23,7 +23,7 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra    +yes      +<esm-service> +Extended Security Maintenance for Infrastructure
+        esm-infra    +yes      +<esm-service> +Expanded Security Maintenance for Infrastructure
         """
 
         Examples: ubuntu release

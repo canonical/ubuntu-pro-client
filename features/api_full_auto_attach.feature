@@ -23,8 +23,8 @@ Feature: Full Auto-Attach Endpoint
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
-        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
         Then stdout matches regexp:
         """

@@ -52,8 +52,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +Security compliance and audit tools
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -70,8 +70,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +Security compliance and audit tools
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -94,8 +94,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +Security compliance and audit tools
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -123,8 +123,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -139,8 +139,8 @@ Feature: Unattached status
         """
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -162,8 +162,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -189,8 +189,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
 
         This machine is not attached to an Ubuntu Pro subscription.
@@ -202,8 +202,8 @@ Feature: Unattached status
         """
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +no        +NIST-certified core packages
         fips-updates    +no        +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
@@ -225,8 +225,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Extended Security Maintenance for Applications
-        esm-infra       +yes       +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Beta-version Ubuntu Kernel with PREEMPT_RT patches
 
@@ -253,8 +253,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +yes       +no           +Security compliance and audit tools
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -267,8 +267,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +yes       +no           +Security compliance and audit tools
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -315,8 +315,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -327,8 +327,8 @@ Feature: Unattached status
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -375,8 +375,8 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
         When I do a preflight check for `contract_token` with the all flag
@@ -384,8 +384,8 @@ Feature: Unattached status
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +no        +yes       +no           +NIST-certified core packages
         fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -457,8 +457,8 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +yes       +no           +Security compliance and audit tools
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -501,8 +501,8 @@ Feature: Unattached status
         Contract \".*\" expired on .*
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -543,8 +543,8 @@ Feature: Unattached status
         Contract \".*\" expired on .*
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Extended Security Maintenance for Applications
-        esm-infra       +yes       +yes       +yes          +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
 

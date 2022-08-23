@@ -9,7 +9,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro staging subscri
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
+        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root

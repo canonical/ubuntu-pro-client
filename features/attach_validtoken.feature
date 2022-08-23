@@ -13,8 +13,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis           +yes      +n/a      +Security compliance and audit tools
-            esm-apps      +yes      +n/a      +Extended Security Maintenance for Applications
-            esm-infra     +yes      +n/a      +Extended Security Maintenance for Infrastructure
+            esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
+            esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
             fips          +yes      +n/a      +NIST-certified core packages
             fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
             livepatch     +yes      +n/a      +Canonical Livepatch service
@@ -62,8 +62,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         """
         And stderr matches regexp:
         """
@@ -227,7 +227,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         """
         And stderr matches regexp:
         """
@@ -276,7 +276,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         """
         And stderr matches regexp:
         """
@@ -325,7 +325,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         And stdout matches regexp:
         """
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         """
         And stderr matches regexp:
         """
@@ -356,8 +356,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +Extended Security Maintenance for Applications
-        esm-infra     +yes +enabled +Extended Security Maintenance for Infrastructure
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
 
         Examples: ubuntu release
@@ -382,7 +382,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
        And stdout matches regexp:
        """
-       esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+       esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
        """
        When I create the file `/tmp/machine-token-overlay.json` with the following:
        """
