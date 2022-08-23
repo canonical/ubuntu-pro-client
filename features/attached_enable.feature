@@ -638,8 +638,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +enabled  +Canonical Livepatch service
@@ -654,8 +654,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +disabled +Canonical Livepatch service
@@ -876,11 +876,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
+        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
+        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
         """
         When I verify that running `pro disable esm-apps` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -902,7 +902,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                disabled           Extended Security Maintenance for Applications
+        esm-apps      +yes                disabled           Expanded Security Maintenance for Applications
         """
         When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -927,11 +927,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
+        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
+        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has permission `500`
@@ -996,11 +996,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Extended Security Maintenance for Applications
+        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Extended Security Maintenance for Infrastructure
+        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
         """
         When I run `pro detach` `with sudo` and stdin `y`
         Then stdout matches regexp:

@@ -218,7 +218,7 @@ To install them, run this command as root (try using sudo)"""
 # BEGIN MOTD and APT command messaging
 
 ANNOUNCE_ESM_APPS_TMPL = """\
- * Introducing Extended Security Maintenance for Applications.
+ * Introducing Expanded Security Maintenance for Applications.
    Receive updates to over 30,000 software packages with your
    Ubuntu Pro subscription. Free for personal use.
 

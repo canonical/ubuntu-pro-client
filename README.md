@@ -23,8 +23,8 @@ UA provides support to view, enable, and disable the following Canonical service
 - [Common Criteria EAL2 Certification Tooling](https://ubuntu.com/security/cc)
 - [CIS Benchmark Audit Tooling](https://ubuntu.com/security/cis)
 - [Ubuntu Security Guide (USG) Tooling](https://ubuntu.com/security/certifications/docs/usg)
-- [Ubuntu Extended Security Maintenance (ESM)](https://ubuntu.com/security/esm)
-- [Robot Operating System (ROS) Extended Security Maintenance](https://ubuntu.com/robotics/ros-esm)
+- [Ubuntu Expanded Security Maintenance (ESM)](https://ubuntu.com/security/esm)
+- [Robot Operating System (ROS) Expanded Security Maintenance](https://ubuntu.com/robotics/ros-esm)
 - [FIPS 140-2 Certified Modules (and optional non-certified patches)](https://ubuntu.com/security/fips)
 - [Livepatch Service](https://ubuntu.com/security/livepatch)
 

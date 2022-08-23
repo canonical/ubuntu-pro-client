@@ -70,8 +70,8 @@ RESPONSE_CONTRACT_INFO = {
 
 SIMULATED_STATUS_ALL = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           Extended Security Maintenance for Applications
-esm-infra        yes        yes        yes           Extended Security Maintenance for Infrastructure
+esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
+esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
 fips             no         no         no            NIST-certified core packages
 fips-updates     no         no         no            NIST-certified core packages with priority security updates
 livepatch        yes        yes        no            Canonical Livepatch service
@@ -82,15 +82,15 @@ ros-updates      no         no         no            All Updates for the Robot O
 
 SIMULATED_STATUS = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           Extended Security Maintenance for Applications
-esm-infra        yes        yes        yes           Extended Security Maintenance for Infrastructure
+esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
+esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
 livepatch        yes        yes        no            Canonical Livepatch service
 """  # noqa: E501
 
 UNATTACHED_STATUS_ALL = """\
 SERVICE          AVAILABLE  DESCRIPTION
-esm-apps         yes        Extended Security Maintenance for Applications
-esm-infra        yes        Extended Security Maintenance for Infrastructure
+esm-apps         yes        Expanded Security Maintenance for Applications
+esm-infra        yes        Expanded Security Maintenance for Infrastructure
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
@@ -104,8 +104,8 @@ See https://ubuntu.com/pro
 
 UNATTACHED_STATUS = """\
 SERVICE          AVAILABLE  DESCRIPTION
-esm-apps         yes        Extended Security Maintenance for Applications
-esm-infra        yes        Extended Security Maintenance for Infrastructure
+esm-apps         yes        Expanded Security Maintenance for Applications
+esm-infra        yes        Expanded Security Maintenance for Infrastructure
 livepatch        yes        Canonical Livepatch service
 
 This machine is not attached to an Ubuntu Pro subscription.
@@ -114,8 +114,8 @@ See https://ubuntu.com/pro
 
 ATTACHED_STATUS_ALL = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         Extended Security Maintenance for Applications
-esm-infra        no        {dash}         Extended Security Maintenance for Infrastructure
+esm-apps         no        {dash}         Expanded Security Maintenance for Applications
+esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
@@ -134,8 +134,8 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         Extended Security Maintenance for Applications
-esm-infra        no        {dash}         Extended Security Maintenance for Infrastructure
+esm-apps         no        {dash}         Expanded Security Maintenance for Applications
+esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
 livepatch        no        {dash}         Canonical Livepatch service
 {notices}{features}
 Enable services with: pro enable <service>
@@ -150,7 +150,7 @@ BETA_SVC_NAMES = ["realtime-kernel"]
 
 SERVICES_JSON_ALL = [
     {
-        "description": "Extended Security Maintenance for Applications",
+        "description": "Expanded Security Maintenance for Applications",
         "description_override": None,
         "entitled": "no",
         "name": "esm-apps",
@@ -160,7 +160,7 @@ SERVICES_JSON_ALL = [
         "blocked_by": [],
     },
     {
-        "description": "Extended Security Maintenance for Infrastructure",
+        "description": "Expanded Security Maintenance for Infrastructure",
         "description_override": None,
         "entitled": "no",
         "name": "esm-infra",
@@ -235,7 +235,7 @@ SERVICES_JSON_ALL = [
 
 SERVICES_JSON = [
     {
-        "description": "Extended Security Maintenance for Applications",
+        "description": "Expanded Security Maintenance for Applications",
         "description_override": None,
         "entitled": "no",
         "name": "esm-apps",
@@ -245,7 +245,7 @@ SERVICES_JSON = [
         "blocked_by": [],
     },
     {
-        "description": "Extended Security Maintenance for Infrastructure",
+        "description": "Expanded Security Maintenance for Infrastructure",
         "description_override": None,
         "entitled": "no",
         "name": "esm-infra",
@@ -813,14 +813,14 @@ class TestActionStatus:
             {
                 "auto_enabled": "yes",
                 "available": "yes",
-                "description": "Extended Security Maintenance for Applications",  # noqa
+                "description": "Expanded Security Maintenance for Applications",  # noqa
                 "entitled": "no",
                 "name": "esm-apps",
             },
             {
                 "auto_enabled": "yes",
                 "available": "yes",
-                "description": "Extended Security Maintenance for Infrastructure",  # noqa
+                "description": "Expanded Security Maintenance for Infrastructure",  # noqa
                 "entitled": "yes",
                 "name": "esm-infra",
             },

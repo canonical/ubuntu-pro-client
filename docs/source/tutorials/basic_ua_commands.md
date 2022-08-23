@@ -59,7 +59,7 @@ It is expected for you to see an output similar to this one:
 ```
 SERVICE       AVAILABLE  DESCRIPTION
 cis           yes        Center for Internet Security Audit Tools
-esm-infra     yes        Extended Security Maintenance for Infrastructure
+esm-infra     yes        Expanded Security Maintenance for Infrastructure
 fips          yes        NIST-certified core packages
 fips-updates  yes        NIST-certified core packages with priority security updates
 livepatch     yes        Canonical Livepatch service
@@ -101,7 +101,7 @@ This machine is now attached to 'USER ACCOUNT'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
+esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
@@ -194,7 +194,7 @@ And you should see:
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       enabled   Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
+esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
@@ -217,7 +217,7 @@ After running that command, let's now run `ua status` to see what happened to `c
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
+esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service

@@ -14,7 +14,7 @@ one:
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
 cc-eal           yes        yes        no            Common Criteria EAL2 Provisioning Packages
 cis              yes        yes        no            Security compliance and audit tools
-esm-infra        yes        yes        yes           Extended Security Maintenance for Infrastructure
+esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
 fips             yes        yes        no            NIST-certified core packages
 fips-updates     yes        yes        no            NIST-certified core packages with priority security updates
 livepatch        yes        yes        yes           Canonical Livepatch service

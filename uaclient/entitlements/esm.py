@@ -61,7 +61,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESMApps"
     name = "esm-apps"
     title = "Ubuntu Pro: ESM Apps"
-    description = "Extended Security Maintenance for Applications"
+    description = "Expanded Security Maintenance for Applications"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
     apt_repo_name = "apps"
 
@@ -89,7 +89,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
     origin = "UbuntuESM"
     title = "Ubuntu Pro: ESM Infra"
-    description = "Extended Security Maintenance for Infrastructure"
+    description = "Expanded Security Maintenance for Infrastructure"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
     apt_repo_name = "infra"
 
