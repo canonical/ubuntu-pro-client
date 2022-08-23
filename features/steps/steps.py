@@ -1175,6 +1175,43 @@ def root_vs_nonroot_cmd_comparison(context, cmd):
     assert root_status_stderr == nonroot_status_stderr
 
 
+@when("I install third-party / unknown packages in the machine")
+def when_i_install_packages(context):
+    # The `code` deb package sets up an apt remote for updates,
+    # and is then listed as third-party.
+    # https://code.visualstudio.com/download
+
+    # The `gh` deb package is just installed locally,
+    # and is then listed as unknown
+    # https://github.com/cli/cli/releases
+    when_i_run_command(
+        context,
+        (
+            "curl -L "
+            "https://az764295.vo.msecnd.net/stable/"
+            "e4503b30fc78200f846c62cf8091b76ff5547662/"
+            "code_1.70.2-1660629410_amd64.deb "
+            "-o /tmp/code.deb"
+        ),
+        "with sudo",
+    )
+    when_i_run_command(
+        context,
+        (
+            "curl -L "
+            "https://github.com/cli/cli/releases/download/"
+            "v2.14.4/gh_2.14.4_linux_amd64.deb "
+            "-o /tmp/gh.deb"
+        ),
+        "with sudo",
+    )
+    when_i_run_command(
+        context, "apt-get install -y /tmp/code.deb", "with sudo"
+    )
+    when_i_run_command(context, "apt-get install -y /tmp/gh.deb", "with sudo")
+    when_i_run_command(context, "apt-get update", "with sudo")
+
+
 def create_local_ppa(context, release):
     when_i_run_command_on_machine(
         context,

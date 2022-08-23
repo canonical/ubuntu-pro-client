@@ -967,3 +967,71 @@ ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
     name="enable-access-only-not-supported",
     msg="{title} does not support being enabled with --access-only",
 )
+
+MISSING_DISTRO_INFO_FILE = "Can't load the distro-info database."
+MISSING_SERIES_IN_DISTRO_INFO_FILE = (
+    "Can't find series {} in the distro-info database."
+)
+NO_EOL_DATA_FOR_SERIES = "Unable to get {} dates for series {}"
+
+# Security Status output
+
+SS_SUMMARY_TOTAL = "{count} packages installed:"
+SS_SUMMARY_ARCHIVE = (
+    "{offset}{count} package{plural} from Ubuntu {repository} repository"
+)
+SS_SUMMARY_THIRD_PARTY_SN = "{offset}{count} package from a third party"
+SS_SUMMARY_THIRD_PARTY_PL = "{offset}{count} packages from third parties"
+SS_SUMMARY_UNAVAILABLE = (
+    "{offset}{count} package{plural} no longer available for download"
+)
+
+SS_HELP_CALL = """\
+To get more information about the packages, run
+    pro security-status --help
+for a list of available options."""
+
+SS_UNATTACHED = "This machine is not attached to an Ubuntu Pro subscription."
+
+SS_SUPPORT = "Main/Restricted packages receive updates{lts} until {date}."
+SS_INFRA_AFTER_LTS = """\
+After the LTS period ends, Main/Restricted packages will get security updates
+from Ubuntu Pro with 'esm-infra' enabled."""
+
+SS_THIRD_PARTY = """\
+Packages from third parties are not provided by the official Ubuntu
+archive, for example packages from Personal Package Archives in Launchpad."""
+SS_UNAVAILABLE = """\
+Packages that are not available for download may be left over from a
+previous release of Ubuntu, may have been installed directly from a
+.deb file, or are from a source which has been disabled."""
+
+SS_SERVICE_ADVERTISE = """\
+Ubuntu Pro with '{service}' enabled provides security updates for
+{repository} packages until {year} and has {updates} pending security update{plural}."""  # noqa: E501
+
+SS_SERVICE_ENABLED = """\
+{repository} packages are receiving security updates from
+Ubuntu Pro with '{service}' enabled until {year}. You have received {updates} security
+update{plural}."""  # noqa: E501
+
+SS_SERVICE_COMMAND = "Enable {service} with: pro enable {service}"
+SS_LEARN_MORE = "Learn more about Ubuntu Pro at " + BASE_UA_URL
+
+SS_POLICY_HINT = """\
+For example, run:
+    apt-cache policy {package}
+to learn more about that package."""
+
+SS_NO_THIRD_PARTY = "You have no packages installed from a third party."
+SS_NO_UNAVAILABLE = (
+    "You have no packages installed that are no longer available."
+)
+SS_NO_PRO_SUPPORT = "Ubuntu Pro is not available for non-LTS releases."
+
+SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
+SS_BOLD_PACKAGES = """\
+Package names in {bold}bold{end_bold} currently have an available update
+with '{{service}}' enabled""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)

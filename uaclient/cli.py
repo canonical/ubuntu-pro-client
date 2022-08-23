@@ -462,26 +462,52 @@ def security_status_parser(parser):
     parser.description = textwrap.dedent(
         """\
         Show security updates for packages in the system, including all
-        available ESM related content.
+        available Expanded Security Maintenance (ESM) related content.
 
-        Besides the list of security updates, it also shows a summary of the
-        installed packages based on the origin.
+        Shows counts of how many packages are supported for security updates
+        in the system.
+
+        If called with --format json|yaml it shows a summary of the
+        installed packages based on the origin:
         - main/restricted/universe/multiverse: packages from the Ubuntu archive
-        - ESM Infra/Apps: packages from ESM
+        - esm-infra/esm-apps: packages from the ESM archive
         - third-party: packages installed from non-Ubuntu sources
         - unknown: packages which don't have an installation source (like local
           deb packages or packages for which the source was removed)
 
-        The summary contains basic information about Ubuntu Pro and ESM. For a
-        complete status on Ubuntu Pro services, run 'pro status'
+        The output contains basic information about Ubuntu Pro. For a
+        complete status on Ubuntu Pro services, run 'pro status'.
         """
     )
 
     parser.add_argument(
         "--format",
-        help=("Format for the output (json or yaml)"),
-        choices=("json", "yaml"),
-        required=True,
+        help=("Format for the output"),
+        choices=("json", "yaml", "text"),
+        default="text",
+    )
+
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument(
+        "--thirdparty",
+        help=("List and present information about third-party packages"),
+        action="store_true",
+    )
+    group.add_argument(
+        "--unavailable",
+        help=("List and present information about unavailable packages"),
+        action="store_true",
+    )
+    group.add_argument(
+        "--esm-infra",
+        help=("List and present information about esm-infra packages"),
+        action="store_true",
+    )
+    group.add_argument(
+        "--esm-apps",
+        help=("List and present information about esm-apps packages"),
+        action="store_true",
     )
     return parser
 
@@ -522,19 +548,30 @@ def refresh_parser(parser):
 
 
 def action_security_status(args, *, cfg, **kwargs):
-    # For now, --format is mandatory so no need to check for it here.
-    if args.format == "json":
+    if args.format == "text":
+        if args.thirdparty:
+            security_status.list_third_party_packages()
+        elif args.unavailable:
+            security_status.list_unavailable_packages()
+        elif args.esm_infra:
+            security_status.list_esm_infra_packages(cfg)
+        elif args.esm_apps:
+            security_status.list_esm_apps_packages(cfg)
+        else:
+            security_status.security_status(cfg)
+    elif args.format == "json":
         print(
             json.dumps(
-                security_status.security_status(cfg),
+                security_status.security_status_dict(cfg),
                 sort_keys=True,
                 cls=util.DatetimeAwareJSONEncoder,
-            ),
+            )
         )
     else:
         print(
             yaml.safe_dump(
-                security_status.security_status(cfg), default_flow_style=False
+                security_status.security_status_dict(cfg),
+                default_flow_style=False,
             )
         )
     return 0
