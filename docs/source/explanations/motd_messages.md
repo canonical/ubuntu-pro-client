@@ -14,7 +14,7 @@ Those messages are generated directly by two different sources:
   those services are enabled:
 
   ```
-  UA Apps: Extended Security Maintenance (ESM) is enabled.
+  UA Apps: Expanded Security Maintenance (ESM) is enabled.
 
   11 updates can be applied immediately.
   5 of these updates are UA Apps: ESM security updates.
@@ -27,7 +27,7 @@ Those messages are generated directly by two different sources:
   advertised:
 
   ```
-  UA Infra: Extended Security Maintenance (ESM) is enabled.
+  UA Infra: Expanded Security Maintenance (ESM) is enabled.
 
   11 updates can be applied immediately.
   5 of these updates are UA Apps: ESM security updates.
@@ -40,7 +40,7 @@ Those messages are generated directly by two different sources:
   `esm-apps` was not enabled, the output will be:
 
   ```
-  UA Apps: Extended Security Maintenance (ESM) is not enabled.
+  UA Apps: Expanded Security Maintenance (ESM) is not enabled.
   
   6 updates can be applied immediately.
   1 of these updates is a UA Infra: ESM security update.
@@ -96,7 +96,7 @@ Those messages are generated directly by two different sources:
     `update-notifier` message:
 
     ```
-    * Introducing Extended Security Maintenance for Applications.
+    * Introducing Expanded Security Maintenance for Applications.
       Receive updates to over 30,000 software packages with your
       Ubuntu Advantage subscription. Free for personal use
 

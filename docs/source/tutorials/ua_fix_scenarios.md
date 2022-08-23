@@ -205,7 +205,7 @@ This machine is now attached to 'SUBSCRIPTION'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Extended Security Maintenance for Infrastructure
+esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service

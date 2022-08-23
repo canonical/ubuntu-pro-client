@@ -32,8 +32,8 @@ Feature: Attached status
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
         cis             +yes      +disabled +Security compliance and audit tools
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         ros             +yes      +disabled +Security Updates for the Robot Operating System
@@ -48,8 +48,8 @@ Feature: Attached status
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
         cis             +yes      +disabled +Security compliance and audit tools
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
@@ -75,8 +75,8 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         usg             +yes      +disabled +Security compliance and audit tools
@@ -89,8 +89,8 @@ Feature: Attached status
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
@@ -116,8 +116,8 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
 
         Enable services with: pro enable <service>
         """
@@ -127,8 +127,8 @@ Feature: Attached status
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-        esm-apps        +yes      +enabled  +Extended Security Maintenance for Applications
-        esm-infra       +yes      +enabled  +Extended Security Maintenance for Infrastructure
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +n/a      +NIST-certified core packages
         fips-updates    +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
