@@ -52,7 +52,7 @@ def status_dict_attached(request):
 
     # The following are required so we don't get an "unattached" error
     status["attached"] = True
-    status["expires"] = "expires"
+    status["expires"] = datetime.datetime.now(datetime.timezone.utc)
     status["account"] = {"name": ""}
     status["contract"] = {
         "name": "",

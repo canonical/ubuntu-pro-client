@@ -36,6 +36,7 @@ BASIC_MACHINE_TOKEN = {
             "name": "mycontract",
             "id": "contract-1",
             "createdAt": "2020-05-08T19:02:26Z",
+            "effectiveTo": "9999-12-31T00:00:00Z",
             "resourceEntitlements": [],
             "products": ["free"],
         },
