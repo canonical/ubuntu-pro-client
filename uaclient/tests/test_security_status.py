@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from json import JSONDecodeError
 from typing import List, Optional
 
@@ -11,10 +12,9 @@ from uaclient.security_status import (
     filter_security_updates,
     get_livepatch_fixed_cves,
     get_origin_for_package,
-    get_service_name,
     get_ua_info,
     get_update_status,
-    security_status,
+    security_status_dict,
 )
 
 M_PATH = "uaclient.security_status."
@@ -230,39 +230,32 @@ class TestSecurityStatus:
         ):
             assert expected_output == get_origin_for_package(package_mock)
 
-    @pytest.mark.parametrize(
-        "origins_input,expected_output",
-        (
-            ([], ("", "")),
-            ([MOCK_ORIGINS["now"]], ("", "")),
-            ([MOCK_ORIGINS["third-party"], MOCK_ORIGINS["now"]], ("", "")),
-            (
-                [MOCK_ORIGINS["infra"], MOCK_ORIGINS["now"]],
-                ("esm-infra", "esm.ubuntu.com"),
-            ),
-            (
-                [MOCK_ORIGINS["apps"], MOCK_ORIGINS["now"]],
-                ("esm-apps", "esm.ubuntu.com"),
-            ),
-            (
-                [MOCK_ORIGINS["standard-security"], MOCK_ORIGINS["now"]],
-                ("standard-security", "security.ubuntu.com"),
-            ),
-        ),
-    )
-    def test_service_name(self, origins_input, expected_output):
-        with mock.patch(
-            M_PATH + "get_origin_information_to_service_map",
-            return_value=ORIGIN_TO_SERVICE_MOCK,
-        ):
-            assert expected_output == get_service_name(origins_input)
-
     def test_filter_security_updates(self):
-        expected_return = [
-            mock_version("2.0", [MOCK_ORIGINS["infra"]]),
-            mock_version("2.0", [MOCK_ORIGINS["standard-security"]]),
-            mock_version("3.0", [MOCK_ORIGINS["apps"]]),
-        ]
+        expected_return = defaultdict(
+            list,
+            {
+                "esm-infra": [
+                    (
+                        mock_version("2.0", [MOCK_ORIGINS["infra"]]),
+                        "esm.ubuntu.com",
+                    )
+                ],
+                "standard-security": [
+                    (
+                        mock_version(
+                            "2.0", [MOCK_ORIGINS["standard-security"]]
+                        ),
+                        "security.ubuntu.com",
+                    )
+                ],
+                "esm-apps": [
+                    (
+                        mock_version("3.0", [MOCK_ORIGINS["apps"]]),
+                        "esm.ubuntu.com",
+                    )
+                ],
+            },
+        )
         package_list = [
             mock_package(name="not-installed"),
             mock_package(
@@ -283,7 +276,7 @@ class TestSecurityStatus:
                 installed_version=mock_version(
                     "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
                 ),
-                other_versions=[expected_return[0]],
+                other_versions=[expected_return["esm-infra"][0][0]],
             ),
             mock_package(
                 name="not-a-security-update",
@@ -299,7 +292,10 @@ class TestSecurityStatus:
                 installed_version=mock_version(
                     "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
                 ),
-                other_versions=[expected_return[1], expected_return[2]],
+                other_versions=[
+                    expected_return["standard-security"][0][0],
+                    expected_return["esm-apps"][0][0],
+                ],
             ),
         ]
         with mock.patch(
@@ -308,27 +304,29 @@ class TestSecurityStatus:
         ):
             filtered_versions = filter_security_updates(package_list)
             assert expected_return == filtered_versions
-            assert [
-                "update-available",
-                "more-than-one-update",
-                "more-than-one-update",
-            ] == [v.package.name for v in filtered_versions]
+            assert (
+                filtered_versions["esm-infra"][0][0].package.name
+                == "update-available"
+            )
+            assert (
+                filtered_versions["standard-security"][0][0].package.name
+                == "more-than-one-update"
+            )
+            assert (
+                filtered_versions["esm-apps"][0][0].package.name
+                == "more-than-one-update"
+            )
 
     @mock.patch(M_PATH + "get_livepatch_fixed_cves", return_value=[])
     @mock.patch(M_PATH + "status", return_value={"attached": False})
-    @mock.patch(
-        M_PATH + "get_service_name",
-        return_value=("esm-infra", "some.url.for.esm"),
-    )
     @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
     @mock.patch(M_PATH + "filter_security_updates")
     @mock.patch(M_PATH + "Cache")
-    def test_security_status_format(
+    def test_security_status_dict(
         self,
         m_cache,
         m_filter_sec_updates,
         _m_get_origin,
-        _m_service_name,
         _m_status,
         _m_livepatch_cves,
         FakeConfig,
@@ -339,7 +337,11 @@ class TestSecurityStatus:
         m_package = mock_package("example_package", m_version)
 
         m_cache.return_value = [m_package] * 10
-        m_filter_sec_updates.return_value = [m_version] * 2
+        m_filter_sec_updates.return_value = {
+            "esm-infra": [(m_version, "some.url.for.esm")] * 2,
+            "esm-apps": [],
+            "standard-security": [],
+        }
 
         expected_output = {
             "_schema_version": "0.1",
@@ -383,7 +385,7 @@ class TestSecurityStatus:
             "livepatch": {"fixed_cves": []},
         }
 
-        assert expected_output == security_status(cfg)
+        assert expected_output == security_status_dict(cfg)
 
 
 @mock.patch(M_PATH + "json.loads")
