@@ -32,6 +32,8 @@ def get_origin_information_to_service_map():
         ("Ubuntu", "{}-security".format(series)): "standard-security",
         ("UbuntuESMApps", "{}-apps-security".format(series)): "esm-apps",
         ("UbuntuESM", "{}-infra-security".format(series)): "esm-infra",
+        ("UbuntuESMApps", "{}-apps-updates".format(series)): "esm-apps",
+        ("UbuntuESM", "{}-infra-updates".format(series)): "esm-infra",
     }
 
 
