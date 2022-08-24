@@ -103,6 +103,7 @@ Feature: MOTD Messages
     @uses.config.machine_type.lxd.container
     Scenario Outline: MOTD Contract Expiration Notices
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
         When I attach `contract_token` with sudo
         When I update contract to use `effectiveTo` as `days=+2`
         When I run `pro refresh messages` with sudo
