@@ -10,6 +10,7 @@ from uaclient.cli import (
     main,
     security_status_parser,
 )
+from uaclient.util import DatetimeAwareJSONEncoder
 
 M_PATH = "uaclient.cli."
 
@@ -76,7 +77,11 @@ class TestActionSecurityStatus:
 
         if output_format == "json":
             assert m_dumps.call_args_list == [
-                mock.call(m_security_status.return_value)
+                mock.call(
+                    m_security_status.return_value,
+                    sort_keys=True,
+                    cls=DatetimeAwareJSONEncoder,
+                ),
             ]
             assert m_safe_dump.call_count == 0
         else:
