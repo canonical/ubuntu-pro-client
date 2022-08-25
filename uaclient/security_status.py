@@ -1,3 +1,5 @@
+import json
+import logging
 from collections import defaultdict
 from enum import Enum
 from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
@@ -6,8 +8,10 @@ from apt import Cache  # type: ignore
 from apt import package as apt_package
 
 from uaclient.config import UAConfig
+from uaclient.entitlements.livepatch import LIVEPATCH_CMD
+from uaclient.exceptions import ProcessExecutionError, UserFacingError
 from uaclient.status import status
-from uaclient.system import get_platform_info
+from uaclient.system import get_kernel_info, get_platform_info, subp
 
 series = get_platform_info()["series"]
 
@@ -132,6 +136,44 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
     return ua_info
 
 
+def get_livepatch_fixed_cves() -> List[Dict[str, str]]:
+    try:
+        out, _err = subp([LIVEPATCH_CMD, "status", "--format", "json"])
+    except ProcessExecutionError:
+        return []
+
+    try:
+        livepatch_output = json.loads(out)
+    except json.JSONDecodeError:
+        msg = "Could not parse Livepatch Status JSON: {}".format(out)
+        logging.debug(msg)
+        return []
+
+    status_list = livepatch_output.get("Status")
+    if status_list:
+        # Livepatch guarantees this list has only one element
+        kernel_version = status_list[0].get("Kernel")
+        try:
+            kernel_info = get_kernel_info()
+        except UserFacingError:
+            msg = "Could not get the kernel information"
+            logging.debug(msg)
+            return []
+        if kernel_version == kernel_info.proc_version_signature_version:
+            livepatch_status = status_list[0].get("Livepatch", {})
+            if livepatch_status.get("State", "") == "applied":
+                fixes = livepatch_status.get("Fixes", [])
+                return [
+                    {
+                        "name": fix.get("Name", ""),
+                        "patched": fix.get("Patched", ""),
+                    }
+                    for fix in fixes
+                ]
+
+    return []
+
+
 def security_status(cfg: UAConfig) -> Dict[str, Any]:
     """Returns the status of security updates on a system.
 
@@ -190,4 +232,9 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         "standard-security"
     ]
 
-    return {"_schema_version": "0.1", "summary": summary, "packages": packages}
+    return {
+        "_schema_version": "0.1",
+        "summary": summary,
+        "packages": packages,
+        "livepatch": {"fixed_cves": get_livepatch_fixed_cves()},
+    }
