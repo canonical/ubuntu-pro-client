@@ -36,6 +36,10 @@ packages:
   status: upgrade_available
   version: 1:1.2.8.dfsg-2ubuntu4.3+esm1
   download_size: 123456
+livepatch:
+  fixed_cves:
+    - Name: cve-2013-1798
+      Patched: true
 ```
 
 Let's understand what each key mean on the output of the `ua security-status` command:
@@ -101,3 +105,6 @@ Let's understand what each key mean on the output of the `ua security-status` co
       the service which provides the upgrade.
   * **`version`**: The update version.
   * **`download_size`**: The number of bytes that would be downloaded in order to install the update.
+
+* **`livepatch`**: Livepatch related information. Currently, the only information
+presented is **`fixed_cves`** - a list of CVEs that were fixed by Livepatches applied to the kernel.

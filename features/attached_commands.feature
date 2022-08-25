@@ -1015,3 +1015,22 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | package   | service   |
            | xenial  | apport    | esm-infra |
            | bionic  | libkrb5-3 | esm-apps  |
+
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `pro security-status --format json` as non-root
+        Then stdout is a json matching the `ua_security_status` schema
+        Then stdout matches regexp:
+        """
+        {"name": "cve-2013-1798", "patched": true}
+        """
+        When I run `pro security-status --format yaml` as non-root
+        Then stdout is a yaml matching the `ua_security_status` schema
+        And stdout matches regexp:
+        """
+          - name: cve-2013-1798
+            patched: true
+        """

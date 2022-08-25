@@ -97,6 +97,25 @@
           }
         }
       }
+    },
+    "livepatch": {
+      "type": "object",
+      "properties": {
+        "fixed_cves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "patched": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
