@@ -4,7 +4,8 @@ Feature: Magic Attach endpoints
     @uses.config.machine_type.lxd.container
     Scenario Outline: Call magic attach endpoints
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
+        When I change contract to staging with sudo
+        And I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
@@ -32,7 +33,7 @@ Feature: Magic Attach endpoints
         When I create the file `/tmp/response-overlay.json` with the following:
         """
         {
-            "https://contracts.canonical.com/v1/magic-attach": [
+            "https://contracts.staging.canonical.com/v1/magic-attach": [
             {
               "code": 200,
               "response": {
