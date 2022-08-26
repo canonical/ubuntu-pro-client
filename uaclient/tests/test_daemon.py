@@ -99,7 +99,7 @@ class TestAttemptAutoAttach:
         attempt_auto_attach(cfg, cloud)
 
         assert [
-            mock.call(cfg=cfg, lock_holder="ua.daemon.attempt_auto_attach")
+            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [
@@ -118,7 +118,7 @@ class TestAttemptAutoAttach:
 
         attempt_auto_attach(cfg, cloud)
         assert [
-            mock.call(cfg=cfg, lock_holder="ua.daemon.attempt_auto_attach")
+            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [] == m_auto_attach.call_args_list
         assert [mock.call(err)] == m_log_error.call_args_list
@@ -154,7 +154,7 @@ class TestAttemptAutoAttach:
         attempt_auto_attach(cfg, cloud)
 
         assert [
-            mock.call(cfg=cfg, lock_holder="ua.daemon.attempt_auto_attach")
+            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [mock.call(err)] == m_log_exception.call_args_list
