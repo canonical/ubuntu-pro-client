@@ -1,0 +1,9 @@
+[Unit]
+Description=Ubuntu Pro Auto Attach Retry
+Documentation=man:ubuntu-advantage https://ubuntu.com/advantage
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/retry_auto_attach.py
+WorkingDirectory=/var/lib/ubuntu-advantage/
