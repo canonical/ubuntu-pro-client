@@ -5,7 +5,7 @@ import time
 
 from uaclient import config, exceptions
 
-LOG = logging.getLogger("ua.lock")
+LOG = logging.getLogger("pro.lock")
 
 # Set a module-level callable here so we don't have to reinstantiate
 # UAConfig in order to determine dynamic data_path exception handling of

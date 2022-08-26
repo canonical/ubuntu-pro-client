@@ -23,7 +23,7 @@ from uaclient.defaults import (
 )
 from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 
-LOG = logging.getLogger("ua.actions")
+LOG = logging.getLogger("pro.actions")
 event = event_logger.get_event_logger()
 
 
