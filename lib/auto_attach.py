@@ -20,6 +20,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
 )
 from uaclient.config import UAConfig
 from uaclient.services import setup_logging
+from uaclient.services import retry_auto_attach, setup_logging
 
 try:
     import cloudinit.stages as ci_stages  # type: ignore
@@ -64,6 +65,10 @@ def main(cfg: UAConfig):
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
         logging.error(e)
+        retry_auto_attach.start()
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
