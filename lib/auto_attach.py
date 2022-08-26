@@ -14,7 +14,6 @@ import logging
 import sys
 
 from uaclient import actions
-from uaclient.api.exceptions import AlreadyAttachedError
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
@@ -50,21 +49,21 @@ def check_cloudinit_userdata_for_ua_info():
 
 
 def main(cfg: UAConfig):
-    if not check_cloudinit_userdata_for_ua_info():
-        if actions.should_disable_auto_attach(cfg):
-            return
-        try:
-            full_auto_attach(FullAutoAttachOptions())
-        except AlreadyAttachedError as e:
-            logging.info(e.msg)
-    else:
-        auto_attach_msg = (
+    if actions.should_disable_auto_attach(cfg):
+        return
+
+    if check_cloudinit_userdata_for_ua_info():
+        logging.info("cloud-init userdata has ubuntu-advantage key.")
+        logging.info(
             "Skipping auto-attach and deferring to cloud-init "
             "to setup and configure auto-attach"
         )
+        return
 
-        logging.info("cloud-init userdata has ubuntu-advantage key.")
-        logging.info(auto_attach_msg)
+    try:
+        full_auto_attach(FullAutoAttachOptions())
+    except Exception as e:
+        logging.error(e)
 
 
 if __name__ == "__main__":
