@@ -8,7 +8,7 @@ from urllib.error import HTTPError
 from uaclient import exceptions, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
-LOG = logging.getLogger("ua.clouds.gcp")
+LOG = logging.getLogger("pro.clouds.gcp")
 
 TOKEN_URL = (
     "http://metadata/computeMetadata/v1/instance/service-accounts/"

@@ -8,7 +8,7 @@ from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
 
-LOG = logging.getLogger("ua.daemon")
+LOG = logging.getLogger("pro.daemon")
 
 
 def start():
@@ -32,7 +32,7 @@ def stop():
 def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
     try:
         with lock.SpinLock(
-            cfg=cfg, lock_holder="ua.daemon.attempt_auto_attach"
+            cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach"
         ):
             actions.auto_attach(cfg, cloud)
     except exceptions.LockHeldError as e:
