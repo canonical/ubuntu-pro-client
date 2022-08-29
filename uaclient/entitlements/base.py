@@ -90,12 +90,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     @property
     def presentation_name(self) -> str:
         """The user-facing name shown for this entitlement"""
-        return (
-            self.cfg.machine_token_file.entitlements.get(self.name, {})
-            .get("entitlement", {})
-            .get("affordances", {})
-            .get("presentedAs", self.name)
-        )
+        if self.cfg.machine_token_file.is_present:
+            return (
+                self.cfg.machine_token_file.entitlements.get(self.name, {})
+                .get("entitlement", {})
+                .get("affordances", {})
+                .get("presentedAs", self.name)
+            )
+        else:
+            return self.name
 
     @property
     def help_info(self) -> str:

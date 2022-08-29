@@ -43,6 +43,10 @@ class UAFile:
     def is_private(self) -> bool:
         return self._is_private
 
+    @property
+    def is_present(self):
+        return os.path.exists(self.path)
+
     def write(self, content: str):
         file_mode = (
             defaults.ROOT_READABLE_MODE
@@ -183,6 +187,13 @@ class MachineTokenFile:
         except Exception:
             pass
         return content  # type: ignore
+
+    @property
+    def is_present(self):
+        if self.is_root:
+            return self.public_file.is_present and self.private_file.is_present
+        else:
+            return self.public_file.is_present
 
     @property
     def machine_token(self):
