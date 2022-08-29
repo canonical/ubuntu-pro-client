@@ -24,7 +24,7 @@ jobs:
     name: Packaging
     needs: check-secrets
     if: ${{ needs.check-secrets.outputs.has-secrets == 'true' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         release: ['xenial', 'bionic', 'focal', 'jammy', 'kinetic']
@@ -41,6 +41,9 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Build package
+        env:
+          DEBFULLNAME: GitHub CI Auto Builder
+          DEBEMAIL: nobody@nowhere.invalid
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
