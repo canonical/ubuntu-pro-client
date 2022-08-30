@@ -1,7 +1,10 @@
 import logging
+import pathlib
 from subprocess import TimeoutExpired
 
 from uaclient import exceptions, system
+
+FLAG_FILE = "/run/ubuntu-advantage/flags/retry-auto-attach-running"
 
 
 def start():

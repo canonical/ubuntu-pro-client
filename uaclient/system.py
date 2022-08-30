@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import pathlib
 import re
 import subprocess
 import time
@@ -348,6 +349,12 @@ def load_file(filename: str, decode: bool = True) -> str:
     with open(filename, "rb") as stream:
         content = stream.read()
     return content.decode("utf-8")
+
+
+def create_file(filename: str, mode: int = 0o644) -> None:
+    logging.debug("Creating file: %s", filename)
+    pathlib.Path(filename).touch()
+    os.chmod(filename, mode)
 
 
 def write_file(filename: str, content: str, mode: int = 0o644) -> None:
