@@ -15,8 +15,10 @@ def main(cfg: UAConfig) -> int:
     LOG.debug("retry_auto_attach starting")
     system.create_file(FLAG_FILE)
     notify("READY=1")
-    retry_auto_attach(cfg)
-    system.remove_file(FLAG_FILE)
+    try:
+        retry_auto_attach(cfg)
+    finally:
+        system.remove_file(FLAG_FILE)
     LOG.debug("retry_auto_attach ending")
     return 0
 

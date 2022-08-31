@@ -125,6 +125,9 @@ class DataObjectFile(Generic[DOFType]):
 
         self.ua_file.write(str_content)
 
+    def delete(self):
+        self.ua_file.delete()
+
 
 class MachineTokenFile:
     def __init__(
