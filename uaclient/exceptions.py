@@ -167,7 +167,7 @@ class AlreadyAttachedError(UserFacingError):
 
     def __init__(self, cfg):
         msg = messages.ALREADY_ATTACHED.format(
-            account_name=cfg.machine_token_file.accounts[0].get("name", "")
+            account_name=cfg.machine_token_file.account.get("name", "")
         )
         super().__init__(msg=msg.msg, msg_code=msg.name)
 

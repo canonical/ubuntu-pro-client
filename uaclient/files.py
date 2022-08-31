@@ -238,13 +238,10 @@ class MachineTokenFile:
             )
 
     @property
-    def accounts(self):
+    def account(self) -> Optional[dict]:
         if bool(self.machine_token):
-            account_info = self.machine_token["machineTokenInfo"][
-                "accountInfo"
-            ]
-            return [account_info]
-        return []
+            return self.machine_token["machineTokenInfo"]["accountInfo"]
+        return None
 
     @property
     def entitlements(self):

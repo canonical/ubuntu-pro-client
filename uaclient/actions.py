@@ -249,9 +249,6 @@ def get_cloud_instance(
     try:
         instance = identity.cloud_instance_factory()
     except exceptions.CloudFactoryError as e:
-        if cfg.is_attached:
-            # We are attached on non-Pro Image, just report already attached
-            raise exceptions.AlreadyAttachedError(cfg)
         if isinstance(e, exceptions.CloudFactoryNoCloudError):
             raise exceptions.UserFacingError(
                 messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,

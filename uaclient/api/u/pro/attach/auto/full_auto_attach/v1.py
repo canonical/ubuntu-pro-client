@@ -1,6 +1,6 @@
 from typing import List, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import actions, entitlements, event_logger
+from uaclient import actions, entitlements, event_logger, lock
 from uaclient.api import exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
@@ -66,8 +66,28 @@ def full_auto_attach(options: FullAutoAttachOptions) -> FullAutoAttachResult:
     return _full_auto_attach(options, UAConfig(root_mode=True))
 
 
-def _full_auto_attach(options: FullAutoAttachOptions, cfg: UAConfig):
+def _full_auto_attach(
+    options: FullAutoAttachOptions, cfg: UAConfig
+) -> FullAutoAttachResult:
+    try:
+        with lock.SpinLock(
+            cfg=cfg,
+            lock_holder="pro.api.u.pro.attach.auto.full_auto_attach.v1",
+        ):
+            ret = _full_auto_attach_in_lock(options, cfg)
+    except Exception as e:
+        lock.clear_lock_file_if_present()
+        raise e
+    return ret
+
+
+def _full_auto_attach_in_lock(
+    options: FullAutoAttachOptions, cfg: UAConfig
+) -> FullAutoAttachResult:
     event.set_event_mode(event_logger.EventLoggerMode.JSON)
+
+    if cfg.is_attached:
+        raise exceptions.AlreadyAttachedError(cfg)
 
     services = set()
     if options.enable:

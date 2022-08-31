@@ -110,6 +110,16 @@ class TestFullAutoAttachV1:
 
         assert 1 == enable_ent_by_name.call_count
 
+    @mock.patch(
+        "uaclient.lock.SpinLock.__enter__",
+        side_effect=[
+            exceptions.LockHeldError("request", "holder", 10),
+        ],
+    )
+    def test_lock_held(self, _m_spinlock_enter, FakeConfig):
+        with pytest.raises(exceptions.LockHeldError):
+            _full_auto_attach(FullAutoAttachOptions, FakeConfig())
+
     def test_error_incompatible_services(
         self,
         FakeConfig,
