@@ -26,6 +26,7 @@ class TestGetKernelInfo:
                     abi="1024",
                     subrev="26",
                     hwerev="",
+                    tag="",
                     flavor="oem",
                 ),
             ),
@@ -43,6 +44,7 @@ class TestGetKernelInfo:
                     abi="21",
                     subrev="37",
                     hwerev="",
+                    tag="",
                     flavor="generic",
                 ),
             ),
@@ -60,6 +62,7 @@ class TestGetKernelInfo:
                     abi="52",
                     subrev="37",
                     hwerev="",
+                    tag="",
                     flavor="generic",
                 ),
             ),
@@ -77,6 +80,7 @@ class TestGetKernelInfo:
                     abi="52",
                     subrev="37",
                     hwerev="20.04",
+                    tag="",
                     flavor="generic",
                 ),
             ),
@@ -94,7 +98,44 @@ class TestGetKernelInfo:
                     abi="52",
                     subrev="",
                     hwerev="",
+                    tag="",
                     flavor="generic",
+                ),
+            ),
+            (
+                "5.4.0-1021-aws-fips",
+                "Ubuntu 5.4.0-1021.21+fips2-aws-fips 5.4.44",
+                system.KernelInfo(
+                    uname_release="5.4.0-1021-aws-fips",
+                    proc_version_signature_full="Ubuntu 5.4.0-1021.21+fips2-aws-fips 5.4.44",  # noqa: E501
+                    proc_version_signature_version="5.4.0-1021.21+fips2-aws-fips",  # noqa: E501
+                    version="5.4.0",
+                    major=5,
+                    minor=4,
+                    patch=0,
+                    abi="1021",
+                    subrev="21",
+                    hwerev="",
+                    tag="fips2",
+                    flavor="aws-fips",
+                ),
+            ),
+            (
+                "4.4.0-1017-fips",
+                "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
+                system.KernelInfo(
+                    uname_release="4.4.0-1017-fips",
+                    proc_version_signature_full="Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",  # noqa: E501
+                    proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
+                    version="4.4.0",
+                    major=4,
+                    minor=4,
+                    patch=0,
+                    abi="1017",
+                    subrev="22",
+                    hwerev="recert1",
+                    tag="",
+                    flavor="fips",
                 ),
             ),
         ),
@@ -112,6 +153,53 @@ class TestGetKernelInfo:
         m_uname.return_value = mock.MagicMock(release=uname_release)
         m_load_file.side_effect = [proc_version_signature_side_effect]
         assert system.get_kernel_info.__wrapped__() == expected
+
+    @pytest.mark.parametrize(
+        "version_signature,uname,kernel_msg",
+        (
+            ("", "invalid-uname", "invalid-uname"),
+            (
+                "Ubuntu invalid-kernel-signature",
+                "",
+                "invalid-kernel-signature",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.os.uname")
+    def test_get_kernel_info_parser_fail(
+        self, m_uname, m_load_file, version_signature, uname, kernel_msg
+    ):
+        m_load_file.return_value = version_signature
+        m_uname.return_value = mock.MagicMock(release=uname)
+
+        expected_msg = messages.KERNEL_PARSE_ERROR.format(kernel=kernel_msg)
+
+        with pytest.raises(exceptions.UserFacingError) as e:
+            system.get_kernel_info.__wrapped__()
+            assert e.msg == expected_msg.msg
+            assert e.msg_code == expected_msg.name
+
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.os.uname")
+    def test_get_kernel_info_version_parser_fail(
+        self,
+        m_uname,
+        m_load_file,
+    ):
+        m_load_file.return_value = (
+            "Ubuntu 5.4.0.5-52.37~20.04-generic 5.15.100",
+        )
+        m_uname.return_value = mock.MagicMock(release="")
+
+        expected_msg = messages.KERNEL_VERSION_SPLIT_ERROR.format(
+            version="5.4.0.5"
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as e:
+            system.get_kernel_info.__wrapped__()
+            assert e.msg == expected_msg.msg
+            assert e.msg_code == expected_msg.name
 
 
 class TestGetLscpuArch:
