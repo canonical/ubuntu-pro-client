@@ -512,7 +512,7 @@ def after_step(context, step):
                     )
                 )
 
-        if hasattr(context, "instance"):
+        if hasattr(context, "instances"):
             if not os.path.exists(artifacts_dir):
                 os.makedirs(artifacts_dir)
             for log_file in FAILURE_FILES:

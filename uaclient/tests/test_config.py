@@ -194,16 +194,16 @@ class TestEntitlements:
 
 
 class TestAccounts:
-    def test_accounts_returns_empty_list_when_no_cached_account_value(
+    def test_accounts_returns_none_when_no_cached_account_value(
         self, tmpdir, FakeConfig, all_resources_available
     ):
         """Config.accounts property returns an empty list when no cache."""
         cfg = FakeConfig()
 
-        assert [] == cfg.machine_token_file.accounts
+        assert cfg.machine_token_file.account is None
 
     @pytest.mark.usefixtures("all_resources_available")
-    def test_accounts_extracts_accounts_key_from_machine_token_cache(
+    def test_accounts_extracts_account_key_from_machine_token_cache(
         self, all_resources_available, tmpdir, FakeConfig
     ):
         """Use machine_token cached accountInfo when no accounts cache."""
@@ -217,7 +217,7 @@ class TestAccounts:
             },
         )
 
-        assert [accountInfo] == cfg.machine_token_file.accounts
+        assert accountInfo == cfg.machine_token_file.account
 
 
 class TestDataPath:
