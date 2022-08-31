@@ -13,9 +13,14 @@ their side.
 import logging
 import sys
 
-from uaclient.cli import action_auto_attach, setup_logging
+from uaclient import actions
+from uaclient.api.exceptions import AlreadyAttachedError
+from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+    FullAutoAttachOptions,
+    full_auto_attach,
+)
 from uaclient.config import UAConfig
-from uaclient.exceptions import AlreadyAttachedOnPROError
+from uaclient.services import setup_logging
 
 try:
     import cloudinit.stages as ci_stages  # type: ignore
@@ -46,12 +51,11 @@ def check_cloudinit_userdata_for_ua_info():
 
 def main(cfg: UAConfig):
     if not check_cloudinit_userdata_for_ua_info():
-        # Once we have the api functions ready, we should
-        # update this part of the code to not call the cli
-        # function directly
+        if actions.should_disable_auto_attach(cfg):
+            return
         try:
-            action_auto_attach(args=None, cfg=cfg)
-        except AlreadyAttachedOnPROError as e:
+            full_auto_attach(FullAutoAttachOptions())
+        except AlreadyAttachedError as e:
             logging.info(e.msg)
     else:
         auto_attach_msg = (
@@ -65,5 +69,10 @@ def main(cfg: UAConfig):
 
 if __name__ == "__main__":
     cfg = UAConfig(root_mode=True)
-    setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
-    main(cfg=cfg)
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        log_file=cfg.log_file,
+        logger=logging.getLogger(),
+    )
+    main(cfg)
