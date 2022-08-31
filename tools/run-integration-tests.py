@@ -70,9 +70,6 @@ def build_commands(
                     envvar = TOKEN_TO_ENVVAR[t]
                     env[envvar] = credentials["token"].get(envvar)
 
-                # Until we don't get sbuild to run just once per run,
-                env["UACLIENT_BEHAVE_SNAPSHOT_STRATEGY"] = "1"
-
                 # Tox command itself
                 command = "tox -e behave-{}-{}".format(
                     p, series_version
