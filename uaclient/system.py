@@ -33,7 +33,8 @@ RE_KERNEL_PROC_VERSION_SIGNATURE = (
     r"(?P<abi>[\d]+)"
     r"[.-]"
     r"(?P<subrev>[\d]+)"
-    r"(~(?P<hwerev>[\d.]+))?"
+    r"(~(?P<hwerev>[\w\d.]+))?"
+    r"(\+(?P<tag>[\w\d.]+))?"
     r"-"
     r"(?P<flavor>[A-Za-z0-9_-]+)"
     r"$"
@@ -61,6 +62,7 @@ KernelInfo = NamedTuple(
         ("abi", str),
         ("subrev", str),
         ("hwerev", str),
+        ("tag", str),
         ("flavor", str),
     ],
 )
@@ -91,12 +93,13 @@ def get_kernel_info() -> KernelInfo:
             )
             raise exceptions.UserFacingError(
                 msg=err_msg.msg,
-                msg_code=err_msg.code,
+                msg_code=err_msg.name,
             )
         version = match.group("version")
         abi = match.group("abi")
         subrev = match.group("subrev")
         hwerev = match.group("hwerev") or ""
+        tag = match.group("tag") or ""
         flavor = match.group("flavor")
     else:
         match = re.match(RE_KERNEL_UNAME, uname_release)
@@ -104,12 +107,13 @@ def get_kernel_info() -> KernelInfo:
             err_msg = messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
             raise exceptions.UserFacingError(
                 msg=err_msg.msg,
-                msg_code=err_msg.code,
+                msg_code=err_msg.name,
             )
         version = match.group("version")
         abi = match.group("abi")
         subrev = ""
         hwerev = ""
+        tag = ""
         flavor = match.group("flavor")
 
     version_split_match = re.match(RE_KERNEL_VERSION_SPLIT, version)
@@ -117,7 +121,7 @@ def get_kernel_info() -> KernelInfo:
         err_msg = messages.KERNEL_VERSION_SPLIT_ERROR.format(version=version)
         raise exceptions.UserFacingError(
             msg=err_msg.msg,
-            msg_code=err_msg.code,
+            msg_code=err_msg.name,
         )
 
     major = int(version_split_match.group("major"))
@@ -135,6 +139,7 @@ def get_kernel_info() -> KernelInfo:
         abi=abi,
         subrev=subrev,
         hwerev=hwerev,
+        tag=tag,
         flavor=flavor,
     )
 
