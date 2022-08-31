@@ -7,6 +7,7 @@ from uaclient.clouds import AutoAttachCloudInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
+from uaclient.services import retry_auto_attach
 
 LOG = logging.getLogger("pro.daemon")
 
@@ -43,13 +44,15 @@ def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
                 operation=e.lock_holder
             ),
         )
-        LOG.debug("Failed to auto attach")
+        LOG.debug("Failed to auto attach. Starting retry service.")
+        retry_auto_attach.start()
         return
     except Exception as e:
         LOG.exception(e)
         cfg.notice_file.add("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
         lock.clear_lock_file_if_present()
-        LOG.debug("Failed to auto attach")
+        LOG.debug("Failed to auto attach. Starting retry service.")
+        retry_auto_attach.start()
         return
     LOG.debug("Successful auto attach")
 

@@ -6,19 +6,22 @@ from systemd.daemon import notify  # type: ignore
 from uaclient import system
 from uaclient.config import UAConfig
 from uaclient.services import setup_logging
-from uaclient.services.retry_auto_attach import FLAG_FILE, retry_auto_attach
+from uaclient.services.retry_auto_attach import (
+    FLAG_FILE_PATH,
+    retry_auto_attach,
+)
 
 LOG = logging.getLogger("pro")
 
 
 def main(cfg: UAConfig) -> int:
     LOG.debug("retry_auto_attach starting")
-    system.create_file(FLAG_FILE)
+    system.create_file(FLAG_FILE_PATH)
     notify("READY=1")
     try:
         retry_auto_attach(cfg)
     finally:
-        system.remove_file(FLAG_FILE)
+        system.remove_file(FLAG_FILE_PATH)
     LOG.debug("retry_auto_attach ending")
     return 0
 

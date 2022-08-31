@@ -464,12 +464,6 @@ class UAConfig:
                 os.chmod(data_dir, 0o700)
         if key.startswith("machine-access"):
             self._machine_token_file = None
-        elif key == "lock":
-            if ":" in content:
-                self.notice_file.add(
-                    "",
-                    "Operation in progress: {}".format(content.split(":")[1]),
-                )
         if not isinstance(content, str):
             content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
         mode = 0o600

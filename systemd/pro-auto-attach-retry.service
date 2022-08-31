@@ -2,6 +2,15 @@
 Description=Ubuntu Pro Auto Attach Retry
 Documentation=man:ubuntu-advantage https://ubuntu.com/advantage
 
+# Only run if not already attached
+ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json
+# Only run on supported clouds
+ConditionPathExists=|/run/cloud-init/cloud-id-aws
+ConditionPathExists=|/run/cloud-init/cloud-id-aws-china
+ConditionPathExists=|/run/cloud-init/cloud-id-aws-gov
+ConditionPathExists=|/run/cloud-init/cloud-id-azure
+ConditionPathExists=|/run/cloud-init/cloud-id-gce
+
 [Service]
 Type=notify
 NotifyAccess=main
