@@ -478,7 +478,7 @@ class TestActionAttach:
     @mock.patch("uaclient.util.handle_unicode_characters")
     @mock.patch("uaclient.status.format_tabular")
     @mock.patch(M_PATH + "actions.status")
-    @mock.patch("uaclient.daemon.stop")
+    @mock.patch("uaclient.services.daemon.stop")
     def test_attach_config_enable_services(
         self,
         _m_daemon_stop,

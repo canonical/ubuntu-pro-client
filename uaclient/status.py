@@ -174,12 +174,12 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
                 "tech_support_level": tech_support_level,
             },
             "account": {
-                "name": cfg.machine_token_file.accounts[0]["name"],
-                "id": cfg.machine_token_file.accounts[0]["id"],
-                "created_at": cfg.machine_token_file.accounts[0].get(
+                "name": cfg.machine_token_file.account["name"],
+                "id": cfg.machine_token_file.account["id"],
+                "created_at": cfg.machine_token_file.account.get(
                     "createdAt", ""
                 ),
-                "external_account_ids": cfg.machine_token_file.accounts[0].get(
+                "external_account_ids": cfg.machine_token_file.account.get(
                     "externalAccountIDs", []
                 ),
             },

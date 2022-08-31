@@ -269,7 +269,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to '.*'
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
@@ -392,7 +392,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to '.*'
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
@@ -514,7 +514,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to '.*'
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:

@@ -6,14 +6,14 @@ import pytest
 from uaclient import exceptions, messages
 from uaclient.clouds.aws import UAAutoAttachAWSInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
-from uaclient.daemon import (
+from uaclient.services.daemon import (
     attempt_auto_attach,
     poll_for_pro_license,
     start,
     stop,
 )
 
-M_PATH = "uaclient.daemon."
+M_PATH = "uaclient.services.daemon."
 
 
 @mock.patch(M_PATH + "system.subp")
