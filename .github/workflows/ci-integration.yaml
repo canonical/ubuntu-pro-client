@@ -72,6 +72,8 @@ jobs:
             platform: awspro
           - release: bionic
             platform: gcppro
+          - release: bionic
+            platform: awspro-fips
     steps:
       - name: Prepare test tools
         run: |
