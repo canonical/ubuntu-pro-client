@@ -15,7 +15,7 @@
 ![Released Focal Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/focal?label=Focal&logo=ubuntu&logoColor=white)
 ![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)
 
-The Ubuntu Advantage (UA) Client is the offical tool to enable Canonical offerings on your
+The Ubuntu Advantage (UA) Client is the official tool to enable Canonical offerings on your
 system.
 
 UA provides support to view, enable, and disable the following Canonical services:
