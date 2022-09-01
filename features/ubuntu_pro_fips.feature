@@ -22,7 +22,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +enabled +NIST-certified core packages
         fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-        livepatch     +yes +n/a  +Canonical Livepatch service
         """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
@@ -110,7 +109,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        fips          +yes +n/a +NIST-certified core packages
         fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
         """
         And stdout matches regexp:
@@ -162,13 +160,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -198,13 +195,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -239,7 +235,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +enabled +NIST-certified core packages
         fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-        livepatch     +yes +n/a  +Canonical Livepatch service
         """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
@@ -327,7 +322,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        fips          +yes +n/a +NIST-certified core packages
         fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
         """
         And stdout matches regexp:
@@ -379,13 +373,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -415,13 +408,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -470,7 +462,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        fips          +yes +n/a +NIST-certified core packages
         fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
         """
         When I reboot the machine
@@ -505,13 +496,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `uname -r` as non-root
@@ -598,7 +588,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        fips          +yes +n/a +NIST-certified core packages
         fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
         """
         And stdout matches regexp:
@@ -649,13 +638,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -682,13 +670,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `pro status --wait` as non-root
         And I run `pro status` as non-root
         Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +enabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-            livepatch     +yes +n/a  +Canonical Livepatch service
-            """
+        """
+        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
