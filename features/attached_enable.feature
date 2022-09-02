@@ -706,6 +706,61 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | jammy   |
 
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable livepatch
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+        """
+        Installing canonical-livepatch snap
+        Canonical livepatch enabled
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +enabled
+        """
+        When I run `pro api u.pro.security.status.reboot.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "no"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+        When I create the file `/var/run/reboot-required` with the following:
+        """
+        """
+        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+        When I create the file `/var/run/reboot-required.pkgs` with the following:
+        """
+        linux-base
+        linux-image-5.4.0-1074
+        test
+        test123
+        """
+        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+        When I create the file `/var/run/reboot-required.pkgs` with the following:
+        """
+        linux-base
+        linux-image-5.4.0-1074
+        """
+        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes-kernel-livepatches-applied"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+
     @slow
     @series.bionic
     @uses.config.machine_type.lxd.vm
