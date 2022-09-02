@@ -1,5 +1,6 @@
 from collections import defaultdict
 from enum import Enum
+from functools import lru_cache
 from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
 
 from apt import Cache  # type: ignore
@@ -9,16 +10,7 @@ from uaclient.config import UAConfig
 from uaclient.status import status
 from uaclient.system import get_platform_info
 
-series = get_platform_info()["series"]
-
 ESM_SERVICES = ("esm-infra", "esm-apps")
-
-
-ORIGIN_INFORMATION_TO_SERVICE = {
-    ("Ubuntu", "{}-security".format(series)): "standard-security",
-    ("UbuntuESMApps", "{}-apps-security".format(series)): "esm-apps",
-    ("UbuntuESM", "{}-infra-security".format(series)): "esm-infra",
-}
 
 
 class UpdateStatus(Enum):
@@ -27,6 +19,16 @@ class UpdateStatus(Enum):
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
+
+
+@lru_cache(maxsize=None)
+def get_origin_information_to_service_map():
+    series = get_platform_info()["series"]
+    return {
+        ("Ubuntu", "{}-security".format(series)): "standard-security",
+        ("UbuntuESMApps", "{}-apps-security".format(series)): "esm-apps",
+        ("UbuntuESM", "{}-infra-security".format(series)): "esm-infra",
+    }
 
 
 def get_origin_for_package(package: apt_package.Package) -> str:
@@ -49,7 +51,7 @@ def get_origin_for_package(package: apt_package.Package) -> str:
         available_origins = package.candidate.origins
 
     for origin in available_origins:
-        service = ORIGIN_INFORMATION_TO_SERVICE.get(
+        service = get_origin_information_to_service_map().get(
             (origin.origin, origin.archive), ""
         )
         if service in ESM_SERVICES:
@@ -66,7 +68,7 @@ def get_service_name(origins: List[apt_package.Origin]) -> Tuple[str, str]:
     name.
     """
     for origin in origins:
-        service = ORIGIN_INFORMATION_TO_SERVICE.get(
+        service = get_origin_information_to_service_map().get(
             (origin.origin, origin.archive)
         )
         if service:
@@ -105,7 +107,8 @@ def filter_security_updates(
         for version in package.versions
         if version > package.installed
         and any(
-            (origin.origin, origin.archive) in ORIGIN_INFORMATION_TO_SERVICE
+            (origin.origin, origin.archive)
+            in get_origin_information_to_service_map()
             for origin in version.origins
         )
     ]
