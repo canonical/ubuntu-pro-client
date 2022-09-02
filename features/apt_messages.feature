@@ -95,8 +95,8 @@ Feature: APT Messages
         """
 
         Examples: ubuntu release
-           | release | standard-pkg                                                          | infra-pkg                                            | apps-pkg |
-           | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | libzstd1=1.3.1+dfsg-1~ubuntu0.16.04.1 |
+           | release | standard-pkg                                                          | infra-pkg                                            | apps-pkg     |
+           | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
     @series.xenial
     @uses.config.machine_type.lxd.container
