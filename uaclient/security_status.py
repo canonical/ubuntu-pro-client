@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import textwrap
 from collections import defaultdict
 from enum import Enum
@@ -21,12 +22,16 @@ from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.status import status
 from uaclient.system import (
+    REBOOT_PKGS_FILE_PATH,
     get_distro_info,
     get_kernel_info,
     get_platform_info,
     is_current_series_lts,
     is_supported,
+    load_file,
+    should_reboot,
     subp,
+    which,
 )
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
@@ -38,6 +43,12 @@ class UpdateStatus(Enum):
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
+
+
+class RebootStatus(Enum):
+    REBOOT_REQUIRED = "yes"
+    REBOOT_NOT_REQUIRED = "no"
+    REBOOT_REQUIRED_LIVEPATCH_APPLIED = "yes-kernel-livepatches-applied"
 
 
 @lru_cache(maxsize=None)
@@ -196,6 +207,70 @@ def get_livepatch_fixed_cves() -> List[Dict[str, str]]:
     return []
 
 
+def get_reboot_status():
+    if not should_reboot():
+        return RebootStatus.REBOOT_NOT_REQUIRED
+
+    try:
+        pkg_list = load_file(REBOOT_PKGS_FILE_PATH)
+    except FileNotFoundError:
+        # If we cannot load that file, we cannot evaluate if we have
+        # kernel related packages that require a reboot. Therefore, we
+        # will just say that a reboot is required
+        return RebootStatus.REBOOT_REQUIRED
+
+    pkg_list = pkg_list.split()
+    num_pkgs = len(pkg_list)
+
+    kernel_regex = "^(linux-image|linux-base).*"
+    num_kernel_pkgs = 0
+
+    for pkg in pkg_list:
+        if re.match(kernel_regex, pkg):
+            num_kernel_pkgs += 1
+
+    # We will only check the Livepatch state if all the
+    # packages that require a reboot are kernel related
+    if num_kernel_pkgs != num_pkgs:
+        return RebootStatus.REBOOT_REQUIRED
+
+    if not which("canonical-livepatch"):
+        return RebootStatus.REBOOT_REQUIRED
+
+    livepatch_status, _ = subp(
+        ["canonical-livepatch", "status", "--format", "json"]
+    )
+
+    try:
+        livepatch_status_dict = json.loads(livepatch_status)
+    except json.JSONDecodeError:
+        # If we cannot parse the json file, we will return a
+        # normal reboot state
+        return RebootStatus.REBOOT_REQUIRED
+
+    patch_statuses = livepatch_status_dict.get("Status", [{}])
+
+    try:
+        kernel_info = get_kernel_info()
+        kernel_name = kernel_info.proc_version_signature_version
+    except UserFacingError:
+        # If we cannot parse the kernel info, we cannot verify
+        # the correct Livepatch status to report
+        kernel_name = ""
+
+    patch_state = ""
+    for patch_status in patch_statuses:
+        if patch_status.get("Kernel") == kernel_name:
+            patch_state = patch_status.get("Livepatch", {}).get("State", "")
+
+    if patch_state == "applied":
+        return RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED
+
+    # Any other Livepatch status will not be considered here to modify the
+    # reboot state
+    return RebootStatus.REBOOT_REQUIRED
+
+
 def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     """Returns the status of security updates on a system.
 
@@ -251,6 +326,7 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     summary["num_standard_security_updates"] = len(
         security_upgradable_versions["standard-security"]
     )
+    summary["reboot_required"] = get_reboot_status().value
 
     return {
         "_schema_version": "0.1",

@@ -8,10 +8,12 @@ import pytest
 
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.security_status import (
+    RebootStatus,
     UpdateStatus,
     filter_security_updates,
     get_livepatch_fixed_cves,
     get_origin_for_package,
+    get_reboot_status,
     get_ua_info,
     get_update_status,
     security_status_dict,
@@ -318,6 +320,7 @@ class TestSecurityStatus:
                 == "more-than-one-update"
             )
 
+    @mock.patch(M_PATH + "get_reboot_status")
     @mock.patch(M_PATH + "get_livepatch_fixed_cves", return_value=[])
     @mock.patch(M_PATH + "status", return_value={"attached": False})
     @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
@@ -330,6 +333,7 @@ class TestSecurityStatus:
         _m_get_origin,
         _m_status,
         _m_livepatch_cves,
+        m_reboot_status,
         FakeConfig,
     ):
         """Make sure the output format matches the expected JSON"""
@@ -343,6 +347,7 @@ class TestSecurityStatus:
             "esm-apps": [],
             "standard-security": [],
         }
+        m_reboot_status.return_value = RebootStatus.REBOOT_NOT_REQUIRED
 
         expected_output = {
             "_schema_version": "0.1",
@@ -382,6 +387,7 @@ class TestSecurityStatus:
                 "num_esm_infra_updates": 2,
                 "num_esm_apps_updates": 0,
                 "num_standard_security_updates": 0,
+                "reboot_required": "no",
             },
             "livepatch": {"fixed_cves": []},
         }
@@ -473,3 +479,173 @@ class TestGetLivepatchFixedCVEs:
         assert [
             {"name": "cve-example", "patched": True}
         ] == get_livepatch_fixed_cves()
+
+
+class TestRebootStatus:
+    @mock.patch("uaclient.security_status.should_reboot", return_value=False)
+    def test_get_reboot_status_no_reboot_needed(self, m_should_reboot):
+        assert get_reboot_status() == RebootStatus.REBOOT_NOT_REQUIRED
+        assert 1 == m_should_reboot.call_count
+
+    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.should_reboot", return_value=True)
+    def test_get_reboot_status_no_reboot_pkgs_file(
+        self, m_should_reboot, m_load_file
+    ):
+        m_load_file.side_effect = FileNotFoundError()
+        assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
+        assert 1 == m_should_reboot.call_count
+        assert 1 == m_load_file.call_count
+
+    @pytest.mark.parametrize(
+        "pkgs,expected_state",
+        (
+            ("pkg1\npkg2", RebootStatus.REBOOT_REQUIRED),
+            (
+                "linux-image-5.4.0-1074\nlinux-base\npkg2",
+                RebootStatus.REBOOT_REQUIRED,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.should_reboot", return_value=True)
+    def test_get_reboot_status_reboot_pkgs_file_present(
+        self, m_should_reboot, m_load_file, pkgs, expected_state
+    ):
+        m_load_file.return_value = pkgs
+        assert get_reboot_status() == expected_state
+        assert 1 == m_should_reboot.call_count
+        assert 1 == m_load_file.call_count
+
+    @pytest.mark.parametrize(
+        "livepatch_state,expected_state,kernel_name",
+        (
+            (
+                "applied",
+                RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED,
+                "4.15.0-187.198-generic",
+            ),
+            ("applied", RebootStatus.REBOOT_REQUIRED, "test"),
+            (
+                "nothing-to-apply",
+                RebootStatus.REBOOT_REQUIRED,
+                "4.15.0-187.198-generic",
+            ),
+            (
+                "applying",
+                RebootStatus.REBOOT_REQUIRED,
+                "4.15.0-187.198-generic",
+            ),
+            (
+                "apply-failed",
+                RebootStatus.REBOOT_REQUIRED,
+                "4.15.0-187.198-generic",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.security_status.get_kernel_info")
+    @mock.patch("uaclient.security_status.which")
+    @mock.patch("uaclient.security_status.subp")
+    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.should_reboot", return_value=True)
+    def test_get_reboot_status_reboot_pkgs_file_only_kernel_pkgs(
+        self,
+        m_should_reboot,
+        m_load_file,
+        m_subp,
+        m_which,
+        m_kernel_info,
+        livepatch_state,
+        expected_state,
+        kernel_name,
+    ):
+        m_kernel_info.return_value = mock.MagicMock(
+            proc_version_signature_version=kernel_name
+        )
+        m_which.return_value = True
+        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_subp.return_value = (
+            """
+            {{
+              "Client-Version": "version",
+              "Machine-Id": "machine-id",
+              "Architecture": "x86_64",
+              "CPU-Model": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
+              "Last-Check": "2022-07-05T18:29:00Z",
+              "Boot-Time": "2022-07-05T18:27:12Z",
+              "Uptime": "203",
+              "Status": [
+                {{
+                    "Kernel": "4.15.0-187.198-generic",
+                    "Running": true,
+                    "Livepatch": {{
+                        "CheckState": "checked",
+                        "State": "{}",
+                        "Version": ""
+                    }}
+                }}
+              ],
+              "tier": "stable"
+            }}
+        """.format(
+                livepatch_state
+            ),
+            "",
+        )
+
+        assert get_reboot_status() == expected_state
+        assert 1 == m_should_reboot.call_count
+        assert 1 == m_load_file.call_count
+        assert 1 == m_which.call_count
+        assert 1 == m_subp.call_count
+        assert 1 == m_kernel_info.call_count
+
+    @mock.patch("uaclient.security_status.get_kernel_info")
+    @mock.patch("uaclient.security_status.which")
+    @mock.patch("uaclient.security_status.subp")
+    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.should_reboot", return_value=True)
+    def test_get_reboot_status_fail_parsing_kernel_info(
+        self,
+        m_should_reboot,
+        m_load_file,
+        m_subp,
+        m_which,
+        m_kernel_info,
+    ):
+        m_kernel_info.side_effect = UserFacingError("test")
+        m_which.return_value = True
+        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_subp.return_value = (
+            """
+            {
+              "Client-Version": "version",
+              "Machine-Id": "machine-id",
+              "Architecture": "x86_64",
+              "CPU-Model": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
+              "Last-Check": "2022-07-05T18:29:00Z",
+              "Boot-Time": "2022-07-05T18:27:12Z",
+              "Uptime": "203",
+              "Status": [
+                {
+                    "Kernel": "4.15.0-187.198-generic",
+                    "Running": true,
+                    "Livepatch": {
+                        "CheckState": "checked",
+                        "State": "applied",
+                        "Version": ""
+                    }
+                }
+              ],
+              "tier": "stable"
+            }
+            """,
+            "",
+        )
+
+        assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
+        assert 1 == m_should_reboot.call_count
+        assert 1 == m_load_file.call_count
+        assert 1 == m_which.call_count
+        assert 1 == m_subp.call_count
+        assert 1 == m_kernel_info.call_count

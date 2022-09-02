@@ -63,6 +63,9 @@
         },
         "num_standard_security_updates": {
           "type": "integer"
+        },
+        "reboot_required": {
+          "type": "string"
         }
       }
     },
