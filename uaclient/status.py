@@ -574,7 +574,7 @@ def get_section_column_content(
 def format_expires(expires: datetime) -> str:
     try:
         expires = expires.astimezone()
-    except ValueError:
+    except Exception:
         pass
     return expires.strftime("%c %Z")
 
