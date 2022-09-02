@@ -221,8 +221,8 @@ class TestSecurityStatus:
             "example", installed_version, other_versions
         )
         with mock.patch(
-            M_PATH + "ORIGIN_INFORMATION_TO_SERVICE",
-            ORIGIN_TO_SERVICE_MOCK,
+            M_PATH + "get_origin_information_to_service_map",
+            return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
             assert expected_output == get_origin_for_package(package_mock)
 
@@ -248,8 +248,8 @@ class TestSecurityStatus:
     )
     def test_service_name(self, origins_input, expected_output):
         with mock.patch(
-            M_PATH + "ORIGIN_INFORMATION_TO_SERVICE",
-            ORIGIN_TO_SERVICE_MOCK,
+            M_PATH + "get_origin_information_to_service_map",
+            return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
             assert expected_output == get_service_name(origins_input)
 
@@ -299,8 +299,8 @@ class TestSecurityStatus:
             ),
         ]
         with mock.patch(
-            M_PATH + "ORIGIN_INFORMATION_TO_SERVICE",
-            ORIGIN_TO_SERVICE_MOCK,
+            M_PATH + "get_origin_information_to_service_map",
+            return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
             filtered_versions = filter_security_updates(package_list)
             assert expected_return == filtered_versions
