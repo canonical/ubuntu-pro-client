@@ -22,7 +22,7 @@ The `pro auto-attach` command follows a specific flow on every **Ubuntu Pro** im
 
 3. Send this metadata json blob to the contract server at:
 
-   * https://contract.canonical.com/v1/clouds/CLOUD-TYPE/token
+   * https://contracts.canonical.com/v1/clouds/CLOUD-TYPE/token
 
    Where CLOUD-TYPE is the cloud name we identified on step 1.
 
@@ -36,7 +36,7 @@ The `pro auto-attach` command follows a specific flow on every **Ubuntu Pro** im
    to attach the machine to a pro subscription. To attach the machine we will reach the
    following contract server endpoint:
 
-   * https://contract.canonical.com/v1/context/machines/token
+   * https://contracts.canonical.com/v1/context/machines/token
 
    We will pass the token provided on step 3 as header bearer token for this request
 
