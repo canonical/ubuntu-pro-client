@@ -1183,3 +1183,34 @@ Feature: Proxy configuration
            | bionic  |
            | focal   |
            | jammy   |
+
+    @slow
+    @series.jammy
+    @uses.config.machine_type.lxd.vm
+    Scenario: Enable realtime kernel through proxy on a machine with no internet
+        Given a `jammy` machine with ubuntu-advantage-tools installed
+        When I disable any internet connection on the machine
+        And I launch a `focal` `proxy` machine
+        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        And I run `pro config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I attach `contract_token` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps     +yes      +enabled      +Expanded Security Maintenance for Applications
+        esm-infra     +yes      +enabled      +Expanded Security Maintenance for Infrastructure
+        """
+        When I run `pro enable realtime-kernel --beta` `with sudo` and stdin `y`
+        Then stdout matches regexp:
+        """
+        Installing Real-Time Kernel packages
+        Real-Time Kernel enabled
+        A reboot is required to complete install.
+        """
