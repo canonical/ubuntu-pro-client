@@ -249,7 +249,7 @@ add_notice() {
 from uaclient.config import UAConfig
 from uaclient.messages import ${msg_name}
 cfg = UAConfig(root_mode=True)
-cfg.notice_file.add(${msg_name})
+cfg.notice_file.add(label='', description=${msg_name})
 "
 }
 

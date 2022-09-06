@@ -373,60 +373,58 @@ class NoticeFile:
         self.file = UAFile(file_name, directory, False)
         self.is_root = root_mode
 
-    def add(self, msg: messages.NamedMessage):
+    def add(self, label: str, description: str):
         """
         Adds a notice to the notices.json file.
         Raises a NonRootUserError if the user is not root.
         """
         if self.is_root:
-            existing_notices = self.read() or []
-            new_notices = []
-            for existing_notice in existing_notices:
-                if existing_notice[0] == msg.name:
-                    new_notices.append([msg.name, msg.msg])
-                else:
-                    new_notices.append(existing_notice)
-            self.write(new_notices)
+            notices = self.read() or []
+            notice = [label, description]
+            if notice not in notices:
+                notices.append(notice)
+                self.write(notices)
         else:
             raise exceptions.NonRootUserError
 
-    def try_add(self, msg: messages.NamedMessage):
+    def try_add(self, label: str, description: str):
         """
         Adds a notice to the notices.json file.
         Logs a warning when adding as non-root
         """
         try:
-            self.add(msg)
+            self.add(label, description)
         except exceptions.NonRootUserError:
             event.warning("Trying to add notice as non-root user")
 
-    def remove(self, name: str):
+    def remove(self, label_regex: str, descr_regex: str):
         """
         Removes a notice to the notices.json file.
         Raises a NonRootUserError if the user is not root.
         """
         if self.is_root:
-            existing_notices = self.read() or []
-            new_notices = []
-            for existing_notice in existing_notices:
-                if existing_notice[0] == name:
-                    continue
-                else:
-                    new_notices.append(existing_notice)
-            if len(new_notices) > 0:
-                self.write(new_notices)
+            notices = []
+            cached_notices = self.read() or []
+            if cached_notices:
+                for notice_label, notice_descr in cached_notices:
+                    if re.match(label_regex, notice_label):
+                        if re.match(descr_regex, notice_descr):
+                            continue
+                    notices.append((notice_label, notice_descr))
+            if notices:
+                self.write(notices)
             elif os.path.exists(self.file.path):
                 self.file.delete()
         else:
             raise exceptions.NonRootUserError
 
-    def try_remove(self, name: str):
+    def try_remove(self, label_regex: str, descr_regex: str):
         """
         Removes a notice to the notices.json file.
         Logs  a warning when removing as non-root
         """
         try:
-            self.remove(name)
+            self.remove(label_regex, descr_regex)
         except exceptions.NonRootUserError:
             event.warning("Trying to remove notice as non-root user")
 
