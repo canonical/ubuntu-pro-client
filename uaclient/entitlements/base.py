@@ -586,7 +586,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         supported_kernels=", ".join(affordance_kernels),
                     ),
                 )
-        if affordance_min_kernel:
+        if (
+            affordance_min_kernel
+            and kernel_info.major is not None
+            and kernel_info.minor is not None
+        ):
             invalid_msg = messages.INAPPLICABLE_KERNEL_VER.format(
                 title=self.title,
                 kernel=kernel_info.uname_release,
