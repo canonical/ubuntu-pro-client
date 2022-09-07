@@ -120,6 +120,26 @@ def given_a_machine(context, series, custom_user_data=None):
     )
 
 
+@when("I install ubuntu-advantage-pro")
+def when_i_install_pro(context):
+    if context.config.install_from is InstallationSource.LOCAL:
+        deb_paths = build_debs_from_sbuild(context, context.series)
+
+        for deb_path in deb_paths:
+            logging.info(deb_path)  # only tools for some reason
+            if "pro" in deb_path:
+                context.instances["uaclient"].push_file(
+                    deb_path, "/tmp/pro.deb"
+                )
+                when_i_run_command(
+                    context, "dpkg -i /tmp/pro.deb", "with sudo"
+                )
+    else:
+        when_i_run_command(
+            context, "apt-get install ubuntu-advantage-pro", "with sudo"
+        )
+
+
 @when("I take a snapshot of the machine")
 def when_i_take_a_snapshot(context):
     cloud = context.config.cloud_manager

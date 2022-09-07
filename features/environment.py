@@ -40,6 +40,7 @@ runcmd:
   - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\" > /etc/apt/sources.list.d/uaclient-proposed.list
   - "printf \\"Package: *\\nPin: release a={series}-proposed\\nPin-Priority: 400\\n\\" > /etc/apt/preferences.d/lower-proposed"
   - "printf \\"Package: ubuntu-advantage-tools\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient-proposed"
+  - "printf \\"Package: ubuntu-advantage-pro\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclientpro-proposed"
 """  # noqa: E501
 
 USERDATA_APT_SOURCE_PPA = """\

@@ -1,3 +1,5 @@
+import logging
+
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (

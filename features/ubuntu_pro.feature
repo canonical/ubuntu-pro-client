@@ -682,9 +682,87 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.gcp.generic
     Scenario Outline: auto-attach retries for a month
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I change contract to staging with sudo
+        When I install ubuntu-advantage-pro
+        When I verify that running `systemctl start ua-auto-attach.service` `with sudo` exits `1`
+        When I wait `1` seconds
+        When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: failed
+        """
+        Then stdout matches regexp:
+        """
+        missing product mapping for licenses
+        """
+        When I run `journalctl -u ua-auto-attach.service` with sudo
+        Then stdout matches regexp:
+        """
+        starting pro-auto-attach-retry.service
+        """
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/run/ubuntu-advantage/flags/retry-auto-attach-running was not met
+        """
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.*
+        """
+        Then MOTD matches regexp:
+        """
+        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        """
+        When I set `interval` = `5` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I run `systemctl restart pro-auto-attach-retry.service` with sudo
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.*
+        """
+        Then MOTD matches regexp:
+        """
+        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        """
+        When I set `interval` = `last` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+
+        When I run `systemctl restart pro-auto-attach-retry.service` with sudo
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.* #TODO actually fail
+        """
+        Then MOTD matches regexp:
+        """
+        auto-attach fiailed the final time because reason
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        auto-attach fiailed the final time because reason
+        """
         Examples: ubuntu release
            | release |
            | xenial  |
            | bionic  |
            | focal   |
            | jammy   |
+
+
+        #TODO scenario taht tests an attach in the mean time clears messages and stops service
+        #TODO scenario taht tests an the daemon starts it too
+        #TODO scenario taht tests we don't retry on unsupported lxd.container
+        #TODO scenario taht tests it can succeed

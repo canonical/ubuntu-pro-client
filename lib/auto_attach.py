@@ -19,7 +19,6 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     full_auto_attach,
 )
 from uaclient.config import UAConfig
-from uaclient.services import setup_logging
 from uaclient.services import retry_auto_attach, setup_logging
 
 try:
@@ -50,6 +49,8 @@ def check_cloudinit_userdata_for_ua_info():
 
 
 def main(cfg: UAConfig):
+    print("before anything at all")
+    logging.error("before log")
     if actions.should_disable_auto_attach(cfg):
         return
 
@@ -62,9 +63,16 @@ def main(cfg: UAConfig):
         return
 
     try:
+        print("before we go Hello thereeeeeee")
+        logging.info("before autoattach log")
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
+        print("Hello thereeeeeee")
+        logging.warn("warn")
+        logging.info("info")
+        logging.debug("debug")
         logging.error(e)
+        logging.info("starting pro-auto-attach-retry.service")
         retry_auto_attach.start()
         return 1
 

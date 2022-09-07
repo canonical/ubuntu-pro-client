@@ -1,6 +1,5 @@
 import datetime
 import logging
-import pathlib
 import time
 from subprocess import TimeoutExpired
 from typing import Optional
@@ -41,23 +40,6 @@ RETRY_INTERVALS = [
 ]
 FLAG_FILE_PATH = "/run/ubuntu-advantage/flags/retry-auto-attach-running"
 
-OPTIONS_FILE = files.DataObjectFile(
-    RetryOptions,
-    files.UAFile(
-        "retry-auto-attach-options.json",
-        defaults.DEFAULT_DATA_DIR,
-        private=True,
-    ),
-    files.DataObjectFileFormat.JSON,
-)
-STATE_FILE = files.DataObjectFile(
-    RetryState,
-    files.UAFile(
-        "retry-auto-attach-state.json", defaults.DEFAULT_DATA_DIR, private=True
-    ),
-    files.DataObjectFileFormat.JSON,
-)
-
 RetryOptions = FullAutoAttachOptions
 
 
@@ -80,6 +62,24 @@ class RetryState(DataObject):
         self.last_attempt = last_attempt
         self.next_attempt = next_attempt
         self.failure_reason = failure_reason
+
+
+OPTIONS_FILE = files.DataObjectFile(
+    RetryOptions,
+    files.UAFile(
+        "retry-auto-attach-options.json",
+        defaults.DEFAULT_DATA_DIR,
+        private=True,
+    ),
+    files.DataObjectFileFormat.JSON,
+)
+STATE_FILE = files.DataObjectFile(
+    RetryState,
+    files.UAFile(
+        "retry-auto-attach-state.json", defaults.DEFAULT_DATA_DIR, private=True
+    ),
+    files.DataObjectFileFormat.JSON,
+)
 
 
 def start():
