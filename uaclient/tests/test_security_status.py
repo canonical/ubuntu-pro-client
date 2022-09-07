@@ -6,7 +6,7 @@ from typing import List, Optional
 import mock
 import pytest
 
-from uaclient.exceptions import ProcessExecutionError, UserFacingError
+from uaclient.exceptions import ProcessExecutionError
 from uaclient.security_status import (
     UpdateStatus,
     filter_security_updates,
@@ -16,6 +16,7 @@ from uaclient.security_status import (
     get_update_status,
     security_status_dict,
 )
+from uaclient.system import KernelInfo
 
 M_PATH = "uaclient.security_status."
 
@@ -417,10 +418,17 @@ class TestGetLivepatchFixedCVEs:
             ],
         }
 
-        m_kernel_info.side_effect = UserFacingError("error")
+        m_kernel_info.return_value = KernelInfo(
+            uname_release="",
+            proc_version_signature_version=None,
+            major=None,
+            minor=None,
+            patch=None,
+            abi=None,
+            flavor=None,
+        )
 
         assert [] == get_livepatch_fixed_cves()
-        assert "Could not get the kernel information" in caplog_text()
 
     def test_livepatch_no_fixes(self, m_kernel_info, m_loads):
         m_kernel_info.return_value.proc_version_signature_version = (
