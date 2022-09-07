@@ -677,3 +677,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  |
            | focal   |
            | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.gcp.generic
+    Scenario Outline: auto-attach retries for a month
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
