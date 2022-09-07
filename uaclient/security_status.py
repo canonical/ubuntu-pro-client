@@ -18,7 +18,7 @@ from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
 )
 from uaclient.entitlements.livepatch import LIVEPATCH_CMD
-from uaclient.exceptions import ProcessExecutionError, UserFacingError
+from uaclient.exceptions import ProcessExecutionError
 from uaclient.status import status
 from uaclient.system import (
     get_distro_info,
@@ -176,14 +176,12 @@ def get_livepatch_fixed_cves() -> List[Dict[str, str]]:
     status_list = livepatch_output.get("Status")
     if status_list:
         # Livepatch guarantees this list has only one element
-        kernel_version = status_list[0].get("Kernel")
-        try:
-            kernel_info = get_kernel_info()
-        except UserFacingError:
-            msg = "Could not get the kernel information"
-            logging.debug(msg)
-            return []
-        if kernel_version == kernel_info.proc_version_signature_version:
+        lp_kernel_version = status_list[0].get("Kernel")
+        our_kernel_version = get_kernel_info().proc_version_signature_version
+        if (
+            our_kernel_version is not None
+            and our_kernel_version == lp_kernel_version
+        ):
             livepatch_status = status_list[0].get("Livepatch", {})
             if livepatch_status.get("State", "") == "applied":
                 fixes = livepatch_status.get("Fixes", [])

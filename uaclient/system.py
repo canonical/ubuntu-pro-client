@@ -21,33 +21,15 @@ REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
 
 RE_KERNEL_UNAME = (
     r"^"
-    r"(?P<version>[\d]+[.-][\d]+[.-][\d]+)"
-    r"-"
-    r"(?P<abi>[\d]+)"
-    r"-"
-    r"(?P<flavor>[A-Za-z0-9_-]+)"
-    r"$"
-)
-RE_KERNEL_PROC_VERSION_SIGNATURE = (
-    r"^"
-    r"(?P<version>[\d]+[.-][\d]+[.-][\d]+)"
-    r"-"
-    r"(?P<abi>[\d]+)"
-    r"[.-]"
-    r"(?P<subrev>[\d]+)"
-    r"(~(?P<hwerev>[\w\d.]+))?"
-    r"(\+(?P<tag>[\w\d.]+))?"
-    r"-"
-    r"(?P<flavor>[A-Za-z0-9_-]+)"
-    r"$"
-)
-RE_KERNEL_VERSION_SPLIT = (
-    r"^"
     r"(?P<major>[\d]+)"
     r"[.-]"
     r"(?P<minor>[\d]+)"
     r"[.-]"
     r"(?P<patch>[\d]+)"
+    r"-"
+    r"(?P<abi>[\d]+)"
+    r"-"
+    r"(?P<flavor>[A-Za-z0-9_-]+)"
     r"$"
 )
 
@@ -59,95 +41,50 @@ KernelInfo = NamedTuple(
     "KernelInfo",
     [
         ("uname_release", str),
-        ("proc_version_signature_full", str),
-        ("proc_version_signature_version", str),
-        ("version", str),
-        ("major", int),
-        ("minor", int),
-        ("patch", int),
-        ("abi", str),
-        ("subrev", str),
-        ("hwerev", str),
-        ("tag", str),
-        ("flavor", str),
+        ("proc_version_signature_version", Optional[str]),
+        ("major", Optional[int]),
+        ("minor", Optional[int]),
+        ("patch", Optional[int]),
+        ("abi", Optional[str]),
+        ("flavor", Optional[str]),
     ],
 )
 
 
 @lru_cache(maxsize=None)
 def get_kernel_info() -> KernelInfo:
-    uname_release = os.uname().release
-
-    proc_version_signature_full = ""
-    proc_version_signature_version = ""
+    proc_version_signature_version = None
     try:
         proc_version_signature_full = load_file("/proc/version_signature")
         proc_version_signature_version = proc_version_signature_full.split()[1]
     except Exception:
+        logging.warning("failed to process /proc/version_signature.")
+
+    uname_release = os.uname().release.strip()
+    uname_match = re.match(RE_KERNEL_UNAME, uname_release)
+    if uname_match is None:
         logging.warning(
-            "failed to process /proc/version_signature. "
-            "using uname for all kernel info"
+            messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
         )
-
-    if proc_version_signature_version != "":
-        match = re.match(
-            RE_KERNEL_PROC_VERSION_SIGNATURE, proc_version_signature_version
+        return KernelInfo(
+            uname_release=uname_release,
+            proc_version_signature_version=proc_version_signature_version,
+            major=None,
+            minor=None,
+            patch=None,
+            abi=None,
+            flavor=None,
         )
-        if match is None:
-            err_msg = messages.KERNEL_PARSE_ERROR.format(
-                kernel=proc_version_signature_version
-            )
-            raise exceptions.UserFacingError(
-                msg=err_msg.msg,
-                msg_code=err_msg.name,
-            )
-        version = match.group("version")
-        abi = match.group("abi")
-        subrev = match.group("subrev")
-        hwerev = match.group("hwerev") or ""
-        tag = match.group("tag") or ""
-        flavor = match.group("flavor")
     else:
-        match = re.match(RE_KERNEL_UNAME, uname_release)
-        if match is None:
-            err_msg = messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
-            raise exceptions.UserFacingError(
-                msg=err_msg.msg,
-                msg_code=err_msg.name,
-            )
-        version = match.group("version")
-        abi = match.group("abi")
-        subrev = ""
-        hwerev = ""
-        tag = ""
-        flavor = match.group("flavor")
-
-    version_split_match = re.match(RE_KERNEL_VERSION_SPLIT, version)
-    if version_split_match is None:
-        err_msg = messages.KERNEL_VERSION_SPLIT_ERROR.format(version=version)
-        raise exceptions.UserFacingError(
-            msg=err_msg.msg,
-            msg_code=err_msg.name,
+        return KernelInfo(
+            uname_release=uname_release,
+            proc_version_signature_version=proc_version_signature_version,
+            major=int(uname_match.group("major")),
+            minor=int(uname_match.group("minor")),
+            patch=int(uname_match.group("patch")),
+            abi=uname_match.group("abi"),
+            flavor=uname_match.group("flavor"),
         )
-
-    major = int(version_split_match.group("major"))
-    minor = int(version_split_match.group("minor"))
-    patch = int(version_split_match.group("patch"))
-
-    return KernelInfo(
-        uname_release=uname_release,
-        proc_version_signature_full=proc_version_signature_full,
-        proc_version_signature_version=proc_version_signature_version,
-        version=version,
-        major=major,
-        minor=minor,
-        patch=patch,
-        abi=abi,
-        subrev=subrev,
-        hwerev=hwerev,
-        tag=tag,
-        flavor=flavor,
-    )
 
 
 @lru_cache(maxsize=None)

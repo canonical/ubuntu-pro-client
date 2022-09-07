@@ -931,13 +931,7 @@ INVALID_FILE_FORMAT = FormattedNamedMessage(
     name="invalid-file-format", msg="{file_name} is not valid {file_format}"
 )
 
-KERNEL_PARSE_ERROR = FormattedNamedMessage(
-    name="kernel-parse-error", msg="Failed to parse kernel: {kernel}"
-)
-KERNEL_VERSION_SPLIT_ERROR = FormattedNamedMessage(
-    name="kernel-version-split-error",
-    msg="Failed to split kernel version: {version}",
-)
+KERNEL_PARSE_ERROR = "Failed to parse kernel: {kernel}"
 
 LSCPU_ARCH_PARSE_ERROR = NamedMessage(
     name="lscpu-arch-parse-error",
