@@ -133,7 +133,7 @@ def get_machine_id(cfg) -> str:
             if content:
                 return content
     machine_id = str(uuid.uuid4())
-    write_file(fallback_machine_id_file, machine_id)
+    cfg.write_cache("machine-id", machine_id)
     return machine_id
 
 

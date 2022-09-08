@@ -20,6 +20,46 @@ Feature: Attached status
            | kinetic |
 
     @series.xenial
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Non-root status can see in-progress operations
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run shell command `sudo pro enable cis >/dev/null & pro status` as non-root
+        Then stdout matches regexp:
+        """
+        NOTICES
+        Operation in progress: pro enable
+        """
+        When I run `pro status --wait` as non-root
+        When I run `pro disable cis --assume-yes` with sudo
+        When I run shell command `sudo pro enable cis & pro status --wait` as non-root
+        Then stdout matches regexp:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Installing CIS Audit packages
+        CIS Audit enabled
+        Visit https://ubuntu.com/security/cis to learn how to use CIS
+        \.+
+        SERVICE +ENTITLED +STATUS +DESCRIPTION
+        """
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        Operation in progress: pro enable
+        """
+        When I run `pro disable cis --assume-yes` with sudo
+        When I run `apt-get install jq -y` with sudo
+        When I run shell command `sudo pro enable cis >/dev/null & pro status --format json | jq -r .execution_status` as non-root
+        Then I will see the following on stdout:
+        """
+        active
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+
+    @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached status in a ubuntu machine
