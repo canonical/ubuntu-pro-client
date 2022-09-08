@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (27.10.1~22.10.1) kinetic; urgency=medium
+
+  * apt-hook: Fix missing import warning when compiling
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 09 Aug 2022 14:03:14 -0300
+
 ubuntu-advantage-tools (27.10~22.10.1) kinetic; urgency=medium
 
   * d/control:
