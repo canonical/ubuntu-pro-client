@@ -916,3 +916,29 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Run timer script to valid machine activity endpoint
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `rm /var/lib/ubuntu-advantage/machine-token.json` with sudo
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE +AVAILABLE +DESCRIPTION
+        """
+        When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
+        Then I verify that files exist matching `/var/lib/ubuntu-advantage/machine-token.json`
+        When I run `ua status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE +ENTITLED +STATUS +DESCRIPTION
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
