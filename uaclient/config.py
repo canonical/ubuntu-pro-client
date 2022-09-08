@@ -86,7 +86,7 @@ class UAConfig:
     data_paths = {
         "instance-id": DataPath("instance-id", True, False),
         "machine-access-cis": DataPath("machine-access-cis.json", True, False),
-        "lock": DataPath("lock", True, False),
+        "lock": DataPath("lock", False, False),
         "status-cache": DataPath("status.json", False, False),
         "notices": DataPath("notices.json", False, False),
         "marker-reboot-cmds": DataPath(
@@ -459,7 +459,7 @@ class UAConfig:
         filepath = self.data_path(key)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+            os.makedirs(data_dir, exist_ok=True)
             if os.path.basename(data_dir) == PRIVATE_SUBDIR:
                 os.chmod(data_dir, 0o700)
         if key.startswith("machine-access"):
