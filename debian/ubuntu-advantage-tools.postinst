@@ -54,6 +54,9 @@ SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/m
 REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
 OLD_LICENSE_CHECK_MARKER_FILE="/var/lib/ubuntu-advantage/marker-license-check"
 
+MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
+PUBLIC_MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/machine-token.json"
+
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
@@ -368,6 +371,19 @@ remove_old_systemd_units() {
     fi
 }
 
+create_public_machine_token_file() {
+    # When we perform the write operation through
+    # MachineTokenFile we already write the public
+    # version of the machine-token file with all the
+    # sensitive data removed.
+    /usr/bin/python3 -c "
+from uaclient.files import MachineTokenFile
+machine_token_file = MachineTokenFile()
+content = machine_token_file.read()
+machine_token_file.write(content=content)
+"
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -439,6 +455,13 @@ case "$1" in
       disable_new_timer_if_old_timer_already_disabled $PREVIOUS_PKG_VER
       remove_old_systemd_units $PREVIOUS_PKG_VER
       /usr/lib/ubuntu-advantage/cloud-id-shim.sh || true
+
+      # On old version of ubuntu-advantange-tools, we don't have a public
+      # machine_token.json file on attached machines. Since the non-root
+      # status now needs that file, we need to create it during the upgrade
+      if [ -f $MACHINE_TOKEN_FILE ] && [ ! -f $PUBLIC_MACHINE_TOKEN_FILE ]; then
+          create_public_machine_token_file
+      fi
       ;;
 esac
 
