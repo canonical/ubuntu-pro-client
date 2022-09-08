@@ -126,7 +126,6 @@ def when_i_install_pro(context):
         deb_paths = build_debs_from_sbuild(context, context.series)
 
         for deb_path in deb_paths:
-            logging.info(deb_path)  # only tools for some reason
             if "pro" in deb_path:
                 context.instances["uaclient"].push_file(
                     deb_path, "/tmp/pro.deb"
@@ -702,7 +701,7 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
     when_i_run_command(context, cmd_name, spec, verify_return=False)
-
+    logging.debug("got return code: %d", context.process.returncode)
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
 

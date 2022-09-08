@@ -610,8 +610,7 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
 
     if "pro" in context.config.machine_type:
         return deb_paths
-    # Redact ubuntu-advantage-pro deb as inapplicable
-    return [deb_path for deb_path in deb_paths if "pro" not in deb_path]
+    return deb_paths
 
 
 def create_instance_with_uat_installed(

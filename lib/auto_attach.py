@@ -49,8 +49,6 @@ def check_cloudinit_userdata_for_ua_info():
 
 
 def main(cfg: UAConfig):
-    print("before anything at all")
-    logging.error("before log")
     if actions.should_disable_auto_attach(cfg):
         return
 
@@ -63,11 +61,8 @@ def main(cfg: UAConfig):
         return
 
     try:
-        print("before we go Hello thereeeeeee")
-        logging.info("before autoattach log")
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
-        print("Hello thereeeeeee")
         logging.warn("warn")
         logging.info("info")
         logging.debug("debug")
@@ -87,4 +82,4 @@ if __name__ == "__main__":
         log_file=cfg.log_file,
         logger=logging.getLogger(),
     )
-    main(cfg)
+    sys.exit(main(cfg))
