@@ -59,7 +59,7 @@ the attach procedure to begin. The wait endpoint will wait for the user to perfo
 steps on the advantage portal. To call it, use:
 
 ```console
-$ ua api u.pro.attach.magic.initiate.v1 --args magic_token=MAGIC_ATTACH_TOKEN
+$ ua api u.pro.attach.magic.wait.v1 --args magic_token=MAGIC_ATTACH_TOKEN
 ```
 
 Note here that the command requires the `token` that was generated in the initiate step. This command
