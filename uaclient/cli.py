@@ -33,6 +33,9 @@ from uaclient import (
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.api.api import call_api
+from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+    _reboot_required,
+)
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import DEFAULT_LOG_FORMAT, PRINT_WRAP_WIDTH
@@ -740,6 +743,52 @@ def disable_parser(parser, cfg: config.UAConfig):
     return parser
 
 
+def system_parser(parser):
+    """Build or extend an arg parser for system subcommand."""
+    parser.usage = USAGE_TMPL.format(name=NAME, command="system <command>")
+    parser.description = (
+        "Output system related information related to Pro services"
+    )
+    parser.prog = "system"
+    parser._optionals.title = "Flags"
+    subparsers = parser.add_subparsers(
+        title="Available Commands", dest="command", metavar=""
+    )
+    parser_reboot_required = subparsers.add_parser(
+        "reboot-required", help="does the system need to be rebooted"
+    )
+    parser_reboot_required.set_defaults(action=action_system_reboot_required)
+    reboot_required_parser(parser_reboot_required)
+
+    return parser
+
+
+def reboot_required_parser(parser):
+    # This formatter_class ensures that our formatting below isn't lost
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="system reboot-required"
+    )
+    parser.pro = "reboot-required"
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = textwrap.dedent(
+        """\
+        Report the current reboot-required status for the machine.
+
+        This command will output one of the three following states
+        for the machine regarding reboot:
+
+        * no: The machine doesn't require a reboot
+        * yes: The machine requires a reboot
+        * yes-kernel-livepatches-applied: There are only kernel related
+          packages that require a reboot, but Livepatch has already provided
+          patches for the current running kernel. The machine still needs a
+          reboot, but you can assess if the reboot can be performed in the
+          nearest maintenance window.
+        """
+    )
+    return parser
+
+
 def status_parser(parser):
     """Build or extend an arg parser for status subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="status")
@@ -819,6 +868,19 @@ def status_parser(parser):
     return parser
 
 
+def _print_help_for_subcommand(
+    cfg: config.UAConfig, cmd_name: str, subcmd_name: str
+):
+    parser = get_parser(cfg=cfg)
+    subparser = parser._get_positional_actions()[0].choices[cmd_name]
+    valid_choices = subparser._get_positional_actions()[0].choices.keys()
+    if subcmd_name not in valid_choices:
+        parser._get_positional_actions()[0].choices[cmd_name].print_help()
+        raise exceptions.UserFacingError(
+            "\n<command> must be one of: {}".format(", ".join(valid_choices))
+        )
+
+
 def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     """Perform the disable action on a named entitlement.
 
@@ -856,14 +918,10 @@ def action_config(args, *, cfg, **kwargs):
 
     :return: 0 on success, 1 otherwise
     """
-    parser = get_parser(cfg=cfg)
-    subparser = parser._get_positional_actions()[0].choices["config"]
-    valid_choices = subparser._get_positional_actions()[0].choices.keys()
-    if args.command not in valid_choices:
-        parser._get_positional_actions()[0].choices["config"].print_help()
-        raise exceptions.UserFacingError(
-            "\n<command> must be one of: {}".format(", ".join(valid_choices))
-        )
+    _print_help_for_subcommand(
+        cfg, cmd_name="config", subcmd_name=args.command
+    )
+    return 0
 
 
 def action_config_show(args, *, cfg, **kwargs):
@@ -1545,6 +1603,12 @@ def get_parser(cfg: config.UAConfig):
     )
     parser_version.set_defaults(action=print_version)
 
+    parser_system = subparsers.add_parser(
+        "system", help="show system information related to Pro services"
+    )
+    parser_system.set_defaults(action=action_system)
+    system_parser(parser_system)
+
     return parser
 
 
@@ -1588,6 +1652,23 @@ def action_status(args, *, cfg):
     event.info(util.handle_unicode_characters(output))
     event.process_events()
     return ret
+
+
+def action_system(args, *, cfg, **kwargs):
+    """Perform the system action.
+
+    :return: 0 on success, 1 otherwise
+    """
+    _print_help_for_subcommand(
+        cfg, cmd_name="system", subcmd_name=args.command
+    )
+    return 0
+
+
+def action_system_reboot_required(args, *, cfg: config.UAConfig):
+    result = _reboot_required(cfg)
+    event.info(result.reboot_required)
+    return 0
 
 
 def print_version(_args=None, cfg=None):
