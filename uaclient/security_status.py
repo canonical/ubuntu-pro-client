@@ -237,30 +237,28 @@ def get_reboot_status():
     if not which("canonical-livepatch"):
         return RebootStatus.REBOOT_REQUIRED
 
-    livepatch_status, _ = subp(
-        ["canonical-livepatch", "status", "--format", "json"]
-    )
+    livepatch_status, _ = subp([LIVEPATCH_CMD, "status", "--format", "json"])
 
     try:
         livepatch_status_dict = json.loads(livepatch_status)
     except json.JSONDecodeError:
         # If we cannot parse the json file, we will return a
         # normal reboot state
+        msg = "Could not parse Livepatch Status JSON: {}".format(
+            livepatch_status
+        )
+        logging.debug(msg)
         return RebootStatus.REBOOT_REQUIRED
 
     patch_statuses = livepatch_status_dict.get("Status", [{}])
 
-    try:
-        kernel_info = get_kernel_info()
-        kernel_name = kernel_info.proc_version_signature_version
-    except UserFacingError:
-        # If we cannot parse the kernel info, we cannot verify
-        # the correct Livepatch status to report
-        kernel_name = ""
+    kernel_info = get_kernel_info()
+    kernel_name = kernel_info.proc_version_signature_version
 
     patch_state = ""
     for patch_status in patch_statuses:
-        if patch_status.get("Kernel") == kernel_name:
+        livepatch_kernel = patch_status.get("Kernel")
+        if livepatch_kernel and livepatch_kernel == kernel_name:
             patch_state = patch_status.get("Livepatch", {}).get("State", "")
 
     if patch_state == "applied":

@@ -497,6 +497,25 @@ class TestRebootStatus:
         assert 1 == m_should_reboot.call_count
         assert 1 == m_load_file.call_count
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.security_status.subp")
+    @mock.patch("uaclient.security_status.which", return_value=True)
+    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.should_reboot", return_value=True)
+    def test_get_reboot_status_fail_to_parse_livepatch_output(
+        self,
+        m_should_reboot,
+        m_load_file,
+        _m_which,
+        m_subp,
+        caplog_text,
+    ):
+        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_subp.return_value = ('{"test": 123', "")
+
+        assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
+        assert "Could not parse Livepatch Status JSON" in caplog_text()
+
     @pytest.mark.parametrize(
         "pkgs,expected_state",
         (
@@ -613,7 +632,9 @@ class TestRebootStatus:
         m_which,
         m_kernel_info,
     ):
-        m_kernel_info.side_effect = UserFacingError("test")
+        m_kernel_info.return_value = mock.MagicMock(
+            proc_version_signature_version=None
+        )
         m_which.return_value = True
         m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
         m_subp.return_value = (
