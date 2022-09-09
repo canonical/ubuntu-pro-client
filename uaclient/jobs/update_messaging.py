@@ -18,6 +18,9 @@ from uaclient.clouds import identity
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
     ANNOUNCE_ESM_APPS_TMPL,
+    AUTO_ATTACH_RETRY_NOTICE,
+    AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE,
+    AUTO_ATTACH_RUNNING,
     CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_APT_PKGS_TMPL,
@@ -29,6 +32,7 @@ from uaclient.messages import (
     DISABLED_APT_NO_PKGS_TMPL,
     DISABLED_APT_PKGS_TMPL,
 )
+from uaclient.services import retry_auto_attach
 
 XENIAL_ESM_URL = "https://ubuntu.com/16-04"
 AZURE_PRO_URL = "https://ubuntu.com/azure/pro"

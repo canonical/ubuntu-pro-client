@@ -1,7 +1,12 @@
 import logging
+import os
 import sys
 
-from uaclient.defaults import DEFAULT_LOG_FORMAT
+from uaclient.defaults import DEFAULT_DATA_DIR, DEFAULT_LOG_FORMAT
+
+AUTO_ATTACH_STATUS_MOTD_FILE = os.path.join(
+    DEFAULT_DATA_DIR, "messages", "motd-auto-attach-status"
+)
 
 
 def setup_logging(console_level, log_level, log_file, logger):

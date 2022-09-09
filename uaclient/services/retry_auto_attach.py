@@ -4,19 +4,21 @@ import time
 from subprocess import TimeoutExpired
 from typing import Optional
 
-from uaclient import defaults, exceptions, files, system
+from uaclient import defaults, exceptions, files, messages, system
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
 from uaclient.config import UAConfig
 from uaclient.data_types import (
+    BoolDataValue,
     DataObject,
     DatetimeDataValue,
     Field,
     IntDataValue,
     StringDataValue,
 )
+from uaclient.services import AUTO_ATTACH_STATUS_MOTD_FILE
 
 RETRY_INTERVALS = [
     900,  # 15m (T+15m)
@@ -46,7 +48,6 @@ RetryOptions = FullAutoAttachOptions
 class RetryState(DataObject):
     fields = [
         Field("interval_index", IntDataValue),
-        Field("last_attempt", DatetimeDataValue),
         Field("next_attempt", DatetimeDataValue),
         Field("failure_reason", StringDataValue, required=False),
     ]
@@ -54,12 +55,10 @@ class RetryState(DataObject):
     def __init__(
         self,
         interval_index: int,
-        last_attempt: datetime.datetime,
         next_attempt: datetime.datetime,
         failure_reason: Optional[str],
     ):
         self.interval_index = interval_index
-        self.last_attempt = last_attempt
         self.next_attempt = next_attempt
         self.failure_reason = failure_reason
 
@@ -122,12 +121,25 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         STATE_FILE.write(
             RetryState(
                 interval_index=index,
-                last_attempt=last_attempt,
                 next_attempt=next_attempt,
                 failure_reason=failure_reason,
             )
         )
-        # TODO update messaging: motd and status
+        msg_reason = failure_reason
+        if msg_reason is None:
+            msg_reason = "an unknown error."
+        try:
+            next_attempt = next_attempt.astimezone()
+        except Exception:
+            pass
+        auto_attach_status_msg = messages.AUTO_ATTACH_RETRY_NOTICE.format(
+            num_attempts=index + 1,
+            reason=msg_reason,
+            next_run_datestring=next_attempt.isoformat(),
+        )
+        system.write_file(AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg)
+        cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+        cfg.notice_file.add("", auto_attach_status_msg)
 
         time.sleep(interval)
 
@@ -146,13 +158,28 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             break
         except Exception as e:
             # TODO catch specific exceptions
-            failure_reason = str(e)
+            if isinstance(e, exceptions.UserFacingError):
+                failure_reason = e.msg
+            else:
+                failure_reason = str(e)
             logging.error(e)
             continue
 
     STATE_FILE.delete()
     OPTIONS_FILE.delete()
+    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+    cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+
     if not cfg.is_attached():
         # Total failure!!
-        # TODO message
-        pass
+        msg_reason = failure_reason
+        if msg_reason is None:
+            msg_reason = "an unknown error."
+        auto_attach_status_msg = (
+            messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE.format(
+                num_attempts=len(RETRY_INTERVALS) + 1, reason=msg_reason
+            )
+        )
+        system.write_file(AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg)
+        cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+        cfg.notice_file.add("", auto_attach_status_msg)

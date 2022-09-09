@@ -13,13 +13,17 @@ their side.
 import logging
 import sys
 
-from uaclient import actions, exceptions
+from uaclient import actions, exceptions, messages, system
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
 from uaclient.config import UAConfig
-from uaclient.services import retry_auto_attach, setup_logging
+from uaclient.services import (
+    AUTO_ATTACH_STATUS_MOTD_FILE,
+    retry_auto_attach,
+    setup_logging,
+)
 
 try:
     import cloudinit.stages as ci_stages  # type: ignore
@@ -61,8 +65,12 @@ def main(cfg: UAConfig):
         return
 
     try:
+        system.write_file(
+            AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+        )
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
+        system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
         if isinstance(e, exceptions.UserFacingError):
             logging.error(e.msg)
         else:
@@ -71,6 +79,7 @@ def main(cfg: UAConfig):
         retry_auto_attach.start()
         return 1
 
+    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
     return 0
 
 
