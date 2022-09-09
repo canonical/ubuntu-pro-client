@@ -127,7 +127,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         )
         msg_reason = failure_reason
         if msg_reason is None:
-            msg_reason = "an unknown error."
+            msg_reason = "an unknown error"
         try:
             next_attempt = next_attempt.astimezone()
         except Exception:
@@ -137,7 +137,9 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             reason=msg_reason,
             next_run_datestring=next_attempt.isoformat(),
         )
-        system.write_file(AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg)
+        system.write_file(
+            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n"
+        )
         cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
         cfg.notice_file.add("", auto_attach_status_msg)
 
@@ -174,12 +176,14 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         # Total failure!!
         msg_reason = failure_reason
         if msg_reason is None:
-            msg_reason = "an unknown error."
+            msg_reason = "an unknown error"
         auto_attach_status_msg = (
             messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE.format(
                 num_attempts=len(RETRY_INTERVALS) + 1, reason=msg_reason
             )
         )
-        system.write_file(AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg)
+        system.write_file(
+            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n"
+        )
         cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
         cfg.notice_file.add("", auto_attach_status_msg)
