@@ -684,6 +684,7 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
+@mock.patch(M_PATH + "snap.is_installed")
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
@@ -750,6 +751,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         capsys,
         caplog_text,
         event,
@@ -759,6 +761,7 @@ class TestLivepatchEntitlementEnable:
         """Install snapd and canonical-livepatch snap when not on system."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
+        m_is_installed.return_value = False
 
         def fake_run_apt_update():
             if apt_update_success:
@@ -792,7 +795,7 @@ class TestLivepatchEntitlementEnable:
         assert m_livepatch_proxy.call_count == 1
 
     @mock.patch("uaclient.system.get_platform_info")
-    @mock.patch("uaclient.system.subp", return_value=("snapd", ""))
+    @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch(
         "uaclient.system.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
@@ -812,6 +815,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         capsys,
         event,
         entitlement,
@@ -819,6 +823,8 @@ class TestLivepatchEntitlementEnable:
         """Install canonical-livepatch snap when not present on the system."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
+        m_is_installed.return_value = True
+
         assert entitlement.enable()
         assert (
             self.mocks_snap_wait_seed
@@ -854,16 +860,16 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         capsys,
         entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
         m_app_status.return_value = ApplicationStatus.ENABLED, "enabled"
-        with mock.patch(
-            M_PATH + "apt.get_installed_packages", return_value=[]
-        ):
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
-                entitlement.enable()
+        m_is_installed.return_value = False
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            entitlement.enable()
 
         expected_msg = (
             "/usr/bin/snap is present but snapd is not installed;"
@@ -874,7 +880,6 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
-    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
@@ -891,10 +896,10 @@ class TestLivepatchEntitlementEnable:
         _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
-        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         capsys,
         event,
         entitlement,
@@ -902,6 +907,8 @@ class TestLivepatchEntitlementEnable:
         """Do not attempt to install livepatch snap when it is present."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
+        m_is_installed.return_value = True
+
         assert entitlement.enable()
         subp_calls = [
             mock.call(
@@ -926,7 +933,6 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
@@ -943,16 +949,17 @@ class TestLivepatchEntitlementEnable:
         _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
-        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         capsys,
         entitlement,
     ):
         """Do not attempt to disable livepatch snap when it is inactive."""
-
         m_app_status.return_value = ApplicationStatus.DISABLED, "nope"
+        m_is_installed.return_value = True
+
         assert entitlement.enable()
         subp_no_livepatch_disable = [
             mock.call(
@@ -988,6 +995,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        _m_is_installed,
         cls_name,
         cls_title,
         entitlement,
@@ -1015,23 +1023,23 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
     @mock.patch("uaclient.system.which")
-    @mock.patch("uaclient.apt.get_installed_packages")
     @mock.patch("uaclient.system.subp")
     def test_enable_alerts_user_that_snapd_does_not_wait_command(
         self,
         m_subp,
-        m_installed_pkgs,
         m_which,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         entitlement,
         capsys,
         caplog_text,
         event,
     ):
         m_which.side_effect = [True, False]
-        m_installed_pkgs.return_value = ["snapd"]
+        m_is_installed.return_value = True
+
         stderr_msg = (
             "error: Unknown command `wait'. Please specify one command of: "
             "abort, ack, buy, change, changes, connect, create-user, disable,"
@@ -1075,20 +1083,19 @@ class TestLivepatchEntitlementEnable:
         assert m_livepatch_proxy.call_count == 1
 
     @mock.patch("uaclient.system.which")
-    @mock.patch("uaclient.apt.get_installed_packages")
     @mock.patch("uaclient.system.subp")
     def test_enable_raise_exception_for_unexpected_error_on_snapd_wait(
         self,
         m_subp,
-        m_installed_pkgs,
         m_which,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
+        m_is_installed,
         entitlement,
     ):
         m_which.side_effect = [False, True]
-        m_installed_pkgs.return_value = ["snapd"]
+        m_is_installed.return_value = True
         stderr_msg = "test error"
 
         m_subp.side_effect = exceptions.ProcessExecutionError(

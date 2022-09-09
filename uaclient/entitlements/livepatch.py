@@ -166,7 +166,7 @@ class LivepatchEntitlement(UAEntitlement):
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
             )
-        elif "snapd" not in apt.get_installed_packages():
+        elif not snap.is_installed():
             raise exceptions.SnapdNotProperlyInstalledError(
                 snap_cmd=snap.SNAP_CMD, service=self.title
             )

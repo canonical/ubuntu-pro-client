@@ -491,8 +491,9 @@ def is_installed(pkg: str) -> bool:
 
 
 def get_installed_packages() -> List[str]:
-    out, _ = system.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
-    return out.splitlines()
+    out, _ = system.subp(["apt", "list", "--installed"])
+    package_list = out.splitlines()[1:]
+    return [entry.split("/")[0] for entry in package_list]
 
 
 def setup_apt_proxy(
