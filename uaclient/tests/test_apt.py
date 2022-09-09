@@ -47,6 +47,12 @@ POST_INSTALL_APT_CACHE_NO_UPDATES = """
      origin esm.ubuntu.com
 """
 
+APT_LIST_RETURN_STRING = """\
+"Listing... Done
+a/release, now 1.2+3 arch123 [i,a]
+b/release-updates, now 1.2+3 arch123 [i,a]
+"""
+
 
 class TestAddPPAPinning:
     @mock.patch("uaclient.system.get_platform_info")
@@ -844,21 +850,22 @@ class TestGetInstalledPackages:
     def test_correct_command_called(self, m_subp):
         get_installed_packages()
 
-        expected_call = mock.call(
-            ["dpkg-query", "-W", "--showformat=${Package}\\n"]
-        )
+        expected_call = mock.call(["apt", "list", "--installed"])
         assert [expected_call] == m_subp.call_args_list
 
-    @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
+    @mock.patch(
+        "uaclient.apt.system.subp", return_value=("Listing... Done\n", "")
+    )
     def test_empty_output_means_empty_list(self, m_subp):
         assert [] == get_installed_packages()
 
-    @mock.patch("uaclient.apt.system.subp", return_value=("a\nb\n", ""))
-    def test_lines_are_split(self, m_subp):
-        assert ["a", "b"] == get_installed_packages()
-
-    @mock.patch("uaclient.apt.system.subp", return_value=("a\nb", ""))
-    def test_assert_missing_eof_newline_works(self, m_subp):
+    @pytest.mark.parametrize(
+        "apt_list_return",
+        (APT_LIST_RETURN_STRING, APT_LIST_RETURN_STRING[:-1]),
+    )
+    @mock.patch("uaclient.apt.system.subp")
+    def test_lines_are_split(self, m_subp, apt_list_return):
+        m_subp.return_value = apt_list_return, ""
         assert ["a", "b"] == get_installed_packages()
 
 
