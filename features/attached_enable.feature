@@ -721,40 +721,54 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         livepatch +yes +enabled
         """
-        When I run `pro api u.pro.security.status.reboot.v1` with sudo
+        When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "no"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "no"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I create the file `/var/run/reboot-required` with the following:
+        When I run `pro system reboot-required` as non-root
+        Then I will see the following on stdout:
         """
+        no
         """
-        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        When I run `apt-get install libc6 -y` with sudo
+        And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I create the file `/var/run/reboot-required.pkgs` with the following:
+        When I run `pro system reboot-required` as non-root
+        Then I will see the following on stdout:
         """
-        linux-base
-        linux-image-5.4.0-1074
-        test
-        test123
+        yes
         """
-        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        When I reboot the machine
+        And I run `pro system reboot-required` as non-root
+        Then I will see the following on stdout:
+        """
+        no
+        """
+        When I run `apt-get install linux-image-generic -y` with sudo
+        And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes-kernel-livepatches-applied"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I create the file `/var/run/reboot-required.pkgs` with the following:
+        When I run `pro system reboot-required` as non-root
+        Then I will see the following on stdout:
         """
-        linux-base
-        linux-image-5.4.0-1074
+        yes-kernel-livepatches-applied
         """
-        And I run `pro api u.pro.security.status.reboot.v1` with sudo
+        When I run `apt-get install dbus -y` with sudo
+        And I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes-kernel-livepatches-applied"}, "meta": {"environment_vars": \[\]}, "type": "RebootStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+        When I run `pro system reboot-required` as non-root
+        Then I will see the following on stdout:
+        """
+        yes
         """
 
         Examples: ubuntu release
