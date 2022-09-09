@@ -18,6 +18,7 @@ import yaml
 
 from uaclient import (
     actions,
+    apt,
     config,
     contract,
     daemon,
@@ -1757,7 +1758,7 @@ def main_error_handler(func):
         except exceptions.UrlError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
                 tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
-                if util.is_installed("ca-certificates"):
+                if apt.is_installed("ca-certificates"):
                     tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
                 msg = tmpl.format(url=exc.url)
                 event.error(error_msg=msg.msg, error_code=msg.name)
