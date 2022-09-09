@@ -1,10 +1,12 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.security.status.reboot.v1 import reboot_status
+from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+    _reboot_required,
+)
 from uaclient.security_status import RebootStatus
 
-PATH = "uaclient.api.u.pro.security.status.reboot.v1."
+PATH = "uaclient.api.u.pro.security.status.reboot_required.v1."
 
 
 class TestRebootStatus:
@@ -21,5 +23,5 @@ class TestRebootStatus:
         m_get_reboot_status.return_value = reboot_state
         assert (
             reboot_state.value
-            == reboot_status(mock.MagicMock()).reboot_required
+            == _reboot_required(mock.MagicMock()).reboot_required
         )
