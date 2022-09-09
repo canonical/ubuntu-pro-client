@@ -13,7 +13,7 @@ their side.
 import logging
 import sys
 
-from uaclient import actions
+from uaclient import actions, exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
@@ -63,10 +63,10 @@ def main(cfg: UAConfig):
     try:
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
-        logging.warn("warn")
-        logging.info("info")
-        logging.debug("debug")
-        logging.error(e)
+        if isinstance(e, exceptions.UserFacingError):
+            logging.error(e.msg)
+        else:
+            logging.error(e)
         logging.info("starting pro-auto-attach-retry.service")
         retry_auto_attach.start()
         return 1

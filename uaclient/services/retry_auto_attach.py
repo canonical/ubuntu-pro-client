@@ -103,7 +103,7 @@ def stop():
 
 def retry_auto_attach(cfg: UAConfig) -> None:
     # in case we got started while already attached somehow
-    if cfg.is_attached():
+    if cfg.is_attached:
         return
 
     # pick up where we left off
@@ -131,7 +131,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
 
         time.sleep(interval)
 
-        if cfg.is_attached():
+        if cfg.is_attached:
             # We attached while sleeping - hooray!
             break
 

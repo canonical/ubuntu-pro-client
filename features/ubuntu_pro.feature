@@ -684,8 +684,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
         When I install ubuntu-advantage-pro
-        When I verify that running `systemctl start ua-auto-attach.service` `with sudo` exits `1`
-        When I wait `1` seconds
+        When I reboot the machine
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
         When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
         Then stdout matches regexp:
         """
@@ -695,7 +695,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         missing product mapping for licenses
         """
-        When I run `journalctl -u ua-auto-attach.service` with sudo
         Then stdout matches regexp:
         """
         starting pro-auto-attach-retry.service
@@ -710,49 +709,78 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
         Then stdout matches regexp:
         """
-        .*status=0\/SUCCESS.*
+        Active: active \(running\)
         """
-        Then MOTD matches regexp:
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
         """
-        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        Failed to automatically attach to Ubuntu Pro services 1 time(s).
+        The failure was due to the contract server not recognizing this instance as Ubuntu Pro.
+        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        You can try manually with `sudo ua auto-attach`.
         """
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services 1 time(s).
+        The failure was due to the contract server not recognizing this instance as Ubuntu Pro.
+        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        You can try manually with `sudo ua auto-attach`.
         """
-        When I set `interval` = `5` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
-        When I run `systemctl restart pro-auto-attach-retry.service` with sudo
-        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
-        Then stdout matches regexp:
-        """
-        .*status=0\/SUCCESS.*
-        """
-        Then MOTD matches regexp:
-        """
-        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
-        """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-        """
-        auto-attach fiailed at time xct for reason asdf, next attempt scheduled for one two three
-        """
-        When I set `interval` = `last` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
 
+        # simulate a middle attempt with different reason
+        When I set `interval` = `10` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I set `failure_reason` = `"a network error"` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart pro-auto-attach-retry.service` with sudo
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
         Then stdout matches regexp:
         """
+        Active: active \(running\)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services 11 time(s).
+        The failure was due to a network error.
+        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        You can try manually with `sudo ua auto-attach`.
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services 11 time(s).
+        The failure was due to a network error.
+        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        You can try manually with `sudo ua auto-attach`.
+        """
+
+        # simulate all attempts failing
+        When I set `interval` = `17` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I run `systemctl restart pro-auto-attach-retry.service` with sudo
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
         .*status=0\/SUCCESS.* #TODO actually fail
         """
-        Then MOTD matches regexp:
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
         """
-        auto-attach fiailed the final time because reason
+        Failed to automatically attach to Ubuntu Pro services 18 times.
+        The most recent failure was due to a network error.
+        Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+        You can try manually with `sudo ua auto-attach`.
         """
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        auto-attach fiailed the final time because reason
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services 18 times.
+        The most recent failure was due to a network error.
+        Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+        You can try manually with `sudo ua auto-attach`.
         """
         Examples: ubuntu release
            | release |

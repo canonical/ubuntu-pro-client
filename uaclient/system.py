@@ -353,6 +353,7 @@ def load_file(filename: str, decode: bool = True) -> str:
 
 def create_file(filename: str, mode: int = 0o644) -> None:
     logging.debug("Creating file: %s", filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     pathlib.Path(filename).touch()
     os.chmod(filename, mode)
 

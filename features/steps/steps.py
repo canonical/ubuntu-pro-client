@@ -278,6 +278,20 @@ def when_i_add_this_text_on_file_above_line(
     )
 
 
+@when("I set `{key}` = `{json_value}` in json file `{filename}`")
+def when_i_set_key_val_json_file(context, key, json_value, filename):
+    when_i_run_command(
+        context,
+        "cat {}".format(filename),
+        "with sudo",
+    )
+    val = json.loads(json_value)
+    content = json.loads(context.process.stdout)
+    content[key] = val
+    context.text = content
+    when_i_create_file_with_content(context, file_path)
+
+
 @when("I run `{command}` `{user_spec}` on the `{instance_name}` machine")
 def when_i_run_command_on_machine(context, command, user_spec, instance_name):
     when_i_run_command(
