@@ -680,7 +680,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     @series.lts
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: auto-attach retries for a month
+    Scenario Outline: auto-attach retries for a month and updates status
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
         When I install ubuntu-advantage-pro
@@ -793,4 +793,4 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         #TODO scenario taht tests an attach in the mean time clears messages and stops service
         #TODO scenario taht tests an the daemon starts it too
         #TODO scenario taht tests we don't retry on unsupported lxd.container
-        #TODO scenario taht tests it can succeed
+        #TODO scenario taht tests it can succeed and cleans up
