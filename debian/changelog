@@ -1,3 +1,63 @@
+ubuntu-advantage-tools (27.11~22.10.1) kinetic; urgency=medium
+
+  * d/control:
+    - Update VCS references
+  * d/links:
+    - add usr/bin/pro as an alias to ubuntu-advantage
+  * d/postinst:
+    - include root_mode parameter when creating UAConfig instances
+    - change calls to add_notice to notice_file.add
+    - create public machine-token file if it does not exist
+  * New upstream release 27.11 (LP: #1989279)
+    - api:
+      + new `pro api` command to access the public client API
+      + 'version' endpoint returning version information
+      + 'should auto attach' endpoint informing if a system should run
+        auto-attach on startup
+      + 'full auto attach' endpoint performing auto-attach
+      + 'magic attach' endpoints for the Magic Attach flow
+    - auto-attach:
+      + better errors for invalid pro images (GH: #2180, #1833)
+      + don't detach on already auto-attached instances
+      + no-op when ubuntu-advantage information is present on cloud-init
+        userdata
+      + change systemd unit to run after cloud-config
+    - cli:
+      + cli: better error message on unrecognized flags (GH: #672)
+    - collect-logs:
+      + can now be executed as a non-root user
+      + is executed automatically and result is appended when using apport to
+        report a bug
+    - docs: now formatted to be built with sphinx, and published in readthedocs
+    - enable:
+      + new access-only flag for usecases where auto-install is undesired
+      + fix apt auth line replacement (LP: #1985863)
+    - esm-apps: generally available as non-beta as part of Ubuntu Pro
+    - fix: check if livepatch has already fixed a CVE before attempting a fix
+    - jobs: new timer job to check if the release reached end of support
+    - pro:
+      + Ubuntu Pro is released as a product
+      + make `pro` the recommended executable for the client
+      + client, apt and motd messages updated/rewritten to show Pro 
+        information
+      + base URL changed from /advantage to /pro
+      + ESM services renamed as part of Pro
+    - ros: released as a non-beta entitlement
+    - security-status
+      + does not require the --format flag anymore
+      + human readable output added based on ubuntu-security-status
+      + machine readable output contains CVEs fixed by Livepatch
+      + package counts include all esm-infra and esm-apps repositories
+    - status:
+      + don't show unavailable services by default (GH: #2156, #2159)
+      + expiry date formatted based on timezone (GH: #695)
+      + non-root users get the current status instead of a cached version
+      + --wait flag now working for non-root users
+    - version: warn about new available versions of the client in CLI command
+      output and API calls
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 08 Sep 2022 18:02:55 -0300
+
 ubuntu-advantage-tools (27.10.1~22.10.1) kinetic; urgency=medium
 
   * apt-hook: Fix missing import warning when compiling
@@ -7,7 +67,6 @@ ubuntu-advantage-tools (27.10.1~22.10.1) kinetic; urgency=medium
 ubuntu-advantage-tools (27.10~22.10.1) kinetic; urgency=medium
 
   * d/control:
-    - Add ca-certificates dependency
     - Drop golang dependencies
   * d/rules:
     - Only install APT hooks on LTS series
