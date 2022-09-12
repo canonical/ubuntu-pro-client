@@ -155,7 +155,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         # Any conditional packages should still be installed, but if
         # they fail to install we should not block the enable operation.
         desired_packages = []  # type: List[str]
-        installed_packages = apt.get_installed_packages()
+        installed_packages = apt.get_installed_packages_names()
         pkg_groups = groupby(
             sorted(self.conditional_packages),
             key=lambda pkg_name: pkg_name.replace("-hmac", ""),
@@ -360,7 +360,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         FIPS meta-package will unset grub config options which will deactivate
         FIPS on any related packages.
         """
-        installed_packages = set(apt.get_installed_packages())
+        installed_packages = set(apt.get_installed_packages_names())
         fips_metapackage = set(self.packages).difference(
             set(self.conditional_packages)
         )
