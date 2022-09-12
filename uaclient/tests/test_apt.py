@@ -28,7 +28,7 @@ from uaclient.apt import (
     find_apt_list_files,
     get_apt_cache_policy,
     get_apt_cache_time,
-    get_installed_packages,
+    get_installed_packages_names,
     is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
@@ -848,7 +848,7 @@ class TestRestoreCommentAptListFile:
 class TestGetInstalledPackages:
     @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
     def test_correct_command_called(self, m_subp):
-        get_installed_packages()
+        get_installed_packages_names()
 
         expected_call = mock.call(["apt", "list", "--installed"])
         assert [expected_call] == m_subp.call_args_list
@@ -857,7 +857,7 @@ class TestGetInstalledPackages:
         "uaclient.apt.system.subp", return_value=("Listing... Done\n", "")
     )
     def test_empty_output_means_empty_list(self, m_subp):
-        assert [] == get_installed_packages()
+        assert [] == get_installed_packages_names()
 
     @pytest.mark.parametrize(
         "apt_list_return",
@@ -866,7 +866,7 @@ class TestGetInstalledPackages:
     @mock.patch("uaclient.apt.system.subp")
     def test_lines_are_split(self, m_subp, apt_list_return):
         m_subp.return_value = apt_list_return, ""
-        assert ["a", "b"] == get_installed_packages()
+        assert ["a", "b"] == get_installed_packages_names()
 
 
 class TestRunAptCommand:
@@ -1056,7 +1056,7 @@ class TestAptIsInstalled:
             (False, ("foo", "bar")),
         ),
     )
-    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("uaclient.apt.get_installed_packages_names")
     def test_is_installed_pkgs(
         self, m_get_installed_pkgs, expected, installed_pkgs
     ):

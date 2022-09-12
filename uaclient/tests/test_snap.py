@@ -5,8 +5,11 @@ import pytest
 
 from uaclient import exceptions, messages
 from uaclient.snap import (
+    SnapPackage,
     configure_snap_proxy,
     get_config_option_value,
+    get_installed_snaps,
+    get_snap_package_info_tracking,
     unconfigure_snap_proxy,
 )
 
@@ -114,3 +117,58 @@ class TestUnconfigureSnapProxy:
         assert None is unconfigure_snap_proxy(**kwargs)
         assert [mock.call("/usr/bin/snap")] == which.call_args_list
         assert subp_calls == subp.call_args_list
+
+
+@mock.patch("uaclient.snap.system.subp")
+class TestSnapPackagesInstalled:
+    def test_snap_packages_installed(self, sys_subp):
+        sys_subp.return_value = (
+            "Name  Version Rev Tracking Publisher Notes\n"
+            "helloworld 6.0.16 126 latest/stable dev1 -\n"
+            "bare 1.0 5 latest/stable canonical** base\n"
+            "canonical-livepatch 10.2.3 146 latest/stable canonical** -\n"
+        ), ""
+        expected_snaps = [
+            SnapPackage(
+                "helloworld", "6.0.16", "126", "latest/stable", "dev1", "-"
+            ),
+            SnapPackage(
+                "bare", "1.0", "5", "latest/stable", "canonical**", "base"
+            ),
+            SnapPackage(
+                "canonical-livepatch",
+                "10.2.3",
+                "146",
+                "latest/stable",
+                "canonical**",
+                "-",
+            ),
+        ]
+        snaps = get_installed_snaps()
+        assert snaps[0].name == expected_snaps[0].name
+        assert snaps[0].rev == expected_snaps[0].rev
+        assert snaps[1].name == expected_snaps[1].name
+        assert snaps[1].publisher == expected_snaps[1].publisher
+        assert snaps[2].tracking == expected_snaps[2].tracking
+        assert snaps[2].notes == expected_snaps[2].notes
+
+    @pytest.mark.parametrize(
+        "subp_ret,channel_ret",
+        [
+            (
+                """snap-id: ID001
+                   tracking: latest/stable
+                """,
+                "latest/stable",
+            ),
+            (
+                """snap-id: ID001
+                """,
+                None,
+            ),
+        ],
+    )
+    def test_snap_package_info_tracking(self, sys_subp, subp_ret, channel_ret):
+        sys_subp.return_value = subp_ret, ""
+        channel = get_snap_package_info_tracking("test")
+        assert channel == channel_ret
