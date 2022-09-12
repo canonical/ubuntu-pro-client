@@ -18,7 +18,7 @@ class TestShouldAutoAttachV1:
         ),
     )
     @mock.patch(M_PATH + ".cloud_instance_factory")
-    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("uaclient.apt.get_installed_packages_names")
     def test_detect_is_pro(
         self,
         m_get_installed_pkgs,

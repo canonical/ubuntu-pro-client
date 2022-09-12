@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List, Optional
 
 from uaclient import apt, event_logger, exceptions, messages, system
@@ -7,13 +8,14 @@ SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 HTTP_PROXY_OPTION = "proxy.http"
 HTTPS_PROXY_OPTION = "proxy.https"
+SNAP_CHANNEL_SHORTEN_VALUE = "…"
 
 event = event_logger.get_event_logger()
 
 
 def is_installed() -> bool:
     """Returns whether or not snap is installed"""
-    return "snapd" in apt.get_installed_packages()
+    return "snapd" in apt.get_installed_packages_names()
 
 
 def configure_snap_proxy(
@@ -93,3 +95,41 @@ def get_config_option_value(key: str) -> Optional[str]:
         return out.strip()
     except exceptions.ProcessExecutionError:
         return None
+
+
+def get_snap_package_info_tracking(package: str) -> Optional[str]:
+    out, _ = system.subp(
+        ["snap", "info", package, "--color", "never", "--unicode", "never"]
+    )
+    match = re.search(r"tracking:\s+(?P<tracking>.*)", out)
+    if match:
+        return match.group("tracking")
+    return None
+
+
+class SnapPackage:
+    def __init__(self, name, version, rev, tracking, publisher, notes):
+        self.name = name
+        self.version = version
+        self.rev = rev
+        self.tracking = tracking
+        self.publisher = publisher
+        self.notes = notes
+
+
+def get_installed_snaps() -> List[SnapPackage]:
+    out, _ = system.subp(
+        ["snap", "list", "--color", "never", "--unicode", "never"]
+    )
+    apps = out.splitlines()
+    apps = apps[1:]
+    snaps = []
+    for line in apps:
+        pkg = line.split()
+        snap = SnapPackage(*pkg)
+        if snap.tracking.endswith(SNAP_CHANNEL_SHORTEN_VALUE):
+            channel = get_snap_package_info_tracking(snap.name)
+            snap.tracking = channel if channel else snap.tracking
+        snaps.append(snap)
+
+    return snaps

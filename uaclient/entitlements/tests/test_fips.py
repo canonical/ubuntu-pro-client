@@ -283,7 +283,7 @@ class TestFIPSEntitlementEnable:
             )
             m_installed_pkgs = stack.enter_context(
                 mock.patch(
-                    "uaclient.apt.get_installed_packages",
+                    "uaclient.apt.get_installed_packages_names",
                     return_value=["openssh-server", "strongswan"],
                 )
             )
@@ -843,7 +843,7 @@ class TestFIPSEntitlementRemovePackages:
     @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
     @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
     @mock.patch(M_PATH + "system.subp")
-    @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_remove_packages_only_removes_if_package_is_installed(
         self,
         m_get_installed_packages,
@@ -875,7 +875,7 @@ class TestFIPSEntitlementRemovePackages:
 
     @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
     @mock.patch(M_PATH + "system.subp")
-    @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_remove_packages_output_message_when_fail(
         self, m_get_installed_packages, m_subp, _m_get_platform, entitlement
     ):
@@ -1073,7 +1073,7 @@ class TestFipsEntitlementInstallPackages:
             with pytest.raises(exceptions.UserFacingError):
                 entitlement.install_packages()
 
-    @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
     def test_install_packages_dont_fail_if_conditional_pkgs_not_installed(
         self,
@@ -1173,7 +1173,7 @@ class TestFipsSetupAPTConfig:
 
 
 class TestFipsEntitlementPackages:
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
+    @mock.patch(M_PATH + "apt.get_installed_packages_names", return_value=[])
     @mock.patch("uaclient.system.get_platform_info")
     def test_packages_is_list(self, m_platform_info, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
@@ -1184,7 +1184,7 @@ class TestFipsEntitlementPackages:
 
         assert isinstance(entitlement.packages, list)
 
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
+    @mock.patch(M_PATH + "apt.get_installed_packages_names", return_value=[])
     @mock.patch("uaclient.system.get_platform_info")
     def test_fips_required_packages_included(
         self, m_platform_info, _mock, entitlement
@@ -1210,7 +1210,7 @@ class TestFipsEntitlementPackages:
 
         assert sorted(FIPS_ADDITIONAL_PACKAGES) == sorted(entitlement.packages)
 
-    @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     @mock.patch("uaclient.system.get_platform_info")
     def test_multiple_packages_calls_dont_mutate_state(
         self, m_platform_info, m_get_installed_packages, entitlement
@@ -1249,7 +1249,7 @@ class TestFipsEntitlementPackages:
     @mock.patch("uaclient.util.is_config_value_true")
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch("uaclient.system.get_platform_info")
-    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("uaclient.apt.get_installed_packages_names")
     def test_packages_are_override_on_cloud_instance(
         self,
         m_installed_packages,
