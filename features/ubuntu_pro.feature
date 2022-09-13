@@ -678,6 +678,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   |
            | jammy   |
 
+    @wip
     @series.lts
     @uses.config.machine_type.gcp.generic
     Scenario Outline: auto-attach retries for a month and updates status
@@ -714,24 +715,24 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 1 time(s).
-        The failure was due to the contract server not recognizing this instance as Ubuntu Pro.
-        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: "missing product mapping for licenses .*".
+        The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo ua auto-attach`.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 1 time(s).
-        The failure was due to the contract server not recognizing this instance as Ubuntu Pro.
-        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: "missing product mapping for licenses .*".
+        The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo ua auto-attach`.
         """
 
         # simulate a middle attempt with different reason
-        When I set `interval` = `10` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
-        When I set `failure_reason` = `"a network error"` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I set `interval_index` = `10` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I set `failure_reason` = `"an unknown error"` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart pro-auto-attach-retry.service` with sudo
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
         Then stdout matches regexp:
@@ -741,23 +742,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 11 time(s).
-        The failure was due to a network error.
-        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
+        The failure was due to: an unknown error.
+        The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo ua auto-attach`.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 11 time(s).
-        The failure was due to a network error.
-        The next attempt is scheduled for \d+-\d+-\d+ \d+:\d+:\d+ .*.
+        Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
+        The failure was due to: an unknown error.
+        The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo ua auto-attach`.
         """
 
         # simulate all attempts failing
-        When I set `interval` = `17` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I set `interval_index` = `17` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart pro-auto-attach-retry.service` with sudo
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
         Then stdout matches regexp:
@@ -769,16 +770,16 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         Failed to automatically attach to Ubuntu Pro services 18 times.
-        The most recent failure was due to a network error.
+        The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo ua auto-attach`.
         """
-        When I run `ua status` with sudo
+        When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
         Failed to automatically attach to Ubuntu Pro services 18 times.
-        The most recent failure was due to a network error.
+        The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo ua auto-attach`.
         """
@@ -790,7 +791,89 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | jammy   |
 
 
-        #TODO scenario taht tests an attach in the mean time clears messages and stops service
+    # really wip
+    @wip
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I change contract to staging with sudo
+        When I create the file `/tmp/response-overlay.json` with the following:
+        """
+        {
+            "https://contracts.staging.canonical.com/v1/magic-attach": [{
+              "code": 400,
+              "response": {
+                "message": "error",
+              }
+            }]
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          serviceclient_url_responses: "/tmp/response-overlay.json"
+        """
+        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        When I reboot the machine
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: failed
+        """
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/run/ubuntu-advantage/flags/retry-auto-attach-running was not met
+        """
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro auto-attach` with sudo
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout does not match regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro status` with sudo
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
         #TODO scenario taht tests an the daemon starts it too
         #TODO scenario taht tests we don't retry on unsupported lxd.container
         #TODO scenario taht tests it can succeed and cleans up

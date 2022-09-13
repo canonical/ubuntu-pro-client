@@ -308,6 +308,7 @@ class SecurityAPIMetadataError(UserFacingError):
 
 class InvalidProImage(UserFacingError):
     def __init__(self, error_msg: str):
+        self.contract_server_msg = error_msg
         msg = messages.INVALID_PRO_IMAGE.format(msg=error_msg)
         super().__init__(msg=msg.msg, msg_code=msg.name)
 

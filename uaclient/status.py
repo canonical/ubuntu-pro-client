@@ -606,6 +606,13 @@ def format_tabular(status: Dict[str, Any]) -> str:
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
 
+        if status.get("notices"):
+            content.extend(
+                get_section_column_content(
+                    status.get("notices") or [], header="NOTICES"
+                )
+            )
+
         if status.get("features"):
             content.append("\nFEATURES")
             for key, value in sorted(status["features"].items()):

@@ -100,11 +100,11 @@ def stop():
 
 def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
     if isinstance(e, api_exceptions.InvalidProImage):
-        return 'Canonical servers didn\'t recognize this image as Ubuntu Pro: "{}"'.format(
-            e.msg
+        return 'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'.format(
+            e.contract_server_msg
         )
     elif isinstance(e, api_exceptions.NonAutoAttachImageError):
-        return "Canonical servers didn't recognize this image as Ubuntu Pro"
+        return "Canonical servers did not recognize this image as Ubuntu Pro"
     elif isinstance(e, api_exceptions.LockHeldError):
         return "the pro lock was held by pid {pid}".format(pid=e.pid)
     elif isinstance(e, api_exceptions.ContractAPIError):
@@ -126,8 +126,8 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
     elif isinstance(e, api_exceptions.UserFacingError):
         return '"{}"'.format(e.msg)
     else:
-        return str(e) or "an unknown error"
         logging.error("Unexpected exception: {}".format(e))
+        return str(e) or "an unknown error"
 
 
 def _try_full_auto_attach():
@@ -163,18 +163,21 @@ def retry_auto_attach(cfg: UAConfig) -> None:
     persisted_state = STATE_FILE.try_read()
     if persisted_state is not None:
         # skip intervals we've already waited
-        intervals = RETRY_INTERVALS[persisted_state.interval_index :]
+        offset = persisted_state.interval_index
+        intervals = RETRY_INTERVALS[offset:]
         failure_reason = persisted_state.failure_reason
     else:
         intervals = RETRY_INTERVALS
+        offset = 0
         failure_reason = None
 
     for index, interval in enumerate(intervals):
         last_attempt = datetime.datetime.now(datetime.timezone.utc)
         next_attempt = last_attempt + datetime.timedelta(seconds=interval)
+        next_attempt = next_attempt.replace(second=0, microsecond=0)
         STATE_FILE.write(
             RetryState(
-                interval_index=index,
+                interval_index=offset + index,
                 failure_reason=failure_reason,
             )
         )
@@ -186,12 +189,12 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         except Exception:
             pass
         auto_attach_status_msg = messages.AUTO_ATTACH_RETRY_NOTICE.format(
-            num_attempts=index + 1,
+            num_attempts=offset + index + 1,
             reason=msg_reason,
             next_run_datestring=next_attempt.isoformat(),
         )
         system.write_file(
-            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n"
+            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n\n"
         )
         cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
         cfg.notice_file.add("", auto_attach_status_msg)

@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import subprocess
+import tempfile
 import time
 
 import jsonschema  # type: ignore
@@ -288,8 +289,8 @@ def when_i_set_key_val_json_file(context, key, json_value, filename):
     val = json.loads(json_value)
     content = json.loads(context.process.stdout)
     content[key] = val
-    context.text = content
-    when_i_create_file_with_content(context, file_path)
+    context.text = json.dumps(content)
+    when_i_create_file_with_content(context, filename)
 
 
 @when("I run `{command}` `{user_spec}` on the `{instance_name}` machine")
@@ -589,12 +590,19 @@ def when_i_append_to_uaclient_config(context):
 
 @when("I create the file `{file_path}` with the following")
 def when_i_create_file_with_content(context, file_path):
-    text = context.text.replace('"', '\\"')
+    text = context.text
     if "<ci-proxy-ip>" in text and "proxy" in context.instances:
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
-    cmd = "printf '{}' > {}".format(text, file_path)
-    cmd = 'sh -c "{}"'.format(cmd)
-    when_i_run_command(context, cmd, "with sudo")
+    with tempfile.TemporaryDirectory() as tmpd:
+        tmpf_path = os.path.join(tmpd, "tmpfile")
+        with open(tmpf_path, mode="w") as tmpf:
+            tmpf.write(text)
+        context.instances["uaclient"].push_file(
+            tmpf_path, "/tmp/behave_tmpfile"
+        )
+    when_i_run_command(
+        context, "cp /tmp/behave_tmpfile {}".format(file_path), "with sudo"
+    )
 
 
 @when("I delete the file `{file_path}`")

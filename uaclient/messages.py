@@ -1035,7 +1035,7 @@ AUTO_ATTACH_RETRY_NOTICE = (
     AUTO_ATTACH_RETRY_NOTICE_PREFIX
     + """\
  {num_attempts} time(s).
-The failure was due to {reason}.
+The failure was due to: {reason}.
 The next attempt is scheduled for {next_run_datestring}.
 You can try manually with `sudo ua auto-attach`."""
 )
@@ -1044,7 +1044,7 @@ AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
     AUTO_ATTACH_RETRY_NOTICE_PREFIX
     + """\
  {num_attempts} times.
-The most recent failure was due to {reason}.
+The most recent failure was due to: {reason}.
 Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
 You can try manually with `sudo ua auto-attach`."""
 )
