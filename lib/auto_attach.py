@@ -71,10 +71,15 @@ def main(cfg: UAConfig):
         full_auto_attach(FullAutoAttachOptions())
     except Exception as e:
         system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
-        if isinstance(e, exceptions.UserFacingError):
-            logging.error(e.msg)
-        else:
-            logging.error(e)
+        failure_reason = (
+            retry_auto_attach.full_auto_attach_exception_to_failure_reason(e)
+        )
+        retry_auto_attach.STATE_FILE.write(
+            retry_auto_attach.RetryState(
+                interval_index=0, failure_reason=failure_reason
+            )
+        )
+        logging.error(e)
         logging.info("starting pro-auto-attach-retry.service")
         retry_auto_attach.start()
         return 1

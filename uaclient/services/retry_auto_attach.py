@@ -5,6 +5,7 @@ from subprocess import TimeoutExpired
 from typing import Optional
 
 from uaclient import defaults, exceptions, files, messages, system
+from uaclient.api import exceptions as api_exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
@@ -48,18 +49,15 @@ RetryOptions = FullAutoAttachOptions
 class RetryState(DataObject):
     fields = [
         Field("interval_index", IntDataValue),
-        Field("next_attempt", DatetimeDataValue),
         Field("failure_reason", StringDataValue, required=False),
     ]
 
     def __init__(
         self,
         interval_index: int,
-        next_attempt: datetime.datetime,
         failure_reason: Optional[str],
     ):
         self.interval_index = interval_index
-        self.next_attempt = next_attempt
         self.failure_reason = failure_reason
 
 
@@ -100,6 +98,62 @@ def stop():
         logging.warning(e)
 
 
+def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
+    if isinstance(e, api_exceptions.InvalidProImage):
+        return 'Canonical servers didn\'t recognize this image as Ubuntu Pro: "{}"'.format(
+            e.msg
+        )
+    elif isinstance(e, api_exceptions.NonAutoAttachImageError):
+        return "Canonical servers didn't recognize this image as Ubuntu Pro"
+    elif isinstance(e, api_exceptions.LockHeldError):
+        return "the pro lock was held by pid {pid}".format(pid=e.pid)
+    elif isinstance(e, api_exceptions.ContractAPIError):
+        return 'an error from Canonical servers: "{}"'.format(str(e))
+    elif isinstance(e, api_exceptions.UrlError):
+        if e.url:
+            if e.code:
+                failure_reason = 'a {code} while reaching {url}"'.format(
+                    code=e.code, url=e.url
+                )
+            else:
+                failure_reason = 'an error while reaching {url}"'.format(
+                    url=e.url
+                )
+        else:
+            failure_reason = "a network error"
+        failure_reason += ': "{}"'.format(str(e))
+        return failure_reason
+    elif isinstance(e, api_exceptions.UserFacingError):
+        return '"{}"'.format(e.msg)
+    else:
+        return str(e) or "an unknown error"
+        logging.error("Unexpected exception: {}".format(e))
+
+
+def _try_full_auto_attach():
+    persisted_options = OPTIONS_FILE.try_read()
+    for i in range(2):
+        options = FullAutoAttachOptions()
+        if persisted_options is not None:
+            options.enable = persisted_options.enable
+            options.enable_beta = persisted_options.enable_beta
+        try:
+            full_auto_attach(options)
+            return
+        except (
+            api_exceptions.BetaServiceError,
+            api_exceptions.EntitlementNotFoundError,
+            api_exceptions.IncompatibleEntitlementsDetected,
+        ) as e:
+            logging.warning(
+                "auto attach failed because of the args. error message: {}".format(
+                    e.msg
+                )
+            )
+            logging.info("trying again with defaults")
+            persisted_options = None
+
+
 def retry_auto_attach(cfg: UAConfig) -> None:
     # in case we got started while already attached somehow
     if cfg.is_attached:
@@ -121,7 +175,6 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         STATE_FILE.write(
             RetryState(
                 interval_index=index,
-                next_attempt=next_attempt,
                 failure_reason=failure_reason,
             )
         )
@@ -149,23 +202,14 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             # We attached while sleeping - hooray!
             break
 
-        persisted_options = OPTIONS_FILE.try_read()
-
         try:
-            options = FullAutoAttachOptions()
-            if persisted_options is not None:
-                options.enable = persisted_options.enable
-                options.enable_beta = persisted_options.enable_beta
-            full_auto_attach(options)
+            _try_full_auto_attach()
+        except api_exceptions.AlreadyAttachedError:
+            logging.info("already attached, ending retry service")
             break
         except Exception as e:
-            # TODO catch specific exceptions
-            if isinstance(e, exceptions.UserFacingError):
-                failure_reason = e.msg
-            else:
-                failure_reason = str(e)
+            failure_reason = full_auto_attach_exception_to_failure_reason(e)
             logging.error(e)
-            continue
 
     STATE_FILE.delete()
     OPTIONS_FILE.delete()

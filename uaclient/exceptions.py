@@ -27,6 +27,9 @@ class UserFacingError(Exception):
         self.msg_code = msg_code
         self.additional_info = additional_info
 
+    def __str__(self):
+        return self.msg
+
 
 class APTInstallError(UserFacingError):
     def __init__(self, name: str, service_msg: str) -> None:
@@ -256,6 +259,7 @@ class LockHeldError(UserFacingError):
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
         self.lock_holder = lock_holder
+        self.pid = pid
         msg = messages.LOCK_HELD_ERROR.format(
             lock_request=lock_request, lock_holder=lock_holder, pid=pid
         )

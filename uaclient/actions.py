@@ -91,6 +91,7 @@ def auto_attach(
         )
     except exceptions.ContractAPIError as e:
         if e.code and 400 <= e.code < 500:
+            logging.error(e)
             raise exceptions.NonAutoAttachImageError(
                 messages.UNSUPPORTED_AUTO_ATTACH
             )
