@@ -247,7 +247,7 @@ any service enabled through UA.
 ### Final thoughts
 
 This tutorial has covered the 6 main commands of UA. If you need more advanced options to configure
-the tool, please take a look in [How to guides](./docs/howtoguides). If that still doesn't cover
+the tool, please take a look in [How to guides](../howtoguides). If that still doesn't cover
 your needs, feel free to reach the UA team on `#ubuntu-server` on Libera IRC.
 
 Before you finish this tutorial, exit the container by running `CTRL-D` and delete it by running
