@@ -12,7 +12,7 @@ Feature: MOTD Messages
         """
 
          \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 30,000 software packages with your
+           Receive updates to over 25,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
              <url>
@@ -25,7 +25,7 @@ Feature: MOTD Messages
         Then stdout does not match regexp:
         """
          \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 30,000 software packages with your
+           Receive updates to over 25,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
              <url>
@@ -46,7 +46,7 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
          \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 30,000 software packages with your
+           Receive updates to over 25,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
              <url>
@@ -67,7 +67,7 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
          \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 30,000 software packages with your
+           Receive updates to over 25,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
              <url>
@@ -88,7 +88,7 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
          \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 30,000 software packages with your
+           Receive updates to over 25,000 software packages with your
            Ubuntu Pro subscription\. Free for personal use\.
 
              <url>
