@@ -97,8 +97,8 @@ Those messages are generated directly by two different sources:
 
     ```
     * Introducing Expanded Security Maintenance for Applications.
-      Receive updates to over 30,000 software packages with your
-      Ubuntu Advantage subscription. Free for personal use
+      Receive updates to over 25,000 software packages with your
+      Ubuntu Pro subscription. Free for personal use
 
         https://ubuntu.com/16-04 
     ```
