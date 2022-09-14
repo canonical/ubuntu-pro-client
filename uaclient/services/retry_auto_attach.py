@@ -219,7 +219,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
     system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
     cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
 
-    if not cfg.is_attached():
+    if not cfg.is_attached:
         # Total failure!!
         msg_reason = failure_reason
         if msg_reason is None:
@@ -232,5 +232,4 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         system.write_file(
             AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n"
         )
-        cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
         cfg.notice_file.add("", auto_attach_status_msg)

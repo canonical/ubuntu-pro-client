@@ -758,18 +758,17 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         # simulate all attempts failing
-        When I set `interval_index` = `17` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+        When I set `interval_index` = `18` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart pro-auto-attach-retry.service` with sudo
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
-        Then stdout matches regexp:
+        Then stdout contains substring
         """
-        Active: inactive \(dead\)
-        .*status=0\/SUCCESS.* #TODO actually fail
+        Active: inactive (dead)
         """
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 18 times.
+        Failed to automatically attach to Ubuntu Pro services 19 times.
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo ua auto-attach`.
@@ -778,7 +777,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 18 times.
+        Failed to automatically attach to Ubuntu Pro services 19 times.
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo ua auto-attach`.
