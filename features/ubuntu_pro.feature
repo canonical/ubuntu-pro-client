@@ -938,5 +938,116 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   |
            | jammy   |
 
-        #TODO scenario taht tests we don't retry on unsupported lxd.container
-        #TODO scenario taht tests it can succeed and cleans up
+    @wip
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: auto-attach retries does not start on unsupported platform
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I change contract to staging with sudo
+        When I install ubuntu-advantage-pro
+        When I reboot the machine
+        When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
+        Then stdout contains substring
+        """
+        Active: failed (Result: exit-code)
+        """
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
+        Then stdout contains substring
+        """
+        Active: inactive (dead)
+        """
+        When I run `systemctl start pro-auto-attach-retry.service` with sudo
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
+        Then stdout contains substring
+        """
+        Active: inactive (dead)
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
+
+    # really wip
+    @wip
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    Scenario Outline: auto-attach retries eventually succeed and clean up
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+
+        """
+        When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
+        """
+        {
+            "https://contracts.canonical.com/v1/clouds/gcp/token": [{
+              "type": "contract",
+              "code": 400,
+              "response": {
+                "message": "error"
+              }
+            }]
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
+        """
+        When I reboot the machine
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: failed
+        """
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I append the following on uaclient config:
+        """
+        features: {}
+        """
+        # TODO somehow get rety to actually try right now instead of waiting 15 min
+        # and check that we get attached
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
+        Then stdout contains substring
+        """
+        Active: inactive (dead)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout does not match regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro status` with sudo
+        Then stdout does not match regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
