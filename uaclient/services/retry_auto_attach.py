@@ -79,6 +79,13 @@ STATE_FILE = files.DataObjectFile(
 )
 
 
+def _cleanup(cfg: UAConfig):
+    STATE_FILE.delete()
+    OPTIONS_FILE.delete()
+    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+    cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+
+
 def start():
     try:
         system.subp(
@@ -89,13 +96,14 @@ def start():
         logging.warning(e)
 
 
-def stop():
+def stop_and_cleanup(cfg: UAConfig):
     try:
         system.subp(
             ["systemctl", "stop", "pro-auto-attach-retry.service"], timeout=2.0
         )
     except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
         logging.warning(e)
+    _cleanup(cfg)
 
 
 def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
@@ -214,10 +222,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             failure_reason = full_auto_attach_exception_to_failure_reason(e)
             logging.error(e)
 
-    STATE_FILE.delete()
-    OPTIONS_FILE.delete()
-    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
-    cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+    _cleanup(cfg)
 
     if not cfg.is_attached:
         # Total failure!!

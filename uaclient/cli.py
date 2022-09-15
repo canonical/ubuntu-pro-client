@@ -51,7 +51,7 @@ from uaclient.jobs.update_messaging import (
     refresh_motd,
     update_apt_and_motd_messages,
 )
-from uaclient.services import daemon
+from uaclient.services import daemon, retry_auto_attach
 
 NAME = "pro"
 
@@ -1298,6 +1298,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
         event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     daemon.stop()
+    retry_auto_attach.stop_and_cleanup(cfg)
 
     status, _ret = actions.status(cfg)
     output = ua_status.format_tabular(status)

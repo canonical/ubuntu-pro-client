@@ -790,20 +790,27 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | jammy   |
 
 
-    # really wip
     @wip
     @series.lts
     @uses.config.machine_type.gcp.pro
     Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I change contract to staging with sudo
-        When I create the file `/tmp/response-overlay.json` with the following:
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+
+        """
+        When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
         {
-            "https://contracts.staging.canonical.com/v1/magic-attach": [{
+            "https://contracts.canonical.com/v1/clouds/gcp/token": [{
+              "type": "contract",
               "code": 400,
               "response": {
-                "message": "error",
+                "message": "error"
               }
             }]
         }
@@ -811,14 +818,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I append the following on uaclient config:
         """
         features:
-          serviceclient_url_responses: "/tmp/response-overlay.json"
-        """
-        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
+          serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
         """
         When I reboot the machine
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
@@ -850,11 +850,15 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         NOTICES
         Failed to automatically attach to Ubuntu Pro services
         """
+        When I append the following on uaclient config:
+        """
+        features: {}
+        """
         When I run `pro auto-attach` with sudo
         When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `3`
-        Then stdout matches regexp:
+        Then stdout contains substring
         """
-        Active: active \(running\)
+        Active: inactive (dead)
         """
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -873,6 +877,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  |
            | focal   |
            | jammy   |
+
         #TODO scenario taht tests an the daemon starts it too
         #TODO scenario taht tests we don't retry on unsupported lxd.container
         #TODO scenario taht tests it can succeed and cleans up
