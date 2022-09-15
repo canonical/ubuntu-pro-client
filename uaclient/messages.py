@@ -855,16 +855,6 @@ To fix it, run the following commands:
     3. sudo pro enable fips --assume-yes
     4. sudo reboot
 """
-NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD = """\
-Detected an Ubuntu Pro license but failed to auto attach because
-"{operation}" was in progress.
-Please run `pro auto-attach` to upgrade to Ubuntu Pro.
-"""
-NOTICE_DAEMON_AUTO_ATTACH_FAILED = """\
-Detected an Ubuntu Pro license but failed to auto attach.
-Please run `pro auto-attach` to upgrade to Ubuntu Pro.
-If that fails then please contact support.
-"""
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (

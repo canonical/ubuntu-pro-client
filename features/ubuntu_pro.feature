@@ -878,6 +878,65 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   |
            | jammy   |
 
-        #TODO scenario taht tests an the daemon starts it too
+    @wip
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    Scenario Outline: daemon triggers retries on fail
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+
+        """
+        When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
+        """
+        {
+            "https://contracts.canonical.com/v1/clouds/gcp/token": [{
+              "type": "contract",
+              "code": 400,
+              "response": {
+                "message": "error"
+              }
+            }]
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
+        """
+        When I run `systemctl start ubuntu-advantage.service` with sudo
+        When I wait `1` seconds
+        When I verify that running `systemctl status ubuntu-advantage.service` `as non-root` exits `3`
+        Then stdout contains substring
+        """
+        Active: inactive (dead)
+        """
+        When I verify that running `systemctl status pro-auto-attach-retry.service` `as non-root` exits `0`
+        Then stdout contains substring
+        """
+        Active: active (running)
+        """
+        When I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        NOTICES
+        Failed to automatically attach to Ubuntu Pro services
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
+
         #TODO scenario taht tests we don't retry on unsupported lxd.container
         #TODO scenario taht tests it can succeed and cleans up
