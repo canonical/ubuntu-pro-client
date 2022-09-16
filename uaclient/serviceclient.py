@@ -50,6 +50,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         method=None,
         query_params=None,
         potentially_sensitive: bool = True,
+        timeout: Optional[int] = None,
     ):
         path = path.lstrip("/")
         if not headers:
@@ -66,13 +67,14 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 k: v for k, v in sorted(query_params.items()) if v is not None
             }
             url += "?" + urlencode(filtered_params)
+        timeout_to_use = timeout if timeout is not None else self.url_timeout
         try:
             response, headers = util.readurl(
                 url=url,
                 data=data,
                 headers=headers,
                 method=method,
-                timeout=self.url_timeout,
+                timeout=timeout_to_use,
                 potentially_sensitive=potentially_sensitive,
             )
         except error.URLError as e:
