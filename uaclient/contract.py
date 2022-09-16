@@ -286,6 +286,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             method="GET",
             headers=headers,
             query_params=self._get_platform_basic_info(),
+            timeout=2,
         )
         if headers.get("expires"):
             response["expires"] = headers["expires"]
