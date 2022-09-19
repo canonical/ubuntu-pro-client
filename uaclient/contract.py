@@ -229,10 +229,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                msg=messages.CONNECTIVITY_ERROR.msg,
-                msg_code=messages.CONNECTIVITY_ERROR.name,
-            )
+            raise exceptions.ConnectivityError()
 
         return response
 
@@ -258,10 +255,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                msg=messages.CONNECTIVITY_ERROR.msg,
-                msg_code=messages.CONNECTIVITY_ERROR.name,
-            )
+            raise exceptions.ConnectivityError()
 
     def get_updated_contract_info(
         self,
@@ -603,10 +597,7 @@ def request_updated_contract(
                 raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                msg=messages.CONNECTIVITY_ERROR.msg,
-                msg_code=messages.CONNECTIVITY_ERROR.name,
-            )
+            raise exceptions.ConnectivityError()
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]

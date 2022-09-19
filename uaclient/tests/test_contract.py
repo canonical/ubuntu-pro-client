@@ -379,7 +379,7 @@ class TestUAContractClient:
         (
             (
                 exceptions.UrlError("test"),
-                exceptions.UserFacingError,
+                exceptions.ConnectivityError,
                 messages.CONNECTIVITY_ERROR,
             ),
             (
@@ -448,7 +448,7 @@ class TestUAContractClient:
         magic_token = "test-id"
         request_url.side_effect = exceptions.UrlError("test")
 
-        with pytest.raises(exceptions.UserFacingError) as exc_error:
+        with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.get_magic_attach_token_info(magic_token=magic_token)
 
         assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
@@ -492,7 +492,7 @@ class TestUAContractClient:
         magic_token = "test-id"
         request_url.side_effect = exceptions.UrlError("test")
 
-        with pytest.raises(exceptions.UserFacingError) as exc_error:
+        with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.revoke_magic_attach_token(magic_token=magic_token)
 
         assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
