@@ -4,10 +4,8 @@ from uaclient import actions, entitlements, event_logger, lock
 from uaclient.api import exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.entitlement_status import CanEnableFailure
 
 event = event_logger.get_event_logger()
@@ -46,7 +44,7 @@ def _is_any_beta(cfg: UAConfig, ents: List[str]) -> Tuple[bool, str]:
 def _is_incompatible_services_present(
     cfg, ent_list: List[str]
 ) -> Tuple[bool, str, List[str]]:
-    ent_cls = list()  # type: List[Type[UAEntitlement]]
+    ent_cls = []
     for e in ent_list:
         ent_cls.append(entitlements.entitlement_factory(cfg, e))
 
