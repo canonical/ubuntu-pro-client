@@ -63,6 +63,7 @@ Furthermore, UA is already installed on every Ubuntu system. Try it out by runni
 
 * [Ubuntu Release and Architecture Support Matrix](./docs/references/support_matrix.md)
 * [UA Network Requirements](./docs/references/network_requirements.md)
+* [Pro API Reference Guide](./docs/references/api.md)
 * [PPAs with different versions of `ua`](./docs/references/ppas.md)
 
 ### Explanation
