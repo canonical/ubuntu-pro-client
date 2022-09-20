@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Type  # noqa: F401
+from typing import List, Optional, Tuple
 
 from uaclient import actions, entitlements, event_logger, lock
 from uaclient.api import exceptions
