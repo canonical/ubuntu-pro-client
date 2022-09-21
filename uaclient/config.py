@@ -92,9 +92,6 @@ class UAConfig:
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
-        "services-once-enabled": DataPath(
-            "services-once-enabled", False, True
-        ),
         "jobs-status": DataPath("jobs-status.json", False, True),
     }  # type: Dict[str, DataPath]
 

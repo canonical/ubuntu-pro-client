@@ -99,7 +99,6 @@ def entitlement_factory(tmpdir, FakeConfig):
         assume_yes: Optional[bool] = None,
         suites: List[str] = None,
         additional_packages: List[str] = None,
-        services_once_enabled: Dict[str, bool] = None,
         cfg: Optional[config.UAConfig] = None,
         cfg_extension: Optional[Dict[str, Any]] = None
     ):
@@ -119,9 +118,6 @@ def entitlement_factory(tmpdir, FakeConfig):
                     additional_packages=additional_packages,
                 ),
             )
-
-        if services_once_enabled:
-            cfg.write_cache("services-once-enabled", services_once_enabled)
 
         args = {
             "allow_beta": allow_beta,

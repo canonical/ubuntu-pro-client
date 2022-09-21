@@ -1039,3 +1039,5 @@ ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
 TRY_UBUNTU_PRO_BETA = """\
 Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
 Learn more at https://ubuntu.com/pro"""
+
+INVALID_STATE_FILE = "Invalid state file: {}"
