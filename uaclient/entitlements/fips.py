@@ -8,6 +8,10 @@ from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
 from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.files.state_files import (
+    ServicesOnceEnabledData,
+    services_once_enabled_file,
+)
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
@@ -398,30 +402,30 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         static_affordances = super().static_affordances
 
-        fips_update = FIPSUpdatesEntitlement(self.cfg)
+        fips_updates = FIPSUpdatesEntitlement(self.cfg)
         enabled_status = ApplicationStatus.ENABLED
-        is_fips_update_enabled = bool(
-            fips_update.application_status()[0] == enabled_status
+        is_fips_updates_enabled = bool(
+            fips_updates.application_status()[0] == enabled_status
         )
 
-        services_once_enabled = (
-            self.cfg.read_cache("services-once-enabled") or {}
-        )
-        fips_updates_once_enabled = services_once_enabled.get(
-            fips_update.name, False
+        services_once_enabled_obj = services_once_enabled_file.read()
+        fips_updates_once_enabled = (
+            services_once_enabled_obj.fips_updates
+            if services_once_enabled_obj
+            else False
         )
 
         return static_affordances + (
             (
                 messages.FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED.format(
-                    fips=self.title, fips_updates=fips_update.title
+                    fips=self.title, fips_updates=fips_updates.title
                 ),
-                lambda: is_fips_update_enabled,
+                lambda: is_fips_updates_enabled,
                 False,
             ),
             (
                 messages.FIPS_ERROR_WHEN_FIPS_UPDATES_ONCE_ENABLED.format(
-                    fips=self.title, fips_updates=fips_update.title
+                    fips=self.title, fips_updates=fips_updates.title
                 ),
                 lambda: fips_updates_once_enabled,
                 False,
@@ -534,14 +538,10 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             self.cfg.notice_file.try_remove(
                 "", messages.FIPS_DISABLE_REBOOT_REQUIRED
             )
-            services_once_enabled = (
-                self.cfg.read_cache("services-once-enabled") or {}
-            )
-            services_once_enabled.update({self.name: True})
-            self.cfg.write_cache(
-                key="services-once-enabled", content=services_once_enabled
-            )
 
+            services_once_enabled_file.write(
+                ServicesOnceEnabledData(fips_updates=True)
+            )
             return True
 
         return False
