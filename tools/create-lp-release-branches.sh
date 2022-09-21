@@ -56,7 +56,7 @@ do
       jammy) version=${UA_VERSION}~22.04.1;;
       kinetic) version=${UA_VERSION}~22.10.1;;
   esac
-  dch_cmd=(dch -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
+  dch_cmd=(dch -m -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
   if [ -z "$DO_IT" ]; then
     echo "${dch_cmd[@]}"
   else
