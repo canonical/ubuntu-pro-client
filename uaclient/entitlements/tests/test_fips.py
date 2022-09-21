@@ -10,6 +10,7 @@ from functools import partial
 import mock
 import pytest
 
+import uaclient.entitlements.fips as fips
 from uaclient import apt, defaults, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
@@ -263,7 +264,10 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "get_cloud_type", return_value=("", None))
     def test_enable_configures_apt_sources_and_auth_files(
-        self, _m_get_cloud_type, m_setup_apt_proxy, entitlement
+        self,
+        _m_get_cloud_type,
+        m_setup_apt_proxy,
+        entitlement,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
@@ -300,6 +304,9 @@ class TestFIPSEntitlementEnable:
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
             stack.enter_context(mock.patch(M_REPOPATH + "os.path.exists"))
+            stack.enter_context(
+                mock.patch.object(fips, "services_once_enabled_file")
+            )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
@@ -449,7 +456,8 @@ class TestFIPSEntitlementEnable:
         entitlement,
     ):
         m_repo_enable.return_value = repo_enable_return_value
-        assert repo_enable_return_value is entitlement._perform_enable()
+        with mock.patch.object(fips, "services_once_enabled_file"):
+            assert repo_enable_return_value is entitlement._perform_enable()
         assert (
             expected_remove_notice_calls == m_remove_notice.call_args_list[:2]
         )
@@ -660,20 +668,25 @@ class TestFIPSEntitlementEnable:
         entitlement_factory,
     ):
         m_handle_message_op.return_value = True
-        fips_entitlement = entitlement_factory(
-            FIPSEntitlement, services_once_enabled={"fips-updates": True}
-        )
+        fake_dof = mock.MagicMock()
+        fake_ua_file = mock.MagicMock()
+        fake_ua_file.to_json.return_value = {"fips_updates": True}
+        fake_dof.read.return_value = fake_ua_file
+        fips_entitlement = entitlement_factory(FIPSEntitlement)
 
         with mock.patch.object(
             fips_entitlement, "_allow_fips_on_cloud_instance"
         ) as m_allow_fips_on_cloud:
             m_allow_fips_on_cloud.return_value = True
-            result, reason = fips_entitlement.enable()
-            assert not result
-            expected_msg = (
-                "Cannot enable FIPS because FIPS Updates was once enabled."
-            )
-            assert expected_msg.strip() == reason.message.msg.strip()
+            with mock.patch.object(
+                fips, "services_once_enabled_file", fake_dof
+            ):
+                result, reason = fips_entitlement.enable()
+                assert not result
+                expected_msg = (
+                    "Cannot enable FIPS because FIPS Updates was once enabled."
+                )
+                assert expected_msg.strip() == reason.message.msg.strip()
 
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
@@ -1245,32 +1258,26 @@ class TestFIPSUpdatesEntitlementEnable:
         entitlement_factory,
     ):
         m_perform_enable.return_value = enable_ret
-        m_write_cache = mock.MagicMock()
-        m_read_cache = mock.MagicMock()
-        m_read_cache.return_value = {}
+        fake_file = mock.MagicMock()
+        fake_file.read.return_value = None
 
-        cfg = mock.MagicMock()
-        cfg.read_cache = m_read_cache
-        cfg.write_cache = m_write_cache
-        cfg.notice_file.try_remove = m_remove_notice
-
-        fips_updates_ent = entitlement_factory(FIPSUpdatesEntitlement, cfg=cfg)
-        assert fips_updates_ent._perform_enable() == enable_ret
+        with mock.patch.object(
+            fips, "services_once_enabled_file", fake_file
+        ) as m_services_once_enabled:
+            cfg = mock.MagicMock()
+            cfg.notice_file.try_remove = m_remove_notice
+            fips_updates_ent = entitlement_factory(
+                FIPSUpdatesEntitlement, cfg=cfg
+            )
+            assert fips_updates_ent._perform_enable() == enable_ret
 
         if enable_ret:
-            assert 1 == m_read_cache.call_count
-            assert 1 == m_write_cache.call_count
-            assert [
-                mock.call(
-                    key="services-once-enabled", content={"fips-updates": True}
-                )
-            ] == m_write_cache.call_args_list
+            assert 1 == m_services_once_enabled.write.call_count
             assert [
                 mock.call("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
             ] == m_remove_notice.call_args_list
         else:
-            assert not m_read_cache.call_count
-            assert not m_write_cache.call_count
+            assert not m_services_once_enabled.write.call_count
 
 
 class TestFIPSUpdatesEntitlementCanEnable:
