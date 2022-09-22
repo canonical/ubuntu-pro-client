@@ -38,6 +38,11 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# It seems we need to request creation of automatic anchors for our headings.
+# Setting to 2 because that's what we need now.
+# If referencing any heading of lesser importance, adjust here.
+myst_heading_anchors = 2
+
 
 # -- Options for HTML output -------------------------------------------------
 
