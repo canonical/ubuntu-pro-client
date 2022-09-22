@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 from functools import lru_cache
-from typing import Dict, List, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 from uaclient import event_logger, exceptions, gpg, messages, system
 
@@ -46,6 +46,11 @@ event = event_logger.get_event_logger()
 class AptProxyScope(enum.Enum):
     GLOBAL = object()
     UACLIENT = object()
+
+
+InstalledAptPackages = NamedTuple(
+    "InstalledAptPackages", [("name", str), ("version", str), ("arch", str)]
+)
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
@@ -487,13 +492,26 @@ def clean_apt_files(*, _entitlements=None):
 
 
 def is_installed(pkg: str) -> bool:
-    return pkg in get_installed_packages()
+    return pkg in get_installed_packages_names()
 
 
-def get_installed_packages() -> List[str]:
+def get_installed_packages() -> List[InstalledAptPackages]:
     out, _ = system.subp(["apt", "list", "--installed"])
     package_list = out.splitlines()[1:]
-    return [entry.split("/")[0] for entry in package_list]
+    return [
+        InstalledAptPackages(
+            name=entry.split("/")[0],
+            version=entry.split(" ")[1],
+            arch=entry.split(" ")[2],
+        )
+        for entry in package_list
+    ]
+
+
+def get_installed_packages_names(include_versions: bool = False) -> List[str]:
+    package_list = get_installed_packages()
+    pkg_names = [pkg.name for pkg in package_list]
+    return pkg_names
 
 
 def setup_apt_proxy(

@@ -137,7 +137,7 @@ class TestAPICall:
     @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
     @mock.patch("uaclient.api.api.import_module")
     def test_warning_on_extra_args(
-        self, m_import_module, _m_new_version, FakeConfig
+        self, m_import_module, _m_new_version_api, FakeConfig
     ):
         mock_endpoint = mock.MagicMock()
         mock_endpoint.fn.return_value.warnings = []
