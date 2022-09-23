@@ -6,8 +6,8 @@ Feature: Performing attach using ua-airgapped
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # set up the apt mirror configuration
-        When I launch a `jammy` `mirror` machine
-        And I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
+        Given a `jammy` machine named `mirror`
+        When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
         And I run `apt-get update` `with sudo` on the `mirror` machine
         And I run `apt-get install apt-mirror get-resource-tokens ua-airgapped -yq` `with sudo` on the `mirror` machine
         And I download the service credentials on the `mirror` machine
@@ -21,8 +21,8 @@ Feature: Performing attach using ua-airgapped
         And I create the contract config overrides file for `esm-infra,esm-apps` on the `mirror` machine
         And I generate the contracts-airgapped configuration on the `mirror` machine
         # set up the contracts-airgapped configuration
-        When I launch a `jammy` `contracts` machine
-        And I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `contracts` machine
+        Given a `jammy` machine named `contracts`
+        When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `contracts` machine
         And I run `apt-get update` `with sudo` on the `contracts` machine
         And I run `apt-get install contracts-airgapped -yq` `with sudo` on the `contracts` machine
         And I run `apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4067E40313CB4B13` `with sudo` on the `contracts` machine

@@ -126,14 +126,6 @@ image build step).
 performed in `features/environment.py`, so don't expect to find
 documentation about it outside of this codebase.)
 
-For development purposes there is `reuse_container` option.
-If you would like to run behave tests in an existing container
-you need to add `-D reuse_container=container_name`:
-
-```sh
-tox -e behave -D reuse_container=container_name
-```
-
 ## Optimizing total run time of integration tests with snapshots
 When `UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1` we create a snapshot of an instance
 with ubuntu-advantage-tools installed and restore from that snapshot for all tests.

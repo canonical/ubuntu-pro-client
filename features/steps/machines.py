@@ -1,178 +1,156 @@
 import datetime
 import logging
-import os
+from typing import Dict, NamedTuple
 
 from behave import given, when
+from pycloudlib.instance import BaseInstance  # type: ignore
 
-from features.environment import (
-    capture_container_as_image,
-    create_instance_with_uat_installed,
+from features.steps.ubuntu_advantage_tools import when_i_install_uat
+from features.util import SUT, InstallationSource, build_debs
+
+MachineTuple = NamedTuple(
+    "MachineTuple", [("series", str), ("instance", BaseInstance)]
 )
-from features.util import cleanup_instance
-
-CONTAINER_PREFIX = "ubuntu-behave-test"
-IMAGE_BUILD_PREFIX = "ubuntu-behave-image-build"
-IMAGE_PREFIX = "ubuntu-behave-image"
-
-
-def add_test_name_suffix(context, series, prefix):
-    pr_number = os.environ.get("UACLIENT_BEHAVE_JENKINS_CHANGE_ID")
-    pr_suffix = "-" + str(pr_number) if pr_number else ""
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    vm_suffix = "-vm" if is_vm else ""
-    time_suffix = datetime.datetime.now().strftime("-%s%f")
-
-    return "{prefix}{pr_suffix}{vm_suffix}-{series}{time_suffix}".format(
-        prefix=prefix,
-        pr_suffix=pr_suffix,
-        vm_suffix=vm_suffix,
-        series=series,
-        time_suffix=time_suffix,
-    )
-
-
-@given("a `{series}` machine with ubuntu-advantage-tools installed")
-def given_a_machine(context, series, custom_user_data=None):
-    if series in context.reuse_container:
-        context.instances = {}
-        context.container_name = context.reuse_container[series]
-        context.instances["uaclient"] = context.config.cloud_api.get_instance(
-            context.container_name
-        )
-        if "pro" in context.config.machine_type:
-            context.instances[
-                "uaclient"
-            ] = context.config.cloud_api.get_instance(context.container_name)
-        return
-
-    instance_name = add_test_name_suffix(context, series, CONTAINER_PREFIX)
-
-    if context.config.snapshot_strategy and not custom_user_data:
-        if series not in context.series_image_name:
-            build_container_name = add_test_name_suffix(
-                context, series, IMAGE_BUILD_PREFIX
-            )
-            image_inst = create_instance_with_uat_installed(
-                context, series, build_container_name, custom_user_data
-            )
-
-            image_name = add_test_name_suffix(context, series, IMAGE_PREFIX)
-            image_inst_id = context.config.cloud_manager.get_instance_id(
-                image_inst
-            )
-            image_id = capture_container_as_image(
-                image_inst_id,
-                image_name=image_name,
-                cloud_api=context.config.cloud_api,
-            )
-
-            context.series_image_name[series] = image_id
-            image_inst.delete(wait=False)
-
-        inst = context.config.cloud_manager.launch(
-            series=series,
-            instance_name=instance_name,
-            image_name=context.series_image_name[series],
-            ephemeral=context.config.ephemeral_instance,
-        )
-    else:
-        inst = create_instance_with_uat_installed(
-            context, series, instance_name, custom_user_data
-        )
-
-    context.series = series
-    context.instances = {"uaclient": inst}
-
-    context.container_name = context.config.cloud_manager.get_instance_id(
-        context.instances["uaclient"]
-    )
-
-    context.add_cleanup(cleanup_instance(context, "uaclient"))
-    logging.info(
-        "--- instance ip: {}".format(context.instances["uaclient"].ip)
-    )
-
-
-@when("I take a snapshot of the machine")
-def when_i_take_a_snapshot(context):
-    cloud = context.config.cloud_manager
-    inst = context.instances["uaclient"]
-
-    snapshot = cloud.api.snapshot(inst)
-
-    context.instance_snapshot = snapshot
-
-    def cleanup_image() -> None:
-        try:
-            context.config.cloud_manager.api.delete_image(
-                context.instance_snapshot
-            )
-        except RuntimeError as e:
-            logging.error(
-                "Failed to delete image: {}\n{}".format(
-                    context.instance_snapshot, str(e)
-                )
-            )
-
-    context.add_cleanup(cleanup_image)
-
-
-@given(
-    "a `{series}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa
-)
-def given_a_machine_with_user_data(context, series):
-    custom_user_data = context.text
-    given_a_machine(context, series, custom_user_data)
+MachinesDict = Dict[str, MachineTuple]
 
 
 @when(
-    "I launch a `{series}` `{instance_name}` machine with ingress ports `{ports}`"  # noqa
+    "I launch a `{series}` machine named `{machine_name}` from the snapshot of `{snapshot_name}`"  # noqa: E501
 )
-def launch_machine_with_ingress_ports(context, series, instance_name, ports):
-    launch_machine(
-        context=context,
+@given("a `{series}` machine")
+@given("a `{series}` machine named `{machine_name}`")
+@given(
+    "a `{series}` machine named `{machine_name}` with ingress ports `{ports}`"
+)
+def given_a_machine(
+    context,
+    series,
+    machine_name=SUT,
+    snapshot_name=None,
+    user_data=None,
+    ports=None,
+    cleanup=True,
+):
+    time_suffix = datetime.datetime.now().strftime("%s%f")
+    instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
+        series=series,
+        machine_name=machine_name,
+        time_suffix=time_suffix,
+    )
+
+    inbound_ports = ports.split(",") if ports is not None else None
+
+    is_pro = "pro" in context.config.machine_type
+    pro_user_data = (
+        "bootcmd:\n"
+        """  - "cloud-init-per once disable-auto-attach printf '\\nfeatures: {disable_auto_attach: true}\\n' >> /etc/ubuntu-advantage/uaclient.conf"\n"""  # noqa: E501
+    )
+    user_data_to_use = None
+    if is_pro or user_data is not None:
+        user_data_to_use = "#cloud-config\n"
+        if is_pro:
+            user_data_to_use += pro_user_data
+        if user_data is not None:
+            user_data_to_use += user_data
+
+    instance = context.config.cloud_manager.launch(
         series=series,
         instance_name=instance_name,
-        ports=ports,
+        ephemeral=context.config.ephemeral_instance,
+        image_name=context.snapshots.get(snapshot_name, None),
+        inbound_ports=inbound_ports,
+        user_data=user_data_to_use,
+    )
+
+    context.machines[machine_name] = MachineTuple(
+        series=series, instance=instance
+    )
+
+    if cleanup:
+
+        def cleanup_instance():
+            if not context.config.destroy_instances:
+                logging.info(
+                    "--- Leaving instance running: {}".format(
+                        context.machines[machine_name].instance.name
+                    )
+                )
+                return
+            try:
+                context.machines[machine_name].instance.delete(wait=False)
+            except RuntimeError as e:
+                logging.error(
+                    "Failed to delete instance: {}\n{}".format(
+                        context.machines[machine_name].instance.name, str(e)
+                    )
+                )
+
+        context.add_cleanup(cleanup_instance)
+
+
+@when("I take a snapshot of the machine")
+def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
+    inst = context.machines[machine_name].instance
+    snapshot = context.config.cloud_manager.api.snapshot(inst)
+
+    context.snapshots[machine_name] = snapshot
+
+    if cleanup:
+
+        def cleanup_snapshot() -> None:
+            try:
+                context.config.cloud_manager.api.delete_image(
+                    context.snapshots[machine_name]
+                )
+            except RuntimeError as e:
+                logging.error(
+                    "Failed to delete image: {}\n{}".format(
+                        context.snapshots[machine_name], str(e)
+                    )
+                )
+
+        context.add_cleanup(cleanup_snapshot)
+
+
+@given("a `{series}` machine with ubuntu-advantage-tools installed")
+def given_a_sut_machine(context, series):
+    if context.config.install_from == InstallationSource.LOCAL:
+        # build right away, this will cache the built debs for later use
+        # building early means we catch build errors before investing in
+        # launching instances
+        build_debs(series)
+
+    if context.config.snapshot_strategy:
+        if "builder" not in context.snapshots:
+            given_a_machine(
+                context, series, machine_name="builder", cleanup=False
+            )
+            when_i_install_uat(context, machine_name="builder")
+            when_i_take_a_snapshot(
+                context, machine_name="builder", cleanup=False
+            )
+            context.machines["builder"].instance.delete(wait=False)
+        given_a_machine(context, series, snapshot_name="builder")
+    else:
+        given_a_machine(context, series)
+        when_i_install_uat(context)
+
+    logging.info(
+        "--- instance ip: {}".format(context.machines[SUT].instance.ip)
     )
 
 
-@when("I launch a `{series}` `{instance_name}` machine")
-def launch_machine(context, series, instance_name, ports=None):
-    now = datetime.datetime.now()
-    date_prefix = now.strftime("-%s%f")
-    name = CONTAINER_PREFIX + series + date_prefix + "-" + instance_name
-
-    kwargs = {"series": series, "instance_name": name}
-    if ports:
-        kwargs["inbound_ports"] = ports.split(",")
-    context.instances[instance_name] = context.config.cloud_manager.launch(
-        **kwargs
-    )
-
-    context.add_cleanup(cleanup_instance(context, instance_name))
+@given(
+    "a `{series}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa: E501
+)
+def given_a_sut_machine_with_user_data(context, series):
+    # doesn't support snapshot strategy because the test depends on
+    # custom user data
+    given_a_machine(context, series, user_data=context.text)
+    when_i_install_uat(context)
 
 
-@when("I launch a `{instance_name}` machine from the snapshot")
-def launch_machine_from_snapshot(context, instance_name):
-    now = datetime.datetime.now()
-    date_prefix = now.strftime("-%s%f")
-    name = CONTAINER_PREFIX + date_prefix + "-" + instance_name
-
-    context.instances[instance_name] = context.config.cloud_manager.launch(
-        context.series,
-        instance_name=name,
-        image_name=context.instance_snapshot,
-    )
-
-    context.add_cleanup(cleanup_instance(context, instance_name))
-
-
+@when("I reboot the `{machine_name}` machine")
 @when("I reboot the machine")
-def when_i_reboot_the_machine(context):
-    context.instances["uaclient"].restart(wait=True)
-
-
-@when("I reboot the `{machine}` machine")
-def when_i_reboot_the_machine_name(context, machine):
-    context.instances[machine].restart(wait=True)
+def when_i_reboot_the_machine(context, machine_name=SUT):
+    context.machines[machine_name].instance.restart(wait=True)

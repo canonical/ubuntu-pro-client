@@ -6,8 +6,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when proxy is configured for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -165,8 +165,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -258,8 +258,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt update` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -355,8 +355,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt update` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -406,8 +406,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -555,8 +555,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt update` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -635,8 +635,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when proxy is configured globally
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -799,8 +799,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt update` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -899,8 +899,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: Get warning when configuring global or uaclient proxy
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -1050,8 +1050,8 @@ Feature: Proxy configuration
     @uses.config.machine_type.lxd.container
     Scenario Outline: apt_http(s)_proxy still works
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -1190,8 +1190,8 @@ Feature: Proxy configuration
     Scenario: Enable realtime kernel through proxy on a machine with no internet
         Given a `jammy` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
-        And I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
