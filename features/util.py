@@ -4,12 +4,12 @@ import os
 import shutil
 import subprocess
 import tempfile
-import textwrap
 from enum import Enum
 from typing import Iterable, List, Optional
 
 import yaml
 
+SUT = "system-under-test"
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
     "container": {"series": "image.release", "machine_type": "image.type"},
@@ -19,29 +19,11 @@ SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
 SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")
 SBUILD_DIR = os.path.join(UA_TMP_DIR, "sbuild")
 UA_DEB_BUILD_CACHE = os.path.join(UA_TMP_DIR, "deb-cache")
-UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
-
-
-BUILD_FROM_TGZ = textwrap.dedent(
-    """\
-   #!/bin/bash
-   set -o xtrace
-   apt-get update
-   apt-get install make
-   cd /tmp
-   tar -zxf *gz
-   cd *ubuntu-advantage-client*
-   make deps
-   dpkg-buildpackage -us -uc
-   # Copy and rename versioned debs to /tmp/ubuntu-advantage-(tools|pro).deb
-   cp /tmp/ubuntu-advantage-tools*.deb /tmp/ubuntu-advantage-tools.deb
-   cp /tmp/ubuntu-advantage-pro*.deb /tmp/ubuntu-advantage-pro.deb
-   """
-)
 
 
 class InstallationSource(Enum):
     ARCHIVE = "archive"
+    PREBUILT = "prebuilt"
     LOCAL = "local"
     DAILY = "daily"
     STAGING = "staging"
@@ -288,24 +270,3 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
         k: [r for r in v if r[0] != "tag:yaml.org,2002:timestamp"]
         for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()
     }
-
-
-def cleanup_instance(context, instance_name):
-    def _cleanup_instance():
-        if not context.config.destroy_instances:
-            logging.info(
-                "--- Leaving instance running: {}".format(
-                    context.instances[instance_name].name
-                )
-            )
-            return
-        try:
-            context.instances[instance_name].delete(wait=False)
-        except RuntimeError as e:
-            logging.error(
-                "Failed to delete instance: {}\n{}".format(
-                    context.instances[instance_name].name, str(e)
-                )
-            )
-
-    return _cleanup_instance
