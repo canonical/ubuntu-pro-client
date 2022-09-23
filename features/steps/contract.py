@@ -3,10 +3,8 @@ import datetime
 from behave import then, when
 from hamcrest import assert_that, equal_to, not_
 
-from features.steps.shell import (
-    when_i_run_command,
-    when_i_run_command_on_machine,
-)
+from features.steps.shell import when_i_run_command
+from features.util import SUT
 from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
@@ -82,21 +80,17 @@ def _get_saved_attr(context, key):
     return saved_value
 
 
-@then(
-    "I verify that `{key}` value has been updated on the contract on the `{machine}` machine"  # noqa: E501
-)
-def i_verify_that_key_value_has_been_updated_on_machine(context, key, machine):
-    i_verify_that_key_value_has_been_updated(context, key, machine)
-
-
 @then("I verify that `{key}` value has been updated on the contract")
-def i_verify_that_key_value_has_been_updated(context, key, machine="uaclient"):
+@then(
+    "I verify that `{key}` value has been updated on the contract on the `{machine_name}` machine"  # noqa: E501
+)
+def i_verify_that_key_value_has_been_updated(context, key, machine_name=SUT):
     saved_value = _get_saved_attr(context, key)
-    when_i_run_command_on_machine(
+    when_i_run_command(
         context,
         "jq -r '.{}' {}".format(key, DEFAULT_PRIVATE_MACHINE_TOKEN_PATH),
         "with sudo",
-        instance_name=machine,
+        machine_name=machine_name,
     )
     assert_that(context.process.stdout.strip(), not_(equal_to(saved_value)))
 

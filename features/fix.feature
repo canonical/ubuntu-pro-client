@@ -33,6 +33,7 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
@@ -97,6 +98,7 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
         When I run `apt install -y libawl-php` with sudo
         And I reboot the machine
         And I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
@@ -293,6 +295,7 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
