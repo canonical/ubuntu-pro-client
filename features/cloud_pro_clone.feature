@@ -34,7 +34,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that `activityInfo.activityToken` value has been updated on the contract
         Then I verify that `activityInfo.activityID` value has not been updated on the contract
-        When I launch a `clone` machine from the snapshot
+        When I launch a `<release>` machine named `clone` from the snapshot of `system-under-test`
         # The clone will run auto-attach on boot
         When I run `pro status --wait` `with sudo` on the `clone` machine
         When I run `pro status --format yaml` `with sudo` on the `clone` machine

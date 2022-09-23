@@ -44,8 +44,10 @@ def then_stream_does_not_match_regexp(context, stream):
 def then_stream_matches_regexp(context, stream):
     content = getattr(context.process, stream).strip()
     text = context.text
-    if "<ci-proxy-ip>" in text and "proxy" in context.instances:
-        text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
+    if "<ci-proxy-ip>" in text and "proxy" in context.machines:
+        text = text.replace(
+            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
+        )
     assert_that(content, matches_regexp(text))
 
 

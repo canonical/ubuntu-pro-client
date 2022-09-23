@@ -4,8 +4,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.aws.pro
     Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -76,8 +76,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.azure.pro
     Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine with ingress ports `3128`
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given I a `focal` machine named `proxy` with ingress ports `3128`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -148,8 +148,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.gcp.pro
     Scenario Outline: Proxy auto-attach in an Ubuntu Pro GCP machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I launch a `focal` `proxy` machine
-        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all

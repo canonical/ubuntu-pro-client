@@ -6,12 +6,7 @@ import time
 from behave import then, when
 from hamcrest import assert_that, equal_to
 
-
-@when("I run `{command}` `{user_spec}` on the `{instance_name}` machine")
-def when_i_run_command_on_machine(context, command, user_spec, instance_name):
-    when_i_run_command(
-        context, command, user_spec, instance_name=instance_name
-    )
+from features.util import SUT
 
 
 @when("I run `{command}` {user_spec}, retrying exit [{exit_codes}]")
@@ -35,32 +30,27 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
     assert_that(context.process.returncode, equal_to(0))
 
 
-@when("I run `{command}` `{user_spec}` and stdin `{stdin}`")
-def when_i_run_command_with_stdin(
-    context, command, user_spec, stdin, instancedebug_name="uaclient"
-):
-    when_i_run_command(
-        context=context, command=command, user_spec=user_spec, stdin=stdin
-    )
-
-
 @when("I run `{command}` {user_spec}")
+@when("I run `{command}` `{user_spec}` on the `{machine_name}` machine")
+@when("I run `{command}` `{user_spec}` and stdin `{stdin}`")
 def when_i_run_command(
     context,
     command,
     user_spec,
     verify_return=True,
     stdin=None,
-    instance_name="uaclient",
+    machine_name=SUT,
 ):
-    if "<ci-proxy-ip>" in command and "proxy" in context.instances:
+    if "<ci-proxy-ip>" in command and "proxy" in context.machines:
         command = command.replace(
-            "<ci-proxy-ip>", context.instances["proxy"].ip
+            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
         )
     prefix = get_command_prefix_for_user_spec(user_spec)
 
     full_cmd = prefix + shlex.split(command)
-    result = context.instances[instance_name].execute(full_cmd, stdin=stdin)
+    result = context.machines[machine_name].instance.execute(
+        full_cmd, stdin=stdin
+    )
 
     process = subprocess.CompletedProcess(
         args=full_cmd,

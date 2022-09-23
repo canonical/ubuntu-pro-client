@@ -4,6 +4,29 @@ from behave import then, when
 from hamcrest import assert_that, contains_string, matches_regexp
 
 from features.steps.shell import when_i_run_command
+from features.util import SUT
+
+
+@when("I apt install `{package_name}`")
+def when_i_apt_install(context, package_name, machine_name=SUT):
+    when_i_run_command(
+        context,
+        " ".join(
+            [
+                "sudo",
+                "DEBIAN_FRONTEND=noninteractive",
+                "apt-get",
+                "install",
+                "-y",
+                "--allow-downgrades",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+                package_name,
+            ]
+        ),
+        "with sudo",
+        machine_name=machine_name,
+    )
 
 
 @then("apt-cache policy for the following url has permission `{perm_id}`")
@@ -83,6 +106,7 @@ def when_i_install_packages(context):
     # The `gh` deb package is just installed locally,
     # and is then listed as unknown
     # https://github.com/cli/cli/releases
+    when_i_run_command(context, "apt-get update", "with sudo")
     when_i_run_command(
         context,
         (

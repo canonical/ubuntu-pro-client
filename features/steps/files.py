@@ -7,40 +7,40 @@ import tempfile
 from behave import then, when
 from hamcrest import assert_that, matches_regexp
 
-from features.steps.shell import (
-    when_i_run_command,
-    when_i_run_command_on_machine,
-)
+from features.steps.shell import when_i_run_command
+from features.util import SUT
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 
 
-@when("I add this text on `{file_name}` on `{instance_name}` above `{line}`")
+@when("I add this text on `{file_name}` on `{machine_name}` above `{line}`")
 def when_i_add_this_text_on_file_above_line(
-    context, file_name, instance_name, line
+    context, file_name, machine_name, line
 ):
     command = 'sed -i "s/{}/{}\\n{}/" {}'.format(
         line, context.text, line, file_name
     )
     when_i_run_command(
-        context, command, "with sudo", instance_name=instance_name
+        context, command, "with sudo", machine_name=machine_name
     )
 
 
-@when("I verify `{file_name}` is empty on `{instance_name}` machine")
-def when_i_verify_file_is_empty_on_machine(context, file_name, instance_name):
+@when("I verify `{file_name}` is empty on `{machine_name}` machine")
+def when_i_verify_file_is_empty_on_machine(context, file_name, machine_name):
     command = 'sh -c "cat {} | wc -l"'.format(file_name)
     when_i_run_command(
-        context, command, user_spec="with sudo", instance_name=instance_name
+        context, command, user_spec="with sudo", machine_name=machine_name
     )
 
     assert_that(context.process.stdout.strip(), matches_regexp("0"))
 
 
 @when("I create the file `{file_path}` with the following")
-def when_i_create_file_with_content(context, file_path, machine="uaclient"):
+def when_i_create_file_with_content(context, file_path, machine_name=SUT):
     text = context.text
-    if "<ci-proxy-ip>" in text and "proxy" in context.instances:
-        text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
+    if "<ci-proxy-ip>" in text and "proxy" in context.machines:
+        text = text.replace(
+            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
+        )
     if "<cloud>" in text:
         text = text.replace("<cloud>", context.config.cloud)
 
@@ -58,13 +58,14 @@ def when_i_create_file_with_content(context, file_path, machine="uaclient"):
         tmpf_path = os.path.join(tmpd, "tmpfile")
         with open(tmpf_path, mode="w") as tmpf:
             tmpf.write(text)
-        context.instances[machine].push_file(tmpf_path, "/tmp/behave_tmpfile")
-
-    when_i_run_command_on_machine(
+        context.machines[machine_name].instance.push_file(
+            tmpf_path, "/tmp/behave_tmpfile"
+        )
+    when_i_run_command(
         context,
         "cp /tmp/behave_tmpfile {}".format(file_path),
         "with sudo",
-        machine,
+        machine_name=machine_name,
     )
 
 
@@ -120,8 +121,8 @@ def there_should_be_no_files_matching_regex(context, path_regex):
 @when("I change config key `{key}` to use value `{value}`")
 def change_contract_key_to_use_value(context, key, value):
     if "ip-address" in value:
-        machine, _, port = value.split(":")
-        ip_value = context.instances[machine].ip
+        machine_name, _, port = value.split(":")
+        ip_value = context.machines[machine_name].instance.ip
         value = "http:\/\/{}:{}".format(ip_value, port)  # noqa: W605
 
     when_i_run_command(

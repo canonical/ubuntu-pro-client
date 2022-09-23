@@ -5,35 +5,37 @@ import yaml
 from behave import when
 
 from features.steps.files import when_i_create_file_with_content
-from features.steps.shell import when_i_run_command_on_machine
+from features.steps.shell import when_i_run_command
 
 
-@when("I download the service credentials on the `{machine}` machine")
-def download_service_credentials(context, machine):
+@when("I download the service credentials on the `{machine_name}` machine")
+def download_service_credentials(context, machine_name):
     token = context.config.contract_token
-    when_i_run_command_on_machine(
+    when_i_run_command(
         context,
         "get-resource-tokens {}".format(token),
         "as non-root",
-        "mirror",
+        machine_name=machine_name,
     )
 
     context.service_credentials = context.process.stdout
 
 
-@when("I extract the `{service}` credentials from the `{machine}` machine")
-def extract_service_credentials(context, service, machine):
+@when(
+    "I extract the `{service}` credentials from the `{machine_name}` machine"
+)
+def extract_service_credentials(context, service, machine_name):
     if getattr(context, "service_mirror_cfg", None) is None:
         context.service_mirror_cfg = {}
 
     cmd = "sh -c 'echo \"{}\" | grep -A1 {} | grep -v {}'".format(
         context.service_credentials, service, service
     )
-    when_i_run_command_on_machine(
+    when_i_run_command(
         context,
         cmd,
         "as non-root",
-        "mirror",
+        machine_name=machine_name,
     )
 
     context.service_mirror_cfg[service.replace("-", "_")] = {
@@ -42,10 +44,10 @@ def extract_service_credentials(context, service, machine):
 
 
 @when(
-    "I set the apt-mirror file for `{release}` with the `{service_list}` credentials on the `{machine}` machine"  # noqa
+    "I set the apt-mirror file for `{release}` with the `{service_list}` credentials on the `{machine_name}` machine"  # noqa
 )
 def set_apt_mirror_file_with_credentials(
-    context, release, service_list, machine
+    context, release, service_list, machine_name
 ):
     service_list = service_list.split(",")
 
@@ -80,14 +82,14 @@ def set_apt_mirror_file_with_credentials(
     when_i_create_file_with_content(
         context,
         "/etc/apt/mirror.list",
-        machine=machine,
+        machine_name=machine_name,
     )
 
 
 @when(
-    "I serve the `{service}` mirror using port `{port}` on the `{machine}` machine"  # noqa
+    "I serve the `{service}` mirror using port `{port}` on the `{machine_name}` machine"  # noqa
 )
-def serve_apt_mirror(context, service, port, machine):
+def serve_apt_mirror(context, service, port, machine_name):
     service_type = service.split("-")[1]
     path = "/var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/".format(
         service_type
@@ -96,20 +98,20 @@ def serve_apt_mirror(context, service, port, machine):
         path, port
     )
 
-    when_i_run_command_on_machine(
+    when_i_run_command(
         context,
         cmd,
         "with sudo",
-        "mirror",
+        machine_name=machine_name,
     )
 
     context.service_mirror_cfg[service.replace("-", "_")]["port"] = port
 
 
 @when(
-    "I create the contract config overrides file for `{service_list}` on the `{machine}` machine"  # noqa
+    "I create the contract config overrides file for `{service_list}` on the `{machine_name}` machine"  # noqa
 )
-def create_contract_overrides(context, service_list, machine):
+def create_contract_overrides(context, service_list, machine_name):
     token = context.config.contract_token
     config_override = {token: {}}  # type: Dict[str, Any]
 
@@ -117,7 +119,7 @@ def create_contract_overrides(context, service_list, machine):
         config_override[token][service] = {
             "directives": {
                 "aptURL": "http://{}:{}".format(
-                    context.instances[machine].ip,
+                    context.machines[machine_name].instance.ip,
                     context.service_mirror_cfg[service.replace("-", "_")][
                         "port"
                     ],
@@ -130,16 +132,16 @@ def create_contract_overrides(context, service_list, machine):
     when_i_create_file_with_content(
         context,
         contract_override_path,
-        machine,
+        machine_name=machine_name,
     )
 
     context.service_mirror_cfg["contract_override"] = contract_override_path
 
 
 @when(
-    "I generate the contracts-airgapped configuration on the `{machine}` machine"  # noqa
+    "I generate the contracts-airgapped configuration on the `{machine_name}` machine"  # noqa
 )
-def i_configure_the_ua_airgapped_service(context, machine):
+def i_configure_the_ua_airgapped_service(context, machine_name):
     contract_override_path = context.service_mirror_cfg["contract_override"]
     contract_final_cfg_path = "contract-server-ready.yml"
     cmd = "sh -c 'cat {} | ua-airgapped > {}'".format(
@@ -147,11 +149,11 @@ def i_configure_the_ua_airgapped_service(context, machine):
         contract_final_cfg_path,
     )
 
-    when_i_run_command_on_machine(
+    when_i_run_command(
         context,
         cmd,
         "with sudo",
-        machine,
+        machine_name=machine_name,
     )
 
     context.service_mirror_cfg["contract_final_cfg"] = contract_final_cfg_path
@@ -163,12 +165,12 @@ def i_configure_the_ua_airgapped_service(context, machine):
 def i_fetch_contracts_airgapped_config(context, base_machine, target_machine):
     local_file_path = "/tmp/contracts-airgapped-cfg"
 
-    context.instances[base_machine].pull_file(
+    context.machines[base_machine].instance.pull_file(
         context.service_mirror_cfg["contract_final_cfg"],
         local_file_path,
     )
 
-    context.instances[target_machine].push_file(
+    context.machines[target_machine].instance.push_file(
         local_file_path,
         context.service_mirror_cfg["contract_final_cfg"],
     )
@@ -176,11 +178,13 @@ def i_fetch_contracts_airgapped_config(context, base_machine, target_machine):
     os.unlink(local_file_path)
 
 
-@when("I start the contracts-airgapped service on the `{machine}` machine")
-def i_start_the_contracts_airgapped_service(context, machine):
+@when(
+    "I start the contracts-airgapped service on the `{machine_name}` machine"
+)
+def i_start_the_contracts_airgapped_service(context, machine_name):
     path = context.service_mirror_cfg["contract_final_cfg"]
     cmd = "nohup sh -c 'contracts-airgapped --input=./{} > /dev/null 2>&1 &'".format(  # noqa
         path
     )
 
-    when_i_run_command_on_machine(context, cmd, "with sudo", machine)
+    when_i_run_command(context, cmd, "with sudo", machine_name=machine_name)
