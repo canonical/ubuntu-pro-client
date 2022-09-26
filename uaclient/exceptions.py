@@ -336,8 +336,10 @@ class CloudFactoryNonViableCloudError(CloudFactoryError):
     pass
 
 
-class EntitlementNotFoundError(Exception):
-    pass
+class EntitlementNotFoundError(UserFacingError):
+    def __init__(self, entitlement_name: str):
+        msg = messages.ENTITLEMENT_NOT_FOUND.format(name=entitlement_name)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class UrlError(IOError):
