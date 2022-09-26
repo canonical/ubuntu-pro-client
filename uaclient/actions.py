@@ -85,16 +85,9 @@ def auto_attach(
         auto-attach support.
     """
     contract_client = contract.UAContractClient(cfg)
-    try:
-        tokenResponse = contract_client.request_auto_attach_contract_token(
-            instance=cloud
-        )
-    except exceptions.ContractAPIError as e:
-        if e.code and 400 <= e.code < 500:
-            raise exceptions.NonAutoAttachImageError(
-                messages.UNSUPPORTED_AUTO_ATTACH
-            )
-        raise e
+    tokenResponse = contract_client.request_auto_attach_contract_token(
+        instance=cloud
+    )
 
     token = tokenResponse["contractToken"]
 
