@@ -67,3 +67,6 @@ class DataObjectFile(Generic[DOFType]):
             str_content = yaml.dump(data, default_flow_style=False)
 
         self.ua_file.write(str_content)
+
+    def delete(self):
+        self.ua_file.delete()
