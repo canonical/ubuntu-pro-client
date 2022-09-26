@@ -32,7 +32,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
         """
         When I run `pro refresh` with sudo
-        And I run `pro status` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
         <service1> +yes +<service1_status>
