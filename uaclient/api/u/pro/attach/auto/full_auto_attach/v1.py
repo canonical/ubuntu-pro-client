@@ -85,7 +85,9 @@ def _full_auto_attach_in_lock(
     event.set_event_mode(event_logger.EventLoggerMode.JSON)
 
     if cfg.is_attached:
-        raise exceptions.AlreadyAttachedError(cfg)
+        raise exceptions.AlreadyAttachedError(
+            cfg.machine_token_file.account.get("name", "")
+        )
 
     services = set()
     if options.enable:

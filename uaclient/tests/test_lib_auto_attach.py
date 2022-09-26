@@ -90,7 +90,9 @@ class TestMain:
     ):
         cfg = FakeConfig.for_attached_machine()
         m_check_cloudinit.return_value = False
-        m_api_full_auto_attach.side_effect = AlreadyAttachedError(cfg)
+        m_api_full_auto_attach.side_effect = AlreadyAttachedError(
+            "test_account"
+        )
         main(cfg=cfg)
 
         assert (
