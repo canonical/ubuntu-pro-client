@@ -331,6 +331,18 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     context.config.setup_logging()
+    if logging.getLogger().level == logging.DEBUG:
+        # The AWS boto libraries are very very very verbose
+        # We pretty much never want their debug level messages,
+        # but we do want to be able to use the debug log level
+        # in our code. So we bump their loggers up to info
+        # when we set debug at the cli with --logging-level=debug
+        logging.warn(
+            "Setting AWS botocore and boto3 loggers to INFO to avoid"
+            " extra verbose logs"
+        )
+        logging.getLogger("botocore").setLevel(logging.INFO)
+        logging.getLogger("boto3").setLevel(logging.INFO)
     userdata = context.config.userdata
     if userdata:
         logging.debug("Userdata key / value pairs:")
