@@ -104,7 +104,7 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
     when_i_run_command(context, cmd_name, spec, verify_return=False)
-
+    logging.debug("got return code: %d", context.process.returncode)
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
 
