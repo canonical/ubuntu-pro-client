@@ -261,7 +261,9 @@ def assert_not_attached(f):
     @wraps(f)
     def new_f(args, cfg):
         if cfg.is_attached:
-            raise exceptions.AlreadyAttachedError(cfg)
+            raise exceptions.AlreadyAttachedError(
+                cfg.machine_token_file.account.get("name", "")
+            )
         return f(args, cfg=cfg)
 
     return new_f
