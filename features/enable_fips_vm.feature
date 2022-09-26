@@ -45,10 +45,10 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `pro status --format json` with sudo
+        When I run `pro status --format json --all` with sudo
         Then stdout contains substring:
         """
-        {"available": "yes", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled."}
+        {"available": "no", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled."}
         """
 
         When I reboot the machine

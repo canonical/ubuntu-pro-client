@@ -30,6 +30,7 @@ Feature: Upgrade between releases when uaclient is unattached
         """
         """
         When I attach `contract_token` with sudo
+        And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
         esm-infra +yes +<service_status>
