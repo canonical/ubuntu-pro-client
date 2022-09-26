@@ -216,6 +216,19 @@ class DataObject(DataValue):
     def __init__(self, **_kwargs):
         pass
 
+    def __eq__(self, other):
+        for field in self.fields:
+            self_val = getattr(self, field.key, None)
+            other_val = getattr(other, field.key, None)
+            if self_val != other_val:
+                return False
+        return True
+
+    def __repr__(self):
+        return "{}{}".format(
+            self.__class__.__name__, self.to_dict().__repr__()
+        )
+
     def to_dict(self, keep_none: bool = True) -> dict:
         d = {}
         for field in self.fields:
