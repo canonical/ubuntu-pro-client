@@ -414,15 +414,47 @@ class TestStatus:
                 "accountInfo": {
                     "id": "acct-1",
                     "name": "test_account",
-                    "createdAt": "2019-06-14T06:45:50Z",
+                    "createdAt": datetime.datetime(
+                        2019,
+                        6,
+                        14,
+                        6,
+                        45,
+                        50,
+                        tzinfo=datetime.timezone.utc,
+                    ),
                     "externalAccountIDs": [{"IDs": ["id1"], "origin": "AWS"}],
                 },
                 "contractInfo": {
                     "id": "cid",
                     "name": "test_contract",
-                    "createdAt": "2020-05-08T19:02:26Z",
-                    "effectiveFrom": "2000-05-08T19:02:26Z",
-                    "effectiveTo": "2040-05-08T19:02:26Z",
+                    "createdAt": datetime.datetime(
+                        2020,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "effectiveFrom": datetime.datetime(
+                        2000,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "effectiveTo": datetime.datetime(
+                        2040,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
                     "resourceEntitlements": entitled_res,
                     "products": ["free"],
                 },
@@ -545,7 +577,7 @@ class TestStatus:
     ):
         root_cfg = FakeConfig.for_attached_machine()
         root_status = status.status(cfg=root_cfg)
-        normal_cfg = FakeConfig(root_mode=False)
+        normal_cfg = FakeConfig.for_attached_machine(root_mode=False)
         normal_status = status.status(cfg=normal_cfg)
         assert normal_status == root_status
 
@@ -648,13 +680,17 @@ class TestStatus:
                 "accountInfo": {
                     "id": "1",
                     "name": "accountname",
-                    "createdAt": "2019-06-14T06:45:50Z",
+                    "createdAt": datetime.datetime(
+                        2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
+                    ),
                     "externalAccountIDs": [{"IDs": ["id1"], "origin": "AWS"}],
                 },
                 "contractInfo": {
                     "id": "contract-1",
                     "name": "contractname",
-                    "createdAt": "2020-05-08T19:02:26Z",
+                    "createdAt": datetime.datetime(
+                        2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                    ),
                     "resourceEntitlements": entitlements,
                     "products": ["free"],
                 },
@@ -775,8 +811,12 @@ class TestStatus:
                 "contractInfo": {
                     "name": "contractname",
                     "id": "contract-1",
-                    "effectiveTo": "2020-07-18T00:00:00Z",
-                    "createdAt": "2020-05-08T19:02:26Z",
+                    "effectiveTo": datetime.datetime(
+                        2020, 7, 18, 0, 0, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "createdAt": datetime.datetime(
+                        2020, 5, 8, 0, 0, 0, tzinfo=datetime.timezone.utc
+                    ),
                     "resourceEntitlements": [],
                     "products": ["free"],
                 },
@@ -795,7 +835,11 @@ class TestStatus:
 
         # Test that the read from the status cache work properly for non-root
         # users
-        cfg = FakeConfig(root_mode=False)
+        cfg = FakeConfig.for_attached_machine(
+            account_name="accountname",
+            machine_token=token,
+            root_mode=False,
+        )
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
     @mock.patch("uaclient.status.get_available_resources", return_value={})
