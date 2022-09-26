@@ -3,9 +3,9 @@ import logging
 import mock
 import pytest
 
-from uaclient import exceptions, messages
+from uaclient import exceptions
 from uaclient.actions import attach_with_token, auto_attach, collect_logs
-from uaclient.exceptions import ContractAPIError, NonAutoAttachImageError
+from uaclient.exceptions import ContractAPIError
 from uaclient.tests.test_cli_auto_attach import fake_instance_factory
 
 M_PATH = "uaclient.actions."
@@ -81,42 +81,6 @@ class TestAutoAttach:
         assert [
             mock.call(cfg, token="token", allow_enable=True)
         ] == m_attach_with_token.call_args_list
-
-    @pytest.mark.parametrize(
-        "http_msg,http_code,http_response",
-        (
-            ("Not found", 404, {"message": "missing instance information"}),
-            (
-                "Forbidden",
-                403,
-                {"message": "forbidden: cannot verify signing certificate"},
-            ),
-        ),
-    )
-    @mock.patch(
-        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
-    )
-    @mock.patch(M_PATH + "identity.get_instance_id", return_value="old-iid")
-    def test_handles_4XX_contract_errors(
-        self,
-        _m_get_instance_id,
-        m_request_auto_attach_contract_token,
-        http_msg,
-        http_code,
-        http_response,
-        FakeConfig,
-    ):
-        """VMs running on non-auto-attach images do not return a token."""
-        cfg = FakeConfig()
-        m_request_auto_attach_contract_token.side_effect = ContractAPIError(
-            exceptions.UrlError(
-                http_msg, code=http_code, url="http://me", headers={}
-            ),
-            error_response=http_response,
-        )
-        with pytest.raises(NonAutoAttachImageError) as excinfo:
-            auto_attach(cfg, fake_instance_factory())
-        assert messages.UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
