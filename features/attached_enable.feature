@@ -803,7 +803,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             FIPS enabled
             A reboot is required to complete install.
             """
-        When I run `pro status` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             fips +yes +enabled
