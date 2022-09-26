@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 from behave import then, when
 from hamcrest import assert_that, matches_regexp
 
@@ -32,12 +35,20 @@ def when_i_verify_file_is_empty_on_machine(context, file_name, instance_name):
 
 @when("I create the file `{file_path}` with the following")
 def when_i_create_file_with_content(context, file_path, machine="uaclient"):
-    text = context.text.replace('"', '\\"')
+    text = context.text
     if "<ci-proxy-ip>" in text and "proxy" in context.instances:
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
-    cmd = "printf '{}' > {}".format(text, file_path)
-    cmd = 'sh -c "{}"'.format(cmd)
-    when_i_run_command_on_machine(context, cmd, "with sudo", machine)
+    with tempfile.TemporaryDirectory() as tmpd:
+        tmpf_path = os.path.join(tmpd, "tmpfile")
+        with open(tmpf_path, mode="w") as tmpf:
+            tmpf.write(text)
+        context.instances[machine].push_file(tmpf_path, "/tmp/behave_tmpfile")
+    when_i_run_command_on_machine(
+        context,
+        "cp /tmp/behave_tmpfile {}".format(file_path),
+        "with sudo",
+        machine,
+    )
 
 
 @when("I delete the file `{file_path}`")
