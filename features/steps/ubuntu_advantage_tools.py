@@ -120,3 +120,22 @@ def create_local_ppa(context, release):
         "with sudo",
         "ppa",
     )
+
+
+@when("I install ubuntu-advantage-pro")
+def when_i_install_pro(context):
+    if context.config.install_from is InstallationSource.LOCAL:
+        deb_paths = build_debs_from_sbuild(context, context.series)
+
+        for deb_path in deb_paths:
+            if "pro" in deb_path:
+                context.instances["uaclient"].push_file(
+                    deb_path, "/tmp/pro.deb"
+                )
+                when_i_run_command(
+                    context, "dpkg -i /tmp/pro.deb", "with sudo"
+                )
+    else:
+        when_i_run_command(
+            context, "apt-get install ubuntu-advantage-pro", "with sudo"
+        )

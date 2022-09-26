@@ -1,32 +1,14 @@
 import logging
 import time
-from subprocess import TimeoutExpired
 
-from uaclient import actions, exceptions, lock, messages, system, util
+from uaclient import actions, exceptions, lock, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
+from uaclient.daemon import retry_auto_attach
 
-LOG = logging.getLogger("pro.daemon")
-
-
-def start():
-    try:
-        system.subp(
-            ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
-        )
-    except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
-        LOG.warning(e)
-
-
-def stop():
-    try:
-        system.subp(
-            ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
-        )
-    except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
-        LOG.warning(e)
+LOG = logging.getLogger("pro.daemon.poll_for_pro_license")
 
 
 def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
@@ -35,21 +17,11 @@ def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
             cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach"
         ):
             actions.auto_attach(cfg, cloud)
-    except exceptions.LockHeldError as e:
-        LOG.error(e)
-        cfg.notice_file.add(
-            "",
-            messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
-                operation=e.lock_holder
-            ),
-        )
-        LOG.debug("Failed to auto attach")
-        return
     except Exception as e:
-        LOG.exception(e)
-        cfg.notice_file.add("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+        LOG.error(e)
         lock.clear_lock_file_if_present()
-        LOG.debug("Failed to auto attach")
+        LOG.info("creating flag file to trigger retries")
+        system.create_file(retry_auto_attach.FLAG_FILE_PATH)
         return
     LOG.debug("Successful auto attach")
 

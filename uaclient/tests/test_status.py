@@ -776,11 +776,8 @@ class TestStatus:
         expected_calls = [
             mock.call(
                 "",
-                messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
-                    operation=".*"
-                ),
+                messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX,
             ),
-            mock.call("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED),
             mock.call(
                 "",
                 messages.ENABLE_REBOOT_REQUIRED_TMPL.format(

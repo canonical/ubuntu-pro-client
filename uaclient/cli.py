@@ -21,6 +21,7 @@ from uaclient import (
     apt,
     config,
     contract,
+    daemon,
     defaults,
     entitlements,
     event_logger,
@@ -54,7 +55,6 @@ from uaclient.jobs.update_messaging import (
     refresh_motd,
     update_apt_and_motd_messages,
 )
-from uaclient.services import daemon
 
 NAME = "pro"
 
@@ -1358,6 +1358,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
         event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     daemon.stop()
+    daemon.cleanup(cfg)
 
     status, _ret = actions.status(cfg)
     output = ua_status.format_tabular(status)

@@ -869,16 +869,6 @@ To fix it, run the following commands:
     3. sudo pro enable fips --assume-yes
     4. sudo reboot
 """
-NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD = """\
-Detected an Ubuntu Pro license but failed to auto attach because
-"{operation}" was in progress.
-Please run `pro auto-attach` to upgrade to Ubuntu Pro.
-"""
-NOTICE_DAEMON_AUTO_ATTACH_FAILED = """\
-Detected an Ubuntu Pro license but failed to auto attach.
-Please run `pro auto-attach` to upgrade to Ubuntu Pro.
-If that fails then please contact support.
-"""
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (
@@ -1065,3 +1055,43 @@ AUTO_ATTACH_DISABLED_ERROR = NamedMessage(
     "auto-attach-disabled",
     "features.disable_auto_attach set in config",
 )
+
+AUTO_ATTACH_RUNNING = (
+    "Currently attempting to automatically attach this machine to "
+    "Ubuntu Pro services"
+)
+
+# prefix used for removing notices
+AUTO_ATTACH_RETRY_NOTICE_PREFIX = """\
+Failed to automatically attach to Ubuntu Pro services"""
+AUTO_ATTACH_RETRY_NOTICE = (
+    AUTO_ATTACH_RETRY_NOTICE_PREFIX
+    + """\
+ {num_attempts} time(s).
+The failure was due to: {reason}.
+The next attempt is scheduled for {next_run_datestring}.
+You can try manually with `sudo ua auto-attach`."""
+)
+
+AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
+    AUTO_ATTACH_RETRY_NOTICE_PREFIX
+    + """\
+ {num_attempts} times.
+The most recent failure was due to: {reason}.
+Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+You can try manually with `sudo ua auto-attach`."""  # noqa: E501
+)
+
+RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
+    'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'
+)
+RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE = (
+    "Canonical servers did not recognize this image as Ubuntu Pro"
+)
+RETRY_ERROR_DETAIL_LOCK_HELD = "the pro lock was held by pid {pid}"
+RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
+RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
+RETRY_ERROR_DETAIL_URL_ERROR_CODE = "a {code} while reaching {url}"
+RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
+RETRY_ERROR_DETAIL_URL_ERROR_GENERIC = "a network error"
+RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"

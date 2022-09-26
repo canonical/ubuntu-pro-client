@@ -492,6 +492,7 @@ class TestActionStatus:
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:
                 os.unlink(lock_file)
+                os.unlink(cfg.notice_file.file.path)
 
         m_sleep.side_effect = fake_sleep
 
