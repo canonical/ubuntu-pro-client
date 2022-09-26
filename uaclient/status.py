@@ -149,12 +149,7 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
 
 def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
-
-    cfg.notice_file.try_remove(
-        "",
-        messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(operation=".*"),
-    )
-    cfg.notice_file.try_remove("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+    cfg.notice_file.try_remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]
@@ -605,6 +600,13 @@ def format_tabular(status: Dict[str, Any]) -> str:
         ]
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
+
+        if status.get("notices"):
+            content.extend(
+                get_section_column_content(
+                    status.get("notices") or [], header="NOTICES"
+                )
+            )
 
         if status.get("features"):
             content.append("\nFEATURES")

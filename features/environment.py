@@ -252,6 +252,7 @@ class UAClientBehaveConfig:
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
+            self.cloud = "aws"
         elif "azure" in self.machine_type:
             self.cloud_manager = cloud.Azure(
                 machine_type=self.machine_type,
@@ -259,6 +260,7 @@ class UAClientBehaveConfig:
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
+            self.cloud = "azure"
         elif "gcp" in self.machine_type:
             self.cloud_manager = cloud.GCP(
                 machine_type=self.machine_type,
@@ -266,16 +268,19 @@ class UAClientBehaveConfig:
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
+            self.cloud = "gcp"
         elif "lxd.vm" in self.machine_type:
             self.cloud_manager = cloud.LXDVirtualMachine(
                 machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
             )
+            self.cloud = "lxd.vm"
         else:
             self.cloud_manager = cloud.LXDContainer(
                 machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
             )
+            self.cloud = "lxd"
 
         self.cloud_api = self.cloud_manager.api
 
@@ -628,8 +633,7 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
 
     if "pro" in context.config.machine_type:
         return deb_paths
-    # Redact ubuntu-advantage-pro deb as inapplicable
-    return [deb_path for deb_path in deb_paths if "pro" not in deb_path]
+    return deb_paths
 
 
 def create_instance_with_uat_installed(

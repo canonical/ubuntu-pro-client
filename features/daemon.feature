@@ -244,7 +244,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I attach `contract_token` with sudo
@@ -255,7 +254,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         Examples: version
@@ -285,7 +283,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I reboot the machine
@@ -294,7 +291,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
         """
         Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         Examples: version
