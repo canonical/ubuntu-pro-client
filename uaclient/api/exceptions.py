@@ -1,9 +1,10 @@
-from uaclient import messages
 from uaclient.exceptions import (
     AlreadyAttachedError,
     BetaServiceError,
+    ConnectivityError,
     ContractAPIError,
     EntitlementNotFoundError,
+    InvalidProImage,
     LockHeldError,
     NonAutoAttachImageError,
     UrlError,
@@ -13,8 +14,10 @@ from uaclient.exceptions import (
 __all__ = [
     "AlreadyAttachedError",
     "BetaServiceError",
+    "ConnectivityError",
     "ContractAPIError",
     "EntitlementNotFoundError",
+    "InvalidProImage",
     "LockHeldError",
     "NonAutoAttachImageError",
     "UrlError",
@@ -26,16 +29,6 @@ class EntitlementNotEnabledError(UserFacingError):
     """An exception raised when enabling of an entitlement fails"""
 
     pass
-
-
-class FullAutoAttachFailureError(UserFacingError):
-    """An exception raised when auto attach at boot fails"""
-
-    def __init__(self):
-        super().__init__(
-            msg=messages.FULL_AUTO_ATTACH_ERROR.msg,
-            msg_code=messages.FULL_AUTO_ATTACH_ERROR.name,
-        )
 
 
 class IncompatibleEntitlementsDetected(UserFacingError):
