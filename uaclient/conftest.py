@@ -1,3 +1,4 @@
+import datetime
 import io
 import logging
 import sys
@@ -139,7 +140,15 @@ def FakeConfig(tmpdir):
                         "accountInfo": {
                             "id": "acct-1",
                             "name": account_name,
-                            "createdAt": "2019-06-14T06:45:50Z",
+                            "createdAt": datetime.datetime(
+                                2019,
+                                6,
+                                14,
+                                6,
+                                45,
+                                50,
+                                tzinfo=datetime.timezone.utc,
+                            ),
                             "externalAccountIDs": [
                                 {"IDs": ["id1"], "origin": "AWS"}
                             ],
@@ -147,9 +156,33 @@ def FakeConfig(tmpdir):
                         "contractInfo": {
                             "id": "cid",
                             "name": "test_contract",
-                            "createdAt": "2020-05-08T19:02:26Z",
-                            "effectiveFrom": "2000-05-08T19:02:26Z",
-                            "effectiveTo": "2040-05-08T19:02:26Z",
+                            "createdAt": datetime.datetime(
+                                2020,
+                                5,
+                                8,
+                                19,
+                                2,
+                                26,
+                                tzinfo=datetime.timezone.utc,
+                            ),
+                            "effectiveFrom": datetime.datetime(
+                                2000,
+                                5,
+                                8,
+                                19,
+                                2,
+                                26,
+                                tzinfo=datetime.timezone.utc,
+                            ),
+                            "effectiveTo": datetime.datetime(
+                                2040,
+                                5,
+                                8,
+                                19,
+                                2,
+                                26,
+                                tzinfo=datetime.timezone.utc,
+                            ),
                             "resourceEntitlements": [],
                             "products": ["free"],
                         },
@@ -160,7 +193,7 @@ def FakeConfig(tmpdir):
                 status_cache = {"attached": True}
 
             config = cls(root_mode=root_mode)
-            config.machine_token_file.write(machine_token)
+            config.machine_token_file._machine_token = machine_token
             config.write_cache("status-cache", status_cache)
             return config
 
