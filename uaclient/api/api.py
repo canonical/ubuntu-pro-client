@@ -22,6 +22,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.revoke.v1",
     "u.pro.attach.auto.should_auto_attach.v1",
     "u.pro.attach.auto.full_auto_attach.v1",
+    "u.pro.attach.auto.configure_retry_service.v1",
     "u.security.package_manifest.v1",
     "u.pro.security.status.reboot_required.v1",
 ]
