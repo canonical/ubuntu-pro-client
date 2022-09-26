@@ -475,6 +475,8 @@ FAILURE_FILES = (
     "/etc/ubuntu-advantage/uaclient.log",
     "/var/log/cloud-init.log",
     "/var/log/ubuntu-advantage.log",
+    "/var/log/ubuntu-advantage-daemon.log",
+    "/var/log/ubuntu-advantage-timer.log",
     "/var/lib/cloud/instance/user-data.txt",
     "/var/lib/cloud/instance/vendor-data.txt",
 )
@@ -482,7 +484,7 @@ FAILURE_CMDS = {
     "ua-version": ["pro", "version"],
     "cloud-init-analyze": ["cloud-init", "analyze", "show"],
     "cloud-init.status": ["cloud-init", "status", "--long"],
-    "status.json": ["pro", "status", "--all", "--format=json"],
+    "status.yaml": ["pro", "status", "--all", "--format=yaml"],
     "journal.log": ["journalctl", "-b", "0"],
     "systemd-analyze-blame": ["systemd-analyze", "blame"],
     "systemctl-status": ["systemctl", "status"],
@@ -495,6 +497,11 @@ FAILURE_CMDS = {
         "systemctl",
         "status",
         "ua-reboot-cmds.service",
+    ],
+    "systemctl-status-ubuntu-advantage": [
+        "systemctl",
+        "status",
+        "ubuntu-advantage.service",
     ],
 }
 
