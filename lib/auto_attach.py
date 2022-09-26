@@ -13,14 +13,22 @@ their side.
 import logging
 import sys
 
-from uaclient import actions
-from uaclient.api.exceptions import AlreadyAttachedError
+from uaclient import actions, messages, system
+from uaclient.api.exceptions import (
+    AlreadyAttachedError,
+    EntitlementsNotEnabledError,
+)
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
 from uaclient.config import UAConfig
-from uaclient.services import setup_logging
+from uaclient.daemon import (
+    AUTO_ATTACH_STATUS_MOTD_FILE,
+    retry_auto_attach,
+    setup_logging,
+)
+from uaclient.files import state_files
 
 try:
     import cloudinit.stages as ci_stages  # type: ignore
@@ -53,21 +61,43 @@ def check_cloudinit_userdata_for_ua_info():
 
 
 def main(cfg: UAConfig):
-    if not check_cloudinit_userdata_for_ua_info():
-        if actions.should_disable_auto_attach(cfg):
-            return
-        try:
-            full_auto_attach(FullAutoAttachOptions())
-        except AlreadyAttachedError as e:
-            logging.info(e.msg)
-    else:
-        auto_attach_msg = (
+    if actions.should_disable_auto_attach(cfg):
+        return
+
+    if check_cloudinit_userdata_for_ua_info():
+        logging.info("cloud-init userdata has ubuntu-advantage key.")
+        logging.info(
             "Skipping auto-attach and deferring to cloud-init "
             "to setup and configure auto-attach"
         )
+        return
 
-        logging.info("cloud-init userdata has ubuntu-advantage key.")
-        logging.info(auto_attach_msg)
+    system.write_file(
+        AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+    )
+    try:
+        full_auto_attach(FullAutoAttachOptions())
+    except AlreadyAttachedError as e:
+        logging.info(e.msg)
+    except EntitlementsNotEnabledError as e:
+        logging.warning(e.msg)
+    except Exception as e:
+        logging.error(e)
+        system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+        logging.info("creating flag file to trigger retries")
+        system.create_file(retry_auto_attach.FLAG_FILE_PATH)
+        failure_reason = (
+            retry_auto_attach.full_auto_attach_exception_to_failure_reason(e)
+        )
+        state_files.retry_auto_attach_state_file.write(
+            state_files.RetryAutoAttachState(
+                interval_index=0, failure_reason=failure_reason
+            )
+        )
+        return 1
+
+    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+    return 0
 
 
 if __name__ == "__main__":
@@ -78,4 +108,4 @@ if __name__ == "__main__":
         log_file=cfg.log_file,
         logger=logging.getLogger(),
     )
-    main(cfg)
+    sys.exit(main(cfg))

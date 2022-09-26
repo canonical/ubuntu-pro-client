@@ -1,77 +1,15 @@
-from subprocess import TimeoutExpired
-
 import mock
 import pytest
 
-from uaclient import exceptions, messages
+from uaclient import exceptions
 from uaclient.clouds.aws import UAAutoAttachAWSInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
-from uaclient.services.daemon import (
+from uaclient.daemon.poll_for_pro_license import (
     attempt_auto_attach,
     poll_for_pro_license,
-    start,
-    stop,
 )
 
-M_PATH = "uaclient.services.daemon."
-
-
-@mock.patch(M_PATH + "system.subp")
-class TestStart:
-    def test_start_success(self, m_subp):
-        start()
-        assert [
-            mock.call(
-                ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
-            )
-        ] == m_subp.call_args_list
-
-    @pytest.mark.parametrize(
-        "err",
-        (
-            exceptions.ProcessExecutionError("cmd"),
-            TimeoutExpired("cmd", 2.0),
-        ),
-    )
-    @mock.patch(M_PATH + "LOG.warning")
-    def test_start_warning(self, m_log_warning, m_subp, err):
-        m_subp.side_effect = err
-        start()
-        assert [
-            mock.call(
-                ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
-            )
-        ] == m_subp.call_args_list
-        assert [mock.call(err)] == m_log_warning.call_args_list
-
-
-@mock.patch(M_PATH + "system.subp")
-class TestStop:
-    def test_stop_success(self, m_subp):
-        stop()
-        assert [
-            mock.call(
-                ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
-            )
-        ] == m_subp.call_args_list
-
-    @pytest.mark.parametrize(
-        "err",
-        (
-            exceptions.ProcessExecutionError("cmd"),
-            TimeoutExpired("cmd", 2.0),
-        ),
-    )
-    @mock.patch(M_PATH + "LOG.warning")
-    def test_stop_warning(self, m_log_warning, m_subp, err):
-        m_subp.side_effect = err
-        stop()
-        assert [
-            mock.call(
-                ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
-            )
-        ] == m_subp.call_args_list
-        assert [mock.call(err)] == m_log_warning.call_args_list
+M_PATH = "uaclient.daemon.poll_for_pro_license."
 
 
 time_mock_curr_value = 0
@@ -106,40 +44,16 @@ class TestAttemptAutoAttach:
             mock.call("Successful auto attach")
         ] == m_log_debug.call_args_list
 
-    @mock.patch(M_PATH + "LOG.error")
-    def test_lock_held(
-        self, m_log_error, m_spin_lock, m_auto_attach, m_log_debug, FakeConfig
-    ):
-        err = exceptions.LockHeldError("test", "test_holder", 1)
-        m_spin_lock.side_effect = err
-        cfg = FakeConfig()
-        cfg.notice_file.add = mock.MagicMock()
-        cloud = mock.MagicMock()
-
-        attempt_auto_attach(cfg, cloud)
-        assert [
-            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
-        ] == m_spin_lock.call_args_list
-        assert [] == m_auto_attach.call_args_list
-        assert [mock.call(err)] == m_log_error.call_args_list
-        assert [
-            mock.call(
-                "",
-                messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
-                    operation="test_holder"
-                ),
-            )
-        ] == cfg.notice_file.add.call_args_list
-        assert [
-            mock.call("Failed to auto attach")
-        ] == m_log_debug.call_args_list
-
+    @mock.patch(M_PATH + "system.create_file")
     @mock.patch(M_PATH + "lock.clear_lock_file_if_present")
-    @mock.patch(M_PATH + "LOG.exception")
+    @mock.patch(M_PATH + "LOG.error")
+    @mock.patch(M_PATH + "LOG.info")
     def test_exception(
         self,
-        m_log_exception,
+        m_log_info,
+        m_log_error,
         m_clear_lock,
+        m_create_file,
         m_spin_lock,
         m_auto_attach,
         m_log_debug,
@@ -157,14 +71,14 @@ class TestAttemptAutoAttach:
             mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
-        assert [mock.call(err)] == m_log_exception.call_args_list
-        assert [
-            mock.call("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
-        ] == cfg.notice_file.add.call_args_list
+        assert [mock.call(err)] == m_log_error.call_args_list
         assert [mock.call()] == m_clear_lock.call_args_list
         assert [
-            mock.call("Failed to auto attach")
-        ] == m_log_debug.call_args_list
+            mock.call("creating flag file to trigger retries")
+        ] == m_log_info.call_args_list
+        assert [
+            mock.call("/run/ubuntu-advantage/flags/auto-attach-failed")
+        ] == m_create_file.call_args_list
 
 
 @mock.patch(M_PATH + "LOG.debug")

@@ -241,6 +241,7 @@ class LockHeldError(UserFacingError):
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
         self.lock_holder = lock_holder
+        self.pid = pid
         msg = messages.LOCK_HELD_ERROR.format(
             lock_request=lock_request, lock_holder=lock_holder, pid=pid
         )
@@ -289,6 +290,7 @@ class SecurityAPIMetadataError(UserFacingError):
 
 class InvalidProImage(UserFacingError):
     def __init__(self, error_msg: str):
+        self.contract_server_msg = error_msg
         msg = messages.INVALID_PRO_IMAGE.format(msg=error_msg)
         super().__init__(msg=msg.msg, msg_code=msg.name)
 

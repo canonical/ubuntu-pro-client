@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 
@@ -38,6 +39,8 @@ def when_i_create_file_with_content(context, file_path, machine="uaclient"):
     text = context.text
     if "<ci-proxy-ip>" in text and "proxy" in context.instances:
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
+    if "<cloud>" in text:
+        text = text.replace("<cloud>", context.config.cloud)
     with tempfile.TemporaryDirectory() as tmpd:
         tmpf_path = os.path.join(tmpd, "tmpfile")
         with open(tmpf_path, mode="w") as tmpf:
@@ -114,3 +117,17 @@ def change_contract_key_to_use_value(context, key, value):
         ),
         "with sudo",
     )
+
+
+@when("I set `{key}` = `{json_value}` in json file `{filename}`")
+def when_i_set_key_val_json_file(context, key, json_value, filename):
+    when_i_run_command(
+        context,
+        "cat {}".format(filename),
+        "with sudo",
+    )
+    val = json.loads(json_value)
+    content = json.loads(context.process.stdout)
+    content[key] = val
+    context.text = json.dumps(content)
+    when_i_create_file_with_content(context, filename)

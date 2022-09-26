@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import pathlib
 import re
 import subprocess
 import time
@@ -350,6 +351,13 @@ def load_file(filename: str, decode: bool = True) -> str:
     return content.decode("utf-8")
 
 
+def create_file(filename: str, mode: int = 0o644) -> None:
+    logging.debug("Creating file: %s", filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    pathlib.Path(filename).touch()
+    os.chmod(filename, mode)
+
+
 def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     """Write content to the provided filename encoding it if necessary.
 
@@ -358,6 +366,7 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     @param mode: The filesystem mode to set on the file.
     """
     logging.debug("Writing file: %s", filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "wb") as fh:
         fh.write(content.encode("utf-8"))
         fh.flush()

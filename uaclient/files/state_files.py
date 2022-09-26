@@ -1,7 +1,14 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
-from uaclient.data_types import BoolDataValue, DataObject, Field
-from uaclient.files.data_types import DataObjectFile
+from uaclient.data_types import (
+    BoolDataValue,
+    DataObject,
+    Field,
+    IntDataValue,
+    StringDataValue,
+    data_list,
+)
+from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
 from uaclient.files.files import UAFile
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
@@ -39,4 +46,51 @@ services_once_enabled_file = DataObjectFile(
         private=False,
     ),
     preprocess_data=_services_once_enable_preprocess_data,
+)
+
+
+class RetryAutoAttachOptions(DataObject):
+    fields = [
+        Field("enable", data_list(StringDataValue), False),
+        Field("enable_beta", data_list(StringDataValue), False),
+    ]
+
+    def __init__(
+        self,
+        enable: Optional[List[str]] = None,
+        enable_beta: Optional[List[str]] = None,
+    ):
+        self.enable = enable
+        self.enable_beta = enable_beta
+
+
+retry_auto_attach_options_file = DataObjectFile(
+    RetryAutoAttachOptions,
+    UAFile(
+        "retry-auto-attach-options.json",
+        private=True,
+    ),
+    DataObjectFileFormat.JSON,
+)
+
+
+class RetryAutoAttachState(DataObject):
+    fields = [
+        Field("interval_index", IntDataValue),
+        Field("failure_reason", StringDataValue, required=False),
+    ]
+
+    def __init__(
+        self,
+        interval_index: int,
+        failure_reason: Optional[str],
+    ):
+        self.interval_index = interval_index
+        self.failure_reason = failure_reason
+
+
+retry_auto_attach_state_file = DataObjectFile(
+    RetryAutoAttachState,
+    UAFile("retry-auto-attach-state.json", private=True),
+    DataObjectFileFormat.JSON,
 )

@@ -2,7 +2,9 @@ import mock
 import pytest
 
 from lib.auto_attach import check_cloudinit_userdata_for_ua_info, main
+from uaclient import messages
 from uaclient.api.exceptions import AlreadyAttachedError
+from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
 
 
 class TestCheckCloudinitUserdataForUAInfo:
@@ -46,6 +48,7 @@ class TestCheckCloudinitUserdataForUAInfo:
         assert expected is check_cloudinit_userdata_for_ua_info()
 
 
+@mock.patch("lib.auto_attach.system.write_file")
 class TestMain:
     @pytest.mark.parametrize(
         "ubuntu_advantage_in_userdata",
@@ -60,6 +63,7 @@ class TestMain:
         self,
         m_api_full_auto_attach,
         m_check_cloudinit,
+        m_write_file,
         ubuntu_advantage_in_userdata,
         caplog_text,
         FakeConfig,
@@ -68,6 +72,11 @@ class TestMain:
         main(cfg=FakeConfig())
 
         if not ubuntu_advantage_in_userdata:
+            assert [
+                mock.call(
+                    AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+                )
+            ] == m_write_file.call_args_list
             assert 1 == m_api_full_auto_attach.call_count
         else:
             assert 0 == m_api_full_auto_attach.call_count
@@ -85,6 +94,7 @@ class TestMain:
         self,
         m_api_full_auto_attach,
         m_check_cloudinit,
+        m_write_file,
         FakeConfig,
         caplog_text,
     ):
@@ -95,6 +105,12 @@ class TestMain:
         )
         main(cfg=cfg)
 
+        assert (
+            mock.call(
+                AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+            )
+            in m_write_file.call_args_list
+        )
         assert (
             "This machine is already attached to 'test_account'"
             in caplog_text()
@@ -109,6 +125,7 @@ class TestMain:
         self,
         m_api_full_auto_attach,
         m_check_cloudinit,
+        m_write_file,
         m_should_disable,
         FakeConfig,
     ):
