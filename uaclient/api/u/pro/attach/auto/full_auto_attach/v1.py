@@ -108,10 +108,7 @@ def _full_auto_attach_in_lock(
         service_list, cfg
     )
     if not_found:
-        msg = entitlements.create_enable_entitlements_not_found_message(
-            not_found, cfg=cfg, allow_beta=True
-        )
-        raise exceptions.EntitlementNotFoundError(msg.msg, not_found)
+        raise exceptions.EntitlementNotFoundError(", ".join(not_found))
 
     incompat_detected, ent, incompat_ents = _is_incompatible_services_present(
         cfg, sorted(found)

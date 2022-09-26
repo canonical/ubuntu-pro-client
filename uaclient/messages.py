@@ -1030,3 +1030,8 @@ Package names in {bold}bold{end_bold} currently have an available update
 with '{{service}}' enabled""".format(
     bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
 )
+
+ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
+    "entitlement-not-found",
+    'could not find entitlement named "{name}"',
+)
