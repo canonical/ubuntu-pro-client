@@ -44,7 +44,7 @@ def entitlement_factory(cfg: UAConfig, name: str):
     for entitlement in ENTITLEMENT_CLASSES:
         if name in entitlement(cfg=cfg).valid_names:
             return entitlement
-    raise EntitlementNotFoundError()
+    raise EntitlementNotFoundError(name)
 
 
 def valid_services(
