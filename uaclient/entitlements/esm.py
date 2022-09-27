@@ -95,10 +95,10 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
 
     @property
     def repo_pin_priority(self) -> Optional[str]:
-        """Once a release goes into EOL it is entitled to ESM Infra."""
-        if system.is_active_esm(system.get_platform_info()["series"]):
+        """All LTS are entitled to ESM Infra."""
+        if system.is_lts(system.get_platform_info()["series"]):
             return "never"
-        return None  # No pinning on non-ESM releases
+        return None  # No pinning on non-LTS releases
 
     @property
     def disable_apt_auth_only(self) -> bool:
