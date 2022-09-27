@@ -3,6 +3,9 @@ Description=Ubuntu Advantage auto attach
 Before=cloud-config.service
 After=cloud-config.target
 
+# Only run if not already attached
+ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json
+
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/auto_attach.py
