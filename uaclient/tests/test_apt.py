@@ -69,7 +69,7 @@ class TestAddPPAPinning:
         expected_pref = dedent(
             """\
             Package: *
-            Pin: release o=MYORIG, n=xenial
+            Pin: release o=MYORIG
             Pin-Priority: 1003\n"""
         )
         assert expected_pref == system.load_file(pref_file)

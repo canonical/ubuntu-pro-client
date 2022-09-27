@@ -402,16 +402,13 @@ def restore_commented_apt_list_file(filename: str) -> None:
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
-    series = system.get_platform_info()["series"]
     _protocol, repo_path = repo_url.split("://")
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
     content = (
         "Package: *\n"
-        "Pin: release o={origin}, n={series}\n"
-        "Pin-Priority: {priority}\n".format(
-            origin=origin, priority=priority, series=series
-        )
+        "Pin: release o={origin}\n"
+        "Pin-Priority: {priority}\n".format(origin=origin, priority=priority)
     )
     system.write_file(apt_preference_file, content)
 
