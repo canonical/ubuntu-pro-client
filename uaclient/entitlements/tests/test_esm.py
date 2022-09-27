@@ -19,36 +19,37 @@ def entitlement(request, entitlement_factory):
 
 class TestESMRepoPinPriority:
     @pytest.mark.parametrize(
-        "series, is_active_esm, repo_pin_priority",
+        "series, is_lts, repo_pin_priority",
         (
             ("xenial", True, "never"),
-            ("bionic", False, None),
-            ("focal", False, None),
+            ("bionic", True, "never"),
+            ("impish", False, None),
         ),
     )
-    @mock.patch("uaclient.system.is_active_esm")
+    @mock.patch("uaclient.system.is_lts")
     @mock.patch("uaclient.entitlements.esm.system.get_platform_info")
-    def test_esm_infra_repo_pin_priority_never_on_active_esm(
+    def test_esm_infra_repo_pin_priority_never_on_lts(
         self,
         m_get_platform_info,
-        m_is_active_esm,
+        m_is_lts,
         series,
-        is_active_esm,
+        is_lts,
         repo_pin_priority,
     ):
-        """Repository pinning priority for ESMInfra is 'never' when active ESM
+        """Repository pinning priority for ESMInfra is 'never' when LTS
 
         A pin priority of 'never' means we advertize those service packages
         without allowing them to be installed until someone attaches
         the machine to Ubuntu Advantage. This is only done for ESM Infra
-        when the release is EOL and supports ESM. We won't want/need to
-        advertize ESM Infra packages on releases that are not EOL.
+        when the release is LTS. We won't want/need to
+        advertize ESM Infra packages on releases that are not EOL, but
+        this is dealt with in the enable/disable flows, and in postinst.
         """
-        m_is_active_esm.return_value = is_active_esm
+        m_is_lts.return_value = is_lts
         m_get_platform_info.return_value = {"series": series}
         inst = ESMInfraEntitlement({})
         assert repo_pin_priority == inst.repo_pin_priority
-        assert [mock.call(series)] == m_is_active_esm.call_args_list
+        assert [mock.call(series)] == m_is_lts.call_args_list
 
     @pytest.mark.parametrize(
         "series, is_beta, repo_pin_priority",
