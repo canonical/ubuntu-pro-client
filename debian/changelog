@@ -1,3 +1,12 @@
+ubuntu-advantage-tools (27.11.1~22.10.1) kinetic; urgency=medium
+
+  *d/postinst:
+    - remove series information from the APT preferences template
+  * New upstream release 27.11 (LP: #1990907)
+    - esm: remove series information from the APT preferences file
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 27 Sep 2022 16:19:41 -0300
+
 ubuntu-advantage-tools (27.11~22.10.1) kinetic; urgency=medium
 
   * d/control:
