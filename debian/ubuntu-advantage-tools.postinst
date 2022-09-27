@@ -217,7 +217,7 @@ EOF
         cat > "${apt_pref_file}" <<EOF
 # Written by ubuntu-advantage-tools
 Package: *
-Pin: release o=${apt_origin}, n=${release}
+Pin: release o=${apt_origin}
 Pin-Priority: never
 EOF
     fi
