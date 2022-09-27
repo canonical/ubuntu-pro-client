@@ -48,7 +48,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        This machine is already attached to '.*'
+        Active: inactive \(dead\).*
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
@@ -261,7 +263,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        This machine is already attached to '.*'
+        Active: inactive \(dead\).*
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
@@ -527,7 +531,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         And stdout matches regexp:
         """
-        This machine is already attached to '.*'
+        Active: inactive \(dead\).*
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
         When I run `pro auto-attach` with sudo
         Then stderr matches regexp:
