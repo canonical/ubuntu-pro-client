@@ -11,7 +11,7 @@ please see https://ubuntu.com/realtime-kernel
 To enable it through UA, please run:
 
 ```console
-$ sudo ua enable realtime-kernel --beta
+$ sudo pro enable realtime-kernel --beta
 ```
 
 You'll need to acknowledge a warning and then you should see output like the following, indicating that the Real-Time Kernel package has been installed.
@@ -41,7 +41,7 @@ After rebooting you'll be running the Real-Time Kernel!
 If you would like to enable access to the Real-Time Kernel apt repository but not install the kernel right away, use the `--access-only` flag while enabling.
 
 ```console
-$ sudo ua enable realtime-kernel --beta --access-only
+$ sudo pro enable realtime-kernel --beta --access-only
 ```
 
 With that extra flag you'll see output like the following:

@@ -1,13 +1,14 @@
-# How to get UA token and attach to a subscription
+# How to get an Ubuntu Pro token and attach to a subscription
 
-Retrieve your UA token from the [advantage](https://ubuntu.com/advantage/) portal. You will log in with your SSO credentials, the same credentials you use for https://login.ubuntu.com. Note that you
-can obtain a free personal token, which already provide you with access to several of the UA
+Retrieve your Ubuntu Pro token from the [Ubuntu Pro portal](https://ubuntu.com/pro/). You will
+log in with your SSO credentials, the same credentials you use for https://login.ubuntu.com. Note that you
+can obtain a free personal token, which provides you with access to several of the Ubuntu Pro
 services.
 
 Once that token is obtained, to attach your machine to a subscription, just run:
 
 ```
-$ sudo ua attach YOUR_TOKEN
+$ sudo pro attach YOUR_TOKEN
 ```
 
 You should see output like the following, indicating that you have successfully associated this
@@ -17,21 +18,19 @@ machine with your account.
 Enabling default service esm-infra
 Updating package lists
 ESM Infra enabled
-This machine is now attached to 'UA Infra - Essential (Virtual)'
+This machine is now attached to 'Ubuntu Pro'
 
 SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       disabled  Center for Internet Security Audit Tools
+esm-apps      yes       enabled   Expanded Security Maintenance for Applications
 esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified FIPS modules
-fips-updates  yes       n/a       Uncertified security updates to FIPS modules
-livepatch     yes       n/a       Canonical Livepatch service
+livepatch     yes       enabled   Canonical Livepatch service
 
 NOTICES
-Operation in progress: ua attach
+Operation in progress: pro attach
 
-Enable services with: ua enable <service>
+Enable services with: pro enable <service>
 ```
 
-Once the UA client is attached to your UA account, you can use it to activate various services,
+Once the Ubuntu Pro Client is attached to your Ubuntu Pro account, you can use it to activate various services,
 including: access to ESM packages, Livepatch, FIPS, and CIS. Some features are specific to certain
 LTS releases

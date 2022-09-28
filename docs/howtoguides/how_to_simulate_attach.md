@@ -4,7 +4,7 @@ If you are unsure on what will be the state of your machine after running attach
 with a specific token, you can simulate running the attach operation by running:
 
 ```console
-$ ua status --simulate-with-token YOUR_TOKEN
+$ pro status --simulate-with-token YOUR_TOKEN
 ```
 
 After running the command, you should see a modified status table, similar to this
