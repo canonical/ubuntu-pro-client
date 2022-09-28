@@ -206,15 +206,16 @@ def _write_esm_service_msg_templates(
             motd_no_pkgs_msg = CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
     elif expiry_status != ContractExpiryStatus.EXPIRED:  # Service not enabled
         url, context = get_contextual_esm_info_url()
-        pkgs_msg = DISABLED_APT_PKGS_TMPL.format(
-            service=ent.name,
-            pkg_names=tmpl_pkg_names_var,
-            context=context,
-            url=url,
-        )
-        no_pkgs_msg = DISABLED_APT_NO_PKGS_TMPL.format(
-            context=context, url=url
-        )
+        if ent.name == "esm-infra":
+            pkgs_msg = DISABLED_APT_PKGS_TMPL.format(
+                service=ent.name,
+                pkg_names=tmpl_pkg_names_var,
+                context=context,
+                url=url,
+            )
+            no_pkgs_msg = DISABLED_APT_NO_PKGS_TMPL.format(
+                context=context, url=url
+            )
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     _write_template_or_remove(no_pkgs_msg, os.path.join(msg_dir, no_pkgs_file))

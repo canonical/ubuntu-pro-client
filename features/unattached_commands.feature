@@ -44,13 +44,13 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
-        And stdout matches regexp:
+        And stdout does not match regexp:
         """
-        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
+        apps-updates
         """
-        And stdout matches regexp:
+        And stdout does not match regexp:
         """
-        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
+        apps-security
         """
         When I create the file `/etc/apt/sources.list.d/empty-release-origin.list` with the following
         """

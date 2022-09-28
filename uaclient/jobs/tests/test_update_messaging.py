@@ -248,7 +248,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             (
                 "esm-apps",
                 ContractExpiryStatus.ACTIVE,
-                True,
+                False,
                 {"series": "xenial", "release": "16.04"},
                 XENIAL_ESM_URL,
                 " for 16.04",
@@ -264,7 +264,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             (
                 "esm-apps",
                 ContractExpiryStatus.ACTIVE,
-                True,
+                False,
                 {"series": "xenial", "release": "16.04"},
                 XENIAL_ESM_URL,
                 " for 16.04",

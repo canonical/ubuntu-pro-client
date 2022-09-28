@@ -228,9 +228,9 @@ configure_esm() {
     if check_is_active_esm "${UBUNTU_CODENAME}"; then
         install_esm_apt_key_and_source "infra" "$UBUNTU_CODENAME"
     fi
-    if ! check_service_is_beta esm-apps; then
-        install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
-    fi
+    #if ! check_service_is_beta esm-apps; then
+        #install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
+    #fi
 }
 
 
