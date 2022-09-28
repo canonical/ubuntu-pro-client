@@ -6,7 +6,7 @@ therefore, just change `cis` to `usg` when running the enable command on those r
 To access the CIS tooling first enable the software repository.
 
 ```console
-$ sudo ua enable cis
+$ sudo pro enable cis
 ```
 
 You should see output like the following, indicating that the CIS package has been installed.

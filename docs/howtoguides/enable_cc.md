@@ -12,7 +12,7 @@ please see https://ubuntu.com/security/cc
 To enable it through UA, please run:
 
 ```console
-$ sudo ua enable cc-eal
+$ sudo pro enable cc-eal
 ```
 
 You should see output like the following, indicating that the CC EAL packages has
@@ -33,7 +33,7 @@ Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to con
 If you would like to enable access to the CC EAL apt repository but not install the packages right away, use the `--access-only` flag while enabling.
 
 ```console
-$ sudo ua enable cc-eal --access-only
+$ sudo pro enable cc-eal --access-only
 ```
 
 With that extra flag you'll see output like the following:

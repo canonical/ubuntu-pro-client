@@ -1,6 +1,6 @@
 # Status output explanation
 
-When running `ua status` we can observe two different types of outputs, attached vs unattached.
+When running `pro status` we can observe two different types of outputs, attached vs unattached.
 When unattached, users will see the status table containing only three columns:
 
 ```
@@ -38,7 +38,7 @@ Here we can notice that the column **AVAILABLE** no longer applies and we have n
 
 It is possible that a service appears as available when running status unattached, but turns
 out as not entitled. This happens because even if the service can be enabled on the machine,
-if your UA subscription doesn't allow you to do that, UA cannot enable it.
+if your Ubuntu Pro subscription doesn't allow you to do that, `pro` cannot enable it.
 
 Additionally, the **STATUS** column allows for three possible states:
 
@@ -48,10 +48,10 @@ Additionally, the **STATUS** column allows for three possible states:
   due to a non-contract restriction. For example, we cannot enable `livepatch` on a container.
 
 ### Notices
-Notices are information regarding the UA status which either require some kind of action from the user, or may impact the experience with UA.
+Notices are information regarding the Ubuntu Pro status which either require some kind of action from the user, or may impact the experience with Ubuntu Pro.
 
-For example, let's say FIPS was just enabled, but the system wasn't rebooted yet (which is needed for booting into the FIPS Kernel), the output of `ua status`  will contain:
-```bash
+For example, let's say FIPS was just enabled, but the system wasn't rebooted yet (which is needed for booting into the FIPS Kernel), the output of `pro status`  will contain:
+```
 NOTICES
 FIPS support requires system reboot to complete configuration.
 ```
@@ -60,15 +60,15 @@ After the system is rebooted, the notice will go away.
 Notices can always be resolved, and the way to resolve it should be explicit in the notice itself.
 
 ### Features
-Features are extra configuration values that can be set/unset in `uaclient.conf`. Most of those are meant for development/testing purposes, but some can be used in fome application flows. For example, to always have beta services with the same flow as the non-beta (for enable, status, etc), `uaclient.conf` may have:
+Features are extra configuration values that can be set/unset in `uaclient.conf`. Most of those are meant for development/testing purposes, but some can be used in application flows. For example, to always have beta services with the same flow as the non-beta (for enable, status, etc), `uaclient.conf` may have:
 ```
 features:
-  allow_beta: True
+  allow_beta: true
 ```
-In this case, the output of `ua status` will contain:
-```bash
+In this case, the output of `pro status` will contain:
+```
 FEATURES
-+allow_beta
+allow_beta: True
 ```
 
 Keep in mind that any feature defined like this will be listed, even if it is invalid or typed the wrong way. Those appear on status for information/debugging purposes.

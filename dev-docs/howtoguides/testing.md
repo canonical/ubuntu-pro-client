@@ -24,7 +24,7 @@ autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 
 ## Integration Tests
 
-ubuntu-advantage-client uses [behave](https://behave.readthedocs.io)
+Ubuntu Pro Client uses [behave](https://behave.readthedocs.io)
 for its integration testing.
 
 The integration test definitions are stored in the `features/`
@@ -34,7 +34,7 @@ logic for those tests.
 
 By default, integration tests will do the following on a given cloud platform:
  * Launch an instance running latest daily image of the target Ubuntu release
- * Add the Ubuntu advantage client daily build PPA: [ppa:ua-client/daily](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily)
+ * Add the Ubuntu Pro client daily build PPA: [ppa:ua-client/daily](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily)
  * Install the appropriate ubuntu-advantage-tools and ubuntu-advantage-pro deb
  * Run the integration tests on that instance.
 
@@ -174,7 +174,7 @@ file](https://github.com/canonical/pycloudlib/blob/main/pycloudlib.toml.template
 the required EC2 credentials.
 
 To specifically run non-ubuntu pro tests using canonical cloud-images an
-additional token obtained from https://ubuntu.com/advantage needs to be set:
+additional token obtained from https://ubuntu.com/pro needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
 
 By default, the public AMIs for Ubuntu Pro testing used for each Ubuntu
@@ -217,7 +217,7 @@ file](https://github.com/canonical/pycloudlib/blob/main/pycloudlib.toml.template
 the required Azure credentials.
 
 To specifically run non-ubuntu pro tests using canonical cloud-images an
-additional token obtained from https://ubuntu.com/advantage needs to be set:
+additional token obtained from https://ubuntu.com/pro needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
 
 * To manually run Azure integration tests with a specific Image Id provide the
@@ -249,7 +249,7 @@ file](https://github.com/canonical/pycloudlib/blob/main/pycloudlib.toml.template
 the required GCP credentials.
 
 To specifically run non-ubuntu pro tests using canonical cloud-images an
-additional token obtained from https://ubuntu.com/advantage needs to be set:
+additional token obtained from https://ubuntu.com/pro needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
 
 * To manually run GCP integration tests with a specific Image Id provide the

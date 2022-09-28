@@ -1,6 +1,6 @@
-# How to generate Ubuntu Advantage user documentation
+# How to generate Ubuntu Pro Client user documentation
 
-To build the docs for Ubuntu Advantage, you can use a dedicated `tox` command for it.
+To build the docs for Ubuntu Pro Client, you can use a dedicated `tox` command for it.
 You can install `tox` on your machine by running the `make test` command. Once tox is
 installed just run the command:
 

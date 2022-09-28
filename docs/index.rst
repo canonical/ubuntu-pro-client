@@ -1,10 +1,10 @@
-Ubuntu Advantage Client
-===================================
+Ubuntu Pro Client
+=================
 
-The Ubuntu Advantage (UA) Client is the offical tool to enable Canonical offerings on your
+The Ubuntu Pro Client (``pro``) is the offical tool to enable Canonical offerings on your
 system.
 
-UA provides support to view, enable, and disable the following Canonical services:
+``pro`` provides support to view, enable, and disable the following Canonical services:
 
 - `Common Criteria EAL2 Certification Tooling <https://ubuntu.com/security/cc>`_
 - `CIS Benchmark Audit Tooling <https://ubuntu.com/security/cis>`_
@@ -14,8 +14,9 @@ UA provides support to view, enable, and disable the following Canonical service
 - `FIPS 140-2 Certified Modules (and optional non-certified patches <https://ubuntu.com/security/fips>`_
 - `Livepatch <https://ubuntu.com/security/livepatch>`_
 
-If you need any of those services for your machine, UA is the right tool for you.
-Furthermore, UA is already installed on every Ubuntu system. Try it out by running ``ua help``!
+If you need any of those services for your machine, ``pro`` is the right tool for you.
+
+``pro`` is already installed on every Ubuntu system. Try it out by running ``pro help``!
 
 Getting help
 ************

@@ -1,16 +1,16 @@
-# Contributing to Ubuntu Advantage Client
+# Contributing to Ubuntu Pro Client
 
 ## Developer Documentation
 
-Developer documentation for the Ubuntu Advantage Client project. The topics cover
+Developer documentation for the Ubuntu Pro Client project. The topics cover
 from the architecture of the project to how you should test any code changes.
 
 ### How to Guides
 
-* [How to build UA](./dev-docs/howtoguides/building.md)
+* [How to build](./dev-docs/howtoguides/building.md)
 * [How to run the code formatting tools](./dev-docs/howtoguides/code_formatting.md)
 * [How to run the tests](./dev-docs/howtoguides/testing.md)
-* [How to release a new version of UA](./dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
+* [How to release a new version](./dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
 * [How to use the contract staging environment](./dev-docs/howtoguides/use_staging_environment.md)
 * [How to use the magic attach endpoints](./dev-docs/howtoguides/how_to_use_magic_attach_endpoints.md)
 

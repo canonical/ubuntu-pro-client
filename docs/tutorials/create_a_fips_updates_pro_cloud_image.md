@@ -12,12 +12,12 @@ See the following links for up to date information for each supported cloud:
 First wait for the standard Ubuntu Pro services to be set up.
 
 ```bash
-sudo ua status --wait
+sudo pro status --wait
 ```
 
 Then use [the enable command](../howtoguides/enable_fips.md) to setup FIPS Updates.
 ```bash
-sudo ua enable fips-updates --assume-yes
+sudo pro enable fips-updates --assume-yes
 ```
 
 Now reboot the instance
@@ -25,9 +25,9 @@ Now reboot the instance
 sudo reboot
 ```
 
-And verify that `fips-updates` is enabled in the output of `ua status`
+And verify that `fips-updates` is enabled in the output of `pro status`
 ```bash
-sudo ua status
+sudo pro status
 ```
 
 Also remove the machine-id so that it is regenerated for each instance launch from the snapshot.
@@ -52,7 +52,7 @@ Use your specific cloud to launch a new instance from your custom image.
 > This won't require a reboot and is only necessary to ensure the instance gets updates to fips packages when they become available.
 >
 > ```bash
-> sudo ua enable fips-updates --assume-yes
+> sudo pro enable fips-updates --assume-yes
 > ```
 >
 > You can easily script this using [cloud-init user-data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time
@@ -60,6 +60,6 @@ Use your specific cloud to launch a new instance from your custom image.
 > #cloud-config
 > # Enable fips-updates after pro auto-attach and reboot after cloud-init completes
 > runcmd:
->   - 'ua status --wait'
->   - 'ua enable fips-updates --assume-yes'
+>   - 'pro status --wait'
+>   - 'pro enable fips-updates --assume-yes'
 > ```

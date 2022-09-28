@@ -1,13 +1,11 @@
 # How to enable Livepatch
 
-Livepatch requires:
-
-* kernel version 4.4 or above (16.04+ delivered via the HWE Kernel https://wiki.ubuntu.com/Kernel/LTSEnablementStack)
+Check if your kernel is supported by Livepatch here: https://ubuntu.com/security/livepatch/docs/kernels
 
 To enable, run:
 
 ```console
-$ sudo ua enable livepatch
+$ sudo pro enable livepatch
 ```
 
 You should see output like the following, indicating that the Livepatch snap package has

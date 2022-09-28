@@ -1,6 +1,6 @@
-# UA related APT messages
+# Ubuntu Pro related APT messages
 
-When running some APT commands, you might see Ubuntu Advantage (UA) related messages on
+When running some APT commands, you might see Ubuntu Pro related messages on
 the output of those commands. Currently, we deliver those messages when
 running either `apt-get upgrade` or `apt-get dist-upgrade` commands. The scenarios
 where we deliver those messages are:
