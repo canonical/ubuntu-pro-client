@@ -288,6 +288,7 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
             ],
         )
 
+    msg_esm_apps = False
     if msg_esm_apps:
         _write_esm_service_msg_templates(
             cfg,

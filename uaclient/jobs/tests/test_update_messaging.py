@@ -209,6 +209,7 @@ class TestWriteAPTAndMOTDTemplates:
                     ],
                 )
             )
+        show_apps = False
         if show_apps:
             write_calls.append(
                 mock.call(
