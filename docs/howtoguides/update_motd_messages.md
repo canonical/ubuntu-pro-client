@@ -8,5 +8,5 @@ source list files in the system. If that is the case, please run the following c
 update the state of MOTD and APT messages:
 
 ```sh
-ua refresh messages
+pro refresh messages
 ```

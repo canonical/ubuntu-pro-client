@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Ubuntu Advantage Client"
+project = "Ubuntu Pro Client"
 copyright = "2022, Canonical Ltd."
 
 
