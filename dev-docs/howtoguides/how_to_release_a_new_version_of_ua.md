@@ -1,4 +1,4 @@
-# Ubuntu Advantage Client Releases
+# Ubuntu Pro Client Releases
 
 ## Background
 
@@ -38,7 +38,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     b Create a new entry in the `debian/changelog` file:
 
       * You can do that by running `dch --newversion <version-name>`
-      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10.1`, with the appropriate ua and ubuntu/devel version numbers.
+      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10.1`, with the appropriate pro-client and ubuntu/devel version numbers.
       * Populate `debian/changelog` with the commits you have cherry-picked
       * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
         * This will generate a list of commits that could be included in the changelog.
@@ -49,21 +49,21 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * To structure the changelog you can use the other entries as example. But we basically try to
         keep this order: debian changes, new features/modifications, testing. Within each section, bullet points should be alphabetized.
         
-    c. Create a PR on github into the release branch. Ask in the UA channel on mattermost for review.
+    c. Create a PR on github into the release branch. Ask in the ~UA channel on mattermost for review.
 
     d. When reviewing the release PR, please use the following guidelines when reviewing the new changelog entry:
 
-       * Is the version correctly updated ? We must ensure that the new version on the changelog is
+       * Is the version correctly updated? We must ensure that the new version on the changelog is
          correct and it also targets the latest Ubuntu release at the moment.
-       * Is the entry useful for the user ? The changelog entries should be user focused, meaning
+       * Is the entry useful for the user? The changelog entries should be user focused, meaning
          that we should only add entries that we think users will care about (i.e. we don't need
          entries when fixing a test, as this doesn't provide meaningful information to the user)
-       * Is this entry redundant ? Sometimes we may have changes that affect separate modules of the
+       * Is this entry redundant? Sometimes we may have changes that affect separate modules of the
          code. We should have an entry only for the module that was most affected by it
-       * Is the changelog entry unique ? We need to verify that the changelog entry is not already
+       * Is the changelog entry unique? We need to verify that the changelog entry is not already
          reflected in an earlier version of the changelog. If it is, we need not only to remove but double
          check the process we are using to cherry-pick the commits
-       * Is this entry actually reflected on the code ? Sometimes, we can have changelog entries
+       * Is this entry actually reflected on the code? Sometimes, we can have changelog entries
          that are not reflected in the code anymore. This can happen during development when we are
          still unsure about the behavior of a feature or when we fix a bug that removes the code
          that was added. We must verify each changelog entry that is added to be sure of their
@@ -143,7 +143,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs (If you don't know who that is, ask in ~Server). Include a link to the MP into ubuntu/devel and to the SRU bug.
     
-    b. If they request changes, create a PR into the release branch on github and ask UAClient team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
+    b. If they request changes, create a PR into the release branch on github and ask Pro Client team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
       * Some issues may just be filed for addressing in the future if they are not urgent or pertinent to this release.
       * Unless the changes are very minor, or only testing related, you should upload a new release candidate version to `ppa:ua-client/staging` as descibed in I.3.
       * After the release is finished, any commits that were merged directly into the release branch in this way should be brought back into `main` via a single PR.

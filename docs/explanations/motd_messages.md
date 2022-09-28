@@ -1,10 +1,10 @@
-# UA related messages on MOTD
+# Ubuntu Pro related messages on MOTD
 
-When UA is installed on the system, it delivers custom messages on [MOTD](https://wiki.debian.org/motd).
+When Ubuntu Pro Client (`pro`) is installed on the system, it delivers custom messages on [MOTD](https://wiki.debian.org/motd).
 Those messages are generated directly by two different sources:
 
 * **python script**: The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) deliver a script
-  called `apt_check.py`. Considering UA related information, this script is responsible for:
+  called `apt_check.py`. Considering Ubuntu Pro related information, this script is responsible for:
   
   * inform the user about the status of one of the ESM services, `esm-apps` if the machine is a
     LTS series or `esm-infra` if the series is on ESM mode.
@@ -14,11 +14,11 @@ Those messages are generated directly by two different sources:
   those services are enabled:
 
   ```
-  UA Apps: Expanded Security Maintenance (ESM) is enabled.
+  Expanded Security Maintenance for Applications is enabled.
 
   11 updates can be applied immediately.
-  5 of these updates are UA Apps: ESM security updates.
-  1 of these updates is a UA Infra: ESM security update.
+  5 of these updates are ESM Apps security updates.
+  1 of these updates is a ESM Infra security update.
   5 of these updates are standard security updates.
   To see these additional updates run: apt list --upgradable
   ```
@@ -27,11 +27,11 @@ Those messages are generated directly by two different sources:
   advertised:
 
   ```
-  UA Infra: Expanded Security Maintenance (ESM) is enabled.
+  Expanded Security Maintenance Infrastructure is enabled.
 
   11 updates can be applied immediately.
-  5 of these updates are UA Apps: ESM security updates.
-  1 of these updates is a UA Infra: ESM security update.
+  5 of these updates are ESM Apps security updates.
+  1 of these updates is a ESM Infra security update.
   5 of these updates are standard security updates.
   To see these additional updates run: apt list --upgradable
   ```
@@ -40,15 +40,15 @@ Those messages are generated directly by two different sources:
   `esm-apps` was not enabled, the output will be:
 
   ```
-  UA Apps: Expanded Security Maintenance (ESM) is not enabled.
+  Expanded Security Maintenance for Applications is not enabled.
   
   6 updates can be applied immediately.
-  1 of these updates is a UA Infra: ESM security update.
+  1 of these updates is a ESM Infra security update.
   5 of these updates are standard security updates.
   To see these additional updates run: apt list --upgradable
   
-  5 additional security updates can be applied with UA Apps: ESM
-  Learn more about enabling UA Infra: ESM service for Ubuntu 16.04 at
+  5 additional security updates can be applied with ESM Apps
+  Learn more about enabling ESM Apps for Ubuntu 16.04 at
   https://ubuntu.com/16-04
   ```
 
@@ -57,12 +57,12 @@ Those messages are generated directly by two different sources:
   for `esm-infra` if the service was disabled and the series running on the machine is on ESM
   state.
 
-* **UA timer jobs**: One of the timer jobs UA has is used to insert additional messages into MOTD.
+* **Ubuntu Pro timer jobs**: One of the timer jobs Ubuntu Pro has is used to insert additional messages into MOTD.
   Those messages will be always delivered before or after the content created by the python
-  script delivered by `update-notifier`. Those additional messages are generated when UA detect
+  script delivered by `update-notifier`. Those additional messages are generated when `pro` detects
   some conditions on the machine. They are:
 
-  * **subscription expired**: When the UA subscription is expired, UA will deliver the following
+  * **subscription expired**: When the Ubuntu Pro subscription is expired, `pro` will deliver the following
     message after the `update-notifier` message:
 
     ```
@@ -71,7 +71,7 @@ Those messages are generated directly by two different sources:
     Renew your service at https://ubuntu.com/pro
     ```
 
-  * **subscription about to expire**: When the UA subscription is about to expire, we deliver the
+  * **subscription about to expire**: When the Ubuntu Pro subscription is about to expire, we deliver the
     following message after the `update-notifier` message:
 
     ```
@@ -80,7 +80,7 @@ Those messages are generated directly by two different sources:
     coverage for your applications.
     ```
 
-  * **subscription expired but within grace period**: When the UA subscription is expired, but is
+  * **subscription expired but within grace period**: When the Ubuntu Pro subscription is expired, but is
     still within the grace period, we deliver the following message after the `update-notifier`
     script:
 
@@ -104,9 +104,9 @@ Those messages are generated directly by two different sources:
     ```
 
   Note that we could also advertise the `esm-infra` service instead. This will happen
-  if you use an ESM release. Additionally, the same can for the url we use to advertise the
-  esm service, we adapt it based on the series that is running on the machine.
+  if you use an ESM release. Additionally, the the url we use to advertise the service is different
+  based on the series that is running on the machine.
 
-  Additionally, all of those UA custom messages are delivered into
+  Additionally, all of those Ubuntu Pro custom messages are delivered into
   `/var/lib/ubuntu-advantage/messages`. We also add custom scripts into `/etc/update-motd.d` to
   check if those messages exist and if they do, insert them on the full MOTD message.

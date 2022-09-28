@@ -3,9 +3,9 @@
 [FIPS is supported on 16.04, 18.04 and 20.04 releases](https://ubuntu.com/security/certifications/docs/fips).
 
 To use FIPS, one can either launch existing Ubuntu premium support images which already have FIPS
-kernel and security pre-enabled on first boot at [AWS Ubuntu PRO FIPS images](https://ubuntu.com/aws/fips), [Azure PRO FIPS images](https://ubuntu.com/azure/fips) and GCP PRO FIPS Images.
+kernel and security pre-enabled on first boot at [AWS Ubuntu Pro FIPS images](https://ubuntu.com/aws/fips), [Azure Pro FIPS images](https://ubuntu.com/azure/fips) and GCP Pro FIPS Images.
 
-Alternatively, enable FIPS using the UA client will install a FIPS-certified kernel and core security-related
+Alternatively, enable FIPS using the Ubuntu Pro Client will install a FIPS-certified kernel and core security-related
 packages such as openssh-server/client and libssl. Note: disabling FIPS on an image is not yet
 supported
 
@@ -21,7 +21,7 @@ supported
 To enable, run:
 
 ```console
-$ sudo ua enable fips
+$ sudo pro enable fips
 ```
 
 You should see output like the following, indicating that the FIPS packages has been installed.

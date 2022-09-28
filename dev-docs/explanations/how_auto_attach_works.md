@@ -1,6 +1,6 @@
 # How auto-attach works
 
-The `pro auto-attach` command follows a specific flow on every **Ubuntu Pro** image:
+The `pro auto-attach` command follows a specific flow on every **Public Cloud Ubuntu Pro** image:
 
 1. Identify which cloud the command is running on. This is achieved by running
    the `cloud-id` command provided by the [cloud-init](https://cloudinit.readthedocs.io/en/latest/)
@@ -44,7 +44,7 @@ The `pro auto-attach` command follows a specific flow on every **Ubuntu Pro** im
    contains all the directives the pro client needs to setup the machine and enable
    the necessary services the token is associated with.
 
-6. Disable the ubuntu-advantage [daemon](../explanations/what_is_the_daemon.md).
+6. Disable the `ubuntu-advantage.service` [daemon](../explanations/what_is_the_daemon.md), if running.
    If the machine is detached, this daemon will be started again.
 
 Additionally, you can disable the `pro auto-attach` command by adding

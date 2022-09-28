@@ -1,10 +1,9 @@
 # How to interpret the security-status command output
 
 The `security-status` command is used to get an overview
-of the packages installed in your machine. Currently,
-the command only support machine readable output: `json` or `yaml`.
+of the packages installed in your machine.
 
-If you run the `ua security-status --format yaml` command on your
+If you run the `pro security-status --format yaml` command on your
 machine, you are expected to see the output following this structure:
 
 ```
@@ -42,9 +41,9 @@ livepatch:
       Patched: true
 ```
 
-Let's understand what each key mean on the output of the `ua security-status` command:
+Let's understand what each key mean on the output of the `pro security-status` command:
 
-* **`summary`**: The summary of the system related to Ubuntu Advantage (UA) and
+* **`summary`**: The summary of the system related to Ubuntu Pro and
   the different package sources in the system:
 
   * **`num_installed_packages`**: The total number of installed packages in the system.
@@ -82,11 +81,11 @@ Let's understand what each key mean on the output of the `ua security-status` co
   num_universe_packages: 0
   ```
 
-  * **`ua`**: An object representing the state of UA on the system:
-    * **`attached`**: If the system is attached to a UA subscription.
+  * **`ua`**: An object representing the state of Ubuntu Pro on the system:
+    * **`attached`**: If the system is attached to an Ubuntu Pro subscription.
     * **`enabled_services`**: A list of services that are enabled on the system. If unattached, this
       will always be an empty list.
-    * **`entitled_services`**: A list of services that are entitled on your UA subscription. If
+    * **`entitled_services`**: A list of services that are entitled on your Ubuntu Pro subscription. If
       unattached, this will always be an empty list.
 
 * **`packages`**: A list of security updates for packages installed in the system.
@@ -98,8 +97,8 @@ Let's understand what each key mean on the output of the `ua security-status` co
     `esm-apps` or `standard-security`.
   * **`status`**: The status for this update. It will be one of:
     * **"upgrade_available"**: The package can be upgraded right now.
-    * **"pending_attach"**: The package needs a UA subscription attached to be upgraded.
-    * **"pending_enable"**: The machine is attached to a UA subscription, but the service required to
+    * **"pending_attach"**: The package needs an Ubuntu Pro subscription attached to be upgraded.
+    * **"pending_enable"**: The machine is attached to an Ubuntu Pro subscription, but the service required to
       provide the upgrade is not enabled.
     * **"upgrade_unavailable"**: The machine is attached, but the contract is not entitled to
       the service which provides the upgrade.
