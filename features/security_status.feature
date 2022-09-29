@@ -82,13 +82,13 @@ Feature: Security status command behavior
         Then I will see the following on stderr:
         """
         usage: security-status [-h] [--format {json,yaml,text}]
-                               [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+                               [--thirdparty | --unavailable | --esm-infra]
         argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml', 'text')
         """
         Examples: ubuntu release
            | release | package   | service   |
            | xenial  | apport    | esm-infra |
-           | bionic  | libkrb5-3 | esm-apps  |
+        #    | bionic  | libkrb5-3 | esm-apps  |
 
     @series.xenial
     @uses.config.machine_type.lxd.vm
@@ -135,10 +135,8 @@ Feature: Security status command behavior
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
         Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
         
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
-        
-        Learn more about Ubuntu Pro at https://ubuntu\.com/pro
+        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Learn more at https://ubuntu.com/pro
         """
         When I attach `contract_token` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
@@ -185,28 +183,28 @@ Feature: Security status command behavior
             apt-cache policy .+
         to learn more about that package\.
         """
-        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
-        And I run `pro security-status --esm-apps` as non-root
-        Then stdout matches regexp:
-        """
-        \d+ packages installed:
-         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+        # When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        # And I run `pro security-status --esm-apps` as non-root
+        # Then stdout matches regexp:
+        # """
+        # \d+ packages installed:
+        #  +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
-        Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2026\. You have received (\d+|no) security
-        update[s]?\.
+        # Universe/Multiverse packages are receiving security updates from
+        # Ubuntu Pro with 'esm-apps' enabled until 2026\. You have received (\d+|no) security
+        # update[s]?\.
 
-        Run 'pro help esm-apps' to learn more
+        # Run 'pro help esm-apps' to learn more
 
-        Package names in .*bold.* currently have an available update
-        with 'esm-apps' enabled
-        Packages:
-        (.|\n)+
+        # Package names in .*bold.* currently have an available update
+        # with 'esm-apps' enabled
+        # Packages:
+        # (.|\n)+
 
-        For example, run:
-            apt-cache policy .+
-        to learn more about that package\.
-        """
+        # For example, run:
+        #     apt-cache policy .+
+        # to learn more about that package\.
+        # """
         When I run `pro disable esm-infra esm-apps` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
@@ -225,10 +223,6 @@ Feature: Security status command behavior
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
         Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
         Enable esm-infra with: pro enable esm-infra
-        
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
-        Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
         And I run `pro security-status --thirdparty` as non-root
@@ -286,32 +280,32 @@ Feature: Security status command behavior
             apt-cache policy .+
         to learn more about that package\.
         """
-        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
-        And I run `pro security-status --esm-apps` as non-root
-        Then stdout matches regexp:
-        """
-        \d+ packages installed:
-         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+        # When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        # And I run `pro security-status --esm-apps` as non-root
+        # Then stdout matches regexp:
+        # """
+        # \d+ packages installed:
+        #  +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2026 and has 1 pending security update[s]?\.
+        # Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        # Universe/Multiverse packages until 2026 and has 1 pending security update[s]?\.
 
-        Run 'pro help esm-apps' to learn more
+        # Run 'pro help esm-apps' to learn more
 
-        Package names in .*bold.* currently have an available update
-        with 'esm-apps' enabled
-        Packages:
-        (.|\n)+
+        # Package names in .*bold.* currently have an available update
+        # with 'esm-apps' enabled
+        # Packages:
+        # (.|\n)+
 
-        For example, run:
-            apt-cache policy .+
-        to learn more about that package\.
-        """
+        # For example, run:
+        #     apt-cache policy .+
+        # to learn more about that package\.
+        # """
         When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
         Then I will see the following on stderr
         """
         usage: security-status [-h] [--format {json,yaml,text}]
-                               [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+                               [--thirdparty | --unavailable | --esm-infra]
         argument --unavailable: not allowed with argument --thirdparty
         """
 
@@ -340,10 +334,8 @@ Feature: Security status command behavior
         
         Main/Restricted packages receive updates with LTS until 2025\.
         
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
-        
-        Learn more about Ubuntu Pro at https://ubuntu\.com/pro
+        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Learn more at https://ubuntu.com/pro
         """
         When I attach `contract_token` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
@@ -378,28 +370,28 @@ Feature: Security status command behavior
         After the LTS period ends, Main/Restricted packages will get security updates
         from Ubuntu Pro with 'esm-infra' enabled\.
         """
-        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
-        And I run `pro security-status --esm-apps` as non-root
-        Then stdout matches regexp:
-        """
-        \d+ packages installed:
-         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+        # When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        # And I run `pro security-status --esm-apps` as non-root
+        # Then stdout matches regexp:
+        # """
+        # \d+ packages installed:
+        #  +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
-        Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received (\d+|no) security
-        update[s]?\.
+        # Universe/Multiverse packages are receiving security updates from
+        # Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received (\d+|no) security
+        # update[s]?\.
 
-        Run 'pro help esm-apps' to learn more
+        # Run 'pro help esm-apps' to learn more
 
-        Package names in .*bold.* currently have an available update
-        with 'esm-apps' enabled
-        Packages:
-        (.|\n)+
+        # Package names in .*bold.* currently have an available update
+        # with 'esm-apps' enabled
+        # Packages:
+        # (.|\n)+
 
-        For example, run:
-            apt-cache policy .+
-        to learn more about that package\.
-        """
+        # For example, run:
+        #     apt-cache policy .+
+        # to learn more about that package\.
+        # """
         When I run `pro disable esm-infra esm-apps` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
@@ -416,10 +408,6 @@ Feature: Security status command behavior
         for a list of available options\.
         
         Main/Restricted packages receive updates with LTS until 2025\.
-        
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
-        Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
         And I run `pro security-status --thirdparty` as non-root
@@ -468,32 +456,32 @@ Feature: Security status command behavior
         After the LTS period ends, Main/Restricted packages will get security updates
         from Ubuntu Pro with 'esm-infra' enabled\.
         """
-        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
-        And I run `pro security-status --esm-apps` as non-root
-        Then stdout matches regexp:
-        """
-        \d+ packages installed:
-         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+        # When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        # And I run `pro security-status --esm-apps` as non-root
+        # Then stdout matches regexp:
+        # """
+        # \d+ packages installed:
+        #  +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
-        Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2030 and has 1 pending security update[s]?\.
+        # Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        # Universe/Multiverse packages until 2030 and has 1 pending security update[s]?\.
 
-        Run 'pro help esm-apps' to learn more
+        # Run 'pro help esm-apps' to learn more
 
-        Package names in .*bold.* currently have an available update
-        with 'esm-apps' enabled
-        Packages:
-        (.|\n)+
+        # Package names in .*bold.* currently have an available update
+        # with 'esm-apps' enabled
+        # Packages:
+        # (.|\n)+
 
-        For example, run:
-            apt-cache policy .+
-        to learn more about that package\.
-        """
+        # For example, run:
+        #     apt-cache policy .+
+        # to learn more about that package\.
+        # """
         When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
         Then I will see the following on stderr
         """
         usage: security-status [-h] [--format {json,yaml,text}]
-                               [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+                               [--thirdparty | --unavailable | --esm-infra]
         argument --unavailable: not allowed with argument --thirdparty
         """
 
