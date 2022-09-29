@@ -6,7 +6,7 @@
   Ubuntu Advantage Client
 </h1>
 
-###### Clean and Consistent CLI for your Ubuntu Advantage Systems
+###### lean and Consistent CLI for your Ubuntu Advantage Systems
 ![Latest Upstream Version](https://img.shields.io/github/v/tag/canonical/ubuntu-advantage-client.svg?label=Latest%20Upstream%20Version&logo=github&logoColor=white&color=33ce57)
 ![CI](https://github.com/canonical/ubuntu-advantage-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)
 <br/>
