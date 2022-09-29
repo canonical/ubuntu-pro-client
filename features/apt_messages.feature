@@ -209,38 +209,37 @@ Feature: APT Messages
           | release |
           | xenial  |
 
-#    @series.focal
-#    @uses.config.machine_type.lxd.container
-#    Scenario Outline: APT Hook advertises esm-apps on upgrade
-#        Given a `<release>` machine with ubuntu-advantage-tools installed
-#        When I run `apt-get update` with sudo
-#        When I run `apt-get -y upgrade` with sudo
-#        When I run `apt-get -y autoremove` with sudo
-#        When I run `apt-get install hello` with sudo
-#        When I run `pro refresh messages` with sudo
-#        When I run `apt-get upgrade` with sudo
-#        Then I will see the following on stdout:
-#        """
-#        Reading package lists...
-#        Building dependency tree...
-#        Reading state information...
-#        Calculating upgrade...
-#        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-#          hello
-#        Learn more about Ubuntu Pro at https://ubuntu.com/pro
-#        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-#        """
-#        When I attach `contract_token` with sudo
-#        When I run `apt-get upgrade --dry-run` with sudo
-#        Then stdout matches regexp:
-#        """
-#        Reading package lists...
-#        Building dependency tree...
-#        Reading state information...
-#        Calculating upgrade...
-#        The following packages will be upgraded:
-#          hello
-#        """
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: APT Hook advertises esm-apps on upgrade
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
+        When I run `apt-get -y upgrade` with sudo
+        When I run `apt-get -y autoremove` with sudo
+        When I run `apt-get install hello` with sudo
+        When I run `pro refresh messages` with sudo
+        When I run `apt-get upgrade` with sudo
+        Then I will see the following on stdout:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Learn more at https://ubuntu.com/pro
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I attach `contract_token` with sudo
+        When I run `apt-get upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        The following packages will be upgraded:
+          hello
+        """
 #        When I update contract to use `effectiveTo` as `days=-20`
 #        When I run `pro refresh messages` with sudo
 #        When I run `apt-get upgrade --dry-run` with sudo
@@ -258,23 +257,23 @@ Feature: APT Messages
 #
 #        The following packages will be upgraded:
 #        """
-#        When I run `apt-get upgrade -y` with sudo
-#        When I run `pro detach --assume-yes` with sudo
-#        When I run `pro refresh messages` with sudo
-#        When I run `apt-get upgrade` with sudo
-#        Then stdout matches regexp:
-#        """
-#        Reading package lists...
-#        Building dependency tree...
-#        Reading state information...
-#        Calculating upgrade...
-#        Receive additional future security updates with Ubuntu Pro.
-#        Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro
-#        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
-#        """
-#        Examples: ubuntu release
-#          | release |
-#          | focal   |
+        When I run `apt-get upgrade -y` with sudo
+        When I run `pro detach --assume-yes` with sudo
+        When I run `pro refresh messages` with sudo
+        When I run `apt-get upgrade` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Learn more at https:\/\/ubuntu.com\/pro
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+        """
+        Examples: ubuntu release
+          | release |
+          | focal   |
 
     @series.xenial
     @series.bionic
@@ -291,7 +290,7 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
+#          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
 
     @series.xenial
     @series.bionic
@@ -308,7 +307,7 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 on Azure at https:\/\/ubuntu\.com\/16-04\/azure |
-          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
+#          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
 
     @series.xenial
     @series.bionic
@@ -325,4 +324,4 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
+#          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
