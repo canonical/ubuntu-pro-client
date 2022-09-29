@@ -201,10 +201,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | valid_services                                                                       |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
-           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
+           | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
+           | jammy   | cc-eal, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -234,7 +234,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar, realtime-kernel'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
+        Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -280,7 +280,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
+        Try cc-eal, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
         """
         And I verify that running `pro enable realtime-kernel foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -290,7 +290,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar, realtime-kernel'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
+        Try cc-eal, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -561,7 +561,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'usg'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates.
             """
 
         Examples: cis service

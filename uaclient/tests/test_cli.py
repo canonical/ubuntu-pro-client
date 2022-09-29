@@ -78,8 +78,6 @@ Client to manage Ubuntu Pro services on a machine.
    (https://ubuntu.com/cc-eal)
  - cis: Security compliance and audit tools
    (https://ubuntu.com/security/certifications/docs/usg)
- - esm-apps: Expanded Security Maintenance for Applications
-   (https://ubuntu.com/security/esm)
  - esm-infra: Expanded Security Maintenance for Infrastructure
    (https://ubuntu.com/security/esm)
  - fips-updates: NIST-certified core packages with priority security updates

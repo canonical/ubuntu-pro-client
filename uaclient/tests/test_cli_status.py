@@ -82,7 +82,6 @@ ros-updates      no         no         no            All Updates for the Robot O
 
 SIMULATED_STATUS = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
 esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
 livepatch        yes        yes        no            Canonical Livepatch service
 """  # noqa: E501
@@ -104,7 +103,6 @@ See https://ubuntu.com/pro
 
 UNATTACHED_STATUS = """\
 SERVICE          AVAILABLE  DESCRIPTION
-esm-apps         yes        Expanded Security Maintenance for Applications
 esm-infra        yes        Expanded Security Maintenance for Infrastructure
 livepatch        yes        Canonical Livepatch service
 
@@ -134,7 +132,6 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         Expanded Security Maintenance for Applications
 esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
 livepatch        no        {dash}         Canonical Livepatch service
 {notices}{features}
@@ -146,7 +143,7 @@ Enable services with: pro enable <service>
 Technical support level: n/a
 """  # noqa: E501
 
-BETA_SVC_NAMES = ["realtime-kernel"]
+BETA_SVC_NAMES = ["esm-apps", "realtime-kernel"]
 
 SERVICES_JSON_ALL = [
     {
@@ -234,16 +231,6 @@ SERVICES_JSON_ALL = [
 ]
 
 SERVICES_JSON = [
-    {
-        "description": "Expanded Security Maintenance for Applications",
-        "description_override": None,
-        "entitled": "no",
-        "name": "esm-apps",
-        "status": "—",
-        "status_details": "",
-        "available": "yes",
-        "blocked_by": [],
-    },
     {
         "description": "Expanded Security Maintenance for Infrastructure",
         "description_override": None,
@@ -809,9 +796,6 @@ class TestActionStatus:
                 "entitled": "no",
                 "name": "realtime-kernel",
             },
-        ]
-
-        services = [
             {
                 "auto_enabled": "yes",
                 "available": "yes",
@@ -819,6 +803,9 @@ class TestActionStatus:
                 "entitled": "no",
                 "name": "esm-apps",
             },
+        ]
+
+        services = [
             {
                 "auto_enabled": "yes",
                 "available": "yes",

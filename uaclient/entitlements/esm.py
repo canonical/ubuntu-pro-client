@@ -64,6 +64,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     description = "Expanded Security Maintenance for Applications"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
     apt_repo_name = "apps"
+    is_beta = True
 
     @property
     def repo_pin_priority(self) -> Optional[str]:
