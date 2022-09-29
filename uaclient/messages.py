@@ -1006,7 +1006,12 @@ Ubuntu Pro with '{service}' enabled until {year}. You have received {updates} se
 update{plural}."""  # noqa: E501
 
 SS_SERVICE_COMMAND = "Enable {service} with: pro enable {service}"
-SS_LEARN_MORE = "Learn more about Ubuntu Pro at " + BASE_UA_URL
+SS_LEARN_MORE = """\
+Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+Learn more at {url}
+""".format(
+    url=BASE_UA_URL
+)
 
 SS_POLICY_HINT = """\
 For example, run:
