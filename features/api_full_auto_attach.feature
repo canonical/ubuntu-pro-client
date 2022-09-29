@@ -17,13 +17,12 @@ Feature: Full Auto-Attach Endpoint
         """
         from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
 
-        full_auto_attach(FullAutoAttachOptions(enable=["esm-infra", "esm-apps"]))
+        full_auto_attach(FullAutoAttachOptions(enable=["esm-infra"]))
         """
         And I run `python3 /tmp/full_auto_attach.py` with sudo
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
         Then stdout matches regexp:
