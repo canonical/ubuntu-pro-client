@@ -56,8 +56,6 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
-        ros             +yes       +Security Updates for the Robot Operating System
-        ros-updates     +yes       +All Updates for the Robot Operating System
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
@@ -69,6 +67,7 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +Security compliance and audit tools
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
@@ -121,7 +120,6 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
@@ -187,7 +185,6 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
-        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
 
@@ -255,8 +252,6 @@ Feature: Unattached status
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
-        ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
         """
         When I do a preflight check for `contract_token` with the all flag
         Then stdout matches regexp:
@@ -280,24 +275,23 @@ Feature: Unattached status
         When I verify that a preflight check for `invalid_token` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
-        """
-        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-        """
+            """
+            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+            """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         And I will see the following on stdout:
-        """
-        environment_vars: []
-        errors:
-        - message: Invalid token. See https://ubuntu.com/pro
-          message_code: attach-invalid-token
-          service: null
-          type: system
-        result: failure
-        services: []
-        warnings: []
-        """
-
+            """
+            environment_vars: []
+            errors:
+            - message: Invalid token. See https://ubuntu.com/pro
+              message_code: attach-invalid-token
+              service: null
+              type: system
+            result: failure
+            services: []
+            warnings: []
+            """
         Examples: ubuntu release
            | release |
            | xenial  |
@@ -312,7 +306,6 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
@@ -372,7 +365,6 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
@@ -431,36 +423,34 @@ Feature: Unattached status
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
         And stdout matches regexp:
-        """
-        \"result\": \"failure\"
-        """
+            """
+            \"result\": \"failure\"
+            """
         And stdout matches regexp:
-        """
-        \"message\": \"Contract .* expired on .*\"
-        """
+            """
+            \"message\": \"Contract .* expired on .*\"
+            """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
-        """
-        errors:
-        - message: Contract .* expired on .*
-        """
+            """
+            errors:
+            - message: Contract .* expired on .*
+            """
         When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
         Then stdout matches regexp:
-        """
-        This token is not valid.
-        Contract \".*\" expired on .*
+            """
+            This token is not valid.
+            Contract \".*\" expired on .*
 
-        SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-        cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
-        cis             +yes       +yes       +no           +Security compliance and audit tools
-        esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-        ros             +yes       +no        +no           +Security Updates for the Robot Operating System
-        ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
-        """
+            SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+            cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+            cis             +yes       +yes       +no           +Security compliance and audit tools
+            esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+            fips            +yes       +yes       +no           +NIST-certified core packages
+            fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+            livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+            """
 
         Examples: ubuntu release
            | release |

@@ -209,72 +209,72 @@ Feature: APT Messages
           | release |
           | xenial  |
 
-    @series.focal
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: APT Hook advertises esm-apps on upgrade
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
-        When I run `apt-get -y upgrade` with sudo
-        When I run `apt-get -y autoremove` with sudo
-        When I run `apt-get install hello` with sudo
-        When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
-        Then I will see the following on stdout:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-          hello
-        Learn more about Ubuntu Pro at https://ubuntu.com/pro
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        """
-        When I attach `contract_token` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-        The following packages will be upgraded:
-          hello
-        """
-        When I update contract to use `effectiveTo` as `days=-20`
-        When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        \*Your Ubuntu Pro subscription has EXPIRED\*
-        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-          hello
-        Renew your service at https:\/\/ubuntu.com\/pro
-
-        The following packages will be upgraded:
-        """
-        When I run `apt-get upgrade -y` with sudo
-        When I run `pro detach --assume-yes` with sudo
-        When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-        Receive additional future security updates with Ubuntu Pro.
-        Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
-        """
-        Examples: ubuntu release
-          | release |
-          | focal   |
+#    @series.focal
+#    @uses.config.machine_type.lxd.container
+#    Scenario Outline: APT Hook advertises esm-apps on upgrade
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I run `apt-get update` with sudo
+#        When I run `apt-get -y upgrade` with sudo
+#        When I run `apt-get -y autoremove` with sudo
+#        When I run `apt-get install hello` with sudo
+#        When I run `pro refresh messages` with sudo
+#        When I run `apt-get upgrade` with sudo
+#        Then I will see the following on stdout:
+#        """
+#        Reading package lists...
+#        Building dependency tree...
+#        Reading state information...
+#        Calculating upgrade...
+#        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
+#          hello
+#        Learn more about Ubuntu Pro at https://ubuntu.com/pro
+#        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+#        """
+#        When I attach `contract_token` with sudo
+#        When I run `apt-get upgrade --dry-run` with sudo
+#        Then stdout matches regexp:
+#        """
+#        Reading package lists...
+#        Building dependency tree...
+#        Reading state information...
+#        Calculating upgrade...
+#        The following packages will be upgraded:
+#          hello
+#        """
+#        When I update contract to use `effectiveTo` as `days=-20`
+#        When I run `pro refresh messages` with sudo
+#        When I run `apt-get upgrade --dry-run` with sudo
+#        Then stdout matches regexp:
+#        """
+#        Reading package lists...
+#        Building dependency tree...
+#        Reading state information...
+#        Calculating upgrade...
+#
+#        \*Your Ubuntu Pro subscription has EXPIRED\*
+#        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
+#          hello
+#        Renew your service at https:\/\/ubuntu.com\/pro
+#
+#        The following packages will be upgraded:
+#        """
+#        When I run `apt-get upgrade -y` with sudo
+#        When I run `pro detach --assume-yes` with sudo
+#        When I run `pro refresh messages` with sudo
+#        When I run `apt-get upgrade` with sudo
+#        Then stdout matches regexp:
+#        """
+#        Reading package lists...
+#        Building dependency tree...
+#        Reading state information...
+#        Calculating upgrade...
+#        Receive additional future security updates with Ubuntu Pro.
+#        Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro
+#        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+#        """
+#        Examples: ubuntu release
+#          | release |
+#          | focal   |
 
     @series.xenial
     @series.bionic

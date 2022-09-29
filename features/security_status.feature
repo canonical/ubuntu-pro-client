@@ -519,12 +519,3 @@ Feature: Security status command behavior
         
         Ubuntu Pro is not available for non-LTS releases\.
         """
-        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
-        And I run `pro security-status --esm-apps` as non-root
-        Then stdout matches regexp:
-        """
-        \d+ packages installed:
-         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
-
-        Ubuntu Pro is not available for non-LTS releases\.
-        """

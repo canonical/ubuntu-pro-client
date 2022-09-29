@@ -143,7 +143,7 @@ Enable services with: pro enable <service>
 Technical support level: n/a
 """  # noqa: E501
 
-BETA_SVC_NAMES = ["esm-apps", "realtime-kernel"]
+BETA_SVC_NAMES = ["esm-apps", "realtime-kernel", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {
@@ -803,6 +803,21 @@ class TestActionStatus:
                 "entitled": "no",
                 "name": "esm-apps",
             },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "Security Updates for the Robot Operating"
+                " System",
+                "entitled": "no",
+                "name": "ros",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "All Updates for the Robot Operating System",
+                "entitled": "no",
+                "name": "ros-updates",
+            },
         ]
 
         services = [
@@ -834,21 +849,6 @@ class TestActionStatus:
                 "description": "Canonical Livepatch service",
                 "entitled": "yes",
                 "name": "livepatch",
-            },
-            {
-                "auto_enabled": "no",
-                "available": "no",
-                "description": "Security Updates for the Robot Operating"
-                " System",
-                "entitled": "no",
-                "name": "ros",
-            },
-            {
-                "auto_enabled": "no",
-                "available": "no",
-                "description": "All Updates for the Robot Operating System",
-                "entitled": "no",
-                "name": "ros-updates",
             },
         ]
 
