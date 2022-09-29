@@ -1,102 +1,102 @@
 Feature: MOTD Messages
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: MOTD Announce Message
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get install -y update-motd` with sudo
-        When I run `pro refresh messages` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout matches regexp:
-        """
-
-         \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 25,000 software packages with your
-           Ubuntu Pro subscription\. Free for personal use\.
-
-             <url>
-
-        [\w\d]+
-        """
-        When I attach `contract_token` with sudo
-        And I run `update-motd` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout does not match regexp:
-        """
-         \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 25,000 software packages with your
-           Ubuntu Pro subscription\. Free for personal use\.
-
-             <url>
-        """
-        Examples: ubuntu release
-           | release | url                         |
-           | xenial  | https:\/\/ubuntu.com\/16-04 |
-           | bionic  | https:\/\/ubuntu.com\/pro   |
-
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.aws.generic
-    Scenario Outline: AWS URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get install -y update-motd` with sudo
-        When I run `pro refresh messages` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout matches regexp:
-        """
-         \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 25,000 software packages with your
-           Ubuntu Pro subscription\. Free for personal use\.
-
-             <url>
-        """
-        Examples: ubuntu release
-           | release | url                            |
-           | xenial  | https:\/\/ubuntu.com\/16-04    |
-           | bionic  | https:\/\/ubuntu.com\/aws\/pro |
-
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.azure.generic
-    Scenario Outline: Azure URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get install -y update-motd` with sudo
-        When I run `pro refresh messages` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout matches regexp:
-        """
-         \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 25,000 software packages with your
-           Ubuntu Pro subscription\. Free for personal use\.
-
-             <url>
-        """
-        Examples: ubuntu release
-           | release | url                                |
-           | xenial  | https:\/\/ubuntu.com\/16-04\/azure |
-           | bionic  | https:\/\/ubuntu.com\/azure\/pro   |
-
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.gcp.generic
-    Scenario Outline: GCP URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get install -y update-motd` with sudo
-        When I run `pro refresh messages` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then stdout matches regexp:
-        """
-         \* Introducing Expanded Security Maintenance for Applications\.
-           Receive updates to over 25,000 software packages with your
-           Ubuntu Pro subscription\. Free for personal use\.
-
-             <url>
-        """
-        Examples: ubuntu release
-           | release | url                            |
-           | xenial  | https:\/\/ubuntu.com\/16-04    |
-           | bionic  | https:\/\/ubuntu.com\/gcp\/pro |
+#    @series.xenial
+#    @series.bionic
+#    @uses.config.machine_type.lxd.container
+#    Scenario Outline: MOTD Announce Message
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I run `apt-get install -y update-motd` with sudo
+#        When I run `pro refresh messages` with sudo
+#        And I run `run-parts /etc/update-motd.d/` with sudo
+#        Then stdout matches regexp:
+#        """
+#
+#         \* Introducing Expanded Security Maintenance for Applications\.
+#           Receive updates to over 25,000 software packages with your
+#           Ubuntu Pro subscription\. Free for personal use\.
+#
+#             <url>
+#
+#        [\w\d]+
+#        """
+#        When I attach `contract_token` with sudo
+#        And I run `update-motd` with sudo
+#        And I run `run-parts /etc/update-motd.d/` with sudo
+#        Then stdout does not match regexp:
+#        """
+#         \* Introducing Expanded Security Maintenance for Applications\.
+#           Receive updates to over 25,000 software packages with your
+#           Ubuntu Pro subscription\. Free for personal use\.
+#
+#             <url>
+#        """
+#        Examples: ubuntu release
+#           | release | url                         |
+#           | xenial  | https:\/\/ubuntu.com\/16-04 |
+#           | bionic  | https:\/\/ubuntu.com\/pro   |
+#
+#    @series.xenial
+#    @series.bionic
+#    @uses.config.machine_type.aws.generic
+#    Scenario Outline: AWS URLs
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I run `apt-get install -y update-motd` with sudo
+#        When I run `pro refresh messages` with sudo
+#        And I run `run-parts /etc/update-motd.d/` with sudo
+#        Then stdout matches regexp:
+#        """
+#         \* Introducing Expanded Security Maintenance for Applications\.
+#           Receive updates to over 25,000 software packages with your
+#           Ubuntu Pro subscription\. Free for personal use\.
+#
+#             <url>
+#        """
+#        Examples: ubuntu release
+#           | release | url                            |
+#           | xenial  | https:\/\/ubuntu.com\/16-04    |
+#           | bionic  | https:\/\/ubuntu.com\/aws\/pro |
+#
+#    @series.xenial
+#    @series.bionic
+#    @uses.config.machine_type.azure.generic
+#    Scenario Outline: Azure URLs
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I run `apt-get install -y update-motd` with sudo
+#        When I run `pro refresh messages` with sudo
+#        And I run `run-parts /etc/update-motd.d/` with sudo
+#        Then stdout matches regexp:
+#        """
+#         \* Introducing Expanded Security Maintenance for Applications\.
+#           Receive updates to over 25,000 software packages with your
+#           Ubuntu Pro subscription\. Free for personal use\.
+#
+#             <url>
+#        """
+#        Examples: ubuntu release
+#           | release | url                                |
+#           | xenial  | https:\/\/ubuntu.com\/16-04\/azure |
+#           | bionic  | https:\/\/ubuntu.com\/azure\/pro   |
+#
+#    @series.xenial
+#    @series.bionic
+#    @uses.config.machine_type.gcp.generic
+#    Scenario Outline: GCP URLs
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I run `apt-get install -y update-motd` with sudo
+#        When I run `pro refresh messages` with sudo
+#        And I run `run-parts /etc/update-motd.d/` with sudo
+#        Then stdout matches regexp:
+#        """
+#         \* Introducing Expanded Security Maintenance for Applications\.
+#           Receive updates to over 25,000 software packages with your
+#           Ubuntu Pro subscription\. Free for personal use\.
+#
+#             <url>
+#        """
+#        Examples: ubuntu release
+#           | release | url                            |
+#           | xenial  | https:\/\/ubuntu.com\/16-04    |
+#           | bionic  | https:\/\/ubuntu.com\/gcp\/pro |
 
     @series.xenial
     @series.bionic
@@ -160,4 +160,4 @@ Feature: MOTD Messages
         Examples: ubuntu release
            | release | service   |
            | xenial  | esm-infra |
-           | bionic  | esm-apps  |
+           #| bionic  | esm-apps  |

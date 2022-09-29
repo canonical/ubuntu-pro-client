@@ -76,8 +76,6 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
-        ros             +yes      +disabled +Security Updates for the Robot Operating System
-        ros-updates     +yes      +disabled +All Updates for the Robot Operating System
 
         Enable services with: pro enable <service>
         """
