@@ -495,6 +495,7 @@ def security_status(cfg: UAConfig):
     series = get_platform_info()["series"]
     is_lts = is_current_series_lts()
     is_attached = get_ua_info(cfg)["attached"]
+    esm_apps_enabled = "esm-apps" in get_ua_info(cfg)["enabled_services"]
 
     packages_by_origin = get_installed_packages_by_origin()
     security_upgradable_versions_infra = filter_security_updates(
@@ -531,10 +532,14 @@ def security_status(cfg: UAConfig):
             is_attached=is_attached,
         )
 
-    if is_lts and (
-        packages_by_origin["universe"]
-        or packages_by_origin["multiverse"]
-        or packages_by_origin["esm-apps"]
+    if (
+        esm_apps_enabled
+        and is_lts
+        and (
+            packages_by_origin["universe"]
+            or packages_by_origin["multiverse"]
+            or packages_by_origin["esm-apps"]
+        )
     ):
         _print_service_support(
             service="esm-apps",
