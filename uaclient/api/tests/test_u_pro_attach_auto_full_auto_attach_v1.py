@@ -50,8 +50,8 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig(root_mode=True)
         options = FullAutoAttachOptions(
-            enable=["esm-infra", "esm-apps", "cis"],
-            enable_beta=["realtime-kernel", "test", "wrong"],
+            enable=["esm-infra", "cis"],
+            enable_beta=["esm-apps", "realtime-kernel", "test", "wrong"],
         )
         with pytest.raises(exceptions.EntitlementNotFoundError):
             _full_auto_attach(options, cfg)
@@ -79,8 +79,8 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig(root_mode=True)
         options = FullAutoAttachOptions(
-            enable=["esm-infra", "esm-apps", "cis"],
-            enable_beta=["realtime-kernel"],
+            enable=["esm-infra", "cis"],
+            enable_beta=["esm-apps", "realtime-kernel"],
         )
         with pytest.raises(exceptions.EntitlementNotEnabledError):
             _full_auto_attach(options, cfg)
@@ -102,8 +102,8 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig(root_mode=True)
         options = FullAutoAttachOptions(
-            enable=["esm-infra", "esm-apps", "fips"],
-            enable_beta=["ros"],
+            enable=["esm-infra", "fips"],
+            enable_beta=["esm-apps", "ros"],
         )
         with pytest.raises(exceptions.EntitlementNotEnabledError):
             _full_auto_attach(options, cfg)
@@ -116,8 +116,8 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig(root_mode=True)
         options = FullAutoAttachOptions(
-            enable=["esm-infra", "esm-apps", "fips"],
-            enable_beta=["livepatch"],
+            enable=["esm-infra", "fips"],
+            enable_beta=["esm-apps", "livepatch"],
         )
         with pytest.raises(exceptions.IncompatibleEntitlementsDetected) as e:
             _full_auto_attach(options, cfg)
