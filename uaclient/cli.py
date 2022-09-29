@@ -505,11 +505,11 @@ def security_status_parser(parser):
         help=("List and present information about esm-infra packages"),
         action="store_true",
     )
-    group.add_argument(
-        "--esm-apps",
-        help=("List and present information about esm-apps packages"),
-        action="store_true",
-    )
+    # group.add_argument(
+    #     "--esm-apps",
+    #     help=("List and present information about esm-apps packages"),
+    #     action="store_true",
+    # )
     return parser
 
 
@@ -556,8 +556,8 @@ def action_security_status(args, *, cfg, **kwargs):
             security_status.list_unavailable_packages()
         elif args.esm_infra:
             security_status.list_esm_infra_packages(cfg)
-        elif args.esm_apps:
-            security_status.list_esm_apps_packages(cfg)
+        # elif args.esm_apps:
+        #     security_status.list_esm_apps_packages(cfg)
         else:
             security_status.security_status(cfg)
     elif args.format == "json":
