@@ -28,6 +28,7 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_MOTD_SOON_TMPL,
     DISABLED_APT_NO_PKGS_TMPL,
     DISABLED_APT_PKGS_TMPL,
+    TRY_UBUNTU_PRO_BETA,
 )
 
 XENIAL_ESM_URL = "https://ubuntu.com/16-04"
@@ -308,6 +309,32 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
                 motd_apps_pkg_file,
                 motd_apps_no_pkg_file,
             ],
+        )
+
+    if (
+        system.is_current_series_lts()
+        and not system.is_active_esm(series)
+        and not cfg.is_attached
+    ):
+        _write_template_or_remove(
+            TRY_UBUNTU_PRO_BETA, os.path.join(msg_dir, apps_no_pkg_file)
+        )
+        _write_template_or_remove(
+            TRY_UBUNTU_PRO_BETA, os.path.join(msg_dir, apps_pkg_file)
+        )
+        _write_template_or_remove("", os.path.join(msg_dir, infra_no_pkg_file))
+        _write_template_or_remove("", os.path.join(msg_dir, infra_pkg_file))
+        _write_template_or_remove(
+            "", os.path.join(msg_dir, motd_apps_no_pkg_file)
+        )
+        _write_template_or_remove(
+            "", os.path.join(msg_dir, motd_apps_pkg_file)
+        )
+        _write_template_or_remove(
+            "", os.path.join(msg_dir, motd_infra_no_pkg_file)
+        )
+        _write_template_or_remove(
+            "", os.path.join(msg_dir, motd_infra_pkg_file)
         )
 
 

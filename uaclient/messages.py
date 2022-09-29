@@ -1034,3 +1034,7 @@ Package names in {bold}bold{end_bold} currently have an available update
 with '{{service}}' enabled""".format(
     bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
 )
+
+TRY_UBUNTU_PRO_BETA = """\
+Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+Learn more at https://ubuntu.com/pro"""
