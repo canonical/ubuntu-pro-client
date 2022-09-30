@@ -2,7 +2,6 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
 
     @series.lts
     @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
     @uses.config.machine_type.gcp.pro
     Scenario Outline: Create a Pro fips-updates image and launch
         Given a `<release>` machine with ubuntu-advantage-tools installed

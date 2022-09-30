@@ -23,8 +23,6 @@ DEFAULT_UA_PPA_KEYID = "6E34E7116C0BC933"
 
 USERDATA_BLOCK_AUTO_ATTACH_IMG = """\
 #cloud-config
-bootcmd:
- - systemctl stop ua-auto-attach.service
 """
 
 # we can't use write_files because it will clash with the
@@ -38,8 +36,10 @@ runcmd:
 USERDATA_RUNCMD_ENABLE_PROPOSED = """
 runcmd:
   - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\" > /etc/apt/sources.list.d/uaclient-proposed.list
+  - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed universe\" > /etc/apt/sources.list.d/uaclient-proposed-universe.list
   - "printf \\"Package: *\\nPin: release a={series}-proposed\\nPin-Priority: 400\\n\\" > /etc/apt/preferences.d/lower-proposed"
   - "printf \\"Package: ubuntu-advantage-tools\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient-proposed"
+  - "printf \\"Package: ubuntu-advantage-pro\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclientpro-proposed"
 """  # noqa: E501
 
 USERDATA_APT_SOURCE_PPA = """\
@@ -331,6 +331,8 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     context.config.setup_logging()
+    logging.getLogger("botocore").setLevel(logging.INFO)
+    logging.getLogger("boto3").setLevel(logging.INFO)
     userdata = context.config.userdata
     if userdata:
         logging.debug("Userdata key / value pairs:")

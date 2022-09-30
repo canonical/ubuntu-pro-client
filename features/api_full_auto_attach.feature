@@ -27,7 +27,7 @@ Feature: Full Auto-Attach Endpoint
         """
         Then stdout matches regexp:
         """
-        livepatch     +yes +disabled  +Canonical Livepatch service
+        livepatch     +yes +(disabled|n/a)  +Canonical Livepatch service
         """
         Examples:
            | release |
