@@ -23,6 +23,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -94,6 +95,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
@@ -165,6 +167,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
+        When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
