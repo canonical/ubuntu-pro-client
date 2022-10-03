@@ -628,14 +628,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
         Given a `<release>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
         # This user_data should not do anything, just guarantee that the ua-auto-attach service
-        # # does nothing
+        # does nothing
         """
         ubuntu_advantage:
+          features:
+            disable_auto_attach: true
         """
         When I run `cloud-init query userdata` with sudo
         Then stdout matches regexp:
         """
         ubuntu_advantage:
+          features:
+            disable_auto_attach: true
         """
         # On GCP, this service will auto-attach the machine automatically after we override
         # the uaclient.conf file. To guarantee that we are not auto-attaching on reboot
@@ -663,6 +667,17 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And stdout matches regexp:
         """
         Skipping auto-attach and deferring to cloud-init to setup and configure auto-attach
+        """
+        When I run `cloud-init status` with sudo
+        Then stdout matches regexp:
+        """
+        status: done
+        """
+        When I run `pro status --wait` with sudo
+        And I run `pro security-status --format json` with sudo
+        Then stdout matches regexp:
+        """
+        "attached": false
         """
 
         Examples: ubuntu release
