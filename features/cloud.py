@@ -121,6 +121,7 @@ class Cloud:
         user_data: Optional[str] = None,
         ephemeral: bool = False,
         inbound_ports: Optional[List[str]] = None,
+        cloud_init_ppa: Optional[str] = None,
     ) -> pycloudlib.instance.BaseInstance:
         """Create and wait for cloud provider instance to be ready.
 
@@ -138,6 +139,8 @@ class Cloud:
             If instance should be ephemeral
         :param inbound_ports:
             List of ports to open for network ingress to the instance
+        :param cloud_init_ppa:
+            Cloud-init's ppa to upgrade with
 
         :returns:
             An cloud provider instance
@@ -163,7 +166,18 @@ class Cloud:
             except Exception as e:
                 logging.info("--- Retrying instance.wait on {}".format(str(e)))
 
-        self._check_cloudinit_status(inst)
+        if cloud_init_ppa:
+            logging.info("--- Installing cloud-init PPA: %s", cloud_init_ppa)
+            assert inst.execute(
+                "sudo add-apt-repository {} -y".format(cloud_init_ppa)
+            ).ok
+            assert inst.execute("sudo apt-get update -q").ok
+            assert inst.execute("sudo apt-get install -qy cloud-init").ok
+            assert inst.execute("sudo cloud-init clean --logs").ok
+        else:
+            # Check only if cloud-init wasn't upgraded as given user-data could
+            # be only compatible with the newer version.
+            self._check_cloudinit_status(inst)
         return inst
 
     def get_instance_id(

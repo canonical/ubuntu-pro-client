@@ -613,18 +613,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.gcp.pro
     @uses.config.machine_type.aws.pro
     @uses.config.machine_type.azure.pro
-    Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
-        Given a `<release>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
-        # This user_data should not do anything, just guarantee that the ua-auto-attach service
-        # # does nothing
-        """
-        ubuntu_advantage:
-        """
-        When I run `cloud-init query userdata` with sudo
-        Then stdout matches regexp:
-        """
-        ubuntu_advantage:
-        """
+    Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata and cloud-init auto attaches
+        # In the first boot we install uat and daily cloud-init and prepare/check preconditions
+        # In the second boot we execute the test
+
+        Given a `<release>` machine with ubuntu-advantage-tools installed and cloud-init upgraded to the latest daily version
         # On GCP, this service will auto-attach the machine automatically after we override
         # the uaclient.conf file. To guarantee that we are not auto-attaching on reboot
         # through the ua-auto-attach.service, we are masking it
@@ -636,14 +629,26 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         """
-        And I reboot the machine
         And I run `pro status --wait` with sudo
         And I run `pro security-status --format json` with sudo
         Then stdout matches regexp:
         """
         "attached": false
         """
-        When I run `cat /var/log/ubuntu-advantage.log` with sudo
+
+        # Prepare for second boot
+        When I run `cloud-init clean --logs` with sudo
+        And I take a snapshot of the machine
+        And I launch a `clone` machine from the snapshot adding this cloud-init user_data:
+        """
+        #cloud-config
+        ubuntu_advantage:
+          features:
+            disable_auto_attach: False
+          enable:
+          - livepatch
+        """
+        When I run `cat /var/log/ubuntu-advantage.log` `with sudo` on the `clone` machine
         Then stdout matches regexp:
         """
         cloud-init userdata has ubuntu-advantage key.
@@ -651,6 +656,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And stdout matches regexp:
         """
         Skipping auto-attach and deferring to cloud-init to setup and configure auto-attach
+        """
+        When I run `cloud-init status` `with sudo` on the `clone` machine
+        Then stdout matches regexp:
+        """
+        status: done
+        """
+
+        When I run `pro status --wait` `with sudo` on the `clone` machine
+        And I run `pro security-status --format json` `with sudo` on the `clone` machine
+        Then stdout matches regexp:
+        """
+        "attached": true
         """
 
         Examples: ubuntu release
