@@ -32,7 +32,9 @@ def add_test_name_suffix(context, series, prefix):
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
-def given_a_machine(context, series, custom_user_data=None):
+def given_a_machine(
+    context, series, custom_user_data=None, cloud_init_ppa=None
+):
     if series in context.reuse_container:
         context.instances = {}
         context.container_name = context.reuse_container[series]
@@ -47,13 +49,21 @@ def given_a_machine(context, series, custom_user_data=None):
 
     instance_name = add_test_name_suffix(context, series, CONTAINER_PREFIX)
 
-    if context.config.snapshot_strategy and not custom_user_data:
+    if (
+        context.config.snapshot_strategy
+        and not custom_user_data
+        and not cloud_init_ppa
+    ):
         if series not in context.series_image_name:
             build_container_name = add_test_name_suffix(
                 context, series, IMAGE_BUILD_PREFIX
             )
             image_inst = create_instance_with_uat_installed(
-                context, series, build_container_name, custom_user_data
+                context,
+                series,
+                build_container_name,
+                custom_user_data,
+                cloud_init_ppa=cloud_init_ppa,
             )
 
             image_name = add_test_name_suffix(context, series, IMAGE_PREFIX)
@@ -77,7 +87,11 @@ def given_a_machine(context, series, custom_user_data=None):
         )
     else:
         inst = create_instance_with_uat_installed(
-            context, series, instance_name, custom_user_data
+            context,
+            series,
+            instance_name,
+            custom_user_data,
+            cloud_init_ppa=cloud_init_ppa,
         )
 
     context.series = series
@@ -99,7 +113,7 @@ def when_i_take_a_snapshot(context):
     inst = context.instances["uaclient"]
 
     snapshot = cloud.api.snapshot(inst)
-
+    logging.debug("--- Snapshot created: %s", snapshot)
     context.instance_snapshot = snapshot
 
     def cleanup_image() -> None:
@@ -123,6 +137,18 @@ def when_i_take_a_snapshot(context):
 def given_a_machine_with_user_data(context, series):
     custom_user_data = context.text
     given_a_machine(context, series, custom_user_data)
+
+
+@given(
+    "a `{series}` machine with ubuntu-advantage-tools installed and cloud-init upgraded to the latest daily version"  # noqa
+)
+def given_a_machine_with_uat_and_daily_cloud_init(context, series):
+    given_a_machine(
+        context,
+        series,
+        custom_user_data=None,
+        cloud_init_ppa="ppa:cloud-init-dev/daily",
+    )
 
 
 @when(
@@ -154,18 +180,36 @@ def launch_machine(context, series, instance_name, ports=None):
 
 
 @when("I launch a `{instance_name}` machine from the snapshot")
-def launch_machine_from_snapshot(context, instance_name):
+def launch_machine_from_snapshot(context, instance_name, user_data=None):
     now = datetime.datetime.now()
     date_prefix = now.strftime("-%s%f")
     name = CONTAINER_PREFIX + date_prefix + "-" + instance_name
 
-    context.instances[instance_name] = context.config.cloud_manager.launch(
+    inst = context.instances[
+        instance_name
+    ] = context.config.cloud_manager.launch(
         context.series,
         instance_name=name,
         image_name=context.instance_snapshot,
+        user_data=user_data,
     )
-
+    instance_id = context.config.cloud_manager.get_instance_id(inst)
+    logging.info(
+        "--- Instance launched rom snapshot: instance_id=%s, instance_name=%s",
+        instance_id,
+        name,
+    )
     context.add_cleanup(cleanup_instance(context, instance_name))
+
+
+@when(
+    "I launch a `{instance_name}` machine from the snapshot adding this cloud-init user_data"  # noqa
+)
+def launch_machine_from_snapshot_adding_user_data(context, instance_name):
+    custom_user_data = context.text
+    launch_machine_from_snapshot(
+        context, instance_name, user_data=custom_user_data
+    )
 
 
 @when("I reboot the machine")
