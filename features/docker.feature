@@ -19,7 +19,7 @@ Feature: Build docker images with pro services
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && dpkg -i /ua.deb \
+            && ((dpkg -i /ua.deb || true)) \
 
             && apt-get install -f \
 
