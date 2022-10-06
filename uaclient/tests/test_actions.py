@@ -1,8 +1,10 @@
+import logging
+
 import mock
 import pytest
 
 from uaclient import exceptions
-from uaclient.actions import attach_with_token, auto_attach
+from uaclient.actions import attach_with_token, auto_attach, collect_logs
 from uaclient.exceptions import ContractAPIError
 from uaclient.tests.test_cli_auto_attach import fake_instance_factory
 
@@ -105,3 +107,36 @@ class TestAutoAttach:
             auto_attach(cfg, fake_instance_factory())
 
         assert unexpected_error == excinfo.value
+
+
+@mock.patch("uaclient.actions._write_command_output_to_file")
+class TestCollectLogs:
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("os.getuid")
+    @mock.patch("uaclient.system.write_file")
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.actions._get_state_files")
+    @mock.patch("glob.glob")
+    def test_collect_logs_invalid_file(
+        self,
+        m_glob,
+        m_get_state_files,
+        m_load_file,
+        m_write_file,
+        m_getuid,
+        m_write_cmd,
+        caplog_text,
+    ):
+        m_get_state_files.return_value = ["a", "b"]
+        m_load_file.side_effect = [UnicodeError("test"), "test"]
+        m_getuid.return_value = 1
+        m_glob.return_value = []
+
+        with mock.patch("os.path.isfile", return_value=True):
+            collect_logs(cfg=mock.MagicMock(), output_dir="test")
+
+        assert 2 == m_load_file.call_count
+        assert [mock.call("a"), mock.call("b")] == m_load_file.call_args_list
+        assert 1 == m_write_file.call_count
+        assert [mock.call("test/b", "test")] == m_write_file.call_args_list
+        assert "Failed to load file: a\n" in caplog_text()
