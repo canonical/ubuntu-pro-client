@@ -153,6 +153,23 @@ def _write_command_output_to_file(
         system.write_file(filename, out)
 
 
+def _get_state_files(cfg: config.UAConfig):
+    # include cfg log files here because they could be set to non default
+    return [
+        cfg.cfg_path or DEFAULT_CONFIG_FILE,
+        cfg.log_file,
+        cfg.timer_log_file,
+        cfg.daemon_log_file,
+        cfg.data_path("jobs-status"),
+        CLOUD_BUILD_INFO,
+        *(
+            entitlement.repo_list_file_tmpl.format(name=entitlement.name)
+            for entitlement in entitlements.ENTITLEMENT_CLASSES
+            if issubclass(entitlement, entitlements.repo.RepoEntitlement)
+        ),
+    ]
+
+
 def collect_logs(cfg: config.UAConfig, output_dir: str):
     """
     Write all relevant Ubuntu Pro logs to the specified directory
@@ -192,28 +209,19 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             return_codes=[0, 3],
         )
 
-    # include cfg log files here because they could be set to non default
-    state_files = [
-        cfg.cfg_path or DEFAULT_CONFIG_FILE,
-        cfg.log_file,
-        cfg.timer_log_file,
-        cfg.daemon_log_file,
-        cfg.data_path("jobs-status"),
-        CLOUD_BUILD_INFO,
-        *(
-            entitlement.repo_list_file_tmpl.format(name=entitlement.name)
-            for entitlement in entitlements.ENTITLEMENT_CLASSES
-            if issubclass(entitlement, entitlements.repo.RepoEntitlement)
-        ),
-    ]
+    state_files = _get_state_files(cfg)
 
     # also get default logrotated log files
     for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
         if os.path.isfile(f):
             try:
                 content = system.load_file(f)
-            except PermissionError as e:
-                logging.warning(e)
+            except Exception as e:
+                # If we fail to load that file for any reason we will
+                # not break the command, we will instead warn the user
+                # about the issue and try to process the other files
+                logging.warning("Failed to load file: %s\n%s", f, str(e))
+                continue
             content = util.redact_sensitive_logs(content)
             if os.getuid() == 0:
                 # if root, overwrite the original with redacted content
