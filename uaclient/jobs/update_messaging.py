@@ -28,7 +28,6 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_MOTD_SOON_TMPL,
     DISABLED_APT_NO_PKGS_TMPL,
     DISABLED_APT_PKGS_TMPL,
-    TRY_UBUNTU_PRO_BETA,
 )
 
 XENIAL_ESM_URL = "https://ubuntu.com/16-04"
@@ -66,6 +65,21 @@ class ExternalMessage(enum.Enum):
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
     "/usr/lib/update-notifier/update-motd-updates-available"
 )
+
+
+def set_apt_news_flag(cfg: config.UAConfig):
+    if (
+        system.is_current_series_lts()
+        and not system.is_current_series_active_esm()
+        and not cfg.is_attached
+    ):
+        system.create_file(
+            os.path.join(cfg.data_dir, "flags", "show-apt-news")
+        )
+
+
+def clear_apt_news_flag(cfg: config.UAConfig):
+    system.remove_file(os.path.join(cfg.data_dir, "flags", "show-apt-news"))
 
 
 def get_contract_expiry_status(
@@ -311,32 +325,6 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
             ],
         )
 
-    if (
-        system.is_current_series_lts()
-        and not system.is_active_esm(series)
-        and not cfg.is_attached
-    ):
-        _write_template_or_remove(
-            TRY_UBUNTU_PRO_BETA, os.path.join(msg_dir, apps_no_pkg_file)
-        )
-        _write_template_or_remove(
-            TRY_UBUNTU_PRO_BETA, os.path.join(msg_dir, apps_pkg_file)
-        )
-        _write_template_or_remove("", os.path.join(msg_dir, infra_no_pkg_file))
-        _write_template_or_remove("", os.path.join(msg_dir, infra_pkg_file))
-        _write_template_or_remove(
-            "", os.path.join(msg_dir, motd_apps_no_pkg_file)
-        )
-        _write_template_or_remove(
-            "", os.path.join(msg_dir, motd_apps_pkg_file)
-        )
-        _write_template_or_remove(
-            "", os.path.join(msg_dir, motd_infra_no_pkg_file)
-        )
-        _write_template_or_remove(
-            "", os.path.join(msg_dir, motd_infra_pkg_file)
-        )
-
 
 def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
     """Write human-readable messages if ESM is offered on this LTS release.
@@ -396,6 +384,12 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
 
     # Announce ESM availabilty on active ESM LTS releases
     # write_esm_announcement_message(cfg, series)
+
+    if cfg.apt_news:
+        set_apt_news_flag(cfg)
+    else:
+        clear_apt_news_flag(cfg)
+
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     system.subp(

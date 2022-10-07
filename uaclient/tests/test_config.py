@@ -295,6 +295,7 @@ UA_CFG_DICT = {
     "ua_config": {
         "apt_http_proxy": None,
         "apt_https_proxy": None,
+        "apt_news": True,
         "global_apt_http_proxy": None,
         "global_apt_https_proxy": None,
         "ua_apt_http_proxy": None,
@@ -316,7 +317,9 @@ class TestUAConfigKeys:
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
         cfg = FakeConfig()
-        assert None is getattr(cfg, attr_name, None)
+        assert UA_CFG_DICT["ua_config"][attr_name] == getattr(
+            cfg, attr_name, None
+        )
         cfg_non_members = ("apt_http_proxy", "apt_https_proxy")
         if attr_name not in cfg_non_members:
             setattr(cfg, attr_name, attr_name + "value")

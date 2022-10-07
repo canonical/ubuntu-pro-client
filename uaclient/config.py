@@ -49,6 +49,7 @@ UA_CONFIGURABLE_KEYS = (
     "update_messaging_timer",
     "update_status_timer",
     "metering_timer",
+    "apt_news",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -302,6 +303,17 @@ class UAConfig:
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
         self.cfg["ua_config"]["polling_error_retry_delay"] = value
+        self.write_cfg()
+
+    @property
+    def apt_news(self) -> bool:
+        return self.cfg.get("ua_config", {}).get("apt_news", True)
+
+    @apt_news.setter
+    def apt_news(self, value: bool):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["apt_news"] = value
         self.write_cfg()
 
     def check_lock_info(self) -> Tuple[int, str]:
