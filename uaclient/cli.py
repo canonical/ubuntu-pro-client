@@ -49,7 +49,9 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailureReason,
 )
 from uaclient.jobs.update_messaging import (
+    clear_apt_news_flag,
     refresh_motd,
+    set_apt_news_flag,
     update_apt_and_motd_messages,
 )
 
@@ -1022,6 +1024,13 @@ def action_config_set(args, *, cfg, **kwargs):
                     "<value> for interval must be a positive integer."
                 ).format(set_key, set_value)
             )
+    elif set_key == "apt_news":
+        set_value = set_value.lower() == "true"
+        if set_value:
+            set_apt_news_flag(cfg)
+        else:
+            clear_apt_news_flag(cfg)
+
     setattr(cfg, set_key, set_value)
 
 

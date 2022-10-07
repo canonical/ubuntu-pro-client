@@ -57,6 +57,11 @@ OLD_LICENSE_CHECK_MARKER_FILE="/var/lib/ubuntu-advantage/marker-license-check"
 MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 PUBLIC_MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/machine-token.json"
 
+UA_MESSAGES_DIR="/var/lib/ubuntu-advantage/messages"
+APT_ESM_MESSAGE_FILE="$UA_MESSAGES_DIR/apt-pre-invoke-esm-service-status"
+ESM_APPS_APT_MSG_FILES="$UA_MESSAGES_DIR/apt-pre-invoke-no-packages-apps.tmpl $UA_MESSAGES_DIR/apt-pre-invoke-no-packages-apps $UA_MESSAGES_DIR/apt-pre-invoke-packages-apps.tmpl $UA_MESSAGES_DIR/apt-pre-invoke-packages-apps"
+UA_FLAGS_DIR="/var/lib/ubuntu-advantage/flags"
+APT_NEWS_FLAG_FILE="$UA_FLAGS_DIR/show-apt-news"
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
@@ -384,6 +389,23 @@ machine_token_file.write(content=content)
 "
 }
 
+migrate_ubuntu_pro_beta_banner() {
+    PREVIOUS_PKG_VER=$1
+    # This only shipped in 27.11.2~
+    if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge "27.11.2~" \
+       && dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.11.3~"; then
+        # if the banner was present, remove it and add the new flag file which is configurable
+        if [ -f $APT_ESM_MESSAGE_FILE ]; then
+            if cat $APT_ESM_MESSAGE_FILE | grep -q "Try Ubuntu Pro beta"; then
+                rm -f $APT_ESM_MESSAGE_FILE
+                rm -f $ESM_APPS_APT_MSG_FILES
+                mkdir -p $UA_FLAGS_DIR
+                touch $APT_NEWS_FLAG_FILE
+            fi
+        fi
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -462,6 +484,7 @@ case "$1" in
       if [ -f $MACHINE_TOKEN_FILE ] && [ ! -f $PUBLIC_MACHINE_TOKEN_FILE ]; then
           create_public_machine_token_file
       fi
+      migrate_ubuntu_pro_beta_banner $PREVIOUS_PKG_VER
       ;;
 esac
 

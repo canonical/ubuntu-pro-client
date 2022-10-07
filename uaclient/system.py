@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import pathlib
 import re
 import subprocess
 import time
@@ -205,6 +206,11 @@ def is_active_esm(series: str) -> bool:
 
 
 @lru_cache(maxsize=None)
+def is_current_series_active_esm() -> bool:
+    return is_active_esm(get_platform_info()["series"])
+
+
+@lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
 
@@ -348,6 +354,13 @@ def load_file(filename: str, decode: bool = True) -> str:
     with open(filename, "rb") as stream:
         content = stream.read()
     return content.decode("utf-8")
+
+
+def create_file(filename: str, mode: int = 0o644) -> None:
+    logging.debug("Creating file: %s", filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    pathlib.Path(filename).touch()
+    os.chmod(filename, mode)
 
 
 def write_file(filename: str, content: str, mode: int = 0o644) -> None:
