@@ -257,9 +257,10 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+
         Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
         Learn more at https://ubuntu.com/pro
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
         When I run `apt-get upgrade --dry-run` with sudo
@@ -313,9 +314,10 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+
         Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
         Learn more at https:\/\/ubuntu.com\/pro
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
           | release |

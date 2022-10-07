@@ -257,23 +257,31 @@ int run()
 
     json_object_put(hello_req.root_msg);
 
-    jsonrpc_request stats_req;
-    success = read_jsonrpc_request(socket_in, stats_req);
+    jsonrpc_request hook_req;
+    success = read_jsonrpc_request(socket_in, hook_req);
     if (!success) {
         std::cerr << "ua-hook: failed to read hook msg" << std::endl;
         return 0;
     }
-    if (stats_req.method == "org.debian.apt.hooks.install.statistics") {
+    if (hook_req.method == "org.debian.apt.hooks.install.statistics") {
         security_package_counts counts;
-        success = count_security_packages_from_apt_stats_json(stats_req.params, counts);
+        success = count_security_packages_from_apt_stats_json(hook_req.params, counts);
         if (success) {
             std::string message = create_count_message(counts);
             if (message != "") {
                 std::cout << message << std::endl;
             }
         }
+    } else if (hook_req.method == "org.debian.apt.hooks.install.post") {
+        std::ifstream apt_news_flag_file("/var/lib/ubuntu-advantage/flags/show-apt-news");
+        if (apt_news_flag_file.is_open()) {
+            std::cout << std::endl;
+            std::cout << "Try Ubuntu Pro beta with a free personal subscription on up to 5 machines." << std::endl;
+            std::cout << "Learn more at https://ubuntu.com/pro" << std::endl;
+            apt_news_flag_file.close();
+        }
     }
-    json_object_put(stats_req.root_msg);
+    json_object_put(hook_req.root_msg);
 
     jsonrpc_request bye_req;
     success = read_jsonrpc_request(socket_in, bye_req);
