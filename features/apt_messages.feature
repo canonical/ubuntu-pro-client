@@ -128,7 +128,21 @@ Feature: APT Messages
         Calculating upgrade...
         The following packages will be upgraded:
         """
-        When I update contract to use `effectiveTo` as `days=+2`
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": <now+2>
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
         When I run `pro refresh messages` with sudo
         When I run `apt-get upgrade --dry-run` with sudo
         Then stdout matches regexp:
@@ -144,7 +158,16 @@ Feature: APT Messages
 
         The following packages will be upgraded:
         """
-        When I update contract to use `effectiveTo` as `days=-3`
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": <now-3>
+                }
+            }
+        }
+        """
         When I run `pro refresh messages` with sudo
         When I run `apt-get upgrade --dry-run` with sudo
         Then stdout matches regexp:
@@ -161,7 +184,16 @@ Feature: APT Messages
 
         The following packages will be upgraded:
         """
-        When I update contract to use `effectiveTo` as `days=-20`
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": <now-20>
+                }
+            }
+        }
+        """
         When I run `pro refresh messages` with sudo
         When I run `apt-get upgrade --dry-run` with sudo
         Then stdout matches regexp:
@@ -240,23 +272,37 @@ Feature: APT Messages
         The following packages will be upgraded:
           hello
         """
-#        When I update contract to use `effectiveTo` as `days=-20`
-#        When I run `pro refresh messages` with sudo
-#        When I run `apt-get upgrade --dry-run` with sudo
-#        Then stdout matches regexp:
-#        """
-#        Reading package lists...
-#        Building dependency tree...
-#        Reading state information...
-#        Calculating upgrade...
-#
-#        \*Your Ubuntu Pro subscription has EXPIRED\*
-#        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-#          hello
-#        Renew your service at https:\/\/ubuntu.com\/pro
-#
-#        The following packages will be upgraded:
-#        """
+        # When I create the file `/tmp/machine-token-overlay.json` with the following:
+        # """
+        # {
+        #     "machineTokenInfo": {
+        #         "contractInfo": {
+        #             "effectiveTo": <now-20>
+        #         }
+        #     }
+        # }
+        # """
+        # And I append the following on uaclient config:
+        # """
+        # features:
+        #   machine_token_overlay: "/tmp/machine-token-overlay.json"
+        # """
+        # When I run `pro refresh messages` with sudo
+        # When I run `apt-get upgrade --dry-run` with sudo
+        # Then stdout matches regexp:
+        # """
+        # Reading package lists...
+        # Building dependency tree...
+        # Reading state information...
+        # Calculating upgrade...
+
+        # \*Your Ubuntu Pro subscription has EXPIRED\*
+        # The following security updates require Ubuntu Pro with 'esm-apps' enabled:
+        #   hello
+        # Renew your service at https:\/\/ubuntu.com\/pro
+
+        # The following packages will be upgraded:
+        # """
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo

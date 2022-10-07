@@ -1,5 +1,7 @@
+import datetime
 import json
 import os
+import re
 import tempfile
 
 from behave import then, when
@@ -41,11 +43,23 @@ def when_i_create_file_with_content(context, file_path, machine="uaclient"):
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
     if "<cloud>" in text:
         text = text.replace("<cloud>", context.config.cloud)
+
+    date_match = re.search(r"<now(?P<offset>.*)>", text)
+    if date_match:
+        day_offset = date_match.group("offset")
+        offset = 0 if day_offset == "" else int(day_offset)
+        now = datetime.datetime.utcnow()
+        contract_expiry = now + datetime.timedelta(days=offset)
+        new_value = '"' + contract_expiry.strftime("%Y-%m-%dT00:00:00Z") + '"'
+        orig_str_value = "<now" + day_offset + ">"
+        text = text.replace(orig_str_value, new_value)
+
     with tempfile.TemporaryDirectory() as tmpd:
         tmpf_path = os.path.join(tmpd, "tmpfile")
         with open(tmpf_path, mode="w") as tmpf:
             tmpf.write(text)
         context.instances[machine].push_file(tmpf_path, "/tmp/behave_tmpfile")
+
     when_i_run_command_on_machine(
         context,
         "cp /tmp/behave_tmpfile {}".format(file_path),

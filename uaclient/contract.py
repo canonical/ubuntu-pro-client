@@ -152,7 +152,6 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_token=machine_token,
             contract_id=contract_id,
             machine_id=machine_id,
-            detach=False,
         )
 
     def report_machine_activity(self):
@@ -300,7 +299,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token: str,
         contract_id: str,
         machine_id: Optional[str] = None,
-        detach: bool = False,
     ) -> Dict:
         """Request machine token refresh from contract server.
 
@@ -309,8 +307,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         @param contract_id: Unique contract id provided by contract service.
         @param machine_id: Optional unique system machine id. When absent,
             contents of /etc/machine-id will be used.
-        @param detach: Boolean set True if detaching this machine from the
-            active contract. Default is False.
 
         @return: Dict of the JSON response containing refreshed machine-token
         """
@@ -321,23 +317,26 @@ class UAContractClient(serviceclient.UAServiceClient):
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
             contract=contract_id, machine=data["machineId"]
         )
-        kwargs = {"headers": headers}
-        if detach:
-            kwargs["method"] = "DELETE"
-        else:
-            kwargs["method"] = "POST"
-            kwargs["data"] = data
-        response, headers = self.request_url(url, **kwargs)
+        response, headers = self.request_url(
+            url, headers=headers, method="POST", data=data
+        )
         if headers.get("expires"):
             response["expires"] = headers["expires"]
-        if not detach:
-            self.cfg.machine_token_file.write(response)
-            system.get_machine_id.cache_clear()
-            machine_id = response.get("machineTokenInfo", {}).get(
-                "machineId", data.get("machineId")
-            )
-            self.cfg.write_cache("machine-id", machine_id)
+        machine_id = response.get("machineTokenInfo", {}).get(
+            "machineId", data.get("machineId")
+        )
         return response
+
+    def update_files_after_machine_token_update(
+        self, response: Dict[str, Any]
+    ):
+        self.cfg.machine_token_file.write(response)
+        system.get_machine_id.cache_clear()
+        data = self._get_platform_data(None)
+        machine_id = response.get("machineTokenInfo", {}).get(
+            "machineId", data.get("machineId")
+        )
+        self.cfg.write_cache("machine-id", machine_id)
 
     def _get_platform_data(self, machine_id):
         """Return a dict of platform-related data for contract requests"""
@@ -605,9 +604,10 @@ def request_updated_contract(
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
-        contract_client.request_machine_token_update(
+        resp = contract_client.request_machine_token_update(
             machine_token=machine_token, contract_id=contract_id
         )
+        contract_client.update_files_after_machine_token_update(resp)
 
     process_entitlements_delta(
         cfg,
@@ -637,8 +637,11 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     contract_id = (
         orig_token.get("machineTokenInfo", {})
         .get("contractInfo", {})
-        .get("id", "")
+        .get("id", None)
     )
+    if not contract_id:
+        return False
+
     contract_client = UAContractClient(cfg)
     resp = contract_client.get_updated_contract_info(
         machine_token, contract_id
