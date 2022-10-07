@@ -206,6 +206,11 @@ def is_active_esm(series: str) -> bool:
 
 
 @lru_cache(maxsize=None)
+def is_current_series_active_esm() -> bool:
+    return is_active_esm(get_platform_info()["series"])
+
+
+@lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
 
