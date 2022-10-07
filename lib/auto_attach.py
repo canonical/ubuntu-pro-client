@@ -43,7 +43,10 @@ def check_cloudinit_userdata_for_ua_info():
     if init is None:
         return False
 
-    if init.cfg and "ubuntu_advantage" in init.cfg.keys():
+    if init.cfg and (
+        "ubuntu_advantage" in init.cfg.keys()
+        or "ubuntu-advantage" in init.cfg.keys()
+    ):
         return True
 
     return False
