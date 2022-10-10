@@ -273,6 +273,13 @@ Feature: APT Messages
         Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
         Learn more at https:\/\/ubuntu.com\/pro
         """
+        When I run `pro config set apt_news=False` with sudo
+        And I run `apt-get upgrade` with sudo
+        Then stdout does not match regexp:
+        """
+        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Learn more at https:\/\/ubuntu.com\/pro
+        """
         Examples: ubuntu release
           | release |
           | focal   |
