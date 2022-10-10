@@ -1,8 +1,10 @@
 ubuntu-advantage-tools (27.11.3~22.10.1) kinetic; urgency=medium
 
   * New upstream release 27.11.3:
-    - collect-logs: do not fail if a file cannot be read (LP: #1991858)
-    - config: add a flag to remove the APT related news (LP: #1992026)
+    - d/postinst: remove the old Ubuntu Pro message and set up the
+      configurable flag instead
+    - apport-hook: do not fail if a file cannot be read (LP: #1991858)
+    - config: add a flag to remove the APT related news (LP: 1992026)
       (GH: #2288)
     - messaging: move the Ubuntu Pro beta message to the end of the APT output
 
