@@ -9,7 +9,7 @@ Feature: APT Messages
         When I run `apt-get upgrade -y` with sudo
 
         When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -18,7 +18,7 @@ Feature: APT Messages
         """
 
         When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -27,7 +27,7 @@ Feature: APT Messages
         """
 
         When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -37,7 +37,7 @@ Feature: APT Messages
 
         When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
         When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -47,7 +47,7 @@ Feature: APT Messages
 
         When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
         When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -57,7 +57,7 @@ Feature: APT Messages
 
         When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
         When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -68,7 +68,7 @@ Feature: APT Messages
         When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
         When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
         When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         5 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -76,7 +76,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get upgrade -y` with sudo
+        When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -106,26 +106,36 @@ Feature: APT Messages
         When I run `apt-get -y upgrade` with sudo
         When I run `apt-get -y autoremove` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
+        When I run `apt upgrade` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
           .*
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I attach `contract_token` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -144,13 +154,18 @@ Feature: APT Messages
           machine_token_overlay: "/tmp/machine-token-overlay.json"
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
 
         CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
         Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
@@ -169,13 +184,18 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
 
         CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
         Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
@@ -195,13 +215,18 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
@@ -211,13 +236,18 @@ Feature: APT Messages
         The following packages will be upgraded:
         """
         When I run `apt-get upgrade -y` with sudo
-        When I run `apt-get upgrade` with sudo
+        When I run `apt upgrade` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         Renew your service at https:\/\/ubuntu.com\/pro
@@ -226,13 +256,18 @@ Feature: APT Messages
         """
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
+        When I run `apt upgrade` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         Receive additional future security updates with Ubuntu Pro.
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
@@ -250,26 +285,42 @@ Feature: APT Messages
         When I run `apt-get -y autoremove` with sudo
         When I run `apt-get install hello` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
+        When I run `apt upgrade` with sudo
         Then I will see the following on stdout:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;)
+        # Use 'pro config set apt_news=false' to hide this and future APT news.
+        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-
-        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
-        Learn more at https://ubuntu.com/pro
+        """
+        When I run `apt-get upgrade` with sudo
+        Then stdout does not match regexp:
+        """
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         """
         When I attach `contract_token` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following packages will be upgraded:
           hello
         """
@@ -307,24 +358,29 @@ Feature: APT Messages
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade` with sudo
+        When I run `apt upgrade` with sudo
         Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
-
-        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
-        Learn more at https:\/\/ubuntu.com\/pro
         """
-        When I run `pro config set apt_news=False` with sudo
-        And I run `apt-get upgrade` with sudo
+        When I run `pro config set apt_news=false` with sudo
+        And I run `apt upgrade` with sudo
         Then stdout does not match regexp:
         """
-        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
-        Learn more at https:\/\/ubuntu.com\/pro
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         """
         Examples: ubuntu release
           | release |
