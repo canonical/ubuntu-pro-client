@@ -68,11 +68,7 @@ UPDATE_NOTIFIER_MOTD_SCRIPT = (
 
 
 def set_apt_news_flag(cfg: config.UAConfig):
-    if (
-        system.is_current_series_lts()
-        and not system.is_current_series_active_esm()
-        and not cfg.is_attached
-    ):
+    if system.is_current_series_lts():
         system.create_file(
             os.path.join(cfg.data_dir, "flags", "show-apt-news")
         )
