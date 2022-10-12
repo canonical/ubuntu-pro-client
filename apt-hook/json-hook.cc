@@ -272,12 +272,14 @@ int run()
                 std::cout << message << std::endl;
             }
         }
-    } else if (hook_req.method == "org.debian.apt.hooks.install.post") {
+    } else if (hook_req.method == "org.debian.apt.hooks.install.pre-prompt") {
         std::ifstream apt_news_flag_file("/var/lib/ubuntu-advantage/flags/show-apt-news");
         if (apt_news_flag_file.is_open()) {
-            std::cout << std::endl;
-            std::cout << "Try Ubuntu Pro beta with a free personal subscription on up to 5 machines." << std::endl;
-            std::cout << "Learn more at https://ubuntu.com/pro" << std::endl;
+            std::cout << "#" << std::endl;
+            std::cout << "# News about significant security updates, features and services will" << std::endl;
+            std::cout << "# appear here to raise awareness and perhaps tease /r/Linux ;)" << std::endl;
+            std::cout << "# Use 'pro config set apt_news=false' to hide this and future APT news." << std::endl;
+            std::cout << "#" << std::endl;
             apt_news_flag_file.close();
         }
     }
