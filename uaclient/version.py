@@ -64,7 +64,7 @@ def get_last_known_candidate() -> Optional[str]:
                 os.makedirs(UAC_TMP_PATH, exist_ok=True)
                 with open(CANDIDATE_CACHE_PATH, "w") as f:
                     f.write(candidate_version)
-                os.chmod(CANDIDATE_CACHE_PATH, 0o777)
+                os.chmod(CANDIDATE_CACHE_PATH, 0o644)
         except Exception:
             pass
 
