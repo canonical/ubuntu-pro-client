@@ -63,6 +63,8 @@ ESM_APPS_APT_MSG_FILES="$UA_MESSAGES_DIR/apt-pre-invoke-no-packages-apps.tmpl $U
 UA_FLAGS_DIR="/var/lib/ubuntu-advantage/flags"
 APT_NEWS_FLAG_FILE="$UA_FLAGS_DIR/show-apt-news"
 
+CANDIDATE_CACHE_PATH="/tmp/ubuntu-advantage/candidate-version"
+
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
@@ -406,6 +408,12 @@ migrate_ubuntu_pro_beta_banner() {
     fi
 }
 
+correct_candidate_version_stamp_permissions() {
+    if [ -f $CANDIDATE_CACHE_PATH ]; then
+        chmod 0644 $CANDIDATE_CACHE_PATH
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -485,6 +493,7 @@ case "$1" in
           create_public_machine_token_file
       fi
       migrate_ubuntu_pro_beta_banner $PREVIOUS_PKG_VER
+      correct_candidate_version_stamp_permissions
       ;;
 esac
 
