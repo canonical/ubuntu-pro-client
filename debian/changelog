@@ -1,6 +1,6 @@
 ubuntu-advantage-tools (27.11.3~22.10.1) kinetic; urgency=medium
 
-  * New upstream release 27.11.3: (LP: #TODO)
+  * New upstream release 27.11.3: (LP: #1993006)
     - d/postinst: remove the Ubuntu Pro beta apt message and set up the
       configurable flag for "APT news" instead
     - collect-logs: do not fail if a file cannot be read (LP: #1991858)
@@ -9,7 +9,7 @@ ubuntu-advantage-tools (27.11.3~22.10.1) kinetic; urgency=medium
     - messaging: only show "APT news" when using apt binary (GH: #2288)
     - version: fix permissions on tmp version file (GH: #2294)
 
- -- Grant Orndorff <grant.orndorff@canonical.com>  Wed, 12 Oct 2022 10:47:33 -0400
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 14 Oct 2022 16:55:27 -0400
 
 ubuntu-advantage-tools (27.11.2~22.10.1) kinetic; urgency=medium
 
