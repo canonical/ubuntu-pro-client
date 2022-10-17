@@ -14,7 +14,7 @@ from uaclient.apt import (
     get_apt_cache_policy_for_package,
     get_apt_cache_time,
 )
-from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_TMP_PATH
+from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.system import subp
 
@@ -56,17 +56,19 @@ def get_last_known_candidate() -> Optional[str]:
         not os.path.exists(CANDIDATE_CACHE_PATH)
         or os.stat(CANDIDATE_CACHE_PATH).st_mtime < last_apt_cache_update
     ):
+        candidate_version = None
         try:
             policy = get_apt_cache_policy_for_package("ubuntu-advantage-tools")
             match = re.search(CANDIDATE_REGEX, policy)
             if match:
                 candidate_version = match.group("candidate")
-                os.makedirs(UAC_TMP_PATH, exist_ok=True)
+                os.makedirs(UAC_RUN_PATH, exist_ok=True)
                 with open(CANDIDATE_CACHE_PATH, "w") as f:
                     f.write(candidate_version)
-                os.chmod(CANDIDATE_CACHE_PATH, 0o644)
+                return candidate_version
         except Exception:
-            pass
+            if candidate_version is not None:
+                return candidate_version
 
     try:
         with open(CANDIDATE_CACHE_PATH, "r") as f:
