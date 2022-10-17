@@ -231,19 +231,18 @@ Feature: Command behaviour when unattached
         Given a `<release>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
         When I reboot the machine
-        Then I verify that no files exist matching `/tmp/ubuntu-advantage/candidate-version`
-        When I run `pro status` as non-root
+        Then I verify that no files exist matching `/run/ubuntu-advantage/candidate-version`
+        When I run `pro status` with sudo
         Then I will see the following on stderr
         """
         """
-        And I verify that files exist matching `/tmp/ubuntu-advantage/candidate-version`
+        And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
         # We forge a candidate to see results
-        When I delete the file `/tmp/ubuntu-advantage/candidate-version`
-        And I create the file `/tmp/ubuntu-advantage/candidate-version` with the following
+        When I delete the file `/run/ubuntu-advantage/candidate-version`
+        And I create the file `/run/ubuntu-advantage/candidate-version` with the following
         """
         99.9.9
         """
-        And I run `chmod 777 /tmp/ubuntu-advantage/candidate-version` with sudo
         And I run `pro status` as non-root
         Then stderr matches regexp:
         """
