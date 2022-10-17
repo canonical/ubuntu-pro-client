@@ -13,7 +13,7 @@ ubuntu-advantage-tools (27.11.3~22.10.1) kinetic; urgency=medium
     - config: add a flag to disable "APT news" (LP: 1992026)
     - messaging: add announcement of "APT news" to apt output
     - messaging: only show "APT news" when using apt binary (GH: #2288)
-    - version: fix permissions on tmp version file (GH: #2294)
+    - version: use /run instead of /tmp for version file (GH: #2294)
 
  -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 14 Oct 2022 16:55:27 -0400
 
