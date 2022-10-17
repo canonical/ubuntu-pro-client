@@ -59,9 +59,12 @@ class TestGetLastKnownCandidate:
         m_open.side_effect = OSError()
         assert None is get_last_known_candidate()
 
+    @mock.patch("os.makedirs")
     @mock.patch("uaclient.version.get_apt_cache_policy_for_package")
     @mock.patch("os.path.exists", return_value=False)
-    def test_create_cache_before_returning(self, _m_exists, m_policy):
+    def test_create_cache_before_returning(
+        self, _m_exists, m_policy, _m_makedirs
+    ):
         m_policy.return_value = """
             Installed: 1.1.2
             Candidate: 1.2.3
@@ -83,7 +86,7 @@ class TestGetLastKnownCandidate:
             Version table:
         """
         m_open.side_effect = OSError()
-        assert None is get_last_known_candidate()
+        assert "1.2.3" == get_last_known_candidate()
 
 
 class TestCheckForNewVersion:
