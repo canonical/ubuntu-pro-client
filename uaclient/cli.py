@@ -34,6 +34,10 @@ from uaclient import (
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.api.api import call_api
+from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+    FullAutoAttachOptions,
+    _full_auto_attach,
+)
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -1373,8 +1377,7 @@ def action_api(args, *, cfg):
 
 
 @assert_root
-@assert_lock_file("pro auto-attach")
-def action_auto_attach(args, *, cfg):
+def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
     if cfg.is_attached:
         raise exceptions.AlreadyAttachedOnPROError()
 
@@ -1382,12 +1385,17 @@ def action_auto_attach(args, *, cfg):
     if skip_auto_attach:
         return 0
 
-    instance = actions.get_cloud_instance(cfg)
-
     try:
-        actions.auto_attach(cfg, instance)
+        _full_auto_attach(
+            FullAutoAttachOptions(),
+            cfg=cfg,
+            mode=event_logger.EventLoggerMode.CLI,
+        )
     except exceptions.UrlError:
         event.info(messages.ATTACH_FAILURE.msg)
+        return 1
+    except exceptions.UserFacingError as e:
+        event.info(e.msg)
         return 1
     else:
         _post_cli_attach(cfg)

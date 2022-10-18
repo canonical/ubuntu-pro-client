@@ -3,24 +3,17 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import messages
+from uaclient import event_logger, exceptions
+from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+    FullAutoAttachOptions,
+)
 from uaclient.cli import (
     action_auto_attach,
     auto_attach_parser,
     get_parser,
     main,
 )
-from uaclient.exceptions import (
-    AlreadyAttachedOnPROError,
-    CloudFactoryError,
-    CloudFactoryNoCloudError,
-    CloudFactoryNonViableCloudError,
-    CloudFactoryUnsupportedCloudError,
-    LockHeldError,
-    NonAutoAttachImageError,
-    NonRootUserError,
-    UserFacingError,
-)
+from uaclient.exceptions import AlreadyAttachedOnPROError, NonRootUserError
 
 M_PATH = "uaclient.cli."
 M_ID_PATH = "uaclient.clouds.identity."
@@ -47,12 +40,6 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
         action_auto_attach(mock.MagicMock(), cfg=cfg)
 
 
-def fake_instance_factory():
-    m_instance = mock.Mock()
-    m_instance.identity_doc = "pkcs7-validated-by-backend"
-    return m_instance
-
-
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
@@ -70,19 +57,6 @@ class TestActionAutoAttach:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
-    @mock.patch("uaclient.system.subp")
-    def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
-        """Check inability to auto-attach if operation holds lock file."""
-        cfg = FakeConfig()
-        cfg.write_cache("lock", "123:pro disable")
-        with pytest.raises(LockHeldError) as err:
-            action_auto_attach(mock.MagicMock(), cfg=cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        assert (
-            "Unable to perform: pro auto-attach.\n"
-            "Operation in progress: pro disable (pid:123)"
-        ) == err.value.msg
-
     def test_error_if_attached(
         self,
         _m_getuid,
@@ -96,15 +70,10 @@ class TestActionAutoAttach:
         "features_override", ((None), ({"disable_auto_attach": True}))
     )
     @mock.patch(M_PATH + "_post_cli_attach")
-    @mock.patch(M_PATH + "actions.auto_attach")
-    @mock.patch(
-        M_ID_PATH + "cloud_instance_factory",
-        side_effect=fake_instance_factory,
-    )
+    @mock.patch(M_PATH + "_full_auto_attach")
     def test_disable_auto_attach_config(
         self,
-        m_cloud_instance_factory,
-        m_auto_attach,
+        m_full_auto_attach,
         m_post_cli_attach,
         _m_getuid,
         features_override,
@@ -118,67 +87,48 @@ class TestActionAutoAttach:
 
         assert 0 == ret
         if features_override:
-            assert [] == m_cloud_instance_factory.call_args_list
-            assert [] == m_auto_attach.call_args_list
+            assert [] == m_full_auto_attach.call_args_list
             assert [] == m_post_cli_attach.call_args_list
         else:
-            assert [mock.call()] == m_cloud_instance_factory.call_args_list
             assert [
-                mock.call(mock.ANY, mock.ANY)
-            ] == m_auto_attach.call_args_list
+                mock.call(
+                    FullAutoAttachOptions(enable=None, enable_beta=None),
+                    cfg=cfg,
+                    mode=event_logger.EventLoggerMode.CLI,
+                )
+            ] == m_full_auto_attach.call_args_list
             assert [mock.call(mock.ANY)] == m_post_cli_attach.call_args_list
 
     @pytest.mark.parametrize(
-        "cloud_factory_error, expected_error_cls, expected_error_msg",
+        "faa_side_effect, event_info",
         [
             (
-                CloudFactoryNoCloudError("test"),
-                UserFacingError,
-                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
+                exceptions.UrlError(cause="cause"),
+                "Failed to attach machine. See https://ubuntu.com/pro",
             ),
-            (
-                CloudFactoryNonViableCloudError("test"),
-                UserFacingError,
-                messages.UNSUPPORTED_AUTO_ATTACH,
-            ),
-            (
-                CloudFactoryUnsupportedCloudError("test"),
-                NonAutoAttachImageError,
-                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-                    cloud_type="test"
-                ),
-            ),
-            (
-                CloudFactoryNoCloudError("test"),
-                UserFacingError,
-                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
-            ),
-            (
-                CloudFactoryError("test"),
-                UserFacingError,
-                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
-            ),
+            (exceptions.UserFacingError("msg"), "msg"),
         ],
     )
-    @mock.patch(M_ID_PATH + "cloud_instance_factory")
-    def test_handle_cloud_factory_errors(
+    @mock.patch(M_PATH + "event")
+    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "_full_auto_attach")
+    def test_handle_full_auto_attach_errors(
         self,
-        m_cloud_instance_factory,
+        m_full_auto_attach,
+        m_post_cli_attach,
+        m_event,
         _m_getuid,
-        cloud_factory_error,
-        expected_error_cls,
-        expected_error_msg,
+        faa_side_effect,
+        event_info,
         FakeConfig,
+        capsys,
     ):
-        """Non-supported clouds will error."""
-        m_cloud_instance_factory.side_effect = cloud_factory_error
+        m_full_auto_attach.side_effect = faa_side_effect
         cfg = FakeConfig()
 
-        with pytest.raises(expected_error_cls) as excinfo:
-            action_auto_attach(mock.MagicMock(), cfg=cfg)
-
-        if expected_error_msg:
-            assert expected_error_msg == str(excinfo.value)
+        assert 1 == action_auto_attach(mock.MagicMock(), cfg=cfg)
+        assert [mock.call(event_info)] == m_event.info.call_args_list
+        assert [] == m_post_cli_attach.call_args_list
 
 
 class TestParser:

@@ -67,14 +67,17 @@ def full_auto_attach(options: FullAutoAttachOptions) -> FullAutoAttachResult:
 
 
 def _full_auto_attach(
-    options: FullAutoAttachOptions, cfg: UAConfig
+    options: FullAutoAttachOptions,
+    cfg: UAConfig,
+    *,
+    mode: event_logger.EventLoggerMode = event_logger.EventLoggerMode.JSON
 ) -> FullAutoAttachResult:
     try:
         with lock.SpinLock(
             cfg=cfg,
             lock_holder="pro.api.u.pro.attach.auto.full_auto_attach.v1",
         ):
-            ret = _full_auto_attach_in_lock(options, cfg)
+            ret = _full_auto_attach_in_lock(options, cfg, mode=mode)
     except Exception as e:
         lock.clear_lock_file_if_present()
         raise e
@@ -82,9 +85,11 @@ def _full_auto_attach(
 
 
 def _full_auto_attach_in_lock(
-    options: FullAutoAttachOptions, cfg: UAConfig
+    options: FullAutoAttachOptions,
+    cfg: UAConfig,
+    mode: event_logger.EventLoggerMode,
 ) -> FullAutoAttachResult:
-    event.set_event_mode(event_logger.EventLoggerMode.JSON)
+    event.set_event_mode(mode)
 
     if cfg.is_attached:
         raise exceptions.AlreadyAttachedError(
