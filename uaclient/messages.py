@@ -795,21 +795,20 @@ REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     "Use `pro enable realtime-kernel --beta` to acknowledge the real-time"
     " kernel is currently in beta and comes with no support.",
 )
-REALTIME_BETA_PROMPT = """\
-The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
-PREEMPT_RT patchset integrated for x86_64 and ARM64.
+REALTIME_PROMPT = """\
+The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
 {bold}\
-This will change your kernel. You will need to manually configure grub to
-revert back to your original kernel after enabling real-time.\
+This will change your kernel. To revert to your original kernel, you will need
+to make the change manually.\
 {end_bold}
 
 Do you want to continue? [ default = Yes ]: (Y/n) """.format(
     bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
 )
 REALTIME_PRE_DISABLE_PROMPT = """\
-This will disable the Real-Time Kernel entitlement but the Real-Time Kernel\
- will remain installed.
+This will disable Ubuntu Pro updates to the real-time kernel on this machine.
+The real-time kernel will remain installed.\
 Are you sure? (y/N) """
 
 REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(

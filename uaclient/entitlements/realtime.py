@@ -16,11 +16,10 @@ REALTIME_KERNEL_DOCS_URL = "https://ubuntu.com/realtime-kernel"
 
 class RealtimeKernelEntitlement(repo.RepoEntitlement):
     name = "realtime-kernel"
-    title = "Real-Time Kernel"
-    description = "Beta-version Ubuntu Kernel with PREEMPT_RT patches"
+    title = "Real-time kernel"
+    description = "Ubuntu kernel with PREEMPT_RT patches integrated"
     help_doc_url = REALTIME_KERNEL_DOCS_URL
     repo_key_file = "ubuntu-advantage-realtime-kernel.gpg"
-    is_beta = True
     apt_noninteractive = True
     supports_access_only = True
 
@@ -74,7 +73,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": messages.REALTIME_BETA_PROMPT,
+                        "msg": messages.REALTIME_PROMPT,
                         "assume_yes": self.assume_yes,
                         "default": True,
                     },

@@ -75,7 +75,7 @@ esm-infra        yes        yes        yes           Expanded Security Maintenan
 fips             no         no         no            NIST-certified core packages
 fips-updates     no         no         no            NIST-certified core packages with priority security updates
 livepatch        yes        yes        no            Canonical Livepatch service
-realtime-kernel  no         no         no            Beta-version Ubuntu Kernel with PREEMPT_RT patches
+realtime-kernel  no         no         no            Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no         no         no            Security Updates for the Robot Operating System
 ros-updates      no         no         no            All Updates for the Robot Operating System
 """  # noqa: E501
@@ -93,7 +93,7 @@ esm-infra        yes        Expanded Security Maintenance for Infrastructure
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
-realtime-kernel  no         Beta-version Ubuntu Kernel with PREEMPT_RT patches
+realtime-kernel  no         Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no         Security Updates for the Robot Operating System
 ros-updates      no         All Updates for the Robot Operating System
 
@@ -117,7 +117,7 @@ esm-infra        no        {dash}         Expanded Security Maintenance for Infr
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
 livepatch        no        {dash}         Canonical Livepatch service
-realtime-kernel  no        {dash}         Beta-version Ubuntu Kernel with PREEMPT_RT patches
+realtime-kernel  no        {dash}         Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no        {dash}         Security Updates for the Robot Operating System
 ros-updates      no        {dash}         All Updates for the Robot Operating System
 {notices}{features}
@@ -199,7 +199,7 @@ SERVICES_JSON_ALL = [
         "blocked_by": [],
     },
     {
-        "description": "Beta-version Ubuntu Kernel with PREEMPT_RT patches",
+        "description": "Ubuntu kernel with PREEMPT_RT patches integrated",
         "description_override": None,
         "entitled": "no",
         "name": "realtime-kernel",
@@ -789,14 +789,6 @@ class TestActionStatus:
 
         beta_services = [
             {
-                "auto_enabled": "no",
-                "available": "no",
-                "description": "Beta-version Ubuntu Kernel with PREEMPT_RT"
-                " patches",
-                "entitled": "no",
-                "name": "realtime-kernel",
-            },
-            {
                 "auto_enabled": "yes",
                 "available": "yes",
                 "description": "Expanded Security Maintenance for Applications",  # noqa
@@ -849,6 +841,14 @@ class TestActionStatus:
                 "description": "Canonical Livepatch service",
                 "entitled": "yes",
                 "name": "livepatch",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "Ubuntu kernel with PREEMPT_RT patches"
+                " integrated",
+                "entitled": "no",
+                "name": "realtime-kernel",
             },
         ]
 

@@ -40,7 +40,7 @@ Disable an Ubuntu Pro service.
 Arguments:
   service              the name(s) of the Ubuntu Pro services to disable. One
                        of: cc-eal, cis, esm-infra, fips, fips-updates,
-                       livepatch
+                       livepatch, realtime-kernel
 
 Flags:
   -h, --help           show this help message and exit
