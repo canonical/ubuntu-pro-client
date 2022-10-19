@@ -91,7 +91,7 @@ Feature: Attached status
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
-        realtime-kernel +yes      +n/a      +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +disabled +Security Updates for the Robot Operating System
         ros-updates     +yes      +disabled +All Updates for the Robot Operating System
 
@@ -132,7 +132,7 @@ Feature: Attached status
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
-        realtime-kernel +yes      +n/a      +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
         usg             +yes      +disabled +Security compliance and audit tools
@@ -170,7 +170,7 @@ Feature: Attached status
         fips            +yes      +n/a      +NIST-certified core packages
         fips-updates    +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
-        realtime-kernel +yes      +n/a      +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
         usg             +yes      +n/a      +Security compliance and audit tools

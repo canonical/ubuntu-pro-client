@@ -53,24 +53,18 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             This command must be run as root (try using sudo).
             """
-        Then I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
-        And stderr matches regexp:
-            """
-            Cannot enable unknown service 'realtime-kernel'.
-            """
-        When I run `pro enable realtime-kernel --beta` `with sudo` and stdin `y`
+        When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
             One moment, checking your subscription first
-            The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
-            PREEMPT_RT patchset integrated for x86_64 and ARM64.
+            The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
-            .*This will change your kernel. You will need to manually configure grub to
-            revert back to your original kernel after enabling real-time..*
+            .*This will change your kernel. To revert to your original kernel, you will need
+            to make the change manually..*
 
             Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
-            Installing Real-Time Kernel packages
-            Real-Time Kernel enabled
+            Installing Real-time kernel packages
+            Real-time kernel enabled
             A reboot is required to complete install.
             """
         When I run `apt-cache policy ubuntu-realtime` as non-root
@@ -82,11 +76,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
             """
-        When I verify that running `pro enable realtime-kernel --beta` `with sudo` exits `1`
+        When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
         Then stdout matches regexp
             """
             One moment, checking your subscription first
-            Real-Time Kernel is already enabled.
+            Real-time kernel is already enabled.
             See: sudo pro status
             """
         When I reboot the machine
@@ -98,8 +92,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
-            This will disable the Real-Time Kernel entitlement but the Real-Time Kernel will remain installed.
+            This will disable Ubuntu Pro updates to the real-time kernel on this machine.
+            The real-time kernel will remain installed.
             """
+
         Examples: ubuntu release
             | release |
             | jammy   |
