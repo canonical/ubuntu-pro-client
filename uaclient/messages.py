@@ -12,6 +12,20 @@ class NamedMessage:
         # useful if the message represents an error.
         self.additional_info = None  # type: Optional[Dict[str, str]]
 
+    def __eq__(self, other):
+        return (
+            self.msg == other.msg
+            and self.name == other.name
+            and self.additional_info == other.additional_info
+        )
+
+    def __repr__(self):
+        return "NamedMessage({}, {}, {})".format(
+            self.name.__repr__(),
+            self.msg.__repr__(),
+            self.additional_info.__repr__(),
+        )
+
 
 class FormattedNamedMessage(NamedMessage):
     def __init__(self, name: str, msg: str):
@@ -1041,3 +1055,13 @@ Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
 Learn more at https://ubuntu.com/pro"""
 
 INVALID_STATE_FILE = "Invalid state file: {}"
+
+ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
+    "entitlements-not-enabled",
+    "failed to enable some services",
+)
+
+AUTO_ATTACH_DISABLED_ERROR = NamedMessage(
+    "auto-attach-disabled",
+    "features.disable_auto_attach set in config",
+)
