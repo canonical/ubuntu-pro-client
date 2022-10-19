@@ -1,6 +1,8 @@
+from typing import List, Tuple
+
+from uaclient import messages
 from uaclient.exceptions import (
     AlreadyAttachedError,
-    BetaServiceError,
     ConnectivityError,
     ContractAPIError,
     EntitlementNotFoundError,
@@ -13,7 +15,6 @@ from uaclient.exceptions import (
 
 __all__ = [
     "AlreadyAttachedError",
-    "BetaServiceError",
     "ConnectivityError",
     "ContractAPIError",
     "EntitlementNotFoundError",
@@ -25,11 +26,24 @@ __all__ = [
 ]
 
 
-class EntitlementNotEnabledError(UserFacingError):
-    """An exception raised when enabling of an entitlement fails"""
+class EntitlementsNotEnabledError(UserFacingError):
+    def __init__(
+        self, failed_services: List[Tuple[str, messages.NamedMessage]]
+    ):
+        info_dicts = [
+            {"name": f[0], "code": f[1].name, "title": f[1].msg}
+            for f in failed_services
+        ]
+        super().__init__(
+            messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
+            messages.ENTITLEMENTS_NOT_ENABLED_ERROR.name,
+            additional_info={"services": info_dicts},
+        )
 
-    pass
 
-
-class IncompatibleEntitlementsDetected(UserFacingError):
-    pass
+class AutoAttachDisabledError(UserFacingError):
+    def __init__(self):
+        super().__init__(
+            messages.AUTO_ATTACH_DISABLED_ERROR.msg,
+            messages.AUTO_ATTACH_DISABLED_ERROR.name,
+        )

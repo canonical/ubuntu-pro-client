@@ -1,5 +1,5 @@
 import textwrap
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from urllib import error
 
 from uaclient import messages
@@ -21,7 +21,7 @@ class UserFacingError(Exception):
         self,
         msg: str,
         msg_code: Optional[str] = None,
-        additional_info: Optional[Dict[str, str]] = None,
+        additional_info: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.msg = msg
         self.msg_code = msg_code
@@ -129,19 +129,6 @@ class ProxyInvalidUrl(UserFacingError):
             msg=messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy).msg,
             msg_code=messages.NOT_SETTING_PROXY_INVALID_URL.name,
         )
-
-
-class BetaServiceError(UserFacingError):
-    """
-    An exception to be raised trying to interact with beta service
-    without the right parameters.
-
-    :param msg:
-        Takes a single parameter, which is the beta service error message that
-        should be emitted before exiting non-zero.
-    """
-
-    pass
 
 
 class NonAutoAttachImageError(UserFacingError):
