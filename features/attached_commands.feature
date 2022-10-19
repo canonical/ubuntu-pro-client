@@ -248,7 +248,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
           livepatch     +(yes|no)   +Canonical Livepatch service
-          realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+          realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System
           """
@@ -584,7 +584,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
-         - realtime-kernel: Beta-version Ubuntu Kernel with PREEMPT_RT patches
+         - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
            \(https://ubuntu.com/realtime-kernel\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)
@@ -648,6 +648,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
+           \(https://ubuntu.com/realtime-kernel\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
@@ -665,6 +667,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
+           \(https://ubuntu.com/realtime-kernel\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
@@ -684,7 +688,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
-         - realtime-kernel: Beta-version Ubuntu Kernel with PREEMPT_RT patches
+         - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
            \(https://ubuntu.com/realtime-kernel\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)

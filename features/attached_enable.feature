@@ -200,11 +200,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                         |
-           | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
-           | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
-           | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
-           | jammy   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
+           | release | valid_services                                                          |
+           | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch, realtime-kernel. |
+           | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch, realtime-kernel. |
+           | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, realtime-kernel, usg. |
+           | jammy   | cc-eal, esm-infra, fips, fips-updates, livepatch, realtime-kernel, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -224,7 +224,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch, realtime-kernel.
             """
         And I verify that running `pro enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -234,7 +234,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar, ros'.
-        Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+        Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch, realtime-kernel.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -269,36 +269,36 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable foobar` `as non-root` exits `1`
         And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
+        """
+        This command must be run as root (try using sudo).
+        """
         And I verify that running `pro enable foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar'.
-        Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+        Try cc-eal, esm-infra, fips, fips-updates, livepatch, realtime-kernel, usg.
         """
         And I verify that running `pro enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
+        """
+        One moment, checking your subscription first
+        """
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar, ros'.
-        Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+        Try cc-eal, esm-infra, fips, fips-updates, livepatch, realtime-kernel, usg.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Ubuntu Pro: ESM Infra is already enabled.
-            See: sudo pro status
-            """
+        """
+        One moment, checking your subscription first
+        Ubuntu Pro: ESM Infra is already enabled.
+        See: sudo pro status
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
@@ -561,7 +561,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stderr:
             """
             Cannot enable unknown service 'usg'.
-            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch, realtime-kernel.
             """
 
         Examples: cis service
