@@ -72,7 +72,7 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
-        realtime-kernel +no        +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
 
@@ -140,7 +140,7 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
-        realtime-kernel +no        +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +Security Updates for the Robot Operating System
         ros-updates     +no        +All Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
@@ -187,6 +187,7 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
+        realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
@@ -202,7 +203,7 @@ Feature: Unattached status
         fips            +no        +NIST-certified core packages
         fips-updates    +no        +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
-        realtime-kernel +yes       +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +Security Updates for the Robot Operating System
         ros-updates     +no        +All Updates for the Robot Operating System
         usg             +no        +Security compliance and audit tools
@@ -223,7 +224,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
-        realtime-kernel +yes       +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
 
         FEATURES
         allow_beta: True
@@ -264,7 +265,7 @@ Feature: Unattached status
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-        realtime-kernel +no        +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
         ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
         """
@@ -322,7 +323,7 @@ Feature: Unattached status
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-        realtime-kernel +no        +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +yes       +no           +Security Updates for the Robot Operating System
         ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
@@ -378,7 +379,7 @@ Feature: Unattached status
         fips            +no        +yes       +no           +NIST-certified core packages
         fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-        realtime-kernel +yes       +yes       +no           +Beta-version Ubuntu Kernel with PREEMPT_RT patches
+        realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +yes       +no           +Security Updates for the Robot Operating System
         ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
         usg             +no        +yes       +no           +Security compliance and audit tools

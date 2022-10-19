@@ -159,6 +159,59 @@ class TestEnableServicesByName:
 
 class TestFullAutoAttachV1:
     @mock.patch(
+        "uaclient.actions.enable_entitlement_by_name",
+    )
+    @mock.patch("uaclient.actions.get_cloud_instance")
+    @mock.patch("uaclient.actions.auto_attach")
+    def test_error_invalid_ent_names(
+        self,
+        _auto_attach,
+        _get_cloud_instance,
+        m_enable_ent_by_name,
+        FakeConfig,
+    ):
+        cfg = FakeConfig(root_mode=True)
+
+        def enable_ent_side_effect(cfg, name, assume_yes, allow_beta):
+            if name != "wrong":
+                return (True, None)
+
+            return (False, None)
+
+        m_enable_ent_by_name.side_effect = enable_ent_side_effect
+        options = FullAutoAttachOptions(
+            enable=["esm-infra", "cis"],
+            enable_beta=["esm-apps", "realtime-kernel", "wrong"],
+        )
+        with pytest.raises(exceptions.EntitlementsNotEnabledError):
+            _full_auto_attach(options, cfg)
+
+        assert 5 == m_enable_ent_by_name.call_count
+
+    @mock.patch(
+        "uaclient.actions.enable_entitlement_by_name",
+        return_value=(False, None),
+    )
+    @mock.patch("uaclient.actions.get_cloud_instance")
+    @mock.patch("uaclient.actions.auto_attach")
+    def test_error_full_auto_attach_fail(
+        self,
+        _auto_attach,
+        _get_cloud_instance,
+        enable_ent_by_name,
+        FakeConfig,
+    ):
+        cfg = FakeConfig(root_mode=True)
+        options = FullAutoAttachOptions(
+            enable=["esm-infra", "fips"],
+            enable_beta=["esm-apps", "ros"],
+        )
+        with pytest.raises(exceptions.EntitlementsNotEnabledError):
+            _full_auto_attach(options, cfg)
+
+        assert 4 == enable_ent_by_name.call_count
+
+    @mock.patch(
         "uaclient.lock.SpinLock.__enter__",
         side_effect=[
             exceptions.LockHeldError("request", "holder", 10),

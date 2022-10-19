@@ -62,13 +62,11 @@ livepatch:
 
 realtime-kernel:
   help: |
-    The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
-    PREEMPT_RT patchset integrated for x86_64 and ARM64. It services extreme
-    latency-dependent use cases and provides deterministic response times to
-    service events. By meeting stringent preemption specifications, the
-    real-time kernel is suitable for telco applications and embedded devices
-    in industrial automation and robotics. To enroll in the beta program, visit
-    https://ubuntu.com/realtime-kernel
+    The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+    It services latency-dependent use cases by providing deterministic response times.
+    The real-time kernel meets stringent preemption specifications and is suitable for
+    telco applications and dedicated devices in industrial automation and robotics.
+    The real-time kernel is currently incompatible with FIPS and Livepatch. 
 
 ros:
   help: |
