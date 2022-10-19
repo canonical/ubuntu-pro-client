@@ -88,7 +88,7 @@ result = initiate()
 ```
 
 #### Expected return object:
-`uaclient.api.u.pro.atatch.magic.initiate.v1.MagicAttachInitiateResult`
+`uaclient.api.u.pro.attach.magic.initiate.v1.MagicAttachInitiateResult`
 
 |Field Name|Type|Description|
 |-|-|-|
@@ -138,7 +138,7 @@ result = wait(options)
 ```
 
 #### Expected return object:
-`uaclient.api.u.pro.atatch.magic.wait.v1.MagicAttachWaitResult`
+`uaclient.api.u.pro.attach.magic.wait.v1.MagicAttachWaitResult`
 
 |Field Name|Type|Description|
 |-|-|-|
@@ -193,7 +193,7 @@ result = revoke(options)
 ```
 
 #### Expected return object:
-`uaclient.api.u.pro.atatch.magic.wait.v1.MagicAttachRevokeResult`
+`uaclient.api.u.pro.attach.magic.wait.v1.MagicAttachRevokeResult`
 
 No data present in the result.
 
@@ -234,7 +234,7 @@ result = should_auto_attach()
 ```
 
 #### Expected return object:
-`uaclient.api.u.pro.atatch.auto.should_auto_attach.v1.ShouldAutoAttachResult`
+`uaclient.api.u.pro.attach.auto.should_auto_attach.v1.ShouldAutoAttachResult`
 
 |Field Name|Type|Description|
 |-|-|-|
@@ -276,22 +276,18 @@ result = full_auto_attach(options)
 ```
 
 #### Expected return object:
-`uaclient.api.u.pro.atatch.auto.full_auto_attach.v1.FullAutoAttachResult`
+`uaclient.api.u.pro.attach.auto.full_auto_attach.v1.FullAutoAttachResult`
 
 No data present in the result.
 
 ### Raised Exceptions
 
 - `AlreadyAttachedError`: raised if running on a machine which is already attached to a Pro subscription
-- `BetaServiceError`: raised when a beta service is found in the `enable` list, instead of in the
-  `enable_beta` list
+- `AutoAttachDisabledError`: raised if `disable_auto_attach: true` in uaclient.conf
 - `ConnectivityError`: raised if it is not possible to connect to the Contracts Server
 - `ContractAPIError`: raised if there is an unexpected error in the Contracts Server interaction
-- `EntitlementNotEnabledError`: raised if the client fails to enable any of the entitlements
+- `EntitlementsNotEnabledError`: raised if the client fails to enable any of the entitlements
   (whether present in any of the lists or listed in the contract)
-- `EntitlementNotFoundError`: raised when an invalid entitlement is present in any of the lists
-- `IncompatibleEntitlementsDetected`: raised if any two entitlements present in any of the lists are mutually
-  incompatible
 - `LockHeldError`: raised if another Client process is holding the lock on the machine
 - `NonAutoAttachImageError`: raised if the cloud where the system is running does not support auto-attach
 - `UserFacingError`: raised if:
