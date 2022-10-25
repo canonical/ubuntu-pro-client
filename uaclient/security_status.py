@@ -171,7 +171,8 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
     return ua_info
 
 
-def get_livepatch_fixed_cves() -> List[Dict[str, str]]:
+# Yeah Any is bad, but so is python<3.8 without TypedDict
+def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
     try:
         out, _err = subp([LIVEPATCH_CMD, "status", "--format", "json"])
     except ProcessExecutionError:
