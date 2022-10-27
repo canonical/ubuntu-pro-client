@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import messages
+from uaclient import event_logger, messages
 from uaclient.api import exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -222,6 +222,13 @@ class TestFullAutoAttachV1:
             _full_auto_attach(FullAutoAttachOptions, FakeConfig())
 
     @pytest.mark.parametrize(
+        "mode",
+        [
+            pytest.param(e.value, id=e.name)
+            for e in event_logger.EventLoggerMode
+        ],
+    )
+    @pytest.mark.parametrize(
         [
             "options",
             "is_attached",
@@ -234,8 +241,7 @@ class TestFullAutoAttachV1:
             "expected_ret",
         ],
         [
-            # already attached
-            (
+            pytest.param(
                 FullAutoAttachOptions(),
                 True,
                 False,
@@ -247,9 +253,9 @@ class TestFullAutoAttachV1:
                     account_name="test_account"
                 ).msg,
                 None,
+                id="already_attached",
             ),
-            # disable_auto_attach: true
-            (
+            pytest.param(
                 FullAutoAttachOptions(),
                 False,
                 True,
@@ -259,9 +265,9 @@ class TestFullAutoAttachV1:
                 pytest.raises(exceptions.AutoAttachDisabledError),
                 messages.AUTO_ATTACH_DISABLED_ERROR.msg,
                 None,
+                id="disable_auto_attach_true",
             ),
-            # success no options
-            (
+            pytest.param(
                 FullAutoAttachOptions(),
                 False,
                 False,
@@ -271,9 +277,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
+                id="success_no_options",
             ),
-            # success enable
-            (
+            pytest.param(
                 FullAutoAttachOptions(enable=["cis"]),
                 False,
                 False,
@@ -283,9 +289,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
+                id="success_enable",
             ),
-            # success enable_beta
-            (
+            pytest.param(
                 FullAutoAttachOptions(enable_beta=["cis"]),
                 False,
                 False,
@@ -295,9 +301,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
+                id="success_enable_beta",
             ),
-            # success enable and enable_beta
-            (
+            pytest.param(
                 FullAutoAttachOptions(enable=["fips"], enable_beta=["cis"]),
                 False,
                 False,
@@ -310,9 +316,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
+                id="success_enable_and_enable_beta",
             ),
-            # fail to enable
-            (
+            pytest.param(
                 FullAutoAttachOptions(enable=["fips"], enable_beta=["cis"]),
                 False,
                 False,
@@ -328,6 +334,7 @@ class TestFullAutoAttachV1:
                 pytest.raises(exceptions.EntitlementsNotEnabledError),
                 messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
                 None,
+                id="fail_to_enable",
             ),
         ],
     )
@@ -350,6 +357,7 @@ class TestFullAutoAttachV1:
         raise_expectation,
         expected_error_message,
         expected_ret,
+        mode,
         FakeConfig,
     ):
         if is_attached:
@@ -361,7 +369,7 @@ class TestFullAutoAttachV1:
             enable_services_by_name_side_effect
         )
         with raise_expectation as e:
-            ret = _full_auto_attach_in_lock(options, cfg)
+            ret = _full_auto_attach_in_lock(options, cfg, mode)
         assert m_auto_attach.call_args_list == expected_auto_attach_call_args
         assert (
             m_enable_services_by_name.call_args_list

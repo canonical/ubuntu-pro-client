@@ -1,12 +1,14 @@
-from contextlib import contextmanager
+from contextlib import AbstractContextManager
 
 
-@contextmanager
-def does_not_raise():
-    """Context manager to parametrize tests raising and not raising exceptions
+class does_not_raise(AbstractContextManager):
+    """Reentrant noop context manager.
+    Useful to parametrize tests raising and not raising exceptions.
+
     Note: In python-3.7+, this can be substituted by contextlib.nullcontext
     More info:
     https://docs.pytest.org/en/6.2.x/example/parametrize.html?highlight=does_not_raise#parametrizing-conditional-raising
+
     Example:
     --------
     >>> @pytest.mark.parametrize(
@@ -20,4 +22,6 @@ def does_not_raise():
     >>>     with expectation:
     >>>         assert (0 / example_input) is not None
     """
-    yield
+
+    def __exit__(self, *args, **kwargs):
+        pass

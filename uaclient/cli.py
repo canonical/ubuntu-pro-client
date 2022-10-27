@@ -33,6 +33,7 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import util, version
+from uaclient.api import exceptions as api_exceptions
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -1378,13 +1379,6 @@ def action_api(args, *, cfg):
 
 @assert_root
 def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
-    if cfg.is_attached:
-        raise exceptions.AlreadyAttachedOnPROError()
-
-    skip_auto_attach = actions.should_disable_auto_attach(cfg)
-    if skip_auto_attach:
-        return 0
-
     try:
         _full_auto_attach(
             FullAutoAttachOptions(),
@@ -1394,6 +1388,10 @@ def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
     except exceptions.UrlError:
         event.info(messages.ATTACH_FAILURE.msg)
         return 1
+    except api_exceptions.AutoAttachDisabledError:
+        return 0
+    except exceptions.AlreadyAttachedError as e:
+        raise exceptions.AlreadyAttachedOnPROError() from e
     except exceptions.UserFacingError as e:
         event.info(e.msg)
         return 1
