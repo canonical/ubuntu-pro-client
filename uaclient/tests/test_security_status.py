@@ -57,6 +57,7 @@ def mock_package(
     mock_package.versions = []
     mock_package.is_installed = bool(installed_version)
 
+    mock_package.installed = None
     if installed_version:
         mock_package.installed = installed_version
         installed_version.package = mock_package
@@ -66,6 +67,7 @@ def mock_package(
         version.package = mock_package
         mock_package.versions.append(version)
 
+    mock_package.candidate = None
     if mock_package.versions:
         mock_package.candidate = max(mock_package.versions)
 
@@ -89,6 +91,9 @@ MOCK_ORIGINS = {
     ),
     "archive_universe": mock_origin(
         "universe", "example-updates", "Ubuntu", "archive.ubuntu.com"
+    ),
+    "archive_backports": mock_origin(
+        "universe", "example-backports", "Ubuntu", "archive.ubuntu.com"
     ),
 }
 
@@ -249,12 +254,24 @@ class TestSecurityStatus:
                             "2.0", [MOCK_ORIGINS["standard-security"]]
                         ),
                         "security.ubuntu.com",
-                    )
+                    ),
+                    (
+                        mock_version(
+                            "2.1", [MOCK_ORIGINS["standard-security"]]
+                        ),
+                        "security.ubuntu.com",
+                    ),
                 ],
                 "esm-apps": [
                     (
                         mock_version("3.0", [MOCK_ORIGINS["apps"]]),
                         "esm.ubuntu.com",
+                    )
+                ],
+                "standard-updates": [
+                    (
+                        mock_version("2.0", [MOCK_ORIGINS["archive_main"]]),
+                        "archive.ubuntu.com",
                     )
                 ],
             },
@@ -275,20 +292,27 @@ class TestSecurityStatus:
                 other_versions=[mock_version("1.0", [MOCK_ORIGINS["infra"]])],
             ),
             mock_package(
-                name="update-available",
+                name="infra-update-available",
                 installed_version=mock_version(
                     "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
                 ),
                 other_versions=[expected_return["esm-infra"][0][0]],
             ),
             mock_package(
-                name="not-a-security-update",
+                name="security-update-available",
                 installed_version=mock_version(
                     "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
                 ),
                 other_versions=[
-                    mock_version("2.0", [MOCK_ORIGINS["archive_main"]])
+                    expected_return["standard-security"][0][0],
                 ],
+            ),
+            mock_package(
+                name="not-a-security-update",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[expected_return["standard-updates"][0][0]],
             ),
             mock_package(
                 name="more-than-one-update",
@@ -296,8 +320,18 @@ class TestSecurityStatus:
                     "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
                 ),
                 other_versions=[
-                    expected_return["standard-security"][0][0],
+                    expected_return["standard-security"][1][0],
                     expected_return["esm-apps"][0][0],
+                ],
+            ),
+            mock_package(
+                name="upgrade-is-backports-boo",
+                installed_version=mock_version(
+                    "1.0",
+                    [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_universe"]],
+                ),
+                other_versions=[
+                    mock_version("2.0", [MOCK_ORIGINS["archive_backports"]])
                 ],
             ),
         ]
@@ -309,15 +343,23 @@ class TestSecurityStatus:
             assert expected_return == filtered_versions
             assert (
                 filtered_versions["esm-infra"][0][0].package.name
-                == "update-available"
+                == "infra-update-available"
             )
             assert (
                 filtered_versions["standard-security"][0][0].package.name
+                == "security-update-available"
+            )
+            assert (
+                filtered_versions["standard-security"][1][0].package.name
                 == "more-than-one-update"
             )
             assert (
                 filtered_versions["esm-apps"][0][0].package.name
                 == "more-than-one-update"
+            )
+            assert (
+                filtered_versions["standard-updates"][0][0].package.name
+                == "not-a-security-update"
             )
 
     @mock.patch(M_PATH + "get_reboot_status")
