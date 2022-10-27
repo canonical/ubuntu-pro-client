@@ -223,10 +223,7 @@ class TestFullAutoAttachV1:
 
     @pytest.mark.parametrize(
         "mode",
-        [
-            pytest.param(e.value, id=e.name)
-            for e in event_logger.EventLoggerMode
-        ],
+        list(map(lambda e: e.value, event_logger.EventLoggerMode)),
     )
     @pytest.mark.parametrize(
         [
@@ -241,7 +238,8 @@ class TestFullAutoAttachV1:
             "expected_ret",
         ],
         [
-            pytest.param(
+            # already attached
+            (
                 FullAutoAttachOptions(),
                 True,
                 False,
@@ -253,9 +251,9 @@ class TestFullAutoAttachV1:
                     account_name="test_account"
                 ).msg,
                 None,
-                id="already_attached",
             ),
-            pytest.param(
+            # disable_auto_attach: true
+            (
                 FullAutoAttachOptions(),
                 False,
                 True,
@@ -265,9 +263,9 @@ class TestFullAutoAttachV1:
                 pytest.raises(exceptions.AutoAttachDisabledError),
                 messages.AUTO_ATTACH_DISABLED_ERROR.msg,
                 None,
-                id="disable_auto_attach_true",
             ),
-            pytest.param(
+            # success no options
+            (
                 FullAutoAttachOptions(),
                 False,
                 False,
@@ -277,9 +275,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
-                id="success_no_options",
             ),
-            pytest.param(
+            # success enable
+            (
                 FullAutoAttachOptions(enable=["cis"]),
                 False,
                 False,
@@ -289,9 +287,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
-                id="success_enable",
             ),
-            pytest.param(
+            # success enable_beta
+            (
                 FullAutoAttachOptions(enable_beta=["cis"]),
                 False,
                 False,
@@ -301,9 +299,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
-                id="success_enable_beta",
             ),
-            pytest.param(
+            # success enable and enable_beta
+            (
                 FullAutoAttachOptions(enable=["fips"], enable_beta=["cis"]),
                 False,
                 False,
@@ -316,9 +314,9 @@ class TestFullAutoAttachV1:
                 does_not_raise(),
                 None,
                 FullAutoAttachResult(),
-                id="success_enable_and_enable_beta",
             ),
-            pytest.param(
+            # fail to enable
+            (
                 FullAutoAttachOptions(enable=["fips"], enable_beta=["cis"]),
                 False,
                 False,
@@ -334,7 +332,6 @@ class TestFullAutoAttachV1:
                 pytest.raises(exceptions.EntitlementsNotEnabledError),
                 messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
                 None,
-                id="fail_to_enable",
             ),
         ],
     )

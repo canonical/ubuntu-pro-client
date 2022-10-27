@@ -1,4 +1,7 @@
-from contextlib import AbstractContextManager
+try:  # Drop try-except after xenial EOL
+    from contextlib import AbstractContextManager
+except ImportError:
+    AbstractContextManager = object
 
 
 class does_not_raise(AbstractContextManager):
@@ -22,6 +25,9 @@ class does_not_raise(AbstractContextManager):
     >>>     with expectation:
     >>>         assert (0 / example_input) is not None
     """
+
+    def __enter__(self):
+        return self
 
     def __exit__(self, *args, **kwargs):
         pass
