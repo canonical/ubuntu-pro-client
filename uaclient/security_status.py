@@ -115,7 +115,7 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
     For ESM-[Infra|Apps] packages, first checks if Pro is attached. If this is
     the case, also check for availability of the service.
     """
-    if service_name == "standard-security" or (
+    if service_name in ("standard-security", "standard-updates") or (
         ua_info["attached"] and service_name in ua_info["enabled_services"]
     ):
         return UpdateStatus.AVAILABLE.value
@@ -129,23 +129,35 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
 def filter_security_updates(
     packages: List[apt_package.Package],
 ) -> DefaultDict[str, List[Tuple[apt_package.Version, str]]]:
-    """Filters a list of packages looking for available security updates.
+    """Filters a list of packages looking for available updates.
 
-    Checks if the package has a greater version available, and if the origin of
-    this version matches any of the series' security repositories.
+    All versions greater than the installed one are reported, based on where
+    it is provided, including ESM pockets, excluding backports.
     """
     result = defaultdict(list)
 
     for package in packages:
-        for version in package.versions:
-            if version > package.installed:
-                for origin in version.origins:
-                    service = get_origin_information_to_service_map().get(
-                        (origin.origin, origin.archive)
-                    )
-                    if service:
-                        result[service].append((version, origin.site))
-                        break  # No need to loop through all the origins
+        if package.is_installed:
+            for version in package.versions:
+                if version > package.installed:
+                    counted_as_security = False
+                    for origin in version.origins:
+                        service = get_origin_information_to_service_map().get(
+                            (origin.origin, origin.archive)
+                        )
+                        if service:
+                            result[service].append((version, origin.site))
+                            counted_as_security = True
+                            break  # No need to loop through all the origins
+                    # Also no need to report backports at least for now...
+                    expected_origin = version.origins[0]
+                    if (
+                        not counted_as_security
+                        and "backports" not in expected_origin.archive
+                    ):
+                        result["standard-updates"].append(
+                            (version, expected_origin.site)
+                        )
 
     return result
 
@@ -270,6 +282,30 @@ def get_reboot_status():
     return RebootStatus.REBOOT_REQUIRED
 
 
+def create_updates_list(
+    security_upgradable_versions: DefaultDict[
+        str, List[Tuple[apt_package.Version, str]]
+    ],
+    ua_info: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    updates = []
+    for service, version_list in security_upgradable_versions.items():
+        status = get_update_status(service, ua_info)
+        for version, origin in version_list:
+            updates.append(
+                {
+                    "package": version.package.name,
+                    "version": version.version,
+                    "service_name": service,
+                    "status": status,
+                    "origin": origin,
+                    "download_size": version.size,
+                }
+            )
+
+    return updates
+
+
 def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     """Returns the status of security updates on a system.
 
@@ -283,27 +319,16 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     ua_info = get_ua_info(cfg)
 
     summary = {"ua": ua_info}  # type: Dict[str, Any]
-    packages = []
     packages_by_origin = get_installed_packages_by_origin()
 
     installed_packages = packages_by_origin["all"]
     summary["num_installed_packages"] = len(installed_packages)
 
     security_upgradable_versions = filter_security_updates(installed_packages)
+    # This version of security-status only cares about security updates
+    security_upgradable_versions["standard-updates"] = []
 
-    for service, version_list in security_upgradable_versions.items():
-        status = get_update_status(service, ua_info)
-        for version, origin in version_list:
-            packages.append(
-                {
-                    "package": version.package.name,
-                    "version": version.version,
-                    "service_name": service,
-                    "status": status,
-                    "origin": origin,
-                    "download_size": version.size,
-                }
-            )
+    updates = create_updates_list(security_upgradable_versions, ua_info)
 
     summary["num_main_packages"] = len(packages_by_origin["main"])
     summary["num_restricted_packages"] = len(packages_by_origin["restricted"])
@@ -330,7 +355,7 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     return {
         "_schema_version": "0.1",
         "summary": summary,
-        "packages": packages,
+        "packages": updates,
         "livepatch": {"fixed_cves": get_livepatch_fixed_cves()},
     }
 
@@ -502,13 +527,13 @@ def security_status(cfg: UAConfig):
     security_upgradable_versions_infra = filter_security_updates(
         packages_by_origin["main"]
         + packages_by_origin["restricted"]
-        + packages_by_origin["esm-infra"]
+        + packages_by_origin["esm-infra"],
     )["esm-infra"]
 
     security_upgradable_versions_apps = filter_security_updates(
         packages_by_origin["universe"]
         + packages_by_origin["multiverse"]
-        + packages_by_origin["esm-apps"]
+        + packages_by_origin["esm-apps"],
     )["esm-apps"]
 
     _print_package_summary(packages_by_origin)
