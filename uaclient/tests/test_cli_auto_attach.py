@@ -14,6 +14,7 @@ from uaclient.cli import (
     auto_attach_parser,
     get_parser,
     main,
+    main_error_handler,
 )
 
 M_PATH = "uaclient.cli."
@@ -80,15 +81,6 @@ class TestActionAutoAttach:
         ] == m_full_auto_attach.call_args_list
         assert [mock.call(cfg)] == m_post_cli_attach.call_args_list
 
-    def test_error_if_attached(
-        self,
-        _m_getuid,
-        FakeConfig,
-    ):
-        cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(exceptions.AlreadyAttachedOnPROError):
-            action_auto_attach(mock.MagicMock(), cfg=cfg)
-
     @pytest.mark.parametrize(
         "faa_side_effect, event_info, exit_code",
         [
@@ -113,7 +105,6 @@ class TestActionAutoAttach:
         event_info: Optional[str],
         exit_code,
         FakeConfig,
-        capsys,
     ):
         m_full_auto_attach.side_effect = faa_side_effect
         cfg = FakeConfig()
@@ -125,6 +116,34 @@ class TestActionAutoAttach:
         else:
             assert [] == m_event.info.call_args_list
         assert [] == m_post_cli_attach.call_args_list
+
+    @pytest.mark.parametrize(
+        "api_side_effect",
+        [exceptions.UserFacingError, exceptions.AlreadyAttachedError],
+    )
+    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "_full_auto_attach")
+    def test_uncaught_errors_are_handled(
+        self,
+        m_full_auto_attach,
+        m_post_cli_attach,
+        _m_getuid,
+        api_side_effect,
+        capsys,
+        FakeConfig,
+    ):
+        m_full_auto_attach.side_effect = api_side_effect
+        cfg = FakeConfig()
+        with pytest.raises(SystemExit):
+            assert 1 == main_error_handler(action_auto_attach)(
+                mock.MagicMock(), cfg
+            )
+        _out, err = capsys.readouterr()
+        assert (
+            "Unexpected error(s) occurred.\n"
+            "For more details, see the log: /var/log/ubuntu-advantage.log\n"
+            "To file a bug run: ubuntu-bug ubuntu-advantage-tools\n" == err
+        )
 
 
 class TestParser:

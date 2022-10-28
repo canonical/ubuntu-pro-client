@@ -1390,8 +1390,6 @@ def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
         return 1
     except api_exceptions.AutoAttachDisabledError:
         return 0
-    except exceptions.AlreadyAttachedError as e:
-        raise exceptions.AlreadyAttachedOnPROError() from e
     else:
         _post_cli_attach(cfg)
         return 0
