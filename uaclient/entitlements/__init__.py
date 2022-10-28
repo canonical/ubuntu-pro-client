@@ -83,6 +83,23 @@ def valid_services(
     )
 
 
+def order_entitlements_for_enabling(
+    cfg: UAConfig, ents: List[str]
+) -> List[str]:
+    """
+    A function to sort entitlments for enabling that preserves invalid names
+    """
+    valid_ents_ordered = entitlements_enable_order(cfg)
+
+    def sort_order_with_nonexistent_last(ent):
+        try:
+            return valid_ents_ordered.index(ent)
+        except ValueError:
+            return len(valid_ents_ordered)
+
+    return sorted(ents, key=lambda ent: sort_order_with_nonexistent_last(ent))
+
+
 @enum.unique
 class SortOrder(enum.Enum):
     REQUIRED_SERVICES = object()

@@ -184,3 +184,63 @@ class TestSortEntitlements:
                 "ent6",
                 "ent4",
             ] == entitlements.entitlements_enable_order(cfg=FakeConfig())
+
+    def test_order_entitlements_for_enabling(self, FakeConfig):
+        m_cls_2 = mock.MagicMock()
+        m_obj_2 = m_cls_2.return_value
+        type(m_obj_2).required_services = mock.PropertyMock(return_value=())
+        type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
+
+        m_cls_1 = mock.MagicMock()
+        m_obj_1 = m_cls_1.return_value
+        type(m_obj_1).required_services = mock.PropertyMock(
+            return_value=(m_cls_2,)
+        )
+        type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
+
+        m_cls_3 = mock.MagicMock()
+        m_obj_3 = m_cls_3.return_value
+        type(m_obj_3).required_services = mock.PropertyMock(
+            return_value=(m_cls_1, m_cls_2)
+        )
+        type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
+
+        m_cls_5 = mock.MagicMock()
+        m_obj_5 = m_cls_5.return_value
+        type(m_obj_5).required_services = mock.PropertyMock(return_value=())
+        type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
+
+        m_cls_6 = mock.MagicMock()
+        m_obj_6 = m_cls_6.return_value
+        type(m_obj_6).required_services = mock.PropertyMock(return_value=())
+        type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
+
+        m_cls_4 = mock.MagicMock()
+        m_obj_4 = m_cls_4.return_value
+        type(m_obj_4).required_services = mock.PropertyMock(
+            return_value=(m_cls_5, m_cls_6)
+        )
+        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
+
+        m_entitlements = [
+            m_cls_1,
+            m_cls_2,
+            m_cls_3,
+            m_cls_4,
+            m_cls_5,
+            m_cls_6,
+        ]
+
+        with mock.patch.object(
+            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        ):
+            assert [
+                "ent2",
+                "ent5",
+                "ent4",
+                "notthere",
+                "ent6typo",
+            ] == entitlements.order_entitlements_for_enabling(
+                cfg=FakeConfig(),
+                ents=["ent4", "notthere", "ent2", "ent6typo", "ent5"],
+            )
