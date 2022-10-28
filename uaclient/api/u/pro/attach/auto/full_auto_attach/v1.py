@@ -6,7 +6,7 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.entitlements import entitlements_enable_order
+from uaclient.entitlements import order_entitlements_for_enabling
 from uaclient.entitlements.entitlement_status import CanEnableFailure
 
 event = event_logger.get_event_logger()
@@ -35,9 +35,7 @@ def _enable_services_by_name(
     cfg: UAConfig, services: List[str], allow_beta: bool
 ) -> List[Tuple[str, messages.NamedMessage]]:
     failed_services = []
-    for name in entitlements_enable_order(cfg):
-        if name not in services:
-            continue
+    for name in order_entitlements_for_enabling(cfg, services):
         try:
             ent_ret, reason = actions.enable_entitlement_by_name(
                 cfg, name, assume_yes=True, allow_beta=allow_beta
