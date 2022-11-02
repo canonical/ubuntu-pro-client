@@ -697,3 +697,41 @@ class TestGetProEnvironment:
             "UA_LOG_LEVEL": "DEBUG",
         }
         assert expected == util.get_pro_environment()
+
+
+class TestDeduplicateArches:
+    @pytest.mark.parametrize(
+        ["arches", "expected"],
+        [
+            ([], []),
+            (["anything"], ["anything"]),
+            (["amd64"], ["amd64"]),
+            (["amd64", "x86_64"], ["amd64"]),
+            (
+                ["amd64", "ppc64el", "ppc64le", "s390x", "x86_64"],
+                ["amd64", "ppc64el", "s390x"],
+            ),
+            (["amd64", "i386", "i686", "x86_64"], ["amd64", "i386"]),
+            (
+                ["amd64", "i386", "i686", "x86_64", "armhf", "arm64"],
+                ["amd64", "arm64", "armhf", "i386"],
+            ),
+            (
+                [
+                    "x86_64",
+                    "amd64",
+                    "i686",
+                    "i386",
+                    "ppc64le",
+                    "aarch64",
+                    "arm64",
+                    "armv7l",
+                    "armhf",
+                    "s390x",
+                ],
+                ["amd64", "arm64", "armhf", "i386", "ppc64el", "s390x"],
+            ),
+        ],
+    )
+    def test_deduplicate_arches(self, arches, expected):
+        assert expected == util.deduplicate_arches(arches)
