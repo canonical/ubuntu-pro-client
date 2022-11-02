@@ -50,7 +50,7 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
                 "xenial",
                 "16.04 LTS (Xenial Xerus)",
                 "CC EAL2 is not available for platform arm64.\n"
-                "Supported platforms are: x86_64, ppc64le, s390x.",
+                "Supported platforms are: amd64, ppc64el, s390x.",
             ),
             (
                 "s390x",
