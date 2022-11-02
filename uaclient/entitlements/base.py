@@ -554,12 +554,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             affordance_arches is not None
             and platform["arch"] not in affordance_arches
         ):
+            deduplicated_arches = util.deduplicate_arches(affordance_arches)
             return (
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_ARCH.format(
                     title=self.title,
                     arch=platform["arch"],
-                    supported_arches=", ".join(affordance_arches),
+                    supported_arches=", ".join(deduplicated_arches),
                 ),
             )
         affordance_series = affordances.get("series", None)
