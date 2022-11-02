@@ -562,7 +562,7 @@ class TestLivepatchEntitlementCanEnable:
             assert CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = (
                 "Livepatch is not available for platform ppc64le.\n"
-                "Supported platforms are: x86_64."
+                "Supported platforms are: amd64."
             )
             assert msg == reason.message.msg
 
