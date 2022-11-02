@@ -575,6 +575,16 @@ def after_all(context):
             else:
                 context.config.cloud_api.delete_image(image)
 
+    if context.config.destroy_instances:
+        try:
+            key_pair = context.config.cloud_manager.api.key_pair
+            os.remove(key_pair.private_key_path)
+            os.remove(key_pair.public_key_path)
+        except Exception as e:
+            logging.error(
+                "Failed to delete instance ssh keys:\n{}".format(str(e))
+            )
+
 
 def capture_container_as_image(
     container_id: str, image_name: str, cloud_api: pycloudlib.cloud.BaseCloud
