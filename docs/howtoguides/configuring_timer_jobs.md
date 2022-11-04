@@ -16,7 +16,6 @@ You should see output which include the timer jobs:
 
 ```
 update_messaging_timer  21600
-update_status_timer     43200
 metering_timer          14400
 ```
 
@@ -26,10 +25,10 @@ metering_timer          14400
 Each job has a configuration option of the form `<job_name>_timer`,
 which can be set with `pro config`.  The expected value is a positive
 integer for the number of seconds in the interval. For example, to
-change the `update_status job` timer interval to run every 24 hours, run:
+change the `update_messaging job` timer interval to run every 24 hours, run:
 
 ```console
-$ sudo pro config set update_status_timer=86400
+$ sudo pro config set update_messaging_timer=86400
 ```
 
 
