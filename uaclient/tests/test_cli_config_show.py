@@ -115,7 +115,6 @@ ua_apt_https_proxy      None
 global_apt_http_proxy   http://global_apt_http_proxy
 global_apt_https_proxy  http://global_apt_https_proxy
 update_messaging_timer  None
-update_status_timer     None
 metering_timer          None
 apt_news                True
 """

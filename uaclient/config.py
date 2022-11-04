@@ -47,7 +47,6 @@ UA_CONFIGURABLE_KEYS = (
     "global_apt_http_proxy",
     "global_apt_https_proxy",
     "update_messaging_timer",
-    "update_status_timer",
     "metering_timer",
     "apt_news",
 )
@@ -240,17 +239,6 @@ class UAConfig:
         self.cfg["ua_config"]["global_apt_https_proxy"] = value
         self.cfg["ua_config"]["apt_https_proxy"] = None
         UAConfig.global_apt_https_proxy.fget.cache_clear()  # type: ignore
-        self.write_cfg()
-
-    @property
-    def update_status_timer(self) -> Optional[int]:
-        return self.cfg.get("ua_config", {}).get("update_status_timer")
-
-    @update_status_timer.setter
-    def update_status_timer(self, value: int):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["update_status_timer"] = value
         self.write_cfg()
 
     @property
@@ -492,7 +480,6 @@ class UAConfig:
     def process_config(self):
         for prop in (
             "update_messaging_timer",
-            "update_status_timer",
             "metering_timer",
         ):
             value = getattr(self, prop)

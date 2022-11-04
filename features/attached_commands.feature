@@ -747,15 +747,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """"
         "update_messaging":
         """
-        And stdout matches regexp:
-        """"
-        "update_status":
-        """
         When I run `pro config show` with sudo
         Then stdout matches regexp:
         """
         update_messaging_timer  +21600
-        update_status_timer     +43200
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `pro config set update_messaging_timer=0` with sudo
@@ -764,10 +759,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout does not match regexp:
         """"
         "update_messaging":
-        """
-        And stdout matches regexp:
-        """"
-        "update_status":
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -783,7 +774,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           http_proxy: null
           https_proxy: null
           update_messaging_timer: 14400
-          update_status_timer: 0
           metering_timer: 0
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -791,10 +781,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """"
         "update_messaging":
-        """
-        And stdout does not match regexp:
-        """"
-        "update_status":
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -810,14 +796,13 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           http_proxy: null
           https_proxy: null
           update_messaging_timer: -10
-          update_status_timer: notanumber
-          metering_timer: 0
+          metering_timer: notanumber
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that running `grep "Invalid value for update_messaging interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
-        And I verify that running `grep "Invalid value for update_status interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
+        And I verify that running `grep "Invalid value for metering interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
         And I verify that the timer interval for `update_messaging` is `21600`
-        And I verify that the timer interval for `update_status` is `43200`
+        And I verify that the timer interval for `metering` is `14400`
 
         Examples: ubuntu release
            | release |
