@@ -60,7 +60,6 @@ class TestActionRefresh:
         cfg = FakeConfig()
 
         cfg.update_messaging_timer = 0
-        cfg.update_status_timer = 0
         cfg.metering_timer = 0
 
         if expect_unattached_error:

@@ -1071,7 +1071,6 @@ def action_config_set(args, *, cfg, **kwargs):
 
     elif set_key in (
         "update_messaging_timer",
-        "update_status_timer",
         "metering_timer",
     ):
         try:

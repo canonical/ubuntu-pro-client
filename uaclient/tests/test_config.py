@@ -303,7 +303,6 @@ UA_CFG_DICT = {
         "http_proxy": None,
         "https_proxy": None,
         "update_messaging_timer": None,
-        "update_status_timer": None,
         "metering_timer": None,
     }
 }
@@ -927,7 +926,6 @@ class TestProcessConfig:
                     "http_proxy": http_proxy,
                     "https_proxy": https_proxy,
                     "update_messaging_timer": 21600,
-                    "update_status_timer": 43200,
                     "metering_timer": 0,
                 },
                 "data_dir": tmpdir.strpath,
@@ -1025,7 +1023,6 @@ class TestProcessConfig:
             {
                 "ua_config": {
                     "update_messaging_timer": "wrong",
-                    "update_status_timer": 43200,
                 }
             }
         )

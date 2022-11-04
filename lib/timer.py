@@ -12,11 +12,9 @@ from uaclient.config import UAConfig
 # from uaclient.jobs.eol_status import check_eol_and_update
 from uaclient.jobs.metering import metering_enabled_resources
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
-from uaclient.jobs.update_state import update_status
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
-UPDATE_STATUS_INTERVAL = 43200  # 12 hours
 METERING_INTERVAL = 14400  # 4 hours
 EOL_STATUS_INTERVAL = 604800  # weekly
 
@@ -103,7 +101,6 @@ UACLIENT_JOBS = [
         update_apt_and_motd_messages,
         UPDATE_MESSAGING_INTERVAL,
     ),
-    TimedJob("update_status", update_status, UPDATE_STATUS_INTERVAL),
     # TimedJob("eol_status", check_eol_and_update, EOL_STATUS_INTERVAL),
     MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL),
 ]

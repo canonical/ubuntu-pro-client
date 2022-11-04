@@ -11,13 +11,9 @@ The jobs that `pro` runs periodically are:
 | Job | Description | Interval |
 | --- | ----------- | -------- |
 | update_messaging | Update MOTD and APT messages | 6 hours |
-| update_status | Update Ubuntu Pro status | 12 hours |
 | metering | (Only when attached to Ubuntu Pro services) Pings Canonical servers for contract metering | 4 hours |
 
 - The `update_messaging` job makes sure that the MOTD and APT messages match the
 available/enabled services on the system, showing information about available
 packages or security updates.
-- The `update_status` job makes sure the `pro status` command will have the latest
-information even when executed by a non-root user, updating the
-`/var/lib/ubuntu-advantage/status.json` file.
 - The `metering` will inform Canonical on which services are enabled on the machine.
