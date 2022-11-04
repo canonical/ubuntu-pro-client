@@ -233,9 +233,6 @@
             "update_messaging_timer": {
               "type": "integer"
             },
-            "update_status_timer": {
-              "type": "integer"
-            },
             "metering_timer": {
               "type": "integer"
             }
