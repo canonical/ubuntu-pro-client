@@ -2,6 +2,9 @@
 
 > Requires at least Ubuntu Pro Client version 27.7
 
+If you are unsure if your Pro Client version fits the specified requirements,
+please refer to this [guide](../howtoguides/check_pro_version.md).
+
 ## Step 1: Acquire your Ubuntu Pro token
 
 Your Ubuntu Pro token can be found on your Ubuntu Pro dashboard. To access your dashboard, you need an [Ubuntu One](https://login.ubuntu.com/) account. If you purchased an Ubuntu Pro subscription and don't yet have an Ubuntu One account, be sure to use the same email address used to purchase your subscription. If you haven't purchased an Ubuntu Pro subscription, don't worry! You get a free token for personal use with your Ubuntu One account, no purchase necessary.
