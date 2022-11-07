@@ -1,8 +1,8 @@
 # Using fix command to solve CVE/USNs on the machine
 
 The Ubuntu Pro Client (`pro`) can be used to inspect and resolve
-[CVEs](https://ubuntu.com/security/cves) and [USNs](https://ubuntu.com/security/notices) (Ubuntu
-Security Notices) on this machine.
+[Common Vulnerabilities and Exposures](https://ubuntu.com/security/cves)(CVE) and [Ubuntu Security Notices](https://ubuntu.com/security/notices) (USN)
+on this machine.
 
 Every CVE/USN is fixed by trying to upgrade all of the affected packages described by the CVE or
 USN. Sometimes, the packages fixes can only be applied if an Ubuntu Pro service is already enabled on the
