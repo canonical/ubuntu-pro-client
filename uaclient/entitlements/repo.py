@@ -1,8 +1,8 @@
 import abc
 import copy
 import logging
-import os
 import re
+from os.path import exists
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from uaclient import (
@@ -363,9 +363,9 @@ class RepoEntitlement(base.UAEntitlement):
             )
 
         prerequisite_pkgs = []
-        if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
+        if not exists(apt.APT_METHOD_HTTPS_FILE):
             prerequisite_pkgs.append("apt-transport-https")
-        if not os.path.exists(apt.CA_CERTIFICATES_FILE):
+        if not exists(apt.CA_CERTIFICATES_FILE):
             prerequisite_pkgs.append("ca-certificates")
 
         if prerequisite_pkgs:

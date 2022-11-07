@@ -2,6 +2,7 @@ import mock
 import pytest
 
 from uaclient.exceptions import LockHeldError
+from uaclient.files.notices import Notice
 from uaclient.lock import SingleAttemptLock, SpinLock
 from uaclient.messages import LOCK_HELD
 
@@ -12,7 +13,7 @@ M_PATH_UACONFIG = "uaclient.config.UAConfig."
 @pytest.mark.parametrize("lock_cls", (SingleAttemptLock, SpinLock))
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.NoticeFile.add")
+@mock.patch("uaclient.files.notices.NoticesManager.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestLockCommon:
     def test_creates_and_releases_lock(
@@ -39,7 +40,9 @@ class TestLockCommon:
             mock.call("lock", "123:some operation")
         ] == m_write_cache.call_args_list
         lock_msg = "Operation in progress: some operation"
-        assert [mock.call("", lock_msg)] == m_add_notice.call_args_list
+        assert [
+            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+        ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 
     def test_creates_and_releases_lock_when_error_occurs(
@@ -65,13 +68,15 @@ class TestLockCommon:
             mock.call("lock", "123:some operation")
         ] == m_write_cache.call_args_list
         lock_msg = "Operation in progress: some operation"
-        assert [mock.call("", lock_msg)] == m_add_notice.call_args_list
+        assert [
+            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+        ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 
 
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.NoticeFile.add")
+@mock.patch("uaclient.files.notices.NoticesManager.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestSingleAttemptLock:
     @mock.patch(M_PATH_UACONFIG + "check_lock_info", return_value=(10, "held"))
