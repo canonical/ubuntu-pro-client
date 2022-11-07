@@ -2,6 +2,7 @@ import datetime
 import io
 import logging
 import sys
+from enum import Enum
 from typing import Any, Dict
 
 import mock
@@ -9,6 +10,7 @@ import pytest
 
 from uaclient import event_logger
 from uaclient.config import UAConfig
+from uaclient.files.notices import NoticeFileDetails
 
 # We are doing this because we are sure that python3-apt comes with the distro,
 # but it cannot be installed in a virtual environment to be properly tested.
@@ -217,3 +219,24 @@ def event():
     event.reset()
 
     return event
+
+
+class FakeNotice(NoticeFileDetails, Enum):
+    a = NoticeFileDetails("01", "a", True, "notice_a")
+    a2 = NoticeFileDetails("03", "a2", True, "notice_a2")
+    b = NoticeFileDetails("02", "b2", False, "notice_b")
+
+
+@pytest.yield_fixture(autouse=True)
+def mock_notices_dir(tmpdir_factory):
+    perm_dir = tmpdir_factory.mktemp("notices")
+    temp_dir = tmpdir_factory.mktemp("temp_notices")
+    with mock.patch(
+        "uaclient.defaults.NOTICES_PERMANENT_DIRECTORY",
+        perm_dir.strpath,
+    ):
+        with mock.patch(
+            "uaclient.defaults.NOTICES_TEMPORARY_DIRECTORY",
+            temp_dir.strpath,
+        ):
+            yield

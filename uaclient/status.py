@@ -7,7 +7,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import event_logger, exceptions, messages, system, util, version
+from uaclient import event_logger, exceptions, messages, util, version
 from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
@@ -18,6 +18,8 @@ from uaclient.entitlements.entitlement_status import (
     UserFacingConfigStatus,
     UserFacingStatus,
 )
+from uaclient.files import notices
+from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 
 event = event_logger.get_event_logger()
@@ -149,7 +151,8 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
 
 def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
-    cfg.notice_file.try_remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+    notices.remove(cfg.root_mode, Notice.AUTO_ATTACH_RETRY_FULL_NOTICE)
+    notices.remove(cfg.root_mode, Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]
@@ -160,7 +163,7 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
             "machine_id": machineTokenInfo["machineId"],
             "attached": True,
             "origin": contractInfo.get("origin"),
-            "notices": cfg.notice_file.read() or [],
+            "notices": notices.list() or [],
             "contract": {
                 "id": contractInfo["id"],
                 "name": contractInfo["name"],
@@ -302,7 +305,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     status_val = userStatus.INACTIVE.value
     status_desc = messages.NO_ACTIVE_OPERATIONS
     (lock_pid, lock_holder) = cfg.check_lock_info()
-    notices = cfg.notice_file.read() or []
+    notices_list = notices.list() or []
     if lock_pid > 0:
         status_val = userStatus.ACTIVE.value
         status_desc = messages.LOCK_HELD.format(
@@ -311,7 +314,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     elif os.path.exists(cfg.data_path("marker-reboot-cmds")):
         status_val = userStatus.REBOOTREQUIRED.value
         operation = "configuration changes"
-        for label, description in notices:
+        for label, description in notices_list:
             if label == "Reboot required":
                 operation = description
                 break
@@ -321,7 +324,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     return {
         "execution_status": status_val,
         "execution_details": status_desc,
-        "notices": notices,
+        "notices": notices_list,
         "config_path": cfg.cfg_path,
         "config": cfg.cfg,
         "features": cfg.features,
@@ -346,15 +349,6 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
 
     if cfg.root_mode:
         cfg.write_cache("status-cache", response)
-
-        # Try to remove fix reboot notices if not applicable
-        if not system.should_reboot():
-            cfg.notice_file.remove(
-                "",
-                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
-            )
 
     response = _handle_beta_resources(cfg, show_all, response)
 

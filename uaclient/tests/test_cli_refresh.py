@@ -3,6 +3,7 @@ import pytest
 
 from uaclient import exceptions, messages
 from uaclient.cli import action_refresh, main
+from uaclient.files.notices import Notice
 
 HELP_OUTPUT = """\
 usage: pro refresh [contract|config|messages] [flags]
@@ -54,7 +55,12 @@ class TestActionRefresh:
     )
     @mock.patch("uaclient.config.UAConfig.write_cfg")
     def test_not_attached_errors(
-        self, _m_write_cfg, getuid, target, expect_unattached_error, FakeConfig
+        self,
+        _m_write_cfg,
+        getuid,
+        target,
+        expect_unattached_error,
+        FakeConfig,
     ):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
@@ -83,7 +89,7 @@ class TestActionRefresh:
 
     @mock.patch("logging.exception")
     @mock.patch("uaclient.contract.request_updated_contract")
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     def test_refresh_contract_error_on_failure_to_update_contract(
         self,
         m_remove_notice,
@@ -108,7 +114,7 @@ class TestActionRefresh:
         ] != m_remove_notice.call_args_list
 
     @mock.patch("uaclient.contract.request_updated_contract")
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     def test_refresh_contract_happy_path(
         self,
         m_remove_notice,
@@ -127,8 +133,8 @@ class TestActionRefresh:
         assert messages.REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
         assert [
-            mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING),
-            mock.call("", "Operation in progress.*"),
+            mock.call(True, Notice.CONTRACT_REFRESH_WARNING),
+            mock.call(True, Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
 
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
@@ -172,7 +178,13 @@ class TestActionRefresh:
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_refresh_messages_systemctl_error(
-        self, m_update_motd, m_subp, logging_error, _m_path, getuid, FakeConfig
+        self,
+        m_update_motd,
+        m_subp,
+        logging_error,
+        _m_path,
+        getuid,
+        FakeConfig,
     ):
         subp_exc = Exception("test")
         m_subp.side_effect = ["", subp_exc]
@@ -187,7 +199,12 @@ class TestActionRefresh:
     @mock.patch("uaclient.cli.refresh_motd")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_refresh_messages_happy_path(
-        self, m_update_motd, m_refresh_motd, getuid, capsys, FakeConfig
+        self,
+        m_update_motd,
+        m_refresh_motd,
+        getuid,
+        capsys,
+        FakeConfig,
     ):
         """On success from request_updates_contract root user can refresh."""
         cfg = FakeConfig()
@@ -203,7 +220,11 @@ class TestActionRefresh:
         "uaclient.config.UAConfig.process_config", side_effect=RuntimeError()
     )
     def test_refresh_config_error_on_failure_to_process_config(
-        self, _m_process_config, _m_logging_error, getuid, FakeConfig
+        self,
+        _m_process_config,
+        _m_logging_error,
+        getuid,
+        FakeConfig,
     ):
         """On failure in process_config emit an error."""
 
@@ -216,7 +237,11 @@ class TestActionRefresh:
 
     @mock.patch("uaclient.config.UAConfig.process_config")
     def test_refresh_config_happy_path(
-        self, m_process_config, getuid, capsys, FakeConfig
+        self,
+        m_process_config,
+        getuid,
+        capsys,
+        FakeConfig,
     ):
         """On success from process_config root user gets success message."""
 
@@ -229,7 +254,7 @@ class TestActionRefresh:
 
     @mock.patch("uaclient.contract.request_updated_contract")
     @mock.patch("uaclient.config.UAConfig.process_config")
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     def test_refresh_all_happy_path(
         self,
         m_remove_notice,
@@ -251,6 +276,6 @@ class TestActionRefresh:
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_request_updated_contract.call_args_list
         assert [
-            mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING),
-            mock.call("", "Operation in progress.*"),
+            mock.call(True, Notice.CONTRACT_REFRESH_WARNING),
+            mock.call(True, Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
