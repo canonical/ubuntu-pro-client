@@ -8,6 +8,8 @@ from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
 from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.files import notices
+from uaclient.files.notices import Notice
 from uaclient.files.state_files import (
     ServicesOnceEnabledData,
     services_once_enabled_file,
@@ -198,12 +200,14 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     )
                 )
             if operation == "install":
-                self.cfg.notice_file.add(
-                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+                notices.add(
+                    self.cfg.root_mode,
+                    Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
                 )
             elif operation == "disable operation":
-                self.cfg.notice_file.add(
-                    "", messages.FIPS_DISABLE_REBOOT_REQUIRED
+                notices.add(
+                    self.cfg.root_mode,
+                    Notice.FIPS_DISABLE_REBOOT_REQUIRED,
                 )
 
     def _allow_fips_on_cloud_instance(
@@ -268,8 +272,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
 
         if system.is_container() and not system.should_reboot():
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+            notices.remove(
+                self.cfg.root_mode,
+                Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
             )
             return super_status, super_msg
 
@@ -278,24 +283,21 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             # We are now only removing the notice if there is no reboot
             # required information regarding the fips metapackage we install.
             if not system.should_reboot(set(self.packages)):
-                self.cfg.notice_file.try_remove(
-                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+                notices.remove(
+                    self.cfg.root_mode,
+                    Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
                 )
 
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_REBOOT_REQUIRED_MSG
-            )
             if system.load_file(self.FIPS_PROC_FILE).strip() == "1":
-                self.cfg.notice_file.try_remove(
-                    "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
+                notices.remove(
+                    self.cfg.root_mode,
+                    Notice.FIPS_MANUAL_DISABLE_URL,
                 )
                 return super_status, super_msg
             else:
-                self.cfg.notice_file.try_remove(
-                    "", messages.FIPS_DISABLE_REBOOT_REQUIRED
-                )
-                self.cfg.notice_file.try_add(
-                    "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
+                notices.add(
+                    self.cfg.root_mode,
+                    Notice.FIPS_MANUAL_DISABLE_URL,
                 )
                 return (
                     ApplicationStatus.DISABLED,
@@ -303,10 +305,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                         file_name=self.FIPS_PROC_FILE
                     ),
                 )
-        else:
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_DISABLE_REBOOT_REQUIRED
-            )
 
         if super_status != ApplicationStatus.ENABLED:
             return super_status, super_msg
@@ -342,12 +340,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.try_remove(
-                "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+            notices.remove(
+                self.cfg.root_mode,
+                Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
             )
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_REBOOT_REQUIRED_MSG
-            )
+            notices.remove(self.cfg.root_mode, Notice.FIPS_REBOOT_REQUIRED)
             return True
 
         return False
@@ -472,8 +469,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 "defaulting to generic FIPS package."
             )
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_INSTALL_OUT_OF_DATE
+            notices.remove(
+                self.cfg.root_mode,
+                Notice.FIPS_INSTALL_OUT_OF_DATE,
             )
             return True
 
@@ -535,8 +533,12 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            self.cfg.notice_file.try_remove(
-                "", messages.FIPS_DISABLE_REBOOT_REQUIRED
+            services_once_enabled = (
+                self.cfg.read_cache("services-once-enabled") or {}
+            )
+            services_once_enabled.update({self.name: True})
+            self.cfg.write_cache(
+                key="services-once-enabled", content=services_once_enabled
             )
 
             services_once_enabled_file.write(

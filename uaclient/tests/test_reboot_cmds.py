@@ -9,12 +9,9 @@ from lib.reboot_cmds import (
     process_reboot_operations,
     run_command,
 )
+from uaclient import messages
 from uaclient.exceptions import ProcessExecutionError
-from uaclient.messages import (
-    FIPS_REBOOT_REQUIRED_MSG,
-    FIPS_SYSTEM_REBOOT_REQUIRED,
-    REBOOT_SCRIPT_FAILED,
-)
+from uaclient.files.notices import Notice
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
@@ -46,7 +43,10 @@ class TestMain:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("lib.reboot_cmds.subp")
     def test_main_unattached_removes_marker(
-        self, m_subp, FakeConfig, caplog_text
+        self,
+        m_subp,
+        FakeConfig,
+        caplog_text,
     ):
         cfg = FakeConfig()
         cfg.write_cache("marker-reboot-cmds", "samplecontent")
@@ -64,7 +64,9 @@ class TestMain:
 
     @mock.patch("lib.reboot_cmds.subp")
     def test_main_unattached_removes_marker_file(
-        self, m_subp, FakeConfig, tmpdir
+        self,
+        m_subp,
+        FakeConfig,
     ):
         cfg = FakeConfig.for_attached_machine()
         assert None is cfg.read_cache("marker-reboot-cmds")
@@ -81,7 +83,7 @@ class TestFixProPkgHolds:
     @mock.patch("sys.exit")
     @mock.patch(M_FIPS_PATH + "install_packages")
     @mock.patch(M_FIPS_PATH + "setup_apt_config")
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     def test_calls_setup_apt_config_and_install_packages_when_enabled(
         self,
         m_remove_notice,
@@ -103,10 +105,6 @@ class TestFixProPkgHolds:
             assert [
                 mock.call(cleanup_on_failure=False)
             ] == install_packages.call_args_list
-            assert [
-                mock.call("", FIPS_SYSTEM_REBOOT_REQUIRED.msg),
-                mock.call("", FIPS_REBOOT_REQUIRED_MSG),
-            ] == m_remove_notice.call_args_list
         else:
             assert 0 == setup_apt_config.call_count
             assert 0 == install_packages.call_count
@@ -148,7 +146,7 @@ class TestProcessRebootOperations:
     @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
     @mock.patch("uaclient.config.UAConfig.delete_cache_key")
     @mock.patch("uaclient.config.UAConfig.check_lock_info")
-    @mock.patch("uaclient.files.NoticeFile.add")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
     def test_process_reboot_operations_create_notice_when_it_fails(
         self,
@@ -167,7 +165,13 @@ class TestProcessRebootOperations:
             with mock.patch("uaclient.config.UAConfig.write_cache"):
                 process_reboot_operations(cfg=cfg)
 
-        expected_calls = [mock.call("", REBOOT_SCRIPT_FAILED)]
+        expected_calls = [
+            mock.call(
+                True,
+                Notice.REBOOT_SCRIPT_FAILED,
+                messages.REBOOT_SCRIPT_FAILED,
+            ),
+        ]
 
         assert expected_calls == m_add_notice.call_args_list
 

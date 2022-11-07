@@ -62,7 +62,6 @@ class TestAttemptAutoAttach:
         err = Exception()
         m_auto_attach.side_effect = err
         cfg = FakeConfig()
-        cfg.notice_file.add = mock.MagicMock()
         cloud = mock.MagicMock()
 
         attempt_auto_attach(cfg, cloud)

@@ -13,7 +13,9 @@ import yaml
 
 from uaclient import exceptions, messages, status
 from uaclient.cli import action_status, get_parser, main, status_parser
+from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
+from uaclient.files.notices import Notice, NoticesManager
 
 M_PATH = "uaclient.cli."
 
@@ -316,7 +318,6 @@ Flags:
 
 
 @mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
-@mock.patch("uaclient.files.NoticeFile.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(
     "uaclient.status.get_available_resources",
@@ -334,7 +335,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         capsys,
         FakeConfig,
@@ -355,8 +355,11 @@ class TestActionStatus:
         (
             ([], ""),
             (
-                [["a", "adesc"], ["b2", "bdesc"]],
-                "\nNOTICES\n a: adesc\nb2: bdesc\n",
+                [
+                    [FakeNotice.a, "adesc"],
+                    [FakeNotice.b, "bdesc"],
+                ],
+                "\nNOTICES\nadesc\nbdesc\n",
             ),
         ),
     )
@@ -373,24 +376,25 @@ class TestActionStatus:
     @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_attached(
         self,
+        _m_format_expires,
         _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
-        _m_format_expires,
-        notices,
-        notice_status,
         features,
         feature_status,
+        notices,
+        notice_status,
         use_all,
         capsys,
         FakeConfig,
     ):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("notices", notices)
+        mock_notice = NoticesManager()
+        for notice in notices:
+            mock_notice.add(True, notice[0], notice[1])
         with mock.patch(
             "uaclient.config.UAConfig.features",
             new_callable=mock.PropertyMock,
@@ -435,7 +439,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         use_all,
         capsys,
@@ -463,7 +466,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         use_all,
         capsys,
@@ -491,20 +493,20 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         capsys,
         FakeConfig,
     ):
         """Check that --wait will will block and poll until lock released."""
         cfg = FakeConfig()
+        mock_notice = NoticesManager()
         lock_file = cfg.data_path("lock")
         cfg.write_cache("lock", "123:pro auto-attach")
 
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:
                 os.unlink(lock_file)
-                os.unlink(cfg.notice_file.file.path)
+                mock_notice.remove(True, Notice.OPERATION_IN_PROGRESS)
 
         m_sleep.side_effect = fake_sleep
 
@@ -543,7 +545,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         environ,
         format_type,
@@ -649,7 +650,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         use_all,
         environ,
@@ -779,7 +779,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         use_all,
         format_type,
@@ -918,7 +917,6 @@ class TestActionStatus:
         _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         FakeConfig,
     ):
@@ -942,13 +940,12 @@ class TestActionStatus:
     @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_unicode_dash_replacement_when_unprintable(
         self,
+        _m_format_expires,
         _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
-        _m_format_expires,
         encoding,
         expected_dash,
         use_all,
@@ -958,11 +955,12 @@ class TestActionStatus:
         # encoding accurately in older versions of pytest
         underlying_stdout = io.BytesIO()
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
+        cfg = FakeConfig.for_attached_machine()
 
         with mock.patch("sys.stdout", fake_stdout):
             action_status(
                 mock.MagicMock(all=use_all, simulate_with_token=None),
-                cfg=FakeConfig.for_attached_machine(),
+                cfg=cfg,
             )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
@@ -1007,7 +1005,6 @@ class TestActionStatus:
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         exception_to_throw,
         exception_type,
@@ -1058,7 +1055,6 @@ class TestActionStatus:
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         format_type,
         event_logger_mode,
@@ -1080,7 +1076,6 @@ class TestActionStatus:
         m_get_contract_information.side_effect = contract_info_side_effect
 
         cfg = FakeConfig()
-
         args = mock.MagicMock(
             format=format_type, all=False, simulate_with_token=token_to_use
         )
@@ -1106,17 +1101,16 @@ class TestActionStatus:
             (False, False),
         ),
     )
-    @mock.patch("uaclient.files.NoticeFile.try_remove")
-    @mock.patch("uaclient.files.NoticeFile.add")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
     def test_is_contract_changed(
         self,
         m_add_notice,
-        m_try_remove_notice,
+        m_remove_notice,
         _m_getuid,
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,
-        _m_remove_notice,
         _m_contract_changed,
         contract_changed,
         is_attached,
@@ -1136,15 +1130,24 @@ class TestActionStatus:
         if is_attached:
             if contract_changed:
                 assert [
-                    mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+                    mock.call(
+                        True,
+                        Notice.CONTRACT_REFRESH_WARNING,
+                        messages.NOTICE_REFRESH_CONTRACT_WARNING,
+                    )
                 ] == m_add_notice.call_args_list
             else:
                 assert [
-                    mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+                    mock.call(
+                        True,
+                        Notice.CONTRACT_REFRESH_WARNING,
+                        messages.NOTICE_REFRESH_CONTRACT_WARNING,
+                    )
                 ] not in m_add_notice.call_args_list
+                print(_m_contract_changed.return_value)
                 assert [
-                    mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
-                ] in m_try_remove_notice.call_args_list
+                    mock.call(True, Notice.CONTRACT_REFRESH_WARNING)
+                ] in m_remove_notice.call_args_list
         else:
             assert _m_contract_changed.call_count == 0
 

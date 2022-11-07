@@ -128,27 +128,26 @@ esm_cleanup() {
 mark_reboot_for_fips_pro() {
     FIPS_HOLDS=$(apt-mark showholds | grep -E 'fips|libssl1|openssh-client|openssh-server|linux-fips|openssl|strongswan' || exit 0)
     if [ "$FIPS_HOLDS" ]; then
-       mark_reboot_cmds_as_needed FIPS_REBOOT_REQUIRED_MSG
+       mark_reboot_cmds_as_needed FIPS_REBOOT_REQUIRED
     fi
 }
 
 
 add_notice() {
-    msg_name=$1
+    notice_type=$1
     /usr/bin/python3 -c "
-from uaclient.config import UAConfig
-from uaclient.messages import ${msg_name}
-cfg = UAConfig(root_mode=True)
-cfg.notice_file.add(label='', description=${msg_name})
+from uaclient.files import notices
+from uaclient.files.notices import Notice
+notices.add(True, Notice.$notice_type)
 "
 }
 
 mark_reboot_cmds_as_needed() {
-    msg_name=$1
+    notice_type=$1
     if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
       touch $REBOOT_CMD_MARKER_FILE
     fi
-    add_notice "$msg_name"
+    add_notice "$notice_type"
 }
 
 patch_status_json_0_1_for_non_root() {
@@ -183,7 +182,7 @@ notify_wrong_fips_metapackage_on_cloud() {
 
     if echo "$cloud_id" | grep -E -q "^(azure|aws)"; then
       if echo "$fips_installed" | grep -E -q "installed"; then
-        add_notice NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+        add_notice WRONG_FIPS_METAPACKAGE_ON_CLOUD
       fi
     fi
 }
@@ -287,6 +286,25 @@ migrate_ubuntu_pro_beta_banner() {
         fi
     fi
 }
+migrate_old_notices(){
+    notices_file=/var/lib/ubuntu-advantage/notices.json
+    # only run if notices.json is present
+    if [ ! -f $notices_file ];then
+        return
+    fi
+
+    # This migration will happen for pro client versions 27.12 or older that still use notices.json.
+    # Notices are generally short lived, so the chances of an upgrade happening while a
+    # notice is in place is very small.
+    # Despite that we do a simple migration here of the most important notices: reboot required notices.
+    # All notices with "reboot" in them can be safely transformed into a generic reboot required message.
+    # The new message won't include the exact reason for the reboot, but the recommended action is the same.
+    if grep -q -i "reboot" $notices_file; then
+        add_notice REBOOT_REQUIRED
+    fi
+    rm $notices_file
+}
+
 
 cleanup_candidate_version_stamp_permissions() {
     if [ -f $TMP_CANDIDATE_CACHE_PATH ]; then
@@ -378,6 +396,7 @@ case "$1" in
       cleanup_candidate_version_stamp_permissions
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
           cleanup_apt_news_flag_file
+          migrate_old_notices
       fi
       ;;
 esac

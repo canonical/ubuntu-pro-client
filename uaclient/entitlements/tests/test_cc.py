@@ -61,12 +61,12 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
             ),
         ),
     )
-    @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
+    # @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.system.get_platform_info")
     def test_inapplicable_on_invalid_affordances(
         self,
         m_platform_info,
-        m_getuid,
+        # m_getuid,
         arch,
         series,
         version,
@@ -166,9 +166,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
             with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
-                with mock.patch(
-                    M_REPOPATH + "os.path.exists", side_effect=exists
-                ):
+                with mock.patch(M_REPOPATH + "exists", side_effect=exists):
                     assert (True, None) == entitlement.enable()
 
         add_apt_calls = [

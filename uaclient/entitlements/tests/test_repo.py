@@ -477,7 +477,7 @@ class TestRepoEnable:
     @mock.patch(M_PATH + "system.should_reboot")
     @mock.patch(M_PATH + "system.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
-    @mock.patch(M_PATH + "os.path.exists", return_value=True)
+    @mock.patch(M_PATH + "exists", return_value=True)
     @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch.object(
         RepoTestEntitlement, "can_enable", return_value=(True, None)
@@ -851,7 +851,7 @@ class TestSetupAptConfig:
         Presence is determined based on checking known files from those debs.
         It avoids a costly round-trip shelling out to call dpkg -l.
         """
-        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+        with mock.patch(M_PATH + "exists") as m_exists:
             m_exists.return_value = False
             entitlement.setup_apt_config()
         assert [
@@ -902,7 +902,7 @@ class TestSetupAptConfig:
             RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
         entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
-        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+        with mock.patch(M_PATH + "exists") as m_exists:
             m_exists.return_value = True  # Skip prerequisite pkg installs
             entitlement.setup_apt_config()
         assert [

@@ -21,6 +21,8 @@ import sys
 from uaclient import config, contract, exceptions, lock, messages
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
+from uaclient.files import notices
+from uaclient.files.notices import Notice
 from uaclient.system import subp
 
 # Retry sleep backoff algorithm if lock is held.
@@ -29,7 +31,7 @@ SLEEP_ON_LOCK_HELD = 1
 MAX_RETRIES_ON_LOCK_HELD = 7
 
 
-def run_command(cmd, cfg):
+def run_command(cmd, cfg: config.UAConfig):
     try:
         out, _ = subp(cmd.split(), capture=True)
         logging.debug("Successfully executed cmd: {}".format(cmd))
@@ -49,7 +51,7 @@ def run_command(cmd, cfg):
         sys.exit(1)
 
 
-def fix_pro_pkg_holds(cfg):
+def fix_pro_pkg_holds(cfg: config.UAConfig):
     status_cache = cfg.read_cache("status-cache")
     if not status_cache:
         return
@@ -82,13 +84,9 @@ def fix_pro_pkg_holds(cfg):
                         )
                     )
                     sys.exit(1)
-                cfg.notice_file.remove(
-                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
-                )
-                cfg.notice_file.remove("", messages.FIPS_REBOOT_REQUIRED_MSG)
 
 
-def refresh_contract(cfg):
+def refresh_contract(cfg: config.UAConfig):
     try:
         contract.request_updated_contract(cfg)
     except exceptions.UrlError as exc:
@@ -97,13 +95,12 @@ def refresh_contract(cfg):
         sys.exit(1)
 
 
-def process_remaining_deltas(cfg):
+def process_remaining_deltas(cfg: config.UAConfig):
     cmd = "/usr/bin/python3 /usr/lib/ubuntu-advantage/upgrade_lts_contract.py"
     run_command(cmd=cmd, cfg=cfg)
-    cfg.notice_file.remove("", messages.LIVEPATCH_LTS_REBOOT_REQUIRED)
 
 
-def process_reboot_operations(cfg):
+def process_reboot_operations(cfg: config.UAConfig):
 
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
 
@@ -124,16 +121,19 @@ def process_reboot_operations(cfg):
             process_remaining_deltas(cfg)
 
             cfg.delete_cache_key("marker-reboot-cmds")
-            cfg.notice_file.remove("", messages.REBOOT_SCRIPT_FAILED)
+            notices.remove(cfg.root_mode, Notice.REBOOT_SCRIPT_FAILED)
             logging.debug("Successfully ran all commands on reboot.")
         except Exception as e:
             msg = "Failed running commands on reboot."
             msg += str(e)
             logging.error(msg)
-            cfg.notice_file.add("", messages.REBOOT_SCRIPT_FAILED)
+            notices.add(
+                cfg.root_mode,
+                Notice.REBOOT_SCRIPT_FAILED,
+            )
 
 
-def main(cfg):
+def main(cfg: config.UAConfig):
     """Retry running process_reboot_operations on LockHeldError
 
     :raises: LockHeldError when lock still held by auto-attach after retries.
