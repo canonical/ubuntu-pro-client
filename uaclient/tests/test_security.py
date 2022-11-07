@@ -13,6 +13,7 @@ from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     UserFacingStatus,
 )
+from uaclient.files.notices import Notice
 from uaclient.messages import (
     ENABLE_REBOOT_REQUIRED_TMPL,
     FAIL_X,
@@ -2068,7 +2069,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.files.NoticeFile.add")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("os.getuid", return_value=0)
@@ -2113,7 +2114,8 @@ A fix is available in Ubuntu standard updates.\n"""
 
         assert [
             mock.call(
-                "",
+                True,
+                Notice.ENABLE_REBOOT_REQUIRED,
                 ENABLE_REBOOT_REQUIRED_TMPL.format(operation="fix operation"),
             )
         ] == m_add_notice.call_args_list
@@ -2139,7 +2141,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.files.NoticeFile.add")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("os.getuid", return_value=0)

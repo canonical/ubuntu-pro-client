@@ -10,7 +10,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
 )
 from uaclient.config import UAConfig
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
-from uaclient.files import state_files
+from uaclient.files import notices, state_files
 
 LOG = logging.getLogger("pro.daemon.retry_auto_attach")
 
@@ -79,7 +79,14 @@ def cleanup(cfg: UAConfig):
     state_files.retry_auto_attach_state_file.delete()
     state_files.retry_auto_attach_options_file.delete()
     system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
-    cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
+    notices.remove(
+        cfg.root_mode,
+        notices.Notice.AUTO_ATTACH_RETRY_FULL_NOTICE,
+    )
+    notices.remove(
+        cfg.root_mode,
+        notices.Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE,
+    )
 
 
 def retry_auto_attach(cfg: UAConfig) -> None:
@@ -129,10 +136,13 @@ def retry_auto_attach(cfg: UAConfig) -> None:
                 cfg=cfg,
                 lock_holder="pro.daemon.retry_auto_attach.notice_updates",
             ):
-                cfg.notice_file.remove(
-                    "", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX
+                notices.add(
+                    cfg.root_mode,
+                    notices.Notice.AUTO_ATTACH_RETRY_FULL_NOTICE,
+                    num_attempts=offset + index + 1,
+                    reason=msg_reason,
+                    next_run_datestring=next_attempt.isoformat(),
                 )
-                cfg.notice_file.add("", auto_attach_status_msg)
         except exceptions.LockHeldError:
             pass
 
@@ -183,4 +193,9 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         system.write_file(
             AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n\n"
         )
-        cfg.notice_file.add("", auto_attach_status_msg)
+        notices.add(
+            cfg.root_mode,
+            notices.Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE,
+            num_attempts=len(RETRY_INTERVALS) + 1,
+            reason=msg_reason,
+        )

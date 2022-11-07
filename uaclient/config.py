@@ -26,7 +26,8 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
 )
-from uaclient.files import NoticeFile
+from uaclient.files import notices
+from uaclient.files.notices import Notice
 
 LOG = logging.getLogger(__name__)
 
@@ -90,7 +91,6 @@ class UAConfig:
         "machine-access-cis": DataPath("machine-access-cis.json", True, False),
         "lock": DataPath("lock", False, False),
         "status-cache": DataPath("status.json", False, False),
-        "notices": DataPath("notices.json", False, False),
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
@@ -126,7 +126,6 @@ class UAConfig:
         self._machine_token_file = (
             None
         )  # type: Optional[files.MachineTokenFile]
-        self._notice_file = None  # type: Optional[NoticeFile]
 
     @property
     def machine_token_file(self):
@@ -137,12 +136,6 @@ class UAConfig:
                 self.features.get("machine_token_overlay"),
             )
         return self._machine_token_file
-
-    @property
-    def notice_file(self):
-        if not self._notice_file:
-            self._notice_file = NoticeFile(self.data_dir, self.root_mode)
-        return self._notice_file
 
     @property
     def contract_url(self) -> str:
@@ -439,7 +432,7 @@ class UAConfig:
         if key.startswith("machine-access"):
             self._machine_token_file = None
         elif key == "lock":
-            self.notice_file.remove("", "Operation in progress.*")
+            notices.remove(self.root_mode, Notice.OPERATION_IN_PROGRESS)
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
@@ -477,9 +470,10 @@ class UAConfig:
             self._machine_token_file = None
         elif key == "lock":
             if ":" in content:
-                self.notice_file.add(
-                    "",
-                    "Operation in progress: {}".format(content.split(":")[1]),
+                notices.add(
+                    self.root_mode,
+                    Notice.OPERATION_IN_PROGRESS,
+                    operation=content.split(":")[1],
                 )
         if not isinstance(content, str):
             content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)

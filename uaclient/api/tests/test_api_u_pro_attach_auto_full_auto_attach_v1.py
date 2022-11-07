@@ -157,6 +157,8 @@ class TestEnableServicesByName:
         assert ret == expected_ret
 
 
+@mock.patch("uaclient.files.notices.add")
+@mock.patch("uaclient.files.notices.remove")
 class TestFullAutoAttachV1:
     @mock.patch(
         "uaclient.actions.enable_entitlement_by_name",
@@ -168,6 +170,8 @@ class TestFullAutoAttachV1:
         _auto_attach,
         _get_cloud_instance,
         m_enable_ent_by_name,
+        _notice_remove,
+        _notice_add,
         FakeConfig,
     ):
         cfg = FakeConfig(root_mode=True)
@@ -199,6 +203,8 @@ class TestFullAutoAttachV1:
         _auto_attach,
         _get_cloud_instance,
         enable_ent_by_name,
+        _notice_remove,
+        _notice_add,
         FakeConfig,
     ):
         cfg = FakeConfig(root_mode=True)
@@ -217,7 +223,9 @@ class TestFullAutoAttachV1:
             exceptions.LockHeldError("request", "holder", 10),
         ],
     )
-    def test_lock_held(self, _m_spinlock_enter, FakeConfig):
+    def test_lock_held(
+        self, _m_spinlock_enter, _notice_remove, _notice_read, FakeConfig
+    ):
         with pytest.raises(exceptions.LockHeldError):
             _full_auto_attach(FullAutoAttachOptions, FakeConfig())
 
@@ -345,6 +353,8 @@ class TestFullAutoAttachV1:
         m_get_cloud_instance,
         m_auto_attach,
         m_enable_services_by_name,
+        _notice_remove,
+        _notice_add,
         options,
         is_attached,
         is_disabled,

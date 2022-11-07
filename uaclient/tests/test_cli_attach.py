@@ -152,7 +152,12 @@ class TestActionAttach:
 
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
-        self, m_subp, _m_getuid, capsys, FakeConfig, event
+        self,
+        m_subp,
+        _m_getuid,
+        capsys,
+        FakeConfig,
+        event,
     ):
         """Check when an operation holds a lock file, attach cannot run."""
         cfg = FakeConfig()
@@ -197,7 +202,11 @@ class TestActionAttach:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_token_is_a_required_argument(
-        self, _m_getuid, FakeConfig, capsys, event
+        self,
+        _m_getuid,
+        FakeConfig,
+        capsys,
+        event,
     ):
         """When missing the required token argument, raise a UserFacingError"""
         args = mock.MagicMock(token=None, attach_config=None)
@@ -246,7 +255,7 @@ class TestActionAttach:
         ),
     )
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
@@ -255,8 +264,8 @@ class TestActionAttach:
         request_updated_contract,
         m_update_apt_and_motd_msgs,
         _m_get_available_resources,
-        _m_should_reboot,
         _m_remove_notice,
+        _m_should_reboot,
         _m_get_uid,
         error_class,
         error_str,
@@ -288,7 +297,7 @@ class TestActionAttach:
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
@@ -301,8 +310,8 @@ class TestActionAttach:
         m_status,
         contract_machine_attach,
         m_update_apt_and_motd_msgs,
-        _m_should_reboot,
         _m_remove_notice,
+        _m_should_reboot,
         _m_getuid,
         FakeConfig,
         event,
@@ -363,15 +372,15 @@ class TestActionAttach:
 
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.NoticeFile.remove")
+    @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(
         self,
         m_update_apt_and_motd_msgs,
         _m_get_available_resources,
-        _m_should_reboot,
         _m_remove_notice,
+        _m_should_reboot,
         _m_get_uid,
         auto_enable,
         FakeConfig,
@@ -392,7 +401,9 @@ class TestActionAttach:
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     def test_attach_config_and_token_mutually_exclusive(
-        self, _m_getuid, FakeConfig
+        self,
+        _m_getuid,
+        FakeConfig,
     ):
         args = mock.MagicMock(
             token="something", attach_config=FakeFile("something")
@@ -405,7 +416,11 @@ class TestActionAttach:
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
     def test_token_from_attach_config(
-        self, m_attach_with_token, _m_post_cli_attach, _m_getuid, FakeConfig
+        self,
+        m_attach_with_token,
+        _m_post_cli_attach,
+        _m_getuid,
+        FakeConfig,
     ):
         args = mock.MagicMock(
             token=None,
@@ -418,7 +433,11 @@ class TestActionAttach:
         ] == m_attach_with_token.call_args_list
 
     def test_attach_config_invalid_config(
-        self, _m_getuid, FakeConfig, capsys, event
+        self,
+        _m_getuid,
+        FakeConfig,
+        capsys,
+        event,
     ):
         args = mock.MagicMock(
             token=None,

@@ -1,8 +1,9 @@
 import abc
 import copy
 import logging
-import os
+import os  # type: ignore  # noqa: F401
 import re
+from os.path import exists
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
 from uaclient import (
@@ -377,9 +378,9 @@ class RepoEntitlement(base.UAEntitlement):
                 system.remove_file(repo_pref_file)
 
         prerequisite_pkgs = []
-        if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
+        if not exists(apt.APT_METHOD_HTTPS_FILE):
             prerequisite_pkgs.append("apt-transport-https")
-        if not os.path.exists(apt.CA_CERTIFICATES_FILE):
+        if not exists(apt.CA_CERTIFICATES_FILE):
             prerequisite_pkgs.append("ca-certificates")
 
         if prerequisite_pkgs:

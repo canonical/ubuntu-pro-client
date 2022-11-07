@@ -23,6 +23,7 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.entitlements.ros import ROSEntitlement
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
+from uaclient.files.notices import Notice, NoticesManager
 from uaclient.status import (
     DEFAULT_STATUS,
     TxtColor,
@@ -272,7 +273,7 @@ def ros_desc(FakeConfig):
     return entitlement_factory(cfg=FakeConfig(), name="ros").description
 
 
-@mock.patch("uaclient.files.NoticeFile.remove")
+@mock.patch("uaclient.files.notices.NoticesManager.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:
     def check_beta(self, cls, show_all, uacfg=None, status=""):
@@ -298,7 +299,7 @@ class TestStatus:
         self,
         m_get_available_resources,
         _m_should_reboot,
-        m_remove_notice,
+        _m_remove_notice,
         ros_desc,
         esm_desc,
         show_all,
@@ -339,17 +340,6 @@ class TestStatus:
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=show_all)
-
-            expected_calls = [
-                mock.call(
-                    "",
-                    messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                        operation="fix operation"
-                    ),
-                )
-            ]
-
-            assert expected_calls == m_remove_notice.call_args_list
 
     @pytest.mark.parametrize(
         "features_override", ((None), ({"allow_beta": True}))
@@ -594,17 +584,6 @@ class TestStatus:
             os.lstat(cfg.data_path("status-cache")).st_mode
         )
 
-        expected_calls = [
-            mock.call(
-                "",
-                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
-            )
-        ]
-
-        assert expected_calls == m_remove_notice.call_args_list
-
     @pytest.mark.parametrize("show_all", (True, False))
     @pytest.mark.parametrize(
         "features_override", ((None), ({"allow_beta": False}))
@@ -648,7 +627,7 @@ class TestStatus:
         _m_livepatch_status,
         _m_fips_status,
         _m_should_reboot,
-        m_remove_notice,
+        _m_remove_notice,
         all_resources_available,
         entitlements,
         features_override,
@@ -698,6 +677,7 @@ class TestStatus:
             account_name="accountname",
             machine_token=token,
         )
+        mock_notice = NoticesManager()
         if features_override:
             cfg.override_features(features_override)
         if not entitlements:
@@ -770,23 +750,15 @@ class TestStatus:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=show_all)
 
-        assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
-        assert 1 == m_livepatch_uf_status.call_count
+            assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
+            assert 1 == m_livepatch_uf_status.call_count
 
         expected_calls = [
-            mock.call(
-                "",
-                messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX,
-            ),
-            mock.call(
-                "",
-                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
-            ),
+            mock.call(True, Notice.AUTO_ATTACH_RETRY_FULL_NOTICE),
+            mock.call(True, Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE),
         ]
 
-        assert expected_calls == m_remove_notice.call_args_list
+        assert expected_calls == mock_notice.remove.call_args_list
 
     @pytest.mark.usefixtures("all_resources_available")
     @mock.patch("uaclient.status.get_available_resources")

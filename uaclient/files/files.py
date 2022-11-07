@@ -1,9 +1,8 @@
 import json
 import logging
 import os
-import re
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional  # noqa: F401
 
 from uaclient import defaults, event_logger, exceptions, messages, system, util
 from uaclient.contract_data_types import PublicMachineTokenData
@@ -284,83 +283,3 @@ class MachineTokenFile:
                 .get("id")
             )
         return None
-
-
-class NoticeFile:
-    def __init__(
-        self,
-        directory: str = defaults.DEFAULT_DATA_DIR,
-        root_mode: bool = True,
-    ):
-        file_name = "notices.json"
-        self.file = UAFile(file_name, directory, False)
-        self.is_root = root_mode
-
-    def add(self, label: str, description: str):
-        """
-        Adds a notice to the notices.json file.
-        Raises a NonRootUserError if the user is not root.
-        """
-        if self.is_root:
-            notices = self.read() or []
-            notice = [label, description]
-            if notice not in notices:
-                notices.append(notice)
-                self.write(notices)
-        else:
-            raise exceptions.NonRootUserError
-
-    def try_add(self, label: str, description: str):
-        """
-        Adds a notice to the notices.json file.
-        Logs a warning when adding as non-root
-        """
-        try:
-            self.add(label, description)
-        except exceptions.NonRootUserError:
-            event.warning("Trying to add notice as non-root user")
-
-    def remove(self, label_regex: str, descr_regex: str):
-        """
-        Removes a notice to the notices.json file.
-        Raises a NonRootUserError if the user is not root.
-        """
-        if self.is_root:
-            notices = []
-            cached_notices = self.read() or []
-            if cached_notices:
-                for notice_label, notice_descr in cached_notices:
-                    if re.match(label_regex, notice_label):
-                        if re.match(descr_regex, notice_descr):
-                            continue
-                    notices.append((notice_label, notice_descr))
-            if notices:
-                self.write(notices)
-            elif os.path.exists(self.file.path):
-                self.file.delete()
-        else:
-            raise exceptions.NonRootUserError
-
-    def try_remove(self, label_regex: str, descr_regex: str):
-        """
-        Removes a notice to the notices.json file.
-        Logs  a warning when removing as non-root
-        """
-        try:
-            self.remove(label_regex, descr_regex)
-        except exceptions.NonRootUserError:
-            event.warning("Trying to remove notice as non-root user")
-
-    def read(self):
-        content = self.file.read()
-        if not content:
-            return None
-        try:
-            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
-        except ValueError:
-            return content
-
-    def write(self, content: Any):
-        if not isinstance(content, str):
-            content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
-        self.file.write(content)

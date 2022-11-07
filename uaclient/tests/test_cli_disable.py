@@ -380,7 +380,12 @@ class TestDisable:
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
     def test_invalid_service_names(
-        self, m_getuid, service, FakeConfig, event, all_service_msg
+        self,
+        m_getuid,
+        service,
+        FakeConfig,
+        event,
+        all_service_msg,
     ):
         m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
@@ -486,7 +491,13 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @mock.patch("uaclient.system.subp")
-    def test_lock_file_exists(self, m_subp, m_getuid, FakeConfig, event):
+    def test_lock_file_exists(
+        self,
+        m_subp,
+        m_getuid,
+        FakeConfig,
+        event,
+    ):
         """Check inability to disable if operation in progress holds lock."""
         cfg = FakeConfig().for_attached_machine()
         args = mock.MagicMock()
