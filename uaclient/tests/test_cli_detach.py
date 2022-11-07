@@ -105,7 +105,13 @@ class TestActionDetach:
 
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
-        self, m_subp, m_getuid, m_prompt, FakeConfig, capsys, event
+        self,
+        m_subp,
+        m_getuid,
+        m_prompt,
+        FakeConfig,
+        capsys,
+        event,
     ):
         """Check when an operation holds a lock file, detach cannot run."""
         m_getuid.return_value = 0

@@ -31,6 +31,7 @@ from uaclient.exceptions import (
     UnattachedError,
     UserFacingError,
 )
+from uaclient.files.notices import Notice
 
 BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10
@@ -357,13 +358,13 @@ M_PATH_UACONFIG = "uaclient.config.UAConfig."
 class TestAssertLockFile:
     @mock.patch("os.getpid", return_value=123)
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-    @mock.patch("uaclient.files.NoticeFile.add")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_assert_root_creates_lock_and_notice(
         self,
         m_write_cache,
         m_add_notice,
-        m_remove_notice,
+        m_delete_cache,
         _m_getpid,
         FakeConfig,
     ):
@@ -379,8 +380,10 @@ class TestAssertLockFile:
         ret = test_function(arg, cfg=FakeConfig())
         assert mock.sentinel.success == ret
         lock_msg = "Operation in progress: some operation"
-        assert [mock.call("", lock_msg)] == m_add_notice.call_args_list
-        assert [mock.call("lock")] == m_remove_notice.call_args_list
+        assert [
+            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+        ] == m_add_notice.call_args_list
+        assert [mock.call("lock")] == m_delete_cache.call_args_list
         assert [
             mock.call("lock", "123:some operation")
         ] == m_write_cache.call_args_list

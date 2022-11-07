@@ -65,9 +65,7 @@ class TestCISEntitlementEnable:
         m_apt_policy.return_value = "fakeout"
         m_should_reboot.return_value = False
 
-        with mock.patch(
-            M_REPOPATH + "os.path.exists", mock.Mock(return_value=True)
-        ):
+        with mock.patch(M_REPOPATH + "exists", mock.Mock(return_value=True)):
             with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
                 with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
                     assert entitlement.enable()
