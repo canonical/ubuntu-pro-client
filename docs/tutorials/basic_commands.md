@@ -10,7 +10,10 @@ on their machine.
 On this tutorial, you will use [LXD](https://linuxcontainers.org/lxd/) containers.
 To set up LXD on your computer, please follow this [guide](https://linuxcontainers.org/lxd/getting-started-cli/).
 
-## Cover base `pro` commands
+> Note: When configuring LXD on your machine, run the `lxd init --minimal`. This should be more
+> than enough for you to finish this tutorial
+
+## Main `pro` commands
 
 When dealing with `pro` through the CLI, there are six main `pro` commands that cover the main
 functionalites of the tool. They are:
