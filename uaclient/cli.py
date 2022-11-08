@@ -12,7 +12,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import List, Tuple  # noqa
+from typing import List, Optional, Tuple  # noqa
 
 import yaml
 
@@ -98,7 +98,7 @@ class UAArgumentParser(argparse.ArgumentParser):
         usage=None,
         epilog=None,
         formatter_class=argparse.HelpFormatter,
-        base_desc: str = None,
+        base_desc: Optional[str] = None,
     ):
         super().__init__(
             prog=prog,

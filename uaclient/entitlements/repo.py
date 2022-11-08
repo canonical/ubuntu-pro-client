@@ -228,7 +228,7 @@ class RepoEntitlement(base.UAEntitlement):
 
     def install_packages(
         self,
-        package_list: List[str] = None,
+        package_list: Optional[List[str]] = None,
         cleanup_on_failure: bool = True,
         verbose: bool = True,
     ) -> None:
