@@ -1,5 +1,4 @@
 import textwrap
-from typing import Optional
 
 import mock
 import pytest
@@ -81,17 +80,6 @@ class TestActionAutoAttach:
         ] == m_full_auto_attach.call_args_list
         assert [mock.call(cfg)] == m_post_cli_attach.call_args_list
 
-    @pytest.mark.parametrize(
-        "faa_side_effect, event_info, exit_code",
-        [
-            (
-                exceptions.UrlError(cause="does-not-matter"),
-                "Failed to attach machine. See https://ubuntu.com/pro",
-                1,
-            ),
-            (api_exceptions.AutoAttachDisabledError, None, 0),
-        ],
-    )
     @mock.patch(M_PATH + "event")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
@@ -101,25 +89,27 @@ class TestActionAutoAttach:
         m_post_cli_attach,
         m_event,
         _m_getuid,
-        faa_side_effect,
-        event_info: Optional[str],
-        exit_code,
         FakeConfig,
     ):
-        m_full_auto_attach.side_effect = faa_side_effect
+        m_full_auto_attach.side_effect = exceptions.UrlError(
+            cause="does-not-matter"
+        )
         cfg = FakeConfig()
 
-        assert exit_code == action_auto_attach(mock.MagicMock(), cfg=cfg)
+        assert 1 == action_auto_attach(mock.MagicMock(), cfg=cfg)
 
-        if event_info is not None:
-            assert [mock.call(event_info)] == m_event.info.call_args_list
-        else:
-            assert [] == m_event.info.call_args_list
+        assert [
+            mock.call("Failed to attach machine. See https://ubuntu.com/pro")
+        ] == m_event.info.call_args_list
         assert [] == m_post_cli_attach.call_args_list
 
     @pytest.mark.parametrize(
         "api_side_effect",
-        [exceptions.UserFacingError, exceptions.AlreadyAttachedError],
+        [
+            exceptions.UserFacingError,
+            exceptions.AlreadyAttachedError,
+            api_exceptions.AutoAttachDisabledError,
+        ],
     )
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")

@@ -33,7 +33,6 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import util, version
-from uaclient.api import exceptions as api_exceptions
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -1388,8 +1387,6 @@ def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
     except exceptions.UrlError:
         event.info(messages.ATTACH_FAILURE.msg)
         return 1
-    except api_exceptions.AutoAttachDisabledError:
-        return 0
     else:
         _post_cli_attach(cfg)
         return 0
