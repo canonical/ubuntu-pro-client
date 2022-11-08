@@ -104,21 +104,32 @@ class TestActionAutoAttach:
         assert [] == m_post_cli_attach.call_args_list
 
     @pytest.mark.parametrize(
-        "api_side_effect",
+        "api_side_effect, expected_err",
         [
-            exceptions.UserFacingError,
-            exceptions.AlreadyAttachedError,
-            api_exceptions.AutoAttachDisabledError,
+            (exceptions.UserFacingError("foo"), "foo\n"),
+            (
+                exceptions.AlreadyAttachedError("foo"),
+                "This machine is already attached to 'foo'\n"
+                "To use a different subscription first run: sudo pro"
+                " detach.\n",
+            ),
+            (
+                api_exceptions.AutoAttachDisabledError,
+                "features.disable_auto_attach set in config\n",
+            ),
         ],
     )
+    @mock.patch(M_PATH + "logging")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
     def test_uncaught_errors_are_handled(
         self,
         m_full_auto_attach,
         m_post_cli_attach,
+        m_logging,
         _m_getuid,
         api_side_effect,
+        expected_err,
         capsys,
         FakeConfig,
     ):
@@ -126,14 +137,11 @@ class TestActionAutoAttach:
         cfg = FakeConfig()
         with pytest.raises(SystemExit):
             assert 1 == main_error_handler(action_auto_attach)(
-                mock.MagicMock(), cfg
+                mock.MagicMock(), cfg=cfg
             )
         _out, err = capsys.readouterr()
-        assert (
-            "Unexpected error(s) occurred.\n"
-            "For more details, see the log: /var/log/ubuntu-advantage.log\n"
-            "To file a bug run: ubuntu-bug ubuntu-advantage-tools\n" == err
-        )
+        assert expected_err == err
+        assert [] == m_post_cli_attach.call_args_list
 
 
 class TestParser:
