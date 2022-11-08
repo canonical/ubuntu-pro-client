@@ -382,7 +382,7 @@ def remove_repo_from_apt_auth_file(repo_url):
 
 
 def remove_auth_apt_repo(
-    repo_filename: str, repo_url: str, keyring_file: str = None
+    repo_filename: str, repo_url: str, keyring_file: Optional[str] = None
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     system.remove_file(repo_filename)

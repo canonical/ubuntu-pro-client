@@ -142,7 +142,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         return resource_access
 
     def request_machine_token_update(
-        self, machine_token: str, contract_id: str, machine_id: str = None
+        self,
+        machine_token: str,
+        contract_id: str,
+        machine_id: Optional[str] = None,
     ) -> Dict:
         """Update existing machine-token for an attached machine."""
         return self._request_machine_token_update(
@@ -296,7 +299,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         self,
         machine_token: str,
         contract_id: str,
-        machine_id: str = None,
+        machine_id: Optional[str] = None,
         detach: bool = False,
     ) -> Dict:
         """Request machine token refresh from contract server.
