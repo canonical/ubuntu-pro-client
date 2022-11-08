@@ -13,9 +13,10 @@ their side.
 import logging
 import sys
 
-from uaclient import actions, messages, system
+from uaclient import messages, system
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
+    AutoAttachDisabledError,
     EntitlementsNotEnabledError,
 )
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
@@ -61,9 +62,6 @@ def check_cloudinit_userdata_for_ua_info():
 
 
 def main(cfg: UAConfig):
-    if actions.should_disable_auto_attach(cfg):
-        return
-
     if check_cloudinit_userdata_for_ua_info():
         logging.info("cloud-init userdata has ubuntu-advantage key.")
         logging.info(
@@ -79,6 +77,11 @@ def main(cfg: UAConfig):
         full_auto_attach(FullAutoAttachOptions())
     except AlreadyAttachedError as e:
         logging.info(e.msg)
+    except AutoAttachDisabledError:
+        logging.debug(
+            "Skipping auto-attach. Config disable_auto_attach is set."
+        )
+        return
     except EntitlementsNotEnabledError as e:
         logging.warning(e.msg)
     except Exception as e:

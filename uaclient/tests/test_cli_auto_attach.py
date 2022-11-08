@@ -15,7 +15,6 @@ from uaclient.cli import (
     get_parser,
     main,
 )
-from uaclient.exceptions import AlreadyAttachedOnPROError, NonRootUserError
 
 M_PATH = "uaclient.cli."
 M_ID_PATH = "uaclient.clouds.identity."
@@ -38,7 +37,7 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
     getuid.return_value = 1
 
     cfg = FakeConfig()
-    with pytest.raises(NonRootUserError):
+    with pytest.raises(exceptions.NonRootUserError):
         action_auto_attach(mock.MagicMock(), cfg=cfg)
 
 
@@ -87,7 +86,7 @@ class TestActionAutoAttach:
         FakeConfig,
     ):
         cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(AlreadyAttachedOnPROError):
+        with pytest.raises(exceptions.AlreadyAttachedOnPROError):
             action_auto_attach(mock.MagicMock(), cfg=cfg)
 
     @pytest.mark.parametrize(
@@ -99,7 +98,6 @@ class TestActionAutoAttach:
                 1,
             ),
             (api_exceptions.AutoAttachDisabledError, None, 0),
-            (exceptions.UserFacingError("msg"), "msg", 1),
         ],
     )
     @mock.patch(M_PATH + "event")

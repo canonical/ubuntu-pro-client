@@ -1392,9 +1392,6 @@ def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
         return 0
     except exceptions.AlreadyAttachedError as e:
         raise exceptions.AlreadyAttachedOnPROError() from e
-    except exceptions.UserFacingError as e:
-        event.info(e.msg)
-        return 1
     else:
         _post_cli_attach(cfg)
         return 0

@@ -1,9 +1,14 @@
+import logging
+
 import mock
 import pytest
 
 from lib.auto_attach import check_cloudinit_userdata_for_ua_info, main
 from uaclient import messages
-from uaclient.api.exceptions import AlreadyAttachedError
+from uaclient.api.exceptions import (
+    AlreadyAttachedError,
+    AutoAttachDisabledError,
+)
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
 
 
@@ -88,21 +93,36 @@ class TestMain:
                 "to setup and configure auto-attach"
             ) in caplog_text()
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "api_side_effect, log_msg",
+        [
+            (
+                AlreadyAttachedError("test_account"),
+                "This machine is already attached to 'test_account'",
+            ),
+            (
+                AutoAttachDisabledError,
+                "Skipping auto-attach. Config disable_auto_attach is set.\n",
+            ),
+        ],
+    )
     @mock.patch("lib.auto_attach.check_cloudinit_userdata_for_ua_info")
     @mock.patch("lib.auto_attach.full_auto_attach")
-    def test_main_when_already_attached(
+    def test_main_handles_errors(
         self,
         m_api_full_auto_attach,
         m_check_cloudinit,
         m_write_file,
-        FakeConfig,
+        api_side_effect,
+        log_msg,
         caplog_text,
+        FakeConfig,
     ):
         cfg = FakeConfig.for_attached_machine()
         m_check_cloudinit.return_value = False
-        m_api_full_auto_attach.side_effect = AlreadyAttachedError(
-            "test_account"
-        )
+        m_api_full_auto_attach.side_effect = api_side_effect
+
         main(cfg=cfg)
 
         assert (
@@ -111,24 +131,5 @@ class TestMain:
             )
             in m_write_file.call_args_list
         )
-        assert (
-            "This machine is already attached to 'test_account'"
-            in caplog_text()
-        )
-
-    @mock.patch(
-        "lib.auto_attach.actions.should_disable_auto_attach", return_value=True
-    )
-    @mock.patch("lib.auto_attach.check_cloudinit_userdata_for_ua_info")
-    @mock.patch("lib.auto_attach.full_auto_attach")
-    def test_main_when_auto_attach_disabled(
-        self,
-        m_api_full_auto_attach,
-        m_check_cloudinit,
-        m_write_file,
-        m_should_disable,
-        FakeConfig,
-    ):
-        m_check_cloudinit.return_value = False
-        main(cfg=FakeConfig())
-        assert m_api_full_auto_attach.call_count == 0
+        assert m_api_full_auto_attach.call_count == 1
+        assert log_msg in caplog_text()
