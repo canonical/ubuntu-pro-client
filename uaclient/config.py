@@ -108,8 +108,8 @@ class UAConfig:
 
     def __init__(
         self,
-        cfg: Dict[str, Any] = None,
-        series: str = None,
+        cfg: Optional[Dict[str, Any]] = None,
+        series: Optional[str] = None,
         root_mode: bool = False,
     ) -> None:
         """"""

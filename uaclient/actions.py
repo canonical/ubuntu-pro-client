@@ -142,7 +142,7 @@ def status(
 
 
 def _write_command_output_to_file(
-    cmd, filename: str, return_codes: List[int] = None
+    cmd, filename: str, return_codes: Optional[List[int]] = None
 ) -> None:
     """Helper which runs a command and writes output or error to filename."""
     try:
