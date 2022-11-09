@@ -15,10 +15,11 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         Successfully refreshed your subscription.
         Successfully updated Ubuntu Pro related APT and MOTD messages.
         """
-        When I run `pro auto-attach` with sudo
+        When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to 'UA Client Test'
+        To use a different subscription first run: sudo pro detach.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
