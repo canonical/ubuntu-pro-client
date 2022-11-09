@@ -2,30 +2,6 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         subscription using a valid token
 
-    @series.kinetic
-    @series.lunar
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached command in a non-lts ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `pro status --all` as non-root
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis           +yes      +n/a      +Security compliance and audit tools
-            esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
-            esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
-            fips          +yes      +n/a      +NIST-certified core packages
-            fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
-            livepatch     +yes      +n/a      +Canonical Livepatch service
-            """
-
-        Examples: ubuntu release
-            | release |
-            | kinetic |
-            | lunar   |
-
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container

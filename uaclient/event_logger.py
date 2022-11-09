@@ -165,7 +165,12 @@ class EventLogger:
                 additional_info=additional_info,
             )
 
-    def warning(self, warning_msg: str, service: Optional[str] = None):
+    def warning(
+        self,
+        warning_msg: str,
+        service: Optional[str] = None,
+        warning_code: Optional[str] = None,
+    ):
         """
         Store a warning in the event logger.
 
@@ -175,6 +180,7 @@ class EventLogger:
         if self._event_logger_mode != EventLoggerMode.CLI:
             self._record_dict_event(
                 msg=warning_msg,
+                code=warning_code,
                 service=service,
                 event_dict=self._warning_events,
             )

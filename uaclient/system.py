@@ -170,6 +170,7 @@ def get_platform_info() -> Dict[str, str]:
         {
             "release": match_dict["release"],
             "series": match_dict["series"].lower(),
+            "version": version,
         }
     )
 

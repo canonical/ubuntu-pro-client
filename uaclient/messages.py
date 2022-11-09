@@ -1131,3 +1131,20 @@ Either switch to a supported kernel or `pro disable livepatch` to dismiss this w
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
 LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = "Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels"  # noqa: E501
+
+RUNNING_CMD_ON_NON_LTS = NamedMessage(
+    name="running-cmd-on-non-lts",
+    msg="This command is not supported in a non-LTS release",
+)
+
+PRO_STATUS_NON_LTS = FormattedNamedMessage(
+    name="pro-status-for-non-lts",
+    msg="""\
+You are running Ubuntu {{release_version}} interim release.
+Interim Ubuntu releases are supported for 9 months and do not offer
+Ubuntu Pro features, such as the full 10 years security maintenance. If
+you wish to use Ubuntu Pro, please switch to an LTS release. Learn more
+about Ubuntu Pro at {url}""".format(
+        url=BASE_UA_URL
+    ),
+)

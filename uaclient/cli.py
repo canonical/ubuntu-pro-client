@@ -12,7 +12,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import List, Optional, Tuple  # noqa
+from typing import Callable, List, Optional, Tuple  # noqa
 
 import yaml
 
@@ -33,7 +33,7 @@ from uaclient import (
     security_status,
 )
 from uaclient import status as ua_status
-from uaclient import util, version
+from uaclient import system, util, version
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -240,6 +240,36 @@ def verify_json_format_args(f):
             return f(cmd_args, *args, **kwargs)
 
     return new_f
+
+
+def assert_lts(
+    msg_func: Callable[[], messages.NamedMessage], return_code: int = 0
+):
+    """Decorator for asserting that the client is running on a LTS release.
+    :param msg: A messages.NamedMessage object containing the message that
+                will be used if the system is running a non-LTS release
+    :param return_code: The return code to be used if the system is running
+                        a non-LTS release
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg, **kwargs):
+            series = system.get_platform_info().get("series", "")
+            if not system.is_lts(series):
+                msg = msg_func()
+                event.info(msg.msg)
+                if return_code == 0:
+                    event.warning(warning_msg=msg.msg, warning_code=msg.name)
+                else:
+                    event.error(error_msg=msg.msg, error_code=msg.name)
+                event.process_events()
+                return return_code
+            return f(args, cfg=cfg, **kwargs)
+
+        return new_f
+
+    return wrapper
 
 
 def assert_attached(msg_function=None):
@@ -1165,6 +1195,14 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
+def _create_status_non_lts_msg() -> messages.NamedMessage:
+    """Genarates a custom message when running status on a non-LTS release."""
+    platform_info = system.get_platform_info()
+    return messages.PRO_STATUS_NON_LTS.format(
+        release_version=platform_info.get("version", "")
+    )
+
+
 def _create_enable_disable_unattached_msg(command, service_names, cfg):
     """Generates a custom message for enable/disable commands when unattached.
 
@@ -1666,6 +1704,7 @@ def get_parser(cfg: config.UAConfig):
     return parser
 
 
+@assert_lts(msg_func=_create_status_non_lts_msg, return_code=0)
 def action_status(args, *, cfg: config.UAConfig):
     if not cfg:
         cfg = config.UAConfig()

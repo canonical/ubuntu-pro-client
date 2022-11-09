@@ -20,6 +20,7 @@ Feature: Attached status
            | kinetic |
            | lunar   |
 
+
     @series.xenial
     @uses.config.machine_type.lxd.container
     Scenario Outline: Non-root status can see in-progress operations
@@ -184,3 +185,43 @@ Feature: Attached status
         Examples: ubuntu release
            | release |
            | jammy   |
+
+    @series.kinetic
+    @series.lunar
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached command in a non-lts ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+            """
+            You are running Ubuntu <release_id> \(<release_name>\) interim release.
+            Interim Ubuntu releases are supported for 9 months and do not offer
+            Ubuntu Pro features, such as the full 10 years security maintenance. If
+            you wish to use Ubuntu Pro, please switch to an LTS release. Learn more
+            about Ubuntu Pro at https://ubuntu.com/pro
+            """
+        When I run `pro status --all --format json` as non-root
+        Then stdout matches regexp:
+            """
+            {"environment_vars": \[\], "errors": \[\], "result": "success", "services": \[\], "warnings": \[{"message": "You are running Ubuntu <release_id> \(<release_name>\) interim release.\\nInterim Ubuntu releases are supported for 9 months and do not offer\\nUbuntu Pro features, such as the full 10 years security maintenance. If\\nyou wish to use Ubuntu Pro, please switch to an LTS release. Learn more\\nabout Ubuntu Pro at https://ubuntu.com/pro", "message_code": "pro\-status\-for\-non\-lts", "service": null, "type": "system"}\]}
+            """
+        When I attach `contract_token` with sudo
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+            """
+            You are running Ubuntu <release_id> \(<release_name>\) interim release.
+            Interim Ubuntu releases are supported for 9 months and do not offer
+            Ubuntu Pro features, such as the full 10 years security maintenance. If
+            you wish to use Ubuntu Pro, please switch to an LTS release. Learn more
+            about Ubuntu Pro at https://ubuntu.com/pro
+            """
+        When I run `pro status --all --format json` as non-root
+        Then stdout matches regexp:
+            """
+            {"environment_vars": \[\], "errors": \[\], "result": "success", "services": \[\], "warnings": \[{"message": "You are running Ubuntu <release_id> \(<release_name>\) interim release.\\nInterim Ubuntu releases are supported for 9 months and do not offer\\nUbuntu Pro features, such as the full 10 years security maintenance. If\\nyou wish to use Ubuntu Pro, please switch to an LTS release. Learn more\\nabout Ubuntu Pro at https://ubuntu.com/pro", "message_code": "pro\-status\-for\-non\-lts", "service": null, "type": "system"}\]}
+            """
+
+        Examples: ubuntu release
+            | release | release_id | release_name  |
+            | kinetic | 22.10      | Kinetic Kudu  |
+            | lunar   | 23.04      | Lunar Lobster |

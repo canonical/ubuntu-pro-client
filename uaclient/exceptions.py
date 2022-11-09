@@ -280,6 +280,15 @@ class UnattachedError(UserFacingError):
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
+class NotAvailableOnNonLTSError(UserFacingError):
+    """An exception to be raised when running a cmd ona non-LTS machine."""
+
+    def __init__(
+        self, msg: messages.NamedMessage = messages.RUNNING_CMD_ON_NON_LTS
+    ) -> None:
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
 class SecurityAPIMetadataError(UserFacingError):
     """An exception raised with Security API metadata returns invalid data."""
 

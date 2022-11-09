@@ -328,6 +328,7 @@ Flags:
 )
 
 
+@mock.patch("uaclient.system.is_lts", return_value=True)
 @mock.patch(
     "uaclient.entitlements.livepatch.on_supported_kernel", return_value=None
 )
@@ -351,6 +352,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         capsys,
         FakeConfig,
     ):
@@ -398,6 +400,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         features,
         feature_status,
         notices,
@@ -457,6 +460,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         use_all,
         capsys,
         FakeConfig,
@@ -485,6 +489,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         use_all,
         capsys,
         FakeConfig,
@@ -513,6 +518,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         capsys,
         FakeConfig,
     ):
@@ -566,6 +572,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         environ,
         format_type,
         event_logger_mode,
@@ -673,6 +680,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         use_all,
         environ,
         format_type,
@@ -803,6 +811,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         use_all,
         format_type,
         event_logger_mode,
@@ -951,6 +960,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
@@ -980,6 +990,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         encoding,
         expected_dash,
         use_all,
@@ -1041,6 +1052,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         exception_to_throw,
         exception_type,
         exception_message,
@@ -1092,6 +1104,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         format_type,
         event_logger_mode,
         token_to_use,
@@ -1149,6 +1162,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_contract_changed,
         _m_on_supported_kernel,
+        _m_is_lts,
         contract_changed,
         is_attached,
         capsys,
@@ -1187,6 +1201,60 @@ class TestActionStatus:
                 ] in m_remove_notice.call_args_list
         else:
             assert _m_contract_changed.call_count == 0
+
+    @mock.patch("uaclient.system.get_platform_info")
+    def test_running_on_a_non_lts_release(
+        self,
+        m_get_platform_info,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_available_resources,
+        _m_should_reboot,
+        _m_contract_changed,
+        _m_on_supported_kernel,
+        m_is_lts,
+        capsys,
+        event,
+    ):
+        m_is_lts.return_value = False
+        m_get_platform_info.return_value = {
+            "series": "kinetic",
+            "version": "22.10 (Kinetic Kudu)",
+        }
+        expected_msg = messages.PRO_STATUS_NON_LTS.format(
+            release_version="22.10 (Kinetic Kudu)"
+        )
+        ret = action_status(args=None, cfg=None)
+        out, _ = capsys.readouterr()
+
+        assert ret == 0
+        assert expected_msg.msg in out
+
+        expected_json = {
+            "environment_vars": [],
+            "errors": [],
+            "result": "success",
+            "services": [],
+            "warnings": [
+                {
+                    "message": expected_msg.msg,
+                    "message_code": expected_msg.name,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+        }
+        with mock.patch.object(
+            event, "_event_logger_mode", EventLoggerMode.JSON
+        ):
+            with mock.patch.object(event, "_command", "status"):
+                ret = action_status(args=None, cfg=None)
+
+        out, _ = capsys.readouterr()
+        actual_json = json.loads(out)
+
+        assert ret == 0
+        assert expected_json == actual_json
 
 
 class TestStatusParser:
