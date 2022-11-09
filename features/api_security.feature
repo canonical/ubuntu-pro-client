@@ -1,7 +1,24 @@
-Feature: API security status package list in manifest format
+Feature: API security/security status tests
+
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    @uses.config.contract_token
+    Scenario: Call Livepatched CVEs endpoint
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `pro api u.pro.security.status.livepatch_cves.v1` as non-root
+        Then stdout matches regexp:
+         """
+         {"name": "cve-2013-1798", "patched": true}
+         """
+         And stdout matches regexp:
+         """
+         "type": "LivepatchCVEs"
+         """
 
     @series.lts
     @uses.config.machine_type.lxd.container
+    @uses.config.contract_token
     Scenario Outline: Call package manifest endpoint for machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
