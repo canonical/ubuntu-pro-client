@@ -16,18 +16,18 @@ from uaclient.messages import (
 from uaclient.version import check_for_new_version
 
 VALID_ENDPOINTS = [
-    "u.pro.version.v1",
-    "u.pro.attach.magic.initiate.v1",
-    "u.pro.attach.magic.wait.v1",
-    "u.pro.attach.magic.revoke.v1",
-    "u.pro.attach.auto.should_auto_attach.v1",
-    "u.pro.attach.auto.full_auto_attach.v1",
     "u.pro.attach.auto.configure_retry_service.v1",
-    "u.security.package_manifest.v1",
-    "u.pro.security.status.livepatch_cves.v1",
-    "u.pro.security.status.reboot_required.v1",
+    "u.pro.attach.auto.full_auto_attach.v1",
+    "u.pro.attach.auto.should_auto_attach.v1",
+    "u.pro.attach.magic.initiate.v1",
+    "u.pro.attach.magic.revoke.v1",
+    "u.pro.attach.magic.wait.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
+    "u.pro.security.status.livepatch_cves.v1",
+    "u.pro.security.status.reboot_required.v1",
+    "u.pro.version.v1",
+    "u.security.package_manifest.v1",
 ]
 
 
