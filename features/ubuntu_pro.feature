@@ -276,10 +276,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        When I run `pro auto-attach` with sudo
+        When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to '.*'
+        To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -525,10 +526,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        When I run `pro auto-attach` with sudo
+        When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
         """
-        Skipping auto-attach: Instance is already attached.
+        This machine is already attached to '.*'
+        To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
