@@ -304,10 +304,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             """
             This command must be run as root \(try using sudo\).
             """
-        When I verify that running `pro auto-attach` `with sudo` exits `0`
+        When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
             """
-            Skipping auto-attach: Instance is already attached.
+            This machine is already attached to 'UA Client Test'
+            To use a different subscription first run: sudo pro detach.
             """
 
         Examples: ubuntu release
@@ -394,10 +395,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         other: False
         """
         When I run `pro detach --assume-yes` with sudo
-        When I run `pro auto-attach` with sudo
-        Then stdout matches regexp:
+        Then I verify that running `pro auto-attach` `with sudo` exits `1`
+        Then stderr matches regexp:
         """
-        Skipping auto-attach. Config disable_auto_attach is set.
+        features.disable_auto_attach set in config
         """
 
         Examples: ubuntu release

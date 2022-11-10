@@ -231,18 +231,6 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             )
 
 
-def should_disable_auto_attach(cfg: config.UAConfig) -> bool:
-    disable_auto_attach = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.disable_auto_attach"
-    )
-    if disable_auto_attach:
-        msg = "Skipping auto-attach. Config disable_auto_attach is set."
-        logging.debug(msg)
-        print(msg)
-
-    return disable_auto_attach
-
-
 def get_cloud_instance(
     cfg: config.UAConfig,
 ) -> AutoAttachCloudInstance:
