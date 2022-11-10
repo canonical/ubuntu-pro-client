@@ -3,12 +3,30 @@ import logging
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.actions import attach_with_token, auto_attach, collect_logs
-from uaclient.exceptions import ContractAPIError
-from uaclient.tests.test_cli_auto_attach import fake_instance_factory
+from uaclient import exceptions, messages
+from uaclient.actions import (
+    attach_with_token,
+    auto_attach,
+    collect_logs,
+    get_cloud_instance,
+)
+from uaclient.exceptions import (
+    CloudFactoryError,
+    CloudFactoryNoCloudError,
+    CloudFactoryNonViableCloudError,
+    CloudFactoryUnsupportedCloudError,
+    ContractAPIError,
+    NonAutoAttachImageError,
+    UserFacingError,
+)
 
 M_PATH = "uaclient.actions."
+
+
+def fake_instance_factory():
+    m_instance = mock.Mock()
+    m_instance.identity_doc = "pkcs7-validated-by-backend"
+    return m_instance
 
 
 class TestAttachWithToken:
@@ -140,3 +158,56 @@ class TestCollectLogs:
         assert 1 == m_write_file.call_count
         assert [mock.call("test/b", "test")] == m_write_file.call_args_list
         assert "Failed to load file: a\n" in caplog_text()
+
+
+class TestGetCloudInstance:
+    @pytest.mark.parametrize(
+        "cloud_factory_error, expected_error_cls, expected_error_msg",
+        [
+            (
+                CloudFactoryNoCloudError("test"),
+                UserFacingError,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+            (
+                CloudFactoryNonViableCloudError("test"),
+                UserFacingError,
+                messages.UNSUPPORTED_AUTO_ATTACH,
+            ),
+            (
+                CloudFactoryUnsupportedCloudError("test"),
+                NonAutoAttachImageError,
+                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                    cloud_type="test"
+                ),
+            ),
+            (
+                CloudFactoryNoCloudError("test"),
+                UserFacingError,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+            (
+                CloudFactoryError("test"),
+                UserFacingError,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "identity.cloud_instance_factory")
+    def test_handle_cloud_factory_errors(
+        self,
+        m_cloud_instance_factory,
+        cloud_factory_error,
+        expected_error_cls,
+        expected_error_msg,
+        FakeConfig,
+    ):
+        """Non-supported clouds will error."""
+        m_cloud_instance_factory.side_effect = cloud_factory_error
+        cfg = FakeConfig()
+
+        with pytest.raises(expected_error_cls) as excinfo:
+            get_cloud_instance(cfg=cfg)
+
+        if expected_error_msg:
+            assert expected_error_msg == str(excinfo.value)
