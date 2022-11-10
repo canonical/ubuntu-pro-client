@@ -48,10 +48,6 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "machine_id_response", (("contract-machine-id"), None)
     )
-    @pytest.mark.parametrize(
-        "detach,expected_http_method",
-        ((None, "POST"), (False, "POST"), (True, "DELETE")),
-    )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.system.get_platform_info")
     def test__request_machine_token_update(
@@ -59,8 +55,6 @@ class TestUAContractClient:
         get_platform_info,
         get_machine_id,
         request_url,
-        detach,
-        expected_http_method,
         machine_id_response,
         activity_id,
         FakeConfig,
@@ -82,8 +76,6 @@ class TestUAContractClient:
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
-        if detach is not None:
-            kwargs["detach"] = detach
         enabled_services = ["esm-apps", "livepatch"]
 
         def entitlement_user_facing_status(self):
@@ -101,13 +93,14 @@ class TestUAContractClient:
             ):
                 client._request_machine_token_update(**kwargs)
 
-        if not detach:  # Then we have written the updated cache
-            assert machine_token == cfg.machine_token_file.machine_token
-            expected_machine_id = "machineId"
-            if machine_id_response:
-                expected_machine_id = machine_id_response
+        assert machine_token != cfg.machine_token_file.machine_token
+        client.update_files_after_machine_token_update(machine_token)
+        assert machine_token == cfg.machine_token_file.machine_token
+        expected_machine_id = "machineId"
+        if machine_id_response:
+            expected_machine_id = machine_id_response
 
-            assert expected_machine_id == cfg.read_cache("machine-id")
+        assert expected_machine_id == cfg.read_cache("machine-id")
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -115,20 +108,19 @@ class TestUAContractClient:
                 "content-type": "application/json",
                 "Authorization": "Bearer mToken",
             },
-            "method": expected_http_method,
+            "method": "POST",
         }
-        if expected_http_method != "DELETE":
-            expected_activity_id = activity_id if activity_id else "machineId"
-            params["data"] = {
-                "machineId": "machineId",
-                "architecture": "arch",
-                "os": {"kernel": "kernel"},
-                "activityInfo": {
-                    "activityToken": None,
-                    "activityID": expected_activity_id,
-                    "resources": enabled_services,
-                },
-            }
+        expected_activity_id = activity_id if activity_id else "machineId"
+        params["data"] = {
+            "machineId": "machineId",
+            "architecture": "arch",
+            "os": {"kernel": "kernel"},
+            "activityInfo": {
+                "activityToken": None,
+                "activityID": expected_activity_id,
+                "resources": enabled_services,
+            },
+        }
         assert request_url.call_args_list == [
             mock.call("/v1/contracts/cId/context/machines/machineId", **params)
         ]
