@@ -1098,10 +1098,12 @@ class TestActionStatus:
             (False, False),
         ),
     )
+    @mock.patch("uaclient.files.NoticeFile.try_remove")
     @mock.patch("uaclient.files.NoticeFile.add")
     def test_is_contract_changed(
         self,
         m_add_notice,
+        m_try_remove_notice,
         _m_getuid,
         _m_get_contract_information,
         _m_get_available_resources,
@@ -1132,6 +1134,9 @@ class TestActionStatus:
                 assert [
                     mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
                 ] not in m_add_notice.call_args_list
+                assert [
+                    mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+                ] in m_try_remove_notice.call_args_list
         else:
             assert _m_contract_changed.call_count == 0
 

@@ -94,6 +94,7 @@ class MachineTokenFile:
 
             self._machine_token = None
             self._entitlements = None
+            self._contract_expiry_datetime = None
         else:
             raise exceptions.NonRootUserError()
 
@@ -105,6 +106,7 @@ class MachineTokenFile:
 
             self._machine_token = None
             self._entitlements = None
+            self._contract_expiry_datetime = None
         else:
             raise exceptions.NonRootUserError()
 
