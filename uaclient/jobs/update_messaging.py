@@ -13,7 +13,7 @@ from functools import lru_cache
 from os.path import exists
 from typing import List, Tuple
 
-from uaclient import config, defaults, entitlements, system, util
+from uaclient import config, contract, defaults, entitlements, system, util
 from uaclient.clouds import identity
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
@@ -394,6 +394,13 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
                 system.remove_file(msg_path.replace(".tmpl", ""))
         return True
 
+    expiry_status, _ = get_contract_expiry_status(cfg)
+    if expiry_status not in (
+        ContractExpiryStatus.ACTIVE,
+        ContractExpiryStatus.NONE,
+    ):
+        update_contract_expiry(cfg)
+
     # Announce ESM availabilty on active ESM LTS releases
     # write_esm_announcement_message(cfg, series)
     write_apt_and_motd_templates(cfg, series)
@@ -417,3 +424,33 @@ def refresh_motd():
             logging.exception(exc)
 
     system.subp(["sudo", "systemctl", "restart", "motd-news.service"])
+
+
+def update_contract_expiry(cfg: config.UAConfig):
+    orig_token = cfg.machine_token
+    machine_token = orig_token.get("machineToken", "")
+    contract_id = (
+        orig_token.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("id", None)
+    )
+
+    contract_client = contract.UAContractClient(cfg)
+    resp = contract_client.get_updated_contract_info(
+        machine_token, contract_id
+    )
+    resp_expiry = (
+        resp.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("effectiveTo", None)
+    )
+    new_expiry = (
+        util.parse_rfc3339_date(resp_expiry)
+        if resp_expiry
+        else cfg.machine_token_file.contract_expiry_datetime
+    )
+    if cfg.machine_token_file.contract_expiry_datetime != new_expiry:
+        orig_token["machineTokenInfo"]["contractInfo"][
+            "effectiveTo"
+        ] = new_expiry
+        cfg.machine_token_file.write(orig_token)

@@ -1616,6 +1616,10 @@ def action_status(args, *, cfg):
                 cfg.notice_file.try_add(
                     "", messages.NOTICE_REFRESH_CONTRACT_WARNING
                 )
+            else:
+                cfg.notice_file.try_remove(
+                    "", messages.NOTICE_REFRESH_CONTRACT_WARNING
+                )
         except exceptions.UrlError as e:
             with util.disable_log_to_console():
                 err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(

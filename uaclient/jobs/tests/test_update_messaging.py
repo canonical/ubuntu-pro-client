@@ -671,3 +671,59 @@ class TestUpdateAPTandMOTDMessages:
         )
         assert write_apt_calls == write_apt_and_motd_templates.call_args_list
         assert subp_calls == subp.call_args_list
+
+    @pytest.mark.parametrize(
+        "expiry_status,call_count",
+        (
+            (ContractExpiryStatus.ACTIVE, 0),
+            (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 1),
+            (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, 1),
+        ),
+    )
+    @mock.patch(M_PATH + "update_contract_expiry")
+    @mock.patch(M_PATH + "get_contract_expiry_status")
+    @mock.patch(M_PATH + "system.is_lts")
+    @mock.patch(M_PATH + "system.is_active_esm")
+    @mock.patch(M_PATH + "write_apt_and_motd_templates")
+    @mock.patch(M_PATH + "write_esm_announcement_message")
+    @mock.patch(M_PATH + "system.subp")
+    @mock.patch(M_PATH + "system.get_platform_info")
+    def test_contract_expiry_motd_and_apt_messages(
+        self,
+        _get_platform_info,
+        _subp,
+        _write_esm_announcement_message,
+        _write_apt_and_motd_templates,
+        _is_active_esm,
+        _util_is_lts,
+        get_contract_expiry_status,
+        update_contract_expiry,
+        expiry_status,
+        call_count,
+        FakeConfig,
+    ):
+        get_contract_expiry_status.return_value = expiry_status, 0
+        cfg = FakeConfig.for_attached_machine()
+        update_apt_and_motd_messages(cfg)
+        assert update_contract_expiry.call_count == call_count
+
+    @pytest.mark.parametrize(
+        "expiry,is_updated",
+        (("2040-05-08T19:02:26Z", False), ("2042-05-08T19:02:26Z", True)),
+    )
+    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch(M_PATH + "contract.UAContractClient.get_updated_contract_info")
+    def test_update_contract_expiry(
+        self,
+        get_updated_contract_info,
+        machine_token_write,
+        expiry,
+        is_updated,
+    ):
+        get_updated_contract_info.return_value = {
+            "machineTokenInfo": {"contractInfo": {"effectiveTo": expiry}}
+        }
+        if is_updated:
+            1 == machine_token_write.call_count
+        else:
+            0 == machine_token_write.call_count
