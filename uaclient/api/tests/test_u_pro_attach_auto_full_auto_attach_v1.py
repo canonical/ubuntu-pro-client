@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import messages
+from uaclient import event_logger, messages
 from uaclient.api import exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -222,6 +222,10 @@ class TestFullAutoAttachV1:
             _full_auto_attach(FullAutoAttachOptions, FakeConfig())
 
     @pytest.mark.parametrize(
+        "mode",
+        list(map(lambda e: e.value, event_logger.EventLoggerMode)),
+    )
+    @pytest.mark.parametrize(
         [
             "options",
             "is_attached",
@@ -350,6 +354,7 @@ class TestFullAutoAttachV1:
         raise_expectation,
         expected_error_message,
         expected_ret,
+        mode,
         FakeConfig,
     ):
         if is_attached:
@@ -361,7 +366,7 @@ class TestFullAutoAttachV1:
             enable_services_by_name_side_effect
         )
         with raise_expectation as e:
-            ret = _full_auto_attach_in_lock(options, cfg)
+            ret = _full_auto_attach_in_lock(options, cfg, mode)
         assert m_auto_attach.call_args_list == expected_auto_attach_call_args
         assert (
             m_enable_services_by_name.call_args_list

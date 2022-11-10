@@ -137,16 +137,6 @@ class NonAutoAttachImageError(UserFacingError):
     exit_code = 0
 
 
-class AlreadyAttachedOnPROError(UserFacingError):
-    """Raised when a PRO machine retries attaching with the same instance-id"""
-
-    exit_code = 0
-
-    def __init__(self):
-        msg = messages.ALREADY_ATTACHED_ON_PRO
-        super().__init__(msg=msg.msg, msg_code=msg.name)
-
-
 class AlreadyAttachedError(UserFacingError):
     """An exception to be raised when a command needs an unattached system."""
 
