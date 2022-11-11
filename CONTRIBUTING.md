@@ -18,6 +18,7 @@ from the architecture of the project to how you should test any code changes.
 
 * [Terminology](./dev-docs/references/terminology.md)
 * [Architecture](./dev-docs/references/architecture.md)
+* [Early review sign-off](./dev-docs/references/early_review_signoff.md)
 * [What happens during attach](./dev-docs/references/what_happens_during_attach.md)
 * [Enabling a service](./dev-docs/references/enabling_a_service.md)
 * [Directory layout](./dev-docs/references/directory_layout.md)
