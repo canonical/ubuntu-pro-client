@@ -16,18 +16,13 @@ from the architecture of the project to how you should test any code changes.
 
 ### Reference
 
-* [Terminology](./contributing-docs/references/terminology.md)
-* [Architecture](./docs/references/architecture.md)
-* [What happens during attach](./docs/references/what_happens_during_attach.md)
-* [Enabling a service](./docs/references/enabling_a_service.md)
-* [Directory layout](./docs/references/directory_layout.md)
 * [Terminology](./dev-docs/references/terminology.md)
 * [Architecture](./dev-docs/references/architecture.md)
 * [What happens during attach](./dev-docs/references/what_happens_during_attach.md)
 * [Enabling a service](./dev-docs/references/enabling_a_service.md)
 * [Directory layout](./dev-docs/references/directory_layout.md)
 * [Daily Builds](./dev-docs/references/daily_builds.md)
-* [Version String Formatting](./contributing-docs/references/version_string_formatting.md)
+* [Version String Formatting](./dev-docs/references/version_string_formatting.md)
 
 ### Explanation
 
