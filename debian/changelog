@@ -1,3 +1,29 @@
+ubuntu-advantage-tools (27.12~23.04.1) lunar; urgency=medium
+
+  * New upstream release 27.12 (LP: #1996424):
+    - auto-attach:
+      + retry auto-attach for up to one month on Ubuntu Pro cloud instances
+      + make a best effort to auto-attach when using the API
+    - enable: show deduplicated list of supported arches (GH: #917)
+    - fips: remove cloud package override logic from the client
+    - messaging: verify contract expiration date on contract server before
+      outputting expired message on MOTD
+    - realtime-kernel: make service non-beta
+    - reboot-required:
+      + add API support to show if the system requires a reboot
+        (u.pro.security.status.reboot_required.v1)
+      + add cli command for the functionality (pro system reboot-required)
+    - security-status:
+      + add API support to report standard updates (u.pro.packages.updates.v1)
+      + add API support to show CVEs patched by Livepatch
+        (u.pro.security.status.livepatch_cves.v1)
+      + add API support to show packages summary information
+        (u.pro.packages.summary.v1)
+      + list packages in oci manifest format (u.security.package_manifest.v1)
+    - systemd: do not attempt to auto-attach if a machine-token is present
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 11 Nov 2022 14:27:00 -0300
+
 ubuntu-advantage-tools (27.11.3~22.10.1) kinetic; urgency=medium
 
   * New upstream release 27.11.3: (LP: #1993006)
