@@ -33,3 +33,9 @@ that apply. -->
  - [ ] I have updated or added any unit tests accordingly
  - [ ] I have updated or added any integration tests accordingly
  - [ ] I have updated or added any documentation accordingly
+
+## Does this PR require extra reviews?
+<!-- Should people outside of the team see and approve these changes before the
+PR gets merged? If yes, make sure to tag them as reviewers. -->
+ - [ ] Yes
+ - [ ] No

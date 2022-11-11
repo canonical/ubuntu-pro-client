@@ -12,6 +12,8 @@ Generally speaking, these steps happen in order, but there is some overlap. Also
 
 An average release should take somewhere between 10 and 14 calendar days if things go smoothly, starting at the decision to release and ending at the new version being available in all supported ubuntu releases. Note that it is not 2 weeks of full time work. Most of the time is spent waiting for review or sitting in proposed.
 
+> **Warning:** If the release contains any change listed in the [Early Review Sign-Off list](../references/early_review_signoff.md), make sure it was properly reviewed *before* starting the release process. Ideally they would be reviewed even before implementation, but if some feature  is in the list and didn't get a proper review, now is the time to do so.
+
 ## Prerequisites
 
 If this is your first time releasing ubuntu-advantage-tools, you'll need to do the following before getting started:
@@ -110,6 +112,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b. Create a new bug on Launchpad for ubuntu-advantage-tools and use the format defined [here](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) for the description.
       * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Jammy`, substituting version numbers and release names as necessary.
+      * If any of the changes for the SRU is in the [Early Review Sign-off list](../references/early_review_signoff.md), include a pointer in the `[Discussion]` section to where the discussion/approval of that feature took place (if possible).
     
     c. For each Launchpad bug fixed by this release (which should all be referenced in our changelog), add the SRU template to the description and fill out each section.
       * Leave the original description in the bug at the bottom under the header `[Original Description]`.
