@@ -32,6 +32,9 @@ The currently available endpoints are:
 - [u.pro.attach.magic.revoke.v1](#uproattachmagicrevokev1)
 - [u.pro.attach.auto.should_auto_attach.v1](#uproattachautoshould_auto_attachv1)
 - [u.pro.attach.auto.full_auto_attach.v1](#uproattachautofull_auto_attachv1)
+- [u.pro.security.status.livepatch_cves.v1](#uprosecuritystatuslivepatch_cvesv1)
+- [u.pro.packages.summary.v1](#upropackagessummaryv1)
+- [u.pro.packages.updates.v1](#upropackagesupdatesv1)
 
 ## u.pro.version.v1
 Shows the installed Client version.
@@ -334,3 +337,199 @@ No exceptions raised by this endpoint.
 ### CLI interaction
 #### Calling from the CLI:
 This endpoint currently has no CLI support. Only the Python-based version is available.
+
+
+## u.pro.security.status.livepatch_cves.v1
+Lists Livepatch patches for the current running kernel.
+
+### Args
+This endpoint takes no arguments.
+
+### Python API interaction
+#### Calling from Python code
+```python
+from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves
+
+result = livepatch_cves()
+```
+
+#### Expected return object:
+`uaclient.api.u.pro.security.status.livepatch_cves.v1.LivepatchCVEsResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|fixed_cves|list(LivepatchCVEObject)|List of Livepatch patches for the given system|
+
+`uaclient.api.u.pro.security.status.livepatch_cves.v1.LivepatchCVEObject`
+|Field Name|Type|Description|
+|-|-|-|
+|name|str|Name (ID) of the CVE|
+|patched|bool|Livepatch has patched the CVE|
+
+
+### Raised Exceptions
+No exceptions raised by this endpoint.
+
+
+### CLI interaction
+#### Calling from the CLI:
+```bash
+pro api u.pro.security.status.livepatch_cves.v1
+```
+
+#### Expected attributes in JSON structure
+```json
+{
+    "fixed_cves":[
+        {
+            "name": "<CVE Name>",
+            "patched": true
+        },
+        {
+            "name": "<Other CVE Name>",
+            "patched": false
+        },
+    ],
+}
+```
+
+
+
+## u.pro.packages.summary.v1
+Shows a summary of installed packages in the system, categorized by origin.
+
+### Args
+This endpoint takes no arguments.
+
+### Python API interaction
+#### Calling from Python code
+```python
+from uaclient.api.u.pro.packages.summary.v1 import summary
+
+result = summary()
+```
+
+#### Expected return object:
+`uaclient.api.u.pro.packages.summary.v1.PackageSummaryResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|summary|PackageSummary|Summary of all installed packages|
+
+`uaclient.api.u.pro.packages.summary.v1.PackageSummary`
+|Field Name|Type|Description|
+|-|-|-|
+|num_installed_packages|int|Total count of installed packages|
+|num_esm_apps_packages|int|Count of packages installed from esm-apps|
+|num_esm_infra_packages|int|Count of packages installed from esm-infra|
+|num_main_packages|int|Count of packages installed from main|
+|num_multiverse_packages|int|Count of packages installed from multiverse|
+|num_restricted_packages|int|Count of packages installed from restricted|
+|num_third_party_packages|int|Count of packages installed from third party sources|
+|num_universe_packages|int|Count of packages installed from universe|
+|num_unknown_packages|int|Count of packages installed from unknown sources|
+
+
+### Raised Exceptions
+No exceptions raised by this endpoint.
+
+
+### CLI interaction
+#### Calling from the CLI:
+```bash
+pro api u.pro.packages.summary.v1
+```
+
+#### Expected attributes in JSON structure
+```json
+{
+    "summary":{
+        "num_installed_packages": <int>,
+        "num_esm_apps_packages": <int>,
+        "num_esm_infra_packages": <int>,
+        "num_main_packages": <int>,
+        "num_multiverse_packages": <int>,
+        "num_restricted_packages": <int>,
+        "num_third_party_packages": <int>,
+        "num_universe_packages": <int>,
+        "num_unknown_packages": <int>,
+    },
+}
+```
+
+
+
+## u.pro.packages.updates.v1
+Shows available updates for packages in a system, categorized by where they can be obtained.
+
+### Args
+This endpoint takes no arguments.
+
+### Python API interaction
+#### Calling from Python code
+```python
+from uaclient.api.u.pro.packages.updates.v1 import updates
+
+result = updates()
+```
+
+#### Expected return object:
+`uaclient.api.u.pro.packages.updates.v1.PackageUpdatesResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|summary|UpdateSummary|Summary of all available updates|
+|updates|list(UpdateInfo)|Detailed list of all available updates|
+
+`uaclient.api.u.pro.packages.updates.v1.UpdateSummary`
+
+|Field Name|Type|Description|
+|-|-|-|
+|num_updates|int|Total count of available updates|
+|num_esm_apps_updates|int|Count of available updates from esm-apps|
+|num_esm_infra_updates|int|Count of available updates from esm-infra|
+|num_standard_security_updates|int|Count of available updates from the -security pocket|
+|num_standard_updates|int|Count of available updates from the -updates pocket|
+
+`uaclient.api.u.pro.packages.updates.v1.UpdateInfo`
+|Field Name|Type|Description|
+|-|-|-|
+|download_size|int|Download size for the update in bytes|
+|origin|str|Where the update is downloaded from|
+|package|str|Name of the package to be updated|
+|provided_by|str|Service which provides the update|
+|status|str|Whether this update is ready for download or not|
+|version|str|Version of the update|
+
+### Raised Exceptions
+No exceptions raised by this endpoint.
+
+
+### CLI interaction
+#### Calling from the CLI:
+```bash
+pro api u.pro.packages.updates.v1
+```
+
+#### Expected attributes in JSON structure
+```json
+{
+    "summary":{
+        "num_updates": <int>,
+        "num_esm_apps_updates": <int>,
+        "num_esm_infra_updates": <int>,
+        "num_standard_security_updates": <int>,
+        "num_standard_updates": <int>,
+    },
+    "updates":[
+        {
+            "download_size": <int>,
+            "origin": "<some site>",
+            "package": "<package name>",
+            "provided_by": "<service name>",
+            "status": "<update status>",
+            "version": "<updated version>",
+        },
+    ]
+}
+```
