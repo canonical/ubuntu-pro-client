@@ -1,18 +1,18 @@
-# Ubuntu Pro Client Releases
+# Ubuntu Pro Client releases
 
 ## Background
 
 The release process for ubuntu-advantage-tools has three overarching steps/goals.
 
-1. Release to our team infrastructure. This includes Github and the `ua-client` PPAs.
-2. Release to the latest ubuntu devel release.
-3. Release to the supported ubuntu past releases via [SRU](https://wiki.ubuntu.com/StableReleaseUpdates) using the [ubuntu-advantage-tools specific SRU process](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates).
+1. Release to our team infrastructure. This includes GitHub and the `ua-client` PPAs.
+2. Release to the latest Ubuntu devel release.
+3. Release to the supported Ubuntu past releases via [SRU](https://wiki.ubuntu.com/StableReleaseUpdates) using the [ubuntu-advantage-tools specific SRU process](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates).
 
 Generally speaking, these steps happen in order, but there is some overlap. Also we may backtrack if issues are found part way through the process.
 
-An average release should take somewhere between 10 and 14 calendar days if things go smoothly, starting at the decision to release and ending at the new version being available in all supported ubuntu releases. Note that it is not 2 weeks of full time work. Most of the time is spent waiting for review or sitting in proposed.
+An average release should take somewhere between 10 and 14 calendar days if things go smoothly, starting at the decision to release and ending at the new version being available in all supported Ubuntu releases. Note that it is not 2 weeks of full time work. Most of the time is spent waiting for review or sitting in proposed.
 
-> **Warning:** If the release contains any change listed in the [Early Review Sign-Off list](../references/early_review_signoff.md), make sure it was properly reviewed *before* starting the release process. Ideally they would be reviewed even before implementation, but if some feature  is in the list and didn't get a proper review, now is the time to do so.
+> **Warning:** If the release contains any change listed in the [Early Review Sign-Off list](../references/early_review_signoff.md), make sure it was properly reviewed *before* starting the release process. Ideally they would be reviewed even before implementation, but if some feature is in the list and didn't get a proper review, now is the time to do so.
 
 ## Prerequisites
 
@@ -28,67 +28,67 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   apt-get install sbuild-launchpad-chroot
   bash ./tools/setup_sbuild.sh # This will give you usage information on how to call it with the correct parameters
   ```
-* You must have launchpad already properly configured in your system in order to upload packages to the PPAs. Follow [this guide](https://help.launchpad.net/Packaging/PPA/Uploading) to get set up.
+* You must have Launchpad already properly configured in your system in order to upload packages to the PPAs. Follow [this guide](https://help.launchpad.net/Packaging/PPA/Uploading) to get set up.
 
 ## I. Preliminary/staging release to team infrastructure
-1. Create a release PR
+1. Create a release PR:
 
-    a. Move the desired commits from our `main` branch onto the desired release branch
+    a. Move the desired commits from our `main` branch onto the desired release branch.
 
       * This step is currently not well defined. We currently are using `release-27` for all `27.X` releases and have been cherry-picking/rebasing all commits from `main` into this branch for a release.
 
     b Create a new entry in the `debian/changelog` file:
 
-      * You can do that by running `dch --newversion <version-name>`
+      * You can do that by running `dch --newversion <version-name>`.
       * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10.1`, with the appropriate pro-client and ubuntu/devel version numbers.
-      * Populate `debian/changelog` with the commits you have cherry-picked
+      * Populate `debian/changelog` with the commits you have cherry-picked.
       * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
         * This will generate a list of commits that could be included in the changelog.
       * You don't need to include all of the commits generated. Remember that the changelog should
         be read by the user to understand the new features/modifications in the package. If you
         think a commit will not add that much to the user experience, you can drop it from the
-        changelog
+        changelog.
       * To structure the changelog you can use the other entries as example. But we basically try to
         keep this order: debian changes, new features/modifications, testing. Within each section, bullet points should be alphabetized.
         
-    c. Create a PR on github into the release branch. Ask in the ~UA channel on mattermost for review.
+    c. Create a PR on GitHub into the release branch. Ask in the ~UA channel on Mattermost for review.
 
     d. When reviewing the release PR, please use the following guidelines when reviewing the new changelog entry:
 
-       * Is the version correctly updated? We must ensure that the new version on the changelog is
+       * Is the version correctly updated? We must ensure that the new version in the changelog is
          correct and it also targets the latest Ubuntu release at the moment.
        * Is the entry useful for the user? The changelog entries should be user focused, meaning
          that we should only add entries that we think users will care about (i.e. we don't need
-         entries when fixing a test, as this doesn't provide meaningful information to the user)
+         entries when fixing a test, as this doesn't provide meaningful information to the user).
        * Is this entry redundant? Sometimes we may have changes that affect separate modules of the
-         code. We should have an entry only for the module that was most affected by it
+         code. We should have an entry only for the module that was most affected by it.
        * Is the changelog entry unique? We need to verify that the changelog entry is not already
          reflected in an earlier version of the changelog. If it is, we need not only to remove but double
-         check the process we are using to cherry-pick the commits
-       * Is this entry actually reflected on the code? Sometimes, we can have changelog entries
+         check the process we are using to cherry-pick the commits.
+       * Is this entry actually reflected in the code? Sometimes, we can have changelog entries
          that are not reflected in the code anymore. This can happen during development when we are
-         still unsure about the behavior of a feature or when we fix a bug that removes the code
+         still unsure about the behaviour of a feature or when we fix a bug that removes the code
          that was added. We must verify each changelog entry that is added to be sure of their
          presence in the product.
 
-2. After the release PR is merged, tag the head of the release branch with the version number, e.g. `27.1`. Push this tag to Github.
+2. After the release PR is merged, tag the head of the release branch with the version number, e.g., `27.1`. Push this tag to GitHub.
 
-3. Build the package for all Ubuntu releases and upload to `ppa:ua-client/staging`
+3. Build the package for all Ubuntu releases and upload to `ppa:ua-client/staging`:
 
-    a. Clone the repository in a clean directory and switch to the release branch
+    a. Clone the repository into a clean directory and switch to the release branch.
       * *WARNING* Build the package in a clean environment. The reason is that the package
-        will contain everything that it is present in the folder. If you are storing credentials or
+        will contain everything that is present in the folder. If you are storing credentials or
         other sensible development information in your folder, they will be uploaded too when we send
         the package to the ppa. A clean environment is the safest way to perform this.
 
-    b. Edit the changelog:
+    b. Edit the changelog
       * List yourself as the author of this release.
       * Edit the version number to look like: `27.2~20.04.1~rc1` (`<version>~<ubuntu-release-number>.<revno>~rc<release-candidate-number>`)
-      * Edit the ubuntu release name. Start with the ubuntu/devel release.
-      * `git add debian/changelog && git commit -m "throwaway"` Do **not** push this commit!
+      * Edit the Ubuntu release name. Start with the ubuntu/devel release.
+      * `git add debian/changelog && git commit -m "throwaway"` - Do **not** push this commit!
 
     c. `build-package`
-      * This script will generate all the package artifacts in the parent directory as `../out`.
+      * This script will generate all the package artefacts in the parent directory as `../out`.
 
     d. `sbuild-it ../out/<package_name>.dsc`
       * If this succeeds move on. If this fails, debug and fix before continuing.
@@ -108,7 +108,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
 1. Prepare SRU Launchpad bugs.
 
-    a. We do this even before a succesful merge into ubuntu/devel because the context added to these bugs is useful for the Server Team reviewer.
+    a. We do this even before a successful merge into ubuntu/devel because the context added to these bugs is useful for the Server Team reviewer.
 
     b. Create a new bug on Launchpad for ubuntu-advantage-tools and use the format defined [here](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) for the description.
       * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Jammy`, substituting version numbers and release names as necessary.
@@ -118,7 +118,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * Leave the original description in the bug at the bottom under the header `[Original Description]`.
       * For the testing steps, include steps to reproduce the bug. Then include instructions for adding `ppa:ua-client/staging`, and steps to verify the bug is no longer present.
 
-2. Set up the Merge Proposal (MP) for ubuntu/devel
+2. Set up the Merge Proposal (MP) for ubuntu/devel:
 
     a. `git-ubuntu clone ubuntu-advantage-tools; cd ubuntu-advantage-tools`
 
@@ -129,26 +129,26 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     d. `git rebase --onto pkg/ubuntu/devel <last-version-tag> <this-version-tag>`
       * e.g. `git rebase --onto pkg/ubuntu/devel 27.0.2 27.1`
       * You may need to resolve conflicts, but hopefully these will be minimal.
-      * You'll end up in a detached state
+      * You'll end up in a detached state.
 
     e. `git checkout -B upload-<this-version>-kinetic`
-      * This creates a new local branch name based on your detached branch
+      * This creates a new local branch name based on your detached branch.
 
-    f. Make sure the changelog version contains the release version in the name (For example, `27.1~22.10.1`)
+    f. Make sure the changelog version contains the release version in the name (e.g., `27.1~22.10.1`)
 
     g. `git push <your_launchpad_user> upload-<this-version>-kinetic`
 
     h. On Launchpad, create a merge proposal for this version which targets `ubuntu/devel`
-      * For an example, see the [27.9 merge proposal](https://code.launchpad.net/~orndorffgrant/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/422906)
-      * Add 2 review slots for `canonical-server-reporter` and `canonical-server-core-reviewers`
+      * For an example, see the [27.9 merge proposal](https://code.launchpad.net/~orndorffgrant/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/422906).
+      * Add 2 review slots for `canonical-server-reporter` and `canonical-server-core-reviewers`.
 
 4. Server Team Review and Pre-SRU Review
 
-    a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs (If you don't know who that is, ask in ~Server). Include a link to the MP into ubuntu/devel and to the SRU bug.
+    a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs. If you don't know who that is, ask in ~Server. Include a link to the MP and to the SRU bug in ubuntu/devel.
     
-    b. If they request changes, create a PR into the release branch on github and ask Pro Client team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
+    b. If they request changes, create a PR into the release branch on GitHub and ask Pro Client team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
       * Some issues may just be filed for addressing in the future if they are not urgent or pertinent to this release.
-      * Unless the changes are very minor, or only testing related, you should upload a new release candidate version to `ppa:ua-client/staging` as descibed in I.3.
+      * Unless the changes are very minor, or only testing related, you should upload a new release candidate version to `ppa:ua-client/staging` as described in I.3.
       * After the release is finished, any commits that were merged directly into the release branch in this way should be brought back into `main` via a single PR.
 
     c. Once review is complete and approved, the Server Team member should **not** upload the version to the devel release.
@@ -177,7 +177,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     b. With the package in proposed, perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
 
     c. Perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
-      * There may also be one-time test scripts added in the `sru/` directory for this release
+      * There may also be one-time test scripts added in the `sru/` directory for this release.
 
     d. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:
     ```
@@ -187,20 +187,20 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     I am marking the verification done for this SRU.
     ```
-    Change the tags on the bug from `verification-needed` to `verification-done` (including the verification tags for each ubuntu release).
+    Change the tags on the bug from `verification-needed` to `verification-done` (including the verification tags for each Ubuntu release).
 
-    e. For any other related Launchpad bugs that are fixed in this release. Perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
+    e. For any other related Launchpad bugs that are fixed in this release, perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
 
     f. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html).
     
-    g. After the pending sru page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
+    g. After the pending SRU page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
 
-    h. Check `rmadison ubuntu-advantage-tools` for updated version in -updates
+    h. Check `rmadison ubuntu-advantage-tools` for updated version in -updates.
       * Also actually check that the packages are accessible in a container and updating the package.
 
-## III. Post-release Updates
+## III. Post-release updates
 
-1. Ensure the version tag is correct on github. The `version` git tag should point to the commit that was released as that version to ubuntu -updates. If changes were made in response to feedback during the release process, the tag may have to be moved.
-2. Bring in any changes that were made to the release branch into `main` via PR (e.g. Changelog edits).
+1. Ensure the version tag is correct on GitHub. The `version` git tag should point to the commit that was released as that version to ubuntu -updates. If changes were made in response to feedback during the release process, the tag may have to be moved.
+2. Bring in any changes that were made to the release branch into `main` via PR (e.g., changelog edits).
 3. Move any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
 4. Tell CPC that there is a new version of `ubuntu-advantage-tools` in -updates for all series.
