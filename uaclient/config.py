@@ -123,8 +123,10 @@ class UAConfig:
 
         self.series = series
         self.root_mode = root_mode
-        self._machine_token_file = None
-        self._notice_file = None
+        self._machine_token_file = (
+            None
+        )  # type: Optional[files.MachineTokenFile]
+        self._notice_file = None  # type: Optional[NoticeFile]
 
     @property
     def machine_token_file(self):
@@ -355,7 +357,7 @@ class UAConfig:
 
     @property
     def log_level(self):
-        log_level = self.cfg.get("log_level")
+        log_level = self.cfg.get("log_level", "DEBUG")
         try:
             return getattr(logging, log_level.upper())
         except AttributeError:
@@ -658,7 +660,7 @@ def parse_config(config_path=None):
 
     @return: Dict of configuration values.
     """
-    cfg = copy.copy(CONFIG_DEFAULTS)
+    cfg = copy.copy(CONFIG_DEFAULTS)  # type: Dict[str, Any]
 
     if not config_path:
         config_path = get_config_path()

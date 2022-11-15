@@ -467,7 +467,9 @@ def clean_apt_files(*, _entitlements=None):
     from uaclient.entitlements.repo import RepoEntitlement
 
     if _entitlements is None:
-        from uaclient import entitlements as _entitlements
+        from uaclient import entitlements as __entitlements
+
+        _entitlements = __entitlements
 
     for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
         if not issubclass(ent_cls, RepoEntitlement):

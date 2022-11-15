@@ -225,14 +225,14 @@ def get_reboot_status():
         return RebootStatus.REBOOT_NOT_REQUIRED
 
     try:
-        pkg_list = load_file(REBOOT_PKGS_FILE_PATH)
+        pkg_list_str = load_file(REBOOT_PKGS_FILE_PATH)
     except FileNotFoundError:
         # If we cannot load that file, we cannot evaluate if we have
         # kernel related packages that require a reboot. Therefore, we
         # will just say that a reboot is required
         return RebootStatus.REBOOT_REQUIRED
 
-    pkg_list = pkg_list.split()
+    pkg_list = pkg_list_str.split()
     num_pkgs = len(pkg_list)
 
     kernel_regex = "^(linux-image|linux-base).*"

@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict  # noqa: F401
 
 import yaml
 from behave import when
@@ -110,7 +111,7 @@ def serve_apt_mirror(context, service, port, machine):
 )
 def create_contract_overrides(context, service_list, machine):
     token = context.config.contract_token
-    config_override = {token: {}}
+    config_override = {token: {}}  # type: Dict[str, Any]
 
     for service in service_list.split(","):
         config_override[token][service] = {

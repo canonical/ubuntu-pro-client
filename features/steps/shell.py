@@ -67,7 +67,7 @@ def when_i_run_command(
         stdout=result.stdout,
         stderr=result.stderr,
         returncode=result.return_code,
-    )
+    )  # type: subprocess.CompletedProcess
 
     if verify_return and result.return_code != 0:
         logging.error("Error executing command: {}".format(command))
