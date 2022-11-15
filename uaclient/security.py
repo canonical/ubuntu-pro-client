@@ -804,7 +804,7 @@ def override_usn_release_package_status(
 
 
 def group_by_usn_package_status(affected_pkg_status, usn_released_pkgs):
-    status_groups = {}
+    status_groups = {}  # type: Dict[str, List[Tuple[str, CVEPackageStatus]]]
     for src_pkg, pkg_status in sorted(affected_pkg_status.items()):
         usn_released_src = usn_released_pkgs.get(src_pkg, {})
         usn_pkg_status = override_usn_release_package_status(

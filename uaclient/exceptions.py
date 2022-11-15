@@ -391,7 +391,7 @@ class ContractAPIError(UrlError):
         return (
             prefix
             + ": ["
-            + self.url
+            + str(self.url)
             + "]"
             + ", "
             + self.api_error.get("message", "")
@@ -415,8 +415,8 @@ class SecurityAPIError(UrlError):
         prefix = super().__str__()
         details = [self.message]
         if details:
-            return prefix + ": [" + self.url + "] " + ", ".join(details)
-        return prefix + ": [" + self.url + "]"
+            return prefix + ": [" + str(self.url) + "] " + ", ".join(details)
+        return prefix + ": [" + str(self.url) + "]"
 
 
 class InPlaceUpgradeNotSupportedError(Exception):
