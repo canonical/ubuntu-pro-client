@@ -74,7 +74,7 @@ class MachineTokenFile:
         )
         self.public_file = UAFile(file_name, directory, False)
         self.machine_token_overlay_path = machine_token_overlay_path
-        self._machine_token = None
+        self._machine_token = None  # type: Optional[Dict[str, Any]]
         self._entitlements = None
         self._contract_expiry_datetime = None
 

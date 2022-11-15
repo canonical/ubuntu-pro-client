@@ -1452,7 +1452,7 @@ def action_attach(args, *, cfg):
                     ret = 1
                     if (
                         reason is not None
-                        and isinstance(reason, ua_status.CanEnableFailure)
+                        and isinstance(reason, CanEnableFailure)
                         and reason.message is not None
                     ):
                         event.info(reason.message.msg)
@@ -1733,7 +1733,10 @@ def action_refresh(args, *, cfg: config.UAConfig):
 
 
 def configure_apt_proxy(
-    cfg: config.UAConfig, scope: AptProxyScope, set_key: str, set_value: str
+    cfg: config.UAConfig,
+    scope: AptProxyScope,
+    set_key: str,
+    set_value: Optional[str],
 ) -> None:
     """
     Handles setting part the apt proxies - global and uaclient scoped proxies
