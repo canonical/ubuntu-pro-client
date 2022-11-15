@@ -144,7 +144,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
 4. Server Team Review and Pre-SRU Review
 
-    a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs. If you don't know who that is, ask in ~Server. Include a link to the MP and to the SRU bug in ubuntu/devel.
+    a. Ask the assigned ubuntu-advantage-tools reviewer/sponsor from Server team for a review of your MPs. If you don't know who that is, ask in ~Server. Include a link to the ubuntu/devel MP and to the SRU bug.
     
     b. If they request changes, create a PR into the release branch on GitHub and ask Pro Client team for review. After that is merged, cherry-pick the commit into your `upload-<this-version>-<devel-release>` branch and push to launchpad. Then notify the Server Team member that you have addressed their requests.
       * Some issues may just be filed for addressing in the future if they are not urgent or pertinent to this release.
