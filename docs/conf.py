@@ -57,4 +57,11 @@ html_logo = "_static/circle_of_friends.png"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["css/logo.css"]
+
+html_css_files = [
+    "css/logo.css",
+    "css/github_issue_links.css",
+]
+html_js_files = [
+    "js/github_issue_links.js",
+]
