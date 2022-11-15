@@ -178,7 +178,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         self.allow_beta = allow_beta
         self.access_only = access_only
         self._called_name = called_name
-        self._valid_service = None
+        self._valid_service = None  # type: Optional[bool]
 
     @property
     def valid_service(self):

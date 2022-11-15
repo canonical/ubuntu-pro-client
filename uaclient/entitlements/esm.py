@@ -1,3 +1,5 @@
+import abc
+import logging
 import os
 from typing import Optional, Tuple, Type, Union  # noqa: F401
 
@@ -11,6 +13,11 @@ from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
     repo_url = "https://esm.ubuntu.com/{service}"
+
+    @property
+    @abc.abstractmethod
+    def apt_repo_name(self) -> str:
+        pass
 
     @property
     def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:
@@ -36,6 +43,11 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         return disable_performed, fail
 
     def setup_unauthenticated_repo(self):
+        if self.origin is None:
+            logging.warning(
+                "self.origin is None when setting up unauthenticated repo"
+            )
+            return
         if not os.path.exists(self.repo_list_file_tmpl.format(name=self.name)):
             series = system.get_platform_info()["series"]
             apt.setup_unauthenticated_repo(

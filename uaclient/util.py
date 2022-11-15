@@ -74,7 +74,9 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         for key, value in o.items():
             if isinstance(value, str):
                 try:
-                    new_value = parse_rfc3339_date(value)
+                    new_value = parse_rfc3339_date(
+                        value
+                    )  # type: Union[str, datetime.datetime]
                 except ValueError:
                     # This isn't a string containing a valid ISO 8601 datetime
                     new_value = value
@@ -343,7 +345,7 @@ def readurl(
     return content, resp.headers
 
 
-def is_config_value_true(config: Dict[str, Any], path_to_value: str):
+def is_config_value_true(config: Dict[str, Any], path_to_value: str) -> bool:
     """Check if value parameter can be translated into a boolean 'True' value.
 
     @param config: A config dict representing
