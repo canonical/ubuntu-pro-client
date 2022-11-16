@@ -49,21 +49,23 @@ After running the above commands, Ubuntu Pro Client:
 2. Configures APT to use the given proxy by writing an apt configuration file to
    `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`.
 
-> **Note**
-> Any configuration file that comes later in the apt.conf.d
-> directory could override the proxy configured by the Ubuntu Pro Client.
+```{caution}
+Any configuration file that comes later in the apt.conf.d
+directory could override the proxy configured by the Ubuntu Pro Client.
+```
 
 To remove the APT proxy configuration, run the following:
 
 $ sudo pro config unset apt\_http\_proxy
 $ sudo pro config unset apt\_https\_proxy
 
-> **Note**
-> Starting in version 27.9, APT proxy config options changed.
-> You will be able to set global apt proxies that affect the whole system
-> using the fields `global_apt_http_proxy` and `global_apt_https_proxy`.
-> Alternatively, you could set apt proxies only for Ubuntu Pro related services with the
-> fields `ua_apt_http_proxy` and `ua_apt_https_proxy`.
+```{attention}
+Starting in version 27.9, APT proxy config options changed.
+You will be able to set global apt proxies that affect the whole system
+using the fields `global_apt_http_proxy` and `global_apt_https_proxy`.
+Alternatively, you could set apt proxies only for Ubuntu Pro related services with the
+fields `ua_apt_http_proxy` and `ua_apt_https_proxy`.
+```
 
 ## Authenticating
 
