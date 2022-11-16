@@ -1,7 +1,8 @@
 # How to enable Real-time kernel
 
-> **Warning**:
-> Real-time kernel is currently in beta.
+```{caution}
+Real-Time Kernel is currently in beta.
+```
 
 Real-time kernel is supported only on 22.04. For more information on it,
 please see https://ubuntu.com/realtime-kernel
@@ -35,8 +36,9 @@ After rebooting you'll be running the Real-time kernel!
 
 ## Enable and manually install
 
-> **Note**
-> The --access-only flag is introduced in version 27.11
+```{important}
+The --access-only flag is introduced in version 27.11
+```
 
 If you would like to enable access to the Real-time kernel apt repository but not install the kernel right away, use the `--access-only` flag while enabling.
 

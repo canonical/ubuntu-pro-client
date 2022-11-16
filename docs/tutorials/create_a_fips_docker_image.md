@@ -11,8 +11,9 @@ Your Ubuntu Pro token can be found on your Ubuntu Pro dashboard. To access your 
 
 The Ubuntu One account functions as a Single Sign On, so once logged in we can go straight to the Ubuntu Pro dashboard at [ubuntu.com/pro](https://ubuntu.com/pro). Then we should see a list of our subscriptions (including the free for personal use subscription) in the left-hand column. Click on the subscription that you wish to use for this tutorial if it is not already selected. On the right we will now see the details of our subscription including our secret token under the "Subscription" header next to the "🔗" symbol.
 
-> **Note**
-> The Ubuntu Pro token should be kept secret. It is used to uniquely identify your Ubuntu Pro subscription.
+```{caution}
+The Ubuntu Pro token should be kept secret. It is used to uniquely identify your Ubuntu Pro subscription.
+```
 
 ## Step 2: Create an Ubuntu Pro Client Attach Config file
 
@@ -56,10 +57,8 @@ RUN --mount=type=secret,id=pro-attach-config \
     apt-get update \
     && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
     && pro attach --attach-config /run/secrets/pro-attach-config \
-
     && apt-get upgrade -y \
     && apt-get install -y openssl libssl1.1 libssl1.1-hmac libgcrypt20 libgcrypt20-hmac strongswan strongswan-hmac openssh-client openssh-server \
-
     && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 ```
@@ -78,8 +77,9 @@ This will pass the attach-config as a [BuildKit Secret](https://docs.docker.com/
 
 ## Step 5: Test the Docker image
 
-> **Warning**
-> The docker image isn't considered fully FIPS compliant unless it is running on a host Ubuntu machine that is FIPS compliant.
+```{important}
+The docker image isn't considered fully FIPS compliant unless it is running on a host Ubuntu machine that is FIPS compliant.
+```
 
 Let's check to make sure the FIPS version of openssl is installed in the container.
 

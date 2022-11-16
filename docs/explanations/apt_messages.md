@@ -30,8 +30,9 @@ where we deliver those messages are:
   Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04
   ```
 
-  > **Note**
-  > If the user is using a LTS series instead, we will advertise `esm-apps`.
+  ```{note}
+  If the user is using a LTS series instead, we will advertise `esm-apps`.
+  ```
 
 * **esm package count**: If both ESM services are enabled on the system,
   we deliver a package count related to each service near the end of the `apt-get` command:
@@ -85,8 +86,9 @@ where we deliver those messages are:
   Your grace period will expire in 8 days.
   ```
 
-> **Note**
-> For contract expired messages, we only advertise `esm-infra`.
+```{note}
+For contract expired messages, we only advertise `esm-infra`.
+```
 
 
 ## How are the APT messages generated
@@ -102,9 +104,10 @@ are running `apt-get upgrade` or `apt-get dist-upgrade`, they are:
      timer job, because we need the accurate package names and count. That information
      can only be obtained when running the `apt-get` command.
 
-     > **Note**
-     > This templates will only be produced if some conditions are met. For example,
-     > we only produce expired contract templates if the contracts are indeed expired.
+     ```{note}
+     These templates will only be produced if some conditions are met. For example,
+     we only produce expired contract templates if the contracts are indeed expired.
+     ```
 
   2. When you run either `apt-get upgrade` or `apt-get dist-upgrade`, the hook searches
      for these templates and if they exist, they are populated with the right `apt`
@@ -117,9 +120,10 @@ are running `apt-get upgrade` or `apt-get dist-upgrade`, they are:
   to communicate with.
 
 
-> **Note**
-> Those hooks are only delivered on LTS releases. This is because the hooks will
-> not deliver useful messages on non-LTS due to lack of support for ESM services.
+```{note}
+Those hooks are only delivered on LTS releases. This is because the hooks will
+not deliver useful messages on non-LTS due to lack of support for ESM services.
+```
 
 ## How are APT configured to deliver those messages
 
