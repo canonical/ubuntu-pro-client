@@ -46,20 +46,22 @@ Cloud-specific instructions are here:
 
 Use your specific cloud to launch a new instance from your custom image.
 
-> **Note**
-> For versions prior to 27.11, you will need to re-enable fips-updates on each instance that is launched from the custom image.
->
-> This won't require a reboot and is only necessary to ensure the instance gets updates to fips packages when they become available.
->
-> ```bash
-> sudo pro enable fips-updates --assume-yes
-> ```
->
-> You can easily script this using [cloud-init user-data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time
-> ```yaml
-> #cloud-config
-> # Enable fips-updates after pro auto-attach and reboot after cloud-init completes
-> runcmd:
->   - 'pro status --wait'
->   - 'pro enable fips-updates --assume-yes'
-> ```
+````{note}
+For versions prior to 27.11, you will need to re-enable fips-updates on each instance that is launched from the custom image.
+
+This won't require a reboot and is only necessary to ensure the instance gets updates to fips packages when they become available.
+
+```bash
+sudo pro enable fips-updates --assume-yes
+```
+
+You can easily script this using [cloud-init user-data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time
+```yaml
+#cloud-config
+# Enable fips-updates after pro auto-attach and reboot after cloud-init completes
+runcmd:
+  - 'pro status --wait'
+  - 'pro enable fips-updates --assume-yes'
+```
+
+````

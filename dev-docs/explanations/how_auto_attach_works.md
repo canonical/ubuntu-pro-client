@@ -18,7 +18,7 @@ The `pro auto-attach` command follows a specific flow on every **Public Cloud Ub
    * **GCP**: http://metadata/computeMetadata/v1/instance/service-accounts/default/identity
 
 > **Note**
-> On some instances, like AWS, we can also use the IPv6 address to fetch the metadata
+> On AWS, the client will also try the IPv6 address (`[fd00:ec2::254]`) to fetch the metadata if the IPv4 address doesn't work.
 
 3. Send this metadata json blob to the contract server at:
 

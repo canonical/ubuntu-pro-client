@@ -10,8 +10,10 @@ on their machine.
 On this tutorial, you will use [LXD](https://linuxcontainers.org/lxd/) containers.
 To set up LXD on your computer, please follow this [guide](https://linuxcontainers.org/lxd/getting-started-cli/).
 
-> Note: When configuring LXD on your machine, run the `lxd init --minimal`. This should be more
-> than enough for you to finish this tutorial
+```{tip}
+When configuring LXD on your machine, run the `lxd init --minimal`. This should be more
+than enough for you to finish this tutorial
+```
 
 ## Main `pro` commands
 
@@ -162,8 +164,10 @@ want to change any definitions on your subscription. For example, let's assume t
 the refresh command will process any changes that were performed in the subscription, enabling
 `cis` because of this.
 
-> Note: the refresh command does more than just update the contract in the machine. If you want
+```{seealso}
+The refresh command does more than just update the contract in the machine. If you want
 more information about the command, please take a look at this [explanation](../explanations/what_refresh_does.md).
+```
 
 ### Enable
 
@@ -228,9 +232,11 @@ livepatch     yes       n/a       Canonical Livepatch service
 
 You can see that `cis` status is back to disabled.
 
-> Note: the disable command doesn't uninstall any package that was installed by
+```{note}
+The disable command doesn't uninstall any package that was installed by
 the service. The command only removes the access you have to the service, but it
 doesn't undo any configuration that was applied on the machine.
+```
 
 ### Detach
 
@@ -244,13 +250,15 @@ $ sudo pro detach
 This command will disable all of the Ubuntu Pro services on the machine for you and
 get rid of the subscription stored on your machine during attach.
 
-> Note: the detach command will also not uninstall any packages that were installed by
+```{note}
+The detach command will also not uninstall any packages that were installed by
 any service enabled through `pro`.
+```
 
 ### Final thoughts
 
 This tutorial has covered the 6 main commands of `pro`. If you need more advanced options to configure
-the tool, please take a look in [How to guides](../howtoguides). If that still doesn't cover
+the tool, please take a look at the _How To Guides_. If that still doesn't cover
 your needs, feel free to reach the `pro` team on `#ubuntu-server` on Libera IRC.
 
 Before you finish this tutorial, exit the container by running `CTRL-D` and delete it by running

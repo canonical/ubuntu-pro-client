@@ -86,8 +86,9 @@ A fix is available in Ubuntu standard updates.
 ✔ CVE-2020-25686 is resolved.
 ```
 
-> **Note**
-> We need to run the command with sudo because we are now installing a package on the system.
+```{note}
+We need to run the command with sudo because we are now installing a package on the system.
+```
 
 Whenever `pro fix` has a package to upgrade, it follows a consistent structure and displays the
 following in order
@@ -239,9 +240,10 @@ The update is already installed.
 ✔ USN-5079-2 is resolved.
 ```
 
-> **Note**
-> Even though we are not covering this scenario here, if you have an expired contract,
-> `pro fix` will detect that and prompt you to attach a new token for your machine.
+```{note}
+Even though we are not covering this scenario here, if you have an expired contract,
+`pro fix` will detect that and prompt you to attach a new token for your machine.
+```
 
 ## CVE/USN that requires an Ubuntu Pro service
 

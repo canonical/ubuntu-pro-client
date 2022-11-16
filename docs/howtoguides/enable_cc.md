@@ -27,8 +27,9 @@ Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to con
 
 ## Enable and manually install
 
-> **Note**
-> The --access-only flag is introduced in version 27.11
+```{important}
+The --access-only flag is introduced in version 27.11
+```
 
 If you would like to enable access to the CC EAL apt repository but not install the packages right away, use the `--access-only` flag while enabling.
 

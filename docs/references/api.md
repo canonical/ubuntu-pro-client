@@ -444,15 +444,15 @@ pro api u.pro.packages.summary.v1
 ```json
 {
     "summary":{
-        "num_installed_packages": <int>,
-        "num_esm_apps_packages": <int>,
-        "num_esm_infra_packages": <int>,
-        "num_main_packages": <int>,
-        "num_multiverse_packages": <int>,
-        "num_restricted_packages": <int>,
-        "num_third_party_packages": <int>,
-        "num_universe_packages": <int>,
-        "num_unknown_packages": <int>,
+        "num_installed_packages": 1,
+        "num_esm_apps_packages": 2,
+        "num_esm_infra_packages": 3,
+        "num_main_packages": 4,
+        "num_multiverse_packages": 5,
+        "num_restricted_packages": 6,
+        "num_third_party_packages": 7,
+        "num_universe_packages": 8,
+        "num_unknown_packages": 9,
     },
 }
 ```
@@ -515,15 +515,15 @@ pro api u.pro.packages.updates.v1
 ```json
 {
     "summary":{
-        "num_updates": <int>,
-        "num_esm_apps_updates": <int>,
-        "num_esm_infra_updates": <int>,
-        "num_standard_security_updates": <int>,
-        "num_standard_updates": <int>,
+        "num_updates": 1,
+        "num_esm_apps_updates": 2,
+        "num_esm_infra_updates": 3,
+        "num_standard_security_updates": 4,
+        "num_standard_updates": 5,
     },
     "updates":[
         {
-            "download_size": <int>,
+            "download_size": 6,
             "origin": "<some site>",
             "package": "<package name>",
             "provided_by": "<service name>",
