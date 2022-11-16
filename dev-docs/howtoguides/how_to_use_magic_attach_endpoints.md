@@ -1,6 +1,6 @@
 # How to use magic attach API endpoints
 
-> **Notice:**
+> **Note**
 > Minimum version: 27.11
 
 Th Ubuntu Pro Client provides three distinct endpoints to make it easier to perform

@@ -7,8 +7,9 @@ Ubuntu Pro comes with several services, some of which can be useful in docker. F
 
 ## Step 1: Create an Ubuntu Pro Attach Config file
 
-> **Note**
-> The Ubuntu Pro Attach Config file will contain your Ubuntu Pro Contract token and should be treated as a secret file.
+```{attention}
+The Ubuntu Pro Attach Config file will contain your Ubuntu Pro Contract token and should be treated as a secret file.
+```
 
 An attach config file for `pro` is a yaml file that specifies some options when running `pro attach`. The file has two fields, `token` and `enable_services` and looks something like this:
 
@@ -49,28 +50,28 @@ FROM ubuntu:focal
 # In the next step, we demonstrate how to pass the file as a secret when
 # running docker build.
 RUN --mount=type=secret,id=pro-attach-config \
-
+    #
     # First we update apt so we install the correct versions of packages in
     # the next step
     apt-get update \
-
+    #
     # Here we install `pro` (ubuntu-advantage-tools) as well as ca-certificates,
     # which is required to talk to the Ubuntu Pro authentication server securely.
     && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
-
+    #
     # With pro installed, we attach using our attach config file from the
     # previous step
     && pro attach --attach-config /run/secrets/pro-attach-config \
-
+    #
     ###########################################################################
     # At this point, the container has access to all Ubuntu Pro services
     # specified in the attach config file.
     ###########################################################################
-
+    #
     # Always upgrade all packages to the latest available version with the Ubuntu Pro
     # services enabled.
     && apt-get upgrade -y \
-
+    #
     # Then, you can install any specific packages you need for your docker
     # container.
     # Install them here, while Ubuntu Pro is enabled, so that you get the appropriate
@@ -78,12 +79,12 @@ RUN --mount=type=secret,id=pro-attach-config \
     # Any `apt-get install ...` commands you have in an existing Dockerfile
     # that you may be migrating to use Ubuntu Pro should probably be moved here.
     && apt-get install -y openssl \
-
+    #
     ###########################################################################
-    # Now that we've upgraded and installed any packages from the Ubuntu Pro
+    # Now that we have upgraded and installed any packages from the Ubuntu Pro
     # services, we can clean up.
     ###########################################################################
-
+    #
     # This purges ubuntu-advantage-tools, including all Ubuntu Pro related
     # secrets from the system.
     ###########################################################################
@@ -93,9 +94,9 @@ RUN --mount=type=secret,id=pro-attach-config \
     # system here.
     ###########################################################################
     && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
-
-    # Finally, we clean up the apt lists which shouldn't be needed anymore
-    # because any `apt-get install`s should've happened above. Cleaning these
+    #
+    # Finally, we clean up the apt lists which should not be needed anymore
+    # because any `apt-get install`s should have happened above. Cleaning these
     # lists keeps your image smaller.
     && rm -rf /var/lib/apt/lists/*
 
@@ -109,8 +110,9 @@ An important point to note about the above Dockerfile is that all of the `apt` a
 1. Prevents any Ubuntu Pro Subscription-related tokens and secrets from being leaked in an image layer
 2. Keeps the image as small as possible by cleaning up extra packages and files before the layer is finished.
 
-> **Note**
-> These benefits could also be attained by squashing the image.
+```{note}
+These benefits could also be attained by squashing the image.
+```
 
 ## Step 3: Build the Docker image
 
