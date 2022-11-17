@@ -40,7 +40,7 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -49,7 +49,7 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         Examples: ubuntu release
            | release |
