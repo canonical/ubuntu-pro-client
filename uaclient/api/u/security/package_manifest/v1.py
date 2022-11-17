@@ -5,7 +5,7 @@ from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue
 
 
-class PackageManifestResults(DataObject, AdditionalInfo):
+class PackageManifestResult(DataObject, AdditionalInfo):
     fields = [
         Field("manifest_data", StringDataValue),
     ]
@@ -14,11 +14,16 @@ class PackageManifestResults(DataObject, AdditionalInfo):
         self.manifest_data = manifest_data
 
 
-def package_manifest() -> PackageManifestResults:
+# The return class was once called PackageManifestResults
+# We are keeping compatibility
+PackageManifestResults = PackageManifestResult
+
+
+def package_manifest() -> PackageManifestResult:
     return _package_manifest(UAConfig())
 
 
-def _package_manifest(cfg: UAConfig) -> PackageManifestResults:
+def _package_manifest(cfg: UAConfig) -> PackageManifestResult:
     """Returns the status of installed packages (apt and snap packages)
     Returns a string in manifest format i.e. package_name\tversion
     """
@@ -36,7 +41,7 @@ def _package_manifest(cfg: UAConfig) -> PackageManifestResults:
             rev=pkg.rev,
         )
 
-    return PackageManifestResults(manifest_data=manifest)
+    return PackageManifestResult(manifest_data=manifest)
 
 
 endpoint = APIEndpoint(
