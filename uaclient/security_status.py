@@ -250,7 +250,15 @@ def get_reboot_status():
     if not which("canonical-livepatch"):
         return RebootStatus.REBOOT_REQUIRED
 
-    livepatch_status, _ = subp([LIVEPATCH_CMD, "status", "--format", "json"])
+    try:
+        livepatch_status, _ = subp(
+            [LIVEPATCH_CMD, "status", "--format", "json"]
+        )
+    except ProcessExecutionError:
+        # If we can't query the Livepatch status, then return a
+        # normal reboot state
+        logging.debug("Could not query Livepatch Status")
+        return RebootStatus.REBOOT_REQUIRED
 
     try:
         livepatch_status_dict = json.loads(livepatch_status)
