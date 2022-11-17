@@ -37,7 +37,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
         The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: ".*".
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -46,7 +46,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
         The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: ".*".
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
 
         # simulate a middle attempt with different reason
@@ -72,7 +72,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -81,7 +81,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
 
         # simulate all attempts failing
@@ -106,7 +106,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 19 times.
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -115,7 +115,7 @@ Feature: auto-attach retries periodically on failures
         Failed to automatically attach to Ubuntu Pro services 19 times.
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
-        You can try manually with `sudo ua auto-attach`.
+        You can try manually with `sudo pro auto-attach`.
         """
         Examples: ubuntu release
            | release |
