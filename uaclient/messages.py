@@ -1078,7 +1078,7 @@ AUTO_ATTACH_RETRY_NOTICE = (
  {num_attempts} time(s).
 The failure was due to: {reason}.
 The next attempt is scheduled for {next_run_datestring}.
-You can try manually with `sudo ua auto-attach`."""
+You can try manually with `sudo pro auto-attach`."""
 )
 
 AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
@@ -1087,7 +1087,7 @@ AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
  {num_attempts} times.
 The most recent failure was due to: {reason}.
 Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
-You can try manually with `sudo ua auto-attach`."""  # noqa: E501
+You can try manually with `sudo pro auto-attach`."""  # noqa: E501
 )
 
 RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
