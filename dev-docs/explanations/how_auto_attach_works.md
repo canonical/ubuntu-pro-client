@@ -44,7 +44,7 @@ The `pro auto-attach` command follows a specific flow on every **Public Cloud Ub
    contains all the directives the pro client needs to setup the machine and enable
    the necessary services the token is associated with.
 
-6. Disable the `ubuntu-advantage.service` [daemon](../explanations/what_is_the_daemon.md), if running.
+6. Disable the `ubuntu-advantage.service` [daemon](../../docs/explanations/what_is_the_daemon.md), if running.
    If the machine is detached, this daemon will be started again.
 
 Additionally, you can disable the `pro auto-attach` command by adding
