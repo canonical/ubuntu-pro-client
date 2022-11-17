@@ -32,9 +32,12 @@ The currently available endpoints are:
 - [u.pro.attach.magic.revoke.v1](#uproattachmagicrevokev1)
 - [u.pro.attach.auto.should_auto_attach.v1](#uproattachautoshould_auto_attachv1)
 - [u.pro.attach.auto.full_auto_attach.v1](#uproattachautofull_auto_attachv1)
+- [u.pro.attach.auto.configure_retry_service.v1](#uproattachautoconfigure_retry_servicev1)
 - [u.pro.security.status.livepatch_cves.v1](#uprosecuritystatuslivepatch_cvesv1)
+- [u.pro.security.status.reboot_required.v1](#uprosecuritystatusreboot_requiredv1)
 - [u.pro.packages.summary.v1](#upropackagessummaryv1)
 - [u.pro.packages.updates.v1](#upropackagesupdatesv1)
+- [u.security.package_manifest.v1](#usecuritypackage_manifestv1)
 
 ## u.pro.version.v1
 Shows the installed Client version.
@@ -394,6 +397,48 @@ pro api u.pro.security.status.livepatch_cves.v1
 ```
 
 
+## u.pro.security.status.reboot_required.v1
+Informs if the system should be rebooted or not.
+Possible outputs are:
+- yes: the system should be rebooted
+- no: there is no need to reboot the system
+- yes-kernel-livepatches-applied: there are livepatch patches applied to the current kernel, but a reboot is required for an update to take place. This reboot can wait until the next maintenance window.
+
+### Args
+This endpoint takes no arguments.
+
+### Python API interaction
+#### Calling from Python code
+```python
+from uaclient.api.u.pro.security.status.reboot_required.v1 import reboot_required
+
+result = reboot_required()
+```
+
+#### Expected return object:
+`uaclient.api.u.pro.security.status.reboot_required.v1.RebootRequiredResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|reboot_required|str|One of the descriptive strings indicating if the system should be rebooted|
+
+### Raised Exceptions
+No exceptions raised by this endpoint.
+
+
+### CLI interaction
+#### Calling from the CLI:
+```bash
+pro api u.pro.security.status.reboot_required.v1
+```
+
+#### Expected attributes in JSON structure
+```json
+{
+    "reboot_required": "yes|no|yes-kernel-livepatches-applied"
+}
+```
+
 
 ## u.pro.packages.summary.v1
 Shows a summary of installed packages in the system, categorized by origin.
@@ -456,7 +501,6 @@ pro api u.pro.packages.summary.v1
     },
 }
 ```
-
 
 
 ## u.pro.packages.updates.v1
@@ -531,5 +575,45 @@ pro api u.pro.packages.updates.v1
             "version": "<updated version>",
         },
     ]
+}
+```
+
+
+## u.security.package_manifest.v1
+Returns the status of installed packages (apt and snap), formatted as a
+manifest file (i.e. `package_name\tversion`)
+
+### Args
+This endpoint takes no arguments.
+
+### Python API interaction
+#### Calling from Python code
+```python
+from uaclient.api.u.security.package_manifest.v1 import package_manifest
+
+result = package_manifest()
+```
+
+#### Expected return object:
+`uaclient.api.u.security.package_manifest.v1.PackageManifestResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|manifest_data|str|Manifest of apt and snap packages installed on the system|
+
+### Raised Exceptions
+No exceptions raised by this endpoint.
+
+
+### CLI interaction
+#### Calling from the CLI:
+```bash
+pro api u.security.package_manifest.v1
+```
+
+#### Expected attributes in JSON structure
+```json
+{
+    "package_manifest":"package1\t1.0\npackage2\t2.3\n"
 }
 ```
