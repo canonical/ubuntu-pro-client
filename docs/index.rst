@@ -18,6 +18,36 @@ If you need any of those services for your machine, ``pro`` is the right tool fo
 
 ``pro`` is already installed on every Ubuntu system. Try it out by running ``pro help``!
 
+-----
+
+.. grid:: 2
+
+   .. grid-item-card:: **Tutorials**
+       :link: home-page-tutorials
+       :link-type: doc
+      
+       Get started - a hands-on introduction to Ubuntu Pro Client for new users
+
+   .. grid-item-card:: **How-to guides**
+       :link: home-page-howto
+       :link-type: doc
+      
+       Step-by-step guides covering key operations and common tasks
+    
+   .. grid-item-card:: **Explanations**
+       :link: home-page-expl
+       :link-type: doc
+          
+       Discussion and clarification of key topics
+    
+   .. grid-item-card:: **References**
+       :link: home-page-refs
+       :link-type: doc
+      
+       Technical information - specifications, APIs, architecture
+
+-----
+
 Getting help
 ************
 
@@ -46,7 +76,7 @@ community projects, contributions, suggestions, fixes and constructive feedback.
 .. toctree::
    :hidden:
    :titlesonly:
-   :caption: How to guides
+   :caption: How-to guides
    :glob:
    
    howtoguides/*
