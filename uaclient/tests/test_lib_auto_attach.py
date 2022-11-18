@@ -53,6 +53,7 @@ class TestCheckCloudinitUserdataForUAInfo:
         assert expected is check_cloudinit_userdata_for_ua_info()
 
 
+@mock.patch("lib.auto_attach.system.remove_file")
 @mock.patch("lib.auto_attach.system.write_file")
 class TestMain:
     @pytest.mark.parametrize(
@@ -69,6 +70,7 @@ class TestMain:
         m_api_full_auto_attach,
         m_check_cloudinit,
         m_write_file,
+        m_remove_file,
         ubuntu_advantage_in_userdata,
         caplog_text,
         FakeConfig,
@@ -83,6 +85,9 @@ class TestMain:
                 )
             ] == m_write_file.call_args_list
             assert 1 == m_api_full_auto_attach.call_count
+            assert [
+                mock.call(AUTO_ATTACH_STATUS_MOTD_FILE)
+            ] == m_remove_file.call_args_list
         else:
             assert 0 == m_api_full_auto_attach.call_count
             assert (
@@ -114,6 +119,7 @@ class TestMain:
         m_api_full_auto_attach,
         m_check_cloudinit,
         m_write_file,
+        m_remove_file,
         api_side_effect,
         log_msg,
         caplog_text,
@@ -133,3 +139,7 @@ class TestMain:
         )
         assert m_api_full_auto_attach.call_count == 1
         assert log_msg in caplog_text()
+        assert (
+            mock.call(AUTO_ATTACH_STATUS_MOTD_FILE)
+            in m_remove_file.call_args_list
+        )
