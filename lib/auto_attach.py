@@ -81,7 +81,6 @@ def main(cfg: UAConfig):
         logging.debug(
             "Skipping auto-attach. Config disable_auto_attach is set."
         )
-        return
     except EntitlementsNotEnabledError as e:
         logging.warning(e.msg)
     except Exception as e:
