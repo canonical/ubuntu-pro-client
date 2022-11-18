@@ -21,10 +21,10 @@ If you need any of those services for your machine, ``pro`` is the right tool fo
 Getting help
 ************
 
-Having trouble? We would like to help!
+Having trouble? We would like to help! For help on a specific page in this documentation, click on the "Have a question?" link at the top of that page. You can also...
 
-- Ask a question in the ``#ubuntu-server`` IRC channel on Libera
-- Find a bug? `Report bugs on Launchpad`_
+- Ask a question in the ``#ubuntu-server`` `IRC channel on Libera`_
+- `Report bugs on Launchpad`_
 
 Project and community
 *********************
@@ -78,3 +78,4 @@ community projects, contributions, suggestions, fixes and constructive feedback.
 .. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu-advantage-tools/+filebug
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-advantage-client/blob/main/CONTRIBUTING.md
+.. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
