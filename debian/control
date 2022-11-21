@@ -38,12 +38,12 @@ Depends: ${misc:Depends},
          python3-apt,
          python3-pkg-resources,
          ${extra:Depends}
-Description: management tools for Ubuntu Advantage
- Ubuntu Advantage is the professional package of tooling, technology
+Description: management tools for Ubuntu Pro
+ Ubuntu Pro is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world
  manage their Ubuntu deployments.
  .
- Subscribers to Ubuntu Advantage will find helpful tools for accessing
+ Subscribers to Ubuntu Pro will find helpful tools for accessing
  services in this package.
 
 Package: ubuntu-advantage-pro
@@ -51,6 +51,7 @@ Architecture: all
 Depends: ${misc:Depends}, ubuntu-advantage-tools (>=20.2)
 Replaces: ubuntu-advantage-tools (<<20.2)
 Breaks: ubuntu-advantage-tools (<<20.2)
-Description: utilities and services for Ubuntu Pro images
- The Ubuntu Pro package delivers additional utilities for use on authorised
- Ubuntu Pro machines.
+Description: Additional services for Ubuntu Pro images
+ This package delivers an additional service that performs an auto-attach
+ operation for Ubuntu Pro cloud instances. This package should not be manually
+ installed, as it is already present on the cloud instances that require it.
