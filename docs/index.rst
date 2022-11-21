@@ -20,7 +20,7 @@ If you need any of those services for your machine, ``pro`` is the right tool fo
 
 -----
 
-.. grid:: 2
+.. grid:: 1 1 2 2
 
    .. grid-item-card:: **Tutorials**
        :link: home-page-tutorials
