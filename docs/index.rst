@@ -21,6 +21,7 @@ If you need any of those services for your machine, ``pro`` is the right tool fo
 -----
 
 .. grid:: 1 1 2 2
+   :gutter: 3
 
    .. grid-item-card:: **Tutorials**
        :link: home-page-tutorials
