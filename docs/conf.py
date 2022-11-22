@@ -29,6 +29,7 @@ copyright = "2022, Canonical Ltd."
 extensions = [
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_design",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
