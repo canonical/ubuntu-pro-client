@@ -24,25 +24,25 @@ If you need any of those services for your machine, ``pro`` is the right tool fo
    :gutter: 3
 
    .. grid-item-card:: **Tutorials**
-       :link: home-page-tutorials
+       :link: tutorials
        :link-type: doc
       
        Get started - a hands-on introduction to Ubuntu Pro Client for new users
 
    .. grid-item-card:: **How-to guides**
-       :link: home-page-howto
+       :link: howtoguides
        :link-type: doc
       
        Step-by-step guides covering key operations and common tasks
     
    .. grid-item-card:: **Explanations**
-       :link: home-page-expl
+       :link: explanations
        :link-type: doc
           
        Discussion and clarification of key topics
     
    .. grid-item-card:: **References**
-       :link: home-page-refs
+       :link: references
        :link-type: doc
       
        Technical information - specifications, APIs, architecture
