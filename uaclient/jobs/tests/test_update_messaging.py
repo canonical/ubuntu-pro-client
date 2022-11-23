@@ -654,7 +654,6 @@ class TestUpdateAPTandMOTDMessages:
                 mock.call(
                     [
                         "/usr/lib/ubuntu-advantage/apt-esm-hook",
-                        "process-templates",
                     ]
                 )
             ]

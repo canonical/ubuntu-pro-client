@@ -358,7 +358,7 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     and APT UA-configured hooks. APT hook content will orginate from
     apt-hook/hook.cc
 
-    Call esm-apt-hook process-templates to render final human-readable
+    Call apt-esm-hook to render final human-readable
     messages.
 
     :param cfg: UAConfig instance for this environment.
@@ -395,9 +395,7 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
 
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
-    system.subp(
-        ["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"]
-    )
+    system.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook"])
     return True
 
 
