@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "json-hook.hh"
+#include "esm-templates.hh"
 
 bool read_jsonrpc_request(std::istream &in, jsonrpc_request &req) {
     std::string msg_line;
@@ -202,12 +203,12 @@ int run()
 {
     char *fd_c_str = getenv("APT_HOOK_SOCKET");
     if (fd_c_str == NULL) {
-        std::cerr << "ua-hook: missing socket fd" << std::endl;
+        std::cerr << "pro-hook: missing socket fd" << std::endl;
         return 0;
     }
     std::string fd_str(fd_c_str);
     if (fd_str == "") {
-        std::cerr << "ua-hook: empty socket fd" << std::endl;
+        std::cerr << "pro-hook: empty socket fd" << std::endl;
         return 0;
     }
     int fd = stoi(fd_str);
@@ -222,18 +223,18 @@ int run()
     jsonrpc_request hello_req;
     success = read_jsonrpc_request(socket_in, hello_req);
     if (!success) {
-        std::cerr << "ua-hook: failed to read hello msg" << std::endl;
+        std::cerr << "pro-hook: failed to read hello msg" << std::endl;
         return 0;
     }
     if (hello_req.method != "org.debian.apt.hooks.hello" || hello_req.notification) {
-        std::cerr << "ua-hook: invalid hello msg" << std::endl;
+        std::cerr << "pro-hook: invalid hello msg" << std::endl;
         return 0;
     }
 
     json_object *hello_req_versions;
     success = json_object_object_get_ex(hello_req.params, "versions", &hello_req_versions);
     if (!success) {
-        std::cerr << "ua-hook: hello msg missing versions" << std::endl;
+        std::cerr << "pro-hook: hello msg missing versions" << std::endl;
         return 0;
     }
     int64_t hello_req_versions_length = json_object_array_length(hello_req_versions);
@@ -247,7 +248,7 @@ int run()
         }
     }
     if (!supports_version_02) {
-        std::cerr << "ua-hook: apt doesn't support json hook version 0.2" << std::endl;
+        std::cerr << "pro-hook: apt doesn't support json hook version 0.2" << std::endl;
         return 0;
     }
 
@@ -260,7 +261,7 @@ int run()
     jsonrpc_request hook_req;
     success = read_jsonrpc_request(socket_in, hook_req);
     if (!success) {
-        std::cerr << "ua-hook: failed to read hook msg" << std::endl;
+        std::cerr << "pro-hook: failed to read hook msg" << std::endl;
         return 0;
     }
     if (hook_req.method == "org.debian.apt.hooks.install.statistics") {
@@ -273,6 +274,15 @@ int run()
             }
         }
     } else if (hook_req.method == "org.debian.apt.hooks.install.pre-prompt") {
+        // ESM stats
+        process_all_templates();
+        std::ifstream esm_message_file(APT_PRE_INVOKE_MESSAGE_STATIC_PATH);
+        if (esm_message_file.is_open()) {
+            std::cout << esm_message_file.rdbuf();
+            esm_message_file.close();
+        }
+
+        // APT News
         std::ifstream apt_news_flag_file("/var/lib/ubuntu-advantage/flags/show-apt-news");
         if (apt_news_flag_file.is_open()) {
             std::cout << "#" << std::endl;
@@ -288,7 +298,7 @@ int run()
     jsonrpc_request bye_req;
     success = read_jsonrpc_request(socket_in, bye_req);
     if (!success) {
-        std::cerr << "ua-hook: failed to read bye msg" << std::endl;
+        std::cerr << "pro-hook: failed to read bye msg" << std::endl;
         return 0;
     }
     json_object_put(bye_req.root_msg);

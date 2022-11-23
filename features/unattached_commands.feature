@@ -71,7 +71,7 @@ Feature: Command behaviour when unattached
         Then I verify that running `apt-get update` `with sudo` exits `0`
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        Then I verify that running `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` `with sudo` exits `0`
+        Then I verify that running `/usr/lib/ubuntu-advantage/apt-esm-hook` `with sudo` exits `0`
 
         Examples: ubuntu release
            | release | esm-infra-url                       | esm-apps-url |

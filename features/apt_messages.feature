@@ -113,14 +113,14 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        The following security updates require Ubuntu Pro with 'esm-infra' enabled:
+          .*
+        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         #
         # News about significant security updates, features and services will
         # appear here to raise awareness and perhaps tease /r/Linux ;\)
         # Use 'pro config set apt_news=false' to hide this and future APT news\.
         #
-        The following security updates require Ubuntu Pro with 'esm-infra' enabled:
-          .*
-        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I attach `contract_token` with sudo
@@ -161,16 +161,16 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
 
         CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
         Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
         coverage for your applications.
 
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -191,17 +191,17 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
 
         CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
         Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
         coverage for your applications.
         Your grace period will expire in 11 days.
 
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -222,17 +222,17 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
           .*
         Renew your service at https:\/\/ubuntu.com\/pro
 
+        #
+        # News about significant security updates, features and services will
+        # appear here to raise awareness and perhaps tease /r/Linux ;\)
+        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        #
         The following packages will be upgraded:
         """
         When I run `apt-get upgrade -y` with sudo
@@ -243,15 +243,15 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+
+        \*Your Ubuntu Pro subscription has EXPIRED\*
+        Renew your service at https:\/\/ubuntu.com\/pro
+
         #
         # News about significant security updates, features and services will
         # appear here to raise awareness and perhaps tease /r/Linux ;\)
         # Use 'pro config set apt_news=false' to hide this and future APT news\.
         #
-
-        \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro
-
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I run `pro detach --assume-yes` with sudo
@@ -263,13 +263,13 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        Receive additional future security updates with Ubuntu Pro.
+        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         #
         # News about significant security updates, features and services will
         # appear here to raise awareness and perhaps tease /r/Linux ;\)
         # Use 'pro config set apt_news=false' to hide this and future APT news\.
         #
-        Receive additional future security updates with Ubuntu Pro.
-        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
@@ -393,7 +393,7 @@ Feature: APT Messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         <msg>
@@ -410,7 +410,7 @@ Feature: APT Messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         <msg>
@@ -427,7 +427,7 @@ Feature: APT Messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt-get upgrade --dry-run` with sudo
+        When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
         <msg>
