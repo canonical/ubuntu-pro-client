@@ -6,13 +6,13 @@ ubuntu-advantage.pot: hook.cc
 	xgettext hook.cc -o ubuntu-advantage.pot
 
 hook: hook.cc
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o hook hook.cc -lapt-pkg $(LDLIBS)
+	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o hook hook.cc esm-templates.cc -lapt-pkg $(LDLIBS)
 
 json-hook: json-hook.cc
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook json-hook-main.cc json-hook.cc -ljson-c $(LDLIBS)
+	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook json-hook-main.cc json-hook.cc esm-templates.cc -ljson-c -lapt-pkg $(LDLIBS)
 
 test:
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook-test json-hook.cc json-hook.test.cc -ljson-c -lboost_unit_test_framework $(LDLIBS)
+	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook-test json-hook.cc json-hook.test.cc esm-templates.cc -ljson-c -lapt-pkg -lboost_unit_test_framework $(LDLIBS)
 	./json-hook-test
 
 install-conf:
