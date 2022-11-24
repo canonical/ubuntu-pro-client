@@ -291,3 +291,60 @@ Feature: Command behaviour when unattached
           | focal   |
           | jammy   |
           | kinetic |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    # Side effect: this verifies that `ua` still works as a command
+    Scenario Outline: Verify autocomplete options
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I prepare the autocomplete test
+        And I press tab twice to autocomplete the `ua` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `pro` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `ua enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
+        cis     +fips       +livepatch
+        """
+        When I press tab twice to autocomplete the `pro enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
+        cis     +fips       +livepatch
+        """
+        When I press tab twice to autocomplete the `ua disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
+        cis     +fips       +livepatch
+        """
+        When I press tab twice to autocomplete the `pro disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
+        cis     +fips       +livepatch
+        """
+
+        Examples: ubuntu release
+          | release |
+          # | xenial  | Can't rely on Xenial because of bash sorting things weirdly
+          | bionic  |
+          | focal   |
+          | jammy   |
+          | kinetic |
