@@ -13,7 +13,7 @@ _ua_complete()
     cur_word="${COMP_WORDS[COMP_CWORD]}"
     prev_word="${COMP_WORDS[COMP_CWORD-1]}"
 
-    subcmds=$(pro --help | awk '/^\s*$|Available|Use/ {next;} /Flags:/{flag=1;next}/Use ubuntu-avantage/{flag=0}flag{ if ( $1 ~ /,/ ) { print $2} else print $1}')
+    subcmds=$(pro --help | awk '/^\s*$|^\s{5,}|Available|Use/ {next;} /Flags:/{check=1;next}/Use ubuntu-avantage/{check=0}check{ if ( $1 ~ /,/ ) { print $2} else print $1}')
     base_params=""
     case ${COMP_CWORD} in
         1)
