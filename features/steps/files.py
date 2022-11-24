@@ -35,8 +35,12 @@ def when_i_verify_file_is_empty_on_machine(context, file_name, machine_name):
 
 
 @when("I create the file `{file_path}` with the following")
-def when_i_create_file_with_content(context, file_path, machine_name=SUT):
-    text = context.text
+def when_i_create_file_with_content(
+    context, file_path, machine_name=SUT, text=None
+):
+    if text is None:
+        text = context.text
+
     if "<ci-proxy-ip>" in text and "proxy" in context.machines:
         text = text.replace(
             "<ci-proxy-ip>", context.machines["proxy"].instance.ip
