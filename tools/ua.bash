@@ -36,5 +36,6 @@ _ua_complete()
 }
 
 complete -F _ua_complete ua
+complete -F _ua_complete pro
 
 # vi: syntax=sh expandtab
