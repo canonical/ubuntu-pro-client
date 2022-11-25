@@ -62,11 +62,11 @@ livepatch:
 
 realtime-kernel:
   help: |
-    The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+    The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
     It services latency-dependent use cases by providing deterministic response times.
-    The real-time kernel meets stringent preemption specifications and is suitable for
+    The Real-time kernel meets stringent preemption specifications and is suitable for
     telco applications and dedicated devices in industrial automation and robotics.
-    The real-time kernel is currently incompatible with FIPS and Livepatch. 
+    The Real-time kernel is currently incompatible with FIPS and Livepatch. 
 
 ros:
   help: |
