@@ -782,7 +782,7 @@ REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
 )
 REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
     "realtime-livepatch-incompatible",
-    "Livepatch is not currently supported for the real-time kernel.",
+    "Livepatch is not currently supported for the Real-time kernel.",
 )
 REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     "beta-flag-required",
@@ -790,7 +790,7 @@ REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     " kernel is currently in beta and comes with no support.",
 )
 REALTIME_PROMPT = """\
-The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
 {bold}\
 This will change your kernel. To revert to your original kernel, you will need
@@ -801,13 +801,13 @@ Do you want to continue? [ default = Yes ]: (Y/n) """.format(
     bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
 )
 REALTIME_PRE_DISABLE_PROMPT = """\
-This will disable Ubuntu Pro updates to the real-time kernel on this machine.
-The real-time kernel will remain installed.\
+This will disable Ubuntu Pro updates to the Real-time kernel on this machine.
+The Real-time kernel will remain installed.\
 Are you sure? (y/N) """
 
 REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     "realtime-error-install-on-container",
-    "Cannot install Real-Time Kernel on a container.",
+    "Cannot install Real-time kernel on a container.",
 )
 
 GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
