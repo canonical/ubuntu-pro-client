@@ -1,7 +1,7 @@
 # How to enable Real-time kernel
 
 ```{caution}
-Real-Time Kernel is only supported on 22.04. For more information, please see
+Real-time kernel is only supported on 22.04. For more information, please see
 https://ubuntu.com/realtime-kernel
 ```
 
@@ -14,7 +14,7 @@ $ sudo pro enable realtime-kernel
 ```
 
 You'll need to acknowledge a warning, and then you should see output like the
-following, indicating that the Real-Time Kernel package has been installed.
+following, indicating that the Real-time kernel package has been installed.
 
 ```
 One moment, checking your subscription first
@@ -39,7 +39,7 @@ After rebooting you'll be running the Real-time kernel!
 The --access-only flag is introduced in version 27.11
 ```
 
-If you would like to enable access to the Real-Time Kernel APT repository but
+If you would like to enable access to the Real-time kernel APT repository but
 not install the kernel right away, use the `--access-only` flag while enabling.
 
 ```console
