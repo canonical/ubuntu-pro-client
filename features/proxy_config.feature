@@ -1210,7 +1210,7 @@ Feature: Proxy configuration
         When I run `pro enable realtime-kernel --beta` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
-        Installing Real-Time Kernel packages
-        Real-Time Kernel enabled
+        Installing Real-time kernel packages
+        Real-time kernel enabled
         A reboot is required to complete install.
         """

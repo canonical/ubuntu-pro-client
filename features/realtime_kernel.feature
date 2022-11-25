@@ -3,7 +3,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.jammy
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Enable Real-Time Kernel service in a container
+    Scenario Outline: Enable Real-time kernel service in a container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
@@ -15,7 +15,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Cannot install Real-Time Kernel on a container.
+            Cannot install Real-time kernel on a container.
             """
         Examples: ubuntu release
             | release |
@@ -23,7 +23,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.lts
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Enable Real-Time Kernel service on unsupported release
+    Scenario Outline: Enable Real-time kernel service on unsupported release
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
@@ -35,7 +35,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Real-Time Kernel is not available for Ubuntu <version> (<full_name>).
+            Real-time kernel is not available for Ubuntu <version> (<full_name>).
             """
         Examples: ubuntu release
             | release | version    | full_name       |
@@ -45,7 +45,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.jammy
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Enable Real-Time Kernel service
+    Scenario Outline: Enable Real-time kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
@@ -57,7 +57,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
             """
             One moment, checking your subscription first
-            The real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+            The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
             .*This will change your kernel. To revert to your original kernel, you will need
             to make the change manually..*
@@ -92,8 +92,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
-            This will disable Ubuntu Pro updates to the real-time kernel on this machine.
-            The real-time kernel will remain installed.
+            This will disable Ubuntu Pro updates to the Real-time kernel on this machine.
+            The Real-time kernel will remain installed.
             """
 
         Examples: ubuntu release
@@ -102,7 +102,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.jammy
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Enable Real-Time Kernel service access-only
+    Scenario Outline: Enable Real-time kernel service access-only
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro enable realtime-kernel --beta --access-only` with sudo
@@ -111,7 +111,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         One moment, checking your subscription first
         Updating package lists
         Skipping installing packages: ubuntu-realtime
-        Real-Time Kernel access enabled
+        Real-time kernel access enabled
         """
         Then stdout does not match regexp:
         """
