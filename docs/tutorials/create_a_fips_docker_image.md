@@ -70,7 +70,7 @@ This Dockerfile will enable FIPS in the container, upgrade all packages and inst
 Build the docker image with the following command:
 
 ```bash
-DOCKER_BUILDKIT=1 docker build . --secret id=pro-attach-config,src=pro-attach-config.yaml -t ubuntu-bionic-fips
+DOCKER_BUILDKIT=1 docker build . --secret id=pro-attach-config,src=pro-attach-config.yaml -t ubuntu-focal-fips
 ```
 
 This will pass the attach-config as a [BuildKit Secret](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) so that the finished docker image will not contain your Ubuntu Pro token.
@@ -84,14 +84,14 @@ The docker image isn't considered fully FIPS compliant unless it is running on a
 Let's check to make sure the FIPS version of openssl is installed in the container.
 
 ```bash
-docker run -it ubuntu-bionic-fips dpkg-query --show openssl
+docker run -it ubuntu-focal-fips dpkg-query --show openssl
 ```
-Should show something like `openssl 1.1.1-1ubuntu2.fips.2.1~18.04.6.2` (notice "fips" in the version name).
+Should show something like `openssl	1.1.1f-1ubuntu2.fips.2.8` (notice "fips" in the version name).
 
 We can now use the build docker image's FIPS compliant `openssl` to connect to `https://ubuntu.com`.
 
 ```bash
-docker run -it ubuntu-bionic-fips sh -c "echo | openssl s_client -connect ubuntu.com:443"
+docker run -it ubuntu-focal-fips sh -c "echo | openssl s_client -connect ubuntu.com:443"
 ```
 
 That should print information about the certificates of ubuntu.com and the algorithms used during the TLS handshake.
