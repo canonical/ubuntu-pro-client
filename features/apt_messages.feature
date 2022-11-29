@@ -123,6 +123,15 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
+        When I run `apt-get upgrade` with sudo
+        Then I will see the following on stdout:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
         When I attach `contract_token` with sudo
         When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
@@ -300,13 +309,13 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run `apt-get upgrade` with sudo
-        Then stdout does not match regexp:
+        Then I will see the following on stdout:
         """
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
         When I run `apt upgrade --dry-run` with sudo
