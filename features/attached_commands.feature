@@ -780,7 +780,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout matches regexp:
         """"
-        "update_messaging":
+        "metering": null
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
