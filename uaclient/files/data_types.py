@@ -7,6 +7,7 @@ import yaml
 from uaclient import exceptions
 from uaclient.data_types import DataObject
 from uaclient.files.files import UAFile
+from uaclient.util import DatetimeAwareJSONDecoder
 
 
 class DataObjectFileFormat(Enum):
@@ -38,7 +39,9 @@ class DataObjectFile(Generic[DOFType]):
         parsed_data = None
         if self.file_format == DataObjectFileFormat.JSON:
             try:
-                parsed_data = json.loads(raw_data)
+                parsed_data = json.loads(
+                    raw_data, cls=DatetimeAwareJSONDecoder
+                )
             except json.JSONDecodeError:
                 raise exceptions.InvalidFileFormatError(
                     self.ua_file.path, "json"
