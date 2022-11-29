@@ -4,6 +4,7 @@ import logging
 import mock
 import pytest
 
+from lib import timer
 from lib.timer import MeteringTimedJob, TimedJob, run_jobs
 
 
@@ -97,23 +98,25 @@ class TestTimer:
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         # we lose microseconds when deserializing
         now = now - datetime.timedelta(microseconds=now.microsecond)
+        fake_file = mock.MagicMock()
+        m_job_status = mock.MagicMock(next_run=None, last_run=None)
 
         if has_next_run:
-            cfg.write_cache(
-                "jobs-status",
-                {"day_job": {"next_run": now - datetime.timedelta(seconds=1)}},
-            )
+            next_run = now - datetime.timedelta(seconds=1)
+            m_job_status.next_run = next_run
 
-        next_run = now + datetime.timedelta(seconds=43200)
-        jobs_status = {"day_job": {"last_run": now, "next_run": next_run}}
+        fake_file.read.return_value = mock.MagicMock(day_job=m_job_status)
+        expected_next_run = now + datetime.timedelta(seconds=43200)
 
         m_job_func = mock.Mock()
         m_jobs = [TimedJob("day_job", m_job_func, 43200)]
 
         with mock.patch("lib.timer.UACLIENT_JOBS", m_jobs):
-            run_jobs(cfg, now)
+            with mock.patch.object(timer, "timer_jobs_state_file", fake_file):
+                run_jobs(cfg, now)
 
-        assert jobs_status == cfg.read_cache("jobs-status")
+        actual_job_state = fake_file.read().day_job
+        assert expected_next_run == actual_job_state.next_run
         assert [mock.call(cfg=cfg)] == m_job_func.call_args_list
 
     def test_run_job_ignores_late_next_run(self, FakeConfig):
@@ -123,18 +126,21 @@ class TestTimer:
         # we lose microseconds when deserializing
         now = now - datetime.timedelta(microseconds=now.microsecond)
 
-        cfg.write_cache(
-            "jobs-status",
-            {"day_job": {"next_run": now + datetime.timedelta(seconds=14400)}},
+        fake_file = mock.MagicMock()
+        m_job_status = mock.MagicMock(
+            next_run=now + datetime.timedelta(seconds=14400), last_run=None
         )
+        fake_file.read.return_value = mock.MagicMock(day_job=m_job_status)
 
         m_job_func = mock.Mock()
         m_jobs = [TimedJob("day_job", m_job_func, 43200)]
 
         with mock.patch("lib.timer.UACLIENT_JOBS", m_jobs):
-            run_jobs(cfg, now)
+            with mock.patch.object(timer, "timer_jobs_state_file", fake_file):
+                run_jobs(cfg, now)
 
-        assert "last_run" not in cfg.read_cache("jobs-status")["day_job"]
+        actual_job_state = fake_file.read().day_job
+        assert actual_job_state.last_run is None
         assert 0 == m_job_func.call_count
 
 

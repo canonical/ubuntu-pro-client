@@ -92,7 +92,6 @@ class UAConfig:
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
-        "jobs-status": DataPath("jobs-status.json", False, True),
     }  # type: Dict[str, DataPath]
 
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")

@@ -22,6 +22,7 @@ from uaclient.defaults import (
     DEFAULT_LOG_PREFIX,
 )
 from uaclient.entitlements.livepatch import LIVEPATCH_CMD
+from uaclient.files.state_files import timer_jobs_state_file
 
 LOG = logging.getLogger("pro.actions")
 event = event_logger.get_event_logger()
@@ -160,7 +161,7 @@ def _get_state_files(cfg: config.UAConfig):
         cfg.log_file,
         cfg.timer_log_file,
         cfg.daemon_log_file,
-        cfg.data_path("jobs-status"),
+        timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
             entitlement.repo_list_file_tmpl.format(name=entitlement.name)

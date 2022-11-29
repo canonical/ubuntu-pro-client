@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
+    DatetimeDataValue,
     Field,
     IntDataValue,
     StringDataValue,
@@ -92,5 +93,38 @@ class RetryAutoAttachState(DataObject):
 retry_auto_attach_state_file = DataObjectFile(
     RetryAutoAttachState,
     UAFile("retry-auto-attach-state.json", private=True),
+    DataObjectFileFormat.JSON,
+)
+
+
+class TimerJobState(DataObject):
+    fields = [
+        Field("next_run", DatetimeDataValue),
+        Field("last_run", DatetimeDataValue),
+    ]
+
+    def __init__(self, next_run, last_run):
+        self.next_run = next_run
+        self.last_run = last_run
+
+
+class AllTimerJobsState(DataObject):
+    fields = [
+        Field("metering", TimerJobState, required=False),
+        Field("update_messaging", TimerJobState, required=False),
+    ]
+
+    def __init__(
+        self,
+        metering: Optional[TimerJobState],
+        update_messaging: Optional[TimerJobState],
+    ):
+        self.metering = metering
+        self.update_messaging = update_messaging
+
+
+timer_jobs_state_file = DataObjectFile(
+    AllTimerJobsState,
+    UAFile("jobs-status.json"),
     DataObjectFileFormat.JSON,
 )
