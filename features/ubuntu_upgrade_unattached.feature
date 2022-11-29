@@ -41,4 +41,4 @@ Feature: Upgrade between releases when uaclient is unattached
         | xenial  | bionic       | lts    |                 | enabled        |
         | bionic  | focal        | lts    |                 | enabled        |
         | focal   | jammy        | lts    | --devel-release | enabled        |
-        | jammy   | kinetic      | normal | --devel-release | n/a            |
+        | jammy   | kinetic      | normal |                 | n/a            |
