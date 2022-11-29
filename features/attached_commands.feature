@@ -803,6 +803,24 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that running `grep "Invalid value for metering interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
         And I verify that the timer interval for `update_messaging` is `21600`
         And I verify that the timer interval for `metering` is `14400`
+        When I create the file `/var/lib/ubuntu-advantage/jobs-status.json` with the following:
+        """
+        {"metering": {"last_run": "2022-11-29T19:15:52.434906+00:00", "next_run": "2022-11-29T23:15:52.434906+00:00"}, "update_messaging": {"last_run": "2022-11-29T19:15:52.434906+00:00", "next_run": "2022-11-30T01:15:52.434906+00:00"}, "update_status": {"last_run": "2022-11-29T19:15:52.434906+00:00", "next_run": "2022-11-30T01:15:52.434906+00:00"}}
+        """
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout does not match regexp:
+        """"
+        "update_status"
+        """
+        And stdout matches regexp:
+        """"
+        "metering"
+        """
+        And stdout matches regexp:
+        """"
+        "update_messaging"
+        """
 
         Examples: ubuntu release
            | release |
