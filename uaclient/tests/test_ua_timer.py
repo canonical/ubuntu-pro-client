@@ -147,7 +147,7 @@ class TestTimer:
 class TestMeteringTimedJob:
     @pytest.mark.parametrize(
         "activity_ping_interval_value,config_value,expected_value",
-        ((None, 100, 100), (20, 80, 80), (1000, 80, 1000)),
+        ((None, 100, 100), (20, 80, 80), (1000, 80, 1000), (1000, 0, 0)),
     )
     @mock.patch("lib.timer.TimedJob.run_interval_seconds")
     def test_metering_run_interval_seconds(
