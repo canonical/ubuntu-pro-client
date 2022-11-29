@@ -94,6 +94,13 @@ class MeteringTimedJob(TimedJob):
         again. Since the user can also configure the timer interval for this
         job, we will select the greater value between those two choices.
         """
+        run_interval_seconds = super().run_interval_seconds(cfg)
+
+        if run_interval_seconds == 0:
+            # If the user has disabled the metering job, we should
+            # ignore the activity_ping_interval directive
+            return 0
+
         return max(
             cfg.machine_token_file.activity_ping_interval or 0,
             super().run_interval_seconds(cfg),
