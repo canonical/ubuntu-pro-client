@@ -756,9 +756,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro config set update_messaging_timer=0` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
-        Then stdout does not match regexp:
+        Then stdout matches regexp:
         """"
-        "update_messaging":
+        "update_messaging": null
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

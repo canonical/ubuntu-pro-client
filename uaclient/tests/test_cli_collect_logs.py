@@ -127,7 +127,7 @@ class TestActionCollectLogs:
             mock.call("/var/log/ubuntu-advantage.log"),
             mock.call("/var/log/ubuntu-advantage-timer.log"),
             mock.call("/var/log/ubuntu-advantage-daemon.log"),
-            mock.call(cfg.data_dir + "/jobs-status.json"),
+            mock.call("/var/lib/ubuntu-advantage/jobs-status.json"),
             mock.call("/etc/cloud/build.info"),
             mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list"),
             mock.call("/etc/apt/sources.list.d/ubuntu-cis.list"),
