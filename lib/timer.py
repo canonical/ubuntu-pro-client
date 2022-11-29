@@ -8,6 +8,11 @@ from typing import Callable
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
+from uaclient.files.state_files import (
+    AllTimerJobsState,
+    TimerJobState,
+    timer_jobs_state_file,
+)
 
 # from uaclient.jobs.eol_status import check_eol_and_update
 from uaclient.jobs.metering import metering_enabled_resources
@@ -112,20 +117,30 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     Persist jobs-status with calculated next_run values to aid in timer
     state introspection for jobs which have not yet run.
     """
-    jobs_status = cfg.read_cache("jobs-status") or {}
+    jobs_status_obj = timer_jobs_state_file.read()
+
+    if jobs_status_obj is None:
+        # We do this for the first run of the timer job, where the file
+        # doesn't exist
+        jobs_status_obj = AllTimerJobsState(
+            metering=None, update_messaging=None
+        )
+
     for job in UACLIENT_JOBS:
-        if job.name in jobs_status:
-            next_run = jobs_status[job.name]["next_run"]
-            if next_run > current_time:
+        if getattr(jobs_status_obj, job.name):
+            next_run = getattr(jobs_status_obj, job.name).next_run
+            if next_run and next_run > current_time:
                 continue  # Skip job as expected next_run hasn't yet passed
         if job.run(cfg):
             # Persist last_run and next_run UTC-based times on job success.
-            jobs_status[job.name] = {
-                "last_run": current_time,
-                "next_run": current_time
-                + timedelta(seconds=job.run_interval_seconds(cfg)),
-            }
-    cfg.write_cache(key="jobs-status", content=jobs_status)
+            last_run = current_time
+            next_run = current_time + timedelta(
+                seconds=job.run_interval_seconds(cfg)
+            )
+            job_state = TimerJobState(next_run=next_run, last_run=last_run)
+            setattr(jobs_status_obj, job.name, job_state)
+
+    timer_jobs_state_file.write(jobs_status_obj)
 
 
 if __name__ == "__main__":
