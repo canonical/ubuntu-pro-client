@@ -3,8 +3,15 @@ import re
 from behave import then, when
 from hamcrest import assert_that, contains_string, matches_regexp
 
+from features.steps.files import when_i_create_file_with_content
 from features.steps.shell import when_i_run_command
 from features.util import SUT
+
+APT_REPO_ENTRY = (
+    "deb [trusted=yes] "
+    "http://proclientdummyrepo.s3-website.us-east-2.amazonaws.com/"
+    "actual_ppa/ unstable main"
+)
 
 
 @when("I apt install `{package_name}`")
@@ -99,37 +106,30 @@ def verify_packages_are_installed_from_apt_source(
 
 @when("I install third-party / unknown packages in the machine")
 def when_i_install_packages(context):
-    # The `code` deb package sets up an apt remote for updates,
-    # and is then listed as third-party.
-    # https://code.visualstudio.com/download
+    # Dummy packages are installed to serve as third-party and unknown
+    # packages for the tests. They live happy and joyful lives in a s3 bucket.
+    # Many APT updates just to make sure we are up to date
 
-    # The `gh` deb package is just installed locally,
-    # and is then listed as unknown
-    # https://github.com/cli/cli/releases
-    when_i_run_command(context, "apt-get update", "with sudo")
+    # Unknown package - installed directly, no external reference
     when_i_run_command(
         context,
         (
             "curl -L "
-            "https://az764295.vo.msecnd.net/stable/"
-            "e4503b30fc78200f846c62cf8091b76ff5547662/"
-            "code_1.70.2-1660629410_amd64.deb "
-            "-o /tmp/code.deb"
+            "http://proclientdummyrepo.s3-website.us-east-2.amazonaws.com/"
+            "unknown_deb/pro-dummy-unknown_1.2.3_all.deb "
+            "-o /tmp/unknown.deb"
         ),
         "with sudo",
     )
     when_i_run_command(
-        context,
-        (
-            "curl -L "
-            "https://github.com/cli/cli/releases/download/"
-            "v2.14.4/gh_2.14.4_linux_amd64.deb "
-            "-o /tmp/gh.deb"
-        ),
-        "with sudo",
+        context, "apt-get install -y /tmp/unknown.deb", "with sudo"
     )
-    when_i_run_command(
-        context, "apt-get install -y /tmp/code.deb", "with sudo"
+
+    # PPA to install the third-party package
+    when_i_create_file_with_content(
+        context, "/etc/apt/sources.list.d/prodummy.list", text=APT_REPO_ENTRY
     )
-    when_i_run_command(context, "apt-get install -y /tmp/gh.deb", "with sudo")
     when_i_run_command(context, "apt-get update", "with sudo")
+    when_i_run_command(
+        context, "apt-get install -y pro-dummy-thirdparty", "with sudo"
+    )
