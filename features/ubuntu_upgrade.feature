@@ -53,7 +53,7 @@ Feature: Upgrade between releases when uaclient is attached
         | bionic  | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | bionic  | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
         | focal   | jammy        | lts    | --devel-release | esm-infra | enabled         | esm-apps | enabled         | true           |
-        | jammy   | kinetic      | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | jammy   | kinetic      | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
     @series.xenial
