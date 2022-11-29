@@ -252,7 +252,7 @@ int run()
     }
 
     // Write hello response with jsonrpc id
-    socket_out << "{\"jsonrpc\":\"2.0\",\"id\":" << hello_req.id << ",\"result\":{\"version\":\"0.2\"}\n\n";
+    socket_out << "{\"jsonrpc\":\"2.0\",\"id\":" << hello_req.id << ",\"result\":{\"version\":\"0.2\"}}\n\n";
     socket_out.flush();
 
     json_object_put(hello_req.root_msg);
