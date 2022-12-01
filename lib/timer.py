@@ -4,7 +4,7 @@ Timer used to run all jobs that need to be frequently run on the system
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Callable
+from typing import Callable, Optional
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
@@ -107,15 +107,34 @@ class MeteringTimedJob(TimedJob):
         )
 
 
-UACLIENT_JOBS = [
-    TimedJob(
-        "update_messaging",
-        update_apt_and_motd_messages,
-        UPDATE_MESSAGING_INTERVAL,
-    ),
-    # TimedJob("eol_status", check_eol_and_update, EOL_STATUS_INTERVAL),
-    MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL),
-]
+# TimedJob("eol_status", check_eol_and_update, EOL_STATUS_INTERVAL),
+metering_job = MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL)
+update_message_job = TimedJob(
+    "update_messaging",
+    update_apt_and_motd_messages,
+    UPDATE_MESSAGING_INTERVAL,
+)
+
+
+def run_job(
+    cfg: UAConfig,
+    job: TimedJob,
+    current_time: datetime,
+    job_status: Optional[TimerJobState],
+) -> Optional[TimerJobState]:
+    if job_status:
+        next_run = job_status.next_run
+        if next_run and next_run > current_time:
+            return job_status
+    if job.run(cfg):
+        # Persist last_run and next_run UTC-based times on job success.
+        last_run = current_time
+        next_run = current_time + timedelta(
+            seconds=job.run_interval_seconds(cfg)
+        )
+        job_status = TimerJobState(next_run=next_run, last_run=last_run)
+
+    return job_status
 
 
 def run_jobs(cfg: UAConfig, current_time: datetime):
@@ -133,20 +152,12 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
             metering=None, update_messaging=None
         )
 
-    for job in UACLIENT_JOBS:
-        if getattr(jobs_status_obj, job.name):
-            next_run = getattr(jobs_status_obj, job.name).next_run
-            if next_run and next_run > current_time:
-                continue  # Skip job as expected next_run hasn't yet passed
-        if job.run(cfg):
-            # Persist last_run and next_run UTC-based times on job success.
-            last_run = current_time
-            next_run = current_time + timedelta(
-                seconds=job.run_interval_seconds(cfg)
-            )
-            job_state = TimerJobState(next_run=next_run, last_run=last_run)
-            setattr(jobs_status_obj, job.name, job_state)
-
+    jobs_status_obj.metering = run_job(
+        cfg, metering_job, current_time, jobs_status_obj.metering
+    )
+    jobs_status_obj.update_messaging = run_job(
+        cfg, update_message_job, current_time, jobs_status_obj.update_messaging
+    )
     timer_jobs_state_file.write(jobs_status_obj)
 
 
