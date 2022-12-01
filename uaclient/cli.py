@@ -19,6 +19,7 @@ import yaml
 from uaclient import (
     actions,
     apt,
+    apt_news,
     config,
     contract,
     daemon,
@@ -55,10 +56,9 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
+from uaclient.files import state_files
 from uaclient.jobs.update_messaging import (
-    clear_apt_news_flag,
     refresh_motd,
-    set_apt_news_flag,
     update_apt_and_motd_messages,
 )
 
@@ -1090,9 +1090,9 @@ def action_config_set(args, *, cfg, **kwargs):
     elif set_key == "apt_news":
         set_value = set_value.lower() == "true"
         if set_value:
-            set_apt_news_flag(cfg)
+            apt_news.fetch_and_process_apt_news(cfg)
         else:
-            clear_apt_news_flag(cfg)
+            state_files.apt_news_contents_file.delete()
 
     setattr(cfg, set_key, set_value)
 
@@ -1707,6 +1707,8 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
     try:
         update_apt_and_motd_messages(cfg)
         refresh_motd()
+        if cfg.apt_news:
+            apt_news.fetch_and_process_apt_news(cfg)
     except Exception as exc:
         with util.disable_log_to_console():
             logging.exception(exc)

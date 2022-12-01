@@ -67,17 +67,6 @@ UPDATE_NOTIFIER_MOTD_SCRIPT = (
 )
 
 
-def set_apt_news_flag(cfg: config.UAConfig):
-    if system.is_current_series_lts():
-        system.create_file(
-            os.path.join(cfg.data_dir, "flags", "show-apt-news")
-        )
-
-
-def clear_apt_news_flag(cfg: config.UAConfig):
-    system.remove_file(os.path.join(cfg.data_dir, "flags", "show-apt-news"))
-
-
 def get_contract_expiry_status(
     cfg: config.UAConfig,
 ) -> Tuple[ContractExpiryStatus, int]:
@@ -387,12 +376,6 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
 
     # Announce ESM availabilty on active ESM LTS releases
     # write_esm_announcement_message(cfg, series)
-
-    if cfg.apt_news:
-        set_apt_news_flag(cfg)
-    else:
-        clear_apt_news_flag(cfg)
-
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     system.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook"])
