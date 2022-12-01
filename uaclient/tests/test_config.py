@@ -296,6 +296,7 @@ UA_CFG_DICT = {
         "apt_http_proxy": None,
         "apt_https_proxy": None,
         "apt_news": True,
+        "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
         "global_apt_http_proxy": None,
         "global_apt_https_proxy": None,
         "ua_apt_http_proxy": None,

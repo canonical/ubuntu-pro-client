@@ -6,7 +6,7 @@ import time
 from behave import then, when
 from hamcrest import assert_that, equal_to
 
-from features.util import SUT
+from features.util import SUT, process_template_vars
 
 
 @when("I run `{command}` {user_spec}, retrying exit [{exit_codes}]")
@@ -41,6 +41,8 @@ def when_i_run_command(
     stdin=None,
     machine_name=SUT,
 ):
+    command = process_template_vars(context, command)
+
     if "<ci-proxy-ip>" in command and "proxy" in context.machines:
         command = command.replace(
             "<ci-proxy-ip>", context.machines["proxy"].instance.ip

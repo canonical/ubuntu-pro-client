@@ -105,6 +105,7 @@ Feature: APT Messages
         When I run `apt-get update` with sudo
         When I run `apt-get -y upgrade` with sudo
         When I run `apt-get -y autoremove` with sudo
+        When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then stdout matches regexp:
@@ -116,11 +117,6 @@ Feature: APT Messages
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
           .*
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I run `apt-get upgrade` with sudo
@@ -140,11 +136,6 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -175,11 +166,6 @@ Feature: APT Messages
         Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
         coverage for your applications.
 
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -206,11 +192,6 @@ Feature: APT Messages
         coverage for your applications.
         Your grace period will expire in 11 days.
 
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         The following packages will be upgraded:
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -237,11 +218,6 @@ Feature: APT Messages
           .*
         Renew your service at https:\/\/ubuntu.com\/pro
 
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         The following packages will be upgraded:
         """
         When I run `apt-get upgrade -y` with sudo
@@ -256,11 +232,6 @@ Feature: APT Messages
         \*Your Ubuntu Pro subscription has EXPIRED\*
         Renew your service at https:\/\/ubuntu.com\/pro
 
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I run `pro detach --assume-yes` with sudo
@@ -274,11 +245,6 @@ Feature: APT Messages
         Calculating upgrade...
         Receive additional future security updates with Ubuntu Pro.
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
@@ -293,6 +259,7 @@ Feature: APT Messages
         When I run `apt-get -y upgrade` with sudo
         When I run `apt-get -y autoremove` with sudo
         When I run `apt-get install hello` with sudo
+        When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout:
@@ -304,11 +271,6 @@ Feature: APT Messages
         The following security updates require Ubuntu Pro with 'esm-apps' enabled:
           hello
         Learn more about Ubuntu Pro at https://ubuntu.com/pro
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;)
-        # Use 'pro config set apt_news=false' to hide this and future APT news.
-        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run `apt-get upgrade` with sudo
@@ -328,11 +290,6 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         The following packages will be upgraded:
           hello
         """
@@ -377,26 +334,295 @@ Feature: APT Messages
         Calculating upgrade...
         Receive additional future security updates with Ubuntu Pro.
         Learn more about Ubuntu Pro at https://ubuntu.com/pro
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
-        """
-        When I run `pro config set apt_news=false` with sudo
-        And I run `apt upgrade` with sudo
-        Then stdout does not match regexp:
-        """
-        #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
-        #
         """
         Examples: ubuntu release
           | release |
           | focal   |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: APT News
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
+        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        When I run `apt-get autoremove -y` with sudo
+
+        Given a `focal` machine named `apt-news-server`
+        When I run `apt-get update` `with sudo` on the `apt-news-server` machine
+        When I apt install `nginx` on the `apt-news-server` machine
+        When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
+        When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
+
+        When I run `pro config set apt_news_url=http://$behave_var{machine-ip apt-news-server}/aptnews.json` with sudo
+
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        # test is too fast and systemd doesn't like triggering motd-news.service
+        # (during pro refresh messages) too frequently
+        # So there are "wait"s before each pro refresh messages call
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # one
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # Test that it is not shown in apt-get output
+        When I run `apt-get upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today}",
+              "lines": [
+                "one",
+                "two",
+                "three"
+              ]
+            }
+          ]
+        }
+        """
+
+        # apt update stamp will prevent a apt_news refresh
+        When I run `apt-get update` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # one
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # manual refresh gets new message
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # one
+        # two
+        # three
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # more than 3 lines ignored
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today}",
+              "lines": [
+                "one",
+                "two",
+                "three",
+                "four"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # more than 77 chars ignored
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today}",
+              "lines": [
+                "000000000100000000020000000003000000000400000000050000000006000000000712345678"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # end is respected
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today -3}",
+              "end": "$behave_var{today -1}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today -3}",
+              "end": "$behave_var{today +1}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # one
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # begin >30 days ago ignored, even if end is set to future
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today -31}",
+              "end": "$behave_var{today +1}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # begin in future
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today +1}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        Examples: ubuntu release
+          | release |
+          | xenial  |
+          | bionic  |
+          | focal   |
+          | jammy   |
 
     @series.xenial
     @series.bionic

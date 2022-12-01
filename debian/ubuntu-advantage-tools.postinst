@@ -414,6 +414,12 @@ cleanup_candidate_version_stamp_permissions() {
     fi
 }
 
+cleanup_apt_news_flag_file() {
+    if [ -f $APT_NEWS_FLAG_FILE ]; then
+        rm -f $APT_NEWS_FLAG_FILE
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -494,6 +500,9 @@ case "$1" in
       fi
       migrate_ubuntu_pro_beta_banner $PREVIOUS_PKG_VER
       cleanup_candidate_version_stamp_permissions
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
+          cleanup_apt_news_flag_file
+      fi
       ;;
 esac
 
