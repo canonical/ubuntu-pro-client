@@ -1,3 +1,4 @@
+import datetime
 import enum
 import glob
 import logging
@@ -613,3 +614,10 @@ def get_apt_cache_time() -> Optional[float]:
     elif os.path.exists(APT_LISTS_PATH):
         cache_time = os.stat(APT_LISTS_PATH).st_mtime
     return cache_time
+
+
+def get_apt_cache_datetime() -> Optional[datetime.datetime]:
+    cache_time = get_apt_cache_time()
+    if cache_time is None:
+        return None
+    return datetime.datetime.fromtimestamp(cache_time, datetime.timezone.utc)
