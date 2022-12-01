@@ -13,6 +13,7 @@ from uaclient.config import UAConfig
 # We are doing this because we are sure that python3-apt comes with the distro,
 # but it cannot be installed in a virtual environment to be properly tested.
 sys.modules["apt"] = mock.MagicMock()
+sys.modules["apt_pkg"] = mock.MagicMock()
 
 
 @pytest.yield_fixture(scope="session", autouse=True)
