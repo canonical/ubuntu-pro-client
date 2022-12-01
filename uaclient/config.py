@@ -19,6 +19,7 @@ from uaclient import (
     util,
 )
 from uaclient.defaults import (
+    APT_NEWS_URL,
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
     CONFIG_DEFAULTS,
@@ -49,6 +50,7 @@ UA_CONFIGURABLE_KEYS = (
     "update_messaging_timer",
     "metering_timer",
     "apt_news",
+    "apt_news_url",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -300,6 +302,17 @@ class UAConfig:
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
         self.cfg["ua_config"]["apt_news"] = value
+        self.write_cfg()
+
+    @property
+    def apt_news_url(self) -> str:
+        return self.cfg.get("ua_config", {}).get("apt_news_url", APT_NEWS_URL)
+
+    @apt_news_url.setter
+    def apt_news_url(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["apt_news_url"] = value
         self.write_cfg()
 
     def check_lock_info(self) -> Tuple[int, str]:
