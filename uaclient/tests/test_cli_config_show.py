@@ -117,6 +117,7 @@ global_apt_https_proxy  http://global_apt_https_proxy
 update_messaging_timer  None
 metering_timer          None
 apt_news                True
+apt_news_url            https://motd.ubuntu.com/aptnews.json
 """
                 == out
             )

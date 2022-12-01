@@ -9,6 +9,7 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
+from uaclient.defaults import MESSAGES_DIR
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
 from uaclient.files.files import UAFile
 
@@ -128,3 +129,6 @@ timer_jobs_state_file = DataObjectFile(
     UAFile("jobs-status.json"),
     DataObjectFileFormat.JSON,
 )
+
+
+apt_news_contents_file = UAFile("apt-news", directory=MESSAGES_DIR)

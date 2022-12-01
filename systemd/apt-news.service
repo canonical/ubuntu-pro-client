@@ -1,0 +1,6 @@
+[Unit]
+Description=Update APT News
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/apt_news.py

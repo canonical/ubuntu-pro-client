@@ -46,6 +46,9 @@ def when_i_verify_file_is_empty_on_machine(context, file_name, machine_name):
     assert_that(context.process.stdout.strip(), matches_regexp("0"))
 
 
+@when(
+    "I create the file `{file_path}` on the `{machine_name}` machine with the following"  # noqa: E501
+)
 @when("I create the file `{file_path}` with the following")
 def when_i_create_file_with_content(
     context, file_path, machine_name=SUT, text=None

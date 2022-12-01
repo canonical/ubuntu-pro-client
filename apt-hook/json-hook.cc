@@ -283,14 +283,10 @@ int run()
         }
 
         // APT News
-        std::ifstream apt_news_flag_file("/var/lib/ubuntu-advantage/flags/show-apt-news");
-        if (apt_news_flag_file.is_open()) {
-            std::cout << "#" << std::endl;
-            std::cout << "# News about significant security updates, features and services will" << std::endl;
-            std::cout << "# appear here to raise awareness and perhaps tease /r/Linux ;)" << std::endl;
-            std::cout << "# Use 'pro config set apt_news=false' to hide this and future APT news." << std::endl;
-            std::cout << "#" << std::endl;
-            apt_news_flag_file.close();
+        std::ifstream apt_news_file("/var/lib/ubuntu-advantage/messages/apt-news");
+        if (apt_news_file.is_open()) {
+            std::cout << apt_news_file.rdbuf();
+            apt_news_file.close();
         }
     }
     json_object_put(hook_req.root_msg);
