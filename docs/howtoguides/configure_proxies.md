@@ -97,8 +97,8 @@ $ sudo pro config show
 The above will output something that looks like the following if there are proxies set:
 
 ```
-http_proxy      http://proxy
-https_proxy     https://proxy
+http_proxy             http://proxy
+https_proxy            https://proxy
 global_apt_http_proxy  http://aptproxy
 global_apt_https_proxy https://aptproxy
 ```
@@ -106,8 +106,8 @@ global_apt_https_proxy https://aptproxy
 Or it may look like this if there aren’t any proxies set:
 
 ```
-http_proxy      None
-https_proxy     None
+http_proxy             None
+https_proxy            None
 global_apt_http_proxy  None
 global_apt_https_proxy None
 ```
