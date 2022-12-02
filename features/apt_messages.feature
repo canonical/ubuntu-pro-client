@@ -170,15 +170,10 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-
-        CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
-
         #
-        # News about significant security updates, features and services will
-        # appear here to raise awareness and perhaps tease /r/Linux ;\)
-        # Use 'pro config set apt_news=false' to hide this and future APT news\.
+        # CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
+        # Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
+        # coverage for your applications.
         #
         The following packages will be upgraded:
         """
