@@ -10,8 +10,8 @@ required for enabling Ubuntu Pro services. This includes APT, Snaps, and Livepat
 To configure standard HTTP and/or HTTPS proxies, run the following commands:
 
 ```console
-$ sudo pro config set http\_proxy=http://host:port
-$ sudo pro config set https\_proxy=https://host:port
+$ sudo pro config set http_proxy=http://host:port
+$ sudo pro config set https_proxy=https://host:port
 ```
 
 After running the above commands, Ubuntu Pro Client:
@@ -26,8 +26,8 @@ After running the above commands, Ubuntu Pro Client:
 To remove HTTP/HTTPS proxy configuration, run the following:
 
 ```console
-$ sudo pro config unset http\_proxy
-$ sudo pro config unset https\_proxy
+$ sudo pro config unset http_proxy
+$ sudo pro config unset https_proxy
 ```
 
 After running the above commands, Ubuntu Pro Client will also remove proxy
@@ -36,11 +36,11 @@ configuration from snapd (if installed) and Livepatch (if enabled).
 ## APT Proxies
 
 APT proxy settings are configured separately. To have Ubuntu Pro Client manage your
-APT proxy configuration, run the following commands:
+global APT proxy configuration, run the following commands:
 
 ```console
-$ sudo pro config set apt\_http\_proxy=http://host:port
-$ sudo pro config set apt\_https\_proxy=https://host:port
+$ sudo pro config set global_apt_http_proxy=http://host:port
+$ sudo pro config set global_apt_https_proxy=https://host:port
 ```
 
 After running the above commands, Ubuntu Pro Client:
@@ -56,15 +56,24 @@ directory could override the proxy configured by the Ubuntu Pro Client.
 
 To remove the APT proxy configuration, run the following:
 
-$ sudo pro config unset apt\_http\_proxy
-$ sudo pro config unset apt\_https\_proxy
+```
+$ sudo pro config unset global_apt_http_proxy
+$ sudo pro config unset global_apt_https_proxy
+```
 
 ```{attention}
 Starting in version 27.9, APT proxy config options changed.
-You will be able to set global apt proxies that affect the whole system
-using the fields `global_apt_http_proxy` and `global_apt_https_proxy`.
-Alternatively, you could set apt proxies only for Ubuntu Pro related services with the
-fields `ua_apt_http_proxy` and `ua_apt_https_proxy`.
+The old settings: `apt_http_proxy` and `apt_https_proxy` will still work and will be treated the
+same as `global_apt_http_proxy` and `global_apt_https_proxy`, respectively.
+```
+
+### Pro-service-only APT Proxies
+
+To set an apt proxy that will only be used for Ubuntu Pro services, use the following commands instead:
+
+```console
+$ sudo pro config set ua_apt_http_proxy=http://host:port
+$ sudo pro config set ua_apt_https_proxy=https://host:port
 ```
 
 ## Authenticating
@@ -73,7 +82,9 @@ If your proxy server requires authentication, you can pass
 the credentials directly in the URL when setting the
 configuration, as in:
 
-$ sudo pro config set https\_proxy=https://username:password@host:port
+```
+$ sudo pro config set https_proxy=https://username:password@host:port
+```
 
 ## Checking the configuration
 
@@ -86,17 +97,17 @@ $ sudo pro config show
 The above will output something that looks like the following if there are proxies set:
 
 ```
-http_proxy      http://proxy
-https_proxy     https://proxy
-apt_http_proxy  http://aptproxy
-apt_https_proxy https://aptproxy
+http_proxy             http://proxy
+https_proxy            https://proxy
+global_apt_http_proxy  http://aptproxy
+global_apt_https_proxy https://aptproxy
 ```
 
 Or it may look like this if there aren’t any proxies set:
 
 ```
-http_proxy      None
-https_proxy     None
-apt_http_proxy  None
-apt_https_proxy None
+http_proxy             None
+https_proxy            None
+global_apt_http_proxy  None
+global_apt_https_proxy None
 ```
