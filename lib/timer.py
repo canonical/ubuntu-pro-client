@@ -13,15 +13,12 @@ from uaclient.files.state_files import (
     TimerJobState,
     timer_jobs_state_file,
 )
-
-# from uaclient.jobs.eol_status import check_eol_and_update
 from uaclient.jobs.metering import metering_enabled_resources
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
-EOL_STATUS_INTERVAL = 604800  # weekly
 
 
 class TimedJob:
@@ -107,7 +104,6 @@ class MeteringTimedJob(TimedJob):
         )
 
 
-# TimedJob("eol_status", check_eol_and_update, EOL_STATUS_INTERVAL),
 metering_job = MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL)
 update_message_job = TimedJob(
     "update_messaging",
