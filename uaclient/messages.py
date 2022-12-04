@@ -311,11 +311,6 @@ APT_PROXY_CONFIG_HEADER = """\
  */
 """
 
-REPO_FILE_CONTENT = """\
-deb {url}/ubuntu {apt_suite} main
-# deb-src {url}/ubuntu {apt_suite} main
-"""
-
 UACLIENT_CONF_HEADER = """\
 # Ubuntu Pro client config file.
 # If you modify this file, run "pro refresh config" to ensure changes are
