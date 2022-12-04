@@ -31,7 +31,7 @@ def given_a_machine(
     ports=None,
     cleanup=True,
 ):
-    time_suffix = datetime.datetime.now().strftime("%s%f")
+    time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
     instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
         series=series,
         machine_name=machine_name,

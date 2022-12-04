@@ -62,7 +62,7 @@ or, if you just want to run a specific file, or a test within a file:
 
 ```shell
 tox -e behave-lxd-20.04 features/unattached_commands.feature
-tox -e behave-lxd-20.04 features/unattached_commands.feature:55
+tox -e behave-lxd-20.04 features/unattached_commands.feature:28
 ```
 
 As can be seen, this will run behave tests only for release 20.04 (Focal Fossa). We are currently
