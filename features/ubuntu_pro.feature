@@ -18,8 +18,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          http_proxy: http://<ci-proxy-ip>:3128
-          https_proxy: http://<ci-proxy-ip>:3128
+          http_proxy: http://$behave_var{machine-ip proxy}:3128
+          https_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
@@ -90,8 +90,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          http_proxy: http://<ci-proxy-ip>:3128
-          https_proxy: http://<ci-proxy-ip>:3128
+          http_proxy: http://$behave_var{machine-ip proxy}:3128
+          https_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
@@ -162,8 +162,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          http_proxy: http://<ci-proxy-ip>:3389
-          https_proxy: http://<ci-proxy-ip>:3389
+          http_proxy: http://$behave_var{machine-ip proxy}:3389
+          https_proxy: http://$behave_var{machine-ip proxy}:3389
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo

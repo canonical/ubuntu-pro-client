@@ -1,6 +1,8 @@
+import datetime
 import hashlib
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -270,3 +272,45 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
         k: [r for r in v if r[0] != "tag:yaml.org,2002:timestamp"]
         for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()
     }
+
+
+def _replace_and_log(s, old, new):
+    logging.debug('replacing "{}" with "{}"'.format(old, new))
+    return s.replace(old, new)
+
+
+def process_template_vars(context, template: str) -> str:
+    processed_template = template
+
+    for match in re.finditer(r"\$behave_var{(.*)}", template):
+        args = match.group(1).split()
+        function_name = args[0]
+        if function_name == "version":
+            if context.config.check_version:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.config.check_version,
+                )
+        elif function_name == "machine-ip":
+            if args[1] in context.machines:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.machines[args[1]].instance.ip,
+                )
+        elif function_name == "cloud":
+            processed_template = _replace_and_log(
+                processed_template, match.group(0), context.config.cloud
+            )
+        elif function_name == "today":
+            dt = datetime.datetime.utcnow()
+            if len(args) == 2:
+                offset = int(args[1])
+                dt = dt + datetime.timedelta(days=offset)
+            dt_str = dt.strftime("%Y-%m-%dT00:00:00Z")
+            processed_template = _replace_and_log(
+                processed_template, match.group(0), dt_str
+            )
+
+    return processed_template

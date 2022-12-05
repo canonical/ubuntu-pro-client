@@ -31,7 +31,7 @@ Feature: Performing attach using ua-airgapped
         And I start the contracts-airgapped service on the `contracts` machine
         # attach an airgapped machine to the contracts-airgapped server
         And I disable any internet connection on the machine
-        And I change config key `contract_url` to use value `contracts:ip-address:8484`
+        And I change config key `contract_url` to use value `http://$behave_var{machine-ip contracts}:8484`
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """

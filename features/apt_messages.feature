@@ -152,7 +152,7 @@ Feature: APT Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now+2>
+                    "effectiveTo": "$behave_var{today +2}"
                 }
             }
         }
@@ -187,7 +187,7 @@ Feature: APT Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now-3>
+                    "effectiveTo": "$behave_var{today -3}"
                 }
             }
         }
@@ -218,7 +218,7 @@ Feature: APT Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now-20>
+                    "effectiveTo": "$behave_var{today -20}"
                 }
             }
         }
@@ -338,7 +338,7 @@ Feature: APT Messages
         # {
         #     "machineTokenInfo": {
         #         "contractInfo": {
-        #             "effectiveTo": <now-20>
+        #             "effectiveTo": "$behave_var{today -20}"
         #         }
         #     }
         # }

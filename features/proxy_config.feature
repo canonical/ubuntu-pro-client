@@ -15,7 +15,7 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -25,7 +25,7 @@ Feature: Proxy configuration
         """
         .*CONNECT api.snapcraft.io.*
         """
-        When I run `pro config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -49,7 +49,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set ua_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting UA-scoped APT proxy
@@ -59,7 +59,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://archive.ubuntu.com.*
         """
-        When I run `pro config set ua_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting UA-scoped APT proxy
@@ -131,8 +131,8 @@ Feature: Proxy configuration
         """
         \"https://localhost:12345\" is not working. Not setting as proxy.
         """
-        When I run `pro config set ua_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set ua_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set ua_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
         """
@@ -172,8 +172,8 @@ Feature: Proxy configuration
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        And I run `pro config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -269,7 +269,7 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -279,7 +279,7 @@ Feature: Proxy configuration
         """
         .*CONNECT api.snapcraft.io.*
         """
-        When I run `pro config set http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -297,7 +297,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set ua_apt_http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting UA-scoped APT proxy
@@ -307,7 +307,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://archive.ubuntu.com.*
         """
-        When I run `pro config set ua_apt_https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting UA-scoped APT proxy
@@ -336,7 +336,7 @@ Feature: Proxy configuration
         """
         .*GET.*security.ubuntu.com.*
         """
-        And I verify that running `pro config set ua_apt_https_proxy=http://wronguser:wrongpassword@<ci-proxy-ip>:3128` `with sudo` exits `1`
+        And I verify that running `pro config set ua_apt_https_proxy=http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         \"http://wronguser:wrongpassword@.*:3128\" is not working. Not setting as proxy.
@@ -366,8 +366,8 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
@@ -420,8 +420,8 @@ Feature: Proxy configuration
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          http_proxy: http://<ci-proxy-ip>:3128
-          https_proxy: http://<ci-proxy-ip>:3128
+          http_proxy: http://$behave_var{machine-ip proxy}:3128
+          https_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         # We need this for the route command
@@ -445,8 +445,8 @@ Feature: Proxy configuration
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          ua_apt_http_proxy: http://<ci-proxy-ip>:3128
-          ua_apt_https_proxy: http://<ci-proxy-ip>:3128
+          ua_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
+          ua_apt_https_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
@@ -522,8 +522,8 @@ Feature: Proxy configuration
         """
         \"https://localhost:12345\" is not working. Not setting as proxy.
         """
-        When I run `pro config set ua_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set ua_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set ua_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
         """
@@ -571,8 +571,8 @@ Feature: Proxy configuration
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          http_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
-          https_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
+          http_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
+          https_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
@@ -589,8 +589,8 @@ Feature: Proxy configuration
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
         ua_config:
-          ua_apt_http_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
-          ua_apt_https_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
+          ua_apt_http_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
+          ua_apt_https_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro refresh config` with sudo
@@ -615,7 +615,7 @@ Feature: Proxy configuration
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
-            ua_apt_https_proxy: http://wronguser:wrongpassword@<ci-proxy-ip>:3128
+            ua_apt_https_proxy: http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -644,7 +644,7 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -654,7 +654,7 @@ Feature: Proxy configuration
         """
         .*CONNECT api.snapcraft.io.*
         """
-        When I run `pro config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -683,7 +683,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting global APT proxy
@@ -693,7 +693,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://archive.ubuntu.com.*
         """
-        When I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting global APT proxy
@@ -766,8 +766,8 @@ Feature: Proxy configuration
         """
         \"https://localhost:12345\" is not working. Not setting as proxy.
         """
-        When I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
         """
@@ -810,7 +810,7 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -820,7 +820,7 @@ Feature: Proxy configuration
         """
         .*CONNECT api.snapcraft.io.*
         """
-        When I run `pro config set http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -842,7 +842,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set global_apt_http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set global_apt_http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting global APT proxy
@@ -852,7 +852,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://archive.ubuntu.com.*
         """
-        When I run `pro config set global_apt_https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set global_apt_https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Setting global APT proxy
@@ -881,7 +881,7 @@ Feature: Proxy configuration
         """
         .*GET.*security.ubuntu.com.*
         """
-        And I verify that running `pro config set global_apt_https_proxy=http://wronguser:wrongpassword@<ci-proxy-ip>:3128` `with sudo` exits `1`
+        And I verify that running `pro config set global_apt_https_proxy=http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         \"http://wronguser:wrongpassword@.*:3128\" is not working. Not setting as proxy.
@@ -908,8 +908,8 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then I verify that files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
@@ -947,13 +947,13 @@ Feature: Proxy configuration
         """
         .*GET.*security.ubuntu.com.*
         """
-        When I run `pro config set ua_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Warning: Setting the pro scoped apt proxy will overwrite the global apt
         proxy previously set via `pro config`.
         """
-        When I run `pro config set ua_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set ua_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout does not match regexp:
         """
         Warning: Setting the pro scoped apt proxy will overwrite the global apt
@@ -973,7 +973,7 @@ Feature: Proxy configuration
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
-            apt_http_proxy: http://<ci-proxy-ip>:3128
+            apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify that running `pro refresh config` `with sudo` exits `0`
         Then stdout matches regexp:
@@ -984,7 +984,7 @@ Feature: Proxy configuration
         When I run `pro config show` with sudo
         Then stdout matches regexp:
         """
-        global_apt_http_proxy +http://<ci-proxy-ip>:3128
+        global_apt_http_proxy +http://$behave_var{machine-ip proxy}:3128
         """
         Then stdout matches regexp:
         """
@@ -997,8 +997,8 @@ Feature: Proxy configuration
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
-            global_apt_http_proxy: http://<ci-proxy-ip>:3128
-            ua_apt_http_proxy: http://<ci-proxy-ip>:3128
+            global_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
+            ua_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -1010,15 +1010,15 @@ Feature: Proxy configuration
         When I run `pro config show` with sudo
         Then stdout matches regexp:
         """
-        global_apt_http_proxy +http://<ci-proxy-ip>:3128
+        global_apt_http_proxy +http://$behave_var{machine-ip proxy}:3128
         """
         Then stdout matches regexp:
         """
-        ua_apt_http_proxy +http://<ci-proxy-ip>:3128
+        ua_apt_http_proxy +http://$behave_var{machine-ip proxy}:3128
         """
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-        When I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
         """
@@ -1067,7 +1067,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I run `pro config set apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Warning: apt_http_proxy has been renamed to global_apt_http_proxy.
@@ -1078,7 +1078,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://archive.ubuntu.com.*
         """
-        When I run `pro config set apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        When I run `pro config set apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         Then stdout matches regexp:
         """
         Warning: apt_https_proxy has been renamed to global_apt_https_proxy.
@@ -1135,8 +1135,8 @@ Feature: Proxy configuration
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
-            apt_http_proxy: http://<ci-proxy-ip>:3128
-            apt_https_proxy: http://<ci-proxy-ip>:3128
+            apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
+            apt_https_proxy: http://$behave_var{machine-ip proxy}:3128
         """
         When I run `pro refresh config` with sudo
         Then stdout matches regexp:
@@ -1197,10 +1197,10 @@ Feature: Proxy configuration
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        And I run `pro config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set global_apt_http_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I run `pro config set global_apt_https_proxy=http://<ci-proxy-ip>:3128` with sudo
+        And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
+        And I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
