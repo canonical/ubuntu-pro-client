@@ -105,7 +105,7 @@ Feature: MOTD Messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I attach `contract_token` with sudo
-        When I update contract to use `effectiveTo` as `days=+2`
+        When I update contract to use `effectiveTo` as `$behave_var{today +2}`
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -118,7 +118,7 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
-        When I update contract to use `effectiveTo` as `days=-3`
+        When I update contract to use `effectiveTo` as `$behave_var{today -3}`
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -132,7 +132,7 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
-        When I update contract to use `effectiveTo` as `days=-20`
+        When I update contract to use `effectiveTo` as `$behave_var{today -20}`
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -175,7 +175,7 @@ Feature: MOTD Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now+2>
+                    "effectiveTo": "$behave_var{today +2}"
                 }
             }
         }
@@ -202,7 +202,7 @@ Feature: MOTD Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now-3>
+                    "effectiveTo": "$behave_var{today -3}"
                 }
             }
         }
@@ -225,7 +225,7 @@ Feature: MOTD Messages
         {
             "machineTokenInfo": {
                 "contractInfo": {
-                    "effectiveTo": <now-20>
+                    "effectiveTo": "$behave_var{today -20}"
                 }
             }
         }

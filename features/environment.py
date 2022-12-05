@@ -13,7 +13,12 @@ from behave.model import Feature, Scenario
 from behave.runner import Context
 
 import features.cloud as cloud
-from features.util import SUT, InstallationSource, lxc_get_property
+from features.util import (
+    SUT,
+    InstallationSource,
+    lxc_get_property,
+    process_template_vars,
+)
 
 PROCESS_LOG_TMPL = """\
 returncode: {returncode}
@@ -413,15 +418,11 @@ def before_scenario(context: Context, scenario: Scenario):
             )
             return
 
-    if "uses.config.check_version" in scenario.effective_tags:
-        # before_step doesn't execute early enough to modify the step
-        # so we perform the version step surgery here
-        for step in scenario.steps:
-            if step.text:
-                step.text = step.text.replace(
-                    "{UACLIENT_BEHAVE_CHECK_VERSION}",
-                    context.config.check_version,
-                )
+    # before_step doesn't execute early enough to modify the step
+    # so we perform the version step surgery here
+    for step in scenario.steps:
+        if step.text:
+            step.text = process_template_vars(context, step.text)
 
 
 FAILURE_FILES = (
