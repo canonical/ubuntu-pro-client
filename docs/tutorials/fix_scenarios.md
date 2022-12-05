@@ -12,32 +12,32 @@ On this tutorial, we will cover the main scenarios that can happen when running 
 
 ## Prerequisites
 
-On this tutorial, we will use [LXD](https://linuxcontainers.org/lxd/) containers.
-To set up LXD on your computer, please follow this
-[guide](https://linuxcontainers.org/lxd/getting-started-cli/).
+On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
+To install multipass on your computer, please follow this [guide](https://multipass.run/install).
+Note that this page also instruct you on how to launch Multipass virtual machines (VM) and interact with them.
 
-## Creating the Xenial LXD container
+## Creating the Xenial Multipass virtual machine
 
-To test the `pro fix` command, let's create a Xenial LXD container. Remember to set up LXD as
-mentioned on the [Prerequisites](#prerequisites) section. After that, just run the command:
+To test the `pro fix` command, let's create a Xenial Multipass VM. Remember to install
+Multipass as mentioned on the [Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
-$ lxc launch ubuntu-daily:xenial dev-x
+$ multipass launch xenial --name dev-x
 ```
 
-After running that, let's access the container by running:
+After running that, let's access the VM by running:
 
 ```console
-$ lxc shell dev-x
+$ multipass shell dev-x
 ```
 
 Every time we say: "run the command" our intention will be for
-you to run that command on your Xenial LXD container.
+you to run that command on your Xenial Multipass VM.
 
 ## Using `pro fix`
 
 First, let's see what happens on your system when `pro fix` runs. We will choose
-to fix a CVE that does not affect the Xenial container,
+to fix a CVE that does not affect the Xenial Multipass VM,
 [CVE-2020-15180](https://ubuntu.com/security/CVE-2020-15180). This CVE address security
 issues for the `MariaDB` package, which is not installed on the system. Let's confirm that
 it doesn't affect the system by running this command:
@@ -60,7 +60,7 @@ display the affected packages, fix the affected packages and at the end, show if
 CVE/USN is fully fixed in the machine.
 
 You can better see this on an `pro fix` call that does fix a package. Let's install a package
-on the container that we know are associated with [CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
+on the VM that we know are associated with [CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
 You can install that package by running these commands:
 
 ```console
@@ -368,9 +368,10 @@ This tutorial has covered the main scenario that can happen to you when running 
 If you need more information about the command please feel free to reach the Ubuntu Pro Client team on
 `#ubuntu-server` on Libera IRC.
 
-Before you finish this tutorial, exit the container by running `CTRL-D` and delete it by running
+Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
 this command on the host machine:
 
 ```console
-$ lxc delete --force dev-x
+$ multipass delete dev-x
+$ multipass purge
 ```

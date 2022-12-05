@@ -7,13 +7,10 @@ on their machine.
 
 ## Prerequisites
 
-On this tutorial, you will use [LXD](https://linuxcontainers.org/lxd/) containers.
-To set up LXD on your computer, please follow this [guide](https://linuxcontainers.org/lxd/getting-started-cli/).
-
-```{tip}
-When configuring LXD on your machine, run the `lxd init --minimal`. This should be more
-than enough for you to finish this tutorial
-```
+On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
+To install multipass on your computer, please follow this [guide](https://multipass.run/install).
+Note that this page also instruct you on how to launch Multipass virtual machines (VM) and interact with
+them.
 
 ## Main `pro` commands
 
@@ -28,21 +25,21 @@ functionalites of the tool. They are:
 * **disable**
 
 In this tutorial, we will go through all those commands to show how to properly use them.
-To achieve that, we will use a Xenial LXD container.
+To achieve that, we will use a Xenial Multipass virtual machine.
 
-## Creating the Xenial LXD container
+## Creating the Xenial Multipass virtual machine
 
-To test all of those commands, let's create a Xenial LXD container. Remember to set up LXD as
+To test all of those commands, let's create a Xenial Multipass VM. Remember to install multipass as
 mentioned on the [Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
-$ lxc launch ubuntu-daily:xenial dev-x
+$ multipass launch xenial --name dev-x
 ```
 
-After running that, let's access the container by running:
+After running that, let's access the VM by running:
 
 ```console
-$ lxc shell dev-x
+$ multipass shell dev-x
 ```
 
 ## Base `pro` commands
@@ -53,7 +50,7 @@ The status command of `pro` allows you to see the status of any Ubuntu Pro servi
 It also easily allows you to verify if your machine is attached to an Ubuntu Pro subscription
 or not.
 
-Let's run it on the LXD container:
+Let's run it on the Multipass VM:
 
 ```console
 $ pro status
@@ -90,7 +87,7 @@ achieved by running the attach command. Before you run it, you need to get an Ub
 Any user with a Ubuntu One account is entitled to a free personal token to use with Ubuntu Pro.
 You can retrieve your Ubuntu Pro token from the [Ubuntu Pro portal](https://ubuntu.com/pro/).
 You will log in with your SSO credentials, the same credentials you use for https://login.ubuntu.com.
-After getting your Ubuntu Pro token, go to the LXD container and run:
+After getting your Ubuntu Pro token, go to the Multipass VM and run:
 
 ```console
 $ sudo pro attach YOUR_TOKEN
@@ -175,7 +172,7 @@ There is another way to enable a service that wasn't activated during attach or 
 Suppose that you want to enable `cis` on this machine manually. To achieve that, You can use the
 enable command.
 
-Let's enable `cis` on our LXD container by running:
+Let's enable `cis` on our Multipass VM by running:
 
 ```console
 $ sudo pro enable cis
@@ -213,8 +210,8 @@ You can see now that `cis` is marked as `enabled` on status.
 ### Disable
 
 Let's suppose that you don't want a service anymore, you can also disable any service offering
-through `pro`. For example, let's disable the `cis` service you just enabled by running on the LXD
-container:
+through `pro`. For example, let's disable the `cis` service you just enabled by running on the
+Multipass VM:
 
 ```console
 $ sudo pro disable cis
@@ -261,8 +258,9 @@ This tutorial has covered the 6 main commands of `pro`. If you need more advance
 the tool, please take a look at the _How To Guides_. If that still doesn't cover
 your needs, feel free to reach the `pro` team on `#ubuntu-server` on Libera IRC.
 
-Before you finish this tutorial, exit the container by running `CTRL-D` and delete it by running
+Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
 this command on the machine:
 ```console
-$ lxc delete --force dev-x
+$ multipass delete dev-x
+$ multipass purge
 ```
