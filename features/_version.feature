@@ -18,12 +18,12 @@ Feature: Pro is expected version
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}
+        $behave_var{version}
         """
         When I run `pro version` with sudo
         Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}
+        $behave_var{version}
         """
         Examples: version
             | release |
@@ -42,12 +42,12 @@ Feature: Pro is expected version
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}
+        $behave_var{version}
         """
         When I run `pro version` with sudo
         Then I will see the following on stdout
         """
-        {UACLIENT_BEHAVE_CHECK_VERSION}
+        $behave_var{version}
         """
         Examples: version
             | release |
