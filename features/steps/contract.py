@@ -1,10 +1,8 @@
-import datetime
-
 from behave import then, when
 from hamcrest import assert_that, equal_to, not_
 
 from features.steps.shell import when_i_run_command
-from features.util import SUT
+from features.util import SUT, process_template_vars
 from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
@@ -15,11 +13,7 @@ from uaclient.defaults import (
 def when_i_update_contract_field_to_new_value(
     context, contract_field, new_value
 ):
-    if contract_field == "effectiveTo":
-        if "days=" in new_value:  # Set timedelta offset from current day
-            now = datetime.datetime.utcnow()
-            contract_expiry = now + datetime.timedelta(days=int(new_value[5:]))
-            new_value = contract_expiry.strftime("%Y-%m-%dT00:00:00Z")
+    new_value = process_template_vars(context, new_value)
     when_i_run_command(
         context,
         'sed -i \'s/"{}": "[^"]*"/"{}": "{}"/g\' {}'.format(

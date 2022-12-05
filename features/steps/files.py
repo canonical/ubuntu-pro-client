@@ -1,15 +1,27 @@
-import datetime
 import json
 import os
-import re
 import tempfile
 
+import yaml
 from behave import then, when
 from hamcrest import assert_that, matches_regexp
 
 from features.steps.shell import when_i_run_command
-from features.util import SUT
+from features.util import SUT, process_template_vars
 from uaclient.defaults import DEFAULT_CONFIG_FILE
+
+
+def _get_file_contents(
+    context, file_path: str, machine_name: str = SUT
+) -> str:
+    # pycloudlib pull_file doesn't work on root readable files
+    when_i_run_command(
+        context,
+        "cat {}".format(file_path),
+        "with sudo",
+        machine_name=machine_name,
+    )
+    return context.process.stdout
 
 
 @when("I add this text on `{file_name}` on `{machine_name}` above `{line}`")
@@ -40,23 +52,7 @@ def when_i_create_file_with_content(
 ):
     if text is None:
         text = context.text
-
-    if "<ci-proxy-ip>" in text and "proxy" in context.machines:
-        text = text.replace(
-            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
-        )
-    if "<cloud>" in text:
-        text = text.replace("<cloud>", context.config.cloud)
-
-    date_match = re.search(r"<now(?P<offset>.*)>", text)
-    if date_match:
-        day_offset = date_match.group("offset")
-        offset = 0 if day_offset == "" else int(day_offset)
-        now = datetime.datetime.utcnow()
-        contract_expiry = now + datetime.timedelta(days=offset)
-        new_value = '"' + contract_expiry.strftime("%Y-%m-%dT00:00:00Z") + '"'
-        orig_str_value = "<now" + day_offset + ">"
-        text = text.replace(orig_str_value, new_value)
+    text = process_template_vars(context, text)
 
     with tempfile.TemporaryDirectory() as tmpd:
         tmpf_path = os.path.join(tmpd, "tmpfile")
@@ -124,29 +120,26 @@ def there_should_be_no_files_matching_regex(context, path_regex):
 
 @when("I change config key `{key}` to use value `{value}`")
 def change_contract_key_to_use_value(context, key, value):
-    if "ip-address" in value:
-        machine_name, _, port = value.split(":")
-        ip_value = context.machines[machine_name].instance.ip
-        value = "http:\/\/{}:{}".format(ip_value, port)  # noqa: W605
+    value = process_template_vars(context, value)
 
-    when_i_run_command(
-        context,
-        "sed -i 's/{}: .*/{}: {}/g' {}".format(
-            key, key, value, DEFAULT_CONFIG_FILE
-        ),
-        "with sudo",
+    content = _get_file_contents(context, DEFAULT_CONFIG_FILE)
+    cfg = yaml.safe_load(content)
+    cfg[key] = value
+    new_content = yaml.dump(cfg)
+
+    when_i_create_file_with_content(
+        context, DEFAULT_CONFIG_FILE, text=new_content
     )
 
 
 @when("I set `{key}` = `{json_value}` in json file `{filename}`")
 def when_i_set_key_val_json_file(context, key, json_value, filename):
-    when_i_run_command(
-        context,
-        "cat {}".format(filename),
-        "with sudo",
-    )
+    json_value = process_template_vars(context, json_value)
+
+    content_str = _get_file_contents(context, filename)
+    content = json.loads(content_str)
     val = json.loads(json_value)
-    content = json.loads(context.process.stdout)
     content[key] = val
-    context.text = json.dumps(content)
-    when_i_create_file_with_content(context, filename)
+    new_content = json.dumps(content)
+
+    when_i_create_file_with_content(context, filename, text=new_content)
