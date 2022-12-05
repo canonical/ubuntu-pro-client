@@ -11,6 +11,8 @@ import json
 import sys
 from typing import Any, Dict, List, Optional, Set, Union  # noqa: F401
 
+import yaml
+
 JSON_SCHEMA_VERSION = "0.1"
 EventFieldErrorType = Optional[Union[str, Dict[str, str]]]
 _event_logger = None
@@ -225,8 +227,6 @@ class EventLogger:
                 )
             )
         elif self._event_logger_mode == EventLoggerMode.YAML:
-            import yaml
-
             print(yaml.dump(output, default_flow_style=False))
 
     def process_events(self) -> None:

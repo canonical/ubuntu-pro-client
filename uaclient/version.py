@@ -1,8 +1,5 @@
 """
-Version determination functions
-
-These are in their own file so they can be imported by setup.py before we have
-any of our dependencies installed.
+Client version related functions
 """
 import os.path
 import re
@@ -33,7 +30,8 @@ def get_version() -> str:
          XX.Y so return the --long version to allow daily build recipes
          to count commit offset from upstream's XX.Y signed tag.
       b. If run in a git-ubuntu pkg repo, upstream tags aren't visible,
-         parse the debian/changelog in that case
+         believe __VERSION__ is correct - there is and MUST always be a
+         test to make sure it matches debian/changelog
     """
     if not PACKAGED_VERSION.startswith("@@PACKAGED_VERSION"):
         return PACKAGED_VERSION
