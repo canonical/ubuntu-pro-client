@@ -1,20 +1,19 @@
 # Getting Started with Ubuntu Pro Client
 
-The Ubuntu Pro Client (`pro`) provides users with a simple mechanism to
-view, enable, and disable offerings from Canonical on their system. In this tutorial
-we will cover the base `pro` commands that allow a user to successfully manage the offering
-on their machine.
+The Ubuntu Pro Client (`pro`) provides a simple mechanism for viewing, enabling and
+disabling Canonical offerings on your system. In this tutorial we will cover the base
+`pro` commands that will allow you to successfully manage the offerings on your machine.
 
 ## Prerequisites
 
-On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
+In this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
 To install multipass on your computer, please follow this [guide](https://multipass.run/install).
-Note that this page also instruct you on how to launch Multipass virtual machines (VM) and interact with
+Note that this page also instructs you how to launch Multipass virtual machines (VM) and interact with
 them.
 
 ## Main `pro` commands
 
-When dealing with `pro` through the CLI, there are six main `pro` commands that cover the main
+When dealing with `pro` through the CLI, there are six `pro` commands that cover the main
 functionalites of the tool. They are:
 
 * **status**
@@ -30,7 +29,7 @@ To achieve that, we will use a Xenial Multipass virtual machine.
 ## Creating the Xenial Multipass virtual machine
 
 To test all of those commands, let's create a Xenial Multipass VM. Remember to install multipass as
-mentioned on the [Prerequisites](#prerequisites) section. After that, just run the command:
+mentioned in the [Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
 $ multipass launch xenial --name dev-x
@@ -46,9 +45,8 @@ $ multipass shell dev-x
 
 ### Status
 
-The status command of `pro` allows you to see the status of any Ubuntu Pro service on your machine.
-It also easily allows you to verify if your machine is attached to an Ubuntu Pro subscription
-or not.
+The `status` command of `pro` allows you to see the status of any Ubuntu Pro service on your machine.
+It also helps you to easily verify if your machine is attached to an Ubuntu Pro subscription or not.
 
 Let's run it on the Multipass VM:
 
@@ -70,11 +68,11 @@ This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
 ```
 
-You can see that the status command shows the services that are available for that given machine,
+You can see that the status command shows the services available for that given machine,
 while also presenting a short description for each of them.
 
 Additionally, if you look at the last lines of the output, you can identify that this machine is not
-attached to an Ubuntu Pro subscription.
+currently attached to an Ubuntu Pro subscription.
 ```
 This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
@@ -83,8 +81,9 @@ See https://ubuntu.com/pro
 ### Attach
 
 To access any of those service offerings, you need to attach to an Ubuntu Pro subscription. This is
-achieved by running the attach command. Before you run it, you need to get an Ubuntu Pro token.
-Any user with a Ubuntu One account is entitled to a free personal token to use with Ubuntu Pro.
+achieved by running the `attach` command. Before you run it, you need to get an Ubuntu Pro token.
+Any user with an Ubuntu One account is entitled to a free personal token to use with Ubuntu Pro.
+
 You can retrieve your Ubuntu Pro token from the [Ubuntu Pro portal](https://ubuntu.com/pro/).
 You will log in with your SSO credentials, the same credentials you use for https://login.ubuntu.com.
 After getting your Ubuntu Pro token, go to the Multipass VM and run:
@@ -148,7 +147,7 @@ needs to be renewed.
 ### Refresh
 
 In the last section, we mentioned that your contract can expire. Although free tokens never expire, if
-you buy an Ubuntu Pro subscription, and later need to renew the contract, how you can make your machine aware of
+you buy an Ubuntu Pro subscription and later need to renew the contract, how can you make your machine aware of
 it? You can do this through the `refresh` command:
 
 ```console
@@ -169,7 +168,7 @@ more information about the command, please take a look at this [explanation](../
 ### Enable
 
 There is another way to enable a service that wasn't activated during attach or refresh.
-Suppose that you want to enable `cis` on this machine manually. To achieve that, You can use the
+Suppose that you want to enable `cis` on the machine manually. To achieve this, you can use the
 enable command.
 
 Let's enable `cis` on our Multipass VM by running:
@@ -204,20 +203,21 @@ fips-updates  yes       n/a       NIST-certified core packages with priority sec
 livepatch     yes       n/a       Canonical Livepatch service
 ```
 
-You can see now that `cis` is marked as `enabled` on status.
+You can see now that `cis` is marked as `enabled` under 'status'.
 
 
 ### Disable
 
-Let's suppose that you don't want a service anymore, you can also disable any service offering
-through `pro`. For example, let's disable the `cis` service you just enabled by running on the
-Multipass VM:
+Let's suppose that you don't want a service anymore. You can also disable any service offering
+through `pro`. For example, let's disable the `cis` service you just enabled by running the
+following command in the Multipass VM:
 
 ```console
 $ sudo pro disable cis
 ```
 
-After running that command, let's now run `pro status` to see what happened to `cis`:
+After running the command, let's now run `pro status` to see what happened to `cis`:
+
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cis           yes       disabled  Center for Internet Security Audit Tools
@@ -245,22 +245,25 @@ $ sudo pro detach
 ```
 
 This command will disable all of the Ubuntu Pro services on the machine for you and
-get rid of the subscription stored on your machine during attach.
+remove the subscription stored on your machine during attach.
 
 ```{note}
 The detach command will also not uninstall any packages that were installed by
 any service enabled through `pro`.
 ```
 
-### Final thoughts
+### Final steps
+
+Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
+the following commands on the machine:
+```console
+$ multipass delete dev-x
+$ multipass purge
+```
+
+### Next steps
 
 This tutorial has covered the 6 main commands of `pro`. If you need more advanced options to configure
 the tool, please take a look at the _How To Guides_. If that still doesn't cover
 your needs, feel free to reach the `pro` team on `#ubuntu-server` on Libera IRC.
 
-Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
-this command on the machine:
-```console
-$ multipass delete dev-x
-$ multipass purge
-```
