@@ -12,14 +12,24 @@ On this tutorial, we will cover the main scenarios that can happen when running 
 
 ## Prerequisites
 
-On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
-To install multipass on your computer, please follow this [guide](https://multipass.run/install).
-Note that this page also instruct you on how to launch Multipass virtual machines (VM) and interact with them.
+On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
+
+We have chosen Multipass for this tutorial because it allows us to easily launch VMs while not
+requiring any complicated setup for the tool.
+
+To install Multipass on your computer, please run the following command on your machine:
+
+```console
+$ sudo snap install multipass
+```
+
 
 ## Creating the Xenial Multipass virtual machine
 
-To test the `pro fix` command, let's create a Xenial Multipass VM. Remember to install
-Multipass as mentioned on the [Prerequisites](#prerequisites) section. After that, just run the command:
+To test some scenarios for the `pro fix` command, we will need to attach a
+Pro subscription to the machine. To avoid modifying your machine, let's create
+a Xenial Multipass VM instead. Remember to install Multipass as mentioned on the
+[Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
 $ multipass launch xenial --name dev-x
@@ -31,13 +41,27 @@ After running that, let's access the VM by running:
 $ multipass shell dev-x
 ```
 
+Notice that when you run that command, that your terminal username and hostname will change to:
+
+```
+ubuntu@dev-x
+```
+
+This indicates that you are now inside the VM.
+
+Finally, let's run an `apt update` and `apt upgrade` command on the virtual machine
+
+```console
+$ sudo apt update && sudo apt upgrade -y
+```
+
 Every time we say: "run the command" our intention will be for
-you to run that command on your Xenial Multipass VM.
+you to run that command on your VM.
 
 ## Using `pro fix`
 
 First, let's see what happens on your system when `pro fix` runs. We will choose
-to fix a CVE that does not affect the Xenial Multipass VM,
+to fix a CVE that does not affect the VM,
 [CVE-2020-15180](https://ubuntu.com/security/CVE-2020-15180). This CVE address security
 issues for the `MariaDB` package, which is not installed on the system. Let's confirm that
 it doesn't affect the system by running this command:
