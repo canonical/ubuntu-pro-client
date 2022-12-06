@@ -1,15 +1,22 @@
 # Getting Started with Ubuntu Pro Client
 
 The Ubuntu Pro Client (`pro`) provides a simple mechanism for viewing, enabling and
-disabling Canonical offerings on your system. In this tutorial we will cover the base
-`pro` commands that will allow you to successfully manage the offerings on your machine.
+disabling offerings from Canonical on their system. In this tutorial
+we will cover the base `pro` commands that allow you to successfully manage the offering
+on your machine.
 
 ## Prerequisites
 
-In this tutorial, you will use [Multipass](https://multipass.run/) virtual machines.
-To install multipass on your computer, please follow this [guide](https://multipass.run/install).
-Note that this page also instructs you how to launch Multipass virtual machines (VM) and interact with
-them.
+On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
+
+We have chosen Multipass for this tutorial because it allows us to easily launch VMs while not
+requiring any complicated setup for the tool.
+
+To install Multipass on your computer, please run the following command on your machine:
+
+```console
+$ sudo snap install multipass
+```
 
 ## Main `pro` commands
 
@@ -24,12 +31,13 @@ functionalites of the tool. They are:
 * **disable**
 
 In this tutorial, we will go through all those commands to show how to properly use them.
-To achieve that, we will use a Xenial Multipass virtual machine.
+To achieve that, we will use a Xenial Multipass VM.
 
 ## Creating the Xenial Multipass virtual machine
 
-To test all of those commands, let's create a Xenial Multipass VM. Remember to install multipass as
-mentioned in the [Prerequisites](#prerequisites) section. After that, just run the command:
+To test all of those commands, we will enable services on the machine. To avoid modifying your
+machine, let's create a VM. Remember to install Multipass as mentioned on the [Prerequisites](#prerequisites)
+section. After that, just run the command:
 
 ```console
 $ multipass launch xenial --name dev-x
@@ -41,6 +49,20 @@ After running that, let's access the VM by running:
 $ multipass shell dev-x
 ```
 
+Notice that when you run that command, that your terminal username and hostname will change to:
+
+```
+ubuntu@dev-x
+```
+
+This indicates that you are now inside the VM.
+
+Finally, let's run an `apt update` and `apt upgrade` command on the virtual machine
+
+```console
+$ sudo apt update && sudo apt upgrade -y
+```
+
 ## Base `pro` commands
 
 ### Status
@@ -48,7 +70,7 @@ $ multipass shell dev-x
 The `status` command of `pro` allows you to see the status of any Ubuntu Pro service on your machine.
 It also helps you to easily verify if your machine is attached to an Ubuntu Pro subscription or not.
 
-Let's run it on the Multipass VM:
+Let's run it on the VM:
 
 ```console
 $ pro status
@@ -86,7 +108,7 @@ Any user with an Ubuntu One account is entitled to a free personal token to use 
 
 You can retrieve your Ubuntu Pro token from the [Ubuntu Pro portal](https://ubuntu.com/pro/).
 You will log in with your SSO credentials, the same credentials you use for https://login.ubuntu.com.
-After getting your Ubuntu Pro token, go to the Multipass VM and run:
+After getting your Ubuntu Pro token, go to the VM and run:
 
 ```console
 $ sudo pro attach YOUR_TOKEN
@@ -171,7 +193,7 @@ There is another way to enable a service that wasn't activated during attach or 
 Suppose that you want to enable `cis` on the machine manually. To achieve this, you can use the
 enable command.
 
-Let's enable `cis` on our Multipass VM by running:
+Let's enable `cis` on our VM by running:
 
 ```console
 $ sudo pro enable cis
@@ -208,9 +230,8 @@ You can see now that `cis` is marked as `enabled` under 'status'.
 
 ### Disable
 
-Let's suppose that you don't want a service anymore. You can also disable any service offering
-through `pro`. For example, let's disable the `cis` service you just enabled by running the
-following command in the Multipass VM:
+Let's suppose that you don't want a service anymore, you can also disable any service offering
+through `pro`. For example, let's disable the `cis` service you just enabled by running on the VM:
 
 ```console
 $ sudo pro disable cis
@@ -256,6 +277,7 @@ any service enabled through `pro`.
 
 Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
 the following commands on the machine:
+
 ```console
 $ multipass delete dev-x
 $ multipass purge
@@ -263,7 +285,7 @@ $ multipass purge
 
 ### Next steps
 
-This tutorial has covered the 6 main commands of `pro`. If you need more advanced options to configure
-the tool, please take a look at the _How To Guides_. If that still doesn't cover
+Great, you successfully ran a Multipass VM and used it to test out the 6 main commands of Ubuntu Pro. congratulations!
+If you need more advanced options to configure the tool, please take a look at the _How To Guides_. If that still doesn't cover
 your needs, feel free to reach the `pro` team on `#ubuntu-server` on Libera IRC.
 
