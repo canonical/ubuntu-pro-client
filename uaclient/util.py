@@ -329,7 +329,7 @@ def readurl(
     setattr(resp, "body", resp.read().decode("utf-8"))
     content = resp.body
     if "application/json" in str(resp.headers.get("Content-type", "")):
-        content = json.loads(content)
+        content = json.loads(content, cls=DatetimeAwareJSONDecoder)
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
     )
