@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import time
 from typing import List, Optional
 
 import pycloudlib  # type: ignore
@@ -151,18 +150,8 @@ class Cloud:
             inbound_ports=inbound_ports,
         )
         logging.info(
-            "--- {} instance launched: {}. Waiting for ssh access".format(
-                self.name, inst.name
-            )
+            "--- {} instance launched: {}.".format(self.name, inst.name)
         )
-        time.sleep(15)
-        for sleep in (5, 10, 15):
-            try:
-                inst.wait()
-                break
-            except Exception as e:
-                logging.info("--- Retrying instance.wait on {}".format(str(e)))
-
         self._check_cloudinit_status(inst)
         return inst
 
