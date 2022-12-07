@@ -31,41 +31,6 @@ Feature: Command behaviour when unattached
            | kinetic |
            | lunar   |
 
-    @series.xenial
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt update` with sudo
-        When I run `apt-cache policy` with sudo
-        Then stdout matches regexp:
-        """
-        -32768 <esm-infra-url> <release>-infra-updates/main amd64 Packages
-        """
-        Then stdout matches regexp:
-        """
-        -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
-        """
-        And stdout matches regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
-        """
-        And stdout matches regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
-        """
-        When I create the file `/etc/apt/sources.list.d/empty-release-origin.list` with the following
-        """
-        deb [ allow-insecure=yes ] https://packages.irods.org/apt xenial main
-        """
-        Then I verify that running `apt-get update` `with sudo` exits `0`
-        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        Then I verify that running `/usr/lib/ubuntu-advantage/apt-esm-hook` `with sudo` exits `0`
-
-        Examples: ubuntu release
-           | release | esm-infra-url                       | esm-apps-url |
-           | xenial  | https://esm.ubuntu.com/infra/ubuntu | https://esm.ubuntu.com/apps/ubuntu |
-
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine

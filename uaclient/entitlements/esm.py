@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Type, Union, Optional
+from typing import Tuple, Type, Union
 
 from uaclient import gpg, system
 from uaclient.apt import APT_KEYS_DIR, ESM_REPO_FILE_CONTENT, KEYRINGS_DIR
@@ -84,25 +84,6 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     description = "Expanded Security Maintenance for Applications"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
 
-    @property
-    def repo_pin_priority(self) -> Optional[str]:
-        """All LTS should pin esm-apps."""
-        series = system.get_platform_info()["series"]
-
-        if self.valid_service:
-            if system.is_lts(series):
-                return "never"
-        return None
-
-    @property
-    def disable_apt_auth_only(self) -> bool:
-        """All LTS remove APT auth files upon disable"""
-        series = system.get_platform_info()["series"]
-
-        if self.valid_service:
-            return system.is_lts(series)
-        return False
-
 
 class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
@@ -110,19 +91,3 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "Ubuntu Pro: ESM Infra"
     description = "Expanded Security Maintenance for Infrastructure"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
-
-    @property
-    def repo_pin_priority(self) -> Optional[str]:
-        """All LTS are entitled to ESM Infra."""
-        if system.is_lts(system.get_platform_info()["series"]):
-            return "never"
-        return None  # No pinning on non-LTS releases
-
-    @property
-    def disable_apt_auth_only(self) -> bool:
-        """Ubuntu EOL releases are in active ESM.
-
-        Leave unauthenticated APT sources on disk with never pinning to ensure
-        visibility to UA ESM: Infra packages for MOTD/APT messaging.
-        """
-        return system.is_active_esm(system.get_platform_info()["series"])

@@ -405,14 +405,6 @@ def remove_auth_apt_repo(
     remove_repo_from_apt_auth_file(repo_url)
 
 
-def restore_commented_apt_list_file(filename: str) -> None:
-    """Uncomment commented deb lines in the given file."""
-    if os.path.exists(filename):
-        file_content = system.load_file(filename)
-        file_content = file_content.replace("# deb ", "deb ")
-        system.write_file(filename, file_content)
-
-
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
     _protocol, repo_path = repo_url.split("://")
