@@ -39,6 +39,15 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
 )
+from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
+from uaclient.api.u.pro.attach.magic.revoke.v1 import (
+    MagicAttachRevokeOptions,
+    _revoke,
+)
+from uaclient.api.u.pro.attach.magic.wait.v1 import (
+    MagicAttachWaitOptions,
+    _wait,
+)
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -399,10 +408,20 @@ def config_parser(parser):
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.prog = "attach"
-    parser.description = (
+    base_desc = (
         "Attach this machine to Ubuntu Pro with a token obtained"
-        " from {}".format(defaults.BASE_UA_URL)
+        " from:\n{}".format(defaults.BASE_UA_URL)
+    )
+    parser.description = (
+        base_desc
+        + "\n\n"
+        + (
+            "When running this command without a token, it will generate "
+            "a short code\nand prompt you to attach the machine to your "
+            "Ubuntu Pro account using\na web browser."
+        )
     )
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -1400,22 +1419,56 @@ def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
         return 0
 
 
+def _magic_attach(args, *, cfg, **kwargs):
+    if args.format == "json":
+        raise exceptions.MagicAttachInvalidParam(
+            param="--format",
+            value=args.format,
+        )
+
+    event.info("Initiating attach operation...")
+    initiate_resp = _initiate(cfg=cfg)
+
+    event.info("\nPlease sign in to your Ubuntu Pro account at this link:")
+    event.info("https://ubuntu.com/pro/attach")
+    event.info(
+        "And provide the following code: {}{}{}".format(
+            messages.TxtColor.BOLD,
+            initiate_resp.user_code,
+            messages.TxtColor.ENDC,
+        )
+    )
+
+    wait_options = MagicAttachWaitOptions(magic_token=initiate_resp.token)
+
+    try:
+        wait_resp = _wait(options=wait_options, cfg=cfg)
+    except exceptions.MagicAttachTokenError as e:
+        event.info("Failed to perform magic-attach")
+
+        revoke_options = MagicAttachRevokeOptions(
+            magic_token=initiate_resp.token
+        )
+        _revoke(options=revoke_options, cfg=cfg)
+        raise e
+
+    event.info("\nAttaching the machine...")
+    return wait_resp.contract_token
+
+
 @assert_not_attached
 @assert_root
 @assert_lock_file("pro attach")
 def action_attach(args, *, cfg):
-    if not args.token and not args.attach_config:
-        raise exceptions.UserFacingError(
-            msg=messages.ATTACH_REQUIRES_TOKEN.msg,
-            msg_code=messages.ATTACH_REQUIRES_TOKEN.name,
-        )
     if args.token and args.attach_config:
         raise exceptions.UserFacingError(
             msg=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg,
             msg_code=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.name,
         )
-
-    if args.token:
+    elif not args.token and not args.attach_config:
+        token = _magic_attach(args, cfg=cfg)
+        enable_services_override = None
+    elif args.token:
         token = args.token
         enable_services_override = None
     else:

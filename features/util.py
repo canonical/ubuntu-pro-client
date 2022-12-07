@@ -312,5 +312,11 @@ def process_template_vars(context, template: str) -> str:
             processed_template = _replace_and_log(
                 processed_template, match.group(0), dt_str
             )
+        elif function_name == "contract_token_staging":
+            processed_template = _replace_and_log(
+                processed_template,
+                match.group(0),
+                context.config.contract_token_staging,
+            )
 
     return processed_template

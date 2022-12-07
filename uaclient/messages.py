@@ -523,6 +523,11 @@ MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
     "Service unavailable, please try again later.",
 )
 
+MAGIC_ATTACH_INVALID_PARAM = FormattedNamedMessage(
+    "magic-attach-invalid-param",
+    "This attach flow does not support {param} with value: {value}",
+)
+
 REQUIRED_SERVICE_NOT_FOUND = FormattedNamedMessage(
     "required-service-not-found", "Required service {service} not found."
 )
