@@ -18,6 +18,8 @@ from uaclient.apt import (
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
+    ESM_APT_ROOTDIR,
+    ESM_REPO_FILE_CONTENT,
     KEYRINGS_DIR,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
@@ -36,8 +38,12 @@ from uaclient.apt import (
     restore_commented_apt_list_file,
     run_apt_update_command,
     setup_apt_proxy,
+    setup_local_esm_repo,
+    update_esm_caches,
 )
 from uaclient.entitlements.base import UAEntitlement
+from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 
@@ -1097,3 +1103,115 @@ class TestAptCacheTime:
         m_stat.return_value.st_mtime = 1.23
         m_exists.return_value = file_exists
         assert expected == get_apt_cache_time()
+
+
+class TestUpdateESMCaches:
+    @pytest.mark.parametrize(
+        "esm_class", (ESMInfraEntitlement, ESMAppsEntitlement)
+    )
+    @mock.patch("uaclient.apt.system.get_platform_info")
+    @mock.patch("uaclient.apt.system.write_file")
+    @mock.patch("uaclient.apt.os.makedirs")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
+    def test_setup_local_esm_repo(
+        self,
+        m_export_gpg,
+        m_makedirs,
+        m_write_file,
+        m_get_platform_info,
+        esm_class,
+    ):
+        m_get_platform_info.return_value = {"series": "example"}
+
+        setup_local_esm_repo(esm_class)
+
+        assert m_write_file.call_args_list == [
+            mock.call(
+                os.path.normpath(
+                    ESM_APT_ROOTDIR
+                    + esm_class.repo_list_file_tmpl.format(
+                        name=esm_class.name
+                    ),
+                ),
+                ESM_REPO_FILE_CONTENT.format(
+                    name=esm_class.name[4:], series="example"
+                ),
+            )
+        ]
+
+        assert m_makedirs.call_args_list == [
+            mock.call(
+                os.path.dirname(
+                    os.path.normpath(
+                        ESM_APT_ROOTDIR
+                        + APT_KEYS_DIR
+                        + esm_class.repo_key_file
+                    ),
+                ),
+                exist_ok=True,
+            )
+        ]
+
+        assert m_export_gpg.call_args_list == [
+            mock.call(
+                os.path.join(KEYRINGS_DIR, esm_class.repo_key_file),
+                os.path.normpath(
+                    ESM_APT_ROOTDIR + APT_KEYS_DIR + esm_class.repo_key_file
+                ),
+            )
+        ]
+
+    @pytest.mark.parametrize(
+        "is_lts,cache_call_list",
+        ((True, [mock.call(rootdir=ESM_APT_ROOTDIR)]), (False, [])),
+    )
+    @pytest.mark.parametrize(
+        "apps_status", (ApplicationStatus.ENABLED, ApplicationStatus.DISABLED)
+    )
+    @pytest.mark.parametrize(
+        "infra_status", (ApplicationStatus.ENABLED, ApplicationStatus.DISABLED)
+    )
+    @pytest.mark.parametrize("is_esm", (True, False))
+    @mock.patch("uaclient.entitlements.esm.ESMAppsEntitlement")
+    @mock.patch("uaclient.entitlements.esm.ESMInfraEntitlement")
+    @mock.patch("uaclient.apt.system.is_current_series_lts")
+    @mock.patch("uaclient.apt.system.is_current_series_active_esm")
+    @mock.patch("apt.Cache")
+    @mock.patch("uaclient.apt.setup_local_esm_repo")
+    def test_update_esm_caches_based_on_lts(
+        self,
+        m_setup_repo,
+        m_cache,
+        m_is_esm,
+        m_is_lts,
+        m_infra_entitlement,
+        m_apps_entitlement,
+        is_lts,
+        cache_call_list,
+        apps_status,
+        infra_status,
+        is_esm,
+    ):
+        m_is_esm.return_value = is_esm
+        m_is_lts.return_value = is_lts
+        m_infra_entitlement.return_value.application_status.return_value = (
+            infra_status,
+            "",
+        )
+        m_apps_entitlement.return_value.application_status.return_value = (
+            apps_status,
+            "",
+        )
+
+        setup_repo_call_list = []
+        if apps_status == ApplicationStatus.DISABLED:
+            setup_repo_call_list.append(mock.call(m_apps_entitlement))
+        if infra_status == ApplicationStatus.DISABLED and is_esm:
+            setup_repo_call_list.append(mock.call(m_infra_entitlement))
+
+        update_esm_caches()
+
+        assert m_cache.call_args_list == cache_call_list
+
+        if is_lts:
+            assert m_setup_repo.call_args_list == setup_repo_call_list

@@ -10,6 +10,7 @@ from functools import lru_cache
 from typing import Dict, List, NamedTuple, Optional
 
 from uaclient import event_logger, exceptions, gpg, messages, system
+from uaclient.defaults import DEFAULT_DATA_DIR
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -24,7 +25,7 @@ APT_CONFIG_UA_PROXY_HTTP = (
 APT_CONFIG_UA_PROXY_HTTPS = (
     """Acquire::https::Proxy::esm.ubuntu.com "{proxy_url}";\n"""
 )
-APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
+APT_KEYS_DIR = "/etc/apt/trusted.gpg.d/"
 KEYRINGS_DIR = "/usr/share/keyrings"
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
 CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
@@ -32,6 +33,18 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
 APT_LISTS_PATH = "/var/lib/apt/lists"
+
+ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
+
+ESM_REPO_FILE_CONTENT = """\
+# Written by ubuntu-advantage-tools
+
+deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
+# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
+
+deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
+# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
+"""
 
 # Since we generally have a person at the command line prompt. Don't loop
 # for 5 minutes like charmhelpers because we expect the human to notice and
@@ -569,30 +582,34 @@ def setup_apt_proxy(
         system.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
 
 
-def setup_unauthenticated_repo(
-    repo_filename: str,
-    repo_pref_filename: str,
-    repo_url: str,
-    keyring_file: str,
-    apt_origin: str,
-    suites: List[str],
+# entitlement_class is a BaseEsmEntitlement class, but circular imports
+# don't let us type it appropriately...
+def setup_local_esm_repo(
+    entitlement_class,
 ) -> None:
-    content = "# Written by ubuntu-advantage-tools"
-    for suite in suites:
-        content += "\n"
-        content += messages.REPO_FILE_CONTENT.format(
-            url=repo_url, apt_suite=suite
-        )
-    system.write_file(repo_filename, content)
-    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
-    destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
-    add_ppa_pinning(
-        repo_pref_filename,
-        repo_url,
-        apt_origin,
-        "never",
+    series = system.get_platform_info()["series"]
+    # Ugly? Yes, but so is python < 3.8 without removeprefix
+    esm_name = entitlement_class.name[4:]
+    repo_filename = os.path.normpath(
+        ESM_APT_ROOTDIR
+        + entitlement_class.repo_list_file_tmpl.format(
+            name=entitlement_class.name
+        ),
     )
+    keyring_file = entitlement_class.repo_key_file
+
+    system.write_file(
+        repo_filename,
+        ESM_REPO_FILE_CONTENT.format(name=esm_name, series=series),
+    )
+
+    # Set up GPG key
+    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
+    destination_keyring_file = os.path.normpath(
+        ESM_APT_ROOTDIR + APT_KEYS_DIR + keyring_file
+    )
+    os.makedirs(os.path.dirname(destination_keyring_file), exist_ok=True)
+    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
 
 
 def compare_versions(version1: str, version2: str, relation: str) -> bool:
@@ -613,3 +630,35 @@ def get_apt_cache_time() -> Optional[float]:
     elif os.path.exists(APT_LISTS_PATH):
         cache_time = os.stat(APT_LISTS_PATH).st_mtime
     return cache_time
+
+
+def update_esm_caches() -> None:
+    if not system.is_current_series_lts():
+        return
+
+    from apt import Cache  # type: ignore
+
+    from uaclient.entitlements.entitlement_status import ApplicationStatus
+    from uaclient.entitlements.esm import (
+        ESMAppsEntitlement,
+        ESMInfraEntitlement,
+    )
+
+    # Always setup ESM-Apps (should release this with GA)
+    if (
+        ESMAppsEntitlement().application_status()[0]
+        == ApplicationStatus.DISABLED
+    ):
+        setup_local_esm_repo(ESMAppsEntitlement)
+
+    # Only setup ESM-Infra for EOSS systems
+    if (
+        system.is_current_series_active_esm()
+        and ESMInfraEntitlement().application_status()[0]
+        == ApplicationStatus.DISABLED
+    ):
+        setup_local_esm_repo(ESMInfraEntitlement)
+
+    # Read the cache and update it
+    cache = Cache(rootdir=ESM_APT_ROOTDIR)
+    cache.update()
