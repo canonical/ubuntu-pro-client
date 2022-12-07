@@ -999,10 +999,10 @@ class TestContractChanged:
         self, get_updated_contract_info, has_contract_expired, FakeConfig
     ):
         if has_contract_expired:
-            expiry_date = "2041-05-08T19:02:26Z"
+            expiry_date = util.parse_rfc3339_date("2041-05-08T19:02:26Z")
             ret_val = True
         else:
-            expiry_date = "2040-05-08T19:02:26Z"
+            expiry_date = util.parse_rfc3339_date("2040-05-08T19:02:26Z")
             ret_val = False
         get_updated_contract_info.return_value = {
             "machineTokenInfo": {
@@ -1029,7 +1029,9 @@ class TestContractChanged:
                 "machineId": "test_machine_id",
                 "resourceTokens": resourceTokens,
                 "contractInfo": {
-                    "effectiveTo": "2040-05-08T19:02:26Z",
+                    "effectiveTo": util.parse_rfc3339_date(
+                        "2040-05-08T19:02:26Z"
+                    ),
                     "resourceEntitlements": resourceEntitlements,
                 },
             },
