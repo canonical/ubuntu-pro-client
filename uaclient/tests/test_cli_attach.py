@@ -2,6 +2,7 @@ import contextlib
 import copy
 import io
 import json
+import textwrap
 
 import mock
 import pytest
@@ -13,16 +14,44 @@ from uaclient.cli import (
     action_attach,
     attach_parser,
     get_parser,
+    main,
     main_error_handler,
 )
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
+    MagicAttachInvalidParam,
+    MagicAttachTokenError,
     NonRootUserError,
     UrlError,
     UserFacingError,
 )
 from uaclient.testing.fakes import FakeFile
+
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: pro attach <token> [flags]
+
+Attach this machine to Ubuntu Pro with a token obtained from:
+https://ubuntu.com/pro
+
+When running this command without a token, it will generate a short code
+and prompt you to attach the machine to your Ubuntu Pro account using
+a web browser.
+
+positional arguments:
+  token                 token obtained for Ubuntu Pro authentication:
+                        https://auth.contracts.canonical.com
+
+Flags:
+  -h, --help            show this help message and exit
+  --no-auto-enable      do not enable any recommended services automatically
+  --attach-config ATTACH_CONFIG
+                        use the provided attach config file instead of passing
+                        the token on the cli
+  --format {cli,json}   output enable in the specified format (default: cli)
+"""
+)
 
 M_PATH = "uaclient.cli."
 
@@ -178,48 +207,6 @@ class TestActionAttach:
         expected_msg = messages.LOCK_HELD_ERROR.format(
             lock_request="pro attach", lock_holder="lock_holder", pid=1
         )
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_msg.msg,
-                    "message_code": expected_msg.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(capsys.readouterr()[0])
-
-    def test_token_is_a_required_argument(
-        self, _m_getuid, FakeConfig, capsys, event
-    ):
-        """When missing the required token argument, raise a UserFacingError"""
-        args = mock.MagicMock(token=None, attach_config=None)
-        cfg = FakeConfig()
-        with pytest.raises(UserFacingError) as e:
-            action_attach(args, cfg=cfg)
-        assert messages.ATTACH_REQUIRES_TOKEN.msg == str(e.value.msg)
-
-        args = mock.MagicMock()
-        args.token = None
-        args.attach_config = None
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(
-                    cfg, "check_lock_info"
-                ) as m_check_lock_info:
-                    m_check_lock_info.return_value = (0, "lock_holder")
-                    main_error_handler(action_attach)(args, cfg)
-
-        expected_msg = messages.ATTACH_REQUIRES_TOKEN
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -622,9 +609,56 @@ class TestActionAttach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch(M_PATH + "_initiate")
+    @mock.patch(M_PATH + "_wait")
+    @mock.patch(M_PATH + "_revoke")
+    def test_magic_attach_revoke_token_if_wait_fails(
+        self,
+        m_revoke,
+        m_wait,
+        m_initiate,
+        _m_getuid,
+        FakeConfig,
+    ):
+        m_initiate.return_value = mock.MagicMock(
+            token="token", user_code="user_code"
+        )
+        m_wait.side_effect = MagicAttachTokenError()
+        m_args = mock.MagicMock(token=None, attach_config=None)
+
+        with pytest.raises(MagicAttachTokenError):
+            action_attach(args=m_args, cfg=FakeConfig())
+
+        assert 1 == m_initiate.call_count
+        assert 1 == m_wait.call_count
+        assert 1 == m_revoke.call_count
+
+    def test_magic_attach_fails_if_format_json_param_used(
+        self, _m_getuid, FakeConfig
+    ):
+        m_args = mock.MagicMock(token=None, attach_config=None, format="json")
+
+        with pytest.raises(MagicAttachInvalidParam) as exc_info:
+            action_attach(args=m_args, cfg=FakeConfig())
+
+        assert (
+            "This attach flow does not support --format with value: json"
+        ) == exc_info.value.msg
+
 
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestParser:
+    def test_attach_help(self, _m_resources, capsys, FakeConfig):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/pro", "attach", "--help"]):
+                with mock.patch(
+                    "uaclient.config.UAConfig",
+                    return_value=FakeConfig(),
+                ):
+                    main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT in out
+
     def test_attach_parser_usage(self, _m_resources):
         parser = attach_parser(mock.Mock())
         assert "pro attach <token> [flags]" == parser.usage

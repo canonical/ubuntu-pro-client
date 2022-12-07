@@ -221,6 +221,14 @@ class MagicAttachUnavailable(UserFacingError):
         )
 
 
+class MagicAttachInvalidParam(UserFacingError):
+    def __init__(self, param, value):
+        msg = messages.MAGIC_ATTACH_INVALID_PARAM.format(
+            param=param, value=value
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
 class LockHeldError(UserFacingError):
     """An exception for when another pro operation is in progress
 
