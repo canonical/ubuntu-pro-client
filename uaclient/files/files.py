@@ -77,19 +77,23 @@ class MachineTokenFile:
         self._entitlements = None
         self._contract_expiry_datetime = None
 
-    def write(self, content: dict):
+    def write(self, private_content: dict):
         """Update the machine_token file for both pub/private files"""
         if self.is_root:
-            content_str = json.dumps(
-                content, cls=util.DatetimeAwareJSONEncoder
+            private_content_str = json.dumps(
+                private_content, cls=util.DatetimeAwareJSONEncoder
             )
-            self.private_file.write(content_str)
-            content = json.loads(content_str)  # taking care of datetime type
-            content = PublicMachineTokenData.from_dict(content).to_dict(False)
-            content_str = json.dumps(
-                content, cls=util.DatetimeAwareJSONEncoder
+            self.private_file.write(private_content_str)
+
+            # PublicMachineTokenData only has public fields defined and
+            # ignores all other (private) fields in from_dict
+            public_content = PublicMachineTokenData.from_dict(
+                private_content
+            ).to_dict(keep_none=False)
+            public_content_str = json.dumps(
+                public_content, cls=util.DatetimeAwareJSONEncoder
             )
-            self.public_file.write(content_str)
+            self.public_file.write(public_content_str)
 
             self._machine_token = None
             self._entitlements = None

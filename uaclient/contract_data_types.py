@@ -3,6 +3,7 @@ from typing import List, Optional
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
+    DatetimeDataValue,
     Field,
     IntDataValue,
     StringDataValue,
@@ -67,7 +68,7 @@ class AccountInfo(DataObject):
     fields = [
         Field("name", StringDataValue, False),
         Field("id", StringDataValue, False),
-        Field("createdAt", StringDataValue, False),
+        Field("createdAt", DatetimeDataValue, False),
         Field("type", StringDataValue, False),
         Field("userRoleOnAccount", StringDataValue, False),
         Field("externalAccountIDs", data_list(ExternalID), False),
@@ -238,12 +239,12 @@ class ContractInfo(DataObject):
     fields = [
         Field("name", StringDataValue, False),
         Field("id", StringDataValue, False),
-        Field("createdAt", StringDataValue, False),
+        Field("createdAt", DatetimeDataValue, False),
         Field("createdBy", StringDataValue, False),
         Field("resourceEntitlements", data_list(Entitlement), False),
         Field("specificResourceEntitlements", data_list(Entitlement), False),
-        Field("effectiveFrom", StringDataValue, False),
-        Field("effectiveTo", StringDataValue, False),
+        Field("effectiveFrom", DatetimeDataValue, False),
+        Field("effectiveTo", DatetimeDataValue, False),
         Field("products", data_list(StringDataValue), False),
         Field("origin", StringDataValue, False),
     ]
@@ -278,7 +279,7 @@ class MachineTokenInfo(DataObject):
         Field("machineId", StringDataValue, False),
         Field("accountInfo", AccountInfo, False),
         Field("contractInfo", ContractInfo, False),
-        Field("expires", StringDataValue, False),
+        Field("expires", DatetimeDataValue, False),
     ]
 
     def __init__(
