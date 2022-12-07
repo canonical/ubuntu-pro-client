@@ -27,17 +27,8 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
             update_apt_and_motd_messages(self.cfg)
+            self.disable_local_esm_repo()
         return enable_performed
-
-    def disable(
-        self, silent=False
-    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
-        from uaclient.jobs.update_messaging import update_apt_and_motd_messages
-
-        disable_performed, fail = super().disable(silent=silent)
-        if disable_performed:
-            update_apt_and_motd_messages(self.cfg)
-        return disable_performed, fail
 
     def setup_local_esm_repo(self) -> None:
         series = system.get_platform_info()["series"]
@@ -84,6 +75,18 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     description = "Expanded Security Maintenance for Applications"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
 
+    def disable(
+        self, silent=False
+    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
+        from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+
+        disable_performed, fail = super().disable(silent=silent)
+        if disable_performed:
+            update_apt_and_motd_messages(self.cfg)
+            if system.is_current_series_lts():
+                self.setup_local_esm_repo()
+        return disable_performed, fail
+
 
 class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
@@ -91,3 +94,15 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "Ubuntu Pro: ESM Infra"
     description = "Expanded Security Maintenance for Infrastructure"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+
+    def disable(
+        self, silent=False
+    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
+        from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+
+        disable_performed, fail = super().disable(silent=silent)
+        if disable_performed:
+            update_apt_and_motd_messages(self.cfg)
+            if system.is_current_series_active_esm():
+                self.setup_local_esm_repo()
+        return disable_performed, fail
