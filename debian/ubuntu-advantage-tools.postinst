@@ -268,7 +268,7 @@ create_public_machine_token_file() {
 from uaclient.files import MachineTokenFile
 machine_token_file = MachineTokenFile()
 content = machine_token_file.read()
-machine_token_file.write(content=content)
+machine_token_file.write(content)
 "
 }
 
