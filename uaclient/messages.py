@@ -1117,3 +1117,20 @@ Could not extract series information from /etc/os-release.
 The VERSION filed does not have version information: {version}
 and the VERSION_CODENAME information is not present""",
 )
+
+INCORRECT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-type",
+    "Expected value with type {expected_type} but got type: {got_type}",
+)
+INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-list-element-type",
+    "Got value with incorrect type at index {index}: {nested_msg}",
+)
+INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-field-type",
+    'Got value with incorrect type for field "{key}": {nested_msg}',
+)
+INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-enum-value",
+    "Value provided was not found in {enum_class}'s allowed: value: {values}",
+)

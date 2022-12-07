@@ -3,51 +3,46 @@ import json
 from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar, Union
 
-from uaclient import exceptions, util
-
-INCORRECT_TYPE_ERROR_MESSAGE = (
-    "Expected value with type {expected_type} but got type: {got_type}"
-)
-INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = (
-    "Got value with incorrect type at index {index}: {nested_msg}"
-)
-INCORRECT_FIELD_TYPE_ERROR_MESSAGE = (
-    'Got value with incorrect type for field "{key}": {nested_msg}'
-)
-INCORRECT_ENUM_VALUE_ERROR_MESSAGE = (
-    "Value provided was not found in {enum_class}'s allowed: value: {values}"
-)
+from uaclient import exceptions, messages, util
 
 
 class IncorrectTypeError(exceptions.UserFacingError):
     def __init__(self, expected_type: str, got_type: str):
-        super().__init__(
-            INCORRECT_TYPE_ERROR_MESSAGE.format(
-                expected_type=expected_type, got_type=got_type
-            )
+        msg = messages.INCORRECT_TYPE_ERROR_MESSAGE.format(
+            expected_type=expected_type, got_type=got_type
         )
+        super().__init__(msg.msg, msg.name)
 
 
 class IncorrectListElementTypeError(IncorrectTypeError):
     def __init__(self, err: IncorrectTypeError, at_index: int):
-        self.msg = INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE.format(
+        msg = messages.INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE.format(
             index=at_index, nested_msg=err.msg
         )
+        self.msg = msg.msg
+        self.msg_code = msg.name
+        self.additional_info = None
 
 
 class IncorrectFieldTypeError(IncorrectTypeError):
     def __init__(self, err: IncorrectTypeError, key: str):
-        self.msg = INCORRECT_FIELD_TYPE_ERROR_MESSAGE.format(
+        msg = messages.INCORRECT_FIELD_TYPE_ERROR_MESSAGE.format(
             key=key, nested_msg=err.msg
         )
+        self.msg = msg.msg
+        self.msg_code = msg.name
+        self.additional_info = None
         self.key = key
 
 
 class IncorrectEnumValueError(IncorrectTypeError):
     def __init__(self, values: List[str], enum_class: Any):
-        self.msg = INCORRECT_ENUM_VALUE_ERROR_MESSAGE.format(
+        msg = messages.INCORRECT_ENUM_VALUE_ERROR_MESSAGE.format(
             values=values, enum_class=repr(enum_class)
         )
+        self.msg = msg.msg
+        self.msg_code = msg.name
+        self.additional_info = None
 
 
 class DataValue:
