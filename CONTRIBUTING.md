@@ -24,6 +24,7 @@ from the architecture of the project to how you should test any code changes.
 * [Directory layout](./dev-docs/references/directory_layout.md)
 * [Daily Builds](./dev-docs/references/daily_builds.md)
 * [Version String Formatting](./dev-docs/references/version_string_formatting.md)
+* [PR review policy](./dev-docs/references/pr_review_policy.md)
 
 ### Explanation
 
