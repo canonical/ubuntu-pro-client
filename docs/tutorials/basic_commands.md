@@ -1,13 +1,13 @@
-# Getting Started with Ubuntu Pro Client
+# Getting started with Ubuntu Pro Client
 
 The Ubuntu Pro Client (`pro`) provides a simple mechanism for viewing, enabling and
-disabling offerings from Canonical on their system. In this tutorial
+disabling offerings from Canonical on your system. In this tutorial
 we will cover the base `pro` commands that allow you to successfully manage the offering
 on your machine.
 
 ## Prerequisites
 
-On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
+In this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
 
 We have chosen Multipass for this tutorial because it allows us to easily launch VMs while not
 requiring any complicated setup for the tool.
@@ -20,7 +20,7 @@ $ sudo snap install multipass
 
 ## Main `pro` commands
 
-When dealing with `pro` through the CLI, there are six `pro` commands that cover the main
+When dealing with `pro` through the CLI, there are six commands that cover the main
 functionalites of the tool. They are:
 
 * **status**
@@ -90,8 +90,8 @@ This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
 ```
 
-You can see that the status command shows the services available for that given machine,
-while also presenting a short description for each of them.
+You can see that the status command shows the services available to your machine,
+while also presenting a short description for each service.
 
 Additionally, if you look at the last lines of the output, you can identify that this machine is not
 currently attached to an Ubuntu Pro subscription.
@@ -285,7 +285,8 @@ $ multipass purge
 
 ### Next steps
 
-Great, you successfully ran a Multipass VM and used it to test out the 6 main commands of Ubuntu Pro. congratulations!
-If you need more advanced options to configure the tool, please take a look at the _How To Guides_. If that still doesn't cover
+Great, you successfully ran a Multipass VM and used it to test out the 6 main commands of Ubuntu Pro. Congratulations!
+If you would now like to see some more advanced options to configure the tool,
+please take a look at our _How To Guides_. If that still doesn't cover
 your needs, feel free to reach the `pro` team on `#ubuntu-server` on Libera IRC.
 
