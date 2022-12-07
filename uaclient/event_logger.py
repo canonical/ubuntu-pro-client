@@ -210,7 +210,11 @@ class EventLogger:
             "needs_reboot": self._needs_reboot,
         }
 
-        print(json.dumps(response, sort_keys=True))
+        from uaclient.util import DatetimeAwareJSONEncoder
+
+        print(
+            json.dumps(response, cls=DatetimeAwareJSONEncoder, sort_keys=True)
+        )
 
     def _process_events_status(self):
         output = format_machine_readable_output(self._output_content)

@@ -11,7 +11,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import exceptions, messages, status
+from uaclient import exceptions, messages, status, util
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
@@ -33,15 +33,15 @@ RESPONSE_AVAILABLE_SERVICES = [
 
 RESPONSE_CONTRACT_INFO = {
     "accountInfo": {
-        "createdAt": "2019-06-14T06:45:50Z",
+        "createdAt": util.parse_rfc3339_date("2019-06-14T06:45:50Z"),
         "id": "some_id",
         "name": "Name",
         "type": "paid",
     },
     "contractInfo": {
-        "createdAt": "2021-05-21T20:00:53Z",
+        "createdAt": util.parse_rfc3339_date("2021-05-21T20:00:53Z"),
         "createdBy": "someone",
-        "effectiveTo": "9999-12-31T00:00:00Z",
+        "effectiveTo": util.parse_rfc3339_date("9999-12-31T00:00:00Z"),
         "id": "some_id",
         "name": "Name",
         "products": ["uai-essential-virtual"],
@@ -879,13 +879,13 @@ class TestActionStatus:
             "features": {},
             "notices": [],
             "account": {
-                "created_at": "2019-06-14T06:45:50Z",
+                "created_at": util.parse_rfc3339_date("2019-06-14T06:45:50Z"),
                 "external_account_ids": [],
                 "id": "some_id",
                 "name": "Name",
             },
             "contract": {
-                "created_at": "2021-05-21T20:00:53Z",
+                "created_at": util.parse_rfc3339_date("2021-05-21T20:00:53Z"),
                 "id": "some_id",
                 "name": "Name",
                 "products": ["uai-essential-virtual"],
@@ -894,7 +894,7 @@ class TestActionStatus:
             "environment_vars": [],
             "execution_status": "inactive",
             "execution_details": "No Ubuntu Pro operations are running",
-            "expires": "9999-12-31T00:00:00Z",
+            "expires": util.parse_rfc3339_date("9999-12-31T00:00:00Z"),
             "effective": None,
             "services": expected_services,
             "simulated": True,
@@ -907,8 +907,17 @@ class TestActionStatus:
         }
 
         if format_type == "json":
-            assert expected == json.loads(capsys.readouterr()[0])
+            assert expected == json.loads(
+                capsys.readouterr()[0], cls=util.DatetimeAwareJSONDecoder
+            )
         else:
+            expected["account"]["created_at"] = yaml.safe_load(
+                "2019-06-14 06:45:50+00:00"
+            )
+            expected["contract"]["created_at"] = yaml.safe_load(
+                "2021-05-21 20:00:53+00:00"
+            )
+            expected["expires"] = yaml.safe_load("9999-12-31 00:00:00+00:00")
             assert expected == yaml.safe_load(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
@@ -1035,13 +1044,13 @@ class TestActionStatus:
                 "expired_token",
                 'Contract "some_id" expired on December 31, 2019',
                 "effectiveTo",
-                "2019-12-31T00:00:00Z",
+                util.parse_rfc3339_date("2019-12-31T00:00:00Z"),
             ),
             (
                 "token_not_valid_yet",
                 'Contract "some_id" is not effective until December 31, 9999',
                 "effectiveFrom",
-                "9999-12-31T00:00:00Z",
+                util.parse_rfc3339_date("9999-12-31T00:00:00Z"),
             ),
         ),
     )

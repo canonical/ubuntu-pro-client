@@ -8,7 +8,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import event_logger, messages, status
+from uaclient import event_logger, messages, status, util
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -64,8 +64,8 @@ BASIC_MACHINE_TOKEN = {
         "contractInfo": {
             "name": "mycontract",
             "id": "contract-1",
-            "createdAt": "2020-05-08T19:02:26Z",
-            "effectiveTo": "9999-12-31T00:00:00Z",
+            "createdAt": util.parse_rfc3339_date("2020-05-08T19:02:26Z"),
+            "effectiveTo": util.parse_rfc3339_date("9999-12-31T00:00:00Z"),
             "resourceEntitlements": [],
             "products": ["free"],
         },
@@ -573,7 +573,9 @@ class TestActionAttach:
                     "accountInfo": {
                         "id": "acct-1",
                         "name": "acc-name",
-                        "createdAt": "2019-06-14T06:45:50Z",
+                        "createdAt": util.parse_rfc3339_date(
+                            "2019-06-14T06:45:50Z"
+                        ),
                         "externalAccountIDs": [
                             {"IDs": ["id1"], "origin": "AWS"}
                         ],

@@ -426,7 +426,7 @@ def simulate_status(
     now = datetime.now(timezone.utc)
     if contract_info.get("effectiveTo"):
         response["expires"] = contract_info.get("effectiveTo")
-        expiration_datetime = util.parse_rfc3339_date(response["expires"])
+        expiration_datetime = response["expires"]
         delta = expiration_datetime - now
         if delta.total_seconds() <= 0:
             message = messages.ATTACH_FORBIDDEN_EXPIRED.format(
@@ -438,7 +438,7 @@ def simulate_status(
             ret = 1
     if contract_info.get("effectiveFrom"):
         response["effective"] = contract_info.get("effectiveFrom")
-        effective_datetime = util.parse_rfc3339_date(response["effective"])
+        effective_datetime = response["effective"]
         delta = now - effective_datetime
         if delta.total_seconds() <= 0:
             message = messages.ATTACH_FORBIDDEN_NOT_YET.format(

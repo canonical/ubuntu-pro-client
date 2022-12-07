@@ -398,7 +398,7 @@ def update_contract_expiry(cfg: config.UAConfig):
         .get("effectiveTo", None)
     )
     new_expiry = (
-        util.parse_rfc3339_date(resp_expiry)
+        resp_expiry
         if resp_expiry
         else cfg.machine_token_file.contract_expiry_datetime
     )
