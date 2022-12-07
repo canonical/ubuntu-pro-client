@@ -3,7 +3,7 @@ import copy
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from uaclient import (
     apt,
@@ -16,8 +16,6 @@ from uaclient import (
 )
 from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-
-APT_DISABLED_PIN = "-32768"
 
 event = event_logger.get_event_logger()
 
@@ -37,11 +35,6 @@ class RepoEntitlement(base.UAEntitlement):
     @property
     def repo_pin_priority(self) -> Union[int, str, None]:
         return None
-
-    # disable_apt_auth_only (ESM) to only remove apt auth files on disable
-    @property
-    def disable_apt_auth_only(self) -> bool:
-        return False  # Set True on ESM to only remove apt auth
 
     @property
     def packages(self) -> List[str]:
@@ -122,14 +115,11 @@ class RepoEntitlement(base.UAEntitlement):
                 ApplicationStatus.DISABLED,
                 messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
-        protocol, repo_path = repo_url.split("://")
         policy = apt.get_apt_cache_policy(
             error_msg=messages.APT_POLICY_FAILED.msg
         )
-        match = re.search(
-            r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
-        )
-        if match and match.group("pin") != APT_DISABLED_PIN:
+        match = re.search(r"{}/ubuntu".format(repo_url), policy)
+        if match:
             return (
                 ApplicationStatus.ENABLED,
                 messages.SERVICE_IS_ACTIVE.format(title=self.title),
@@ -365,16 +355,12 @@ class RepoEntitlement(base.UAEntitlement):
                     )
                 )
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
-            if self.repo_pin_priority != "never":
-                apt.add_ppa_pinning(
-                    repo_pref_file,
-                    repo_url,
-                    self.origin,
-                    self.repo_pin_priority,
-                )
-            else:
-                # Remove disabling apt pref file
-                system.remove_file(repo_pref_file)
+            apt.add_ppa_pinning(
+                repo_pref_file,
+                repo_url,
+                self.origin,
+                self.repo_pin_priority,
+            )
 
         prerequisite_pkgs = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
@@ -426,30 +412,13 @@ class RepoEntitlement(base.UAEntitlement):
         repo_url = access_directives.get("aptURL")
         if not repo_url:
             raise exceptions.MissingAptURLDirective(self.name)
-        if self.disable_apt_auth_only:
-            # We only remove the repo from the apt auth file, because
-            # Ubuntu Pro: ESM Infra is a special-case: we want to be able to
-            # report on the available Ubuntu Pro: ESM Infra updates even
-            # when it's disabled
-            apt.remove_repo_from_apt_auth_file(repo_url)
-            apt.restore_commented_apt_list_file(repo_filename)
-        else:
-            apt.remove_auth_apt_repo(
-                repo_filename, repo_url, self.repo_key_file
-            )
-            apt.remove_apt_list_files(repo_url, series)
+
+        apt.remove_auth_apt_repo(repo_filename, repo_url, self.repo_key_file)
+        apt.remove_apt_list_files(repo_url, series)
+
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
-            if self.repo_pin_priority == "never":
-                # Disable the repo with a pinning file
-                apt.add_ppa_pinning(
-                    repo_pref_file,
-                    repo_url,
-                    self.origin,
-                    self.repo_pin_priority,
-                )
-            else:
-                system.remove_file(repo_pref_file)
+            system.remove_file(repo_pref_file)
 
         if run_apt_update:
             if not silent:

@@ -35,20 +35,8 @@ class RepoTestEntitlement(RepoEntitlement):
     repo_key_file = "test.gpg"
 
 
-class RepoTestEntitlementDisableAptAuthOnly(RepoTestEntitlement):
-    disable_apt_auth_only = True
-
-
-class RepoTestEntitlementDisableAptAuthOnlyFalse(RepoTestEntitlement):
-    disable_apt_auth_only = False
-
-
-class RepoTestEntitlementRepoPinInt(RepoTestEntitlement):
+class RepoTestEntitlementRepoWithPin(RepoTestEntitlement):
     repo_pin_priority = 1000
-
-
-class RepoTestEntitlementRepoPinNever(RepoTestEntitlement):
-    repo_pin_priority = "never"
 
 
 @pytest.fixture
@@ -688,7 +676,7 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
     @mock.patch(M_PATH + "system.get_platform_info")
-    def test_disable_apt_auth_only_false_removes_all_apt_config(
+    def test_disable_removes_all_apt_config(
         self,
         m_get_platform,
         _m_run_apt_command,
@@ -700,7 +688,7 @@ class TestRemoveAptConfig:
         m_get_platform.return_value = {"series": "xenial"}
 
         entitlement = entitlement_factory(
-            RepoTestEntitlementDisableAptAuthOnlyFalse,
+            RepoTestEntitlement,
             affordances={"series": ["xenial"]},
         )
         entitlement.remove_apt_config()
@@ -715,66 +703,6 @@ class TestRemoveAptConfig:
                 "test.gpg",
             )
         ] == m_remove_auth_apt_repo.call_args_list
-
-    @mock.patch(M_PATH + "apt.remove_repo_from_apt_auth_file")
-    @mock.patch(M_PATH + "apt.restore_commented_apt_list_file")
-    @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_platform_info")
-    def test_disable_apt_auth_only_removes_authentication_for_repo(
-        self,
-        m_get_platform,
-        _m_run_apt_command,
-        m_restore_commented_apt_list_file,
-        m_remove_repo_from_apt_auth_file,
-        entitlement_factory,
-    ):
-        """Remove APT authentication for repos with disable_apt_auth_only.
-
-        Any commented APT list entries are restored to uncommented lines.
-        """
-        m_get_platform.return_value = {"series": "xenial"}
-        entitlement = entitlement_factory(
-            RepoTestEntitlementDisableAptAuthOnly,
-            affordances={"series": ["xenial"]},
-        )
-        entitlement.remove_apt_config()
-
-        assert [
-            mock.call("http://REPOTEST")
-        ] == m_remove_repo_from_apt_auth_file.call_args_list
-        assert [
-            mock.call("/etc/apt/sources.list.d/ubuntu-repotest.list")
-        ] == m_restore_commented_apt_list_file.call_args_list
-
-    @mock.patch(M_PATH + "apt.add_ppa_pinning")
-    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.remove_apt_list_files")
-    @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_platform_info")
-    def test_repo_pin_priority_never_configures_repo_pinning_on_remove(
-        self,
-        m_get_platform,
-        _m_run_apt_command,
-        _m_remove_apt_list_files,
-        _m_remove_auth_apt_repo,
-        m_add_ppa_pinning,
-        entitlement_factory,
-    ):
-        """Pin the repo 'never' when repo_pin_priority is never."""
-        m_get_platform.return_value = {"series": "xenial"}
-
-        entitlement = entitlement_factory(
-            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
-        )
-        entitlement.remove_apt_config()
-        assert [
-            mock.call(
-                "/etc/apt/preferences.d/ubuntu-repotest",
-                "http://REPOTEST",
-                None,
-                "never",
-            )
-        ] == m_add_ppa_pinning.call_args_list
 
     @mock.patch(M_PATH + "system.remove_file")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
@@ -796,7 +724,7 @@ class TestRemoveAptConfig:
         m_get_platform.return_value = {"series": "xenial"}
 
         entitlement = entitlement_factory(
-            RepoTestEntitlementRepoPinInt, affordances={"series": ["xenial"]}
+            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
 
         assert 1000 == entitlement.repo_pin_priority
@@ -943,7 +871,7 @@ class TestSetupAptConfig:
         """Raise error when repo_pin_priority is set and origin is None."""
         m_get_platform_info.return_value = {"series": "xenial"}
         entitlement = entitlement_factory(
-            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
+            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             entitlement.setup_apt_config()
@@ -951,39 +879,6 @@ class TestSetupAptConfig:
             "Cannot setup apt pin. Empty apt repo origin value 'None'."
             in str(excinfo.value)
         )
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "system.remove_file")
-    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_platform_info")
-    @mock.patch(M_PATH + "contract.apply_contract_overrides")
-    def test_setup_with_repo_pin_priority_never_removes_apt_preferences_file(
-        self,
-        _m_contract_overrides,
-        m_get_platform_info,
-        m_run_apt_command,
-        m_add_auth_repo,
-        m_remove_file,
-        _m_setup_apt_proxy,
-        entitlement_factory,
-    ):
-        """When repo_pin_priority is never, disable repo in apt preferences."""
-        m_get_platform_info.return_value = {"series": "xenial"}
-        entitlement = entitlement_factory(
-            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
-        )
-        entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
-        with mock.patch(M_PATH + "os.path.exists") as m_exists:
-            m_exists.return_value = True
-            entitlement.setup_apt_config()
-        assert [
-            mock.call("/usr/lib/apt/methods/https"),
-            mock.call("/usr/sbin/update-ca-certificates"),
-        ] == m_exists.call_args_list
-        assert [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest")
-        ] == m_remove_file.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
@@ -1004,7 +899,7 @@ class TestSetupAptConfig:
         """When repo_pin_priority is an int, set pin in apt preferences."""
         m_get_platform_info.return_value = {"series": "xenial"}
         entitlement = entitlement_factory(
-            RepoTestEntitlementRepoPinInt, affordances={"series": ["xenial"]}
+            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
         entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
         with mock.patch(M_PATH + "os.path.exists") as m_exists:
@@ -1054,6 +949,7 @@ class TestCheckAptURLIsApplied:
 
 class TestApplicationStatus:
     # TODO: Write tests for all functionality
+    # 🤔
 
     def test_missing_aptURL(self, entitlement_factory):
         # Make aptURL missing
@@ -1068,26 +964,25 @@ class TestApplicationStatus:
         )
 
     @pytest.mark.parametrize(
-        "pin,policy_url,enabled",
+        "policy_url,enabled",
         (
-            (500, "https://esm.ubuntu.com/apps/ubuntu", False),
-            (-32768, "https://esm.ubuntu.com/ubuntu", False),
-            (500, "https://esm.ubuntu.com/ubuntu", True),
+            ("https://esm.ubuntu.com/apps/ubuntu", False),
+            ("https://esm.ubuntu.com/ubuntu", True),
         ),
     )
     @mock.patch(M_PATH + "apt.get_apt_cache_policy")
     def test_enabled_status_by_apt_policy(
-        self, m_run_apt_policy, pin, policy_url, enabled, entitlement_factory
+        self, m_run_apt_policy, policy_url, enabled, entitlement_factory
     ):
-        """Report ENABLED when apt-policy lists specific aptURL and 500 pin."""
+        """Report ENABLED when apt-policy lists specific aptURL."""
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             directives={"aptURL": "https://esm.ubuntu.com"},
         )
 
         policy_lines = [
-            "{pin} {policy_url} bionic-security/main amd64 Packages".format(
-                pin=pin, policy_url=policy_url
+            "500 {policy_url} bionic-security/main amd64 Packages".format(
+                policy_url=policy_url
             ),
             " release v=18.04,o=UbuntuESMApps,...,n=bionic,l=UbuntuESMApps",
             "  origin esm.ubuntu.com",
