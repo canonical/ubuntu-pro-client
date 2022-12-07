@@ -18,6 +18,7 @@ from uaclient.apt import (
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
+    ESM_APT_ROOTDIR,
     KEYRINGS_DIR,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
@@ -36,8 +37,10 @@ from uaclient.apt import (
     restore_commented_apt_list_file,
     run_apt_update_command,
     setup_apt_proxy,
+    update_esm_caches,
 )
 from uaclient.entitlements.base import UAEntitlement
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 
@@ -1097,3 +1100,70 @@ class TestAptCacheTime:
         m_stat.return_value.st_mtime = 1.23
         m_exists.return_value = file_exists
         assert expected == get_apt_cache_time()
+
+    @pytest.mark.parametrize(
+        "is_lts,cache_call_list",
+        ((True, [mock.call(rootdir=ESM_APT_ROOTDIR)]), (False, [])),
+    )
+    @pytest.mark.parametrize(
+        "apps_status", (ApplicationStatus.ENABLED, ApplicationStatus.DISABLED)
+    )
+    @pytest.mark.parametrize(
+        "infra_status", (ApplicationStatus.ENABLED, ApplicationStatus.DISABLED)
+    )
+    @pytest.mark.parametrize("is_esm", (True, False))
+    @mock.patch("uaclient.entitlements.esm.ESMAppsEntitlement")
+    @mock.patch("uaclient.entitlements.esm.ESMInfraEntitlement")
+    @mock.patch("uaclient.apt.system.is_current_series_lts")
+    @mock.patch("uaclient.apt.system.is_current_series_active_esm")
+    @mock.patch("apt.Cache")
+    def test_update_esm_caches_based_on_lts(
+        self,
+        m_cache,
+        m_is_esm,
+        m_is_lts,
+        m_infra_entitlement,
+        m_apps_entitlement,
+        is_lts,
+        cache_call_list,
+        apps_status,
+        infra_status,
+        is_esm,
+        FakeConfig,
+    ):
+        m_is_esm.return_value = is_esm
+        m_is_lts.return_value = is_lts
+
+        m_infra = mock.MagicMock()
+        m_apps = mock.MagicMock()
+
+        m_infra.application_status.return_value = (
+            infra_status,
+            "",
+        )
+
+        m_apps.application_status.return_value = (
+            apps_status,
+            "",
+        )
+
+        m_infra_entitlement.return_value = m_infra
+        m_apps_entitlement.return_value = m_apps
+
+        infra_setup_repo_count = 0
+        apps_setup_repo_count = 0
+
+        if is_lts:
+            if apps_status == ApplicationStatus.DISABLED:
+                apps_setup_repo_count = 1
+            if infra_status == ApplicationStatus.DISABLED and is_esm:
+                infra_setup_repo_count = 1
+
+        update_esm_caches(FakeConfig())
+
+        assert m_cache.call_args_list == cache_call_list
+
+        assert (
+            m_infra.setup_local_esm_repo.call_count == infra_setup_repo_count
+        )
+        assert m_apps.setup_local_esm_repo.call_count == apps_setup_repo_count
