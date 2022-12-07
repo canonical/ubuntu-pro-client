@@ -1,6 +1,9 @@
-from typing import Optional, Tuple, Type, Union  # noqa: F401
+import os
+from typing import Tuple, Type, Union, Optional
 
-from uaclient import system
+from uaclient import gpg, system
+from uaclient.apt import APT_KEYS_DIR, ESM_REPO_FILE_CONTENT, KEYRINGS_DIR
+from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
@@ -35,6 +38,43 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         if disable_performed:
             update_apt_and_motd_messages(self.cfg)
         return disable_performed, fail
+
+    def setup_local_esm_repo(self) -> None:
+        series = system.get_platform_info()["series"]
+        # Ugly? Yes, but so is python < 3.8 without removeprefix
+        assert self.name.startswith("esm-")
+        esm_name = self.name[len("esm-") :]
+        repo_filename = os.path.normpath(
+            ESM_APT_ROOTDIR + self.repo_list_file_tmpl.format(name=self.name),
+        )
+        keyring_file = self.repo_key_file
+
+        # No need to create if already present
+        if os.path.exists(repo_filename):
+            return
+
+        system.write_file(
+            repo_filename,
+            ESM_REPO_FILE_CONTENT.format(name=esm_name, series=series),
+        )
+
+        # Set up GPG key
+        source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
+        destination_keyring_file = os.path.normpath(
+            ESM_APT_ROOTDIR + APT_KEYS_DIR + keyring_file
+        )
+        os.makedirs(os.path.dirname(destination_keyring_file), exist_ok=True)
+        gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
+
+    def disable_local_esm_repo(self) -> None:
+        keyring_file = os.path.normpath(
+            ESM_APT_ROOTDIR + APT_KEYS_DIR + self.repo_key_file
+        )
+        repo_filename = os.path.normpath(
+            ESM_APT_ROOTDIR + self.repo_list_file_tmpl.format(name=self.name),
+        )
+        system.remove_file(repo_filename)
+        system.remove_file(keyring_file)
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):

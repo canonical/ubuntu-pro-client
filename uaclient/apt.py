@@ -11,6 +11,7 @@ from functools import lru_cache
 from typing import Dict, List, NamedTuple, Optional
 
 from uaclient import event_logger, exceptions, gpg, messages, system
+from uaclient.defaults import DEFAULT_DATA_DIR
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -25,13 +26,25 @@ APT_CONFIG_UA_PROXY_HTTP = (
 APT_CONFIG_UA_PROXY_HTTPS = (
     """Acquire::https::Proxy::esm.ubuntu.com "{proxy_url}";\n"""
 )
-APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
+APT_KEYS_DIR = "/etc/apt/trusted.gpg.d/"
 KEYRINGS_DIR = "/usr/share/keyrings"
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
 CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
+
+ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
+
+ESM_REPO_FILE_CONTENT = """\
+# Written by ubuntu-advantage-tools
+
+deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
+# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
+
+deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
+# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
+"""
 
 # Since we generally have a person at the command line prompt. Don't loop
 # for 5 minutes like charmhelpers because we expect the human to notice and
@@ -569,32 +582,6 @@ def setup_apt_proxy(
         system.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
 
 
-def setup_unauthenticated_repo(
-    repo_filename: str,
-    repo_pref_filename: str,
-    repo_url: str,
-    keyring_file: str,
-    apt_origin: str,
-    suites: List[str],
-) -> None:
-    content = "# Written by ubuntu-advantage-tools"
-    for suite in suites:
-        content += "\n"
-        content += messages.REPO_FILE_CONTENT.format(
-            url=repo_url, apt_suite=suite
-        )
-    system.write_file(repo_filename, content)
-    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
-    destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
-    add_ppa_pinning(
-        repo_pref_filename,
-        repo_url,
-        apt_origin,
-        "never",
-    )
-
-
 def compare_versions(version1: str, version2: str, relation: str) -> bool:
     """Return True comparing version1 to version2 with the given relation."""
     try:
@@ -618,3 +605,32 @@ def get_apt_cache_datetime() -> Optional[datetime.datetime]:
     if cache_time is None:
         return None
     return datetime.datetime.fromtimestamp(cache_time, datetime.timezone.utc)
+
+
+def update_esm_caches(cfg) -> None:
+    if not system.is_current_series_lts():
+        return
+
+    from apt import Cache  # type: ignore
+
+    from uaclient.entitlements.entitlement_status import ApplicationStatus
+    from uaclient.entitlements.esm import (
+        ESMAppsEntitlement,
+        ESMInfraEntitlement,
+    )
+
+    apps = ESMAppsEntitlement(cfg)
+
+    # Always setup ESM-Apps
+    if apps.application_status()[0] == ApplicationStatus.DISABLED:
+        apps.setup_local_esm_repo()
+
+    # Only setup ESM-Infra for EOSS systems
+    if system.is_current_series_active_esm():
+        infra = ESMInfraEntitlement(cfg)
+        if infra.application_status()[0] == ApplicationStatus.DISABLED:
+            infra.setup_local_esm_repo()
+
+    # Read the cache and update it
+    cache = Cache(rootdir=ESM_APT_ROOTDIR)
+    cache.update()
