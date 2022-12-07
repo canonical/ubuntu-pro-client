@@ -20,6 +20,7 @@ def entitlement(request, entitlement_factory):
 @mock.patch("uaclient.system.is_lts", return_value=True)
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
+@mock.patch("uaclient.entitlements.esm.disable_local_esm_repo")
 @mock.patch("uaclient.apt.setup_apt_proxy")
 class TestESMEntitlementEnable:
     @pytest.mark.parametrize(
@@ -29,6 +30,7 @@ class TestESMEntitlementEnable:
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         m_setup_apt_proxy,
+        m_disable_local_repo,
         m_update_apt_and_motd_msgs,
         m_validate_proxy,
         _m_is_lts,
@@ -158,20 +160,28 @@ class TestESMEntitlementEnable:
             assert [
                 mock.call(run_apt_update=False)
             ] == m_remove_apt_config.call_args_list
+            assert [] == m_disable_local_repo.call_args_list
         else:
             assert [] == m_remove_apt_config.call_args_list
+            assert [
+                mock.call(entitlement.__class__)
+            ] == m_disable_local_repo.call_args_list
 
 
 @mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
+@mock.patch("uaclient.entitlements.esm.setup_local_esm_repo")
+@mock.patch(
+    "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+)
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
-    @mock.patch("uaclient.system.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=(False, None))
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
         m_can_disable,
-        m_platform_info,
-        _m_update_apt_and_motd_msgs,
+        _m_platform_info,
+        m_setup_repo,
+        m_update_apt_and_motd_msgs,
         silent,
     ):
         """When can_disable is false disable returns false and noops."""
@@ -181,16 +191,22 @@ class TestESMEntitlementDisable:
             ret, fail = entitlement.disable(silent)
             assert ret is False
             assert fail is None
+
         assert [mock.call()] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
+        assert 0 == m_update_apt_and_motd_msgs.call_count
+        assert 0 == m_setup_repo.call_count
 
-    @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
-    )
-    def test_disable_on_can_disable_true_removes_apt_config(
-        self, _m_platform_info, m_update_apt_and_motd_msgs, entitlement
+    def test_disable_removes_config_and_updates_cache_and_messages(
+        self,
+        _m_platform_info,
+        m_setup_repo,
+        m_update_apt_and_motd_msgs,
+        entitlement,
     ):
-        """When can_disable, disable removes apt configuration"""
+        """When can_disable, disable removes apt configuration.
+        Also updates messaging and sets up a local repository.
+        """
 
         with mock.patch.object(
             entitlement, "can_disable", return_value=(True, None)
@@ -203,3 +219,6 @@ class TestESMEntitlementDisable:
         assert [
             mock.call(entitlement.cfg)
         ] == m_update_apt_and_motd_msgs.call_args_list
+        assert [
+            mock.call(entitlement.__class__)
+        ] == m_setup_repo.call_args_list

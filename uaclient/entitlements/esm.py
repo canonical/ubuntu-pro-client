@@ -1,5 +1,6 @@
 from typing import Tuple, Type, Union
 
+from uaclient.apt import disable_local_esm_repo, setup_local_esm_repo
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
@@ -22,6 +23,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
             update_apt_and_motd_messages(self.cfg)
+            disable_local_esm_repo(self.__class__)
         return enable_performed
 
     def disable(
@@ -30,6 +32,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:
             update_apt_and_motd_messages(self.cfg)
+            setup_local_esm_repo(self.__class__)
         return disable_performed, fail
 
 

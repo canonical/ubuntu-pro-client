@@ -576,9 +576,7 @@ def setup_apt_proxy(
 
 # entitlement_class is a BaseEsmEntitlement class, but circular imports
 # don't let us type it appropriately...
-def setup_local_esm_repo(
-    entitlement_class,
-) -> None:
+def setup_local_esm_repo(entitlement_class) -> None:
     series = system.get_platform_info()["series"]
     # Ugly? Yes, but so is python < 3.8 without removeprefix
     esm_name = entitlement_class.name[4:]
@@ -602,6 +600,20 @@ def setup_local_esm_repo(
     )
     os.makedirs(os.path.dirname(destination_keyring_file), exist_ok=True)
     gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
+
+
+def disable_local_esm_repo(entitlement_class) -> None:
+    keyring_file = os.path.normpath(
+        ESM_APT_ROOTDIR + APT_KEYS_DIR + entitlement_class.repo_key_file
+    )
+    repo_filename = os.path.normpath(
+        ESM_APT_ROOTDIR
+        + entitlement_class.repo_list_file_tmpl.format(
+            name=entitlement_class.name
+        ),
+    )
+    system.remove_file(repo_filename)
+    system.remove_file(keyring_file)
 
 
 def compare_versions(version1: str, version2: str, relation: str) -> bool:

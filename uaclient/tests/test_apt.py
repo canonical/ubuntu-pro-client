@@ -1142,10 +1142,12 @@ class TestUpdateESMCaches:
     @mock.patch("uaclient.apt.system.is_current_series_lts")
     @mock.patch("uaclient.apt.system.is_current_series_active_esm")
     @mock.patch("apt.Cache")
+    @mock.patch("uaclient.apt.disable_local_esm_repo")
     @mock.patch("uaclient.apt.setup_local_esm_repo")
     def test_update_esm_caches_based_on_lts(
         self,
         m_setup_repo,
+        m_disable_repo,
         m_cache,
         m_is_esm,
         m_is_lts,
@@ -1169,10 +1171,15 @@ class TestUpdateESMCaches:
         )
 
         setup_repo_call_list = []
+        disable_repo_call_list = []
         if apps_status == ApplicationStatus.DISABLED:
             setup_repo_call_list.append(mock.call(m_apps_entitlement))
+        else:
+            disable_repo_call_list.append(mock.call(m_apps_entitlement))
         if infra_status == ApplicationStatus.DISABLED and is_esm:
             setup_repo_call_list.append(mock.call(m_infra_entitlement))
+        else:
+            disable_repo_call_list.append(mock.call(m_infra_entitlement))
 
         update_esm_caches()
 
