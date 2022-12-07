@@ -56,7 +56,9 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         if not headers:
             headers = self.headers()
         if headers.get("content-type") == "application/json" and data:
-            data = json.dumps(data).encode("utf-8")
+            data = json.dumps(data, cls=util.DatetimeAwareJSONEncoder).encode(
+                "utf-8"
+            )
         url = urljoin(getattr(self.cfg, self.cfg_url_base_attr), path)
         fake_response, fake_headers = self._get_fake_responses(url)
         if fake_response:
