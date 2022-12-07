@@ -12,7 +12,7 @@ On this tutorial, we will cover the main scenarios that can happen when running 
 
 ## Prerequisites
 
-On this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
+In this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
 
 We have chosen Multipass for this tutorial because it allows us to easily launch VMs while not
 requiring any complicated setup for the tool.
@@ -28,7 +28,7 @@ $ sudo snap install multipass
 
 To test some scenarios for the `pro fix` command, we will need to attach a
 Pro subscription to the machine. To avoid modifying your machine, let's create
-a Xenial Multipass VM instead. Remember to install Multipass as mentioned on the
+a Xenial Multipass VM instead. Remember to install Multipass as mentioned in the
 [Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
@@ -83,8 +83,8 @@ Every `pro fix` output will have a similar output structure where we describe th
 display the affected packages, fix the affected packages and at the end, show if the
 CVE/USN is fully fixed in the machine.
 
-You can better see this on an `pro fix` call that does fix a package. Let's install a package
-on the VM that we know are associated with [CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
+You can better see this in a `pro fix` call that does fix a package. Let's install a package
+on the VM that we know is associated with [CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
 You can install that package by running these commands:
 
 ```console
