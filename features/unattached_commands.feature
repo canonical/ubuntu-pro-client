@@ -40,23 +40,11 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
-        And stdout does not match regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
-        """
-        And stdout does not match regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
-        """
-        When I append the following on uaclient config:
-            """
-            features:
-              allow_beta: true
-            """
-        And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
-        And I run `apt-get update` with sudo
-        When I run `apt-cache policy` with sudo
         Then stdout matches regexp:
+        """
+        -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
+        """
+        And stdout matches regexp:
         """
         -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
         """

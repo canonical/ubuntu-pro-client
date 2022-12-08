@@ -301,6 +301,9 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
+          hello
+        Learn more about Ubuntu Pro at https://ubuntu.com/pro
         #
         # News about significant security updates, features and services will
         # appear here to raise awareness and perhaps tease /r/Linux ;)
@@ -333,37 +336,35 @@ Feature: APT Messages
         The following packages will be upgraded:
           hello
         """
-        # When I create the file `/tmp/machine-token-overlay.json` with the following:
-        # """
-        # {
-        #     "machineTokenInfo": {
-        #         "contractInfo": {
-        #             "effectiveTo": "$behave_var{today -20}"
-        #         }
-        #     }
-        # }
-        # """
-        # And I append the following on uaclient config:
-        # """
-        # features:
-        #   machine_token_overlay: "/tmp/machine-token-overlay.json"
-        # """
-        # When I run `pro refresh messages` with sudo
-        # When I run `apt-get upgrade --dry-run` with sudo
-        # Then stdout matches regexp:
-        # """
-        # Reading package lists...
-        # Building dependency tree...
-        # Reading state information...
-        # Calculating upgrade...
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+              "contractInfo": {
+                  "effectiveTo": "$behave_var{today -20}"
+              }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
 
-        # \*Your Ubuntu Pro subscription has EXPIRED\*
-        # The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-        #   hello
-        # Renew your service at https:\/\/ubuntu.com\/pro
-
-        # The following packages will be upgraded:
-        # """
+        \*Your Ubuntu Pro subscription has EXPIRED\*
+        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
+          hello
+        Renew your service at https:\/\/ubuntu.com\/pro
+        """
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
@@ -374,6 +375,8 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        Receive additional future security updates with Ubuntu Pro.
+        Learn more about Ubuntu Pro at https://ubuntu.com/pro
         #
         # News about significant security updates, features and services will
         # appear here to raise awareness and perhaps tease /r/Linux ;\)
@@ -410,7 +413,7 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-#          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
+          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
 
     @series.xenial
     @series.bionic
@@ -427,7 +430,7 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 on Azure at https:\/\/ubuntu\.com\/16-04\/azure |
-#          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
+          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
 
     @series.xenial
     @series.bionic
@@ -444,4 +447,4 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | msg                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-#          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
+          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |

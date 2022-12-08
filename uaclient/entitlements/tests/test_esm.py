@@ -197,7 +197,6 @@ class TestESMInfraEntitlementEnable:
                 }
             },
             suites=["xenial"],
-            allow_beta=True,
         )
         patched_packages = ["a", "b"]
         original_exists = os.path.exists
@@ -386,17 +385,12 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        if entitlement.name == "esm-infra":
-            # Enable esm-infra xenial removes apt preferences pin 'never' file
-            remove_file_calls = [
-                mock.call(
-                    "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
-                )
-            ]
-        else:
-            remove_file_calls = (
-                []
-            )  # esm-apps there is no apt pref file to remove
+        # Enable esm-infra/apps xenial removes apt preferences pin 'never' file
+        remove_file_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
+            )
+        ]
         assert remove_file_calls == m_remove_file.call_args_list
         assert [
             mock.call(run_apt_update=False)

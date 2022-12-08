@@ -17,7 +17,7 @@ M_PATH = "uaclient.cli."
 HELP_OUTPUT = textwrap.dedent(
     """\
 usage: security-status \[-h\] \[--format {json,yaml,text}\]
-                       \[--thirdparty \| --unavailable \| --esm-infra\]
+                       \[--thirdparty \| --unavailable \| --esm-infra\ \| --esm-apps]
 
 Show security updates for packages in the system, including all
 available Expanded Security Maintenance \(ESM\) related content.
@@ -45,6 +45,7 @@ complete status on Ubuntu Pro services, run 'pro status'.
   --unavailable         List and present information about unavailable
                         packages
   --esm-infra           List and present information about esm-infra packages
+  --esm-apps            List and present information about esm-apps packages
 """  # noqa
 )
 
