@@ -541,6 +541,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
+         - esm-apps: Expanded Security Maintenance for Applications
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -558,6 +560,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
+         - esm-apps: Expanded Security Maintenance for Applications
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -641,6 +645,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
+         - esm-apps: Expanded Security Maintenance for Applications
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -660,6 +666,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
+         - esm-apps: Expanded Security Maintenance for Applications
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
