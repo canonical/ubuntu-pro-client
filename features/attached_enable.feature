@@ -165,11 +165,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `pro enable ros foobar --format json --assume-yes` `with sudo` exits `1`
+        And I verify that running `pro enable blah foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'blah, foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["blah", "foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         And I verify that running `pro enable esm-infra --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
@@ -200,11 +200,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                     |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nusg. |
-           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nusg. |
+           | release | valid_services                                                                                       |
+           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
+           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -224,17 +224,17 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel.
+        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates.
         """
-        And I verify that running `pro enable ros foobar` `with sudo` exits `1`
+        And I verify that running `pro enable blah foobar` `with sudo` exits `1`
         And I will see the following on stdout:
         """
         One moment, checking your subscription first
         """
         And stderr matches regexp:
         """
-        Cannot enable unknown service 'foobar, ros'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel.
+        Cannot enable unknown service 'blah, foobar'.
+        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -280,17 +280,17 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nusg.
+        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg.
         """
-        And I verify that running `pro enable ros foobar` `with sudo` exits `1`
+        And I verify that running `pro enable blah foobar` `with sudo` exits `1`
         And I will see the following on stdout:
         """
         One moment, checking your subscription first
         """
         And stderr matches regexp:
         """
-        Cannot enable unknown service 'foobar, ros'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nusg.
+        Cannot enable unknown service 'blah, foobar'.
+        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg.
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -937,7 +937,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         ros           +yes                disabled           Security Updates for the Robot Operating System
         """
-        When I run `pro enable ros --assume-yes --beta` with sudo
+        When I run `pro enable ros --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
@@ -973,13 +973,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         esm-apps      +yes                disabled           Expanded Security Maintenance for Applications
         """
-        When I verify that running `pro enable ros --beta` `with sudo` and stdin `N` exits `1`
+        When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
         ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
         Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when Ubuntu Pro: ESM Apps is disabled.
         """
-        When I run `pro enable ros --beta` `with sudo` and stdin `y`
+        When I run `pro enable ros` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
@@ -1010,7 +1010,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `apt install python3-catkin-pkg -y` with sudo
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-security-source>`
 
-        When I run `pro enable ros-updates --assume-yes --beta` with sudo
+        When I run `pro enable ros-updates --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
@@ -1030,7 +1030,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
         Updating package lists
         """
-        When I run `pro enable ros-updates --beta` `with sudo` and stdin `y`
+        When I run `pro enable ros-updates` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
         One moment, checking your subscription first
@@ -1053,7 +1053,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable ros --assume-yes` with sudo
         When I run `pro disable esm-apps --assume-yes` with sudo
         When I run `pro disable esm-infra --assume-yes` with sudo
-        When I run `pro enable ros-updates --assume-yes --beta` with sudo
+        When I run `pro enable ros-updates --assume-yes` with sudo
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
