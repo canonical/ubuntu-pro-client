@@ -7,7 +7,6 @@ from uaclient.entitlements.base import UAEntitlement
 class ROSCommonEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/robotics/ros-esm"
     repo_key_file = "ubuntu-advantage-ros.gpg"
-    is_beta = True
 
 
 class ROSEntitlement(ROSCommonEntitlement):
