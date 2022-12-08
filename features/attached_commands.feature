@@ -657,6 +657,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
            \(https://ubuntu.com/realtime-kernel\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """
@@ -678,6 +682,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
            \(https://ubuntu.com/realtime-kernel\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
          - usg: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
         """

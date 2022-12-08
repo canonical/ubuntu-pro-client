@@ -800,25 +800,6 @@ class TestActionStatus:
         ), mock.patch.object(event, "_command", "status"):
             assert 0 == action_status(args, cfg=cfg)
 
-        beta_services = [
-            {
-                "auto_enabled": "no",
-                "available": "no",
-                "description": (
-                    "Security Updates for the Robot Operating System"
-                ),
-                "entitled": "no",
-                "name": "ros",
-            },
-            {
-                "auto_enabled": "no",
-                "available": "no",
-                "description": "All Updates for the Robot Operating System",
-                "entitled": "no",
-                "name": "ros-updates",
-            },
-        ]
-
         services = [
             {
                 "auto_enabled": "yes",
@@ -864,11 +845,25 @@ class TestActionStatus:
                 "entitled": "no",
                 "name": "realtime-kernel",
             },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": (
+                    "Security Updates for the Robot Operating System"
+                ),
+                "entitled": "no",
+                "name": "ros",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "All Updates for the Robot Operating System",
+                "entitled": "no",
+                "name": "ros-updates",
+            },
         ]
 
-        expected_services = sorted(
-            services + beta_services, key=lambda x: x["name"]
-        )
+        expected_services = sorted(services, key=lambda x: x["name"])
         if not use_all:
             expected_services = [
                 service
