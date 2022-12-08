@@ -52,6 +52,7 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +DESCRIPTION
         cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +Security compliance and audit tools
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
@@ -249,6 +250,7 @@ Feature: Unattached status
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
         cis             +yes       +yes       +no           +Security compliance and audit tools
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
@@ -447,6 +449,7 @@ Feature: Unattached status
             SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
             cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
             cis             +yes       +yes       +no           +Security compliance and audit tools
+            esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
             esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
             fips            +yes       +yes       +no           +NIST-certified core packages
             fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
@@ -488,6 +491,7 @@ Feature: Unattached status
         Contract \".*\" expired on .*
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
@@ -529,6 +533,7 @@ Feature: Unattached status
         Contract \".*\" expired on .*
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
