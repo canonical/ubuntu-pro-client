@@ -307,26 +307,30 @@ Feature: Command behaviour when unattached
         When I press tab twice to autocomplete the `ua enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
-        cis     +fips       +livepatch
+        cc-eal  +esm-infra +livepatch +ros-updates\r
+        cis     +fips +realtime-kernel +\r
+        esm-apps +fips-updates +ros +\r
         """
         When I press tab twice to autocomplete the `pro enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
-        cis     +fips       +livepatch
+        cc-eal  +esm-infra +livepatch +ros-updates\r
+        cis     +fips +realtime-kernel +\r
+        esm-apps +fips-updates +ros +\r
         """
         When I press tab twice to autocomplete the `ua disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
-        cis     +fips       +livepatch
+        cc-eal  +esm-infra +livepatch +ros-updates\r
+        cis     +fips +realtime-kernel +\r
+        esm-apps +fips-updates +ros +\r
         """
         When I press tab twice to autocomplete the `pro disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra  +fips-updates  +realtime-kernel\r
-        cis     +fips       +livepatch
+        cc-eal  +esm-infra +livepatch +ros-updates\r
+        cis     +fips +realtime-kernel +\r
+        esm-apps +fips-updates +ros +\r
         """
 
         Examples: ubuntu release

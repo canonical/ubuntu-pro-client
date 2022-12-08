@@ -57,6 +57,8 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
+        ros             +yes       +Security Updates for the Robot Operating System
+        ros-updates     +yes       +All Updates for the Robot Operating System
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
@@ -121,6 +123,7 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
@@ -186,6 +189,7 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +DESCRIPTION
+        esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -309,6 +313,7 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
@@ -368,6 +373,7 @@ Feature: Unattached status
         Then stdout matches regexp:
         """
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+        esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
@@ -454,6 +460,8 @@ Feature: Unattached status
             fips            +yes       +yes       +no           +NIST-certified core packages
             fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
             livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+            ros             +yes       +no        +no           +Security Updates for the Robot Operating System
+            ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
             """
 
         Examples: ubuntu release
