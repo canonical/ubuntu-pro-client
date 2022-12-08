@@ -4,6 +4,7 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
         When I run `apt remove ca-certificates -y` with sudo
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
         Then stderr matches regexp:
