@@ -31,13 +31,12 @@ functionalites of the tool. They are:
 * **disable**
 
 In this tutorial, we will go through all those commands to show how to properly use them.
-To achieve that, we will use a Xenial Multipass VM.
+To achieve this without making any modifications to your machine, we will use a Xenial Multipass VM.
 
 ## Creating the Xenial Multipass virtual machine
 
-To test all of those commands, we will enable services on the machine. To avoid modifying your
-machine, let's create a VM. Remember to install Multipass as mentioned on the [Prerequisites](#prerequisites)
-section. After that, just run the command:
+The first step in creating our VM is to install Multipass, as mentioned in the
+[Prerequisites](#prerequisites) section. After that, just run the command:
 
 ```console
 $ multipass launch xenial --name dev-x
@@ -58,6 +57,7 @@ ubuntu@dev-x
 This indicates that you are now inside the VM.
 
 Finally, let's run an `apt update` and `apt upgrade` command on the virtual machine
+machine to ensure that you are operating on the correct version:
 
 ```console
 $ sudo apt update && sudo apt upgrade -y
@@ -178,8 +178,8 @@ $ sudo pro refresh
 
 This command will refresh the contract on your machine. This command is also really useful if you
 want to change any definitions on your subscription. For example, let's assume that you now want
-`cis` to be enabled by default when attaching. After you modify your subscription for that, running
-the refresh command will process any changes that were performed in the subscription, enabling
+`cis` to be enabled by default when attaching. After you modify your subscription on the Ubuntu Pro
+website, running the refresh command will process any changes that were performed in the subscription, enabling
 `cis` because of this.
 
 ```{seealso}
