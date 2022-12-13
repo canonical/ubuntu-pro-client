@@ -395,7 +395,11 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
 
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
-    system.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook"])
+    try:
+        system.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook"])
+    except Exception as exc:
+        logging.debug("failed to run apt-esm-hook: %s", str(exc))
+
     return True
 
 
