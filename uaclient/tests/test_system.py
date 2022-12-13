@@ -856,6 +856,32 @@ class TestShouldReboot:
         )
 
 
+class TestWriteFile:
+    @mock.patch("os.unlink")
+    @mock.patch("os.rename")
+    @mock.patch("os.makedirs")
+    @mock.patch("os.chmod")
+    @mock.patch("tempfile.NamedTemporaryFile")
+    def test_delete_tempfile_on_error(
+        self,
+        m_NamedTemporaryFile,
+        m_chmod,
+        m_makedirs,
+        m_rename,
+        m_unlink,
+    ):
+        test_tmpfile = mock.MagicMock()
+        test_tmpfile.name = "test_tmpfile"
+        m_NamedTemporaryFile.return_value = test_tmpfile
+
+        m_rename.side_effect = Exception()
+
+        with pytest.raises(Exception):
+            system.write_file("test", "test")
+
+        assert [mock.call("test_tmpfile")] == m_unlink.call_args_list
+
+
 class TestSubp:
     def test_raise_error_on_timeout(self, _subp):
         """When cmd exceeds the timeout raises a TimeoutExpired error."""
