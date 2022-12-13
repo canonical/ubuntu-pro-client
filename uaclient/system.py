@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import subprocess
+import tempfile
 import time
 import uuid
 from functools import lru_cache
@@ -370,12 +371,22 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     @param content: The content to write to the file.
     @param mode: The filesystem mode to set on the file.
     """
-    logging.debug("Writing file: %s", filename)
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "wb") as fh:
-        fh.write(content.encode("utf-8"))
-        fh.flush()
-    os.chmod(filename, mode)
+    tmpf = None
+    try:
+        tmpf = tempfile.NamedTemporaryFile(mode="wb", delete=False)
+        logging.debug(
+            "Writing file %s atomically via tempfile %s", filename, tmpf.name
+        )
+        tmpf.write(content.encode("utf-8"))
+        tmpf.flush()
+        tmpf.close()
+        os.chmod(tmpf.name, mode)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        os.rename(tmpf.name, filename)
+    except Exception as e:
+        if tmpf is not None:
+            os.unlink(tmpf.name)
+        raise e
 
 
 def remove_file(file_path: str) -> None:
