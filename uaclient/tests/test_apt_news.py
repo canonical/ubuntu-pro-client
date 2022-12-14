@@ -3,8 +3,9 @@ from datetime import datetime, timedelta, timezone
 import mock
 import pytest
 
-from uaclient import apt_news
+from uaclient import apt_news, messages
 from uaclient.clouds.identity import NoCloudTypeReason
+from uaclient.jobs.update_messaging import ContractExpiryStatus
 
 M_PATH = "uaclient.apt_news."
 
@@ -566,3 +567,80 @@ class TestAptNews:
 
         assert [] == m_news_write.call_args_list
         assert [mock.call()] == m_news_delete.call_args_list
+
+    @pytest.mark.parametrize(
+        [
+            "expiry_status",
+            "write_calls",
+            "expected",
+        ],
+        [
+            (
+                (ContractExpiryStatus.ACTIVE, 0),
+                [],
+                False,
+            ),
+            (
+                (ContractExpiryStatus.NONE, 0),
+                [],
+                False,
+            ),
+            (
+                (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
+                [
+                    mock.call(
+                        messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+                            remaining_days=10
+                        )
+                    )
+                ],
+                True,
+            ),
+            (
+                (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
+                [
+                    mock.call(
+                        messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+                            remaining_days=15
+                        )
+                    )
+                ],
+                True,
+            ),
+            (
+                (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
+                [
+                    mock.call(
+                        messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
+                            remaining_days=10, expired_date="21 Dec 2012"
+                        )
+                    )
+                ],
+                True,
+            ),
+            (
+                (ContractExpiryStatus.EXPIRED, -15),
+                [mock.call(messages.CONTRACT_EXPIRED_APT_NEWS)],
+                True,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
+    @mock.patch(M_PATH + "get_contract_expiry_status")
+    def test_local_apt_news(
+        self,
+        m_get_contract_expiry_status,
+        m_news_write,
+        expiry_status,
+        write_calls,
+        expected,
+        FakeConfig,
+    ):
+        m_get_contract_expiry_status.return_value = expiry_status
+
+        cfg = FakeConfig.for_attached_machine(
+            effective_to=datetime(2012, 12, 21, tzinfo=timezone.utc)
+        )
+        assert expected == apt_news.local_apt_news(cfg)
+
+        assert write_calls == m_news_write.call_args_list

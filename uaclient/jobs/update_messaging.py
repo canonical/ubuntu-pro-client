@@ -18,10 +18,6 @@ from uaclient.clouds import identity
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
     ANNOUNCE_ESM_APPS_TMPL,
-    CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL,
-    CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
-    CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    CONTRACT_EXPIRED_APT_SOON_TMPL,
     CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
@@ -168,10 +164,6 @@ def _write_esm_service_msg_templates(
 
     if ent.application_status()[0] == ApplicationStatus.ENABLED:
         if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = CONTRACT_EXPIRED_APT_SOON_TMPL.format(
-                remaining_days=remaining_days,
-            )
-            no_pkgs_msg = pkgs_msg
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_SOON_TMPL.format(
                 remaining_days=remaining_days,
             )
@@ -183,22 +175,12 @@ def _write_esm_service_msg_templates(
             exp_dt = cfg.machine_token_file.contract_expiry_datetime.strftime(
                 "%d %b %Y"
             )
-            pkgs_msg = CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL.format(
-                expired_date=exp_dt,
-                remaining_days=grace_period_remaining,
-            )
-            no_pkgs_msg = pkgs_msg
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
                 expired_date=exp_dt,
                 remaining_days=grace_period_remaining,
             )
             motd_no_pkgs_msg = motd_pkgs_msg
         elif expiry_status == ContractExpiryStatus.EXPIRED:
-            pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
-                service=ent.name,
-                pkg_names=tmpl_pkg_names_var,
-            )
-            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
                 pkg_num=tmpl_pkg_count_var,
                 service=ent.name,

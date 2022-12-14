@@ -457,6 +457,11 @@ FAILURE_CMDS = {
         "status",
         "ubuntu-advantage.service",
     ],
+    "systemctl-status-apt-news": [
+        "systemctl",
+        "status",
+        "apt-news.service",
+    ],
 }
 
 

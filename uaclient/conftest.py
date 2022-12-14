@@ -130,6 +130,7 @@ def FakeConfig(tmpdir):
             account_name: str = "test_account",
             machine_token: Dict[str, Any] = None,
             status_cache: Dict[str, Any] = None,
+            effective_to: datetime.datetime = None,
             root_mode: bool = True,
         ):
             if not machine_token:
@@ -189,6 +190,11 @@ def FakeConfig(tmpdir):
                         },
                     },
                 }
+
+            if effective_to:
+                machine_token["machineTokenInfo"]["contractInfo"][
+                    "effectiveTo"
+                ] = effective_to
 
             if not status_cache:
                 status_cache = {"attached": True}

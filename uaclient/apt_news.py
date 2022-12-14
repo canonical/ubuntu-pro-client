@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import apt_pkg
 
-from uaclient import defaults, system, util
+from uaclient import defaults, messages, system, util
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -18,6 +18,10 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
+from uaclient.jobs.update_messaging import (
+    ContractExpiryStatus,
+    get_contract_expiry_status,
+)
 
 
 class AptNewsMessageSelectors(DataObject):
@@ -178,3 +182,47 @@ def fetch_and_process_apt_news(cfg: UAConfig):
     except Exception as e:
         logging.debug("something went wrong while processing apt_news: %r", e)
         state_files.apt_news_contents_file.delete()
+
+
+def local_apt_news(cfg: UAConfig) -> bool:
+    """
+    :return: True if local news was written, False otherwise
+    """
+    expiry_status, remaining_days = get_contract_expiry_status(cfg)
+
+    if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
+        state_files.apt_news_contents_file.write(
+            messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+                remaining_days=remaining_days
+            )
+        )
+        return True
+
+    if expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
+        grace_period_remaining = (
+            defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
+        )
+        exp_dt = cfg.machine_token_file.contract_expiry_datetime.strftime(
+            "%d %b %Y"
+        )
+        state_files.apt_news_contents_file.write(
+            messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
+                expired_date=exp_dt, remaining_days=grace_period_remaining
+            )
+        )
+        return True
+
+    if expiry_status == ContractExpiryStatus.EXPIRED:
+        state_files.apt_news_contents_file.write(
+            messages.CONTRACT_EXPIRED_APT_NEWS
+        )
+        return True
+
+    return False
+
+
+def update_apt_news(cfg: UAConfig):
+    local_news_written = local_apt_news(cfg)
+    if not local_news_written:
+        apt_pkg.init()
+        fetch_and_process_apt_news(cfg)

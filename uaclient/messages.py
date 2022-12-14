@@ -244,7 +244,6 @@ CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
 Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
 """
-CONTRACT_EXPIRED_APT_SOON_TMPL = "\n" + CONTRACT_EXPIRED_MOTD_SOON_TMPL
 
 CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL = """\
 CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
@@ -252,9 +251,6 @@ Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
 Your grace period will expire in {remaining_days} days.
 """
-CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL = (
-    "\n" + CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL
-)
 
 CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
 *Your Ubuntu Pro subscription has EXPIRED*
@@ -262,19 +258,10 @@ CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
 Renew your service at https://ubuntu.com/pro
 """  # noqa: E501
 
-CONTRACT_EXPIRED_APT_PKGS_TMPL = """\
-
-*Your Ubuntu Pro subscription has EXPIRED*
-The following security updates require Ubuntu Pro with '{service}' enabled:
-  {pkg_names}
-Renew your service at https://ubuntu.com/pro
-"""
-
 CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL = """\
 *Your Ubuntu Pro subscription has EXPIRED*
 Renew your service at https://ubuntu.com/pro
 """
-CONTRACT_EXPIRED_APT_NO_PKGS_TMPL = "\n" + CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
 
 DISABLED_APT_PKGS_TMPL = """\
 The following security updates require Ubuntu Pro with '{service}' enabled:
@@ -284,6 +271,28 @@ Learn more about Ubuntu Pro{context} at {url}"""
 DISABLED_APT_NO_PKGS_TMPL = """\
 Receive additional future security updates with Ubuntu Pro.
 Learn more about Ubuntu Pro{context} at {url}"""
+
+CONTRACT_EXPIRES_SOON_APT_NEWS = """\
+#
+# CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
+# Renew your subscription at https://ubuntu.com/pro to ensure continued
+# security coverage for your applications.
+#
+"""
+CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS = """\
+#
+# CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
+# Renew your subscription at https://ubuntu.com/pro to ensure continued
+# security coverage for your applications.
+# Your grace period will expire in {remaining_days} days.
+#
+"""
+CONTRACT_EXPIRED_APT_NEWS = """\
+#
+# *Your Ubuntu Pro subscription has EXPIRED*
+# Renew your service at https://ubuntu.com/pro
+#
+"""
 
 # END MOTD and APT command messaging
 

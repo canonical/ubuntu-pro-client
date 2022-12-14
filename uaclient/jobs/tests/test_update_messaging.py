@@ -24,10 +24,6 @@ from uaclient.jobs.update_messaging import (
 )
 from uaclient.messages import (
     ANNOUNCE_ESM_APPS_TMPL,
-    CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL,
-    CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
-    CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    CONTRACT_EXPIRED_APT_SOON_TMPL,
     CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
@@ -448,11 +444,6 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert False is os.path.exists(pkgs_msg_file)
             assert False is os.path.exists(no_pkgs_msg_file)
         elif contract_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = CONTRACT_EXPIRED_APT_SOON_TMPL.format(
-                remaining_days=remaining_days,
-            )
-            assert pkgs_msg == pkgs_tmpl.read()
-            assert pkgs_msg == no_pkgs_tmpl.read()
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_SOON_TMPL.format(
                 remaining_days=remaining_days,
             )
@@ -461,13 +452,6 @@ class Test_WriteESMServiceAPTMsgTemplates:
         elif contract_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
             exp_dt = cfg.machine_token_file.contract_expiry_datetime
             exp_dt = exp_dt.strftime("%d %b %Y")
-            pkgs_msg = CONTRACT_EXPIRED_APT_GRACE_PERIOD_TMPL.format(
-                expired_date=exp_dt,
-                remaining_days=remaining_days
-                + CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
-            )
-            assert pkgs_msg == pkgs_tmpl.read()
-            assert pkgs_msg == no_pkgs_tmpl.read()
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
                 expired_date=exp_dt,
                 remaining_days=remaining_days
@@ -476,13 +460,6 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert motd_pkgs_msg == motd_pkgs_tmpl.read()
             assert motd_pkgs_msg == motd_no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED:
-            pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
-                service="esm-apps",
-                pkg_names="{ESM_APPS_PACKAGES}",
-            )
-            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL
-            assert pkgs_msg == pkgs_tmpl.read()
-            assert no_pkgs_msg == no_pkgs_tmpl.read()
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
                 pkg_num="{ESM_APPS_PKG_COUNT}",
                 service="esm-apps",
