@@ -13,6 +13,7 @@ from apt import package as apt_package
 
 from uaclient import messages
 from uaclient.config import UAConfig
+from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -61,6 +62,22 @@ def get_origin_information_to_service_map():
         ("UbuntuESMApps", "{}-apps-updates".format(series)): "esm-apps",
         ("UbuntuESM", "{}-infra-updates".format(series)): "esm-infra",
     }
+
+
+@lru_cache(maxsize=None)
+def get_esm_cache():
+    try:
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        cache = Cache(rootdir=ESM_APT_ROOTDIR)
+    except Exception:
+        cache = {}
+
+    result = {}
+    for pkg in cache:
+        result[pkg.name] = pkg
+
+    return result
 
 
 def get_installed_packages_by_origin() -> DefaultDict[
@@ -136,6 +153,13 @@ def filter_security_updates(
     """
     result = defaultdict(list)
 
+    # This esm_cache will only be usefull for the situation where
+    # the user is unattached, but have the esm sources configures in
+    # the system to be advertised about esm packages. Since those
+    # source live in a private folder, we need a different apt cache
+    # to access them.
+    esm_cache = get_esm_cache()
+
     for package in packages:
         if package.is_installed:
             for version in package.versions:
@@ -158,6 +182,21 @@ def filter_security_updates(
                         result["standard-updates"].append(
                             (version, expected_origin.site)
                         )
+
+            # This loop should be only used if the user is unattached
+            if package.name in esm_cache:
+                esm_package = esm_cache[package.name]
+                for version in esm_package.versions:
+                    if version > package.installed:
+                        for origin in version.origins:
+                            service = (
+                                get_origin_information_to_service_map().get(
+                                    (origin.origin, origin.archive)
+                                )
+                            )
+                            if service:
+                                result[service].append((version, origin.site))
+                                break
 
     return result
 

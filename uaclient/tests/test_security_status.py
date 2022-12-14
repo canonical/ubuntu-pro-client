@@ -238,7 +238,8 @@ class TestSecurityStatus:
         ):
             assert expected_output == get_origin_for_package(package_mock)
 
-    def test_filter_security_updates(self):
+    @mock.patch("uaclient.security_status.get_esm_cache", return_value={})
+    def test_filter_security_updates(self, _m_get_esm_cache):
         expected_return = defaultdict(
             list,
             {
@@ -356,6 +357,149 @@ class TestSecurityStatus:
             assert (
                 filtered_versions["esm-apps"][0][0].package.name
                 == "more-than-one-update"
+            )
+            assert (
+                filtered_versions["standard-updates"][0][0].package.name
+                == "not-a-security-update"
+            )
+
+    @mock.patch("uaclient.security_status.get_esm_cache")
+    def test_filter_security_updates_when_unattached(self, m_esm_cache):
+        expected_return = defaultdict(
+            list,
+            {
+                "esm-infra": [
+                    (
+                        mock_version("2.0", [MOCK_ORIGINS["infra"]]),
+                        "esm.ubuntu.com",
+                    )
+                ],
+                "standard-security": [
+                    (
+                        mock_version(
+                            "2.0", [MOCK_ORIGINS["standard-security"]]
+                        ),
+                        "security.ubuntu.com",
+                    ),
+                    (
+                        mock_version(
+                            "2.1", [MOCK_ORIGINS["standard-security"]]
+                        ),
+                        "security.ubuntu.com",
+                    ),
+                ],
+                "esm-apps": [
+                    (
+                        mock_version("3.0", [MOCK_ORIGINS["apps"]]),
+                        "esm.ubuntu.com",
+                    )
+                ],
+                "standard-updates": [
+                    (
+                        mock_version("2.0", [MOCK_ORIGINS["archive_main"]]),
+                        "archive.ubuntu.com",
+                    )
+                ],
+            },
+        )
+        esm_package_list = {
+            "infra-update-available": mock_package(
+                name="infra-update-available",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[expected_return["esm-infra"][0][0]],
+            ),
+            "update-multiple-caches": mock_package(
+                name="update-multiple-caches",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[
+                    expected_return["esm-apps"][0][0],
+                ],
+            ),
+        }
+
+        package_list = [
+            mock_package(name="not-installed"),
+            mock_package(
+                name="latest-is-installed",
+                installed_version=mock_version(
+                    "2.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["infra"]]
+                ),
+            ),
+            mock_package(
+                name="infra-update-available",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+            ),
+            mock_package(
+                name="there-is-no-update",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+            ),
+            mock_package(
+                name="security-update-available",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[
+                    expected_return["standard-security"][0][0],
+                ],
+            ),
+            mock_package(
+                name="not-a-security-update",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[expected_return["standard-updates"][0][0]],
+            ),
+            mock_package(
+                name="update-multiple-caches",
+                installed_version=mock_version(
+                    "1.0", [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_main"]]
+                ),
+                other_versions=[
+                    expected_return["standard-security"][1][0],
+                ],
+            ),
+            mock_package(
+                name="upgrade-is-backports-boo",
+                installed_version=mock_version(
+                    "1.0",
+                    [MOCK_ORIGINS["now"], MOCK_ORIGINS["archive_universe"]],
+                ),
+                other_versions=[
+                    mock_version("2.0", [MOCK_ORIGINS["archive_backports"]])
+                ],
+            ),
+        ]
+
+        m_esm_cache.return_value = esm_package_list
+        with mock.patch(
+            M_PATH + "get_origin_information_to_service_map",
+            return_value=ORIGIN_TO_SERVICE_MOCK,
+        ):
+            filtered_versions = filter_security_updates(package_list)
+            assert expected_return == filtered_versions
+            assert (
+                filtered_versions["esm-infra"][0][0].package.name
+                == "infra-update-available"
+            )
+            assert (
+                filtered_versions["standard-security"][0][0].package.name
+                == "security-update-available"
+            )
+            assert (
+                filtered_versions["standard-security"][1][0].package.name
+                == "update-multiple-caches"
+            )
+            assert (
+                filtered_versions["esm-apps"][0][0].package.name
+                == "update-multiple-caches"
             )
             assert (
                 filtered_versions["standard-updates"][0][0].package.name

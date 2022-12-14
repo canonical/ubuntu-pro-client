@@ -10,7 +10,7 @@ from functools import lru_cache
 from typing import Dict, List, NamedTuple, Optional
 
 from uaclient import event_logger, exceptions, gpg, messages, system
-from uaclient.defaults import DEFAULT_DATA_DIR
+from uaclient.defaults import ESM_APT_ROOTDIR
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -34,7 +34,6 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
 APT_LISTS_PATH = "/var/lib/apt/lists"
 
-ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
 
 ESM_REPO_FILE_CONTENT = """\
 # Written by ubuntu-advantage-tools

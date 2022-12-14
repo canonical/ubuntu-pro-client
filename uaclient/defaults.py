@@ -23,6 +23,8 @@ BASE_UA_URL = "https://ubuntu.com/pro"
 EOL_UA_URL_TMPL = "https://ubuntu.com/{hyphenatedrelease}"
 BASE_ESM_URL = "https://ubuntu.com/esm"
 CLOUD_BUILD_INFO = "/etc/cloud/build.info"
+ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
+
 DOCUMENTATION_URL = (
     "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
 )
