@@ -172,7 +172,7 @@ class TestESMDisableAptAuthOnly:
 
 @mock.patch("uaclient.system.is_lts", return_value=True)
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
-@mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
+@mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
 @mock.patch("uaclient.apt.setup_apt_proxy")
 class TestESMInfraEntitlementEnable:
     @pytest.mark.parametrize(
@@ -397,7 +397,7 @@ class TestESMInfraEntitlementEnable:
         ] == m_remove_apt_config.call_args_list
 
 
-@mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
+@mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.system.get_platform_info")
