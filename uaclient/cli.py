@@ -1090,7 +1090,7 @@ def action_config_set(args, *, cfg, **kwargs):
     elif set_key == "apt_news":
         set_value = set_value.lower() == "true"
         if set_value:
-            apt_news.fetch_and_process_apt_news(cfg)
+            apt_news.update_apt_news(cfg)
         else:
             state_files.apt_news_contents_file.delete()
 
@@ -1708,7 +1708,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
         update_apt_and_motd_messages(cfg)
         refresh_motd()
         if cfg.apt_news:
-            apt_news.fetch_and_process_apt_news(cfg)
+            apt_news.update_apt_news(cfg)
     except Exception as exc:
         with util.disable_log_to_console():
             logging.exception(exc)

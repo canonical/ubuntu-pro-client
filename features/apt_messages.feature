@@ -138,102 +138,7 @@ Feature: APT Messages
         Calculating upgrade...
         The following packages will be upgraded:
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today +2}"
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
-        """
-        When I run `pro refresh messages` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
-
-        The following packages will be upgraded:
-        """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -3}"
-                }
-            }
-        }
-        """
-        When I run `pro refresh messages` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
-        Your grace period will expire in 11 days.
-
-        The following packages will be upgraded:
-        """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -20}"
-                }
-            }
-        }
-        """
-        When I run `pro refresh messages` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        \*Your Ubuntu Pro subscription has EXPIRED\*
-        The following security updates require Ubuntu Pro with 'esm-infra' enabled:
-          .*
-        Renew your service at https:\/\/ubuntu.com\/pro
-
-        The following packages will be upgraded:
-        """
         When I run `apt-get upgrade -y` with sudo
-        When I run `apt upgrade` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro
-
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
-        """
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
@@ -292,35 +197,6 @@ Feature: APT Messages
         Calculating upgrade...
         The following packages will be upgraded:
           hello
-        """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-              "contractInfo": {
-                  "effectiveTo": "$behave_var{today -20}"
-              }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
-        """
-        When I run `pro refresh messages` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        Reading package lists...
-        Building dependency tree...
-        Reading state information...
-        Calculating upgrade...
-
-        \*Your Ubuntu Pro subscription has EXPIRED\*
-        The following security updates require Ubuntu Pro with 'esm-apps' enabled:
-          hello
-        Renew your service at https:\/\/ubuntu.com\/pro
         """
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
@@ -615,6 +491,106 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
+        # local apt news overrides for contract expiry notices
+        When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+        """
+        {
+          "messages": [
+            {
+              "begin": "$behave_var{today}",
+              "lines": [
+                "one"
+              ]
+            }
+          ]
+        }
+        """
+        When I attach `contract_token` with sudo
+        When I run `apt upgrade -y` with sudo
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": "$behave_var{today +2}"
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        # test that apt update will trigger hook to update apt_news for local override
+        When I run shell command `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
+        When I run `apt-get update` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
+        # Renew your subscription at https://ubuntu.com/pro to ensure continued
+        # security coverage for your applications.
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": "$behave_var{today -3}"
+                }
+            }
+        }
+        """
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
+        # Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued
+        # security coverage for your applications.
+        # Your grace period will expire in 11 days.
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": "$behave_var{today -20}"
+                }
+            }
+        }
+        """
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # *Your Ubuntu Pro subscription has EXPIRED*
+        # Renew your service at https://ubuntu.com/pro
+        #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         Examples: ubuntu release

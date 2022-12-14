@@ -3,10 +3,8 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
-import apt_pkg
-
 from uaclient import apt
-from uaclient.apt_news import fetch_and_process_apt_news
+from uaclient.apt_news import update_apt_news
 from uaclient.config import UAConfig
 from uaclient.daemon import setup_logging
 
@@ -20,8 +18,7 @@ def main(cfg: UAConfig):
     if last_update is not None and last_update > one_day_ago:
         return
 
-    apt_pkg.init()
-    fetch_and_process_apt_news(cfg)
+    update_apt_news(cfg)
 
 
 if __name__ == "__main__":
