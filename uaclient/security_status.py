@@ -13,6 +13,7 @@ from apt import package as apt_package
 
 from uaclient import messages
 from uaclient.config import UAConfig
+from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -61,6 +62,18 @@ def get_origin_information_to_service_map():
         ("UbuntuESMApps", "{}-apps-updates".format(series)): "esm-apps",
         ("UbuntuESM", "{}-infra-updates".format(series)): "esm-infra",
     }
+
+
+@lru_cache(maxsize=None)
+def get_esm_cache():
+    try:
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        cache = Cache(rootdir=ESM_APT_ROOTDIR)
+    except Exception:
+        cache = {}
+
+    return cache
 
 
 def get_installed_packages_by_origin() -> DefaultDict[
@@ -136,6 +149,13 @@ def filter_security_updates(
     """
     result = defaultdict(list)
 
+    # This esm_cache will only be usefull for the situation where
+    # the user does not have the esm (infra or apps) services enabled,
+    # but has be advertised about esm packages. Since those
+    # sources live in a private folder, we need a different apt cache
+    # to access them.
+    esm_cache = get_esm_cache()
+
     for package in packages:
         if package.is_installed:
             for version in package.versions:
@@ -158,6 +178,22 @@ def filter_security_updates(
                         result["standard-updates"].append(
                             (version, expected_origin.site)
                         )
+
+            # This loop should be only used if the user does not have esm
+            # (infra or apps) enabled, and it is shorter than the previous one
+            if package.name in esm_cache:
+                esm_package = esm_cache[package.name]
+                for version in esm_package.versions:
+                    if version > package.installed:
+                        for origin in version.origins:
+                            service = (
+                                get_origin_information_to_service_map().get(
+                                    (origin.origin, origin.archive)
+                                )
+                            )
+                            if service:
+                                result[service].append((version, origin.site))
+                                break
 
     return result
 
@@ -500,18 +536,21 @@ def _print_package_list(
 ):
     package_string = ""
 
-    for package in package_list:
-        if package in reference_list:
+    package_names = [package.name for package in package_list]
+    reference_names = [package.name for package in reference_list]
+
+    for package_name in package_names:
+        if package_name in reference_names:
             package_string += (
                 "{bold}{package_name}{end_bold}".format(
                     bold=messages.TxtColor.BOLD,
-                    package_name=package.name,
+                    package_name=package_name,
                     end_bold=messages.TxtColor.ENDC,
                 )
                 + " "
             )
         else:
-            package_string += package.name + " "
+            package_string += package_name + " "
     print(
         "\n".join(
             textwrap.wrap(
@@ -523,10 +562,8 @@ def _print_package_list(
         )
     )
     print("")
-    hint_package_list = reference_list if reference_list else package_list
-    print(
-        messages.SS_POLICY_HINT.format(package=choice(hint_package_list).name)
-    )
+    hint_package_list = reference_names if reference_names else package_names
+    print(messages.SS_POLICY_HINT.format(package=choice(hint_package_list)))
 
 
 def security_status(cfg: UAConfig):
