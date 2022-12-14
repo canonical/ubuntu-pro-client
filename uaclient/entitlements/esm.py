@@ -7,7 +7,6 @@ from uaclient import apt, system
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import CanDisableFailure
-from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
@@ -29,6 +28,8 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         return (ROSEntitlement, ROSUpdatesEntitlement)
 
     def _perform_enable(self, silent: bool = False) -> bool:
+        from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
             update_apt_and_motd_messages(self.cfg)
@@ -37,6 +38,8 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
     def disable(
         self, silent=False
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
+        from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:
             update_apt_and_motd_messages(self.cfg)
