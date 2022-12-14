@@ -42,7 +42,8 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
         try:
             out, _err = system.subp(["cloud-id"])
             return (out.strip(), None)
-        except exceptions.ProcessExecutionError:
+        except exceptions.ProcessExecutionError as exc:
+            logging.debug("error running cloud-id: %s", str(exc))
             return (None, NoCloudTypeReason.CLOUD_ID_ERROR)
     # If no cloud-id command, assume not on cloud
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
