@@ -115,7 +115,7 @@ Feature: APT Messages
         Reading state information...
         Calculating upgrade...
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
-          .*
+          ([-+.\w\s]*)
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
@@ -148,8 +148,6 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        Receive additional future security updates with Ubuntu Pro.
-        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
@@ -208,8 +206,6 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        Receive additional future security updates with Ubuntu Pro.
-        Learn more about Ubuntu Pro at https://ubuntu.com/pro
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
@@ -220,9 +216,10 @@ Feature: APT Messages
     @uses.config.machine_type.lxd.container
     Scenario Outline: APT News
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I attach `contract_token` with sudo
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get autoremove -y` with sudo
+        When I run `pro detach --assume-yes` with sudo
 
         Given a `focal` machine named `apt-news-server`
         When I run `apt-get update` `with sudo` on the `apt-news-server` machine
