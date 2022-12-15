@@ -28,8 +28,6 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_SOON_TMPL,
-    DISABLED_APT_NO_PKGS_TMPL,
-    DISABLED_APT_PKGS_TMPL,
 )
 
 M_PATH = "uaclient.jobs.update_messaging."
@@ -237,111 +235,6 @@ class TestWriteAPTAndMOTDTemplates:
 
 
 class Test_WriteESMServiceAPTMsgTemplates:
-    @pytest.mark.parametrize(
-        "service_name,contract_expiry,expect_messages,platform_info,"
-        "url,context",
-        (
-            (
-                "esm-apps",
-                ContractExpiryStatus.ACTIVE,
-                True,
-                {"series": "xenial", "release": "16.04"},
-                XENIAL_ESM_URL,
-                " for 16.04",
-            ),
-            (
-                "esm-infra",
-                ContractExpiryStatus.ACTIVE,
-                True,
-                {"series": "xenial", "release": "16.04"},
-                XENIAL_ESM_URL,
-                " for 16.04",
-            ),
-            (
-                "esm-apps",
-                ContractExpiryStatus.ACTIVE,
-                True,
-                {"series": "xenial", "release": "16.04"},
-                XENIAL_ESM_URL,
-                " for 16.04",
-            ),
-            (
-                "esm-apps",
-                ContractExpiryStatus.EXPIRED,
-                False,
-                {"series": "xenial", "release": "16.04"},
-                XENIAL_ESM_URL,
-                " for 16.04",
-            ),
-        ),
-    )
-    @mock.patch(M_PATH + "system.get_platform_info")
-    @mock.patch(M_PATH + "system.is_active_esm", return_value=True)
-    @mock.patch(
-        M_PATH + "entitlements.repo.RepoEntitlement.application_status"
-    )
-    def test_apt_templates_written_for_disabled_services(
-        self,
-        app_status,
-        util_is_active_esm,
-        get_platform_info,
-        service_name,
-        contract_expiry,
-        expect_messages,
-        platform_info,
-        url,
-        context,
-        FakeConfig,
-        tmpdir,
-    ):
-        """Disabled service messages are omitted if contract expired.
-
-        This represents customer chosen disabling of service on an attached
-        machine. So, they've chosen to disable expired services.
-        """
-        get_contextual_esm_info_url.cache_clear()
-        if service_name == "esm-infra":
-            pkg_names_var = "{ESM_INFRA_PACKAGES}"
-        else:
-            pkg_names_var = "{ESM_APPS_PACKAGES}"
-        get_platform_info.return_value = platform_info
-        m_entitlement_cls = mock.MagicMock()
-        m_ent_obj = m_entitlement_cls.return_value
-        disabled_status = ApplicationStatus.DISABLED, ""
-        m_ent_obj.application_status.return_value = disabled_status
-        type(m_ent_obj).name = mock.PropertyMock(return_value=service_name)
-        pkgs_file = tmpdir.join("pkgs-msg")
-        no_pkgs_file = tmpdir.join("no-pkgs-msg")
-        motd_pkgs_file = tmpdir.join("motd-pkgs-msg")
-        motd_no_pkgs_file = tmpdir.join("motd-no-pkgs-msg")
-        _write_esm_service_msg_templates(
-            FakeConfig.for_attached_machine(),
-            m_ent_obj,
-            contract_expiry,
-            21,
-            pkgs_file.strpath,
-            no_pkgs_file.strpath,
-            motd_pkgs_file.strpath,
-            motd_no_pkgs_file.strpath,
-        )
-        if expect_messages:
-            assert (
-                DISABLED_APT_PKGS_TMPL.format(
-                    service=m_ent_obj.name,
-                    pkg_names=pkg_names_var,
-                    context=context,
-                    url=url,
-                )
-                == pkgs_file.read()
-            )
-            assert (
-                DISABLED_APT_NO_PKGS_TMPL.format(context=context, url=url)
-                == no_pkgs_file.read()
-            )
-        else:
-            assert False is os.path.exists(pkgs_file.strpath)
-            assert False is os.path.exists(no_pkgs_file.strpath)
-
     @pytest.mark.parametrize(
         "contract_status, remaining_days, is_active_esm, platform_info",
         (
