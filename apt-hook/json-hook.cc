@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "json-hook.hh"
-#include "esm-templates.hh"
+#include "esm-counts.hh"
 
 bool read_jsonrpc_request(std::istream &in, jsonrpc_request &req) {
     std::string msg_line;
@@ -199,6 +199,92 @@ std::string create_count_message(security_package_counts &counts) {
     return message_ss.str();
 }
 
+enum CloudID {AWS, AZURE, GCE, NONE};
+
+CloudID get_cloud_id() {
+    std::ifstream cloud_id_file("/run/cloud-init/cloud-id");
+    CloudID ret = NONE;
+    if (cloud_id_file.is_open()) {
+        std::string cloud_id_str((std::istreambuf_iterator<char>(cloud_id_file)), (std::istreambuf_iterator<char>()));
+        if (cloud_id_str == "aws") {
+            ret = AWS;
+        } else if (cloud_id_str == "azure") {
+            ret = AZURE;
+        } else if (cloud_id_str == "gce") {
+            ret = GCE;
+        }
+        cloud_id_file.close();
+    }
+    return ret;
+}
+
+bool is_xenial() {
+    std::ifstream os_release_file("/etc/os-release");
+    bool ret = false;
+    if (os_release_file.is_open()) {
+        std::string os_release_str((std::istreambuf_iterator<char>(os_release_file)), (std::istreambuf_iterator<char>()));
+        if (os_release_str.find("xenial") != os_release_str.npos) {
+            ret = true;
+        }
+        os_release_file.close();
+    }
+    return ret;
+}
+
+struct ESMContext {
+    std::string context;
+    std::string url;
+};
+
+ESMContext get_esm_context() {
+    CloudID cloud_id = get_cloud_id();
+    bool is_x = is_xenial();
+    bool non_azure_cloud = cloud_id != NONE && cloud_id != AZURE;
+
+    ESMContext ret;
+    ret.context = "";
+    ret.url = "https://ubuntu.com/pro";
+
+    if (cloud_id != AZURE && is_x) {
+        ret.context = " for 16.04";
+        ret.url = "https://ubuntu.com/16-04";
+    } else if (cloud_id == AZURE && !is_x) {
+        ret.context = " on Azure";
+        ret.url = "https://ubuntu.com/azure/pro";
+    } else if (cloud_id == AZURE && is_x) {
+        ret.context = " for 16.04 on Azure";
+        ret.url = "https://ubuntu.com/16-04/azure";
+    } else if (cloud_id == AWS && !is_x) {
+        ret.context = " on AWS";
+        ret.url = "https://ubuntu.com/aws/pro";
+    } else if (cloud_id == GCE && !is_x) {
+        ret.context = " on GCP";
+        ret.url = "https://ubuntu.com/gcp/pro";
+    }
+
+    return ret;
+}
+
+void print_esm_packages(std::string esm_name, std::vector<std::string> package_names, ESMContext &esm_context) {
+    std::cout << "The following security updates require Ubuntu Pro with '";
+    std::cout << esm_name;
+    std::cout << "' enabled:" << std::endl;
+
+    std::string curr_line = " ";
+    for (std::string &name : package_names) {
+        if ((curr_line.length() + 1 + name.length()) >= 79) {
+            std::cout << curr_line << std::endl;
+            curr_line = " ";
+        }
+        curr_line = curr_line + " " + name;
+    }
+    if (curr_line.length() > 1) {
+        std::cout << curr_line << std::endl;
+    }
+
+    std::cout << "Learn more about Ubuntu Pro" << esm_context.context << " at " << esm_context.url << std::endl;
+}
+
 int run()
 {
     char *fd_c_str = getenv("APT_HOOK_SOCKET");
@@ -275,11 +361,15 @@ int run()
         }
     } else if (hook_req.method == "org.debian.apt.hooks.install.pre-prompt") {
         // ESM stats
-        process_all_templates();
-        std::ifstream esm_message_file(APT_PRE_INVOKE_MESSAGE_STATIC_PATH);
-        if (esm_message_file.is_open()) {
-            std::cout << esm_message_file.rdbuf();
-            esm_message_file.close();
+        ESMUpdates esm_updates;
+        bool success = get_potential_esm_updates(esm_updates);
+        if (success) {
+            ESMContext esm_context = get_esm_context();
+            if (!esm_updates.infra_packages.empty()) {
+                print_esm_packages("esm-infra", esm_updates.infra_packages, esm_context);
+            } else if (!esm_updates.apps_packages.empty()) {
+                print_esm_packages("esm-apps", esm_updates.apps_packages, esm_context);
+            }
         }
 
         // APT News
