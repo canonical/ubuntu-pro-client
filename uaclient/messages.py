@@ -276,15 +276,6 @@ Renew your service at https://ubuntu.com/pro
 """
 CONTRACT_EXPIRED_APT_NO_PKGS_TMPL = "\n" + CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
 
-DISABLED_APT_PKGS_TMPL = """\
-The following security updates require Ubuntu Pro with '{service}' enabled:
-  {pkg_names}
-Learn more about Ubuntu Pro{context} at {url}"""
-
-DISABLED_APT_NO_PKGS_TMPL = """\
-Receive additional future security updates with Ubuntu Pro.
-Learn more about Ubuntu Pro{context} at {url}"""
-
 # END MOTD and APT command messaging
 
 APT_PROXY_CONFIG_HEADER = """\

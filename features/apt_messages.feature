@@ -114,7 +114,7 @@ Feature: APT Messages
         Reading state information...
         Calculating upgrade...
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
-          .*
+          ([-+.\w\s]*)
         Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
         #
         # News about significant security updates, features and services will
