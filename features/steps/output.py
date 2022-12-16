@@ -34,6 +34,15 @@ def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
         then_stream_does_not_match_regexp(context, "stdout")
 
 
+@then("if `{value1}` not in `{value2}` and stdout matches regexp")
+def then_not_in_conditional_stdout_does_not_match_regexp(
+    context, value1, value2
+):
+    """Only apply regex assertion if value1 not in value2."""
+    if value1 not in value2.split(" or "):
+        then_stream_matches_regexp(context, "stdout")
+
+
 @then("{stream} does not match regexp")
 def then_stream_does_not_match_regexp(context, stream):
     content = getattr(context.process, stream).strip()
