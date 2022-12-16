@@ -27,7 +27,8 @@ import time
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.contract import process_entitlements_delta
-from uaclient.system import parse_os_release, subp
+from uaclient.defaults import ESM_APT_ROOTDIR
+from uaclient.system import parse_os_release, remove_folder, subp
 
 version_to_codename = {
     "14.04": "trusty",
@@ -116,6 +117,11 @@ def process_contract_delta_after_apt_lock() -> None:
     logging.debug(msg)
 
 
+def remove_private_esm_apt_cache():
+    remove_folder(ESM_APT_ROOTDIR)
+
+
 if __name__ == "__main__":
     setup_logging(logging.INFO, logging.DEBUG)
     process_contract_delta_after_apt_lock()
+    remove_private_esm_apt_cache()
