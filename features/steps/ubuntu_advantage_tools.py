@@ -144,7 +144,7 @@ def when_i_install_uat(context, machine_name=SUT):
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
     if context.config.install_from is InstallationSource.LOCAL:
-        deb_paths = build_debs(context, series)
+        deb_paths = build_debs(series)
 
         for deb_path in deb_paths:
             tools_or_pro = "tools" if "tools" in deb_path else "pro"
@@ -234,7 +234,7 @@ def create_local_ppa(context, release):
         "with sudo",
         machine_name="ppa",
     )
-    debs = build_debs(context, release)
+    debs = build_debs(release)
     for deb in debs:
         deb_destination = "/tmp/" + deb.split("/")[-1]
         context.machines["ppa"].instance.push_file(deb, deb_destination)
@@ -255,7 +255,7 @@ def create_local_ppa(context, release):
 @when("I install ubuntu-advantage-pro")
 def when_i_install_pro(context):
     if context.config.install_from is InstallationSource.LOCAL:
-        deb_paths = build_debs(context, context.machines[SUT].instance.series)
+        deb_paths = build_debs(context.machines[SUT].instance.series)
 
         for deb_path in deb_paths:
             if "pro" in deb_path:
