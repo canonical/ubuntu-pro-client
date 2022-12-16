@@ -8,6 +8,7 @@ import tempfile
 import time
 import uuid
 from functools import lru_cache
+from shutil import rmtree
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
 from uaclient import exceptions, messages, util
@@ -504,3 +505,9 @@ def subp(
             logging.debug(util.redact_sensitive_logs(str(e) + retry_msg))
             time.sleep(retry_sleeps.pop(0))
     return out, err
+
+
+def remove_folder(folder_path: str) -> None:
+    if os.path.exists(folder_path):
+        logging.debug("Removing folder: %s", folder_path)
+        rmtree(folder_path)

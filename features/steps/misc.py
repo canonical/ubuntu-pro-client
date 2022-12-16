@@ -6,7 +6,7 @@ from hamcrest import assert_that, equal_to
 
 from features.steps.files import when_i_create_file_with_content
 from features.steps.packages import when_i_apt_install
-from features.steps.shell import when_i_run_command
+from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 from uaclient.util import DatetimeAwareJSONDecoder
 
@@ -74,3 +74,13 @@ def when_i_autocomplete_command(context, command):
         "/tmp/test_autocomplete.exp '{}'".format(command),
         "as non-root",
     )
+
+
+@then("I verify that the folder `{folder}` does not exist")
+def then_folder_does_not_exist(context, folder):
+    when_i_run_shell_command(
+        context,
+        command="ls {} || echo 'empty'".format(folder),
+        user_spec="with sudo",
+    )
+    assert_that(context.process.stdout.strip(), equal_to("empty"))
