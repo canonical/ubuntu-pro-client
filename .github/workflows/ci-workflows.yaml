@@ -20,7 +20,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install yamllint
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Linting and style
         working-directory: .github/workflows
         run: yamllint --strict .
