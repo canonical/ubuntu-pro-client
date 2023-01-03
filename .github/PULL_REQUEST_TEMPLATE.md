@@ -21,12 +21,6 @@ this is a bug fix) this change on a live deployed system,
 including any necessary configuration files, user-data,
 setup, and teardown. Scripts used may be attached directly to this PR. -->
 
-## Desired commit type
-<!-- put an `x` in one merge type to allow the reviewer to merge for you -->
- - [ ] Squash and merge: Using the "Proposed Commit Message"
- - [ ] Create a merge commit and use "Proposed Commit Message"
- - [ ] Rebase and merge, no merge commit, rely only on existing commit messages
-
 ## Checklist
 <!-- Go over all the following points, and put an `x` in all the boxes
 that apply. -->
