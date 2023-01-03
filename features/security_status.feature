@@ -134,8 +134,11 @@ Feature: Security status command behavior
         
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
         Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
-        
-        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
+
+        Try Ubuntu Pro with a free personal subscription on up to 5 machines.
         Learn more at https://ubuntu.com/pro
         """
         When I attach `contract_token` with sudo
@@ -223,6 +226,10 @@ Feature: Security status command behavior
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
         Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
         Enable esm-infra with: pro enable esm-infra
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
+        Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
         And I run `pro security-status --thirdparty` as non-root
@@ -334,7 +341,10 @@ Feature: Security status command behavior
         
         Main/Restricted packages receive updates with LTS until 2025\.
         
-        Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
+
+        Try Ubuntu Pro with a free personal subscription on up to 5 machines.
         Learn more at https://ubuntu.com/pro
         """
         When I attach `contract_token` with sudo
@@ -408,6 +418,10 @@ Feature: Security status command behavior
         for a list of available options\.
         
         Main/Restricted packages receive updates with LTS until 2025\.
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
+        Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
         And I run `pro security-status --thirdparty` as non-root
