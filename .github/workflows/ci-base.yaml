@@ -46,7 +46,7 @@ jobs:
         if: matrix.testenv.deadsnake != ''
         run: |
           sudo add-apt-repository --yes ppa:deadsnakes/ppa
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install "${{ matrix.testenv.deadsnake }}"
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install "${{ matrix.testenv.deadsnake }}" "${{ matrix.testenv.deadsnake }}-dev"
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Flake8
