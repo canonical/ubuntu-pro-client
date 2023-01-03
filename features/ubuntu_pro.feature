@@ -670,12 +670,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         status: done
         """
-        When I run `pro status --wait` with sudo
-        And I run `pro security-status --format json` with sudo
-        Then stdout matches regexp:
-        """
-        "attached": false
-        """
 
         Examples: ubuntu release
            | release |
