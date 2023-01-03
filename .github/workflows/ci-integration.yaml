@@ -39,7 +39,7 @@ jobs:
           sudo sbuild-adduser $USER
           cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/$USER/.sbuildrc
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Build package
         env:
           DEBFULLNAME: GitHub CI Auto Builder
@@ -84,7 +84,7 @@ jobs:
         if: matrix.platform == 'lxd' || matrix.platform == 'vm'
         run: sudo lxd init --auto
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Retieve debs
         uses: actions/download-artifact@v3
         with:
