@@ -19,7 +19,6 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
-          sudo apt install python3-dev
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Formatting
@@ -43,13 +42,12 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
-          sudo apt install python3-dev
       - name: Install older Python from deadsnakes PPA
         if: matrix.testenv.deadsnake != ''
         run: |
           sudo add-apt-repository --yes ppa:deadsnakes/ppa
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install "${{ matrix.testenv.deadsnake }}"
-          sudo apt install python3-dev
+          sudo apt install ${{matrix.testenv.deadsnake}}-dev
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Flake8
