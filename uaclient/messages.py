@@ -1004,7 +1004,7 @@ update{plural}."""  # noqa: E501
 
 SS_SERVICE_COMMAND = "Enable {service} with: pro enable {service}"
 SS_LEARN_MORE = """\
-Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
+Try Ubuntu Pro with a free personal subscription on up to 5 machines.
 Learn more at {url}
 """.format(
     url=BASE_UA_URL
