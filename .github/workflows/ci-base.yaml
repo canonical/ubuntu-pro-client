@@ -19,6 +19,7 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
+          sudo apt install python3-dev
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Formatting
