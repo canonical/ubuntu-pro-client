@@ -42,6 +42,7 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
+          sudo apt install python3-dev
       - name: Install older Python from deadsnakes PPA
         if: matrix.testenv.deadsnake != ''
         run: |
