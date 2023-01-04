@@ -373,7 +373,10 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     """
     tmpf = None
     try:
-        tmpf = tempfile.NamedTemporaryFile(mode="wb", delete=False)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        tmpf = tempfile.NamedTemporaryFile(
+            mode="wb", delete=False, dir=os.path.dirname(filename)
+        )
         logging.debug(
             "Writing file %s atomically via tempfile %s", filename, tmpf.name
         )
@@ -381,7 +384,6 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         tmpf.flush()
         tmpf.close()
         os.chmod(tmpf.name, mode)
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
         os.rename(tmpf.name, filename)
     except Exception as e:
         if tmpf is not None:
