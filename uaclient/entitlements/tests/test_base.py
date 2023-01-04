@@ -77,7 +77,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 def concrete_entitlement_factory(FakeConfig):
     def factory(
         *,
-        entitled: bool,
+        entitled: bool = True,
         applicability_status: Tuple[ApplicabilityStatus, str] = (
             ApplicabilityStatus.APPLICABLE,
             "",
@@ -613,6 +613,45 @@ class TestUaEntitlementEnable:
             expected_msg += "\n" + enable_fail_reason.message.msg
         assert expected_msg == fail.message.msg
         assert 1 == m_can_enable.call_count
+
+    @pytest.mark.parametrize(
+        [
+            "msg_ops_results",
+            "can_enable_call_count",
+            "perform_enable_call_count",
+            "expected_result",
+        ],
+        (
+            ([False], 0, 0, (False, None)),
+            ([True, False], 1, 0, (False, None)),
+            ([True, True, False], 1, 1, (False, None)),
+            ([True, True, True], 1, 1, (True, None)),
+        ),
+    )
+    @mock.patch.object(
+        ConcreteTestEntitlement, "_perform_enable", return_value=True
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.can_enable",
+        return_value=(True, None),
+    )
+    @mock.patch("uaclient.util.handle_message_operations")
+    def test_enable_when_messaging_hooks_fail(
+        self,
+        m_handle_messaging_hooks,
+        m_can_enable,
+        m_perform_enable,
+        msg_ops_results,
+        can_enable_call_count,
+        perform_enable_call_count,
+        expected_result,
+        concrete_entitlement_factory,
+    ):
+        m_handle_messaging_hooks.side_effect = msg_ops_results
+        entitlement = concrete_entitlement_factory()
+        assert expected_result == entitlement.enable()
+        assert can_enable_call_count == m_can_enable.call_count
+        assert perform_enable_call_count == m_perform_enable.call_count
 
 
 class TestUaEntitlementCanDisable:
