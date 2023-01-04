@@ -59,27 +59,39 @@ jobs:
   integration-tests:
     name: Integration
     needs: package-builds
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.host_os }}
     strategy:
       # Disable fail-fast as these jobs are slow, so we want to extract
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy']
+        release: ['bionic', 'focal', 'jammy']
         platform: ['lxd']
+        host_os: ['ubuntu-22.04']
         include:
+          # xenial lxd containers dont work on hosts >20.04
+          - release: xenial
+            platform: lxd
+            host_os: ubuntu-20.04
           - release: bionic
             platform: awspro
+            host_os: ubuntu-22.04
           - release: bionic
             platform: gcppro
+            host_os: ubuntu-22.04
           - release: bionic
             platform: awspro-fips
+            host_os: ubuntu-22.04
     steps:
       - name: Prepare test tools
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox distro-info
           sudo adduser $USER lxd
+          # Jammy GH Action runners have docker installed, which edits iptables
+          # in a way that is incompatible with lxd.
+          # https://linuxcontainers.org/lxd/docs/master/howto/network_bridge_firewalld/#prevent-issues-with-lxd-and-docker
+          sudo iptables -I DOCKER-USER -j ACCEPT
       - name: Initialize LXD
         if: matrix.platform == 'lxd' || matrix.platform == 'vm'
         run: sudo lxd init --auto
@@ -120,7 +132,7 @@ jobs:
           sh -c 'printf "%s\n" "$GOOGLE_APPLICATION_CREDENTIALS_CONTENTS" > "$GCE_CREDENTIALS_PATH"'
 
           # SSH keys (should match what specified in pycloudlib.toml)
-          mkdir ~/.ssh
+          mkdir -p ~/.ssh
           touch ~/.ssh/cloudinit_id_rsa
           chmod 600 ~/.ssh/cloudinit_id_rsa
           sh -c 'printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
