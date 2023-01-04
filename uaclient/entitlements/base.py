@@ -192,105 +192,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return self._valid_service
 
-    # using Union instead of Optional here to signal that it may expand to
-    # support additional reason types in the future.
-    def enable(
-        self,
-        silent: bool = False,
-    ) -> Tuple[bool, Union[None, CanEnableFailure]]:
-        """Enable specific entitlement.
-
-        @return: tuple of (success, optional reason)
-            (True, None) on success.
-            (False, reason) otherwise. reason is only non-None if it is a
-                populated CanEnableFailure reason. This may expand to
-                include other types of reasons in the future.
-        """
-
-        msg_ops = self.messaging.get("pre_can_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        can_enable, fail = self.can_enable()
-        if not can_enable:
-            if fail is None:
-                # this shouldn't happen, but if it does we shouldn't continue
-                return False, None
-            elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
-                # Try to disable those services before proceeding with enable
-                incompat_ret, error = self.handle_incompatible_services()
-                if not incompat_ret:
-                    fail.message = error
-                    return False, fail
-            elif (
-                fail.reason
-                == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
-            ):
-                # Try to enable those services before proceeding with enable
-                req_ret, error = self._enable_required_services()
-                if not req_ret:
-                    fail.message = error
-                    return False, fail
-            else:
-                # every other reason means we can't continue
-                return False, fail
-
-        msg_ops = self.messaging.get("pre_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        ret = self._perform_enable(silent=silent)
-        if not ret:
-            return False, None
-
-        msg_ops = self.messaging.get("post_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        return True, None
-
-    @abc.abstractmethod
-    def _perform_enable(self, silent: bool = False) -> bool:
-        """
-        Enable specific entitlement. This should be implemented by subclasses.
-        This method does the actual enablement, and does not check can_enable
-        or handle pre_enable or post_enable messaging.
-
-        @return: True on success, False otherwise.
-        """
-        pass
-
-    def can_disable(
-        self, ignore_dependent_services: bool = False
-    ) -> Tuple[bool, Optional[CanDisableFailure]]:
-        """Report whether or not disabling is possible for the entitlement.
-
-        :return:
-            (True, None) if can disable
-            (False, CanDisableFailure) if can't disable
-        """
-        application_status, _ = self.application_status()
-
-        if application_status == ApplicationStatus.DISABLED:
-            return (
-                False,
-                CanDisableFailure(
-                    CanDisableFailureReason.ALREADY_DISABLED,
-                    message=messages.ALREADY_DISABLED.format(title=self.title),
-                ),
-            )
-
-        if self.dependent_services and not ignore_dependent_services:
-            if self.detect_dependent_services():
-                return (
-                    False,
-                    CanDisableFailure(
-                        CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
-                    ),
-                )
-
-        return True, None
-
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
         Report whether or not enabling is possible for the entitlement.
@@ -367,6 +268,74 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
         return (True, None)
+
+    # using Union instead of Optional here to signal that it may expand to
+    # support additional reason types in the future.
+    def enable(
+        self,
+        silent: bool = False,
+    ) -> Tuple[bool, Union[None, CanEnableFailure]]:
+        """Enable specific entitlement.
+
+        @return: tuple of (success, optional reason)
+            (True, None) on success.
+            (False, reason) otherwise. reason is only non-None if it is a
+                populated CanEnableFailure reason. This may expand to
+                include other types of reasons in the future.
+        """
+
+        msg_ops = self.messaging.get("pre_can_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
+
+        can_enable, fail = self.can_enable()
+        if not can_enable:
+            if fail is None:
+                # this shouldn't happen, but if it does we shouldn't continue
+                return False, None
+            elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
+                # Try to disable those services before proceeding with enable
+                incompat_ret, error = self.handle_incompatible_services()
+                if not incompat_ret:
+                    fail.message = error
+                    return False, fail
+            elif (
+                fail.reason
+                == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+            ):
+                # Try to enable those services before proceeding with enable
+                req_ret, error = self._enable_required_services()
+                if not req_ret:
+                    fail.message = error
+                    return False, fail
+            else:
+                # every other reason means we can't continue
+                return False, fail
+
+        msg_ops = self.messaging.get("pre_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
+
+        ret = self._perform_enable(silent=silent)
+        if not ret:
+            return False, None
+
+        msg_ops = self.messaging.get("post_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
+
+        return True, None
+
+    @abc.abstractmethod
+    def _perform_enable(self, silent: bool = False) -> bool:
+        """
+        Enable specific entitlement. This should be implemented by subclasses.
+        This method does the actual enablement, and does not check can_enable
+        or handle pre_enable or post_enable messaging.
+
+        @return: True on success, False otherwise.
+        """
+        pass
 
     def detect_dependent_services(self) -> bool:
         """
@@ -522,6 +491,172 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True, None
 
+    def can_disable(
+        self, ignore_dependent_services: bool = False
+    ) -> Tuple[bool, Optional[CanDisableFailure]]:
+        """Report whether or not disabling is possible for the entitlement.
+
+        :return:
+            (True, None) if can disable
+            (False, CanDisableFailure) if can't disable
+        """
+        application_status, _ = self.application_status()
+
+        if application_status == ApplicationStatus.DISABLED:
+            return (
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.ALREADY_DISABLED,
+                    message=messages.ALREADY_DISABLED.format(title=self.title),
+                ),
+            )
+
+        if self.dependent_services and not ignore_dependent_services:
+            if self.detect_dependent_services():
+                return (
+                    False,
+                    CanDisableFailure(
+                        CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+                    ),
+                )
+
+        return True, None
+
+    def disable(
+        self, silent: bool = False
+    ) -> Tuple[bool, Optional[CanDisableFailure]]:
+        """Disable specific entitlement
+
+        @param silent: Boolean set True to silence print/log of messages
+
+        @return: tuple of (success, optional reason)
+            (True, None) on success.
+            (False, reason) otherwise. reason is only non-None if it is a
+                populated CanDisableFailure reason. This may expand to
+                include other types of reasons in the future.
+        """
+        msg_ops = self.messaging.get("pre_disable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
+
+        can_disable, fail = self.can_disable()
+        if not can_disable:
+            if fail is None:
+                # this shouldn't happen, but if it does we shouldn't continue
+                return False, None
+            elif (
+                fail.reason
+                == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+            ):
+                ret, msg = self._disable_dependent_services(silent=silent)
+                if not ret:
+                    fail.message = msg
+                    return False, fail
+            else:
+                # every other reason means we can't continue
+                return False, fail
+
+        if not self._perform_disable(silent=silent):
+            return False, None
+
+        msg_ops = self.messaging.get("post_disable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
+
+        self._check_for_reboot_msg(
+            operation="disable operation", silent=silent
+        )
+        return True, None
+
+    @abc.abstractmethod
+    def _perform_disable(self, silent: bool = False) -> bool:
+        """
+        Disable specific entitlement. This should be implemented by subclasses.
+        This method does the actual disable, and does not check can_disable
+        or handle pre_disable or post_disable messaging.
+
+        @param silent: Boolean set True to silence print/log of messages
+
+        @return: True on success, False otherwise.
+        """
+        pass
+
+    def _disable_dependent_services(
+        self, silent: bool
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
+        """
+        Disable dependent services
+
+        When performing a disable operation, we might have
+        other services that depend on the original services.
+        If that is true, we will alert the user about this
+        and prompt for confirmation to disable these services
+        as well.
+
+        @param silent: Boolean set True to silence print/log of messages
+        """
+        for dependent_service_cls in self.dependent_services:
+            ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
+
+            is_service_enabled = (
+                ent.application_status()[0] == ApplicationStatus.ENABLED
+            )
+
+            if is_service_enabled:
+                user_msg = messages.DEPENDENT_SERVICE.format(
+                    dependent_service=ent.title,
+                    service_being_disabled=self.title,
+                )
+
+                e_msg = messages.DEPENDENT_SERVICE_STOPS_DISABLE.format(
+                    service_being_disabled=self.title,
+                    dependent_service=ent.title,
+                )
+
+                if not util.prompt_for_confirmation(
+                    msg=user_msg, assume_yes=self.assume_yes
+                ):
+                    return False, e_msg
+
+                if not silent:
+                    event.info(
+                        messages.DISABLING_DEPENDENT_SERVICE.format(
+                            required_service=ent.title
+                        )
+                    )
+
+                ret, fail = ent.disable(silent=True)
+                if not ret:
+                    error_msg = ""
+                    if fail and fail.message and fail.message.msg:
+                        error_msg = "\n" + fail.message.msg
+
+                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
+                        error=error_msg, required_service=ent.title
+                    )
+                    return False, msg
+
+        return True, None
+
+    def _check_for_reboot(self) -> bool:
+        """Check if system needs to be rebooted."""
+        return system.should_reboot()
+
+    def _check_for_reboot_msg(
+        self, operation: str, silent: bool = False
+    ) -> None:
+        """Check if user should be alerted that a reboot must be performed.
+
+        @param operation: The operation being executed.
+        @param silent: Boolean set True to silence print/log of messages
+        """
+        if self._check_for_reboot() and not silent:
+            event.info(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation=operation
+                )
+            )
+
     def applicability_status(
         self,
     ) -> Tuple[ApplicabilityStatus, Optional[messages.NamedMessage]]:
@@ -617,141 +752,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
         return ApplicabilityStatus.APPLICABLE, None
 
-    @abc.abstractmethod
-    def _perform_disable(self, silent: bool = False) -> bool:
-        """
-        Disable specific entitlement. This should be implemented by subclasses.
-        This method does the actual disable, and does not check can_disable
-        or handle pre_disable or post_disable messaging.
-
-        @param silent: Boolean set True to silence print/log of messages
-
-        @return: True on success, False otherwise.
-        """
-        pass
-
-    def _disable_dependent_services(
-        self, silent: bool
-    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
-        """
-        Disable dependent services
-
-        When performing a disable operation, we might have
-        other services that depend on the original services.
-        If that is true, we will alert the user about this
-        and prompt for confirmation to disable these services
-        as well.
-
-        @param silent: Boolean set True to silence print/log of messages
-        """
-        for dependent_service_cls in self.dependent_services:
-            ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
-
-            is_service_enabled = (
-                ent.application_status()[0] == ApplicationStatus.ENABLED
-            )
-
-            if is_service_enabled:
-                user_msg = messages.DEPENDENT_SERVICE.format(
-                    dependent_service=ent.title,
-                    service_being_disabled=self.title,
-                )
-
-                e_msg = messages.DEPENDENT_SERVICE_STOPS_DISABLE.format(
-                    service_being_disabled=self.title,
-                    dependent_service=ent.title,
-                )
-
-                if not util.prompt_for_confirmation(
-                    msg=user_msg, assume_yes=self.assume_yes
-                ):
-                    return False, e_msg
-
-                if not silent:
-                    event.info(
-                        messages.DISABLING_DEPENDENT_SERVICE.format(
-                            required_service=ent.title
-                        )
-                    )
-
-                ret, fail = ent.disable(silent=True)
-                if not ret:
-                    error_msg = ""
-                    if fail and fail.message and fail.message.msg:
-                        error_msg = "\n" + fail.message.msg
-
-                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
-                        error=error_msg, required_service=ent.title
-                    )
-                    return False, msg
-
-        return True, None
-
-    def _check_for_reboot(self) -> bool:
-        """Check if system needs to be rebooted."""
-        return system.should_reboot()
-
-    def _check_for_reboot_msg(
-        self, operation: str, silent: bool = False
-    ) -> None:
-        """Check if user should be alerted that a reboot must be performed.
-
-        @param operation: The operation being executed.
-        @param silent: Boolean set True to silence print/log of messages
-        """
-        if self._check_for_reboot() and not silent:
-            event.info(
-                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation=operation
-                )
-            )
-
-    def disable(
-        self, silent: bool = False
-    ) -> Tuple[bool, Optional[CanDisableFailure]]:
-        """Disable specific entitlement
-
-        @param silent: Boolean set True to silence print/log of messages
-
-        @return: tuple of (success, optional reason)
-            (True, None) on success.
-            (False, reason) otherwise. reason is only non-None if it is a
-                populated CanDisableFailure reason. This may expand to
-                include other types of reasons in the future.
-        """
-        msg_ops = self.messaging.get("pre_disable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        can_disable, fail = self.can_disable()
-        if not can_disable:
-            if fail is None:
-                # this shouldn't happen, but if it does we shouldn't continue
-                return False, None
-            elif (
-                fail.reason
-                == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
-            ):
-                ret, msg = self._disable_dependent_services(silent=silent)
-                if not ret:
-                    fail.message = msg
-                    return False, fail
-            else:
-                # every other reason means we can't continue
-                return False, fail
-
-        if not self._perform_disable(silent=silent):
-            return False, None
-
-        msg_ops = self.messaging.get("post_disable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        self._check_for_reboot_msg(
-            operation="disable operation", silent=silent
-        )
-        return True, None
-
     def contract_status(self) -> ContractStatus:
         """Return whether the user is entitled to the entitlement or not"""
         if not self.cfg.is_attached:
@@ -762,6 +762,46 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if entitlement_cfg and entitlement_cfg["entitlement"].get("entitled"):
             return ContractStatus.ENTITLED
         return ContractStatus.UNENTITLED
+
+    def user_facing_status(
+        self,
+    ) -> Tuple[UserFacingStatus, Optional[messages.NamedMessage]]:
+        """Return (user-facing status, details) for entitlement"""
+        applicability, details = self.applicability_status()
+        if applicability != ApplicabilityStatus.APPLICABLE:
+            return UserFacingStatus.INAPPLICABLE, details
+        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
+            self.name
+        )
+        if not entitlement_cfg:
+            return (
+                UserFacingStatus.UNAVAILABLE,
+                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
+            )
+        elif entitlement_cfg["entitlement"].get("entitled", False) is False:
+            return (
+                UserFacingStatus.UNAVAILABLE,
+                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
+            )
+
+        application_status, explanation = self.application_status()
+        user_facing_status = {
+            ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
+            ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
+        }[application_status]
+        return user_facing_status, explanation
+
+    @abc.abstractmethod
+    def application_status(
+        self,
+    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
+        """
+        The current status of application of this entitlement
+
+        :return:
+            A tuple of (ApplicationStatus, human-friendly reason)
+        """
+        pass
 
     def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""
@@ -885,43 +925,3 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return True
 
         return False
-
-    def user_facing_status(
-        self,
-    ) -> Tuple[UserFacingStatus, Optional[messages.NamedMessage]]:
-        """Return (user-facing status, details) for entitlement"""
-        applicability, details = self.applicability_status()
-        if applicability != ApplicabilityStatus.APPLICABLE:
-            return UserFacingStatus.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
-        if not entitlement_cfg:
-            return (
-                UserFacingStatus.UNAVAILABLE,
-                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
-            )
-        elif entitlement_cfg["entitlement"].get("entitled", False) is False:
-            return (
-                UserFacingStatus.UNAVAILABLE,
-                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
-            )
-
-        application_status, explanation = self.application_status()
-        user_facing_status = {
-            ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
-            ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
-        }[application_status]
-        return user_facing_status, explanation
-
-    @abc.abstractmethod
-    def application_status(
-        self,
-    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
-        """
-        The current status of application of this entitlement
-
-        :return:
-            A tuple of (ApplicationStatus, human-friendly reason)
-        """
-        pass
