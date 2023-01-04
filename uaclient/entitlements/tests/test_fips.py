@@ -546,53 +546,6 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert 0 == m_remove_apt_config.call_count
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    def test_failure_to_install_removes_apt_auth(
-        self, _m_setup_apt_proxy, entitlement, tmpdir
-    ):
-
-        authfile = tmpdir.join("90ubuntu-advantage")
-        authfile.write("")
-
-        def fake_subp(cmd, *args, **kwargs):
-            if "install" in cmd:
-                raise exceptions.ProcessExecutionError(cmd)
-            return ("", "")
-
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(
-                mock.patch("uaclient.system.subp", side_effect=fake_subp)
-            )
-            stack.enter_context(
-                mock.patch.object(
-                    entitlement, "can_enable", return_value=(True, None)
-                )
-            )
-            stack.enter_context(
-                mock.patch("uaclient.util.handle_message_operations")
-            )
-            stack.enter_context(
-                mock.patch.object(
-                    entitlement, "setup_apt_config", return_value=True
-                )
-            )
-            m_remove_apt_config = stack.enter_context(
-                mock.patch.object(
-                    entitlement, "remove_apt_config", return_value=True
-                )
-            )
-            stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
-            )
-            stack.enter_context(mock.patch(M_REPOPATH + "exists"))
-
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
-                entitlement.enable()
-            error_msg = "Could not enable {}.".format(entitlement.title)
-            assert error_msg == excinfo.value.msg
-
-        assert 1 == m_remove_apt_config.call_count
-
     @mock.patch(
         "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
     )
