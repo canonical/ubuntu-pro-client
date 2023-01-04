@@ -375,45 +375,6 @@ class TestProcessContractDeltas:
 
 class TestRepoEnable:
     @pytest.mark.parametrize(
-        "pre_enable_msg, output, perform_enable_call_count",
-        (
-            (["msg1", (lambda: False, {}), "msg2"], "msg1\n", 0),
-            (["msg1", (lambda: True, {}), "msg2"], "msg1\nmsg2\n", 1),
-        ),
-    )
-    @mock.patch.object(
-        RepoTestEntitlement,
-        "_perform_enable",
-        return_value=False,
-    )
-    @mock.patch.object(
-        RepoTestEntitlement,
-        "can_enable",
-        return_value=(True, None),
-    )
-    def test_enable_can_exit_on_pre_enable_messaging_hooks(
-        self,
-        _m_can_enable,
-        m_perform_enable,
-        pre_enable_msg,
-        output,
-        perform_enable_call_count,
-        entitlement,
-        capsys,
-        event,
-    ):
-        with mock.patch(
-            M_PATH + "RepoEntitlement.messaging",
-            new_callable=mock.PropertyMock,
-        ) as m_messaging:
-            m_messaging.return_value = {"pre_enable": pre_enable_msg}
-            with mock.patch.object(type(entitlement), "packages", []):
-                entitlement.enable()
-        stdout, _ = capsys.readouterr()
-        assert output == stdout
-        assert perform_enable_call_count == m_perform_enable.call_count
-
-    @pytest.mark.parametrize(
         "pre_disable_msg,post_disable_msg,output,retval",
         (
             (
