@@ -153,84 +153,43 @@ class TestUaEntitlement:
         entitlement = ConcreteTestEntitlement(cfg)
         assert "/some/path" == entitlement.cfg.data_dir
 
-    def test_can_disable_false_on_entitlement_inactive(
-        self, concrete_entitlement_factory
+
+class TestUaEntitlementNames:
+    @pytest.mark.parametrize(
+        "p_name,expected",
+        (
+            ("pretty_name", ["testconcreteentitlement", "pretty_name"]),
+            ("testconcreteentitlement", ["testconcreteentitlement"]),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.presentation_name",
+        new_callable=mock.PropertyMock,
+    )
+    def test_valid_names(
+        self, m_p_name, p_name, expected, concrete_entitlement_factory
     ):
-        """When  status is INACTIVE, can_disable returns False."""
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(ApplicationStatus.DISABLED, ""),
-        )
+        m_p_name.return_value = p_name
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert expected == entitlement.valid_names
 
-        ret, fail = entitlement.can_disable()
-        assert not ret
+    def test_presentation_name(self, concrete_entitlement_factory):
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert "testconcreteentitlement" == entitlement.presentation_name
+        m_entitlements = {
+            "testconcreteentitlement": {
+                "entitlement": {
+                    "affordances": {"presentedAs": "something_else"}
+                }
+            }
+        }
+        with mock.patch(
+            "uaclient.files.MachineTokenFile.entitlements", m_entitlements
+        ):
+            assert "something_else" == entitlement.presentation_name
 
-        expected_msg = (
-            "Test Concrete Entitlement is not currently enabled\n"
-            "See: sudo pro status"
-        )
-        assert expected_msg == fail.message.msg
 
-    def test_can_disable_false_on_dependent_service(
-        self, concrete_entitlement_factory
-    ):
-        """When  status is INACTIVE, can_disable returns False."""
-        m_ent_cls = mock.Mock()
-        type(m_ent_cls).name = mock.PropertyMock(return_value="test")
-        m_ent_obj = m_ent_cls.return_value
-        m_ent_obj.application_status.return_value = (
-            ApplicationStatus.ENABLED,
-            None,
-        )
-
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(ApplicationStatus.ENABLED, ""),
-            dependent_services=(m_ent_cls,),
-        )
-
-        ret, fail = entitlement.can_disable()
-        assert not ret
-        assert fail.reason == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
-        assert fail.message is None
-
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    def test_can_disable_when_ignoring_dependent_service(
-        self, m_ent_factory, concrete_entitlement_factory
-    ):
-        """When  status is INACTIVE, can_disable returns False."""
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(ApplicationStatus.ENABLED, ""),
-            dependent_services=("test",),
-        )
-
-        m_ent_cls = mock.Mock()
-        m_ent_obj = m_ent_cls.return_value
-        m_ent_obj.application_status.return_value = (
-            ApplicationStatus.ENABLED,
-            None,
-        )
-        m_ent_factory.return_value = m_ent_cls
-
-        ret, fail = entitlement.can_disable(ignore_dependent_services=True)
-        assert ret is True
-        assert fail is None
-
-    def test_can_disable_true_on_entitlement_active(
-        self, capsys, concrete_entitlement_factory
-    ):
-        """When entitlement is ENABLED, can_disable returns True."""
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(ApplicationStatus.ENABLED, ""),
-        )
-
-        assert entitlement.can_disable()
-
-        stdout, _ = capsys.readouterr()
-        assert "" == stdout
-
+class TestUaEntitlementCanEnable:
     def test_can_enable_false_on_unentitled(
         self, concrete_entitlement_factory
     ):
@@ -369,33 +328,6 @@ class TestUaEntitlement:
             assert reason.reason == CanEnableFailureReason.IS_BETA
             assert reason.message is None
 
-    def test_contract_status_entitled(self, concrete_entitlement_factory):
-        """The contract_status returns ENTITLED when entitlement enabled."""
-        entitlement = concrete_entitlement_factory(entitled=True)
-        assert ContractStatus.ENTITLED == entitlement.contract_status()
-
-    def test_contract_status_unentitled(self, concrete_entitlement_factory):
-        """The contract_status returns NONE when entitlement is unentitled."""
-        entitlement = concrete_entitlement_factory(entitled=False)
-        assert ContractStatus.UNENTITLED == entitlement.contract_status()
-
-    @pytest.mark.parametrize(
-        "orig_access,delta",
-        (({}, {}), ({}, {"entitlement": {"entitled": False}})),
-    )
-    def test_process_contract_deltas_does_nothing_on_empty_orig_access(
-        self, concrete_entitlement_factory, orig_access, delta
-    ):
-        """When orig_acccess dict is empty perform no work."""
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(ApplicationStatus.DISABLED, ""),
-        )
-        with mock.patch.object(entitlement, "can_disable") as m_can_disable:
-            entitlement.process_contract_deltas(orig_access, delta)
-        assert 0 == m_can_disable.call_count
-
     def test_can_enable_when_incompatible_service_found(
         self, concrete_entitlement_factory
     ):
@@ -449,6 +381,8 @@ class TestUaEntitlement:
         )
         assert reason.message is None
 
+
+class TestUaEntitlementEnable:
     @pytest.mark.parametrize(
         "block_disable_on_enable,assume_yes",
         [(False, False), (False, True), (True, False), (True, True)],
@@ -680,6 +614,278 @@ class TestUaEntitlement:
         assert expected_msg == fail.message.msg
         assert 1 == m_can_enable.call_count
 
+
+class TestUaEntitlementCanDisable:
+    def test_can_disable_false_on_entitlement_inactive(
+        self, concrete_entitlement_factory
+    ):
+        """When  status is INACTIVE, can_disable returns False."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(ApplicationStatus.DISABLED, ""),
+        )
+
+        ret, fail = entitlement.can_disable()
+        assert not ret
+
+        expected_msg = (
+            "Test Concrete Entitlement is not currently enabled\n"
+            "See: sudo pro status"
+        )
+        assert expected_msg == fail.message.msg
+
+    def test_can_disable_false_on_dependent_service(
+        self, concrete_entitlement_factory
+    ):
+        """When  status is INACTIVE, can_disable returns False."""
+        m_ent_cls = mock.Mock()
+        type(m_ent_cls).name = mock.PropertyMock(return_value="test")
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.application_status.return_value = (
+            ApplicationStatus.ENABLED,
+            None,
+        )
+
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(ApplicationStatus.ENABLED, ""),
+            dependent_services=(m_ent_cls,),
+        )
+
+        ret, fail = entitlement.can_disable()
+        assert not ret
+        assert fail.reason == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+        assert fail.message is None
+
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    def test_can_disable_when_ignoring_dependent_service(
+        self, m_ent_factory, concrete_entitlement_factory
+    ):
+        """When  status is INACTIVE, can_disable returns False."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(ApplicationStatus.ENABLED, ""),
+            dependent_services=("test",),
+        )
+
+        m_ent_cls = mock.Mock()
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.application_status.return_value = (
+            ApplicationStatus.ENABLED,
+            None,
+        )
+        m_ent_factory.return_value = m_ent_cls
+
+        ret, fail = entitlement.can_disable(ignore_dependent_services=True)
+        assert ret is True
+        assert fail is None
+
+    def test_can_disable_true_on_entitlement_active(
+        self, capsys, concrete_entitlement_factory
+    ):
+        """When entitlement is ENABLED, can_disable returns True."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(ApplicationStatus.ENABLED, ""),
+        )
+
+        assert entitlement.can_disable()
+
+        stdout, _ = capsys.readouterr()
+        assert "" == stdout
+
+
+class TestUaEntitlementDisable:
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_disable_when_dependent_service_found(
+        self, m_prompt, concrete_entitlement_factory
+    ):
+        m_prompt.return_value = True
+
+        m_ent_cls = mock.MagicMock()
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.application_status.return_value = [
+            ApplicationStatus.ENABLED,
+            "",
+        ]
+        m_ent_obj.disable.return_value = (True, None)
+        type(m_ent_obj).title = mock.PropertyMock(return_value="test")
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            disable=True,
+            application_status=(ApplicationStatus.ENABLED, ""),
+            dependent_services=(m_ent_cls,),
+        )
+
+        ret, fail = base_ent.disable()
+
+        expected_prompt_call = 1
+        expected_ret = True
+        expected_disable_call = 1
+
+        assert ret == expected_ret
+        assert fail is None
+        assert m_prompt.call_count == expected_prompt_call
+        assert m_ent_obj.disable.call_count == expected_disable_call
+
+    @pytest.mark.parametrize("disable_fail_message", (("error"), (None)))
+    @mock.patch("uaclient.util.handle_message_operations")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_disable_false_when_fails_to_disable_dependent_service(
+        self,
+        m_handle_msg,
+        m_prompt_for_confirmation,
+        disable_fail_message,
+        concrete_entitlement_factory,
+    ):
+        m_handle_msg.return_value = True
+
+        fail_reason = CanDisableFailure(
+            CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+        )
+        if disable_fail_message:
+            msg = messages.NamedMessage("test-code", disable_fail_message)
+        else:
+            msg = None
+
+        disable_fail_reason = CanDisableFailure(
+            CanDisableFailureReason.ALREADY_DISABLED, message=msg
+        )
+
+        m_ent_cls = mock.Mock()
+        type(m_ent_cls).name = mock.PropertyMock(return_value="Test")
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.disable.return_value = (False, disable_fail_reason)
+        m_ent_obj.application_status.return_value = (
+            ApplicationStatus.ENABLED,
+            None,
+        )
+        type(m_ent_obj).title = mock.PropertyMock(return_value="Test")
+
+        m_prompt_for_confirmation.return_vale = True
+
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(ApplicationStatus.DISABLED, ""),
+            dependent_services=(m_ent_cls,),
+        )
+
+        with mock.patch.object(entitlement, "can_disable") as m_can_disable:
+            m_can_disable.return_value = (False, fail_reason)
+            ret, fail = entitlement.disable()
+
+        assert not ret
+        expected_msg = "Cannot disable dependent service: Test"
+        if disable_fail_reason.message:
+            expected_msg += "\n" + disable_fail_reason.message.msg
+        assert expected_msg == fail.message.msg
+        assert 1 == m_can_disable.call_count
+
+
+class TestUaEntitlementContractStatus:
+    def test_contract_status_entitled(self, concrete_entitlement_factory):
+        """The contract_status returns ENTITLED when entitlement enabled."""
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert ContractStatus.ENTITLED == entitlement.contract_status()
+
+    def test_contract_status_unentitled(self, concrete_entitlement_factory):
+        """The contract_status returns NONE when entitlement is unentitled."""
+        entitlement = concrete_entitlement_factory(entitled=False)
+        assert ContractStatus.UNENTITLED == entitlement.contract_status()
+
+
+class TestUaEntitlementUserFacingStatus:
+    def test_inapplicable_when_not_applicable(
+        self, concrete_entitlement_factory
+    ):
+        msg = "inapplicable for very good reasons"
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(
+                ApplicabilityStatus.INAPPLICABLE,
+                msg,
+            ),
+        )
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert UserFacingStatus.INAPPLICABLE == user_facing_status
+        assert msg == details
+
+    def test_unavailable_when_applicable_but_not_entitled(
+        self, concrete_entitlement_factory
+    ):
+
+        entitlement = concrete_entitlement_factory(
+            entitled=False,
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+        )
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert UserFacingStatus.UNAVAILABLE == user_facing_status
+        expected_details = "{} is not entitled".format(entitlement.title)
+        assert expected_details == details.msg
+
+    def test_unavailable_when_applicable_but_no_entitlement_cfg(
+        self, concrete_entitlement_factory
+    ):
+
+        entitlement = concrete_entitlement_factory(
+            entitled=False,
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+        )
+        entitlement.cfg._entitlements = {}
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert UserFacingStatus.UNAVAILABLE == user_facing_status
+        expected_details = "{} is not entitled".format(entitlement.title)
+        assert expected_details == details.msg
+
+    @pytest.mark.parametrize(
+        "application_status,expected_uf_status",
+        (
+            (ApplicationStatus.ENABLED, UserFacingStatus.ACTIVE),
+            (
+                ApplicationStatus.DISABLED,
+                UserFacingStatus.INACTIVE,
+            ),
+        ),
+    )
+    def test_application_status_used_if_not_inapplicable(
+        self,
+        concrete_entitlement_factory,
+        application_status,
+        expected_uf_status,
+    ):
+        msg = "application status details"
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(application_status, msg),
+        )
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert expected_uf_status == user_facing_status
+        assert msg == details
+
+
+class TestUaEntitlementProcessContractDeltas:
+    @pytest.mark.parametrize(
+        "orig_access,delta",
+        (({}, {}), ({}, {"entitlement": {"entitled": False}})),
+    )
+    def test_process_contract_deltas_does_nothing_on_empty_orig_access(
+        self, concrete_entitlement_factory, orig_access, delta
+    ):
+        """When orig_acccess dict is empty perform no work."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
+        )
+        with mock.patch.object(entitlement, "can_disable") as m_can_disable:
+            entitlement.process_contract_deltas(orig_access, delta)
+        assert 0 == m_can_disable.call_count
+
     @pytest.mark.parametrize(
         "orig_access,delta",
         (
@@ -816,195 +1022,3 @@ class TestUaEntitlement:
             assert 1 == m_enable.call_count
 
         assert entitlement.allow_beta
-
-    @mock.patch("uaclient.util.prompt_for_confirmation")
-    def test_disable_when_dependent_service_found(
-        self, m_prompt, concrete_entitlement_factory
-    ):
-        m_prompt.return_value = True
-
-        m_ent_cls = mock.MagicMock()
-        m_ent_obj = m_ent_cls.return_value
-        m_ent_obj.application_status.return_value = [
-            ApplicationStatus.ENABLED,
-            "",
-        ]
-        m_ent_obj.disable.return_value = (True, None)
-        type(m_ent_obj).title = mock.PropertyMock(return_value="test")
-        base_ent = concrete_entitlement_factory(
-            entitled=True,
-            disable=True,
-            application_status=(ApplicationStatus.ENABLED, ""),
-            dependent_services=(m_ent_cls,),
-        )
-
-        ret, fail = base_ent.disable()
-
-        expected_prompt_call = 1
-        expected_ret = True
-        expected_disable_call = 1
-
-        assert ret == expected_ret
-        assert fail is None
-        assert m_prompt.call_count == expected_prompt_call
-        assert m_ent_obj.disable.call_count == expected_disable_call
-
-    @pytest.mark.parametrize("disable_fail_message", (("error"), (None)))
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
-    def test_disable_false_when_fails_to_disable_dependent_service(
-        self,
-        m_handle_msg,
-        m_prompt_for_confirmation,
-        disable_fail_message,
-        concrete_entitlement_factory,
-    ):
-        m_handle_msg.return_value = True
-
-        fail_reason = CanDisableFailure(
-            CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
-        )
-        if disable_fail_message:
-            msg = messages.NamedMessage("test-code", disable_fail_message)
-        else:
-            msg = None
-
-        disable_fail_reason = CanDisableFailure(
-            CanDisableFailureReason.ALREADY_DISABLED, message=msg
-        )
-
-        m_ent_cls = mock.Mock()
-        type(m_ent_cls).name = mock.PropertyMock(return_value="Test")
-        m_ent_obj = m_ent_cls.return_value
-        m_ent_obj.disable.return_value = (False, disable_fail_reason)
-        m_ent_obj.application_status.return_value = (
-            ApplicationStatus.ENABLED,
-            None,
-        )
-        type(m_ent_obj).title = mock.PropertyMock(return_value="Test")
-
-        m_prompt_for_confirmation.return_vale = True
-
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(ApplicationStatus.DISABLED, ""),
-            dependent_services=(m_ent_cls,),
-        )
-
-        with mock.patch.object(entitlement, "can_disable") as m_can_disable:
-            m_can_disable.return_value = (False, fail_reason)
-            ret, fail = entitlement.disable()
-
-        assert not ret
-        expected_msg = "Cannot disable dependent service: Test"
-        if disable_fail_reason.message:
-            expected_msg += "\n" + disable_fail_reason.message.msg
-        assert expected_msg == fail.message.msg
-        assert 1 == m_can_disable.call_count
-
-    @pytest.mark.parametrize(
-        "p_name,expected",
-        (
-            ("pretty_name", ["testconcreteentitlement", "pretty_name"]),
-            ("testconcreteentitlement", ["testconcreteentitlement"]),
-        ),
-    )
-    @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.presentation_name",
-        new_callable=mock.PropertyMock,
-    )
-    def test_valid_names(
-        self, m_p_name, p_name, expected, concrete_entitlement_factory
-    ):
-        m_p_name.return_value = p_name
-        entitlement = concrete_entitlement_factory(entitled=True)
-        assert expected == entitlement.valid_names
-
-    def test_presentation_name(self, concrete_entitlement_factory):
-        entitlement = concrete_entitlement_factory(entitled=True)
-        assert "testconcreteentitlement" == entitlement.presentation_name
-        m_entitlements = {
-            "testconcreteentitlement": {
-                "entitlement": {
-                    "affordances": {"presentedAs": "something_else"}
-                }
-            }
-        }
-        with mock.patch(
-            "uaclient.files.MachineTokenFile.entitlements", m_entitlements
-        ):
-            assert "something_else" == entitlement.presentation_name
-
-
-class TestUaEntitlementUserFacingStatus:
-    def test_inapplicable_when_not_applicable(
-        self, concrete_entitlement_factory
-    ):
-        msg = "inapplicable for very good reasons"
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            applicability_status=(
-                ApplicabilityStatus.INAPPLICABLE,
-                msg,
-            ),
-        )
-
-        user_facing_status, details = entitlement.user_facing_status()
-        assert UserFacingStatus.INAPPLICABLE == user_facing_status
-        assert msg == details
-
-    def test_unavailable_when_applicable_but_not_entitled(
-        self, concrete_entitlement_factory
-    ):
-
-        entitlement = concrete_entitlement_factory(
-            entitled=False,
-            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
-        )
-
-        user_facing_status, details = entitlement.user_facing_status()
-        assert UserFacingStatus.UNAVAILABLE == user_facing_status
-        expected_details = "{} is not entitled".format(entitlement.title)
-        assert expected_details == details.msg
-
-    def test_unavailable_when_applicable_but_no_entitlement_cfg(
-        self, concrete_entitlement_factory
-    ):
-
-        entitlement = concrete_entitlement_factory(
-            entitled=False,
-            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
-        )
-        entitlement.cfg._entitlements = {}
-
-        user_facing_status, details = entitlement.user_facing_status()
-        assert UserFacingStatus.UNAVAILABLE == user_facing_status
-        expected_details = "{} is not entitled".format(entitlement.title)
-        assert expected_details == details.msg
-
-    @pytest.mark.parametrize(
-        "application_status,expected_uf_status",
-        (
-            (ApplicationStatus.ENABLED, UserFacingStatus.ACTIVE),
-            (
-                ApplicationStatus.DISABLED,
-                UserFacingStatus.INACTIVE,
-            ),
-        ),
-    )
-    def test_application_status_used_if_not_inapplicable(
-        self,
-        concrete_entitlement_factory,
-        application_status,
-        expected_uf_status,
-    ):
-        msg = "application status details"
-        entitlement = concrete_entitlement_factory(
-            entitled=True,
-            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(application_status, msg),
-        )
-
-        user_facing_status, details = entitlement.user_facing_status()
-        assert expected_uf_status == user_facing_status
-        assert msg == details
