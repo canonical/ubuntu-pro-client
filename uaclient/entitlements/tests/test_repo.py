@@ -619,25 +619,57 @@ class TestRepoEnable:
 
 class TestPerformEnable:
     @pytest.mark.parametrize(
-        "supports_access_only, access_only, expected_install_calls",
-        (
-            (False, False, [mock.call()]),
-            (False, True, [mock.call()]),
-            (True, False, [mock.call()]),
-            (True, True, []),
-        ),
+        [
+            "supports_access_only",
+            "access_only",
+            "expected_setup_apt_calls",
+            "expected_install_calls",
+            "expected_check_for_reboot_calls",
+        ],
+        [
+            (
+                False,
+                False,
+                [mock.call(silent=mock.ANY)],
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                False,
+                True,
+                [mock.call(silent=mock.ANY)],
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                True,
+                False,
+                [mock.call(silent=mock.ANY)],
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                True,
+                True,
+                [mock.call(silent=mock.ANY)],
+                [],
+                [],
+            ),
+        ],
     )
     @mock.patch(M_PATH + "RepoEntitlement._check_for_reboot_msg")
     @mock.patch(M_PATH + "RepoEntitlement.install_packages")
     @mock.patch(M_PATH + "RepoEntitlement.setup_apt_config")
-    def test_access_only_skips_install(
+    def test_perform_enable(
         self,
-        _m_setup_apt_config,
+        m_setup_apt_config,
         m_install_packages,
-        _m_check_for_reboot_msg,
+        m_check_for_reboot_msg,
         supports_access_only,
         access_only,
+        expected_setup_apt_calls,
         expected_install_calls,
+        expected_check_for_reboot_calls,
         entitlement_factory,
     ):
         with mock.patch.object(
@@ -648,8 +680,15 @@ class TestPerformEnable:
                 affordances={"series": ["xenial"]},
                 access_only=access_only,
             )
-            entitlement._perform_enable()
+            assert entitlement._perform_enable(silent=True) is True
+            assert (
+                m_setup_apt_config.call_args_list == expected_setup_apt_calls
+            )
             assert m_install_packages.call_args_list == expected_install_calls
+            assert (
+                m_check_for_reboot_msg.call_args_list
+                == expected_check_for_reboot_calls
+            )
 
 
 class TestRemoveAptConfig:
