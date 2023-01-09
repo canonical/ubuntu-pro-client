@@ -672,6 +672,45 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  |
            | bionic  |
 
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attach works when snapd cannot be installed
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get remove -y snapd` with sudo
+        And I create the file `/etc/apt/preferences.d/no-snapd` with the following
+        """
+        Package: snapd
+        Pin: release o=*
+        Pin-Priority: -10
+        """
+        And I run `apt-get update` with sudo
+        When I attempt to attach `contract_token` with sudo
+        Then I will see the following on stderr:
+        """
+        Enabling default service esm-apps
+        Enabling default service esm-infra
+        Enabling default service livepatch
+        Failed to enable default services, check: sudo pro status
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +disabled
+        """
+        Then I verify that running `pro enable livepatch` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Installing snapd
+        Updating package lists
+        Failed to install snapd on the system
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.vm
@@ -703,8 +742,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | release |
            | xenial  |
            | bionic  |
-           | focal   |
-           | jammy   |
+
 
     @series.xenial
     @uses.config.machine_type.lxd.vm
