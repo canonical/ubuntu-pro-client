@@ -39,6 +39,7 @@ Feature: Unattached status
            | xenial  |
            | jammy   |
            | kinetic |
+           | lunar   |
 
     @series.xenial
     @series.bionic
