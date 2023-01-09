@@ -29,6 +29,7 @@ Feature: Command behaviour when unattached
            | xenial  |
            | jammy   |
            | kinetic |
+           | lunar   |
 
     @series.xenial
     @uses.config.machine_type.lxd.container
@@ -93,6 +94,8 @@ Feature: Command behaviour when unattached
            | kinetic | refresh |
            | jammy   | detach  |
            | jammy   | refresh |
+           | lunar   | detach  |
+           | lunar   | refresh |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -139,6 +142,7 @@ Feature: Command behaviour when unattached
            | focal    | yes             |
            | jammy    | yes             |
            | kinetic  | no              |
+           | lunar    | no              |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -212,6 +216,8 @@ Feature: Command behaviour when unattached
           | kinetic | disable  |
           | jammy   | enable   |
           | jammy   | disable  |
+          | lunar   | enable   |
+          | lunar   | disable  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -279,6 +285,7 @@ Feature: Command behaviour when unattached
           | focal   |
           | jammy   |
           | kinetic |
+          | lunar   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -340,3 +347,4 @@ Feature: Command behaviour when unattached
           | focal   |
           | jammy   |
           | kinetic |
+          | lunar   |

@@ -48,6 +48,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | focal   |
           | jammy   |
           | kinetic |
+          | lunar   |
 
     @series.lts
     @uses.config.machine_type.lxd.container

@@ -32,6 +32,7 @@ Feature: Pro is expected version
             | focal   |
             | jammy   |
             | kinetic |
+            | lunar   |
 
     @series.all
     @uses.config.check_version
@@ -56,3 +57,4 @@ Feature: Pro is expected version
             | focal   |
             | jammy   |
             | kinetic |
+            | lunar   |
