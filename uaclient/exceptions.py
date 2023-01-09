@@ -97,6 +97,12 @@ class SnapdNotProperlyInstalledError(UserFacingError):
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
+class CannotInstallSnapdError(UserFacingError):
+    def __init__(self) -> None:
+        msg = messages.CANNOT_INSTALL_SNAPD
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
 class ErrorInstallingLivepatch(UserFacingError):
     def __init__(self, error_msg: str) -> None:
         msg = messages.ERROR_INSTALLING_LIVEPATCH.format(error_msg=error_msg)

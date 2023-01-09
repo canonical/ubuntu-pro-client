@@ -541,7 +541,7 @@ APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
     "apt-update-invalid-repo", "APT update failed.\n{repo_msg}"
 )
 
-APT_INSTALL_FAILED = NamedMessage("apt-install-failes", "APT install failed.")
+APT_INSTALL_FAILED = NamedMessage("apt-install-failed", "APT install failed.")
 
 APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
     "apt-update-invalid-url-config",
@@ -577,6 +577,10 @@ SNAPD_NOT_PROPERLY_INSTALLED = FormattedNamedMessage(
         "{snap_cmd} is present but snapd is not installed;"
         " cannot enable {service}"
     ),
+)
+
+CANNOT_INSTALL_SNAPD = NamedMessage(
+    "cannot-install-snapd", "Failed to install snapd on the system"
 )
 
 SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
