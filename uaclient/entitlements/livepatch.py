@@ -161,11 +161,14 @@ class LivepatchEntitlement(UAEntitlement):
                     " Ignoring apt-get update failure: %s",
                     str(e),
                 )
-            system.subp(
-                ["apt-get", "install", "--assume-yes", "snapd"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-            )
+            try:
+                system.subp(
+                    ["apt-get", "install", "--assume-yes", "snapd"],
+                    retry_sleeps=apt.APT_RETRIES,
+                )
+            except exceptions.ProcessExecutionError:
+                raise exceptions.CannotInstallSnapdError()
+
         elif not snap.is_installed():
             raise exceptions.SnapdNotProperlyInstalledError(
                 snap_cmd=snap.SNAP_CMD, service=self.title

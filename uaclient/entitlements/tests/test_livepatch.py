@@ -694,7 +694,6 @@ class TestLivepatchEntitlementEnable:
     mocks_snapd_install = [
         mock.call(
             ["apt-get", "install", "--assume-yes", "snapd"],
-            capture=True,
             retry_sleeps=apt.APT_RETRIES,
         )
     ]
@@ -1082,12 +1081,50 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
+    @mock.patch("uaclient.entitlements.livepatch.apt.run_apt_update_command")
+    @mock.patch("uaclient.system.which")
+    @mock.patch("uaclient.system.subp")
+    def test_enable_raise_exception_when_snapd_cant_be_installed(
+        self,
+        m_subp,
+        m_which,
+        _m_apt_update,
+        m_livepatch_proxy,
+        m_snap_proxy,
+        m_validate_proxy,
+        _m_is_installed,
+        entitlement,
+    ):
+        m_which.side_effect = [False, True]
+
+        m_subp.side_effect = exceptions.ProcessExecutionError(
+            cmd="apt-get install --assume-yes snapd",
+            exit_code=-1,
+        )
+
+        with mock.patch.object(entitlement, "can_enable") as m_can_enable:
+            m_can_enable.return_value = (True, None)
+            with mock.patch.object(
+                entitlement, "setup_livepatch_config"
+            ) as m_setup_livepatch:
+                with pytest.raises(exceptions.CannotInstallSnapdError):
+                    entitlement.enable()
+
+            assert 1 == m_can_enable.call_count
+            assert 0 == m_setup_livepatch.call_count
+
+        assert m_validate_proxy.call_count == 0
+        assert m_snap_proxy.call_count == 0
+        assert m_livepatch_proxy.call_count == 0
+
+    @mock.patch("uaclient.entitlements.livepatch.apt.run_apt_update_command")
     @mock.patch("uaclient.system.which")
     @mock.patch("uaclient.system.subp")
     def test_enable_raise_exception_for_unexpected_error_on_snapd_wait(
         self,
         m_subp,
         m_which,
+        _m_apt_update,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -1098,12 +1135,17 @@ class TestLivepatchEntitlementEnable:
         m_is_installed.return_value = True
         stderr_msg = "test error"
 
-        m_subp.side_effect = exceptions.ProcessExecutionError(
-            cmd="snapd wait system seed.loaded",
-            exit_code=-1,
-            stdout="",
-            stderr=stderr_msg,
-        )
+        # No side effect when trying to install snapd,
+        # Exception when trying to wait
+        m_subp.side_effect = [
+            None,
+            exceptions.ProcessExecutionError(
+                cmd="snapd wait system seed.loaded",
+                exit_code=-1,
+                stdout="",
+                stderr=stderr_msg,
+            ),
+        ]
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
             m_can_enable.return_value = (True, None)
