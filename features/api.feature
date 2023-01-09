@@ -22,6 +22,7 @@ Feature: Client behaviour for the API endpoints
            | xenial  |
            | jammy   |
            | kinetic |
+           | lunar   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -50,3 +51,4 @@ Feature: Client behaviour for the API endpoints
            | xenial  |
            | jammy   |
            | kinetic |
+           | lunar   |
