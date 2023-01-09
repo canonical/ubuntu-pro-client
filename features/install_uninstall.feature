@@ -14,6 +14,7 @@ Feature: Pro Install and Uninstall related tests
            | focal   |
            | jammy   |
            | kinetic |
+           | lunar   |
 
     @series.lts
     @uses.config.contract_token

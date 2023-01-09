@@ -1,7 +1,7 @@
 @uses.config.contract_token
 Feature: Attached cloud does not detach when auto-attaching after manually attaching
 
-    @series.all
+    @series.lts
     @uses.config.machine_type.aws.generic
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.gcp.generic
