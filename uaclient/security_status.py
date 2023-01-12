@@ -8,8 +8,7 @@ from functools import lru_cache
 from random import choice
 from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
 
-from apt import Cache  # type: ignore
-from apt import package as apt_package
+import apt  # type: ignore
 
 from uaclient import messages
 from uaclient.config import UAConfig
@@ -69,7 +68,7 @@ def get_esm_cache():
     try:
         # If the rootdir folder doesn't contain any apt source info, the
         # cache will be empty
-        cache = Cache(rootdir=ESM_APT_ROOTDIR)
+        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
     except Exception:
         cache = {}
 
@@ -77,11 +76,11 @@ def get_esm_cache():
 
 
 def get_installed_packages_by_origin() -> DefaultDict[
-    "str", List[apt_package.Package]
+    "str", List[apt.package.Package]
 ]:
     result = defaultdict(list)
 
-    cache = Cache()
+    cache = apt.Cache()
     installed_packages = [package for package in cache if package.is_installed]
     result["all"] = installed_packages
 
@@ -91,7 +90,7 @@ def get_installed_packages_by_origin() -> DefaultDict[
     return result
 
 
-def get_origin_for_package(package: apt_package.Package) -> str:
+def get_origin_for_package(package: apt.package.Package) -> str:
     """
     Returns the origin for a package installed in the system.
 
@@ -140,8 +139,8 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
 
 
 def filter_security_updates(
-    packages: List[apt_package.Package],
-) -> DefaultDict[str, List[Tuple[apt_package.Version, str]]]:
+    packages: List[apt.package.Package],
+) -> DefaultDict[str, List[Tuple[apt.package.Version, str]]]:
     """Filters a list of packages looking for available updates.
 
     All versions greater than the installed one are reported, based on where
@@ -328,7 +327,7 @@ def get_reboot_status():
 
 def create_updates_list(
     security_upgradable_versions: DefaultDict[
-        str, List[Tuple[apt_package.Version, str]]
+        str, List[Tuple[apt.package.Version, str]]
     ],
     ua_info: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
@@ -405,7 +404,7 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
 
 
 def _print_package_summary(
-    package_lists: DefaultDict[str, List[apt_package.Package]],
+    package_lists: DefaultDict[str, List[apt.package.Package]],
     show_items: str = "all",
     always_show: bool = False,
 ) -> None:
@@ -531,8 +530,8 @@ def _print_service_support(
 
 
 def _print_package_list(
-    package_list: List[apt_package.Package],
-    reference_list: List[apt_package.Package] = [],
+    package_list: List[apt.package.Package],
+    reference_list: List[apt.package.Package] = [],
 ):
     package_string = ""
 
