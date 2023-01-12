@@ -9,26 +9,17 @@ present updated text about Ubuntu Pro service and token state.
 import enum
 import logging
 import os
-from functools import lru_cache
 from os.path import exists
 from typing import List, Tuple
 
 from uaclient import config, contract, defaults, entitlements, system, util
-from uaclient.clouds import identity
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
-    ANNOUNCE_ESM_APPS_TMPL,
     CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_SOON_TMPL,
 )
-
-XENIAL_ESM_URL = "https://ubuntu.com/16-04"
-AZURE_PRO_URL = "https://ubuntu.com/azure/pro"
-AZURE_XENIAL_URL = "https://ubuntu.com/16-04/azure"
-AWS_PRO_URL = "https://ubuntu.com/aws/pro"
-GCP_PRO_URL = "https://ubuntu.com/gcp/pro"
 
 
 @enum.unique
@@ -53,7 +44,6 @@ class ExternalMessage(enum.Enum):
     APT_PRE_INVOKE_INFRA_PKGS = "apt-pre-invoke-packages-infra.tmpl"
     APT_PRE_INVOKE_SERVICE_STATUS = "apt-pre-invoke-esm-service-status"
     MOTD_ESM_SERVICE_STATUS = "motd-esm-service-status"
-    ESM_ANNOUNCE = "motd-esm-announce"
 
 
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
@@ -86,40 +76,6 @@ def get_contract_expiry_status(
     elif remaining_days < -grace_period:
         return ContractExpiryStatus.EXPIRED, remaining_days
     return ContractExpiryStatus.ACTIVE, remaining_days
-
-
-@lru_cache(maxsize=None)
-def get_contextual_esm_info_url() -> Tuple[str, str]:
-    cloud, _ = identity.get_cloud_type()
-    series = system.get_platform_info()["series"]
-
-    is_aws = False
-    is_gcp = False
-    is_azure = False
-    non_azure_cloud = False
-    if cloud is not None:
-        is_aws = cloud.startswith("aws")
-        is_gcp = cloud.startswith("gce")
-        is_azure = cloud.startswith("azure")
-        non_azure_cloud = not is_azure
-
-    is_xenial = series == "xenial"
-
-    if cloud is None and not is_xenial:
-        return (defaults.BASE_UA_URL, "")
-    if (cloud is None or non_azure_cloud) and is_xenial:
-        return (XENIAL_ESM_URL, " for 16.04")
-    if is_azure and not is_xenial:
-        return (AZURE_PRO_URL, " on Azure")
-    if is_azure and is_xenial:
-        return (AZURE_XENIAL_URL, " for 16.04 on Azure")
-    if is_aws and not is_xenial:
-        return (AWS_PRO_URL, " on AWS")
-    if is_gcp and not is_xenial:
-        return (GCP_PRO_URL, " on GCP")
-
-    # default case
-    return (defaults.BASE_UA_URL, "")
 
 
 def _write_template_or_remove(msg: str, tmpl_file: str):
@@ -289,35 +245,6 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
         )
 
 
-def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
-    """Write human-readable messages if ESM is offered on this LTS release.
-
-    Do not write ESM announcements if esm-apps is enabled or beta.
-
-    :param cfg: UAConfig instance for this environment.
-    :param series: string of Ubuntu release series: 'xenial'.
-    """
-    apps_cls = entitlements.entitlement_factory(cfg=cfg, name="esm-apps")
-    apps_inst = apps_cls(cfg)
-    enabled_status = ApplicationStatus.ENABLED
-    apps_not_enabled = apps_inst.application_status()[0] != enabled_status
-    config_allow_beta = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.allow_beta"
-    )
-    apps_not_beta = bool(config_allow_beta or not apps_cls.is_beta)
-
-    msg_dir = os.path.join(cfg.data_dir, "messages")
-    esm_news_file = os.path.join(msg_dir, ExternalMessage.ESM_ANNOUNCE.value)
-    if apps_not_beta and apps_not_enabled:
-        url, _ = get_contextual_esm_info_url()
-        system.write_file(
-            esm_news_file,
-            "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=url),
-        )
-    else:
-        system.ensure_file_absent(esm_news_file)
-
-
 def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     """Emit templates and human-readable status messages in msg_dir.
 
@@ -352,8 +279,6 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     ):
         update_contract_expiry(cfg)
 
-    # Announce ESM availabilty on active ESM LTS releases
-    write_esm_announcement_message(cfg, series)
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     try:
