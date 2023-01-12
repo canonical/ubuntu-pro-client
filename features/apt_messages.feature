@@ -246,10 +246,6 @@ Feature: APT Messages
           ]
         }
         """
-        # test is too fast and systemd doesn't like triggering motd-news.service
-        # (during pro refresh messages) too frequently
-        # So there are "wait"s before each pro refresh messages call
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -308,7 +304,6 @@ Feature: APT Messages
         """
 
         # manual refresh gets new message
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -343,7 +338,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -370,7 +364,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -398,7 +391,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -424,7 +416,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -455,7 +446,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -482,7 +472,6 @@ Feature: APT Messages
           ]
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
@@ -554,7 +543,6 @@ Feature: APT Messages
             }
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then stdout matches regexp:
@@ -581,7 +569,6 @@ Feature: APT Messages
             }
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
