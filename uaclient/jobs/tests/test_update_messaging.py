@@ -626,7 +626,7 @@ class TestUpdateAPTandMOTDMessages:
 
         if is_lts:
             write_apt_calls = [mock.call(cfg, series)]
-            esm_announce_calls = []
+            esm_announce_calls = [mock.call(cfg, series)]
             subp_calls = [
                 mock.call(
                     [
