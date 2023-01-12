@@ -173,29 +173,6 @@ class TestActionRefresh:
         assert [mock.call(subp_exc)] == logging_error.call_args_list
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
 
-    @mock.patch("uaclient.jobs.update_messaging.exists", return_value=True)
-    @mock.patch("logging.exception")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
-    def test_refresh_messages_systemctl_error(
-        self,
-        m_update_motd,
-        m_subp,
-        logging_error,
-        _m_path,
-        getuid,
-        FakeConfig,
-    ):
-        subp_exc = Exception("test")
-        m_subp.side_effect = ["", subp_exc]
-
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            action_refresh(mock.MagicMock(target="messages"), cfg=FakeConfig())
-
-        assert 1 == logging_error.call_count
-        assert [mock.call(subp_exc)] == logging_error.call_args_list
-        assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
-
     @mock.patch("uaclient.cli.refresh_motd")
     @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_refresh_messages_happy_path(

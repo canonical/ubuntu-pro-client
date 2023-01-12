@@ -301,8 +301,6 @@ def refresh_motd():
         except Exception as exc:
             logging.exception(exc)
 
-    system.subp(["sudo", "systemctl", "restart", "motd-news.service"])
-
 
 def update_contract_expiry(cfg: config.UAConfig):
     orig_token = cfg.machine_token
