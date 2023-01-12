@@ -992,12 +992,14 @@ To get more information about the packages, run
     pro security-status --help
 for a list of available options."""
 
-SS_UNATTACHED = "This machine is not attached to an Ubuntu Pro subscription."
+SS_INTERIM_SUPPORT = "Main/Restricted packages receive updates until {date}."
+SS_LTS_SUPPORT = """\
+This machine is receiving security patching for Ubuntu Main/Restricted
+repository until {date}."""
 
-SS_SUPPORT = "Main/Restricted packages receive updates{lts} until {date}."
-SS_INFRA_AFTER_LTS = """\
-After the LTS period ends, Main/Restricted packages will get security updates
-from Ubuntu Pro with 'esm-infra' enabled."""
+SS_IS_ATTACHED = (
+    "This machine is{not_attached} attached to an Ubuntu Pro subscription."
+)
 
 SS_THIRD_PARTY = """\
 Packages from third parties are not provided by the official Ubuntu
@@ -1007,14 +1009,23 @@ Packages that are not available for download may be left over from a
 previous release of Ubuntu, may have been installed directly from a
 .deb file, or are from a source which has been disabled."""
 
+SS_NO_SECURITY_COVERAGE = """\
+This machine is NOT receiving security patches because the LTS period has ended
+and esm-infra is not enabled."""
+
 SS_SERVICE_ADVERTISE = """\
 Ubuntu Pro with '{service}' enabled provides security updates for
-{repository} packages until {year} and has {updates} pending security update{plural}."""  # noqa: E501
+{repository} packages until {year}"""
+SS_SERVICE_ADVERTISE_COUNTS = (
+    " and has {updates} pending security update{plural}."
+)
 
 SS_SERVICE_ENABLED = """\
 {repository} packages are receiving security updates from
-Ubuntu Pro with '{service}' enabled until {year}. You have received {updates} security
-update{plural}."""  # noqa: E501
+Ubuntu Pro with '{service}' enabled until {year}."""
+SS_SERVICE_ENABLED_COUNTS = """\
+ You have received {updates} security
+update{plural}."""
 
 SS_SERVICE_COMMAND = "Enable {service} with: pro enable {service}"
 SS_LEARN_MORE = """\
@@ -1033,7 +1044,7 @@ SS_NO_THIRD_PARTY = "You have no packages installed from a third party."
 SS_NO_UNAVAILABLE = (
     "You have no packages installed that are no longer available."
 )
-SS_NO_PRO_SUPPORT = "Ubuntu Pro is not available for non-LTS releases."
+SS_NO_INTERIM_PRO_SUPPORT = "Ubuntu Pro is not available for non-LTS releases."
 
 SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
 SS_BOLD_PACKAGES = """\
