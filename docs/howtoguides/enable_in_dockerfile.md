@@ -1,17 +1,25 @@
-# How to Enable Ubuntu Pro Services in a Dockerfile
+# How to enable Ubuntu Pro Services in a Dockerfile
 
-> Requires at least Ubuntu Pro Client version 27.7
-
-Ubuntu Pro comes with several services, some of which can be useful in docker. For example, Expanded Security Maintenance of packages and FIPS certified packages may be desirable in a docker image. In this how-to-guide, we show how you can use the `pro` tool to take advantage of these services in your Dockerfile.
-
-
-## Step 1: Create an Ubuntu Pro Attach Config file
-
-```{attention}
-The Ubuntu Pro Attach Config file will contain your Ubuntu Pro Contract token and should be treated as a secret file.
+```{important}
+This requires at least Ubuntu Pro Client version 27.7
 ```
 
-An attach config file for `pro` is a yaml file that specifies some options when running `pro attach`. The file has two fields, `token` and `enable_services` and looks something like this:
+Ubuntu Pro comes with several services, some of which can be useful in Docker.
+For example, Expanded Security Maintenance (ESM) of packages and FIPS-certified
+packages may be desirable in a Docker image. In this how-to guide, we show how
+you can use the `pro` tool to take advantage of these services in your
+Dockerfile.
+
+## Create an Ubuntu Pro Attach Config file
+
+```{attention}
+The Ubuntu Pro Attach Config file will contain your Ubuntu Pro Contract token
+and should be treated as a secret file.
+```
+
+An Attach Config file for `pro` is a YAML file that specifies some options when
+running `pro attach`. The file has two fields, `token` and `enable_services`
+and looks something like this:
 
 ```yaml
 token: TOKEN
@@ -21,24 +29,28 @@ enable_services:
   - service3
 ```
 
-The `token` field is required and must be set to your Ubuntu Pro token that you can get from signing into [ubuntu.com/pro](https://ubuntu.com/pro).
+The `token` field is required and must be set to your Ubuntu Pro token that you
+can get from signing into [ubuntu.com/pro](https://ubuntu.com/pro).
 
-The `enable_services` field value is a list of Ubuntu Pro service names. When it is set, then the services specified will be automatically enabled after attaching with your Ubuntu Pro token.
+The `enable_services` field value is a list of Ubuntu Pro service names. When
+it is set, then the services specified will be automatically enabled after
+attaching with your Ubuntu Pro token.
 
-Service names that you may be interested in enabling in your docker builds include:
+Service names that you may be interested in enabling in your Docker builds
+include:
+
 - `esm-infra`
 - `esm-apps`
 - `fips`
 - `fips-updates`
 
-You can find out more about these services by running `pro help service-name` on any Ubuntu machine.
+You can find out more about these services by running `pro help service-name`
+on any Ubuntu machine.
 
+## Create a Dockerfile to use `pro` and your Attach Config file
 
-## Step 2: Create a Dockerfile to use `pro` and your attach config file
-
-Your Dockerfile is going to look something like this.
-
-There are comments inline explaining each line.
+Your Dockerfile is going to look something like the following -- there are
+inline comments explaining each line:
 
 ```dockerfile
 # Base off of the LTS of your choice
@@ -105,29 +117,40 @@ RUN --mount=type=secret,id=pro-attach-config \
 # from Ubuntu Pro services, you can continue the rest of your app-specific Dockerfile.
 ```
 
-An important point to note about the above Dockerfile is that all of the `apt` and `pro` commands happen inside of one Dockerfile `RUN` instruction. This is critical and must not be changed. Keeping everything as written inside of one `RUN` instruction has two key benefits:
+An important point to note about the above Dockerfile is that all of the `apt`
+and `pro` commands happen inside one Dockerfile `RUN` instruction. This is
+critical and must not be changed. Keeping everything as written inside of
+one `RUN` instruction has two key benefits:
 
-1. Prevents any Ubuntu Pro Subscription-related tokens and secrets from being leaked in an image layer
-2. Keeps the image as small as possible by cleaning up extra packages and files before the layer is finished.
+1. It prevents any Ubuntu Pro Subscription-related tokens and secrets from
+   being leaked in an image layer.
+2. It keeps the image as small as possible by cleaning up extra packages and
+   files before the layer is finished.
 
 ```{note}
 These benefits could also be attained by squashing the image.
 ```
 
-## Step 3: Build the Docker image
+## Build the Docker image
 
-
-Now, with our attach config file and Dockerfile created, we can build the image with a command like the following
+Now, with our Attach Config file and Dockerfile created, we can build the image
+with a command like the following:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build . --secret id=pro-attach-config,src=pro-attach-config.yaml -t ubuntu-focal-pro
 ```
 
-There are two important pieces of this command.
+There are two important pieces to this command.
 
-1. We enable BuildKit with `DOCKER_BUILDKIT=1`. This is necessary to support the secret mount feature.
-2. We use the secret mount feature of BuildKit with `--secret id=pro-attach-config,src=pro-attach-config.yaml`. This is what passes our attach config file in to be securely used by the `RUN --mount=type=secret,id=pro-attach-config` command in the Dockerfile.
+1. We enable BuildKit with `DOCKER_BUILDKIT=1`. This is necessary to support
+   the secret mount feature.
+2. We use the secret mount feature of BuildKit with
+   `--secret id=pro-attach-config,src=pro-attach-config.yaml`. This is what
+   passes our Attach Config file in to be securely used by the
+   `RUN --mount=type=secret,id=pro-attach-config` command in the Dockerfile.
 
 ## Success
 
-Congratulations! At this point, you should have a docker image that has been built with Ubuntu Pro packages installed from whichever Ubuntu Pro service you required.
+Congratulations! At this point, you should have a docker image that has been
+built with Ubuntu Pro packages installed from whichever Ubuntu Pro service you
+required.
