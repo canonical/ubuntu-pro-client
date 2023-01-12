@@ -78,7 +78,7 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
 def cleanup(cfg: UAConfig):
     state_files.retry_auto_attach_state_file.delete()
     state_files.retry_auto_attach_options_file.delete()
-    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+    system.ensure_file_absent(AUTO_ATTACH_STATUS_MOTD_FILE)
     cfg.notice_file.remove("", messages.AUTO_ATTACH_RETRY_NOTICE_PREFIX)
 
 

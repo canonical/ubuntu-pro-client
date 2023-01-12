@@ -57,7 +57,7 @@ class UAFile:
         return content
 
     def delete(self):
-        system.remove_file(self.path)
+        system.ensure_file_absent(self.path)
 
 
 class MachineTokenFile:

@@ -392,7 +392,7 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         raise e
 
 
-def remove_file(file_path: str) -> None:
+def ensure_file_absent(file_path: str) -> None:
     """Remove a file if it exists, logging a message about removal."""
     if os.path.exists(file_path):
         logging.debug("Removing file: %s", file_path)
@@ -507,7 +507,7 @@ def subp(
     return out, err
 
 
-def remove_folder(folder_path: str) -> None:
+def ensure_folder_absent(folder_path: str) -> None:
     if os.path.exists(folder_path):
         logging.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
