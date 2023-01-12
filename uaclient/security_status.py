@@ -431,16 +431,21 @@ def _print_package_summary(
     print("")
 
 
-def _print_release_support(is_lts: bool):
+def _print_interim_release_support():
     series = get_platform_info()["series"]
     eol_date = get_distro_info(series).eol
-    lts = " with LTS"
-    date = str(eol_date.year)
-    if not is_lts:
-        lts = ""
-        date = "{}/{}".format(str(eol_date.month), str(eol_date.year))
-    print(messages.SS_SUPPORT.format(lts=lts, date=date))
+    date = "{}/{}".format(str(eol_date.month), str(eol_date.year))
+    print(messages.SS_INTERIM_SUPPORT.format(date=date))
     print("")
+
+
+def _print_lts_support():
+    series = get_platform_info()["series"]
+    if is_supported(series):
+        eol_date = get_distro_info(series).eol
+        print(messages.SS_LTS_SUPPORT.format(date=str(eol_date.year)))
+    else:
+        print(messages.SS_NO_SECURITY_COVERAGE)
 
 
 def _print_service_support(
@@ -455,25 +460,31 @@ def _print_service_support(
     series = get_platform_info()["series"]
     eol_date_esm = get_distro_info(series).eol_esm
     if service_status == ApplicationStatus.ENABLED:
-        print(
-            messages.SS_SERVICE_ENABLED.format(
-                repository=repository,
-                service=service,
-                year=str(eol_date_esm.year),
-                updates=installed_updates if installed_updates else "no",
+        message = messages.SS_SERVICE_ENABLED.format(
+            repository=repository,
+            service=service,
+            year=str(eol_date_esm.year),
+        )
+        if installed_updates:
+            message += messages.SS_SERVICE_ENABLED_COUNTS.format(
+                updates=installed_updates,
                 plural="" if installed_updates == 1 else "s",
             )
-        )
+        print(message)
     else:
-        print(
-            messages.SS_SERVICE_ADVERTISE.format(
-                service=service,
-                repository=repository,
-                year=str(eol_date_esm.year),
+        message = messages.SS_SERVICE_ADVERTISE.format(
+            service=service,
+            repository=repository,
+            year=str(eol_date_esm.year),
+        )
+        if available_updates:
+            message += messages.SS_SERVICE_ADVERTISE_COUNTS.format(
                 updates=available_updates,
                 plural="s" if available_updates > 1 else "",
             )
-        )
+        else:
+            message += "."
+        print(message)
         if (
             is_attached
             and service_applicability == ApplicabilityStatus.APPLICABLE
@@ -548,24 +559,32 @@ def security_status(cfg: UAConfig):
     print(messages.SS_HELP_CALL)
     print("")
 
-    if is_lts and not is_attached:
-        print(messages.SS_UNATTACHED)
-        print("")
+    if not is_lts:
+        if is_supported(series):
+            _print_interim_release_support()
+        print(messages.SS_NO_INTERIM_PRO_SUPPORT)
+        return
 
-    if is_supported(series):
-        _print_release_support(is_lts=is_lts)
-    elif is_lts:
-        _print_service_support(
-            service="esm-infra",
-            repository="Main/Restricted",
-            service_status=esm_infra_status,
-            service_applicability=esm_infra_applicability,
-            installed_updates=len(packages_by_origin["esm-infra"]),
-            available_updates=len(security_upgradable_versions_infra),
-            is_attached=is_attached,
-        )
+    if esm_infra_status == ApplicationStatus.DISABLED:
+        _print_lts_support()
 
-    if is_lts and (
+    not_attached = ""
+    if not is_attached:
+        not_attached = " NOT"
+    print(messages.SS_IS_ATTACHED.format(not_attached=not_attached))
+    print("")
+
+    _print_service_support(
+        service="esm-infra",
+        repository="Main/Restricted",
+        service_status=esm_infra_status,
+        service_applicability=esm_infra_applicability,
+        installed_updates=len(packages_by_origin["esm-infra"]),
+        available_updates=len(security_upgradable_versions_infra),
+        is_attached=is_attached,
+    )
+
+    if (
         packages_by_origin["universe"]
         or packages_by_origin["multiverse"]
         or packages_by_origin["esm-apps"]
@@ -580,7 +599,7 @@ def security_status(cfg: UAConfig):
             is_attached=is_attached,
         )
 
-    if is_lts and not is_attached:
+    if not is_attached:
         print(messages.SS_LEARN_MORE)
 
 
@@ -647,31 +666,32 @@ def list_esm_infra_packages(cfg):
         packages_by_origin, show_items="esm-infra", always_show=True
     )
 
-    if is_supported(series):
-        _print_release_support(is_lts=is_lts)
-        if is_lts:
-            print(messages.SS_INFRA_AFTER_LTS)
-            return
-    elif is_lts:
-        _print_service_support(
-            service="esm-infra",
-            repository="Main/Restricted",
-            service_status=esm_infra_status,
-            service_applicability=esm_infra_applicability,
-            installed_updates=len(infra_packages),
-            available_updates=len(infra_updates),
-            is_attached=False,  # don't care about the `enable` message
-        )
-        print(messages.SS_SERVICE_HELP.format(service="esm-infra"))
-        print("")
-
     if not is_lts:
-        print(messages.SS_NO_PRO_SUPPORT)
+        if is_supported(series):
+            _print_interim_release_support()
+        print(messages.SS_NO_INTERIM_PRO_SUPPORT)
         return
 
-    print(messages.SS_BOLD_PACKAGES.format(service="esm-infra"))
-    print("Packages:")
-    _print_package_list(all_infra_packages, list(infra_updates))
+    if esm_infra_status == ApplicationStatus.DISABLED:
+        _print_lts_support()
+        print("")
+
+    _print_service_support(
+        service="esm-infra",
+        repository="Main/Restricted",
+        service_status=esm_infra_status,
+        service_applicability=esm_infra_applicability,
+        installed_updates=len(infra_packages),
+        available_updates=len(infra_updates),
+        is_attached=False,  # don't care about the `enable` message
+    )
+    print(messages.SS_SERVICE_HELP.format(service="esm-infra"))
+    print("")
+
+    if not is_supported(series):
+        print(messages.SS_BOLD_PACKAGES.format(service="esm-infra"))
+        print("Packages:")
+        _print_package_list(all_infra_packages, list(infra_updates))
 
 
 def list_esm_apps_packages(cfg):
@@ -700,7 +720,7 @@ def list_esm_apps_packages(cfg):
     )
 
     if not is_lts:
-        print(messages.SS_NO_PRO_SUPPORT)
+        print(messages.SS_NO_INTERIM_PRO_SUPPORT)
         return
 
     _print_service_support(
