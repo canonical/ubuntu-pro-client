@@ -155,7 +155,7 @@ class TestActionDetach:
         [(True, False, True), (False, False, False), (True, True, True)],
     )
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.cli.entitlements.entitlement_factory")
     def test_entitlements_disabled_appropriately(
@@ -235,7 +235,7 @@ class TestActionDetach:
 
     @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_config_cache_deleted(
         self,
         m_update_apt_and_motd_msgs,
@@ -262,7 +262,7 @@ class TestActionDetach:
 
     @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_correct_message_emitted(
         self,
         m_update_apt_and_motd_msgs,
@@ -292,7 +292,7 @@ class TestActionDetach:
 
     @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_returns_zero(
         self,
         m_update_apt_and_motd_msgs,
@@ -351,7 +351,7 @@ class TestActionDetach:
         ],
     )
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements_disable_order")
     def test_informational_message_emitted(

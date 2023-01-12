@@ -19,7 +19,7 @@ def entitlement(request, entitlement_factory):
 
 @mock.patch("uaclient.system.is_lts", return_value=True)
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
-@mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
+@mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
 @mock.patch("uaclient.apt.setup_apt_proxy")
 class TestESMEntitlementEnable:
     @pytest.mark.parametrize(
@@ -164,7 +164,7 @@ class TestESMEntitlementEnable:
             assert [mock.call()] == m_disable_local_repo.call_args_list
 
 
-@mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
+@mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
 @mock.patch(
     "uaclient.system.get_platform_info", return_value={"series": "xenial"}
 )

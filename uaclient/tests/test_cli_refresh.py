@@ -137,9 +137,9 @@ class TestActionRefresh:
             mock.call(True, Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
 
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_refresh_messages_error(self, m_update_motd, getuid, FakeConfig):
-        """On failure in update_apt_and_motd_messages emit an error."""
+        """On failure in update_motd_messages emit an error."""
         m_update_motd.side_effect = Exception("test")
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
@@ -150,7 +150,7 @@ class TestActionRefresh:
     @mock.patch("uaclient.jobs.update_messaging.exists", return_value=True)
     @mock.patch("logging.exception")
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_refresh_messages_doesnt_fail_if_update_notifier_does(
         self,
         m_update_motd,
@@ -174,7 +174,7 @@ class TestActionRefresh:
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
 
     @mock.patch("uaclient.cli.refresh_motd")
-    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
+    @mock.patch("uaclient.cli.update_motd_messages")
     def test_refresh_messages_happy_path(
         self,
         m_update_motd,
