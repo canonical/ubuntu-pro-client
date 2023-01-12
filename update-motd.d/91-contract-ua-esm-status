@@ -1,7 +1,7 @@
 #!/bin/sh
-esm_stamp="/var/lib/ubuntu-advantage/messages/motd-esm-service-status"
+contract_status_stamp="/var/lib/ubuntu-advantage/messages/motd-contract-status"
 
-[ ! -r "$esm_stamp" ] || cat "$esm_stamp"
+[ ! -r "$contract_status_stamp" ] || cat "$contract_status_stamp"
 
 auto_attach_stamp="/var/lib/ubuntu-advantage/messages/motd-auto-attach-status"
 
