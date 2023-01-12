@@ -119,6 +119,7 @@ Feature: MOTD Messages
         [\w\d.]+
         """
         When I update contract to use `effectiveTo` as `$behave_var{today -3}`
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -133,6 +134,7 @@ Feature: MOTD Messages
         [\w\d.]+
         """
         When I update contract to use `effectiveTo` as `$behave_var{today -20}`
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -146,6 +148,7 @@ Feature: MOTD Messages
         [\w\d.]+
         """
         When I run `apt-get upgrade -y` with sudo
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout does not match regexp:
@@ -185,6 +188,7 @@ Feature: MOTD Messages
         features:
           machine_token_overlay: "/tmp/machine-token-overlay.json"
         """
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
@@ -207,6 +211,7 @@ Feature: MOTD Messages
             }
         }
         """
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
@@ -230,6 +235,7 @@ Feature: MOTD Messages
             }
         }
         """
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
@@ -243,6 +249,7 @@ Feature: MOTD Messages
         [\w\d.]+
         """
         When I run `apt-get upgrade -y` with sudo
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
