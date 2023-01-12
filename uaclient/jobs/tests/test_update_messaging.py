@@ -5,25 +5,17 @@ import mock
 import pytest
 
 from uaclient import system
-from uaclient.defaults import BASE_UA_URL, CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
+from uaclient.defaults import CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.jobs.update_messaging import (
-    AWS_PRO_URL,
-    AZURE_PRO_URL,
-    AZURE_XENIAL_URL,
-    GCP_PRO_URL,
-    XENIAL_ESM_URL,
     ContractExpiryStatus,
     ExternalMessage,
     _write_esm_service_msg_templates,
-    get_contextual_esm_info_url,
     get_contract_expiry_status,
     update_apt_and_motd_messages,
     write_apt_and_motd_templates,
-    write_esm_announcement_message,
 )
 from uaclient.messages import (
-    ANNOUNCE_ESM_APPS_TMPL,
     CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
@@ -59,42 +51,6 @@ class TestGetContractExpiryStatus:
             expected_status,
             contract_remaining_days,
         ) == get_contract_expiry_status(cfg)
-
-
-class TestGetContextualESMInfoURL:
-    @pytest.mark.parametrize(
-        "cloud, series, expected",
-        (
-            (None, "xenial", (XENIAL_ESM_URL, " for 16.04")),
-            (None, "bionic", (BASE_UA_URL, "")),
-            (None, "focal", (BASE_UA_URL, "")),
-            (None, "jammy", (BASE_UA_URL, "")),
-            ("aws", "xenial", (XENIAL_ESM_URL, " for 16.04")),
-            ("aws", "bionic", (AWS_PRO_URL, " on AWS")),
-            ("aws", "focal", (AWS_PRO_URL, " on AWS")),
-            ("aws", "jammy", (AWS_PRO_URL, " on AWS")),
-            ("azure", "xenial", (AZURE_XENIAL_URL, " for 16.04 on Azure")),
-            ("azure", "bionic", (AZURE_PRO_URL, " on Azure")),
-            ("azure", "focal", (AZURE_PRO_URL, " on Azure")),
-            ("azure", "jammy", (AZURE_PRO_URL, " on Azure")),
-            ("gce", "xenial", (XENIAL_ESM_URL, " for 16.04")),
-            ("gce", "bionic", (GCP_PRO_URL, " on GCP")),
-            ("gce", "focal", (GCP_PRO_URL, " on GCP")),
-            ("gce", "jammy", (GCP_PRO_URL, " on GCP")),
-            ("somethingelse", "xenial", (XENIAL_ESM_URL, " for 16.04")),
-            ("somethingelse", "bionic", (BASE_UA_URL, "")),
-            ("somethingelse", "focal", (BASE_UA_URL, "")),
-            ("somethingelse", "jammy", (BASE_UA_URL, "")),
-        ),
-    )
-    @mock.patch("uaclient.jobs.update_messaging.system.get_platform_info")
-    @mock.patch("uaclient.jobs.update_messaging.identity.get_cloud_type")
-    def test_get_contextual_esm_info_url(
-        self, m_get_cloud_type, m_get_platform_info, cloud, series, expected
-    ):
-        m_get_cloud_type.return_value = (cloud, None)
-        m_get_platform_info.return_value = {"series": series}
-        assert get_contextual_esm_info_url.__wrapped__() == expected
 
 
 class TestWriteAPTAndMOTDTemplates:
@@ -362,106 +318,6 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert motd_no_pkgs_msg == motd_no_pkgs_tmpl.read()
 
 
-class TestWriteESMAnnouncementMessage:
-    @pytest.mark.parametrize(
-        "series,release,is_active_esm,is_beta,cfg_allow_beta,"
-        "apps_enabled,expected",
-        (
-            # ESMApps.is_beta == True no Announcement
-            ("xenial", "16.04", True, True, None, False, None),
-            # Once release begins ESM and ESMApps.is_beta is false announce
-            (
-                "xenial",
-                "16.04",
-                True,
-                False,
-                None,
-                False,
-                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=XENIAL_ESM_URL),
-            ),
-            # allow_beta uaclient.config overrides is_beta and days_until_esm
-            (
-                "xenial",
-                "16.04",
-                True,
-                True,
-                True,
-                False,
-                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=XENIAL_ESM_URL),
-            ),
-            # when esm-apps already enabled don't show
-            ("xenial", "16.04", True, False, True, True, None),
-            (
-                "bionic",
-                "18.04",
-                False,
-                False,
-                None,
-                False,
-                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=BASE_UA_URL),
-            ),
-            (
-                "focal",
-                "20.04",
-                False,
-                False,
-                None,
-                False,
-                "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=BASE_UA_URL),
-            ),
-        ),
-    )
-    @mock.patch(
-        M_PATH + "entitlements.repo.RepoEntitlement.application_status"
-    )
-    @mock.patch(M_PATH + "entitlements.entitlement_factory")
-    @mock.patch(M_PATH + "system.is_active_esm")
-    @mock.patch(M_PATH + "system.get_platform_info")
-    def test_message_based_on_beta_status_and_count_until_active_esm(
-        self,
-        get_platform_info,
-        util_is_active_esm,
-        m_entitlement_factory,
-        esm_application_status,
-        series,
-        release,
-        is_active_esm,
-        is_beta,
-        cfg_allow_beta,
-        apps_enabled,
-        expected,
-        FakeConfig,
-    ):
-        get_contextual_esm_info_url.cache_clear()
-        get_platform_info.return_value = {"series": series, "release": release}
-        system.is_active_esm.return_value = is_active_esm
-
-        cfg = FakeConfig.for_attached_machine()
-        msg_dir = os.path.join(cfg.data_dir, "messages")
-        os.makedirs(msg_dir)
-        esm_news_path = os.path.join(msg_dir, "motd-esm-announce")
-
-        if cfg_allow_beta:
-            cfg.override_features({"allow_beta": cfg_allow_beta})
-
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_cls.is_beta = is_beta
-        m_ent_obj = m_entitlement_cls.return_value
-        if apps_enabled:
-            status_return = ApplicationStatus.ENABLED, ""
-        else:
-            status_return = ApplicationStatus.DISABLED, ""
-        m_ent_obj.application_status.return_value = status_return
-
-        m_entitlement_factory.return_value = m_entitlement_cls
-
-        write_esm_announcement_message(cfg, series)
-        if expected is None:
-            assert False is os.path.exists(esm_news_path)
-        else:
-            assert expected == system.load_file(esm_news_path)
-
-
 class TestUpdateAPTandMOTDMessages:
     @pytest.mark.parametrize(
         "series,is_lts,esm_active,cfg_allow_beta",
@@ -475,14 +331,12 @@ class TestUpdateAPTandMOTDMessages:
     @mock.patch(M_PATH + "system.is_lts")
     @mock.patch(M_PATH + "system.is_active_esm")
     @mock.patch(M_PATH + "write_apt_and_motd_templates")
-    @mock.patch(M_PATH + "write_esm_announcement_message")
     @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "system.get_platform_info")
     def test_motd_and_apt_templates_written_separately(
         self,
         get_platform_info,
         subp,
-        write_esm_announcement_message,
         write_apt_and_motd_templates,
         is_active_esm,
         util_is_lts,
@@ -519,7 +373,6 @@ class TestUpdateAPTandMOTDMessages:
 
         if is_lts:
             write_apt_calls = [mock.call(cfg, series)]
-            esm_announce_calls = [mock.call(cfg, series)]
             subp_calls = [
                 mock.call(
                     [
@@ -528,16 +381,13 @@ class TestUpdateAPTandMOTDMessages:
                 )
             ]
         else:
-            write_apt_calls = esm_announce_calls = []
+            write_apt_calls = []
             subp_calls = []
             # Cached msg templates removed on non-LTS
             for msg_enum in ExternalMessage:
                 msg_path = os.path.join(msg_dir, msg_enum.value)
                 assert False is os.path.exists(msg_path)
                 assert False is os.path.exists(msg_path.replace(".tmpl", ""))
-        assert (
-            esm_announce_calls == write_esm_announcement_message.call_args_list
-        )
         assert write_apt_calls == write_apt_and_motd_templates.call_args_list
         assert subp_calls == subp.call_args_list
 
@@ -554,14 +404,12 @@ class TestUpdateAPTandMOTDMessages:
     @mock.patch(M_PATH + "system.is_lts")
     @mock.patch(M_PATH + "system.is_active_esm")
     @mock.patch(M_PATH + "write_apt_and_motd_templates")
-    @mock.patch(M_PATH + "write_esm_announcement_message")
     @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "system.get_platform_info")
     def test_contract_expiry_motd_and_apt_messages(
         self,
         _get_platform_info,
         _subp,
-        _write_esm_announcement_message,
         _write_apt_and_motd_templates,
         _is_active_esm,
         _util_is_lts,
