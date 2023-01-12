@@ -309,10 +309,10 @@ class TestUpdateESMCaches:
                 )
             ]
 
-    @mock.patch("uaclient.apt.system.remove_file")
-    def disable_local_esm_repo(self, m_remove_file, entitlement):
+    @mock.patch("uaclient.apt.system.ensure_file_absent")
+    def disable_local_esm_repo(self, m_ensure_file_absent, entitlement):
         entitlement.disable_local_esm_repo()
-        assert m_remove_file.call_args_list == [
+        assert m_ensure_file_absent.call_args_list == [
             mock.call(
                 os.path.normpath(
                     apt.ESM_APT_ROOTDIR

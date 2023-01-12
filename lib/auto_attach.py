@@ -85,7 +85,7 @@ def main(cfg: UAConfig):
         logging.warning(e.msg)
     except Exception as e:
         logging.error(e)
-        system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+        system.ensure_file_absent(AUTO_ATTACH_STATUS_MOTD_FILE)
         logging.info("creating flag file to trigger retries")
         system.create_file(retry_auto_attach.FLAG_FILE_PATH)
         failure_reason = (
@@ -98,7 +98,7 @@ def main(cfg: UAConfig):
         )
         return 1
 
-    system.remove_file(AUTO_ATTACH_STATUS_MOTD_FILE)
+    system.ensure_file_absent(AUTO_ATTACH_STATUS_MOTD_FILE)
     return 0
 
 

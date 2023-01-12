@@ -704,7 +704,7 @@ class TestRemoveAptConfig:
             )
         ] == m_remove_auth_apt_repo.call_args_list
 
-    @mock.patch(M_PATH + "system.remove_file")
+    @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -717,7 +717,7 @@ class TestRemoveAptConfig:
         _m_run_apt_command,
         _m_remove_apt_list_files,
         _m_remove_auth_apt_repo,
-        m_remove_file,
+        m_ensure_file_absent,
         entitlement_factory,
     ):
         """Remove apt preferences file when repo_pin_priority is an int."""
@@ -731,7 +731,7 @@ class TestRemoveAptConfig:
         entitlement.remove_apt_config()
         assert [
             mock.call("/etc/apt/preferences.d/ubuntu-repotest")
-        ] == m_remove_file.call_args_list
+        ] == m_ensure_file_absent.call_args_list
 
 
 class TestSetupAptConfig:

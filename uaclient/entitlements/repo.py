@@ -418,7 +418,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
-            system.remove_file(repo_pref_file)
+            system.ensure_file_absent(repo_pref_file)
 
         if run_apt_update:
             if not silent:
