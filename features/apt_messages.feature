@@ -553,6 +553,7 @@ Feature: APT Messages
             }
         }
         """
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then stdout matches regexp:
@@ -579,6 +580,7 @@ Feature: APT Messages
             }
         }
         """
+        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
