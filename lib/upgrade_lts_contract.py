@@ -28,7 +28,7 @@ from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.contract import process_entitlements_delta
 from uaclient.defaults import ESM_APT_ROOTDIR
-from uaclient.system import parse_os_release, remove_folder, subp
+from uaclient.system import ensure_folder_absent, parse_os_release, subp
 
 version_to_codename = {
     "14.04": "trusty",
@@ -118,7 +118,7 @@ def process_contract_delta_after_apt_lock() -> None:
 
 
 def remove_private_esm_apt_cache():
-    remove_folder(ESM_APT_ROOTDIR)
+    ensure_folder_absent(ESM_APT_ROOTDIR)
 
 
 if __name__ == "__main__":

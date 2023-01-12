@@ -388,7 +388,7 @@ def remove_repo_from_apt_auth_file(repo_url):
             [line for line in apt_auth.splitlines() if auth_prefix not in line]
         )
         if not content:
-            system.remove_file(apt_auth_file)
+            system.ensure_file_absent(apt_auth_file)
         else:
             system.write_file(apt_auth_file, content, mode=0o600)
 
@@ -397,10 +397,10 @@ def remove_auth_apt_repo(
     repo_filename: str, repo_url: str, keyring_file: Optional[str] = None
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
-    system.remove_file(repo_filename)
+    system.ensure_file_absent(repo_filename)
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-        system.remove_file(keyring_file)
+        system.ensure_file_absent(keyring_file)
     remove_repo_from_apt_auth_file(repo_url)
 
 
@@ -456,7 +456,7 @@ def find_apt_list_files(repo_url, series):
 def remove_apt_list_files(repo_url, series):
     """Remove any apt list files present for this repo_url and series."""
     for path in find_apt_list_files(repo_url, series):
-        system.remove_file(path)
+        system.ensure_file_absent(path)
 
 
 def clean_apt_files(*, _entitlements=None):
@@ -485,13 +485,13 @@ def clean_apt_files(*, _entitlements=None):
                 "Removing apt source file: {}".format(repo_file),
                 file_type=sys.stderr,
             )
-            system.remove_file(repo_file)
+            system.ensure_file_absent(repo_file)
         if os.path.exists(pref_file):
             event.info(
                 "Removing apt preferences file: {}".format(pref_file),
                 file_type=sys.stderr,
             )
-            system.remove_file(pref_file)
+            system.ensure_file_absent(pref_file)
 
 
 def is_installed(pkg: str) -> bool:
@@ -568,7 +568,7 @@ def setup_apt_proxy(
         apt_proxy_config = messages.APT_PROXY_CONFIG_HEADER + apt_proxy_config
 
     if apt_proxy_config == "":
-        system.remove_file(APT_PROXY_CONF_FILE)
+        system.ensure_file_absent(APT_PROXY_CONF_FILE)
     else:
         system.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
 

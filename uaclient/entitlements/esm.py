@@ -64,8 +64,8 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         repo_filename = os.path.normpath(
             ESM_APT_ROOTDIR + self.repo_list_file_tmpl.format(name=self.name),
         )
-        system.remove_file(repo_filename)
-        system.remove_file(keyring_file)
+        system.ensure_file_absent(repo_filename)
+        system.ensure_file_absent(keyring_file)
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
