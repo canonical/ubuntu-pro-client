@@ -602,7 +602,7 @@ def update_esm_caches(cfg) -> None:
     if not system.is_current_series_lts():
         return
 
-    from apt import Cache  # type: ignore
+    import apt  # type: ignore
 
     from uaclient.entitlements.entitlement_status import ApplicationStatus
     from uaclient.entitlements.esm import (
@@ -623,5 +623,5 @@ def update_esm_caches(cfg) -> None:
             infra.setup_local_esm_repo()
 
     # Read the cache and update it
-    cache = Cache(rootdir=ESM_APT_ROOTDIR)
+    cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
     cache.update()
