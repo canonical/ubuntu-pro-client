@@ -1,22 +1,24 @@
 # How to enable CC EAL
 
-> NOTE: CC EAL can be enabled on both Xenial and Bionic, but the installed scripts
-which configure CC EAL on those machines will only run on Xenial 16.04.4 and Bionic 18.04.4
-point releases.
+```{note}
+CC EAL can be enabled on both Xenial and Bionic, but the installed scripts
+that configure CC EAL on those machines will only run on Xenial 16.04.4 and
+Bionic 18.04.4 point releases.
 
-Common Criteria is supported only on 16.04 and 18.04. For more information on it,
+Common Criteria is supported only on 16.04 and 18.04. For more information,
 please see https://ubuntu.com/security/cc
+```
 
 ## Enable and auto-install
 
-To enable it through UA, please run:
+To enable CC EAL through Ubuntu Advantage, please run:
 
 ```console
 $ sudo pro enable cc-eal
 ```
 
-You should see output like the following, indicating that the CC EAL packages has
-been installed.
+You should see output like the following, indicating that the CC EAL package
+has been installed.
 
 ```
 (This will download more than 500MB of packages, so may take some time.)
@@ -31,7 +33,8 @@ Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to con
 The --access-only flag is introduced in version 27.11
 ```
 
-If you would like to enable access to the CC EAL apt repository but not install the packages right away, use the `--access-only` flag while enabling.
+If you would like to enable access to the CC EAL apt repository but not install
+the packages right away, use the `--access-only` flag while enabling.
 
 ```console
 $ sudo pro enable cc-eal --access-only

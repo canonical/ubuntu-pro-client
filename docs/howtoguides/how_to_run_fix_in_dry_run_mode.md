@@ -1,8 +1,9 @@
-# How to run fix command in dry run mode
+# How to run the `fix` command in "dry run" mode
 
-If you are unsure on what changes will happen on your system after you run `pro fix` to address a
-CVE/USN, you can use the `--dry-run` flag to see that packages will be installed in the system if
-the command was actually run. For example, this is the output of running `pro fix USN-5079-2 --dry-run`:
+If you are unsure on what changes will happen on your system after you run
+`pro fix` to address a CVE/USN, you can simulate a run using the `--dry-run`
+flag to see which packages will be installed on the system. For example, this
+is the output of running `pro fix USN-5079-2 --dry-run`:
 
 ```
 WARNING: The option --dry-run is being used.
@@ -25,10 +26,10 @@ this service.
 ✔ USN-5079-2 is resolved.
 ```
 
-You can see that using `--dry-run` will also indicate which actions would need to happen
-to completely address the USN/CVE. Here we can see that the package fix can only be accessed
-through the `esm-infra` service. Therefore, we need an Ubuntu Pro subscription, as can be seen on this
-part of the output:
+You can see that using `--dry-run` will also indicate which actions would need
+to happen to completely address the USN/CVE. Here we can see that the package
+fix can only be accessed through the `esm-infra` service. Therefore, we need an
+Ubuntu Pro subscription, as can be seen in this part of the output:
 
 ```
 The machine is not attached to an Ubuntu Pro subscription.
@@ -36,7 +37,7 @@ To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
 { pro attach TOKEN }
 ```
 
-Additionally, we also inform you that even with a subscription, we need the specific
+Additionally, it informs you that even with a subscription, we need the specific
 `esm-infra` service to be enabled:
 
 ```
@@ -46,5 +47,7 @@ this service.
 { pro enable esm-infra }
 ```
 
-After performing these steps during a fix command without `--dry-run`, your machine should
-no longer be affected by that USN we used as an example.
+```{note}
+After performing these steps during a `fix` command without `--dry-run`, your
+machine should no longer be affected by the USN we used as an example.
+```
