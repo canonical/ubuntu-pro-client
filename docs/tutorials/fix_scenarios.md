@@ -1,47 +1,52 @@
-# Using fix command to solve CVE/USNs on the machine
+# Use `pro fix` to solve CVE/USN
 
 The Ubuntu Pro Client (`pro`) can be used to inspect and resolve
-[Common Vulnerabilities and Exposures](https://ubuntu.com/security/cves)(CVE) and [Ubuntu Security Notices](https://ubuntu.com/security/notices) (USN)
-on this machine.
+[Common Vulnerabilities and Exposures](https://ubuntu.com/security/cves) (CVE)
+and [Ubuntu Security Notices](https://ubuntu.com/security/notices) (USN)
+on your machine.
 
-Every CVE/USN is fixed by trying to upgrade all of the affected packages described by the CVE or
-USN. Sometimes, the packages fixes can only be applied if an Ubuntu Pro service is already enabled on the
-machine.
+Every CVE/USN is fixed by trying to upgrade all of the affected packages
+described by the CVE or USN. Sometimes, the package fixes can only be applied
+if an Ubuntu Pro service is already enabled on your machine.
 
-On this tutorial, we will cover the main scenarios that can happen when running the `pro fix` command.
+In this tutorial, we will introduce the `pro fix` command and test some common
+scenarios that you may encounter.
 
-## Prerequisites
+## How to use this tutorial
 
-In this tutorial, you will use [Multipass](https://multipass.run/) virtual machines (VM).
+The commands in each code block can be copied and pasted directly into your
+terminal. You can use the "copy code" button to the right-hand side of the block
+and this will copy the code for you (without the command prompt!).
 
-We have chosen Multipass for this tutorial because it allows us to easily launch VMs while not
-requiring any complicated setup for the tool.
+## Install Multipass
 
-To install Multipass on your computer, please run the following command on your machine:
+In this tutorial, we will use a Xenial Multipass virtual machine (VM) to avoid
+making any modifications to your machine. We have chosen
+[Multipass](https://multipass.run/) for this tutorial because it allows us to
+easily launch VMs without requiring any complicated setup.
+
+To install Multipass on your computer, please run the following command on your
+machine:
 
 ```console
 $ sudo snap install multipass
 ```
 
+## Create the Xenial Multipass virtual machine
 
-## Creating the Xenial Multipass virtual machine
-
-To test some scenarios for the `pro fix` command, we will need to attach a
-Pro subscription to the machine. To avoid modifying your machine, let's create
-a Xenial Multipass VM instead. Remember to install Multipass as mentioned in the
-[Prerequisites](#prerequisites) section. After that, just run the command:
+Now that we have installed Multipass, we can launch our Multipass VM by running:
 
 ```console
 $ multipass launch xenial --name dev-x
 ```
 
-After running that, let's access the VM by running:
+Now we can access the VM easily by running the command:
 
 ```console
 $ multipass shell dev-x
 ```
 
-Notice that when you run that command, that your terminal username and hostname will change to:
+Notice that your terminal username and hostname will change to:
 
 ```
 ubuntu@dev-x
@@ -49,28 +54,29 @@ ubuntu@dev-x
 
 This indicates that you are now inside the VM.
 
-Finally, let's run an `apt update` and `apt upgrade` command on the virtual machine
+Finally, let's run `apt update` and `apt upgrade` on the VM to make sure we are
+operating on the correct version:
 
 ```console
 $ sudo apt update && sudo apt upgrade -y
 ```
 
-Every time we say: "run the command" our intention will be for
-you to run that command on your VM.
+From now on, every time we say: "run the command" our intention is for you to
+run that command in your VM.
 
-## Using `pro fix`
+## Use `pro fix`
 
-First, let's see what happens on your system when `pro fix` runs. We will choose
-to fix a CVE that does not affect the VM,
-[CVE-2020-15180](https://ubuntu.com/security/CVE-2020-15180). This CVE address security
-issues for the `MariaDB` package, which is not installed on the system. Let's confirm that
-it doesn't affect the system by running this command:
+First, let's see what happens to your system when `pro fix` runs. We will choose
+to fix a CVE that does not affect the VM -- in this case,
+[CVE-2020-15180](https://ubuntu.com/security/CVE-2020-15180). This CVE address
+security issues for the `MariaDB` package, which is not installed on the system.
+Let's first confirm that it doesn't affect the system by running this command:
 
 ```console
 $ pro fix CVE-2020-15180
 ```
 
-You should see an output like this one:
+You should see an output like this:
 
 ```
 CVE-2020-15180: MariaDB vulnerabilities
@@ -79,20 +85,21 @@ No affected source packages are installed.
 ✔ CVE-2020-15180 does not affect your system.
 ```
 
-Every `pro fix` output will have a similar output structure where we describe the CVE/USN,
-display the affected packages, fix the affected packages and at the end, show if the
-CVE/USN is fully fixed in the machine.
+Every `pro fix` output has a similar output structure: it describes the
+CVE/USN; displays the affected packages; fixes the affected packages; and at the
+end, shows if the CVE/USN is fully fixed in the machine.
 
-You can better see this in a `pro fix` call that does fix a package. Let's install a package
-on the VM that we know is associated with [CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
-You can install that package by running these commands:
+This is better demonstrated in a `pro fix` call that *does* fix a package!
+Let's install a package on the VM that we know is associated with
+[CVE-2020-25686](https://ubuntu.com/security/CVE-2020-25686).
+You can install the package by running these commands:
 
 ```console
 $ sudo apt update
 $ sudo apt install dnsmasq=2.75-1
 ```
 
-Now you can run the following command:
+Now, let's run `pro fix` on the package:
 
 ```console
 $ sudo pro fix CVE-2020-25686
@@ -111,19 +118,21 @@ A fix is available in Ubuntu standard updates.
 ```
 
 ```{note}
-We need to run the command with sudo because we are now installing a package on the system.
+We need to run the command with `sudo` because we are now installing a package
+on the system.
 ```
 
-Whenever `pro fix` has a package to upgrade, it follows a consistent structure and displays the
-following in order
+Whenever `pro fix` has a package to upgrade, it follows a consistent structure
+and displays the following, in this order:
 
 1. The affected package
 2. The availability of a fix
 3. The location of the fix, if one is available
 4. The command that will fix the issue
 
-Also, in the end of the output is the confirmation that the CVE was fixed by the command.
-You can confirm that fix was successfully applied by running the same `pro fix` command again:
+Also, at the end of the output you can see confirmation that the CVE was fixed
+by the command. Just to confirm that the fix was successfully applied, let's
+run the `pro fix` command again, and we should now see the following:
 
 ```
 CVE-2020-25686: Dnsmasq vulnerabilities
@@ -135,16 +144,17 @@ The update is already installed.
 ✔ CVE-2020-25686 is resolved.
 ```
 
-## CVE/USN without released fix
+## CVE/USN without a released fix
 
-Some CVE/USNs do not have a fix released yet. When that happens, `pro fix` will let you know
-about this situation. Before we reproduce that scenario, you will first install a package by running:
+Some CVE/USN do not have a fix released yet. When that happens, `pro fix` will
+let you know! Before we reproduce this scenario, let us first install a package
+that we know has no fix available by running:
 
 ```console
 $ sudo apt install -y libawl-php
 ```
 
-Now, you can confirm that scenario by running the following command:
+Now, we can confirm that there is no fix by running the following command:
 
 ```console
 $ pro fix USN-4539-1
@@ -163,21 +173,20 @@ Sorry, no fix is available.
 ✘ USN-4539-1 is not resolved.
 ```
 
-Notice that we inform that the is no fix available and in the last line the commands also
-mentions that the USN is not resolved.
+As you can see, we are informed by `pro fix` that there is no fix available. In
+the last line, we can also see that the USN is not resolved.
 
 ## CVE/USN that require an Ubuntu Pro subscription
 
-Some package fixes can only be installed when the machine is attached to an Ubuntu Pro subscription.
-When that happens, `pro fix` will let you know about that. To see an example of this scenario,
-you can run the following fix command:
-
+Some package fixes can only be installed when the machine is attached to an
+Ubuntu Pro subscription. When that happens, `pro fix` will let you know about
+that. To see an example of this scenario, you can run the following fix command:
 
 ```console
 $ sudo pro fix USN-5079-2
 ```
 
-You will see that the command will prompt you like this:
+The command will prompt you for a response, like this:
 
 ```
 USN-5079-2: curl vulnerabilities
@@ -194,16 +203,19 @@ Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel
 > 
 ```
 
-You can see that the prompt is asking for an Ubuntu Pro subscription token. Any user with
-a Ubuntu One account is entitled to a free personal token to use with Ubuntu Pro.
-If you choose the `Subscribe` option on the prompt, the command will ask you to go
-to the [Ubuntu Pro portal](https://ubuntu.com/pro/). You can go into that portal
-and get yourself a free subscription token by logging in with your
-SSO credentials, the same credentials you use for https://login.ubuntu.com.
+You can see that the prompt is asking for an Ubuntu Pro subscription token. Any
+user with a Ubuntu One account is entitled to a free personal token to use with
+Ubuntu Pro. 
 
-After getting your Ubuntu Pro token, you can hit `Enter` on the prompt and it will ask you
-to provide the token you just obtained. After entering the token you are expected to
-see now the following output:
+If you choose the `Subscribe` option on the prompt, the command
+will ask you to go to the
+[Ubuntu Pro portal](https://ubuntu.com/pro/). In the portal, you can get a free
+subscription token by logging in with your "Single Sign On" (SSO) credentials;
+the same credentials you use to log into https://login.ubuntu.com.
+
+After getting your Ubuntu Pro token, you can hit <kbd>Enter</kbd> on the prompt
+and it will ask you to provide the token you just obtained. After entering the
+token you should now see the following output:
 
 ```
 USN-5079-2: curl vulnerabilities
@@ -248,9 +260,10 @@ Technical support level: essential
 ✔ USN-5079-2 is resolved.
 ```
 
-We can see that that the attach command was successful, which can be verified by
-the status output we see when executing the command. Additionally, we can also observe
-that the USN is indeed fixed, which you can confirm by running the command again:
+We can see that that the attach command was successful, which can be verified
+by the status output we see when executing the command. Additionally, we can
+observe that the USN is indeed fixed, which you can confirm by running the
+`pro fix` command again:
 
 ```
 N-5079-2: curl vulnerabilities
@@ -265,15 +278,17 @@ The update is already installed.
 ```
 
 ```{note}
-Even though we are not covering this scenario here, if you have an expired contract,
-`pro fix` will detect that and prompt you to attach a new token for your machine.
+Even though we are not covering this scenario here, if you have an expired
+contract, `pro fix` will detect that and prompt you to attach a new token for
+your machine.
 ```
 
-## CVE/USN that requires an Ubuntu Pro service
+## CVE/USN that require a Ubuntu Pro service
 
-Now, let's assume that you have attached to an Ubuntu Pro subscription, but when running `pro fix`,
-the required service that fixes the issue is not enabled. In that situation, `pro fix` will
-also prompt you to enable that service.
+Now, let's assume that you have attached to an Ubuntu Pro subscription, but
+when running `pro fix`, the required service that fixes the issue is not
+enabled. In that situation, `pro fix` will also prompt you to enable that
+service.
 
 To confirm that, run the following command to disable `esm-infra`:
 
@@ -287,7 +302,8 @@ Now, you can run the following command:
 $ sudo pro fix CVE-2021-44731
 ```
 
-And you should see the following output (if you type `E` when prompted):
+And you should see the following output (if you type `E` when
+prompted):
 
 ```
 CVE-2021-44731: snapd vulnerabilities
@@ -308,14 +324,14 @@ Ubuntu Pro: ESM Infra enabled
 ✔ CVE-2021-44731 is resolved.
 ```
 
-You can observe that the required service was enabled and `pro fix` was able to successfully upgrade
-the affected package.
+You can observe that the required service was enabled and `pro fix` was able to
+successfully upgrade the affected package.
 
-## CVE/USN that requires reboot
+## CVE/USN that require a reboot
 
-When running an `pro fix` command, sometimes we can install a package that requires
-a system reboot to complete. The `pro fix` command can detect that and will inform you
-about it.
+When running the `pro fix` command, sometimes we can install a package that
+requires a system reboot to complete. The `pro fix` command can detect that and
+will inform you about it.
 
 You can confirm this by running the following fix command:
 
@@ -336,7 +352,8 @@ A reboot is required to complete fix operation.
 ✘ CVE-2022-0778 is not resolved.
 ```
 
-If we reboot the machine and run the command again, you will see that it is indeed fixed:
+If we reboot the machine and run the command again, you will see that it is
+indeed fixed:
 
 ```
 CVE-2022-0778: OpenSSL vulnerability
@@ -348,13 +365,15 @@ The update is already installed.
 ✔ CVE-2022-0778 is resolved.
 ```
 
-## Partially resolved CVE/USNs
+## Partially resolved CVE/USN
 
-Finally, you might run a `pro fix` command that only partially fixes some of the packages affected.
-This happens when only a subset of the packages have available updates to fix for that CVE/USN.
-In this case, `pro fix` will inform of which package it can and cannot fix.
+Finally, you might run a `pro fix` command that only fixes some of the packages
+affected. This happens when only a subset of the packages have available updates
+to fix for that CVE/USN.
 
-But first, let's install some package so we can run `pro fix` to exercise that scenario.
+In this case, `pro fix` will tell you which package(s) it can or cannot fix.
+But first, let's install a package so we can run `pro fix` to demonstrate this
+scenario.
 
 ```console
 $ sudo apt-get install expat=2.1.0-7 swish-e matanza ghostscript
@@ -366,7 +385,7 @@ Now, you can run the following command:
 $ sudo pro fix CVE-2017-9233
 ```
 
-And you will see the following command:
+And you will see the following output:
 
 ```
 CVE-2017-9233: Expat vulnerability
@@ -381,21 +400,36 @@ A fix is available in Ubuntu standard updates.
 ✘ CVE-2017-9233 is not resolved.
 ```
 
-We can see that two packages, `matanza` and `swish-e`, don't have any fixes available, but there
-is one for `expat`. In that scenario, we install the fix for `expat` and report at the end that
-some packages are still affected. Also, observe that in this scenario we mark the CVE/USN as not
+We can see that two packages, `matanza` and `swish-e`, don't have any fixes
+available, but there is one for `expat`. So, we install the fix for `expat` and
+at the end of the report we can see that some packages are still affected.
+
+As before, we can also observe that in this scenario we mark the CVE/USN as not
 resolved.
 
-### Final thoughts
+## Close down the VM
 
-This tutorial has covered the main scenario that can happen to you when running `pro fix`.
-If you need more information about the command please feel free to reach the Ubuntu Pro Client team on
-`#ubuntu-server` on Libera IRC.
+Congratulations! You successfully ran a Multipass VM and used it to encounter
+and resolve the main scenarios that you might find when you run `pro fix`.
 
-Before you finish this tutorial, exit the VM by running `CTRL-D` and delete it by running
-this command on the host machine:
+When you are finished and want to leave the tutorial, you can shut down the VM
+by first pressing <kbd>CTRL</kbd>+<kbd>D</kbd> to exit it, and then running the
+following commands to delete the VM completely:
 
 ```console
 $ multipass delete dev-x
 $ multipass purge
 ```
+
+## Next steps
+
+We have successfully encountered and resolved the main scenarios that you might
+find when you run `pro fix`.
+
+If you need more information about this command, please feel free to reach out
+to the Ubuntu Pro Client team on `#ubuntu-server` on
+[Libera IRC](https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server) --
+we're happy to help! 
+
+Alternatively, if you have a GitHub account, click on the "Have a question?"
+link at the top of this page to leave us a message. We'd love to hear from you!

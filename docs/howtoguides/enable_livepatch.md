@@ -1,15 +1,18 @@
 # How to enable Livepatch
 
-Check if your kernel is supported by Livepatch here: https://ubuntu.com/security/livepatch/docs/kernels
+```{important}
+Check if your kernel is supported by Livepatch here: 
+https://ubuntu.com/security/livepatch/docs/kernels
+```
 
-To enable, run:
+To enable Livepatch, run:
 
 ```console
 $ sudo pro enable livepatch
 ```
 
-You should see output like the following, indicating that the Livepatch snap package has
-been installed.
+You should see output like the following, indicating that the Livepatch snap
+package has been installed successfully:
 
 ```
 One moment, checking your subscription first
@@ -19,10 +22,13 @@ Installing canonical-livepatch snap
 Canonical livepatch enabled.
 ```
 
-To check the status of Livepatch once it has been installed use this command
+To check the status of Livepatch once it has been installed use the following
+command:
 
 ```console
 $ sudo canonical-livepatch status
 ```
 
-More information: https://ubuntu.com/security/livepatch
+```{seealso}
+For more information, see: https://ubuntu.com/security/livepatch
+```
