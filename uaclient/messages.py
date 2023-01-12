@@ -247,14 +247,6 @@ To install them, run this command as root (try using sudo)"""
 
 # BEGIN MOTD and APT command messaging
 
-ANNOUNCE_ESM_APPS_TMPL = """\
- * Introducing Expanded Security Maintenance for Applications.
-   Receive updates to over 25,000 software packages with your
-   Ubuntu Pro subscription. Free for personal use.
-
-     {url}
-"""
-
 CONTRACT_EXPIRED_MOTD_SOON_TMPL = """\
 CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
 Renew your subscription at https://ubuntu.com/pro to ensure continued security
