@@ -592,16 +592,16 @@ class TestCleanAptFiles:
         return TestRepo
 
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.system.ensure_file_absent")
     def test_removals_for_repo_entitlements(
-        self, m_remove_file, _m_path_exists
+        self, m_ensure_file_absent, _m_path_exists
     ):
         m_entitlements = mock.Mock()
         m_entitlements.ENTITLEMENT_CLASSES = [RepoTestEntitlement]
 
         clean_apt_files(_entitlements=m_entitlements)
 
-        assert 2 == m_remove_file.call_count
+        assert 2 == m_ensure_file_absent.call_count
 
     def test_files_for_all_series_removed(self, mock_apt_entitlement, tmpdir):
         m_entitlements = mock.Mock()
@@ -655,9 +655,9 @@ def remove_auth_apt_repo_kwargs(request):
 class TestRemoveAuthAptRepo:
     @mock.patch("uaclient.apt.system.subp")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.remove_file")
+    @mock.patch("uaclient.apt.system.ensure_file_absent")
     def test_repo_file_deleted(
-        self, m_remove_file, _mock, __mock, remove_auth_apt_repo_kwargs
+        self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
         """Ensure that repo_filename is deleted, regardless of other params."""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
@@ -666,10 +666,10 @@ class TestRemoveAuthAptRepo:
             repo_filename, repo_url, **remove_auth_apt_repo_kwargs
         )
 
-        assert mock.call(repo_filename) in m_remove_file.call_args_list
+        assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
 
     @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.system.remove_file")
+    @mock.patch("uaclient.apt.system.ensure_file_absent")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
     def test_remove_from_auth_file_called(
         self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs
@@ -685,9 +685,9 @@ class TestRemoveAuthAptRepo:
 
     @mock.patch("uaclient.apt.system.subp")
     @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.remove_file")
+    @mock.patch("uaclient.apt.system.ensure_file_absent")
     def test_keyring_file_deleted_if_given(
-        self, m_remove_file, _mock, __mock, remove_auth_apt_repo_kwargs
+        self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
         """We should always delete the keyring file if it is given"""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
@@ -700,18 +700,21 @@ class TestRemoveAuthAptRepo:
         if keyring_file:
             assert (
                 mock.call(os.path.join(APT_KEYS_DIR, keyring_file))
-                in m_remove_file.call_args_list
+                in m_ensure_file_absent.call_args_list
             )
         else:
-            assert mock.call(keyring_file) not in m_remove_file.call_args_list
+            assert (
+                mock.call(keyring_file)
+                not in m_ensure_file_absent.call_args_list
+            )
 
 
 class TestRemoveRepoFromAptAuthFile:
-    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.system.ensure_file_absent")
     @mock.patch("uaclient.apt.system.write_file")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_auth_file_doesnt_exist_means_we_dont_remove_or_write_it(
-        self, m_get_apt_auth_file, m_write_file, m_remove_file, tmpdir
+        self, m_get_apt_auth_file, m_write_file, m_ensure_file_absent, tmpdir
     ):
         """If the auth file doesn't exist, we shouldn't do anything to it"""
         m_get_apt_auth_file.return_value = tmpdir.join("nonexistent").strpath
@@ -719,7 +722,7 @@ class TestRemoveRepoFromAptAuthFile:
         remove_repo_from_apt_auth_file("http://url")
 
         assert 0 == m_write_file.call_count
-        assert 0 == m_remove_file.call_count
+        assert 0 == m_ensure_file_absent.call_count
 
     @pytest.mark.parametrize("trailing_slash", (True, False))
     @pytest.mark.parametrize(
@@ -735,14 +738,14 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.system.ensure_file_absent")
     @mock.patch("uaclient.apt.system.write_file")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_file_removal(
         self,
         m_get_apt_auth_file,
         m_write_file,
-        m_remove_file,
+        m_ensure_file_absent,
         tmpdir,
         trailing_slash,
         repo_url,
@@ -758,7 +761,9 @@ class TestRemoveRepoFromAptAuthFile:
         )
 
         assert 0 == m_write_file.call_count
-        assert [mock.call(auth_file.strpath)] == m_remove_file.call_args_list
+        assert [
+            mock.call(auth_file.strpath)
+        ] == m_ensure_file_absent.call_args_list
 
     @pytest.mark.parametrize("trailing_slash", (True, False))
     @pytest.mark.parametrize(
@@ -787,12 +792,12 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.system.ensure_file_absent")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     def test_file_rewrite(
         self,
         m_get_apt_auth_file,
-        m_remove_file,
+        m_ensure_file_absent,
         tmpdir,
         repo_url,
         before_content,
@@ -808,7 +813,7 @@ class TestRemoveRepoFromAptAuthFile:
             repo_url + ("" if not trailing_slash else "/")
         )
 
-        assert 0 == m_remove_file.call_count
+        assert 0 == m_ensure_file_absent.call_count
         assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
         assert after_content == auth_file.read("rb")
 
@@ -996,10 +1001,10 @@ class TestAptProxyConfig:
         ],
     )
     @mock.patch("uaclient.system.write_file")
-    @mock.patch("uaclient.system.remove_file")
+    @mock.patch("uaclient.system.ensure_file_absent")
     def test_setup_apt_proxy_config(
         self,
-        m_util_remove_file,
+        m_ensure_file_absent,
         m_util_write_file,
         kwargs,
         expected_remove_calls,
@@ -1009,7 +1014,7 @@ class TestAptProxyConfig:
         event,
     ):
         setup_apt_proxy(**kwargs)
-        assert expected_remove_calls == m_util_remove_file.call_args_list
+        assert expected_remove_calls == m_ensure_file_absent.call_args_list
         assert expected_write_calls == m_util_write_file.call_args_list
         out, err = capsys.readouterr()
         assert expected_out == out.strip()

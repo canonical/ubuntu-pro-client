@@ -122,9 +122,9 @@ def _write_template_or_remove(msg: str, tmpl_file: str):
     if msg:
         system.write_file(tmpl_file, msg)
     else:
-        system.remove_file(tmpl_file)
+        system.ensure_file_absent(tmpl_file)
         if tmpl_file.endswith(".tmpl"):
-            system.remove_file(tmpl_file.replace(".tmpl", ""))
+            system.ensure_file_absent(tmpl_file.replace(".tmpl", ""))
 
 
 def _remove_msg_templates(msg_dir: str, msg_template_names: List[str]):
@@ -305,7 +305,7 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
             "\n" + ANNOUNCE_ESM_APPS_TMPL.format(url=url),
         )
     else:
-        system.remove_file(esm_news_file)
+        system.ensure_file_absent(esm_news_file)
 
 
 def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
@@ -330,9 +330,9 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
         # ESM is only on LTS releases. Remove all messages and templates.
         for msg_enum in ExternalMessage:
             msg_path = os.path.join(msg_dir, msg_enum.value)
-            system.remove_file(msg_path)
+            system.ensure_file_absent(msg_path)
             if msg_path.endswith(".tmpl"):
-                system.remove_file(msg_path.replace(".tmpl", ""))
+                system.ensure_file_absent(msg_path.replace(".tmpl", ""))
         return True
 
     expiry_status, _ = get_contract_expiry_status(cfg)
