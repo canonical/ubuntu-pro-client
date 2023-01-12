@@ -247,28 +247,32 @@ To install them, run this command as root (try using sudo)"""
 
 # BEGIN MOTD and APT command messaging
 
-CONTRACT_EXPIRED_MOTD_SOON_TMPL = """\
+CONTRACT_EXPIRES_SOON_MOTD = """\
 CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
 Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
+
 """
 
-CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL = """\
+CONTRACT_EXPIRED_GRACE_PERIOD_MOTD = """\
 CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
 Renew your subscription at https://ubuntu.com/pro to ensure continued security
 coverage for your applications.
 Your grace period will expire in {remaining_days} days.
+
 """
 
-CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
+CONTRACT_EXPIRED_MOTD_PKGS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
 {pkg_num} additional security update(s) require Ubuntu Pro with '{service}' enabled.
 Renew your service at https://ubuntu.com/pro
+
 """  # noqa: E501
 
-CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL = """\
+CONTRACT_EXPIRED_MOTD_NO_PKGS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
 Renew your service at https://ubuntu.com/pro
+
 """
 
 CONTRACT_EXPIRES_SOON_APT_NEWS = """\

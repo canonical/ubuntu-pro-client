@@ -10,15 +10,19 @@ import enum
 import logging
 import os
 from os.path import exists
-from typing import List, Tuple
+from typing import Tuple
 
-from uaclient import config, contract, defaults, entitlements, system, util
+from uaclient import contract, defaults, messages, system
+from uaclient.api.u.pro.packages.updates.v1 import (
+    _updates as api_u_pro_packages_updates_v1,
+)
+from uaclient.config import UAConfig
+from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.messages import (
-    CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL,
-    CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
-    CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
-    CONTRACT_EXPIRED_MOTD_SOON_TMPL,
+
+MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
+UPDATE_NOTIFIER_MOTD_SCRIPT = (
+    "/usr/lib/update-notifier/update-motd-updates-available"
 )
 
 
@@ -31,28 +35,35 @@ class ContractExpiryStatus(enum.Enum):
     EXPIRED = 4
 
 
-# Type of message file used for external messaging (APT and MOTD)
-@enum.unique
-class ExternalMessage(enum.Enum):
-    MOTD_APPS_NO_PKGS = "motd-no-packages-apps.tmpl"
-    MOTD_INFRA_NO_PKGS = "motd-no-packages-infra.tmpl"
-    MOTD_APPS_PKGS = "motd-packages-apps.tmpl"
-    MOTD_INFRA_PKGS = "motd-packages-infra.tmpl"
-    APT_PRE_INVOKE_APPS_NO_PKGS = "apt-pre-invoke-no-packages-apps.tmpl"
-    APT_PRE_INVOKE_INFRA_NO_PKGS = "apt-pre-invoke-no-packages-infra.tmpl"
-    APT_PRE_INVOKE_APPS_PKGS = "apt-pre-invoke-packages-apps.tmpl"
-    APT_PRE_INVOKE_INFRA_PKGS = "apt-pre-invoke-packages-infra.tmpl"
-    APT_PRE_INVOKE_SERVICE_STATUS = "apt-pre-invoke-esm-service-status"
-    MOTD_ESM_SERVICE_STATUS = "motd-esm-service-status"
-
-
-UPDATE_NOTIFIER_MOTD_SCRIPT = (
-    "/usr/lib/update-notifier/update-motd-updates-available"
-)
+def update_contract_expiry(cfg: UAConfig):
+    orig_token = cfg.machine_token
+    machine_token = orig_token.get("machineToken", "")
+    contract_id = (
+        orig_token.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("id", None)
+    )
+    contract_client = contract.UAContractClient(cfg)
+    resp = contract_client.get_updated_contract_info(
+        machine_token, contract_id
+    )
+    resp_expiry = (
+        resp.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("effectiveTo", None)
+    )
+    if (
+        resp_expiry is not None
+        and resp_expiry != cfg.machine_token_file.contract_expiry_datetime
+    ):
+        orig_token["machineTokenInfo"]["contractInfo"][
+            "effectiveTo"
+        ] = resp_expiry
+        cfg.machine_token_file.write(orig_token)
 
 
 def get_contract_expiry_status(
-    cfg: config.UAConfig,
+    cfg: UAConfig,
 ) -> Tuple[ContractExpiryStatus, int]:
     """Return a tuple [ContractExpiryStatus, num_days]"""
     if not cfg.is_attached:
@@ -78,213 +89,90 @@ def get_contract_expiry_status(
     return ContractExpiryStatus.ACTIVE, remaining_days
 
 
-def _write_template_or_remove(msg: str, tmpl_file: str):
-    """Write a template to tmpl_file.
+def update_motd_messages(cfg: UAConfig) -> bool:
+    """Emit human-readable status message used by motd.
 
-    When msg is empty, remove both tmpl_file and the generated msg.
-    """
-    if msg:
-        system.write_file(tmpl_file, msg)
-    else:
-        system.ensure_file_absent(tmpl_file)
-        if tmpl_file.endswith(".tmpl"):
-            system.ensure_file_absent(tmpl_file.replace(".tmpl", ""))
-
-
-def _remove_msg_templates(msg_dir: str, msg_template_names: List[str]):
-    # Purge all template out output messages for this service
-    for name in msg_template_names:
-        _write_template_or_remove("", os.path.join(msg_dir, name))
-
-
-def _write_esm_service_msg_templates(
-    cfg: config.UAConfig,
-    ent: entitlements.base.UAEntitlement,
-    expiry_status: ContractExpiryStatus,
-    remaining_days: int,
-    pkgs_file: str,
-    no_pkgs_file: str,
-    motd_pkgs_file: str,
-    motd_no_pkgs_file: str,
-):
-    """Write any related template content for an ESM service.
-
-    If no content is applicable for the current service state, remove
-    all service-related template files.
+    Used by /etc/update.motd.d/91-contract-ua-esm-status
 
     :param cfg: UAConfig instance for this environment.
-    :param ent: entitlements.base.UAEntitlement,
-    :param expiry_status: Current ContractExpiryStatus enum for attached VM.
-    :param remaining_days: Int remaining days on contrat, negative when
-        expired.
-    :param *_file: template file names to write.
     """
-    pkgs_msg = no_pkgs_msg = motd_pkgs_msg = motd_no_pkgs_msg = ""
-    tmpl_prefix = ent.name.upper().replace("-", "_")
-    tmpl_pkg_count_var = "{{{}_PKG_COUNT}}".format(tmpl_prefix)
+    if not cfg.is_attached:
+        return False
 
-    if ent.application_status()[0] == ApplicationStatus.ENABLED:
-        if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_SOON_TMPL.format(
-                remaining_days=remaining_days,
-            )
-            motd_no_pkgs_msg = motd_pkgs_msg
-        elif expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
-            grace_period_remaining = (
-                defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
-            )
-            exp_dt = cfg.machine_token_file.contract_expiry_datetime
-            if exp_dt is None:
-                exp_dt_str = "Unknown"
-            else:
-                exp_dt_str = exp_dt.strftime("%d %b %Y")
-            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
-                expired_date=exp_dt_str,
-                remaining_days=grace_period_remaining,
-            )
-            motd_no_pkgs_msg = motd_pkgs_msg
-        elif expiry_status == ContractExpiryStatus.EXPIRED:
-            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
-                pkg_num=tmpl_pkg_count_var,
-                service=ent.name,
-            )
-            motd_no_pkgs_msg = CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
-
-    msg_dir = os.path.join(cfg.data_dir, "messages")
-    _write_template_or_remove(no_pkgs_msg, os.path.join(msg_dir, no_pkgs_file))
-    _write_template_or_remove(pkgs_msg, os.path.join(msg_dir, pkgs_file))
-    _write_template_or_remove(
-        motd_no_pkgs_msg, os.path.join(msg_dir, motd_no_pkgs_file)
+    logging.debug("Updating Ubuntu Pro messages for MOTD.")
+    motd_contract_status_msg_path = os.path.join(
+        cfg.data_dir, "messages", MOTD_CONTRACT_STATUS_FILE_NAME
     )
-    _write_template_or_remove(
-        motd_pkgs_msg, os.path.join(msg_dir, motd_pkgs_file)
-    )
-
-
-def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
-    """Write messaging templates about available esm packages.
-
-    :param cfg: UAConfig instance for this environment.
-    :param series: string of Ubuntu release series: 'xenial'.
-    """
-    apps_no_pkg_file = ExternalMessage.APT_PRE_INVOKE_APPS_NO_PKGS.value
-    apps_pkg_file = ExternalMessage.APT_PRE_INVOKE_APPS_PKGS.value
-    infra_no_pkg_file = ExternalMessage.APT_PRE_INVOKE_INFRA_NO_PKGS.value
-    infra_pkg_file = ExternalMessage.APT_PRE_INVOKE_INFRA_PKGS.value
-    motd_apps_no_pkg_file = ExternalMessage.MOTD_APPS_NO_PKGS.value
-    motd_apps_pkg_file = ExternalMessage.MOTD_APPS_PKGS.value
-    motd_infra_no_pkg_file = ExternalMessage.MOTD_INFRA_NO_PKGS.value
-    motd_infra_pkg_file = ExternalMessage.MOTD_INFRA_PKGS.value
-    msg_dir = os.path.join(cfg.data_dir, "messages")
-
-    apps_cls = entitlements.entitlement_factory(cfg=cfg, name="esm-apps")
-    apps_inst = apps_cls(cfg)
-    config_allow_beta = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.allow_beta"
-    )
-    apps_valid = bool(config_allow_beta or not apps_cls.is_beta)
-    infra_cls = entitlements.entitlement_factory(cfg=cfg, name="esm-infra")
-    infra_inst = infra_cls(cfg)
 
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
+    if expiry_status in (
+        ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
+        ContractExpiryStatus.EXPIRED_GRACE_PERIOD,
+        ContractExpiryStatus.EXPIRED,
+    ):
+        update_contract_expiry(cfg)
+        expiry_status, remaining_days = get_contract_expiry_status(cfg)
 
-    enabled_status = ApplicationStatus.ENABLED
-    msg_esm_apps = False
-    msg_esm_infra = False
-    if system.is_active_esm(series):
-        if infra_inst.application_status()[0] != enabled_status:
-            msg_esm_infra = True
-        elif remaining_days <= defaults.CONTRACT_EXPIRY_PENDING_DAYS:
-            msg_esm_infra = True
-    if not msg_esm_infra:
-        # write_apt_and_motd_templates is only called if system.is_lts(series)
-        msg_esm_apps = apps_valid
-
-    if msg_esm_infra:
-        _write_esm_service_msg_templates(
-            cfg,
-            infra_inst,
-            expiry_status,
-            remaining_days,
-            infra_pkg_file,
-            infra_no_pkg_file,
-            motd_infra_pkg_file,
-            motd_infra_no_pkg_file,
-        )
-    else:
-        _remove_msg_templates(
-            msg_dir=msg_dir,
-            msg_template_names=[
-                infra_pkg_file,
-                infra_no_pkg_file,
-                motd_infra_pkg_file,
-                motd_infra_no_pkg_file,
-            ],
-        )
-
-    if msg_esm_apps:
-        _write_esm_service_msg_templates(
-            cfg,
-            apps_inst,
-            expiry_status,
-            remaining_days,
-            apps_pkg_file,
-            apps_no_pkg_file,
-            motd_apps_pkg_file,
-            motd_apps_no_pkg_file,
-        )
-    else:
-        _remove_msg_templates(
-            msg_dir=msg_dir,
-            msg_template_names=[
-                apps_pkg_file,
-                apps_no_pkg_file,
-                motd_apps_pkg_file,
-                motd_apps_no_pkg_file,
-            ],
-        )
-
-
-def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
-    """Emit templates and human-readable status messages in msg_dir.
-
-    These structured messages will be sourced by both /etc/update.motd.d
-    and APT UA-configured hooks. APT hook content will orginate from
-    apt-hook/hook.cc
-
-    Call apt-esm-hook to render final human-readable
-    messages.
-
-    :param cfg: UAConfig instance for this environment.
-    """
-    logging.debug("Updating Ubuntu Pro messages for APT and MOTD.")
-    msg_dir = os.path.join(cfg.data_dir, "messages")
-    if not os.path.exists(msg_dir):
-        os.makedirs(msg_dir)
-
-    series = system.get_platform_info()["series"]
-    if not system.is_lts(series):
-        # ESM is only on LTS releases. Remove all messages and templates.
-        for msg_enum in ExternalMessage:
-            msg_path = os.path.join(msg_dir, msg_enum.value)
-            system.ensure_file_absent(msg_path)
-            if msg_path.endswith(".tmpl"):
-                system.ensure_file_absent(msg_path.replace(".tmpl", ""))
-        return True
-
-    expiry_status, _ = get_contract_expiry_status(cfg)
-    if expiry_status not in (
+    if expiry_status in (
         ContractExpiryStatus.ACTIVE,
         ContractExpiryStatus.NONE,
     ):
-        update_contract_expiry(cfg)
+        system.ensure_file_absent(motd_contract_status_msg_path)
+    elif expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
+        system.write_file(
+            motd_contract_status_msg_path,
+            messages.CONTRACT_EXPIRES_SOON_MOTD.format(
+                remaining_days=remaining_days,
+            ),
+        )
+    elif expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
+        grace_period_remaining = (
+            defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
+        )
+        exp_dt = cfg.machine_token_file.contract_expiry_datetime
+        if exp_dt is None:
+            exp_dt_str = "Unknown"
+        else:
+            exp_dt_str = exp_dt.strftime("%d %b %Y")
+        system.write_file(
+            motd_contract_status_msg_path,
+            messages.CONTRACT_EXPIRED_GRACE_PERIOD_MOTD.format(
+                expired_date=exp_dt_str,
+                remaining_days=grace_period_remaining,
+            ),
+        )
+    elif expiry_status == ContractExpiryStatus.EXPIRED:
+        service = "n/a"
+        pkg_num = 0
 
-    write_apt_and_motd_templates(cfg, series)
-    # Now that we've setup/cleanedup templates render them with apt-hook
-    try:
-        system.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook"])
-    except Exception as exc:
-        logging.debug("failed to run apt-esm-hook: %s", str(exc))
+        if system.is_current_series_active_esm():
+            esm_infra_status, _ = ESMInfraEntitlement(cfg).application_status()
+            if esm_infra_status == ApplicationStatus.ENABLED:
+                service = "esm-infra"
+                pkg_num = api_u_pro_packages_updates_v1(
+                    cfg
+                ).summary.num_esm_infra_updates
+        elif system.is_current_series_lts():
+            esm_apps_status, _ = ESMAppsEntitlement(cfg).application_status()
+            if esm_apps_status == ApplicationStatus.ENABLED:
+                service = "esm-apps"
+                pkg_num = api_u_pro_packages_updates_v1(
+                    cfg
+                ).summary.num_esm_apps_updates
+
+        if pkg_num == 0:
+            system.write_file(
+                motd_contract_status_msg_path,
+                messages.CONTRACT_EXPIRED_MOTD_NO_PKGS,
+            )
+        else:
+            system.write_file(
+                motd_contract_status_msg_path,
+                messages.CONTRACT_EXPIRED_MOTD_PKGS.format(
+                    pkg_num=pkg_num,
+                    service=service,
+                ),
+            )
 
     return True
 
@@ -300,33 +188,3 @@ def refresh_motd():
             system.subp([UPDATE_NOTIFIER_MOTD_SCRIPT, "--force"])
         except Exception as exc:
             logging.exception(exc)
-
-
-def update_contract_expiry(cfg: config.UAConfig):
-    orig_token = cfg.machine_token
-    machine_token = orig_token.get("machineToken", "")
-    contract_id = (
-        orig_token.get("machineTokenInfo", {})
-        .get("contractInfo", {})
-        .get("id", None)
-    )
-
-    contract_client = contract.UAContractClient(cfg)
-    resp = contract_client.get_updated_contract_info(
-        machine_token, contract_id
-    )
-    resp_expiry = (
-        resp.get("machineTokenInfo", {})
-        .get("contractInfo", {})
-        .get("effectiveTo", None)
-    )
-    new_expiry = (
-        resp_expiry
-        if resp_expiry
-        else cfg.machine_token_file.contract_expiry_datetime
-    )
-    if cfg.machine_token_file.contract_expiry_datetime != new_expiry:
-        orig_token["machineTokenInfo"]["contractInfo"][
-            "effectiveTo"
-        ] = new_expiry
-        cfg.machine_token_file.write(orig_token)
