@@ -357,7 +357,7 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
         update_contract_expiry(cfg)
 
     # Announce ESM availabilty on active ESM LTS releases
-    # write_esm_announcement_message(cfg, series)
+    write_esm_announcement_message(cfg, series)
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     try:
