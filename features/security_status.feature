@@ -125,13 +125,15 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
          +\d+ package[s]? from a third party
          +\d+ package[s]? no longer available for download
-        
+
         To get more information about the packages, run
             pro security-status --help
         for a list of available options\.
-        
-        This machine is not attached to an Ubuntu Pro subscription\.
-        
+
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+        This machine is NOT attached to an Ubuntu Pro subscription.
+
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
         Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
 
@@ -140,6 +142,51 @@ Feature: Security status command behavior
 
         Try Ubuntu Pro with a free personal subscription on up to 5 machines.
         Learn more at https://ubuntu.com/pro
+        """
+        When I verify root and non-root `pro security-status --esm-infra` calls have the same output
+        And I run `pro security-status --esm-infra` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
+
+        Run 'pro help esm-infra' to learn more
+
+        Package names in .*bold.* currently have an available update
+        with 'esm-infra' enabled
+        Packages:
+        (.|\n)+
+
+        For example, run:
+            apt-cache policy .+
+        to learn more about that package\.
+        """
+        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        And I run `pro security-status --esm-apps` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
+
+        Run 'pro help esm-apps' to learn more
+
+        Package names in .*bold.* currently have an available update
+        with 'esm-apps' enabled
+        Packages:
+        (.|\n)+
+
+        For example, run:
+            apt-cache policy .+
+        to learn more about that package\.
         """
         When I attach `contract_token` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
@@ -156,13 +203,13 @@ Feature: Security status command behavior
             pro security-status --help
         for a list of available options\.
 
+        This machine is attached to an Ubuntu Pro subscription.
+
         Main/Restricted packages are receiving security updates from
-        Ubuntu Pro with 'esm-infra' enabled until 2026\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-infra' enabled until 2026\.
 
         Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2026\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-apps' enabled until 2026\.
         """
         When I verify root and non-root `pro security-status --esm-infra` calls have the same output
         And I run `pro security-status --esm-infra` as non-root
@@ -172,8 +219,7 @@ Feature: Security status command behavior
          +\d+ packages from Ubuntu Main/Restricted repository
 
         Main/Restricted packages are receiving security updates from
-        Ubuntu Pro with 'esm-infra' enabled until 2026\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-infra' enabled until 2026\.
 
         Run 'pro help esm-infra' to learn more
 
@@ -194,8 +240,7 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
         Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2026\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-apps' enabled until 2026\.
 
         Run 'pro help esm-apps' to learn more
 
@@ -208,6 +253,31 @@ Feature: Security status command behavior
             apt-cache policy .+
         to learn more about that package\.
         """
+        When I run `apt upgrade -y` with sudo
+        And I verify root and non-root `pro security-status` calls have the same output
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Main/Restricted packages are receiving security updates from
+        Ubuntu Pro with 'esm-infra' enabled until 2026\. You have received \d+ security
+        update[s]?\.
+
+        Universe/Multiverse packages are receiving security updates from
+        Ubuntu Pro with 'esm-apps' enabled until 2026\. You have received \d+ security
+        update[s]?\.
+        """
         When I run `pro disable esm-infra esm-apps` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
@@ -218,17 +288,21 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
          +\d+ package[s]? from a third party
          +\d+ package[s]? no longer available for download
-        
+
         To get more information about the packages, run
             pro security-status --help
         for a list of available options\.
-        
+
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+        This machine is attached to an Ubuntu Pro subscription.
+
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
-        Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
+        Main/Restricted packages until 2026.
         Enable esm-infra with: pro enable esm-infra
 
         Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2026 and has \d+ pending security update[s]?\.
+        Universe/Multiverse packages until 2026.
         Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
@@ -273,8 +347,11 @@ Feature: Security status command behavior
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
 
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+
         Ubuntu Pro with 'esm-infra' enabled provides security updates for
-        Main/Restricted packages until 2026 and has \d+ pending security update[s]?\.
+        Main/Restricted packages until 2026.
 
         Run 'pro help esm-infra' to learn more
 
@@ -295,7 +372,7 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
         Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2026 and has 1 pending security update[s]?\.
+        Universe/Multiverse packages until 2026.
 
         Run 'pro help esm-apps' to learn more
 
@@ -332,20 +409,59 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
          +\d+ package[s]? from a third party
          +\d+ package[s]? no longer available for download
-        
+
         To get more information about the packages, run
             pro security-status --help
         for a list of available options\.
-        
-        This machine is not attached to an Ubuntu Pro subscription\.
-        
-        Main/Restricted packages receive updates with LTS until 2025\.
-        
+
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
+        This machine is NOT attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+
         Ubuntu Pro with 'esm-apps' enabled provides security updates for
         Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
 
         Try Ubuntu Pro with a free personal subscription on up to 5 machines.
         Learn more at https://ubuntu.com/pro
+        """
+        When I verify root and non-root `pro security-status --esm-infra` calls have the same output
+        And I run `pro security-status --esm-infra` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+
+        Run 'pro help esm-infra' to learn more
+        """
+        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        And I run `pro security-status --esm-apps` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
+
+        Run 'pro help esm-apps' to learn more
+
+        Package names in .*bold.* currently have an available update
+        with 'esm-apps' enabled
+        Packages:
+        (.|\n)+
+
+        For example, run:
+            apt-cache policy .+
+        to learn more about that package\.
         """
         When I attach `contract_token` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
@@ -362,11 +478,13 @@ Feature: Security status command behavior
             pro security-status --help
         for a list of available options\.
 
-        Main/Restricted packages receive updates with LTS until 2025\.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Main/Restricted packages are receiving security updates from
+        Ubuntu Pro with 'esm-infra' enabled until 2030.
 
         Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-apps' enabled until 2030\.
         """
         When I verify root and non-root `pro security-status --esm-infra` calls have the same output
         And I run `pro security-status --esm-infra` as non-root
@@ -375,10 +493,10 @@ Feature: Security status command behavior
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
 
-        Main/Restricted packages receive updates with LTS until 2025\.
+        Main/Restricted packages are receiving security updates from
+        Ubuntu Pro with 'esm-infra' enabled until 2030.
 
-        After the LTS period ends, Main/Restricted packages will get security updates
-        from Ubuntu Pro with 'esm-infra' enabled\.
+        Run 'pro help esm-infra' to learn more
         """
         When I verify root and non-root `pro security-status --esm-apps` calls have the same output
         And I run `pro security-status --esm-apps` as non-root
@@ -388,8 +506,7 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
         Universe/Multiverse packages are receiving security updates from
-        Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received (\d+|no) security
-        update[s]?\.
+        Ubuntu Pro with 'esm-apps' enabled until 2030\.
 
         Run 'pro help esm-apps' to learn more
 
@@ -402,6 +519,30 @@ Feature: Security status command behavior
             apt-cache policy .+
         to learn more about that package\.
         """
+        When I run `apt upgrade -y` with sudo
+        And I verify root and non-root `pro security-status` calls have the same output
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Main/Restricted packages are receiving security updates from
+        Ubuntu Pro with 'esm-infra' enabled until 2030\.
+
+        Universe/Multiverse packages are receiving security updates from
+        Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received \d+ security
+        update[s]?\.
+        """
         When I run `pro disable esm-infra esm-apps` with sudo
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
@@ -412,15 +553,21 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
          +\d+ package[s]? from a third party
          +\d+ package[s]? no longer available for download
-        
+
         To get more information about the packages, run
             pro security-status --help
         for a list of available options\.
-        
-        Main/Restricted packages receive updates with LTS until 2025\.
+
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+        Enable esm-infra with: pro enable esm-infra
 
         Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2030 and has \d+ pending security update[s]?\.
+        Universe/Multiverse packages until 2030.
         Enable esm-apps with: pro enable esm-apps
         """
         When I verify root and non-root `pro security-status --thirdparty` calls have the same output
@@ -465,10 +612,13 @@ Feature: Security status command behavior
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
 
-        Main/Restricted packages receive updates with LTS until 2025\.
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
 
-        After the LTS period ends, Main/Restricted packages will get security updates
-        from Ubuntu Pro with 'esm-infra' enabled\.
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+
+        Run 'pro help esm-infra' to learn more
         """
         When I verify root and non-root `pro security-status --esm-apps` calls have the same output
         And I run `pro security-status --esm-apps` as non-root
@@ -478,7 +628,7 @@ Feature: Security status command behavior
          +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
         Ubuntu Pro with 'esm-apps' enabled provides security updates for
-        Universe/Multiverse packages until 2030 and has 1 pending security update[s]?\.
+        Universe/Multiverse packages until 2030.
 
         Run 'pro help esm-apps' to learn more
 
@@ -521,6 +671,8 @@ Feature: Security status command behavior
         for a list of available options\.
 
         Main/Restricted packages receive updates until 7/2023\.
+
+        Ubuntu Pro is not available for non-LTS releases\.
         """
         When I verify root and non-root `pro security-status --esm-infra` calls have the same output
         And I run `pro security-status --esm-infra` as non-root
@@ -528,8 +680,17 @@ Feature: Security status command behavior
         """
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
-        
+
         Main/Restricted packages receive updates until 7/2023\.
-        
+
+        Ubuntu Pro is not available for non-LTS releases\.
+        """
+        When I verify root and non-root `pro security-status --esm-apps` calls have the same output
+        And I run `pro security-status --esm-apps` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ packages from Ubuntu Universe/Multiverse repository
+
         Ubuntu Pro is not available for non-LTS releases\.
         """
