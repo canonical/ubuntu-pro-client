@@ -67,10 +67,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
-from uaclient.jobs.update_messaging import (
-    refresh_motd,
-    update_apt_and_motd_messages,
-)
+from uaclient.jobs.update_messaging import refresh_motd, update_motd_messages
 
 NAME = "pro"
 
@@ -1367,7 +1364,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
 
     cfg.delete_cache()
     cfg.machine_token_file.delete()
-    update_apt_and_motd_messages(cfg)
+    update_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)
     return 0
 
@@ -1738,7 +1735,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
     # functions should raise UserFacingError exceptions, which are
     # covered by the main_error_handler decorator
     try:
-        update_apt_and_motd_messages(cfg)
+        update_motd_messages(cfg)
         refresh_motd()
         if cfg.apt_news:
             apt_news.update_apt_news(cfg)

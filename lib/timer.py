@@ -16,7 +16,7 @@ from uaclient.files.state_files import (
 )
 from uaclient.jobs.metering import metering_enabled_resources
 from uaclient.jobs.update_contract_info import update_contract_info
-from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+from uaclient.jobs.update_messaging import update_motd_messages
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
@@ -110,7 +110,7 @@ class MeteringTimedJob(TimedJob):
 metering_job = MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL)
 update_message_job = TimedJob(
     "update_messaging",
-    update_apt_and_motd_messages,
+    update_motd_messages,
     UPDATE_MESSAGING_INTERVAL,
 )
 update_contract_info_job = TimedJob(

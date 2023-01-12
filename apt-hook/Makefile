@@ -1,12 +1,6 @@
 all: build
 
-build: hook ubuntu-advantage.pot json-hook
-
-ubuntu-advantage.pot: hook.cc
-	xgettext hook.cc -o ubuntu-advantage.pot
-
-hook: hook.cc
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o hook hook.cc esm-templates.cc -lapt-pkg $(LDLIBS)
+build: json-hook
 
 json-hook: json-hook.cc
 	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook json-hook-main.cc json-hook.cc esm-counts.cc -ljson-c -lapt-pkg $(LDLIBS)
@@ -18,11 +12,10 @@ test:
 install-conf:
 	install -D -m 644 20apt-esm-hook.conf $(DESTDIR)/etc/apt/apt.conf.d/20apt-esm-hook.conf
 
-install: hook json-hook
-	install -D -m 755 hook $(DESTDIR)/usr/lib/ubuntu-advantage/apt-esm-hook
+install: json-hook
 	install -D -m 755 json-hook $(DESTDIR)/usr/lib/ubuntu-advantage/apt-esm-json-hook
 
 clean:
-	rm -f hook json-hook json-hook-test ubuntu-advantage.pot
+	rm -f json-hook json-hook-test
 
 .PHONY: test

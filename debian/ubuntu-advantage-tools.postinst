@@ -52,7 +52,6 @@ PUBLIC_MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/machine-token.json"
 UA_MESSAGES_DIR="/var/lib/ubuntu-advantage/messages"
 APT_ESM_MESSAGE_FILE="$UA_MESSAGES_DIR/apt-pre-invoke-esm-service-status"
 ESM_APPS_APT_MSG_FILES="$UA_MESSAGES_DIR/apt-pre-invoke-no-packages-apps.tmpl $UA_MESSAGES_DIR/apt-pre-invoke-no-packages-apps $UA_MESSAGES_DIR/apt-pre-invoke-packages-apps.tmpl $UA_MESSAGES_DIR/apt-pre-invoke-packages-apps"
-OLD_MOTD_ESM_ANNOUNCE_MESSAGE_FILE="$UA_MESSAGES_DIR/motd-esm-announce"
 UA_FLAGS_DIR="/var/lib/ubuntu-advantage/flags"
 APT_NEWS_FLAG_FILE="$UA_FLAGS_DIR/show-apt-news"
 
@@ -331,10 +330,8 @@ cleanup_apt_news_flag_file() {
     fi
 }
 
-cleanup_old_motd_stamp_file() {
-    if [ -f $OLD_MOTD_ESM_ANNOUNCE_MESSAGE_FILE ]; then
-        rm -f $OLD_MOTD_ESM_ANNOUNCE_MESSAGE_FILE
-    fi
+cleanup_old_motd_files() {
+    rm -f $UA_MESSAGES_DIR/motd*
 }
 
 case "$1" in
@@ -440,7 +437,7 @@ case "$1" in
           rm -f /etc/ubuntu-advantage/uaclient.conf.preinst-remove
       fi
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.14~"; then
-          cleanup_old_motd_stamp_file
+          cleanup_old_motd_files
       fi
       ;;
 esac
