@@ -13,19 +13,15 @@ Alternatively, you can enable FIPS using the Ubuntu Pro Client, which will
 install a FIPS-certified kernel and core security-related packages such as
 `openssh-server/client` and `libssl`. 
 
-```{note}
-Note that disabling FIPS on an image is not yet supported.
+```{danger}
+Disabling FIPS is not currently supported: only use it on machines intended
+expressly for this purpose.
 ```
 
 ```{danger}
 Enabling FIPS should be performed during a system maintenance window because
 this operation makes changes to underlying SSL-related libraries and requires a
 reboot into the FIPS-certified kernel.
-```
-
-```{danger}
-Disabling FIPS is not currently supported: only use it on machines intended
-expressly for this purpose.
 ```
 
 To enable FIPS, run:
