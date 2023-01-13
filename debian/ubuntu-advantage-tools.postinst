@@ -314,7 +314,6 @@ disable_new_timer_if_old_timer_already_disabled() {
     # then we will assume that the user would want the
     # ua-timer to be disabled as well. In that case, we will
     # disable the ua-timer here.
-    PREVIOUS_PKG_VER=$1
 
     # We should only perform this check on UA version that have the
     # ua-messaging.timer: 27.0 until 27.2. This will also guarantee
@@ -341,7 +340,6 @@ disable_new_timer_if_old_timer_already_disabled() {
 }
 
 remove_old_systemd_units() {
-    PREVIOUS_PKG_VER=$1
     # These are the commands that are run when the package is purged.
     # Since we actually want to remove this service from now on
     # we have replicated that behavior here
@@ -392,7 +390,6 @@ machine_token_file.write(content=content)
 }
 
 migrate_ubuntu_pro_beta_banner() {
-    PREVIOUS_PKG_VER=$1
     # This only shipped in 27.11.2~
     if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge "27.11.2~" \
        && dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.11.3~"; then
@@ -488,8 +485,8 @@ case "$1" in
       fi
       mark_reboot_for_fips_pro
       rm_old_license_check_marker
-      disable_new_timer_if_old_timer_already_disabled $PREVIOUS_PKG_VER
-      remove_old_systemd_units $PREVIOUS_PKG_VER
+      disable_new_timer_if_old_timer_already_disabled
+      remove_old_systemd_units
       /usr/lib/ubuntu-advantage/cloud-id-shim.sh || true
 
       # On old version of ubuntu-advantange-tools, we don't have a public
@@ -498,7 +495,7 @@ case "$1" in
       if [ -f $MACHINE_TOKEN_FILE ] && [ ! -f $PUBLIC_MACHINE_TOKEN_FILE ]; then
           create_public_machine_token_file
       fi
-      migrate_ubuntu_pro_beta_banner $PREVIOUS_PKG_VER
+      migrate_ubuntu_pro_beta_banner
       cleanup_candidate_version_stamp_permissions
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
           cleanup_apt_news_flag_file
