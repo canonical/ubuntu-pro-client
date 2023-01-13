@@ -11,7 +11,7 @@ please see https://ubuntu.com/security/cc
 
 ## Enable and auto-install
 
-To enable CC EAL through Ubuntu Advantage, please run:
+To enable CC EAL using the Ubuntu Pro Client, please run:
 
 ```console
 $ sudo pro enable cc-eal

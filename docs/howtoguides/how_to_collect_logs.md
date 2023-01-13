@@ -15,7 +15,7 @@ It puts together:
 * The Ubuntu Pro Client configuration file (the default is
   `/etc/ubuntu-advantage/uaclient.conf`)
 * The Ubuntu Pro Client log files (the default is `/var/log/ubuntu-advantage*`)
-* The files in `/etc/apt/sources.list.d/*` related to Ubuntu Advantage
+* The files in `/etc/apt/sources.list.d/*` related to Ubuntu Pro
 * Output of `systemctl status` for the Ubuntu Pro Client related services
 * Status of the timer jobs, `canonical-livepatch`, and the `systemd` timers
 * Output of `cloud-id`, `dmesg` and `journalctl`

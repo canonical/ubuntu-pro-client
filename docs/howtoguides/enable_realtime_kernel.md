@@ -1,8 +1,8 @@
 # How to enable Real-Time Kernel
 
 ```{caution}
-Real-Time Kernel is currently in beta and is only supported on 22.04.
-For more information, please see https://ubuntu.com/realtime-kernel
+Real-Time Kernel is only supported on 22.04. For more information, please see
+https://ubuntu.com/realtime-kernel
 ```
 
 ## Enable and auto-install
@@ -10,7 +10,7 @@ For more information, please see https://ubuntu.com/realtime-kernel
 To `enable` Real-Time Kernel through Ubuntu Advantage, please run:
 
 ```console
-$ sudo pro enable realtime-kernel --beta
+$ sudo pro enable realtime-kernel
 ```
 
 You'll need to acknowledge a warning, and then you should see output like the
@@ -43,7 +43,7 @@ If you would like to enable access to the Real-Time Kernel APT repository but
 not install the kernel right away, use the `--access-only` flag while enabling.
 
 ```console
-$ sudo pro enable realtime-kernel --beta --access-only
+$ sudo pro enable realtime-kernel --access-only
 ```
 
 With this extra flag you'll see output like the following:
