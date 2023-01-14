@@ -3,15 +3,8 @@ import re
 from behave import then, when
 from hamcrest import assert_that, contains_string, matches_regexp
 
-from features.steps.files import when_i_create_file_with_content
 from features.steps.shell import when_i_run_command
 from features.util import SUT
-
-APT_REPO_ENTRY = (
-    "deb [trusted=yes] "
-    "http://proclientdummyrepo.s3-website.us-east-2.amazonaws.com/"
-    "actual_ppa/ unstable main"
-)
 
 
 @when("I apt install `{package_name}`")
@@ -108,27 +101,33 @@ def verify_packages_are_installed_from_apt_source(
 @when("I install third-party / unknown packages in the machine")
 def when_i_install_packages(context):
     # Dummy packages are installed to serve as third-party and unknown
-    # packages for the tests. They live happy and joyful lives in a s3 bucket.
+    # packages for the tests. Those packages are in Launchpad PPAs
+    # owned by the uaclient team.
     # Many APT updates just to make sure we are up to date
 
-    # Unknown package - installed directly, no external reference
+    # Unknown package - we remove the PPA afterwards so there is no
+    # external references for the deb.
     when_i_run_command(
         context,
-        (
-            "curl -L "
-            "http://proclientdummyrepo.s3-website.us-east-2.amazonaws.com/"
-            "unknown_deb/pro-dummy-unknown_1.2.3_all.deb "
-            "-o /tmp/unknown.deb"
-        ),
+        "add-apt-repository -y ppa:ua-client/pro-client-ci-test-unknown",
         "with sudo",
     )
+    when_i_run_command(context, "apt-get update", "with sudo")
     when_i_run_command(
-        context, "apt-get install -y /tmp/unknown.deb", "with sudo"
+        context, "apt-get install -y pro-dummy-unknown", "with sudo"
+    )
+    # Why no remove-apt-repository?
+    when_i_run_command(
+        context,
+        "add-apt-repository -y -r ppa:ua-client/pro-client-ci-test-unknown",
+        "with sudo",
     )
 
     # PPA to install the third-party package
-    when_i_create_file_with_content(
-        context, "/etc/apt/sources.list.d/prodummy.list", text=APT_REPO_ENTRY
+    when_i_run_command(
+        context,
+        "add-apt-repository -y ppa:ua-client/pro-client-ci-test-thirdparty",
+        "with sudo",
     )
     when_i_run_command(context, "apt-get update", "with sudo")
     when_i_run_command(
