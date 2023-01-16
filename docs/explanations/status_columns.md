@@ -1,7 +1,11 @@
-# Status output explanation
+# The `pro status` output explained
 
-When running `pro status` we can observe two different types of outputs, attached vs unattached.
-When unattached, users will see the status table containing only three columns:
+When running `pro status` we can observe two different types of outputs, which
+depend on whether the Ubuntu Pro subscription is attached or unattached.
+
+## Pro subscription unattached
+When unattached, users will see the following status table containing only
+three columns:
 
 ```
 SERVICE          AVAILABLE  DESCRIPTION
@@ -15,12 +19,16 @@ livepatch        yes        Canonical Livepatch service
 
 Where:
 
-* **SERVICE**: is the name of service being offered
-* **AVAILABLE**: if that service is available on that machine. To verify if a service is available, we
-  check the machine kernel version, architecture and Ubuntu release it is running.
+* **SERVICE**: Is the name of service being offered.
+* **AVAILABLE**: Shows if that service is available on the machine. To verify
+  if a service is available, we check the machine kernel version, architecture
+  and the Ubuntu release it is running.
 * **DESCRIPTION**: A short description of the service.
 
-However, if we run the same command when attached, we have an output with 4 columns:
+## With Pro subscription attached
+
+However, if we run the same command when attached, we have an output with 4
+columns:
 
 ```
 SERVICE       ENTITLED  STATUS    DESCRIPTION
@@ -29,46 +37,67 @@ esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructu
 fips          yes       n/a       NIST-certified core packages
 fips-updates  yes       n/a       NIST-certified core packages with priority security updates
 livepatch     yes       n/a       Canonical Livepatch service
-``` 
+```
 
-Here we can notice that the column **AVAILABLE** no longer applies and we have new columns:
+You may notice that the column **AVAILABLE** is no longer shown, and instead we
+see the following new columns:
 
-* **ENTITLED**: If the user subscription allow that service to be enabled
-* **STATUS**: The state of that service on the machine.
+* **ENTITLED**: Shows if the user subscription allows that service to be
+  enabled.
+* **STATUS**: Reports the state of that service on the machine.
 
-It is possible that a service appears as available when running status unattached, but turns
-out as not entitled. This happens because even if the service can be enabled on the machine,
-if your Ubuntu Pro subscription doesn't allow you to do that, `pro` cannot enable it.
+It is possible that a service could appear as "available" when the Pro status is
+unattached, but then shows as "not entitled" if the subscription is later
+attached. This happens because even if the service is available, if your Ubuntu
+Pro subscription doesn't allow you access to a service, `pro` cannot enable it.
 
-Additionally, the **STATUS** column allows for three possible states:
+The **STATUS** column allows for three possible states:
 
-* **enabled**: service is enabled in the machine
-* **disabled**: service is not currently running
-* **n/a**: This means non-applicable. This can happen if the service cannot be enabled on the machine
-  due to a non-contract restriction. For example, we cannot enable `livepatch` on a container.
+* **enabled**: The service is enabled on the machine.
+* **disabled**: The service is not currently running.
+* **n/a**: This means "not applicable". This will show if the service cannot be
+  enabled on the machine due to a non-contract restriction. For example, we
+  cannot enable `livepatch` on a container.
 
-### Notices
-Notices are information regarding the Ubuntu Pro status which either require some kind of action from the user, or may impact the experience with Ubuntu Pro.
+## Notices
 
-For example, let's say FIPS was just enabled, but the system wasn't rebooted yet (which is needed for booting into the FIPS Kernel), the output of `pro status`  will contain:
+"Notices" are information regarding the Ubuntu Pro status which either require
+some kind of action from the user, or may impact the experience with Ubuntu Pro.
+
+For example, let's say FIPS was just enabled, but the system wasn't rebooted
+yet (which is required for booting into the FIPS Kernel). The output of
+`pro status` in this case will contain:
+
 ```
 NOTICES
 FIPS support requires system reboot to complete configuration.
 ```
+
 After the system is rebooted, the notice will go away.
 
-Notices can always be resolved, and the way to resolve it should be explicit in the notice itself.
+Notices can always be resolved, and the instructions on how to resolve it will
+be explicitly stated in the notice itself.
 
-### Features
-Features are extra configuration values that can be set/unset in `uaclient.conf`. Most of those are meant for development/testing purposes, but some can be used in application flows. For example, to always have beta services with the same flow as the non-beta (for enable, status, etc), `uaclient.conf` may have:
+## Features
+
+"Features" are extra configuration values that can be set and unset in
+`uaclient.conf`. Most of these are meant for development/testing purposes, but
+some can be used in application flows. For example, to always have beta services
+with the same flow as the non-beta (for `enable`, `status`, etc.),
+`uaclient.conf` may have:
+
 ```
 features:
   allow_beta: true
 ```
+
 In this case, the output of `pro status` will contain:
+
 ```
 FEATURES
 allow_beta: True
 ```
 
-Keep in mind that any feature defined like this will be listed, even if it is invalid or typed the wrong way. Those appear on status for information/debugging purposes.
+It's important to keep in mind that any feature defined like this will be
+listed, even if it is invalid or typed the wrong way. Those appear in `status`
+output for informational and debugging purposes.
