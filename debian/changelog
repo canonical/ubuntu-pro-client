@@ -1,3 +1,53 @@
+ubuntu-advantage-tools (27.13~23.04.1) lunar; urgency=medium
+
+  * d/bash-completion:
+    - enable autocomplete for the 'pro' command (GH: #2280)
+  * d/control:
+    - update the package description
+  * d/postinst:
+    - remove unauthenticated esm repos from Xenial systems (LP: #1990378)
+  * New upstream release 27.13 (LP: #2003018)
+    - apt:
+      + remove logic which added repositories and pinned them to 'never' to
+        enable access to esm package lists
+      + add functionality to create and update a local apt esm cache with
+        the lists for esm-infra and esm-apps
+    - apt-hook: update the cpp hook to use the local esm apt cache
+    - apt-news:
+      + fetch and display APT News in apt upgrade
+      + show contract expiration notices in the apt news output
+    - attach: support attaching without being able to install snapd
+      (LP: #1997514)
+    - cli:
+      + do not show invalid subcommands in autocomplete (GH: #2279)
+      + add support for attaching through the web portal, without a token
+    - config: add apt_news_url option
+    - docs: reorganize documentation and correct information
+    - esm-apps: release the service as GA
+    - jobs:
+      + remove the update_status job
+      + remove unused job which checks for the system EOL
+    - messaging: do not fail if the apt-hook executable is not present
+      (LP: #1994480)
+    - motd: announce esm-apps as GA
+    - security-status:
+      + use the local esm cache to report updates when the services are
+        disabled
+      + redesign output to properly show support (LP: #2002407)
+    - services: add new service to update the local esm caches
+    - ros: release the service as GA
+    - bug fixes:
+      + report reboot_required even if 'livepatch status' fails
+      + do not create unexpected environment variables when the autocomplete
+        script runs
+      + contract requests do not cause 'pro status' to fail
+      + remove auto-attach motd message if any failure happens
+      + log when 'cloud-id' fails
+      + always honor the metering job timer config
+      + write files atomically
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Mon, 16 Jan 2023 10:01:11 -0300
+
 ubuntu-advantage-tools (27.12~23.04.1) lunar; urgency=medium
 
   * New upstream release 27.12 (LP: #1996424):
