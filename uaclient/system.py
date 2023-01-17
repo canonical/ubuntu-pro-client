@@ -116,6 +116,15 @@ def get_dpkg_arch() -> str:
 
 
 @lru_cache(maxsize=None)
+def get_virt_type() -> str:
+    try:
+        out, _ = subp(["systemd-detect-virt"])
+        return out.strip()
+    except exceptions.ProcessExecutionError:
+        return ""
+
+
+@lru_cache(maxsize=None)
 def get_machine_id(cfg) -> str:
     """
     Get system's unique machine-id or create our own in data_dir.
@@ -181,8 +190,10 @@ def get_platform_info() -> Dict[str, str]:
             "series": series.lower(),
             "kernel": get_kernel_info().uname_release,
             "arch": get_dpkg_arch(),
+            "virt": get_virt_type(),
         }
     )
+
     return platform_info
 
 

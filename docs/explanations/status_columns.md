@@ -19,10 +19,10 @@ livepatch        yes        Canonical Livepatch service
 
 Where:
 
-* **SERVICE**: Is the name of service being offered.
-* **AVAILABLE**: Shows if that service is available on the machine. To verify
-  if a service is available, we check the machine kernel version, architecture
-  and the Ubuntu release it is running.
+* **SERVICE**: Is the name of service being offered
+* **AVAILABLE**: Shows if that service is available on that machine. To verify
+  if a service is available, we check the machine kernel version, architecture,
+  Ubuntu release being used and the machine type (i.e lxd for LXD containers)
 * **DESCRIPTION**: A short description of the service.
 
 ## With Pro subscription attached
