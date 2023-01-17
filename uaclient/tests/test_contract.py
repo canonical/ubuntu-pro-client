@@ -158,6 +158,7 @@ class TestUAContractClient:
             "arch": "arch",
             "kernel": "kernel",
             "series": "series",
+            "virt": "mtype",
         }
 
         get_machine_id.return_value = "machineId"
