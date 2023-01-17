@@ -620,7 +620,7 @@ class TestGetPlatformInfo:
             system.get_platform_info.__wrapped__()
 
     @pytest.mark.parametrize(
-        "os_release, arch, kernel, expected",
+        "os_release,arch,kernel,virt,expected",
         [
             (
                 {
@@ -629,6 +629,7 @@ class TestGetPlatformInfo:
                 },
                 "arm64",
                 "kernel-ver1",
+                "lxd",
                 {
                     "arch": "arm64",
                     "distribution": "Ubuntu",
@@ -637,6 +638,7 @@ class TestGetPlatformInfo:
                     "series": "xenial",
                     "type": "Linux",
                     "version": "16.04 LTS (Xenial Xerus)",
+                    "virt": "lxd",
                 },
             ),
             (
@@ -646,6 +648,7 @@ class TestGetPlatformInfo:
                 },
                 "amd64",
                 "kernel-ver2",
+                "none",
                 {
                     "arch": "amd64",
                     "distribution": "Ubuntu",
@@ -654,6 +657,7 @@ class TestGetPlatformInfo:
                     "series": "bionic",
                     "type": "Linux",
                     "version": "18.04 LTS (Bionic Beaver)",
+                    "virt": "none",
                 },
             ),
             (
@@ -663,6 +667,7 @@ class TestGetPlatformInfo:
                 },
                 "arm64",
                 "kernel-ver3",
+                "qemu",
                 {
                     "arch": "arm64",
                     "distribution": "Ubuntu",
@@ -671,6 +676,7 @@ class TestGetPlatformInfo:
                     "series": "jammy",
                     "type": "Linux",
                     "version": "22.04 LTS (Jammy Jellyfish)",
+                    "virt": "qemu",
                 },
             ),
             (
@@ -680,6 +686,7 @@ class TestGetPlatformInfo:
                 },
                 "amd64",
                 "kernel-ver4",
+                "wsl",
                 {
                     "arch": "amd64",
                     "distribution": "Ubuntu",
@@ -688,6 +695,7 @@ class TestGetPlatformInfo:
                     "series": "kinetic",
                     "type": "Linux",
                     "version": "22.10 LTS (Kinetic Kudu)",
+                    "virt": "wsl",
                 },
             ),
             (
@@ -698,6 +706,7 @@ class TestGetPlatformInfo:
                 },
                 "amd64",
                 "kernel-ver4",
+                "lxd",
                 {
                     "arch": "amd64",
                     "distribution": "Ubuntu",
@@ -706,6 +715,7 @@ class TestGetPlatformInfo:
                     "series": "jammy",
                     "type": "Linux",
                     "version": "22.04 LTS",
+                    "virt": "lxd",
                 },
             ),
             (
@@ -717,6 +727,7 @@ class TestGetPlatformInfo:
                 },
                 "amd64",
                 "kernel-ver4",
+                "lxd",
                 {
                     "arch": "amd64",
                     "distribution": "Ubuntu",
@@ -725,6 +736,7 @@ class TestGetPlatformInfo:
                     "series": "jammy",
                     "type": "Linux",
                     "version": "CORRUPTED",
+                    "virt": "lxd",
                 },
             ),
         ],
@@ -732,19 +744,23 @@ class TestGetPlatformInfo:
     @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch("uaclient.system.get_dpkg_arch")
     @mock.patch("uaclient.system.parse_os_release")
+    @mock.patch("uaclient.system.get_virt_type")
     def test_get_platform_info_with_version(
         self,
+        m_get_virt_type,
         m_parse_os_release,
         m_get_dpkg_arch,
         m_get_kernel_info,
         os_release,
         arch,
         kernel,
+        virt,
         expected,
     ):
         m_parse_os_release.return_value = os_release
         m_get_dpkg_arch.return_value = arch
         m_get_kernel_info.return_value = mock.MagicMock(uname_release=kernel)
+        m_get_virt_type.return_value = virt
         assert expected == system.get_platform_info.__wrapped__()
 
 
