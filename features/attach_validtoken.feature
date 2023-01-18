@@ -198,25 +198,13 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "esm-apps",
-                            "entitled": false
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: esm-apps
+                entitled: false
         """
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -247,25 +235,13 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attach command in an generic Azure Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "esm-apps",
-                            "entitled": false
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: esm-apps
+                entitled: false
         """
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -296,25 +272,13 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
     @uses.config.machine_type.gcp.generic
     Scenario Outline: Attach command in an generic GCP Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "esm-apps",
-                            "entitled": false
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: esm-apps
+                entitled: false
         """
         And I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -386,20 +350,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
        """
-       When I create the file `/tmp/machine-token-overlay.json` with the following:
+       When I set the machine token overlay to the following yaml
        """
-       {
-           "machineTokenInfo": {
-               "contractInfo": {
-                   "effectiveTo": "2000-01-02T03:04:05Z"
-               }
-           }
-       }
-       """
-       And I append the following on uaclient config:
-       """
-       features:
-         machine_token_overlay: "/tmp/machine-token-overlay.json"
+       machineTokenInfo:
+         contractInfo:
+           effectiveTo: 2000-01-02T03:04:05Z
        """
        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -414,7 +369,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
        Successfully refreshed your subscription.
        """
-       When I run `sed -i '/^.*machine_token_overlay:/d' /etc/ubuntu-advantage/uaclient.conf` with sudo
+       # remove machine token overlay
+       When I change config key `features` to use value `{}`
        And I run `pro status` with sudo
        Then stdout does not match regexp:
        """
