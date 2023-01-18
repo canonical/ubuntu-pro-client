@@ -61,20 +61,11 @@ Feature: MOTD Messages
         When I run `apt-get update` with sudo
         And I run `apt-get install ansible -y` with sudo
         And I attach `contract_token` with sudo
-        And I create the file `/tmp/machine-token-overlay.json` with the following:
+        And I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today +2}"
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today +2}
         """
         And I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
@@ -88,15 +79,11 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -3}"
-                }
-            }
-        }
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today -3}
         """
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
@@ -111,15 +98,11 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -20}"
-                }
-            }
-        }
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today -20}
         """
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo

@@ -1,8 +1,16 @@
+import json
+
+import yaml
 from behave import then, when
 from hamcrest import assert_that, equal_to, not_
 
+from features.steps.files import (
+    change_config_key_to_use_value,
+    when_i_create_file_with_content,
+)
 from features.steps.shell import when_i_run_command
 from features.util import SUT, process_template_vars
+from uaclient import util
 from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
@@ -107,4 +115,19 @@ def i_restore_the_saved_key_value_on_contract(context, key):
         context=context,
         contract_field=key.split(".")[-1],
         new_value=saved_value,
+    )
+
+
+@when("I set the machine token overlay to the following yaml")
+def when_i_set_the_machine_token_overlay(context):
+    json_text = json.dumps(
+        yaml.safe_load(context.text), cls=util.DatetimeAwareJSONEncoder
+    )
+    when_i_create_file_with_content(
+        context, "/tmp/machine-token-overlay.json", text=json_text
+    )
+    change_config_key_to_use_value(
+        context,
+        "features",
+        "{ machine_token_overlay: /tmp/machine-token-overlay.json}",
     )
