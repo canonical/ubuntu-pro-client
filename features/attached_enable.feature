@@ -79,27 +79,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Empty series affordance means no series, null means all series
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "esm-infra",
-                            "affordances": {
-                                "series": []
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: esm-infra
+                affordances:
+                  series: []
         """
         When I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then stdout matches regexp:
@@ -344,25 +331,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "esm-apps",
-                            "entitled": false
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: esm-apps
+                entitled: false
         """
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable esm-apps` `as non-root` exits `1`
@@ -1133,76 +1108,46 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.aws.generic
     Scenario: Cloud overrides for a generic aws Focal instance
        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-          "machineTokenInfo": {
-            "contractInfo": {
-              "resourceEntitlements": [
-                {
-                  "type": "fips",
-                  "entitled": true,
-                  "affordances": {
-                    "architectures": [
-                      "amd64",
-                      "ppc64el",
-                      "ppc64le",
-                      "s390x",
-                      "x86_64"
-                    ],
-                    "series": [
-                      "xenial",
-                      "bionic",
-                      "focal"
-                    ]
-                  },
-                  "directives": {
-                    "additionalPackages": [
-                      "ubuntu-fips"
-                    ],
-                    "aptKey": "E23341B2A1467EDBF07057D6C1997C40EDE22758",
-                    "aptURL": "https://esm.ubuntu.com/fips",
-                    "suites": [
-                      "xenial",
-                      "bionic",
-                      "focal"
-                    ]
-                  },
-                  "obligations": {
-                    "enableByDefault": false
-                  },
-                  "overrides": [
-                    {
-                      "selector": {
-                        "series": "focal"
-                      },
-                      "directives": {
-                        "additionalPackages": [
-                          "some-package-focal"
-                        ]
-                      }
-                    },
-                    {
-                      "selector": {
-                        "cloud": "aws"
-                      },
-                      "directives": {
-                        "additionalPackages": [
-                          "some-package-aws"
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: fips
+                entitled: true
+                affordances:
+                  architectures:
+                    - amd64
+                    - ppc64el
+                    - ppc64le
+                    - s390x
+                    - x86_64
+                  series:
+                    - xenial
+                    - bionic
+                    - focal
+                directives:
+                  additionalPackages:
+                   - ubuntu-fips
+                  aptKey: E23341B2A1467EDBF07057D6C1997C40EDE22758
+                  aptURL: https://esm.ubuntu.com/fips
+                  suites:
+                    - xenial
+                    - bionic
+                    - focal
+                obligations:
+                  enableByDefault: false
+                overrides:
+                  - selector:
+                      series: focal
+                    directives:
+                      additionalPackages:
+                        - some-package-focal
+                  - selector:
+                      cloud: aws
+                    directives:
+                      additionalPackages:
+                        - some-package-aws
         """
         And I attach `contract_token` with sudo
         And I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`

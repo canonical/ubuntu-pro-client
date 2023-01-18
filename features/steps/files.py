@@ -121,13 +121,14 @@ def there_should_be_no_files_matching_regex(context, path_regex):
         )
 
 
-@when("I change config key `{key}` to use value `{value}`")
-def change_contract_key_to_use_value(context, key, value):
-    value = process_template_vars(context, value)
+@when("I change config key `{key}` to use value `{yaml_value}`")
+def change_config_key_to_use_value(context, key, yaml_value):
+    yaml_value = process_template_vars(context, yaml_value)
 
     content = _get_file_contents(context, DEFAULT_CONFIG_FILE)
     cfg = yaml.safe_load(content)
-    cfg[key] = value
+    val = yaml.safe_load(yaml_value)
+    cfg[key] = val
     new_content = yaml.dump(cfg)
 
     when_i_create_file_with_content(

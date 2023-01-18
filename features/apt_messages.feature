@@ -521,20 +521,11 @@ Feature: APT Messages
         """
         When I attach `contract_token` with sudo
         When I run `apt upgrade -y` with sudo
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today +2}"
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today +2}
         """
         # test that apt update will trigger hook to update apt_news for local override
         When I run shell command `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
@@ -554,15 +545,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -3}"
-                }
-            }
-        }
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today -3}
         """
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
@@ -580,15 +567,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I set the machine token overlay to the following yaml
         """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": "$behave_var{today -20}"
-                }
-            }
-        }
+        machineTokenInfo:
+          contractInfo:
+            effectiveTo: $behave_var{today -20}
         """
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
