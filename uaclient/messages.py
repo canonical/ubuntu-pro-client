@@ -1,6 +1,6 @@
 from typing import Dict, Optional  # noqa: F401
 
-from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL
+from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL, PRO_ATTACH_URL
 
 
 class NamedMessage:
@@ -60,6 +60,8 @@ Failed to find the machine token overlay file: {file_path}"""
 ERROR_JSON_DECODING_IN_FILE = """\
 Found error: {error} when reading json file: {file_path}"""
 
+SECURITY_FIX_ATTACH_PROMPT = """\
+Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel"""
 SECURITY_FIX_NOT_FOUND_ISSUE = "Error: {issue_id} not found."
 SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
@@ -150,6 +152,19 @@ Auto-attach image support is not available on this image
 See: """
     + BASE_UA_URL
 )
+
+CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
+CLI_MAGIC_ATTACH_FAILED = "Failed to perform attach..."
+CLI_MAGIC_ATTACH_SIGN_IN = """\
+Please sign in to your Ubuntu Pro account at this link:
+{url}
+And provide the following code: {bold}{{user_code}}{end_bold}""".format(
+    url=PRO_ATTACH_URL,
+    bold=TxtColor.BOLD,
+    end_bold=TxtColor.ENDC,
+)
+CLI_MAGIC_ATTACH_PROCESSING = "Attaching the machine..."
+
 NO_ACTIVE_OPERATIONS = """No Ubuntu Pro operations are running"""
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"

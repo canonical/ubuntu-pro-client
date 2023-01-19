@@ -29,6 +29,7 @@ BASE_ESM_URL = "https://ubuntu.com/esm"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
 CLOUD_BUILD_INFO = "/etc/cloud/build.info"
 ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
+PRO_ATTACH_URL = BASE_UA_URL + "/attach"
 
 DOCUMENTATION_URL = (
     "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
