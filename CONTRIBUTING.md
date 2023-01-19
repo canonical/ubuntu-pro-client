@@ -32,4 +32,4 @@ from the architecture of the project to how you should test any code changes.
 
 ### Documentation
 
-* [Documentation guide](./docs/devdocs_styleguide.md)
+* [Documentation guide](./dev-docs/devdocs_styleguide.md)
