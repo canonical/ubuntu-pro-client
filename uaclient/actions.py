@@ -8,7 +8,6 @@ from uaclient import (
     config,
     contract,
     entitlements,
-    event_logger,
     exceptions,
     messages,
 )
@@ -25,7 +24,6 @@ from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 from uaclient.files.state_files import timer_jobs_state_file
 
 LOG = logging.getLogger("pro.actions")
-event = event_logger.get_event_logger()
 
 
 UA_SERVICES = (
