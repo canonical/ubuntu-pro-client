@@ -45,6 +45,7 @@ from uaclient.security import (
     _check_attached,
     _check_subscription_for_required_service,
     _check_subscription_is_expired,
+    _prompt_for_attach,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
     get_related_usns,
@@ -2639,3 +2640,32 @@ class TestCheckSubscriptionIsExpired:
             status_cache=status_cache, cfg=None, dry_run=False
         )
         assert 1 == m_prompt.call_count
+
+
+class TestPromptForAttach:
+    @mock.patch("uaclient.security._initiate")
+    @mock.patch("uaclient.security._wait")
+    @mock.patch("uaclient.security._revoke")
+    @mock.patch("uaclient.security._inform_ubuntu_pro_existence_if_applicable")
+    @mock.patch("uaclient.util.prompt_choices")
+    def test_magic_attach_revoke_token_if_wait_fails(
+        self,
+        m_prompt_choices,
+        _m_inform_pro,
+        m_revoke,
+        m_wait,
+        m_initiate,
+        FakeConfig,
+    ):
+        m_prompt_choices.return_value = "s"
+        m_initiate.return_value = mock.MagicMock(
+            token="token", user_code="user_code"
+        )
+        m_wait.side_effect = exceptions.MagicAttachTokenError()
+
+        with pytest.raises(exceptions.MagicAttachTokenError):
+            _prompt_for_attach(cfg=FakeConfig())
+
+        assert 1 == m_initiate.call_count
+        assert 1 == m_wait.call_count
+        assert 1 == m_revoke.call_count
