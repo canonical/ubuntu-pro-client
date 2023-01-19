@@ -1427,16 +1427,12 @@ def _magic_attach(args, *, cfg, **kwargs):
             value=args.format,
         )
 
-    event.info("Initiating attach operation...")
+    event.info(messages.CLI_MAGIC_ATTACH_INIT)
     initiate_resp = _initiate(cfg=cfg)
-
-    event.info("\nPlease sign in to your Ubuntu Pro account at this link:")
-    event.info("https://ubuntu.com/pro/attach")
     event.info(
-        "And provide the following code: {}{}{}".format(
-            messages.TxtColor.BOLD,
-            initiate_resp.user_code,
-            messages.TxtColor.ENDC,
+        "\n"
+        + messages.CLI_MAGIC_ATTACH_SIGN_IN.format(
+            user_code=initiate_resp.user_code
         )
     )
 
@@ -1445,7 +1441,7 @@ def _magic_attach(args, *, cfg, **kwargs):
     try:
         wait_resp = _wait(options=wait_options, cfg=cfg)
     except exceptions.MagicAttachTokenError as e:
-        event.info("Failed to perform magic-attach")
+        event.info(messages.CLI_MAGIC_ATTACH_FAILED)
 
         revoke_options = MagicAttachRevokeOptions(
             magic_token=initiate_resp.token
@@ -1453,7 +1449,7 @@ def _magic_attach(args, *, cfg, **kwargs):
         _revoke(options=revoke_options, cfg=cfg)
         raise e
 
-    event.info("\nAttaching the machine...")
+    event.info("\n" + messages.CLI_MAGIC_ATTACH_PROCESSING)
     return wait_resp.contract_token
 
 

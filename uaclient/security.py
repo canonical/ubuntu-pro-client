@@ -9,6 +9,15 @@ from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
 from uaclient import apt, exceptions, messages, serviceclient, system, util
+from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
+from uaclient.api.u.pro.attach.magic.revoke.v1 import (
+    MagicAttachRevokeOptions,
+    _revoke,
+)
+from uaclient.api.u.pro.attach.magic.wait.v1 import (
+    MagicAttachWaitOptions,
+    _wait,
+)
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
@@ -1140,6 +1149,33 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
         return False
 
 
+def _perform_magic_attach(cfg: UAConfig):
+    print(messages.CLI_MAGIC_ATTACH_INIT)
+    initiate_resp = _initiate(cfg=cfg)
+    print(
+        "\n"
+        + messages.CLI_MAGIC_ATTACH_SIGN_IN.format(
+            user_code=initiate_resp.user_code
+        )
+    )
+
+    wait_options = MagicAttachWaitOptions(magic_token=initiate_resp.token)
+
+    try:
+        wait_resp = _wait(options=wait_options, cfg=cfg)
+    except exceptions.MagicAttachTokenError as e:
+        print(messages.CLI_MAGIC_ATTACH_FAILED)
+
+        revoke_options = MagicAttachRevokeOptions(
+            magic_token=initiate_resp.token
+        )
+        _revoke(options=revoke_options, cfg=cfg)
+        raise e
+
+    print("\n" + messages.CLI_MAGIC_ATTACH_PROCESSING)
+    return _run_ua_attach(cfg, wait_resp.contract_token)
+
+
 def _prompt_for_attach(cfg: UAConfig) -> bool:
     """Prompt for attach to a subscription or token.
 
@@ -1148,16 +1184,14 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     _inform_ubuntu_pro_existence_if_applicable()
     print(messages.SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
     choice = util.prompt_choices(
-        "Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel",
+        messages.SECURITY_FIX_ATTACH_PROMPT,
         valid_choices=["s", "a", "c"],
     )
     if choice == "c":
         return False
     if choice == "s":
-        print(messages.PROMPT_UA_SUBSCRIPTION_URL)
-        # TODO(GH: #1413: magic subscription attach)
-        input("Hit [Enter] when subscription is complete.")
-    if choice in ("a", "s"):
+        return _perform_magic_attach(cfg)
+    if choice == "a":
         print(messages.PROMPT_ENTER_TOKEN)
         token = input("> ")
         return _run_ua_attach(cfg, token)
