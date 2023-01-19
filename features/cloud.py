@@ -168,7 +168,7 @@ class Cloud:
         """
         return instance.id
 
-    def locate_image_name(self, series: str) -> str:
+    def locate_image_name(self, series: str, daily: bool = True) -> str:
         """Locate and return the image name to use for vm provision.
 
         :param series:
@@ -189,7 +189,14 @@ class Cloud:
         elif "pro" in self.machine_type:
             image_type = ImageType.PRO
 
-        return self.api.daily_image(release=series, image_type=image_type)
+        if daily:
+            logging.debug("looking up daily image for {}".format(series))
+            return self.api.daily_image(release=series, image_type=image_type)
+        else:
+            logging.debug("looking up released image for {}".format(series))
+            return self.api.released_image(
+                release=series, image_type=image_type
+            )
 
     def manage_ssh_key(
         self,
@@ -297,7 +304,14 @@ class EC2(Cloud):
             An AWS cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series)
+            if series == "xenial" and "pro" not in self.machine_type:
+                logging.debug(
+                    "defaulting to non-daily image for awsgeneric-16.04"
+                )
+                daily = False
+            else:
+                daily = True
+            image_name = self.locate_image_name(series, daily=daily)
 
         logging.info(
             "--- Launching AWS image {}({})".format(image_name, series)
@@ -603,7 +617,7 @@ class _LXD(Cloud):
         # instead of the instance id
         return instance.name
 
-    def locate_image_name(self, series: str) -> str:
+    def locate_image_name(self, series: str, daily: bool = True) -> str:
         """Locate and return the image name to use for vm provision.
 
         :param series:
@@ -618,7 +632,13 @@ class _LXD(Cloud):
                 "Must provide either series or image_name to launch azure"
             )
 
-        image_name = self.api.daily_image(release=series)
+        if daily:
+            logging.debug("looking up daily image for {}".format(series))
+            image_name = self.api.daily_image(release=series)
+        else:
+            logging.debug("looking up released image for {}".format(series))
+            image_name = self.api.released_image(release=series)
+
         return image_name
 
 
