@@ -605,7 +605,8 @@ Feature: APT Messages
     Scenario Outline: AWS URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `pro refresh messages` with sudo
+        When I run `apt-get install ansible -y` with sudo
+        When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
@@ -622,7 +623,8 @@ Feature: APT Messages
     Scenario Outline: Azure URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `pro refresh messages` with sudo
+        When I run `apt-get install ansible -y` with sudo
+        When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
@@ -639,7 +641,8 @@ Feature: APT Messages
     Scenario Outline: GCP URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `pro refresh messages` with sudo
+        When I run `apt-get install ansible -y` with sudo
+        When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
