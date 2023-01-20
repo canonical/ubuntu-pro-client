@@ -206,11 +206,11 @@ CloudID get_cloud_id() {
     CloudID ret = NONE;
     if (cloud_id_file.is_open()) {
         std::string cloud_id_str((std::istreambuf_iterator<char>(cloud_id_file)), (std::istreambuf_iterator<char>()));
-        if (cloud_id_str == "aws") {
+        if (cloud_id_str.find("aws") == 0) {
             ret = AWS;
-        } else if (cloud_id_str == "azure") {
+        } else if (cloud_id_str.find("azure") == 0) {
             ret = AZURE;
-        } else if (cloud_id_str == "gce") {
+        } else if (cloud_id_str.find("gce") == 0) {
             ret = GCE;
         }
         cloud_id_file.close();
