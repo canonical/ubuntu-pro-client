@@ -1991,9 +1991,9 @@ def main(sys_argv=None):
     args = parser.parse_args(args=cli_arguments)
     set_event_mode(args)
 
-    http_proxy = cfg.http_proxy
-    https_proxy = cfg.https_proxy
-    util.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
+    # http_proxy = cfg.http_proxy
+    # https_proxy = cfg.https_proxy
+    # util.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
 
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO

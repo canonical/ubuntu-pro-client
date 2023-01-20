@@ -14,6 +14,7 @@ from urllib import error, request
 from urllib.parse import urlparse
 
 from uaclient import event_logger, exceptions, messages
+from uaclient import tlsintls
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 from uaclient.types import MessagingOperations
 
@@ -303,46 +304,8 @@ def readurl(
     timeout: Optional[int] = None,
     potentially_sensitive: bool = True,
 ) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
-    if data and not method:
-        method = "POST"
-    req = request.Request(url, data=data, headers=headers, method=method)
-    sorted_header_str = ", ".join(
-        ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
-    )
-    logging.debug(
-        redact_sensitive_logs(
-            "URL [{}]: {}, headers: {{{}}}, data: {}".format(
-                method or "GET",
-                url,
-                sorted_header_str,
-                data.decode("utf-8") if data else None,
-            )
-        )
-    )
-    http_error_found = False
-    try:
-        resp = request.urlopen(req, timeout=timeout)
-        http_error_found = False
-    except error.HTTPError as e:
-        resp = e
-        http_error_found = True
-    setattr(resp, "body", resp.read().decode("utf-8"))
-    content = resp.body
-    if "application/json" in str(resp.headers.get("Content-type", "")):
-        content = json.loads(content, cls=DatetimeAwareJSONDecoder)
-    sorted_header_str = ", ".join(
-        ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
-    )
-    debug_msg = "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
-        method or "GET", url, sorted_header_str, content
-    )
-    if potentially_sensitive:
-        # For large responses, this is very slow (several minutes)
-        debug_msg = redact_sensitive_logs(debug_msg)
-    logging.debug(debug_msg)
-    if http_error_found:
-        raise resp
-    return content, resp.headers
+    return tlsintls.libcurl(url, data, headers, method, timeout, potentially_sensitive)
+    # return tlsintls.custom(url, data, headers, method, timeout, potentially_sensitive)
 
 
 def is_config_value_true(config: Dict[str, Any], path_to_value: str) -> bool:
