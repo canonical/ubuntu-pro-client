@@ -603,6 +603,7 @@ def update_esm_caches(cfg) -> None:
         return
 
     import apt  # type: ignore
+    import apt_pkg  # type: ignore
 
     from uaclient.entitlements.entitlement_status import ApplicationStatus
     from uaclient.entitlements.esm import (
@@ -623,5 +624,13 @@ def update_esm_caches(cfg) -> None:
             infra.setup_local_esm_repo()
 
     # Read the cache and update it
+    # Take care to initialize the cache with only the
+    # Acquire configuration preserved
+    for key in apt_pkg.config.keys():
+        if "Acquire" not in key:
+            apt_pkg.config.clear(key)
+    apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
+    apt_pkg.init_config()
+
     cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
     cache.update()
