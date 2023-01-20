@@ -1,10 +1,10 @@
-# How to interpret the security-status command output
+# What does `security-status` do?
 
-The `security-status` command is used to get an overview
-of the packages installed in your machine.
+The `security-status` command is used to get an overview of the packages
+installed on your machine.
 
-If you run the `pro security-status --format yaml` command on your
-machine, you are expected to see the output following this structure:
+If you run the `pro security-status --format yaml` command on your machine, you
+should expect to see an output that follows this structure:
 
 ```
 _schema_version: '0.1'
@@ -41,31 +41,44 @@ livepatch:
       Patched: true
 ```
 
-Let's understand what each key mean on the output of the `pro security-status` command:
+Let's understand what each key means in the output of the `pro security-status`
+command:
 
-* **`summary`**: The summary of the system related to Ubuntu Pro and
-  the different package sources in the system:
+## `summary`
 
-  * **`num_installed_packages`**: The total number of installed packages in the system.
-  * **`num_esm_apps_packages`**: The number of packages installed from `esm-apps`.
-  * **`num_esm_apps_updates`**: The number of `esm-apps` package updates available to the system.
-  * **`num_esm_infra_packages`**:  The number of packages installed from `esm-infra`.
-  * **`num_esm_infra_updates`**: The number of `esm-infra` package updates available to the system.
-  * **`num_main_packages`**: The number of packages installed from the `main` archive component.
-  * **`num_multiverse_packages**: The number of packages installed from the `multiverse` archive
-    component.
-  * **`num_restricted_packages`**: The number of packages installed from the `restricted` archive
-    component.
-  * **`num_third_party_packages`** : The number of packages installed from `third party` sources.
-  * **`num_universe_packages`**: The number of packages installed from the `universe` archive
-    component.
-  * **`num_unknown_packages`**: The number of packages installed from sources not known to `apt`
-    (installed locally through dpkg or packages without a remote reference).
-  * **`num_standard_security_updates`**: The number of standard security updates available to the system.
+This provides a summary of the system related to Ubuntu Pro and the different
+package sources in the system:
 
-  It is worth mentioning here that the `_updates` fields are presenting the number of **security**
-  updates for **installed** packages. For example, let's assume your machine has a universe package that
-  has a security update from `esm-infra`. The count will be displayed as:
+* **`num_installed_packages`**: The total number of installed packages on the
+  system.
+* **`num_esm_apps_packages`**: The number of packages installed from `esm-apps`.
+* **`num_esm_apps_updates`**: The number of `esm-apps` package updates available
+  to the system.
+* **`num_esm_infra_packages`**: The number of packages installed from
+  `esm-infra`.
+* **`num_esm_infra_updates`**: The number of `esm-infra` package updates
+  available to the system.
+* **`num_main_packages`**: The number of packages installed from the `main`
+  archive component.
+* **`num_multiverse_packages`**: The number of packages installed from the
+  `multiverse` archive component.
+* **`num_restricted_packages`**: The number of packages installed from the
+  `restricted` archive component.
+* **`num_third_party_packages`** : The number of packages installed from
+  `third party` sources.
+* **`num_universe_packages`**: The number of packages installed from the
+  `universe` archive component.
+* **`num_unknown_packages`**: The number of packages installed from sources not
+  known to `apt` (e.g., those installed locally through `dpkg` or packages
+  without a remote reference).
+* **`num_standard_security_updates`**: The number of standard security updates
+  available to the system.
+
+```{note}
+  It is worth mentioning here that the `_updates` fields are presenting the
+  number of **security** updates for **installed** packages. For example, let's
+  assume your machine has a universe package that has a security update from
+  `esm-infra`. The count will be displayed as:
 
   ```
   num_esm_infra_packages: 0
@@ -80,30 +93,38 @@ Let's understand what each key mean on the output of the `pro security-status` c
   num_esm_infra_updates: 0
   num_universe_packages: 0
   ```
+```
 
-  * **`ua`**: An object representing the state of Ubuntu Pro on the system:
-    * **`attached`**: If the system is attached to an Ubuntu Pro subscription.
-    * **`enabled_services`**: A list of services that are enabled on the system. If unattached, this
-      will always be an empty list.
-    * **`entitled_services`**: A list of services that are entitled on your Ubuntu Pro subscription. If
-      unattached, this will always be an empty list.
+* **`ua`**: An object representing the state of Ubuntu Pro on the system:
+  * **`attached`**: If the system is attached to an Ubuntu Pro subscription.
+  * **`enabled_services`**: A list of services that are enabled on the system.
+    If unattached, this will always be an empty list.
+  * **`entitled_services`**: A list of services that are entitled on your
+    Ubuntu Pro subscription. If unattached, this will always be an empty list.
 
-* **`packages`**: A list of security updates for packages installed in the system.
-  Every entry on the list will follow this structure:
+## `packages`
 
-  * **`origin`**: The host were the update comes from.
-  * **`package`**: The name of the package.
-  * **`service_name`**: The service that provides that package update. It can be either: `esm-infra`,
-    `esm-apps` or `standard-security`.
-  * **`status`**: The status for this update. It will be one of:
-    * **"upgrade_available"**: The package can be upgraded right now.
-    * **"pending_attach"**: The package needs an Ubuntu Pro subscription attached to be upgraded.
-    * **"pending_enable"**: The machine is attached to an Ubuntu Pro subscription, but the service required to
-      provide the upgrade is not enabled.
-    * **"upgrade_unavailable"**: The machine is attached, but the contract is not entitled to
-      the service which provides the upgrade.
-  * **`version`**: The update version.
-  * **`download_size`**: The number of bytes that would be downloaded in order to install the update.
+This provides a list of security updates for packages installed on the system.
+Every entry on the list will follow this structure:
 
-* **`livepatch`**: Livepatch related information. Currently, the only information
-presented is **`fixed_cves`** - a list of CVEs that were fixed by Livepatches applied to the kernel.
+* **`origin`**: The host where the update comes from.
+* **`package`**: The name of the package.
+* **`service_name`**: The service that provides the package update. It can be
+  one of: `esm-infra`, `esm-apps` or `standard-security`.
+* **`status`**: The status for this update. It will be one of:
+  * **"upgrade_available"**: The package can be upgraded right now.
+  * **"pending_attach"**: The package needs an Ubuntu Pro subscription attached
+    to be upgraded.
+  * **"pending_enable"**: The machine is attached to an Ubuntu Pro subscription,
+    but the service required to provide the upgrade is not enabled.
+  * **"upgrade_unavailable"**: The machine is attached, but the contract is not
+    entitled to the service which provides the upgrade.
+* **`version`**: The update version.
+* **`download_size`**: The number of bytes that would be downloaded in order to
+  install the update.
+
+## `livepatch`
+
+This displays Livepatch-related information. Currently, the only information
+presented is **`fixed_cves`**. This represents a list of CVEs that were fixed
+by Livepatches applied to the kernel.
