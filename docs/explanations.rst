@@ -8,8 +8,8 @@ to expand your knowledge and become better at using and configuring ``pro``.
 Messaging
 =========
 
-Here you'll find details about APT and MOTD messages -- what they are, when
-they are used and how they work.
+Here you'll find details about Ubuntu Pro Client-related APT and MOTD messages
+-- what they are, when they are used and how they work.
 
 ..  toctree::
     :maxdepth: 1
