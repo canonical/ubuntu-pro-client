@@ -14,9 +14,13 @@ from urllib import error, request
 from urllib.parse import urlparse
 
 from uaclient import event_logger, exceptions, messages
-from uaclient import tlsintls
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 from uaclient.types import MessagingOperations
+
+import pycurl
+from io import BytesIO
+import certifi # TODO what is this?
+
 
 DROPPED_KEY = object()
 
@@ -304,8 +308,46 @@ def readurl(
     timeout: Optional[int] = None,
     potentially_sensitive: bool = True,
 ) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
-    return tlsintls.libcurl(url, data, headers, method, timeout, potentially_sensitive)
-    # return tlsintls.custom(url, data, headers, method, timeout, potentially_sensitive)
+    if data and not method:
+        method = "POST"
+    req = request.Request(url, data=data, headers=headers, method=method)
+    sorted_header_str = ", ".join(
+        ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
+    )
+    logging.debug(
+        redact_sensitive_logs(
+            "URL [{}]: {}, headers: {{{}}}, data: {}".format(
+                method or "GET",
+                url,
+                sorted_header_str,
+                data.decode("utf-8") if data else None,
+            )
+        )
+    )
+    http_error_found = False
+    try:
+        resp = request.urlopen(req, timeout=timeout)
+        http_error_found = False
+    except error.HTTPError as e:
+        resp = e
+        http_error_found = True
+    setattr(resp, "body", resp.read().decode("utf-8"))
+    content = resp.body
+    if "application/json" in str(resp.headers.get("Content-type", "")):
+        content = json.loads(content, cls=DatetimeAwareJSONDecoder)
+    sorted_header_str = ", ".join(
+        ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
+    )
+    debug_msg = "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
+        method or "GET", url, sorted_header_str, content
+    )
+    if potentially_sensitive:
+        # For large responses, this is very slow (several minutes)
+        debug_msg = redact_sensitive_logs(debug_msg)
+    logging.debug(debug_msg)
+    if http_error_found:
+        raise resp
+    return content, resp.headers
 
 
 def is_config_value_true(config: Dict[str, Any], path_to_value: str) -> bool:
@@ -460,6 +502,39 @@ def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
         dt_str_with_pythonish_tz, "%Y-%m-%dT%H:%M:%S%z"
     )
 
+def tls_in_tls_curl_validate_proxy(
+    protocol: str, proxy: Optional[str], test_url: str
+) -> Optional[str]:
+    header_output = BytesIO()
+    body_output = BytesIO()
+    c = pycurl.Curl()
+    c.setopt(pycurl.CAINFO, certifi.where())
+    # set proxy
+    c.setopt(pycurl.PROXY, proxy)
+    # set proxy type = "HTTPS"
+    c.setopt(pycurl.PROXYTYPE, 2)
+    # target url
+    c.setopt(c.URL, test_url)
+    c.setopt(pycurl.CUSTOMREQUEST, "HEAD")
+    c.setopt(pycurl.NOBODY, True)
+    c.setopt(c.WRITEDATA, body_output)
+    c.setopt(pycurl.HEADERFUNCTION, header_output.write)
+    c.setopt(pycurl.HEADERFUNCTION, body_output.write)
+    c.setopt(pycurl.CONNECTTIMEOUT, 3)
+    c.setopt(pycurl.TIMEOUT, 8)
+
+    c.perform()
+    status_code = int(c.getinfo(pycurl.HTTP_CODE))
+    content = body_output.getvalue().decode()
+    print(status_code)
+    print(content)
+    c.close()
+    return proxy
+
+def tls_in_tls_custom_validate_proxy(
+    protocol: str, proxy: Optional[str], test_url: str
+) -> Optional[str]:
+    pass
 
 def validate_proxy(
     protocol: str, proxy: Optional[str], test_url: str
@@ -469,6 +544,10 @@ def validate_proxy(
 
     if not is_service_url(proxy):
         raise exceptions.ProxyInvalidUrl(proxy)
+
+    if urlparse(proxy).scheme == "https" and urlparse(test_url).scheme == "https":
+        return tls_in_tls_curl_validate_proxy(protocol, proxy, test_url)
+        # return tls_in_tls_custom_validate_proxy(protocol, proxy, test_url)
 
     req = request.Request(test_url, method="HEAD")
     proxy_handler = request.ProxyHandler({protocol: proxy})
