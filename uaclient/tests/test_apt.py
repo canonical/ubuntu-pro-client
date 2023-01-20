@@ -1087,8 +1087,12 @@ class TestAptCacheTime:
     @mock.patch("uaclient.apt.system.is_current_series_lts")
     @mock.patch("uaclient.apt.system.is_current_series_active_esm")
     @mock.patch("apt.Cache")
+    @mock.patch("apt_pkg.config")
+    @mock.patch("apt_pkg.init_config")
     def test_update_esm_caches_based_on_lts(
         self,
+        _m_apt_pkg_init_config,
+        _m_apt_pkg_config,
         m_cache,
         m_is_esm,
         m_is_lts,
