@@ -29,3 +29,7 @@ from the architecture of the project to how you should test any code changes.
 ### Explanation
 
 * [How auto-attach works](./dev-docs/explanations/how_auto_attach_works.md)
+
+### Documentation
+
+* [Documentation guide](./dev-docs/devdocs_styleguide.md)

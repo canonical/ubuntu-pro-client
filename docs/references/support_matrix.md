@@ -1,10 +1,12 @@
-# Support Matrix for the client
+# Support matrix for the Ubuntu Pro Client
 
-Ubuntu Pro services are only available on Ubuntu Long Term Support (LTS) releases.
+Ubuntu Pro services are only available on Ubuntu Long Term Support (LTS)
+releases.
 
-On interim Ubuntu releases, `pro status` will report most of the services as 'n/a' and disallow enabling those services.
+On interim Ubuntu releases, `pro status` will report most of the services as
+"n/a" (not applicable), and disallow enabling those services.
 
-Below is a list of platforms and releases ubuntu-advantage-tools supports
+Here is a list of platforms and releases that `ubuntu-advantage-tools` supports.
 
 | Ubuntu Release | Build Architectures                                | Support Level              |
 | -------------- | -------------------------------------------------- | -------------------------- |

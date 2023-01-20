@@ -1,9 +1,30 @@
-# Available PPAs with different version of Ubuntu Pro Client
-There are 3 PPAs with different release channels of the Ubuntu Pro Client:
+# Ubuntu Pro Client PPAs
 
-1. Stable: This contains stable builds only which have been verified for release into Ubuntu stable releases or Ubuntu Pro images.
-    - add with `sudo add-apt-repository ppa:ua-client/stable`
-2. Staging: This contains builds under validation for release to stable Ubuntu releases and images
-    - add with `sudo add-apt-repository ppa:ua-client/staging`
-3. Daily: This PPA is updated every day with the latest changes.
-    - add with `sudo add-apt-repository ppa:ua-client/daily`
+There are three Personal Package Archives (PPAs) with different release
+channels in the Ubuntu Pro Client: *Stable*, *Staging*, and *Daily*.
+
+## Stable
+
+This contains stable builds only, which have been verified for release into
+Ubuntu stable releases or Ubuntu Pro images. You can add it with:
+
+```
+sudo add-apt-repository ppa:ua-client/stable
+```
+
+## Staging
+
+This contains builds *under validation* for release to stable Ubuntu releases
+and images. You can add it with:
+
+```
+sudo add-apt-repository ppa:ua-client/staging
+```
+
+## Daily
+
+This PPA is updated every day with the latest changes. You can add it with:
+
+```
+sudo add-apt-repository ppa:ua-client/daily
+```
