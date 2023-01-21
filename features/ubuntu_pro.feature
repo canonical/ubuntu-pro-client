@@ -76,7 +76,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     @uses.config.machine_type.azure.pro
     Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        Given I a `focal` machine named `proxy` with ingress ports `3128`
+        Given a `focal` machine named `proxy` with ingress ports `3128`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
