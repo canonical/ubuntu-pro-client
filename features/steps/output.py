@@ -12,12 +12,13 @@ from hamcrest import (
 )
 
 from features.steps.shell import when_i_run_command
-from features.util import SafeLoaderWithoutDatetime
+from features.util import SafeLoaderWithoutDatetime, process_template_vars
 
 
 @then("I will see the following on stdout")
 def then_i_will_see_on_stdout(context):
-    assert_that(context.process.stdout.strip(), equal_to(context.text))
+    text = process_template_vars(context, context.text)
+    assert_that(context.process.stdout.strip(), equal_to(text))
 
 
 @then("if `{value1}` in `{value2}` and stdout matches regexp")
@@ -45,30 +46,29 @@ def then_not_in_conditional_stdout_does_not_match_regexp(
 
 @then("{stream} does not match regexp")
 def then_stream_does_not_match_regexp(context, stream):
+    text = process_template_vars(context, context.text)
     content = getattr(context.process, stream).strip()
-    assert_that(content, not_(matches_regexp(context.text)))
+    assert_that(content, not_(matches_regexp(text)))
 
 
 @then("{stream} matches regexp")
 def then_stream_matches_regexp(context, stream):
     content = getattr(context.process, stream).strip()
-    text = context.text
-    if "<ci-proxy-ip>" in text and "proxy" in context.machines:
-        text = text.replace(
-            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
-        )
+    text = process_template_vars(context, context.text)
     assert_that(content, matches_regexp(text))
 
 
 @then("{stream} contains substring")
 def then_stream_contains_substring(context, stream):
     content = getattr(context.process, stream).strip()
-    assert_that(content, contains_string(context.text))
+    text = process_template_vars(context, context.text)
+    assert_that(content, contains_string(text))
 
 
 @then("I will see the following on stderr")
 def then_i_will_see_on_stderr(context):
-    assert_that(context.process.stderr.strip(), equal_to(context.text))
+    text = process_template_vars(context, context.text)
+    assert_that(context.process.stderr.strip(), equal_to(text))
 
 
 @then("I will see the uaclient version on stdout")
