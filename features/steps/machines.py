@@ -77,7 +77,8 @@ def given_a_machine(
                 )
                 return
             try:
-                context.machines[machine_name].instance.delete(wait=False)
+                machine = context.machines.pop(machine_name)
+                machine.instance.delete(wait=False)
             except RuntimeError as e:
                 logging.error(
                     "Failed to delete instance: {}\n{}".format(
