@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (27.13.1~23.04.1) lunar; urgency=medium
+
+  * apt: better isolate apt esm cache by only fetching necessary
+    configuration from the system apt
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Mon, 23 Jan 2023 11:54:06 -0300
+
 ubuntu-advantage-tools (27.13~23.04.1) lunar; urgency=medium
 
   * d/bash-completion:
