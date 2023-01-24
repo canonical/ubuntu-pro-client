@@ -305,7 +305,7 @@ migrate_old_notices(){
         return
     fi
 
-    # This migration will happen for pro client versions 27.12 or older that still use notices.json.
+    # This migration will happen for pro client versions <27.14 that still use notices.json.
     # Notices are generally short lived, so the chances of an upgrade happening while a
     # notice is in place is very small.
     # Despite that we do a simple migration here of the most important notices: reboot required notices.
@@ -418,9 +418,8 @@ case "$1" in
       cleanup_candidate_version_stamp_permissions
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
           cleanup_apt_news_flag_file
-          migrate_old_notices
       fi
-      
+
       # LP: #2003977
       # The version gate is open ended, and should be closed when the apt_news
       # configuration is moved away from a conffile.
@@ -438,6 +437,7 @@ case "$1" in
       fi
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.14~"; then
           cleanup_old_motd_files
+          migrate_old_notices
       fi
       ;;
 esac
