@@ -766,7 +766,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout matches regexp:
-        """"
+        """
         "update_messaging":
         """
         When I run `pro config show` with sudo
@@ -779,50 +779,27 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout matches regexp:
-        """"
+        """
         "update_messaging": null
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        And I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: https://contracts.canonical.com
-        data_dir: /var/lib/ubuntu-advantage
-        log_file: /var/log/ubuntu-advantage.log
-        log_level: debug
-        security_url: https://ubuntu.com/security
-        ua_config:
-          apt_http_proxy: null
-          apt_https_proxy: null
-          http_proxy: null
-          https_proxy: null
-          update_messaging_timer: 14400
-          metering_timer: 0
+        { "metering_timer": 0 }
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout matches regexp:
-        """"
+        """
         "metering": null
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        And I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: https://contracts.canonical.com
-        data_dir: /var/lib/ubuntu-advantage
-        log_file: /var/log/ubuntu-advantage.log
-        log_level: debug
-        security_url: https://ubuntu.com/security
-        ua_config:
-          apt_http_proxy: null
-          apt_https_proxy: null
-          http_proxy: null
-          https_proxy: null
-          update_messaging_timer: -10
-          metering_timer: notanumber
+        { "metering_timer": "notanumber", "update_messaging_timer": -10 }
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that running `grep "Invalid value for update_messaging interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
-        And I verify that running `grep "Invalid value for metering interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
         And I verify that the timer interval for `update_messaging` is `21600`
         And I verify that the timer interval for `metering` is `14400`
         When I create the file `/var/lib/ubuntu-advantage/jobs-status.json` with the following:
@@ -832,15 +809,15 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout does not match regexp:
-        """"
+        """
         "update_status"
         """
         And stdout matches regexp:
-        """"
+        """
         "metering"
         """
         And stdout matches regexp:
-        """"
+        """
         "update_messaging"
         """
 
