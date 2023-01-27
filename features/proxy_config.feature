@@ -110,11 +110,12 @@ Feature: Proxy configuration
         And I run `pro config unset ua_apt_https_proxy` with sudo
         And I run `pro refresh config` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            ua_apt_http_proxy: "invalidurl"
-            ua_apt_https_proxy: "invalidurls"
+        {
+          "ua_apt_http_proxy": "invalidurl",
+          "ua_apt_https_proxy": "invalidurls"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -212,11 +213,12 @@ Feature: Proxy configuration
             Setting Livepatch proxy
             Successfully processed your pro configuration.
             """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            http_proxy: ""
-            https_proxy: ""
+        {
+          "http_proxy": "",
+          "https_proxy": ""
+        }
         """
         And I run `pro refresh config` with sudo
         Then I will see the following on stdout:
@@ -226,21 +228,23 @@ Feature: Proxy configuration
     
         Successfully processed your pro configuration.
         """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            http_proxy: "invalidurl"
-            https_proxy: "invalidurls"
+        {
+          "http_proxy": "invalidurl",
+          "https_proxy": "invalidurls"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         \"invalidurl\" is not a valid url. Not setting as proxy.
         """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            https_proxy: "https://localhost:12345"
+        {
+          "https_proxy": "https://localhost:12345"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -413,15 +417,12 @@ Feature: Proxy configuration
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://$behave_var{machine-ip proxy}:3128
-          https_proxy: http://$behave_var{machine-ip proxy}:3128
+        {
+          "http_proxy": "http://$behave_var{machine-ip proxy}:3128",
+          "https_proxy": "http://$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         # We need this for the route command
@@ -438,15 +439,12 @@ Feature: Proxy configuration
         esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          ua_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
-          ua_apt_https_proxy: http://$behave_var{machine-ip proxy}:3128
+        {
+          "ua_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
+          "ua_apt_https_proxy": "http://$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
@@ -496,11 +494,12 @@ Feature: Proxy configuration
         And I run `pro config unset ua_apt_https_proxy` with sudo
         And I run `pro refresh config` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            ua_apt_http_proxy: "invalidurl"
-            ua_apt_https_proxy: "invalidurls"
+        {
+          "ua_apt_http_proxy": "invalidurl",
+          "ua_apt_https_proxy": "invalidurls"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -512,10 +511,11 @@ Feature: Proxy configuration
         """
         \"http://host:port\" is not a valid url. Not setting as proxy
         """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            ua_apt_https_proxy: "https://localhost:12345"
+        {
+          "ua_apt_https_proxy": "https://localhost:12345"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -564,15 +564,12 @@ Feature: Proxy configuration
             dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
-          https_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
+        {
+          "http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
+          "https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
@@ -582,15 +579,12 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          ua_apt_http_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
-          ua_apt_https_proxy: http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
+        {
+          "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+          "ua_apt_https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro refresh config` with sudo
@@ -612,10 +606,11 @@ Feature: Proxy configuration
         """
         .*GET.*security.ubuntu.com.*
         """
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            ua_apt_https_proxy: http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128
+        {
+          "ua_apt_https_proxy": "http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -745,11 +740,12 @@ Feature: Proxy configuration
         And I run `pro config unset global_apt_https_proxy` with sudo
         And I run `pro refresh config` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            global_apt_http_proxy: "invalidurl"
-            global_https_proxy: "invalidurls"
+        {
+          "global_apt_http_proxy": "invalidurl",
+          "global_https_proxy": "invalidurls"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -970,10 +966,11 @@ Feature: Proxy configuration
         """
         When I run `pro config unset ua_apt_http_proxy` with sudo
         And I run `pro config unset ua_apt_https_proxy` with sudo
-        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
+        {
+          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `0`
         Then stdout matches regexp:
@@ -994,11 +991,12 @@ Feature: Proxy configuration
         And I run `pro config unset global_apt_https_proxy` with sudo
         And I run `pro config unset ua_apt_http_proxy` with sudo
         And I run `pro config unset ua_apt_https_proxy` with sudo
-        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            global_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
-            ua_apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
+        {
+          "global_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
+          "ua_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
+        }
         """
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -1132,11 +1130,12 @@ Feature: Proxy configuration
         And I run `pro config unset apt_https_proxy` with sudo
         And I run `pro refresh config` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            apt_http_proxy: http://$behave_var{machine-ip proxy}:3128
-            apt_https_proxy: http://$behave_var{machine-ip proxy}:3128
+        {
+          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
+          "apt_https_proxy": "http://$behave_var{machine-ip proxy}:3128"
+        }
         """
         When I run `pro refresh config` with sudo
         Then stdout matches regexp:

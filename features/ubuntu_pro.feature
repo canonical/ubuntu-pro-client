@@ -11,6 +11,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        # This also tests that legacy `ua_config` settings still work
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'

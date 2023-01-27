@@ -86,10 +86,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
 
         # verify it stays on when configured to do so
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
-        ua_config:
-            poll_for_pro_license: true
+        { "poll_for_pro_license": true }
         """
         # Turn on memory accounting
         When I run `sed -i s/#DefaultMemoryAccounting=no/DefaultMemoryAccounting=yes/ /etc/systemd/system.conf` with sudo

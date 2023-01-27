@@ -326,6 +326,18 @@ cleanup_old_motd_files() {
     rm -f $UA_MESSAGES_DIR/motd*
 }
 
+migrate_user_config_post() {
+    # LP: #2004280
+    if [ -f /etc/ubuntu-advantage/uaclient.conf.preinst-backup ]; then
+        # This script modifies the preinst-backup version of the file in-place
+        /usr/bin/python3 /usr/lib/ubuntu-advantage/migrate_user_config.py
+        # Overwrite uaclient.conf with the now-migrated version from preinst
+        mv /etc/ubuntu-advantage/uaclient.conf.preinst-backup /etc/ubuntu-advantage/uaclient.conf
+        # just in case this temp file was left behind
+        rm -f /etc/ubuntu-advantage/uaclient.conf.preinst-backup-migrated-temp
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -415,24 +427,15 @@ case "$1" in
           cleanup_apt_news_flag_file
       fi
 
-      # LP: #2003977
-      # The version gate is open ended, and should be closed when the apt_news
-      # configuration is moved away from a conffile.
-      if dpkg --compare-versions "$2" ge 27.11.3~; then
-          if [ -f /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled ]; then
-              # The preinst has left us a note to tell us that apt-news was
-              # previously disabled and should be re-disabled, so disable it
-              # and discard the note.
-              pro config set apt_news=false
-              rm /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
-          fi
-          # Remove the conffile backup if it exists now that an error unwind is
-          # no longer possible
-          rm -f /etc/ubuntu-advantage/uaclient.conf.preinst-remove
-      fi
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.14~"; then
           cleanup_old_motd_files
           migrate_old_notices
+          migrate_user_config_post
+      fi
+
+      if grep -q "ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
+          echo "Warning: uaclient.conf uses old ua_config field. Please remove and use" >&2
+          echo "         pro config set to configure any custom settings." >&2
       fi
       ;;
 esac
