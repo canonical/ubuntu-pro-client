@@ -5,7 +5,7 @@ ubuntu-advantage-tools (27.13.2~23.04.1) lunar; urgency=medium
       was to the apt_news flag (LP: #2003977)
   * apt-hook:
     - only run the pro client pre-update hook services when the apt update is
-      executed as root user
+      executed as root user (LP: #2004057)
 
  -- Renan Rodrigo <renanrodrigo@canonical.com>  Fri, 27 Jan 2023 18:46:42 -0300
 
