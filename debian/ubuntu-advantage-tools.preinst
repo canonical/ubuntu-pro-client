@@ -11,11 +11,62 @@ remove_old_config_fields() {
     fi
 }
 
+restore_previous_conffile() {
+    # Back up existing conffile in case of an error unwind
+    cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-remove
+    # Restore the default conffile that shipped with 27.11.3 through 27.12
+    cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
+# Ubuntu Pro Client config file.
+# If you modify this file, run "pro refresh config" to ensure changes are
+# picked up by Ubuntu Pro Client.
+
+contract_url: https://contracts.canonical.com
+data_dir: /var/lib/ubuntu-advantage
+log_file: /var/log/ubuntu-advantage.log
+log_level: debug
+security_url: https://ubuntu.com/security
+timer_log_file: /var/log/ubuntu-advantage-timer.log
+daemon_log_file: /var/log/ubuntu-advantage-daemon.log
+ua_config:
+  apt_http_proxy: null
+  apt_https_proxy: null
+  http_proxy: null
+  https_proxy: null
+  update_messaging_timer: 21600
+  update_status_timer: 43200
+  metering_timer: 14400
+EOT
+}
+
 case "$1" in
     install|upgrade)
         if [ -n "$2" ]; then
             PREVIOUS_PKG_VER=$2
             remove_old_config_fields "$PREVIOUS_PKG_VER"
+        fi
+    
+        # LP: #2003977
+        # If the user used "pro config set apt_news=false|true" previously,
+        # then we don't want a conffile prompt if they haven't otherwise
+        # changed the conffile. In these two cases, restore the conffile back
+        # to how it shipped, and then fix up in postinst if required. The
+        # version gate is open ended, and should be closed when the apt_news
+        # configuration is moved away from a conffile.
+        if dpkg --compare-versions "$2" ge 27.11.3~; then
+            if [ -f /etc/ubuntu-advantage/uaclient.conf ]; then
+                conffile_hash=$(md5sum /etc/ubuntu-advantage/uaclient.conf|awk '{print $1}')
+                if [ "$conffile_hash" = "038902993a843cac6cbe3efa4d1fcb92" -o "$conffile_hash" = "664dff27e212a77aef514e4b64" ]; then
+                    # User had run "pro config set apt_news=false" with no other
+                    # conffile changes
+                    mkdir -p /var/lib/ubuntu-advantage
+                    touch /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
+                    restore_previous_conffile
+                elif [ "$conffile_hash" = "3b01d7406cbb4ba628a9ffa57485d324" -o "$conffile_hash" = "d9971401a6409032b1c9069236040dc4" ]; then
+                    # User had run "pro config set apt_news=true" with no other
+                    # conffile changes
+                    restore_previous_conffile
+                fi
+            fi
         fi
         ;;
 esac
