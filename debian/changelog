@@ -4,6 +4,17 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.13.2~23.04.1) lunar; urgency=medium
+
+  * d/ubuntu-advantage-tools.{postinst,postrm,preinst}:
+    - avoid a dpkg conf prompt if the only change to the original config file
+      was to the apt_news flag (LP: #2003977)
+  * apt-hook:
+    - only run the pro client pre-update hook services when the apt update is
+      executed as root user
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Fri, 27 Jan 2023 18:46:42 -0300
+
 ubuntu-advantage-tools (27.13.1~23.04.1) lunar; urgency=medium
 
   * apt: better isolate apt esm cache by only fetching necessary
