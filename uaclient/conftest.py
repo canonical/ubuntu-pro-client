@@ -11,6 +11,7 @@ import pytest
 from uaclient import event_logger
 from uaclient.config import UAConfig
 from uaclient.files.notices import NoticeFileDetails
+from uaclient.files.state_files import UserConfigData
 
 # We are doing this because we are sure that python3-apt comes with the distro,
 # but it cannot be installed in a virtual environment to be properly tested.
@@ -136,7 +137,10 @@ def FakeConfig(tmpdir):
         ) -> None:
             if not cfg_overrides.get("data_dir"):
                 cfg_overrides.update({"data_dir": tmpdir.strpath})
-            super().__init__(cfg_overrides)
+            super().__init__(
+                cfg_overrides,
+                user_config=UserConfigData(),
+            )
 
         @classmethod
         def for_attached_machine(

@@ -27,7 +27,7 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
 )
-from uaclient.files import notices
+from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 
 LOG = logging.getLogger(__name__)
@@ -111,6 +111,7 @@ class UAConfig:
     def __init__(
         self,
         cfg: Optional[Dict[str, Any]] = None,
+        user_config: Optional[state_files.UserConfigData] = None,
         series: Optional[str] = None,
     ) -> None:
         """"""
@@ -121,6 +122,28 @@ class UAConfig:
         else:
             self.cfg_path = get_config_path()
             self.cfg, self.invalid_keys = parse_config(self.cfg_path)
+
+        if user_config:
+            self.user_config = user_config
+        else:
+            try:
+                self.user_config = (
+                    state_files.user_config_file.read()
+                    or state_files.UserConfigData()
+                )
+            except Exception as e:
+                with util.disable_log_to_console():
+                    logging.warning("Error loading user config: {}".format(e))
+                    logging.warning("Using default config values")
+                self.user_config = state_files.UserConfigData()
+
+        # support old ua_config values in uaclient.conf as user-config.json
+        # value overrides
+        if "ua_config" in self.cfg:
+            self.user_config = state_files.UserConfigData.from_dict(
+                {**self.user_config.to_dict(), **self.cfg["ua_config"]},
+                optional_type_errors_become_null=True,
+            )
 
         self.series = series
         self._machine_token_file = (
@@ -150,56 +173,48 @@ class UAConfig:
 
     @property
     def http_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("http_proxy")
+        return self.user_config.http_proxy
 
     @http_proxy.setter
     def http_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["http_proxy"] = value
-        self.write_cfg()
+        self.user_config.http_proxy = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def https_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("https_proxy")
+        return self.user_config.https_proxy
 
     @https_proxy.setter
     def https_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["https_proxy"] = value
-        self.write_cfg()
+        self.user_config.https_proxy = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def ua_apt_https_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("ua_apt_https_proxy")
+        return self.user_config.ua_apt_https_proxy
 
     @ua_apt_https_proxy.setter
     def ua_apt_https_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["ua_apt_https_proxy"] = value
-        self.write_cfg()
+        self.user_config.ua_apt_https_proxy = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def ua_apt_http_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("ua_apt_http_proxy")
+        return self.user_config.ua_apt_http_proxy
 
     @ua_apt_http_proxy.setter
     def ua_apt_http_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["ua_apt_http_proxy"] = value
-        self.write_cfg()
+        self.user_config.ua_apt_http_proxy = value
+        state_files.user_config_file.write(self.user_config)
 
     @property  # type: ignore
     @str_cache
     def global_apt_http_proxy(self) -> Optional[str]:
-        global_val = self.cfg.get("ua_config", {}).get("global_apt_http_proxy")
+        global_val = self.user_config.global_apt_http_proxy
         if global_val:
             return global_val
 
-        old_apt_val = self.cfg.get("ua_config", {}).get("apt_http_proxy")
+        old_apt_val = self.user_config.apt_http_proxy
         if old_apt_val:
             event.info(messages.WARNING_DEPRECATED_APT_HTTP)
             return old_apt_val
@@ -207,23 +222,19 @@ class UAConfig:
 
     @global_apt_http_proxy.setter
     def global_apt_http_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["global_apt_http_proxy"] = value
-        self.cfg["ua_config"]["apt_http_proxy"] = None
+        self.user_config.global_apt_http_proxy = value
+        self.user_config.apt_http_proxy = None
         UAConfig.global_apt_http_proxy.fget.cache_clear()  # type: ignore
-        self.write_cfg()
+        state_files.user_config_file.write(self.user_config)
 
     @property  # type: ignore
     @str_cache
     def global_apt_https_proxy(self) -> Optional[str]:
-        global_val = self.cfg.get("ua_config", {}).get(
-            "global_apt_https_proxy"
-        )
+        global_val = self.user_config.global_apt_https_proxy
         if global_val:
             return global_val
 
-        old_apt_val = self.cfg.get("ua_config", {}).get("apt_https_proxy")
+        old_apt_val = self.user_config.apt_https_proxy
         if old_apt_val:
             event.info(messages.WARNING_DEPRECATED_APT_HTTPS)
             return old_apt_val
@@ -231,85 +242,87 @@ class UAConfig:
 
     @global_apt_https_proxy.setter
     def global_apt_https_proxy(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["global_apt_https_proxy"] = value
-        self.cfg["ua_config"]["apt_https_proxy"] = None
+        self.user_config.global_apt_https_proxy = value
+        self.user_config.apt_https_proxy = None
         UAConfig.global_apt_https_proxy.fget.cache_clear()  # type: ignore
-        self.write_cfg()
+        state_files.user_config_file.write(self.user_config)
 
     @property
-    def update_messaging_timer(self) -> Optional[int]:
-        return self.cfg.get("ua_config", {}).get("update_messaging_timer")
+    def update_messaging_timer(self) -> int:
+        val = self.user_config.update_messaging_timer
+        if val is None:
+            return 21600
+        return val
 
     @update_messaging_timer.setter
     def update_messaging_timer(self, value: int):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["update_messaging_timer"] = value
-        self.write_cfg()
+        self.user_config.update_messaging_timer = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
-    def metering_timer(self) -> "Optional[int]":
-        return self.cfg.get("ua_config", {}).get("metering_timer")
+    def metering_timer(self) -> int:
+        val = self.user_config.metering_timer
+        if val is None:
+            return 14400
+        return val
 
     @metering_timer.setter
     def metering_timer(self, value: int):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["metering_timer"] = value
-        self.write_cfg()
+        self.user_config.metering_timer = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def poll_for_pro_license(self) -> bool:
         # TODO: when polling is supported
         #     1. change default here to True
         #     2. add this field to UA_CONFIGURABLE_KEYS
-        return self.cfg.get("ua_config", {}).get("poll_for_pro_license", False)
+        val = self.user_config.poll_for_pro_license
+        if val is None:
+            return False
+        return val
 
     @poll_for_pro_license.setter
     def poll_for_pro_license(self, value: bool):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["poll_for_pro_license"] = value
-        self.write_cfg()
+        self.user_config.poll_for_pro_license = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def polling_error_retry_delay(self) -> int:
         # TODO: when polling is supported
         #     1. add this field to UA_CONFIGURABLE_KEYS
-        return self.cfg.get("ua_config", {}).get(
-            "polling_error_retry_delay", 600
-        )
+        val = self.user_config.polling_error_retry_delay
+        if val is None:
+            return 600
+        return val
 
     @polling_error_retry_delay.setter
     def polling_error_retry_delay(self, value: int):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["polling_error_retry_delay"] = value
-        self.write_cfg()
+        self.user_config.polling_error_retry_delay = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def apt_news(self) -> bool:
-        return self.cfg.get("ua_config", {}).get("apt_news", True)
+        val = self.user_config.apt_news
+        if val is None:
+            return True
+        return val
 
     @apt_news.setter
     def apt_news(self, value: bool):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["apt_news"] = value
-        self.write_cfg()
+        self.user_config.apt_news = value
+        state_files.user_config_file.write(self.user_config)
 
     @property
     def apt_news_url(self) -> str:
-        return self.cfg.get("ua_config", {}).get("apt_news_url", APT_NEWS_URL)
+        val = self.user_config.apt_news_url
+        if val is None:
+            return APT_NEWS_URL
+        return val
 
     @apt_news_url.setter
     def apt_news_url(self, value: str):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["apt_news_url"] = value
-        self.write_cfg()
+        self.user_config.apt_news_url = value
+        state_files.user_config_file.write(self.user_config)
 
     def check_lock_info(self) -> Tuple[int, str]:
         """Return lock info if config lock file is present the lock is active.
@@ -599,40 +612,26 @@ class UAConfig:
                 )
             )
 
-    def write_cfg(self, config_path=None):
-        """Write config values back to config_path or DEFAULT_CONFIG_FILE."""
-        if not config_path:
-            config_path = DEFAULT_CONFIG_FILE
-        content = messages.UACLIENT_CONF_HEADER
-        cfg_dict = copy.deepcopy(self.cfg)
-        if "log_level" not in cfg_dict:
-            cfg_dict["log_level"] = CONFIG_DEFAULTS["log_level"]
-        # Ensure defaults are present in uaclient.conf if absent
-        for attr in (
-            "contract_url",
-            "security_url",
-            "data_dir",
-            "log_file",
-            "timer_log_file",
-            "daemon_log_file",
-        ):
-            cfg_dict[attr] = getattr(self, attr)
-
-        # Each UA_CONFIGURABLE_KEY needs to have a property on UAConfig
-        # which reads the proper key value or returns a default
-        cfg_dict["ua_config"] = {
-            key: getattr(self, key, None) for key in UA_CONFIGURABLE_KEYS
-        }
-
-        content += yaml.safe_dump(cfg_dict, default_flow_style=False)
-        system.write_file(config_path, content)
-
     def warn_about_invalid_keys(self):
         if self.invalid_keys is not None:
             for invalid_key in sorted(self.invalid_keys):
                 logging.warning(
                     "Ignoring invalid uaclient.conf key: %s", invalid_key
                 )
+        if "ua_config" in self.cfg:
+            # this one is still technically supported but we want people to
+            # migrate so it gets a special warning
+            logging.warning('legacy "ua_config" found in uaclient.conf')
+            logging.warning("Please do the following:")
+            logging.warning(
+                "  1. run `pro config set field=value` for each"
+                ' field/value pair present under "ua_config" in'
+                " /etc/ubuntu-advantage/uaclient.conf"
+            )
+            logging.warning(
+                '  2. Delete "ua_config" and all sub-fields in'
+                " /etc/ubuntu-advantage/uaclient.conf"
+            )
 
 
 def get_config_path() -> str:

@@ -31,12 +31,9 @@ case "$1" in
         remove_gpg_files
         ;;
     abort-install|abort-upgrade)
-        # LP: #2003977
-        # The version gate is open ended, and should be closed when the
-        # apt_news configuration is moved away from a conffile.
-        if dpkg --compare-versions "$2" ge 27.11.3~; then
-            rm -f /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
-            [ -f /etc/ubuntu-advantage/uaclient.conf.preinst-remove ] && mv /etc/ubuntu-advantage/uaclient.conf.preinst-remove /etc/ubuntu-advantage/uaclient.conf
+        # LP: #2004280
+        if dpkg --compare-versions "$2" lt "27.14~"; then
+            [ -f /etc/ubuntu-advantage/uaclient.conf.preinst-backup ] && mv /etc/ubuntu-advantage/uaclient.conf.preinst-backup /etc/ubuntu-advantage/uaclient.conf
         fi
         ;;
 esac

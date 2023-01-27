@@ -342,91 +342,36 @@ settings_overrides:
 timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
-UA_CFG_DICT = {
-    "ua_config": {
-        "apt_http_proxy": None,
-        "apt_https_proxy": None,
-        "apt_news": True,
-        "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
-        "global_apt_http_proxy": None,
-        "global_apt_https_proxy": None,
-        "ua_apt_http_proxy": None,
-        "ua_apt_https_proxy": None,
-        "http_proxy": None,
-        "https_proxy": None,
-        "update_messaging_timer": None,
-        "metering_timer": None,
-    }
+USER_CFG_DICT = {
+    "apt_http_proxy": None,
+    "apt_https_proxy": None,
+    "apt_news": True,
+    "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+    "global_apt_http_proxy": None,
+    "global_apt_https_proxy": None,
+    "ua_apt_http_proxy": None,
+    "ua_apt_https_proxy": None,
+    "http_proxy": None,
+    "https_proxy": None,
+    "update_messaging_timer": 21600,
+    "metering_timer": 14400,
 }
 
 
-class TestUAConfigKeys:
+class TestUserConfigKeys:
     @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
-    @mock.patch("uaclient.config.UAConfig.write_cfg")
-    def test_ua_configurable_keys_set_ua_config_dict(
-        self, write_cfg, attr_name, tmpdir, FakeConfig
+    @mock.patch("uaclient.config.state_files.user_config_file.write")
+    def test_user_configurable_keys_set_user_config(
+        self, write, attr_name, tmpdir, FakeConfig
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
         cfg = FakeConfig()
-        assert UA_CFG_DICT["ua_config"][attr_name] == getattr(
-            cfg, attr_name, None
-        )
+        assert USER_CFG_DICT[attr_name] == getattr(cfg, attr_name, None)
         cfg_non_members = ("apt_http_proxy", "apt_https_proxy")
         if attr_name not in cfg_non_members:
             setattr(cfg, attr_name, attr_name + "value")
             assert attr_name + "value" == getattr(cfg, attr_name)
-            assert attr_name + "value" == cfg.cfg["ua_config"][attr_name]
-
-
-class TestWriteCfg:
-    @pytest.mark.parametrize(
-        "orig_content, expected",
-        (
-            (
-                CFG_BASE_CONTENT,
-                CFG_BASE_CONTENT
-                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
-            ),
-            (  # Yaml output is sorted alphabetically by key
-                "\n".join(sorted(CFG_BASE_CONTENT.splitlines(), reverse=True)),
-                CFG_BASE_CONTENT
-                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
-            ),
-            # Any custom comments or unrecognized config keys are dropped
-            (
-                "unknown-keys-not-preserved: true\n# user comments are lost"
-                + CFG_BASE_CONTENT,
-                CFG_BASE_CONTENT
-                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
-            ),
-            # All features/settings_overrides ordered after ua_config
-            (
-                CFG_BASE_CONTENT
-                + "features:\n new: 2\n extra_security_params:\n  hide: true\n"
-                " show_beta: true\nsettings_overrides:\n d: 2\n c: 1\n",
-                CFG_FEATURES_CONTENT
-                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
-            ),
-            (
-                "settings_overrides:\n c: 1\n d: 2\nfeatures:\n"
-                " show_beta: true\n new: 2\n extra_security_params:\n"
-                "  hide: true\nsettings_overrides:\n d: 2\n c: 1\n"
-                + CFG_BASE_CONTENT,
-                CFG_FEATURES_CONTENT
-                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
-            ),
-        ),
-    )
-    def test_write_cfg_reads_cfg_andpersists_structured_content_to_config_path(
-        self, orig_content, expected, tmpdir, FakeConfig
-    ):
-        """write_cfg writes structured, ordered config YAML to config_path."""
-        orig_conf = tmpdir.join("orig_uaclient.conf")
-        orig_conf.write(orig_content)
-        cfg = FakeConfig(cfg_overrides=parse_config(orig_conf.strpath)[0])
-        out_conf = tmpdir.join("uaclient.conf")
-        cfg.write_cfg(out_conf.strpath)
-        assert expected == out_conf.read()
+            assert attr_name + "value" == getattr(cfg.user_config, attr_name)
 
 
 class TestWriteCache:
@@ -924,10 +869,10 @@ class TestProcessConfig:
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.snap.is_installed")
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.config.UAConfig.write_cfg")
+    @mock.patch("uaclient.config.state_files.user_config_file.write")
     def test_process_config(
         self,
-        m_write_cfg,
+        m_write,
         m_apt_configure_proxy,
         m_snap_is_installed,
         m_snap_configure_proxy,
@@ -966,23 +911,17 @@ class TestProcessConfig:
             livepatch_http_val,
             livepatch_https_val,
         ]
-        cfg = FakeConfig(
-            {
-                "ua_config": {
-                    "apt_http_proxy": apt_http,
-                    "apt_https_proxy": apt_https,
-                    "global_apt_https_proxy": global_https,
-                    "global_apt_http_proxy": global_http,
-                    "ua_apt_https_proxy": ua_https,
-                    "ua_apt_http_proxy": ua_http,
-                    "http_proxy": http_proxy,
-                    "https_proxy": https_proxy,
-                    "update_messaging_timer": 21600,
-                    "metering_timer": 0,
-                },
-                "data_dir": tmpdir.strpath,
-            }
-        )
+        cfg = FakeConfig({"data_dir": tmpdir.strpath})
+        cfg.user_config.apt_http_proxy = apt_http
+        cfg.user_config.apt_https_proxy = apt_https
+        cfg.user_config.global_apt_https_proxy = global_https
+        cfg.user_config.global_apt_http_proxy = global_http
+        cfg.user_config.ua_apt_https_proxy = ua_https
+        cfg.user_config.ua_apt_http_proxy = ua_http
+        cfg.user_config.http_proxy = http_proxy
+        cfg.user_config.https_proxy = https_proxy
+        cfg.user_config.update_messaging_timer = 21600
+        cfg.user_config.metering_timer = 0
 
         if global_https is None and apt_https is not None:
             global_https = apt_https
@@ -1071,13 +1010,8 @@ class TestProcessConfig:
             assert "" == err
 
     def test_process_config_errors_for_wrong_timers(self, FakeConfig):
-        cfg = FakeConfig(
-            {
-                "ua_config": {
-                    "update_messaging_timer": "wrong",
-                }
-            }
-        )
+        cfg = FakeConfig()
+        cfg.user_config.update_messaging_timer = "wrong"
 
         with pytest.raises(
             exceptions.UserFacingError,

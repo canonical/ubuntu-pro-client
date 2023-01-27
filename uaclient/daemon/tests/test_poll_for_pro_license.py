@@ -259,9 +259,7 @@ class TestPollForProLicense:
             cfg = FakeConfig.for_attached_machine()
         else:
             cfg = FakeConfig()
-        cfg.cfg.update(
-            {"ua_config": {"poll_for_pro_license": cfg_poll_for_pro_licenses}}
-        )
+        cfg.user_config.poll_for_pro_license = cfg_poll_for_pro_licenses
 
         m_is_config_value_true.return_value = is_config_value_true
         m_is_current_series_lts.return_value = is_current_series_lts
@@ -413,14 +411,8 @@ class TestPollForProLicense:
         FakeConfig,
     ):
         cfg = FakeConfig()
-        cfg.cfg.update(
-            {
-                "ua_config": {
-                    "poll_for_pro_license": True,
-                    "polling_error_retry_delay": 123,
-                }
-            }
-        )
+        cfg.user_config.poll_for_pro_license = True
+        cfg.user_config.polling_error_retry_delay = 123
 
         m_is_config_value_true.return_value = False
         m_is_current_series_lts.return_value = True

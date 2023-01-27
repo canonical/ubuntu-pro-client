@@ -114,7 +114,7 @@ class TestTimer:
         expected_next_run = now + datetime.timedelta(seconds=43200)
 
         m_job_func = mock.Mock()
-        m_jobs = TimedJob("metering", m_job_func, 43200)
+        m_jobs = TimedJob("fake_job", m_job_func, 43200)
 
         with mock.patch("lib.timer.metering_job", m_jobs):
             with mock.patch.object(timer, "timer_jobs_state_file", fake_file):

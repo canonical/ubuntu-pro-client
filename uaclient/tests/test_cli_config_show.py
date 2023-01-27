@@ -75,15 +75,16 @@ class TestActionConfigShow:
             "global_apt_https_proxy",
         ),
     )
-    @mock.patch("uaclient.config.UAConfig.write_cfg")
     def test_show_values_and_limit_when_optional_key_provided(
-        self, _write_cfg, optional_key, FakeConfig, capsys
+        self, optional_key, FakeConfig, capsys
     ):
         cfg = FakeConfig()
-        cfg.http_proxy = "http://http_proxy"
-        cfg.https_proxy = "http://https_proxy"
-        cfg.global_apt_http_proxy = "http://global_apt_http_proxy"
-        cfg.global_apt_https_proxy = "http://global_apt_https_proxy"
+        cfg.user_config.http_proxy = "http://http_proxy"
+        cfg.user_config.https_proxy = "http://https_proxy"
+        cfg.user_config.global_apt_http_proxy = "http://global_apt_http_proxy"
+        cfg.user_config.global_apt_https_proxy = (
+            "http://global_apt_https_proxy"
+        )
         args = mock.MagicMock(key=optional_key)
         action_config_show(args, cfg=cfg)
         out, err = capsys.readouterr()
@@ -100,8 +101,8 @@ ua_apt_http_proxy       None
 ua_apt_https_proxy      None
 global_apt_http_proxy   http://global_apt_http_proxy
 global_apt_https_proxy  http://global_apt_https_proxy
-update_messaging_timer  None
-metering_timer          None
+update_messaging_timer  21600
+metering_timer          14400
 apt_news                True
 apt_news_url            https://motd.ubuntu.com/aptnews.json
 """
