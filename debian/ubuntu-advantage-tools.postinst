@@ -398,6 +398,23 @@ case "$1" in
           cleanup_apt_news_flag_file
           migrate_old_notices
       fi
+
+      
+      # LP: #2003977
+      # The version gate is open ended, and should be closed when the apt_news
+      # configuration is moved away from a conffile.
+      if dpkg --compare-versions "$2" ge 27.11.3~; then
+          if [ -f /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled ]; then
+              # The preinst has left us a note to tell us that apt-news was
+              # previously disabled and should be re-disabled, so disable it
+              # and discard the note.
+              pro config set apt_news=false
+              rm /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
+          fi
+          # Remove the conffile backup if it exists now that an error unwind is
+          # no longer possible
+          rm -f /etc/ubuntu-advantage/uaclient.conf.preinst-remove
+      fi
       ;;
 esac
 
