@@ -320,13 +320,6 @@ APT_PROXY_CONFIG_HEADER = """\
  */
 """
 
-UACLIENT_CONF_HEADER = """\
-# Ubuntu Pro client config file.
-# If you modify this file, run "pro refresh config" to ensure changes are
-# picked up by Ubuntu Pro client.
-
-"""
-
 SETTING_SERVICE_PROXY = "Setting {service} proxy"
 ERROR_USING_PROXY = (
     'Error trying to use "{proxy}" as proxy to reach "{test_url}": {error}'
@@ -1223,3 +1216,19 @@ UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF = FormattedNamedMessage(
     "unattended-upgrades-cfg-value-turned-off",
     "{cfg_name} is turned off",
 )
+
+USER_CONFIG_MIGRATION_MIGRATING = (
+    "Migrating /etc/ubuntu-advantage/uaclient.conf"
+)
+USER_CONFIG_MIGRATION_WARNING_UACLIENT_CONF_LOAD = """\
+Warning: Failed to load /etc/ubuntu-advantage/uaclient.conf.preinst-backup
+         No automatic migration will occur.
+         You may need to use "pro config set" to re-set your settings."""
+
+USER_CONFIG_MIGRATION_WARNING_NEW_USER_CONFIG_WRITE = """\
+Warning: Failed to migrate user_config from /etc/ubuntu-advantage/uaclient.conf
+         Please run the following to keep your custom settings:"""
+
+USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = """\
+Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
+         Please add following to uaclient.conf to keep your config:"""

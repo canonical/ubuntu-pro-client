@@ -2,100 +2,31 @@
 
 set -e
 
-remove_old_config_fields() {
-    PREVIOUS_PKG_VER="$1"
-    if dpkg --compare-versions "$PREVIOUS_PKG_VER" le "27.8"; then
-        if grep -q "^license_check_log_file:" /etc/ubuntu-advantage/uaclient.conf; then
-            sed -i '/^license_check_log_file:.*$/d' /etc/ubuntu-advantage/uaclient.conf || true
-        fi
+
+migrate_user_config_pre() {
+    if [ ! -f /etc/ubuntu-advantage/uaclient.conf ]; then
+        return
     fi
-}
 
-restore_previous_conffile() {
-    previous_pkg_version=$1
-    # Back up existing conffile in case of an error unwind
-    cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-remove
+    curr_conf_hash=$(md5sum /etc/ubuntu-advantage/uaclient.conf | awk '{print $1}')
+    expected_conf_hash=$(dpkg-query --showformat='${Conffiles}\n' --show ubuntu-advantage-tools | grep /etc/ubuntu-advantage/uaclient.conf | awk '{print $2}')
 
-    if dpkg --compare-versions "$previous_pkg_version" ge 27.13.1~; then
-      # Restore the default conffile that shipped with 27.13.X
-      cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
-# Ubuntu Pro Client config file.
-# If you modify this file, run "pro refresh config" to ensure changes are
-# picked up by Ubuntu Pro Client.
-
+    if [ "$curr_conf_hash" != "$expected_conf_hash" ]; then
+        # Back up existing conffile in case of an error unwind
+        cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-backup
+        # Insert the new about-to-be-installed uaclient.conf to avoid conffile prompts
+        cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
 contract_url: https://contracts.canonical.com
-data_dir: /var/lib/ubuntu-advantage
-log_file: /var/log/ubuntu-advantage.log
 log_level: debug
-security_url: https://ubuntu.com/security
-timer_log_file: /var/log/ubuntu-advantage-timer.log
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
-ua_config:
-  apt_http_proxy: null
-  apt_https_proxy: null
-  http_proxy: null
-  https_proxy: null
-  update_messaging_timer: 21600
-  metering_timer: 14400
 EOT
-  else
-      # Restore the default conffile that shipped with 27.11.3 through 27.12
-      cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
-# Ubuntu Pro Client config file.
-# If you modify this file, run "pro refresh config" to ensure changes are
-# picked up by Ubuntu Pro Client.
-
-contract_url: https://contracts.canonical.com
-data_dir: /var/lib/ubuntu-advantage
-log_file: /var/log/ubuntu-advantage.log
-log_level: debug
-security_url: https://ubuntu.com/security
-timer_log_file: /var/log/ubuntu-advantage-timer.log
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
-ua_config:
-  apt_http_proxy: null
-  apt_https_proxy: null
-  http_proxy: null
-  https_proxy: null
-  update_messaging_timer: 21600
-  update_status_timer: 43200
-  metering_timer: 14400
-EOT
-  fi
+    fi
 }
 
 case "$1" in
     install|upgrade)
-        if [ -n "$2" ]; then
-            PREVIOUS_PKG_VER=$2
-            remove_old_config_fields "$PREVIOUS_PKG_VER"
-        fi
-    
-        # LP: #2003977
-        # If the user used "pro config set apt_news=false|true" previously,
-        # then we don't want a conffile prompt if they haven't otherwise
-        # changed the conffile. In these two cases, restore the conffile back
-        # to how it shipped, and then fix up in postinst if required. The
-        # version gate is open ended, and should be closed when the apt_news
-        # configuration is moved away from a conffile.
-        if dpkg --compare-versions "$2" ge 27.11.3~; then
-            if [ -f /etc/ubuntu-advantage/uaclient.conf ]; then
-                conffile_hash=$(md5sum /etc/ubuntu-advantage/uaclient.conf|awk '{print $1}')
-                case "$conffile_hash" in
-                    038902993a843cac6cbe3efa4d1fcb92|f8049c664dff27e212a77aef514e4b64)
-                        # User had run "pro config set apt_news=false" with no other
-                        # conffile changes
-                        mkdir -p /var/lib/ubuntu-advantage
-                        touch /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
-                        restore_previous_conffile $2
-                        ;;
-                    3b01d7406cbb4ba628a9ffa57485d324|d9971401a6409032b1c9069236040dc4)
-                        # User had run "pro config set apt_news=true" with no other
-                        # conffile changes
-                        restore_previous_conffile $2
-                        ;;
-                esac
-            fi
+        # LP: #2004280
+        if dpkg --compare-versions "$2" lt "27.14~"; then
+            migrate_user_config_pre
         fi
         ;;
 esac
