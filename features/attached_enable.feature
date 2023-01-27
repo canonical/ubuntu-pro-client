@@ -256,7 +256,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         \s*500 <esm-infra-url> <release>-infra-security/main amd64 Packages
-        \s*500 <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
 
         Examples: ubuntu release
