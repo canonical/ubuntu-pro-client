@@ -118,7 +118,7 @@ Feature: Ua fix command behaviour
 
         1 affected source package is installed: awl
         \(1/1\) awl:
-        Sorry, no fix is available.
+        Ubuntu security engineers are investigating this issue.
 
         1 package is still affected: awl
         .*✘.* USN-4539-1 is not resolved.
@@ -152,12 +152,12 @@ Feature: Ua fix command behaviour
         """
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
-        CVE-2017-9233: Expat vulnerability
+        CVE-2017-9233: Coin3D vulnerability
          - https://ubuntu.com/security/CVE-2017-9233
 
         3 affected source packages are installed: expat, matanza, swish-e
         \(1/3, 2/3\) matanza, swish-e:
-        Sorry, no fix is available.
+        Ubuntu security engineers are investigating this issue.
         \(3/3\) expat:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y expat \}.*
@@ -168,12 +168,12 @@ Feature: Ua fix command behaviour
         When I verify that running `pro fix CVE-2017-9233` `with sudo` exits `1`
         Then stdout matches regexp:
         """
-        CVE-2017-9233: Expat vulnerability
+        CVE-2017-9233: Coin3D vulnerability
          - https://ubuntu.com/security/CVE-2017-9233
 
         3 affected source packages are installed: expat, matanza, swish-e
         \(1/3, 2/3\) matanza, swish-e:
-        Sorry, no fix is available.
+        Ubuntu security engineers are investigating this issue.
         \(3/3\) expat:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y expat \}.*
