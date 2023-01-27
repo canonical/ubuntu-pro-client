@@ -55,17 +55,20 @@ case "$1" in
         if dpkg --compare-versions "$2" ge 27.11.3~; then
             if [ -f /etc/ubuntu-advantage/uaclient.conf ]; then
                 conffile_hash=$(md5sum /etc/ubuntu-advantage/uaclient.conf|awk '{print $1}')
-                if [ "$conffile_hash" = "038902993a843cac6cbe3efa4d1fcb92" -o "$conffile_hash" = "664dff27e212a77aef514e4b64" ]; then
-                    # User had run "pro config set apt_news=false" with no other
-                    # conffile changes
-                    mkdir -p /var/lib/ubuntu-advantage
-                    touch /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
-                    restore_previous_conffile
-                elif [ "$conffile_hash" = "3b01d7406cbb4ba628a9ffa57485d324" -o "$conffile_hash" = "d9971401a6409032b1c9069236040dc4" ]; then
-                    # User had run "pro config set apt_news=true" with no other
-                    # conffile changes
-                    restore_previous_conffile
-                fi
+                case "$conffile_hash" in
+                    038902993a843cac6cbe3efa4d1fcb92|664dff27e212a77aef514e4b64)
+                        # User had run "pro config set apt_news=false" with no other
+                        # conffile changes
+                        mkdir -p /var/lib/ubuntu-advantage
+                        touch /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
+                        restore_previous_conffile
+                        ;;
+                    3b01d7406cbb4ba628a9ffa57485d324|d9971401a6409032b1c9069236040dc4)
+                        # User had run "pro config set apt_news=true" with no other
+                        # conffile changes
+                        restore_previous_conffile
+                        ;;
+                esac
             fi
         fi
         ;;
