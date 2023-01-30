@@ -313,3 +313,39 @@ Feature: Command behaviour when unattached
           | jammy   |
           # | kinetic | There is a very weird error on Kinetic, irrelevant to this test
           | lunar   |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Verify autocomplete options
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I disable access to esm.ubuntu.com
+        And I run `apt update` with sudo
+        # Wait for the hook to fail
+        When I wait `5` seconds
+        And I run `systemctl --failed` with sudo
+        Then stdout does not match regexp:
+        """
+        esm-cache\.service
+        """
+        When I run `journalctl -o cat -u esm-cache.service` with sudo
+        Then stdout does not match regexp:
+        """
+        raise FetchFailedException\(\)
+        """
+        When I run `ls /var/crash/` with sudo
+        Then stdout does not match regexp:
+        """
+        _usr_lib_ubuntu-advantage_esm_cache
+        """
+        When I run `cat /var/log/ubuntu-advantage.log` with sudo
+        Then stdout matches regexp:
+        """
+        Failed to fetch the ESM Apt Cache
+        """
+
+        Examples: ubuntu release
+          | release |
+          | xenial  |
+          | bionic  |
+          | focal   |
+          | jammy   |

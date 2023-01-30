@@ -633,4 +633,10 @@ def update_esm_caches(cfg) -> None:
     apt_pkg.init_config()
 
     cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
-    cache.update()
+
+    try:
+        cache.update()
+    # Impossible to write a unittest for this because apt is globally mocked
+    # in tests - down the rabbit hole, not worth it
+    except apt.cache.FetchFailedException:
+        logging.warning("Failed to fetch the ESM Apt Cache")
