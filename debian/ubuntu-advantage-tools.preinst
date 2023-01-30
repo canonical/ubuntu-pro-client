@@ -56,7 +56,7 @@ case "$1" in
             if [ -f /etc/ubuntu-advantage/uaclient.conf ]; then
                 conffile_hash=$(md5sum /etc/ubuntu-advantage/uaclient.conf|awk '{print $1}')
                 case "$conffile_hash" in
-                    038902993a843cac6cbe3efa4d1fcb92|664dff27e212a77aef514e4b64)
+                    038902993a843cac6cbe3efa4d1fcb92|f8049c664dff27e212a77aef514e4b64)
                         # User had run "pro config set apt_news=false" with no other
                         # conffile changes
                         mkdir -p /var/lib/ubuntu-advantage
