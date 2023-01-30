@@ -17,11 +17,13 @@ fi
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 
 ESM_INFRA_KEY_TRUSTY="ubuntu-advantage-esm-infra-trusty.gpg"
+ESM_APPS_KEY="ubuntu-advantage-esm-apps.gpg"
 
 APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
 ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
 ESM_INFRA_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-infra.list"
+ESM_APPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-apps.list"
 FIPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-fips.list"
 
 OLD_CLIENT_FIPS_PPA="private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu"
@@ -35,6 +37,7 @@ XENIAL_CLOUD_ID_SHIM_UNIT_LOCATION="/etc/systemd/system/multi-user.target.wants/
 ESM_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-trusty"
 ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-infra-trusty"
 ESM_INFRA_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-infra"
+ESM_APPS_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-apps"
 
 SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-auto-attach.service"
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
@@ -112,7 +115,7 @@ if status:
 }
 
 
-esm_cleanup() {
+esm_infra_cleanup() {
     if ! check_service_is_enabled esm-infra; then
         rm -f "$APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg"  # Remove previous esm keys
         rm -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY"
@@ -120,6 +123,15 @@ esm_cleanup() {
         rm -f "$ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY"
         rm -f "$ESM_APT_PREF_FILE_TRUSTY" "$ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY"
         rm -f "$ESM_INFRA_APT_PREF_FILE"
+    fi
+}
+
+
+esm_apps_cleanup() {
+    if ! check_service_is_enabled esm-apps; then
+        rm -f "$APT_TRUSTED_KEY_DIR/$ESM_APPS_KEY"
+        rm -f "$ESM_APPS_APT_SOURCE_FILE"
+        rm -f "$ESM_APPS_APT_PREF_FILE"
     fi
 }
 
@@ -377,9 +389,15 @@ case "$1" in
         if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
           # Clean any unauthenticated ESM infra files previously inserted
           # on Xenial, unless the service is enabled
-          esm_cleanup
+          esm_infra_cleanup
         fi
       fi
+
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13.3~"; then
+          # esm-apps unauthenticated ESM should not be in any release
+          esm_apps_cleanup
+      fi
+
       mark_reboot_for_fips_pro
       rm_old_license_check_marker
       disable_new_timer_if_old_timer_already_disabled
