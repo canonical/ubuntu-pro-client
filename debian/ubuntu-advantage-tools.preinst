@@ -12,10 +12,34 @@ remove_old_config_fields() {
 }
 
 restore_previous_conffile() {
+    previous_pkg_version=$1
     # Back up existing conffile in case of an error unwind
     cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-remove
     # Restore the default conffile that shipped with 27.11.3 through 27.12
-    cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
+
+    if dpkg --compare-versions "$previous_pkg_version" ge 27.13.1~; then
+      cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
+# Ubuntu Pro Client config file.
+# If you modify this file, run "pro refresh config" to ensure changes are
+# picked up by Ubuntu Pro Client.
+
+contract_url: https://contracts.canonical.com
+data_dir: /var/lib/ubuntu-advantage
+log_file: /var/log/ubuntu-advantage.log
+log_level: debug
+security_url: https://ubuntu.com/security
+timer_log_file: /var/log/ubuntu-advantage-timer.log
+daemon_log_file: /var/log/ubuntu-advantage-daemon.log
+ua_config:
+  apt_http_proxy: null
+  apt_https_proxy: null
+  http_proxy: null
+  https_proxy: null
+  update_messaging_timer: 21600
+  metering_timer: 14400
+EOT
+  else
+      cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
 # Ubuntu Pro Client config file.
 # If you modify this file, run "pro refresh config" to ensure changes are
 # picked up by Ubuntu Pro Client.
@@ -36,6 +60,7 @@ ua_config:
   update_status_timer: 43200
   metering_timer: 14400
 EOT
+  fi
 }
 
 case "$1" in
@@ -61,12 +86,12 @@ case "$1" in
                         # conffile changes
                         mkdir -p /var/lib/ubuntu-advantage
                         touch /var/lib/ubuntu-advantage/preinst-detected-apt-news-disabled
-                        restore_previous_conffile
+                        restore_previous_conffile $2
                         ;;
                     3b01d7406cbb4ba628a9ffa57485d324|d9971401a6409032b1c9069236040dc4)
                         # User had run "pro config set apt_news=true" with no other
                         # conffile changes
-                        restore_previous_conffile
+                        restore_previous_conffile $2
                         ;;
                 esac
             fi
