@@ -3,6 +3,8 @@ ubuntu-advantage-tools (27.13.3~23.04.1) lunar; urgency=medium
   * d/ubuntu-advantage-tools.preinst:
     - correct second set of md5sums to continue avoiding a dpkg conf prompt
       if the only change to the original config file was to the apt_news flag
+    - restore correct default uaclient.conf when upgrading from 27.13.X and
+      the only conf change is apt_news
   * esm-cache.service:
     - Catch errors when esm.ubuntu.com is unreachable to avoid causing crash
       reports and degraded systemd status from this non-critical service
