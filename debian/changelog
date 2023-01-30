@@ -1,3 +1,15 @@
+ubuntu-advantage-tools (27.13.3~23.04.1) lunar; urgency=medium
+
+  * d/ubuntu-advantage-tools.preinst:
+    - correct second set of md5sums to continue avoiding a dpkg conf prompt
+      if the only change to the original config file was to the apt_news flag
+  * esm-cache.service:
+    - Catch errors when esm.ubuntu.com is unreachable to avoid causing crash
+      reports and degraded systemd status from this non-critical service
+      (LP: #2004130)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 30 Jan 2023 09:34:43 -0500
+
 ubuntu-advantage-tools (27.13.2~23.04.1) lunar; urgency=medium
 
   * d/ubuntu-advantage-tools.{postinst,postrm,preinst}:
