@@ -1128,66 +1128,6 @@ class TestActionStatus:
 
         assert output["errors"][0]["message"] == warning_message
 
-    @pytest.mark.parametrize(
-        "contract_changed,is_attached",
-        (
-            (False, True),
-            (True, False),
-            (True, True),
-            (False, False),
-        ),
-    )
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.files.notices.NoticesManager.add")
-    def test_is_contract_changed(
-        self,
-        m_add_notice,
-        m_remove_notice,
-        _m_getuid,
-        _m_get_contract_information,
-        _m_get_available_resources,
-        _m_should_reboot,
-        _m_contract_changed,
-        _m_on_supported_kernel,
-        contract_changed,
-        is_attached,
-        capsys,
-        FakeConfig,
-    ):
-        _m_contract_changed.return_value = contract_changed
-        if is_attached:
-            cfg = FakeConfig().for_attached_machine()
-        else:
-            cfg = FakeConfig()
-
-        action_status(
-            mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
-        )
-
-        if is_attached:
-            if contract_changed:
-                assert [
-                    mock.call(
-                        True,
-                        Notice.CONTRACT_REFRESH_WARNING,
-                        messages.NOTICE_REFRESH_CONTRACT_WARNING,
-                    )
-                ] == m_add_notice.call_args_list
-            else:
-                assert [
-                    mock.call(
-                        True,
-                        Notice.CONTRACT_REFRESH_WARNING,
-                        messages.NOTICE_REFRESH_CONTRACT_WARNING,
-                    )
-                ] not in m_add_notice.call_args_list
-                print(_m_contract_changed.return_value)
-                assert [
-                    mock.call(True, Notice.CONTRACT_REFRESH_WARNING)
-                ] in m_remove_notice.call_args_list
-        else:
-            assert _m_contract_changed.call_count == 0
-
 
 class TestStatusParser:
     @mock.patch(M_PATH + "contract.get_available_resources")

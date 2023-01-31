@@ -14,11 +14,13 @@ from uaclient.files.state_files import (
     timer_jobs_state_file,
 )
 from uaclient.jobs.metering import metering_enabled_resources
+from uaclient.jobs.update_contract_info import update_contract_info
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
+UPDATE_CONTRACT_INFO_INTERVAL = 14400  # 4 hours
 
 
 class TimedJob:
@@ -110,6 +112,11 @@ update_message_job = TimedJob(
     update_apt_and_motd_messages,
     UPDATE_MESSAGING_INTERVAL,
 )
+update_contract_info_job = TimedJob(
+    "update_contract_info",
+    update_contract_info,
+    UPDATE_CONTRACT_INFO_INTERVAL,
+)
 
 
 def run_job(
@@ -145,7 +152,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
         # We do this for the first run of the timer job, where the file
         # doesn't exist
         jobs_status_obj = AllTimerJobsState(
-            metering=None, update_messaging=None
+            metering=None, update_messaging=None, update_contract_info=None
         )
 
     jobs_status_obj.metering = run_job(
