@@ -15,9 +15,9 @@ restore_previous_conffile() {
     previous_pkg_version=$1
     # Back up existing conffile in case of an error unwind
     cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-remove
-    # Restore the default conffile that shipped with 27.11.3 through 27.12
 
     if dpkg --compare-versions "$previous_pkg_version" ge 27.13.1~; then
+      # Restore the default conffile that shipped with 27.13.X
       cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
 # Ubuntu Pro Client config file.
 # If you modify this file, run "pro refresh config" to ensure changes are
@@ -39,6 +39,7 @@ ua_config:
   metering_timer: 14400
 EOT
   else
+      # Restore the default conffile that shipped with 27.11.3 through 27.12
       cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
 # Ubuntu Pro Client config file.
 # If you modify this file, run "pro refresh config" to ensure changes are
