@@ -1,5 +1,3 @@
-import socket
-
 from behave import when
 
 from features.steps.shell import when_i_run_command
@@ -8,22 +6,10 @@ from features.util import SUT
 
 @when("I disable access to {website}")
 def block_access_to_address(context, website):
-    address_info = socket.getaddrinfo(website, None)
-    # Don't believe the magic? The C code will return a 5-tuple where the
-    # actual socket address is the last item, and it is a 4-tuple for ipv6 or
-    # a 2-tuple for ipv4, address string being the first item.
-    addresses_to_block = set([address[-1][0] for address in address_info])
-    for address in addresses_to_block:
-        when_i_run_command(
-            context,
-            "ufw reject out from any to {}".format(address),
-            "with sudo",
-        )
     when_i_run_command(
         context,
-        "ufw enable",
+        "sed -i '1i127.0.0.1 {}' /etc/hosts".format(website),
         "with sudo",
-        stdin="y\n",
     )
 
 
