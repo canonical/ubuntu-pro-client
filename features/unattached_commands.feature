@@ -316,7 +316,7 @@ Feature: Command behaviour when unattached
 
     @series.lts
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Verify autocomplete options
+    Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
         And I run `apt update` with sudo
