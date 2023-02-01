@@ -1284,3 +1284,29 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | jq       |
            | bionic  | bundler  |
            | focal   | ant      |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable with corrupt lock
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `pro disable esm-infra --assume-yes` with sudo
+        And I create the file `/var/lib/ubuntu-advantage/lock` with the following:
+        """
+        corrupted
+        """
+        Then I verify that running `pro enable esm-infra --assume-yes` `with sudo` exits `1`
+        And stderr matches regexp:
+        """
+        There is a corrupted lock file in the system. To continue, please remove it
+        from the system by running:
+
+        \$ sudo rm /var/lib/ubuntu-advantage/lock
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
