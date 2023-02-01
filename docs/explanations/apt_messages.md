@@ -17,7 +17,7 @@ where we deliver those messages are:
   The following package was automatically installed and is no longer required:
     libfreetype6
     Use 'apt autoremove' to remove it.
-  The following security updates require Ubuntu Pro with 'esm-infra' enabled:
+  Get more security updates through Ubuntu Pro with 'esm-infra' enabled
     libpam0g libpam-modules openssl ntfs-3g git-man libsystemd0 squashfs-tools git openssh-sftp-server udev libpam-runtime isc-dhcp-common libx11-6 libudev1 apport python3-apport systemd-sysv liblz4-1 libpam-systemd systemd libpam-modules-bin openssh-server libx11-data openssh-client libxml2 curl isc-dhcp-client python3-problem-report libcurl3-gnutls libssl1.0.0
   Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04
   ```
@@ -53,7 +53,7 @@ where we deliver those messages are:
 
   ```
   *Your Ubuntu Pro subscription has EXPIRED*
-  The following security updates require Ubuntu Pro with 'esm-infra' enabled:
+  Get more security updates through Ubuntu Pro with 'esm-infra' enabled
     libpam0g libpam-modules openssl ntfs-3g git-man libsystemd0 squashfs-tools git openssh-sftp-server udev libpam-runtime isc-dhcp-common libx11-6 libudev1 apport python3-apport systemd-sysv liblz4-1 libpam-systemd systemd libpam-modules-bin openssh-server libx11-data openssh-client libxml2 curl isc-dhcp-client python3-problem-report libcurl3-gnutls libssl1.0.0
   Renew your service at https://ubuntu.com/pro
   ```

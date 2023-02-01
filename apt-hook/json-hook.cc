@@ -265,10 +265,15 @@ ESMContext get_esm_context() {
     return ret;
 }
 
-void print_esm_packages(std::string esm_name, std::vector<std::string> package_names, ESMContext &esm_context) {
-    std::cout << "The following security updates require Ubuntu Pro with '";
-    std::cout << esm_name;
-    std::cout << "' enabled:" << std::endl;
+void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names, ESMContext &esm_context) {
+
+    if (esm_type == APPS) {
+        std::cout << "Get more security updates through Ubuntu Pro with 'esm-apps' enabled:";
+    } else {
+        std::cout << "The following security updates require Ubuntu Pro with 'esm-infra' enabled:";
+    }
+
+    std::cout << std::endl;
 
     std::string curr_line = " ";
     for (std::string &name : package_names) {
@@ -366,9 +371,9 @@ int run()
         if (success) {
             ESMContext esm_context = get_esm_context();
             if (!esm_updates.infra_packages.empty()) {
-                print_esm_packages("esm-infra", esm_updates.infra_packages, esm_context);
+                print_esm_packages(INFRA, esm_updates.infra_packages, esm_context);
             } else if (!esm_updates.apps_packages.empty()) {
-                print_esm_packages("esm-apps", esm_updates.apps_packages, esm_context);
+                print_esm_packages(APPS, esm_updates.apps_packages, esm_context);
             }
         }
 
