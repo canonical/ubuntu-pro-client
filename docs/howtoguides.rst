@@ -82,6 +82,14 @@ How to use ``pro`` commands
     :maxdepth: 1
 
     Check Ubuntu Pro Client version <howtoguides/check_pro_version>
+
+``lock``
+-----------
+
+..  toctree::
+    :maxdepth: 1
+
+    Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock.md>
     
 Create a ``pro`` Golden Image
 =============================

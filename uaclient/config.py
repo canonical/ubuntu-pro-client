@@ -330,7 +330,14 @@ class UAConfig:
         if not os.path.exists(lock_path):
             return no_lock
         lock_content = system.load_file(lock_path)
-        [lock_pid, lock_holder] = lock_content.split(":")
+
+        try:
+            [lock_pid, lock_holder] = lock_content.split(":")
+        except ValueError:
+            raise exceptions.InvalidLockFile(
+                os.path.join(self.data_dir, "lock")
+            )
+
         try:
             system.subp(["ps", lock_pid])
             return (int(lock_pid), lock_holder)

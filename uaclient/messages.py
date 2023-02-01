@@ -1160,3 +1160,12 @@ Could not extract series information from /etc/os-release.
 The VERSION filed does not have version information: {version}
 and the VERSION_CODENAME information is not present""",
 )
+
+INVALID_LOCK_FILE = FormattedNamedMessage(
+    "invalid-lock-file",
+    """\
+There is a corrupted lock file in the system. To continue, please remove it
+from the system by running:
+
+$ sudo rm {lock_file_path}""",
+)
