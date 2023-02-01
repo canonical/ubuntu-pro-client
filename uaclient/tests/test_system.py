@@ -539,6 +539,50 @@ LOGO=ubuntu-logo
                     "LOGO": "ubuntu-logo",
                 },
             ),
+            (
+                """\
+PRETTY_NAME="elementary OS 7 Horus"
+NAME="elementary OS"
+CPE_NAME="cpe:/o:elementary:elementary_os:7"
+VERSION_ID="7"
+VERSION="7 Horus"
+VERSION_CODENAME=horus
+ID=elementary
+ID_LIKE="ubuntu debian"
+HOME_URL="https://elementary.io/"
+DOCUMENTATION_URL="https://elementary.io/docs/learning-the-basics"
+SUPPORT_URL="https://elementary.io/support"
+BUG_REPORT_URL="https://docs.elementary.io/contributor-guide/feedback/reporting-issues"
+PRIVACY_POLICY_URL="https://elementary.io/privacy-policy"
+UBUNTU_CODENAME=jammy
+UBUNTU_PRETTY_NAME="Ubuntu 22.04.1 LTS"
+UBUNTU_NAME="Ubuntu"
+UBUNTU_VERSION_ID="22.04"
+UBUNTU_VERSION="22.04.1 LTS (Jammy Jellyfish)"
+UBUNTU_VERSION_CODENAME=jammy
+""",
+                {
+                    "PRETTY_NAME": "elementary OS 7 Horus",
+                    "NAME": "elementary OS",
+                    "CPE_NAME": "cpe:/o:elementary:elementary_os:7",
+                    "VERSION_ID": "7",
+                    "VERSION": "7 Horus",
+                    "VERSION_CODENAME": "horus",
+                    "ID": "elementary",
+                    "ID_LIKE": "ubuntu debian",
+                    "HOME_URL": "https://elementary.io/",
+                    "DOCUMENTATION_URL": "https://elementary.io/docs/learning-the-basics",  # noqa: E501
+                    "SUPPORT_URL": "https://elementary.io/support",
+                    "BUG_REPORT_URL": "https://docs.elementary.io/contributor-guide/feedback/reporting-issues",  # noqa: E501
+                    "PRIVACY_POLICY_URL": "https://elementary.io/privacy-policy",  # noqa: E501
+                    "UBUNTU_CODENAME": "jammy",
+                    "UBUNTU_PRETTY_NAME": "Ubuntu 22.04.1 LTS",
+                    "UBUNTU_NAME": "Ubuntu",
+                    "UBUNTU_VERSION_ID": "22.04",
+                    "UBUNTU_VERSION": "22.04.1 LTS (Jammy Jellyfish)",
+                    "UBUNTU_VERSION_CODENAME": "jammy",
+                },
+            ),
         ),
     )
     @mock.patch("uaclient.system.load_file")
@@ -603,10 +647,20 @@ class TestGetPlatformInfo:
             # Use __wrapped__ to avoid hitting the
             # lru_cached value across tests
             system.get_platform_info.__wrapped__()
-        expected_msg = (
-            "Could not parse /usr/lib/os-release VERSION: junk (modified to junk)"  # noqa: E501
-        )
+        expected_msg = "Could not parse /usr/lib/os-release VERSION: junk (modified to junk)"  # noqa: E501
         assert expected_msg == str(excinfo.value)
+
+    @mock.patch("uaclient.system.parse_os_release")
+    def test_get_platform_info_fallback_ubuntu_version(self, m_parse):
+        """get_platform_info errors when it cannot parse os-release."""
+        m_parse.return_value = {
+            "VERSION": "junk",
+            "UBUNTU_VERSION": "22.04.1 LTS (Jammy Jellyfish)",
+        }
+        platform_info = system.get_platform_info.__wrapped__()
+        assert platform_info["version"] == "22.04 LTS (Jammy Jellyfish)"
+        assert platform_info["release"] == "22.04"
+        assert platform_info["series"] == "jammy"
 
     @pytest.mark.parametrize(
         "os_release, arch, kernel, expected",

@@ -160,6 +160,12 @@ def get_platform_info() -> Dict[str, str]:
     platform_info["version"] = version
 
     match = re.match(REGEX_OS_RELEASE_VERSION, version)
+    if not match and "UBUNTU_VERSION" in os_release:
+        version = os_release["UBUNTU_VERSION"]
+        version = re.sub(r"\.\d LTS", " LTS", version)
+        platform_info["version"] = version
+
+    match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
             "Could not parse /usr/lib/os-release VERSION: {} (modified to"
