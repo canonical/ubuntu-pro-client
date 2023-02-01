@@ -304,7 +304,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
@@ -430,7 +429,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
@@ -555,7 +553,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
