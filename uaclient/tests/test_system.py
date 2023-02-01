@@ -543,10 +543,10 @@ LOGO=ubuntu-logo
     )
     @mock.patch("uaclient.system.load_file")
     def test_parse_os_release(self, m_load_file, content, expected):
-        """parse_os_release returns a dict of values from /etc/os-release."""
+        """parse_os_release returns a dict of values from os-release."""
         m_load_file.return_value = content
         assert expected == system.parse_os_release.__wrapped__()
-        assert m_load_file.call_args_list == [mock.call("/etc/os-release")]
+        assert m_load_file.call_args_list == [mock.call("/usr/lib/os-release")]
 
 
 @mock.patch("uaclient.system.load_file")
@@ -604,7 +604,7 @@ class TestGetPlatformInfo:
             # lru_cached value across tests
             system.get_platform_info.__wrapped__()
         expected_msg = (
-            "Could not parse /etc/os-release VERSION: junk (modified to junk)"
+            "Could not parse /usr/lib/os-release VERSION: junk (modified to junk)"  # noqa: E501
         )
         assert expected_msg == str(excinfo.value)
 

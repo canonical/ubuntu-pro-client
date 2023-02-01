@@ -162,7 +162,7 @@ def get_platform_info() -> Dict[str, str]:
     match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
-            "Could not parse /etc/os-release VERSION: {} (modified to"
+            "Could not parse /usr/lib/os-release VERSION: {} (modified to"
             " {})".format(os_release["VERSION"], version)
         )
     match_dict = match.groupdict()
@@ -242,6 +242,8 @@ def is_container(run_path: str = "/run") -> bool:
 @lru_cache(maxsize=None)
 def parse_os_release(release_file: Optional[str] = None) -> Dict[str, str]:
     if not release_file:
+        release_file = "/usr/lib/os-release"
+    if not os.path.exists(release_file):
         release_file = "/etc/os-release"
     data = {}
     for line in load_file(release_file).splitlines():
