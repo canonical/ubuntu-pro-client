@@ -172,8 +172,9 @@ Feature: MOTD Messages
     Scenario Outline: MOTD Contract Expiration Notices with contract not updated
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I attach `contract_token` with sudo
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        And I run `apt-get install ansible -y` with sudo
+        And I attach `contract_token` with sudo
+        And I create the file `/tmp/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
@@ -188,8 +189,8 @@ Feature: MOTD Messages
         features:
           machine_token_overlay: "/tmp/machine-token-overlay.json"
         """
-        When I wait `1` seconds
-        When I run `pro refresh messages` with sudo
+        And I wait `1` seconds
+        And I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
