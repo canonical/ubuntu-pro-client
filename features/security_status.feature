@@ -7,6 +7,7 @@ Feature: Security status command behavior
     Scenario Outline: Run security status with JSON/YAML format
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
+        And I run `apt-get install ansible -y` with sudo
         And I run `pro security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
@@ -88,7 +89,7 @@ Feature: Security status command behavior
         Examples: ubuntu release
            | release | package   | service   |
            | xenial  | apport    | esm-infra |
-           | bionic  | libkrb5-3 | esm-apps  |
+           | bionic  | ansible   | esm-apps  |
 
     @series.xenial
     @uses.config.machine_type.lxd.vm
