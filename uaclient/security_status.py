@@ -11,8 +11,8 @@ from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import messages
+from uaclient.apt import get_esm_cache
 from uaclient.config import UAConfig
-from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -61,18 +61,6 @@ def get_origin_information_to_service_map():
         ("UbuntuESMApps", "{}-apps-updates".format(series)): "esm-apps",
         ("UbuntuESM", "{}-infra-updates".format(series)): "esm-infra",
     }
-
-
-@lru_cache(maxsize=None)
-def get_esm_cache():
-    try:
-        # If the rootdir folder doesn't contain any apt source info, the
-        # cache will be empty
-        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
-    except Exception:
-        cache = {}
-
-    return cache
 
 
 def get_installed_packages_by_origin() -> DefaultDict[
