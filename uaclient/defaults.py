@@ -49,7 +49,7 @@ CONFIG_DEFAULTS = {
     "contract_url": BASE_CONTRACT_URL,
     "security_url": BASE_SECURITY_URL,
     "data_dir": DEFAULT_DATA_DIR,
-    "log_level": "INFO",
+    "log_level": "debug",
     "log_file": "/var/log/ubuntu-advantage.log",
     "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
     "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",

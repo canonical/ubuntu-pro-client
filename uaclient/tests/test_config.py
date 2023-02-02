@@ -1108,7 +1108,7 @@ class TestParseConfig:
             "log_file": "/var/log/ubuntu-advantage.log",
             "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
             "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",  # noqa: E501
-            "log_level": "INFO",
+            "log_level": "debug",
         }
         assert expected_default_config == config
 
