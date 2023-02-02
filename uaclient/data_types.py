@@ -12,6 +12,8 @@ class IncorrectTypeError(exceptions.UserFacingError):
             expected_type=expected_type, got_type=got_type
         )
         super().__init__(msg.msg, msg.name)
+        self.expected_type = expected_type
+        self.got_type = got_type
 
 
 class IncorrectListElementTypeError(IncorrectTypeError):
@@ -22,6 +24,8 @@ class IncorrectListElementTypeError(IncorrectTypeError):
         self.msg = msg.msg
         self.msg_code = msg.name
         self.additional_info = None
+        self.expected_type = err.expected_type
+        self.got_type = err.got_type
 
 
 class IncorrectFieldTypeError(IncorrectTypeError):
@@ -33,16 +37,22 @@ class IncorrectFieldTypeError(IncorrectTypeError):
         self.msg_code = msg.name
         self.additional_info = None
         self.key = key
+        self.expected_type = err.expected_type
+        self.got_type = err.got_type
 
 
 class IncorrectEnumValueError(IncorrectTypeError):
-    def __init__(self, values: List[str], enum_class: Any):
+    def __init__(self, values: List[Union[str, int]], enum_class: Any):
         msg = messages.INCORRECT_ENUM_VALUE_ERROR_MESSAGE.format(
             values=values, enum_class=repr(enum_class)
         )
         self.msg = msg.msg
         self.msg_code = msg.name
         self.additional_info = None
+        self.expected_type = "one of: {}".format(
+            ", ".join([str(v) for v in values])
+        )
+        self.got_type = "<invalid_value>"
 
 
 class DataValue:
@@ -260,7 +270,9 @@ class DataObject(DataValue):
         )
 
     @classmethod
-    def from_dict(cls: Type[T], d: dict) -> T:
+    def from_dict(
+        cls: Type[T], d: dict, optional_type_errors_become_null: bool = False
+    ) -> T:
         kwargs = {}
         for field in cls.fields:
             try:
@@ -277,7 +289,21 @@ class DataObject(DataValue):
                 try:
                     val = field.data_cls.from_value(val)
                 except IncorrectTypeError as e:
-                    raise IncorrectFieldTypeError(e, field.dict_key)
+                    if not field.required and optional_type_errors_become_null:
+                        # SC-1428: we should warn here, but this currently runs
+                        # before setup_logging() in the case of
+                        # user-config.json.
+                        #
+                        # logging.warning(
+                        #     "{} is wrong type (expected {} but got {}) but "
+                        #     "considered optional - treating as null".format(
+                        #         field.key, e.expected_type, e.got_type
+                        #     )
+                        # )
+                        val = None
+                    else:
+                        raise IncorrectFieldTypeError(e, field.dict_key)
+
             kwargs[field.key] = val
         return cls(**kwargs)
 
