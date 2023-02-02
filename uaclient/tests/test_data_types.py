@@ -696,6 +696,34 @@ class TestDataObject:
         assert do.string == "something"
         assert d == do.to_dict()
 
+    def test_optional_type_errors_become_null(self):
+        result = ExampleDataObject.from_dict(
+            {
+                **example_data_object_dict_with_optionals,
+                "string_opt": 4,
+                "integer_opt": {},
+                "obj_opt": [],
+                "stringlist_opt": [4],
+                "integerlist_opt": ["hello"],
+                "objlist_opt": [[]],
+                "enum_opt": "nope",
+                "enum_opt_list": "nope",
+                "dt_opt": 1234,
+                "dtlist_opt": 1234,
+            },
+            optional_type_errors_become_null=True,
+        )
+        assert result.string_opt is None
+        assert result.integer_opt is None
+        assert result.obj_opt is None
+        assert result.stringlist_opt is None
+        assert result.integerlist_opt is None
+        assert result.objlist_opt is None
+        assert result.enum_opt is None
+        assert result.enum_opt_list is None
+        assert result.dt_opt is None
+        assert result.dtlist_opt is None
+
     @pytest.mark.parametrize(
         "d",
         (
