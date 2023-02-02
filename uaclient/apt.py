@@ -598,12 +598,33 @@ def get_apt_cache_datetime() -> Optional[datetime.datetime]:
     return datetime.datetime.fromtimestamp(cache_time, datetime.timezone.utc)
 
 
+@lru_cache(maxsize=None)
+def get_esm_cache():
+    import apt  # type: ignore
+    import apt_pkg  # type: ignore
+
+    try:
+        # Take care to initialize the cache with only the
+        # Acquire configuration preserved
+        for key in apt_pkg.config.keys():
+            if "Acquire" not in key:
+                apt_pkg.config.clear(key)
+        apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
+        apt_pkg.init_config()
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
+    except Exception:
+        cache = {}
+
+    return cache
+
+
 def update_esm_caches(cfg) -> None:
     if not system.is_current_series_lts():
         return
 
     import apt  # type: ignore
-    import apt_pkg  # type: ignore
 
     from uaclient.entitlements.entitlement_status import ApplicationStatus
     from uaclient.entitlements.esm import (
@@ -624,15 +645,7 @@ def update_esm_caches(cfg) -> None:
             infra.setup_local_esm_repo()
 
     # Read the cache and update it
-    # Take care to initialize the cache with only the
-    # Acquire configuration preserved
-    for key in apt_pkg.config.keys():
-        if "Acquire" not in key:
-            apt_pkg.config.clear(key)
-    apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
-    apt_pkg.init_config()
-
-    cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
+    cache = get_esm_cache()
 
     try:
         cache.update()
