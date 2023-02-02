@@ -364,7 +364,7 @@ class UAConfig:
         try:
             return getattr(logging, log_level.upper())
         except AttributeError:
-            return getattr(logging, CONFIG_DEFAULTS["log_level"])
+            return logging.DEBUG
 
     @property
     def log_file(self) -> str:
