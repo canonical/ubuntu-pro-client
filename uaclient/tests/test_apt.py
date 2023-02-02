@@ -18,7 +18,6 @@ from uaclient.apt import (
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
-    ESM_APT_ROOTDIR,
     KEYRINGS_DIR,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
@@ -1073,7 +1072,7 @@ class TestAptCacheTime:
 
     @pytest.mark.parametrize(
         "is_lts,cache_call_list",
-        ((True, [mock.call(rootdir=ESM_APT_ROOTDIR)]), (False, [])),
+        ((True, [mock.call()]), (False, [])),
     )
     @pytest.mark.parametrize(
         "apps_status", (ApplicationStatus.ENABLED, ApplicationStatus.DISABLED)
@@ -1086,14 +1085,14 @@ class TestAptCacheTime:
     @mock.patch("uaclient.entitlements.esm.ESMInfraEntitlement")
     @mock.patch("uaclient.apt.system.is_current_series_lts")
     @mock.patch("uaclient.apt.system.is_current_series_active_esm")
-    @mock.patch("apt.Cache")
+    @mock.patch("uaclient.apt.get_esm_cache")
     @mock.patch("apt_pkg.config")
     @mock.patch("apt_pkg.init_config")
     def test_update_esm_caches_based_on_lts(
         self,
         _m_apt_pkg_init_config,
         _m_apt_pkg_config,
-        m_cache,
+        m_esm_cache,
         m_is_esm,
         m_is_lts,
         m_infra_entitlement,
@@ -1135,7 +1134,7 @@ class TestAptCacheTime:
 
         update_esm_caches(FakeConfig())
 
-        assert m_cache.call_args_list == cache_call_list
+        assert m_esm_cache.call_args_list == cache_call_list
 
         assert (
             m_infra.setup_local_esm_repo.call_count == infra_setup_repo_count
