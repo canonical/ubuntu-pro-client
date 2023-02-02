@@ -25,6 +25,7 @@ from uaclient.defaults import (
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
+    DEFAULT_DATA_DIR,
 )
 from uaclient.files import notices
 from uaclient.files.notices import Notice
@@ -355,7 +356,7 @@ class UAConfig:
 
     @property
     def data_dir(self):
-        return self.cfg["data_dir"]
+        return self.cfg.get("data_dir", DEFAULT_DATA_DIR)
 
     @property
     def log_level(self):
@@ -408,7 +409,7 @@ class UAConfig:
 
     def data_path(self, key: Optional[str] = None) -> str:
         """Return the file path in the data directory represented by the key"""
-        data_dir = self.cfg["data_dir"]
+        data_dir = self.data_dir
         if not key:
             return os.path.join(data_dir, PRIVATE_SUBDIR)
         if key in self.data_paths:
@@ -699,7 +700,8 @@ def parse_config(config_path=None):
             elif key in CONFIG_FIELD_ENVVAR_ALLOWLIST:
                 env_keys[field_name] = value
     cfg.update(env_keys)
-    cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
+    if "data_dir" in cfg:
+        cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
     for key in ("contract_url", "security_url"):
         if not util.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
