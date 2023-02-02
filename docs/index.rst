@@ -55,12 +55,23 @@ for you.
 Getting help
 ============
 
-Having trouble? We would like to help! For help on a specific page in this
-documentation, click on the "Have a question?" link at the top of that page.
-You can also...
+Ubuntu Pro is a new product, and we're keen to know about your experience of
+using it!
 
-- Ask a question in the ``#ubuntu-server`` `IRC channel on Libera`_
-- `Report bugs on Launchpad`_
+- **Having trouble?**
+  We would like to help! To get help on a specific page in this documentation,
+  simply click on the "Have a question?" link at the top of that page. This
+  will open up an issue in GitHub where you can tell us more about the problem
+  you're having and we will do our best to resolve it for you.
+
+- **Found a bug?**
+  You can `Report bugs on Launchpad`_!
+  
+- **Want to give feedback?**
+  If you have any comments, requests or suggestions that you'd like to share,
+  we'd be very happy to receive them! Please feel free to reach out on
+  `our Discourse forum`_, or you can get in touch via the ``#ubuntu-server``
+  `IRC channel on Libera`_
 
 Project and community
 =====================
@@ -108,3 +119,4 @@ constructive feedback.
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-advantage-client/blob/main/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
+.. _our Discourse forum: https://discourse.ubuntu.com/t/ubuntu-pro-beta-invitation/30957
