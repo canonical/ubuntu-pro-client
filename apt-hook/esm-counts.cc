@@ -52,11 +52,24 @@ bool get_potential_esm_updates(ESMUpdates &updates) {
    }
 
    // set up esm cache
+   // make sure the configuration is isolated, apart from Acquire
+   for (const Configuration::Item *ConfigItem = _config->Tree(0); ConfigItem != NULL; ConfigItem = ConfigItem->Next) {
+      if (ConfigItem->FullTag(0) != "Acquire") {
+         _config->Clear(ConfigItem->FullTag(0));
+      }
+   }
+
    _config->Set("Dir", "/var/lib/ubuntu-advantage/apt-esm/");
    _config->Set("Dir::State::status", "/var/lib/ubuntu-advantage/apt-esm/var/lib/dpkg/status");
+
+   if (!pkgInitConfig(*_config)) {
+      return false;
+   }
+
    if (!pkgInitSystem(*_config, _system)) {
       return false;
    }
+
    pkgCacheFile esm_cachefile;
    pkgCache *esm_cache = esm_cachefile.GetPkgCache();
    if (esm_cache == NULL) {
