@@ -23,11 +23,15 @@ class DataObjectFile(Generic[DOFType]):
         ua_file: UAFile,
         file_format: DataObjectFileFormat = DataObjectFileFormat.JSON,
         preprocess_data: Optional[Callable[[Dict], Dict]] = None,
+        optional_type_errors_become_null: bool = False,
     ):
         self.data_object_cls = data_object_cls
         self.ua_file = ua_file
         self.file_format = file_format
         self.preprocess_data = preprocess_data
+        self.optional_type_errors_become_null = (
+            optional_type_errors_become_null
+        )
 
     def read(self) -> Optional[DOFType]:
         raw_data = self.ua_file.read()
@@ -58,7 +62,10 @@ class DataObjectFile(Generic[DOFType]):
         if self.preprocess_data:
             parsed_data = self.preprocess_data(parsed_data)
 
-        return self.data_object_cls.from_dict(parsed_data)
+        return self.data_object_cls.from_dict(
+            parsed_data,
+            optional_type_errors_become_null=self.optional_type_errors_become_null,  # noqa: E501
+        )
 
     def write(self, content: DOFType):
         if self.file_format == DataObjectFileFormat.JSON:
