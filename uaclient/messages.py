@@ -1131,3 +1131,17 @@ Either switch to a supported kernel or `pro disable livepatch` to dismiss this w
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
 LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = "Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels"  # noqa: E501
+
+ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
+    "error-parsing-version-os-release",
+    """\
+Could not parse /etc/os-release VERSION: {orig_ver} (modified to {mod_ver})""",
+)
+
+MISSING_SERIES_ON_OS_RELEASE = FormattedNamedMessage(
+    "missing-series-on-os-release",
+    """\
+Could not extract series information from /etc/os-release.
+The VERSION filed does not have version information: {version}
+and the VERSION_CODENAME information is not present""",
+)
