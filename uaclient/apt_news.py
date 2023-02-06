@@ -202,12 +202,14 @@ def local_apt_news(cfg: UAConfig) -> bool:
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
-        exp_dt = cfg.machine_token_file.contract_expiry_datetime.strftime(
-            "%d %b %Y"
-        )
+        exp_dt = cfg.machine_token_file.contract_expiry_datetime
+        if exp_dt is None:
+            exp_dt_str = "Unknown"
+        else:
+            exp_dt_str = exp_dt.strftime("%d %b %Y")
         state_files.apt_news_contents_file.write(
             messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
-                expired_date=exp_dt, remaining_days=grace_period_remaining
+                expired_date=exp_dt_str, remaining_days=grace_period_remaining
             )
         )
         return True
