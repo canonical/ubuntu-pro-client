@@ -1103,3 +1103,17 @@ RETRY_ERROR_DETAIL_URL_ERROR_CODE = "a {code} while reaching {url}"
 RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_URL_ERROR_GENERIC = "a network error"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
+
+ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
+    "error-parsing-version-os-release",
+    """\
+Could not parse /etc/os-release VERSION: {orig_ver} (modified to {mod_ver})""",
+)
+
+MISSING_SERIES_ON_OS_RELEASE = FormattedNamedMessage(
+    "missing-series-on-os-release",
+    """\
+Could not extract series information from /etc/os-release.
+The VERSION filed does not have version information: {version}
+and the VERSION_CODENAME information is not present""",
+)

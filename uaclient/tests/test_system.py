@@ -595,18 +595,29 @@ version,codename,series,created,release,eol,eol-server,eol-esm
 
 
 class TestGetPlatformInfo:
+    @pytest.mark.parametrize(
+        "version, expected_exception",
+        (
+            (
+                "junk",
+                exceptions.ParsingErrorOnOSReleaseFile,
+            ),
+            (
+                "22.04 LTS",
+                exceptions.MissingSeriesOnOSReleaseFile,
+            ),
+        ),
+    )
     @mock.patch("uaclient.system.parse_os_release")
-    def test_get_platform_info_error_no_version(self, m_parse):
+    def test_get_platform_info_error(
+        self, m_parse, version, expected_exception
+    ):
         """get_platform_info errors when it cannot parse os-release."""
-        m_parse.return_value = {"VERSION": "junk"}
-        with pytest.raises(RuntimeError) as excinfo:
+        m_parse.return_value = {"VERSION": version}
+        with pytest.raises(expected_exception):
             # Use __wrapped__ to avoid hitting the
             # lru_cached value across tests
             system.get_platform_info.__wrapped__()
-        expected_msg = (
-            "Could not parse /etc/os-release VERSION: junk (modified to junk)"
-        )
-        assert expected_msg == str(excinfo.value)
 
     @pytest.mark.parametrize(
         "os_release, arch, kernel, expected",
@@ -677,6 +688,43 @@ class TestGetPlatformInfo:
                     "series": "kinetic",
                     "type": "Linux",
                     "version": "22.10 LTS (Kinetic Kudu)",
+                },
+            ),
+            (
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "22.04 LTS",
+                    "VERSION_CODENAME": "Jammy",
+                },
+                "amd64",
+                "kernel-ver4",
+                {
+                    "arch": "amd64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver4",
+                    "release": "22.04",
+                    "series": "jammy",
+                    "type": "Linux",
+                    "version": "22.04 LTS",
+                },
+            ),
+            (
+                {
+                    "NAME": "Ubuntu",
+                    "VERSION": "CORRUPTED",
+                    "VERSION_CODENAME": "Jammy",
+                    "VERSION_ID": "22.04",
+                },
+                "amd64",
+                "kernel-ver4",
+                {
+                    "arch": "amd64",
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel-ver4",
+                    "release": "22.04",
+                    "series": "jammy",
+                    "type": "Linux",
+                    "version": "CORRUPTED",
                 },
             ),
         ],
