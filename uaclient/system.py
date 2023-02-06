@@ -20,7 +20,9 @@ DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
-REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
+REGEX_OS_RELEASE_VERSION = (
+    r"(?P<release>\d+\.\d+) (LTS\s*)?(\((?P<series>\w+))?.*"
+)
 
 RE_KERNEL_UNAME = (
     r"^"
@@ -154,28 +156,33 @@ def get_platform_info() -> Dict[str, str]:
         "type": "Linux",
     }
 
-    version = os_release["VERSION"]
-    # Strip off an LTS point release (20.04.1 LTS -> 20.04 LTS)
-    version = re.sub(r"\.\d LTS", " LTS", version)
+    version = re.sub(r"\.\d LTS", " LTS", os_release.get("VERSION", ""))
     platform_info["version"] = version
+    series = os_release.get("VERSION_CODENAME", "")
+    release = os_release.get("VERSION_ID", "")
 
-    match = re.match(REGEX_OS_RELEASE_VERSION, version)
-    if not match:
-        raise RuntimeError(
-            "Could not parse /etc/os-release VERSION: {} (modified to"
-            " {})".format(os_release["VERSION"], version)
-        )
-    match_dict = match.groupdict()
+    if not series or not release:
+        match = re.match(REGEX_OS_RELEASE_VERSION, version)
+        if not match:
+            raise exceptions.ParsingErrorOnOSReleaseFile(
+                orig_ver=os_release.get("VERSION", ""), mod_ver=version
+            )
+
+        match_dict = match.groupdict()
+        series = series or match_dict.get("series", "")
+        if not series:
+            raise exceptions.MissingSeriesOnOSReleaseFile(version=version)
+
+        release = release or match_dict.get("release", "")
+
     platform_info.update(
         {
-            "release": match_dict["release"],
-            "series": match_dict["series"].lower(),
+            "release": release,
+            "series": series.lower(),
+            "kernel": get_kernel_info().uname_release,
+            "arch": get_dpkg_arch(),
         }
     )
-
-    platform_info["kernel"] = get_kernel_info().uname_release
-    platform_info["arch"] = get_dpkg_arch()
-
     return platform_info
 
 

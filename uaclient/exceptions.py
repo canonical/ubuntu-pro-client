@@ -455,3 +455,17 @@ class InvalidFileFormatError(UserFacingError):
             file_name=file_name, file_format=file_format
         )
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class ParsingErrorOnOSReleaseFile(UserFacingError):
+    def __init__(self, orig_ver: str, mod_ver: str):
+        msg = messages.ERROR_PARSING_VERSION_OS_RELEASE.format(
+            orig_ver=orig_ver, mod_ver=mod_ver
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class MissingSeriesOnOSReleaseFile(UserFacingError):
+    def __init__(self, version):
+        msg = messages.MISSING_SERIES_ON_OS_RELEASE.format(version=version)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
