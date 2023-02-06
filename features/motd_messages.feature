@@ -262,6 +262,28 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": null
+                }
+            }
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        And I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        [\w\d.]+
+
+        \*Your Ubuntu Pro subscription has EXPIRED\*
+        Renew your service at https:\/\/ubuntu.com\/pro
+
+        [\w\d.]+
+        """
         Examples: ubuntu release
            | release | service   |
            | xenial  | esm-infra |
