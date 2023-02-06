@@ -6,9 +6,15 @@ from uaclient.apt import update_esm_caches
 from uaclient.config import UAConfig
 from uaclient.daemon import setup_logging
 
+LOG = logging.getLogger("pro")
+
 
 def main(cfg: UAConfig) -> None:
-    update_esm_caches(cfg)
+    try:
+        update_esm_caches(cfg)
+    except Exception as e:
+        msg = getattr(e, "msg", str(e))
+        LOG.error("Error updating the cache: %s", msg)
 
 
 if __name__ == "__main__":
