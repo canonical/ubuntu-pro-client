@@ -71,6 +71,14 @@ def get_contract_expiry_status(
     grace_period = defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
     pending_expiry = defaults.CONTRACT_EXPIRY_PENDING_DAYS
     remaining_days = cfg.machine_token_file.contract_remaining_days
+
+    # if unknown assume the worst
+    if remaining_days is None:
+        logging.warning(
+            "contract effectiveTo date is null - assuming it is expired"
+        )
+        return ContractExpiryStatus.EXPIRED, -grace_period
+
     if 0 <= remaining_days <= pending_expiry:
         return ContractExpiryStatus.ACTIVE_EXPIRED_SOON, remaining_days
     elif -grace_period <= remaining_days < 0:
@@ -169,11 +177,13 @@ def _write_esm_service_msg_templates(
             grace_period_remaining = (
                 defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
             )
-            exp_dt = cfg.machine_token_file.contract_expiry_datetime.strftime(
-                "%d %b %Y"
-            )
+            exp_dt = cfg.machine_token_file.contract_expiry_datetime
+            if exp_dt is None:
+                exp_dt_str = "Unknown"
+            else:
+                exp_dt_str = exp_dt.strftime("%d %b %Y")
             motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_GRACE_PERIOD_TMPL.format(
-                expired_date=exp_dt,
+                expired_date=exp_dt_str,
                 remaining_days=grace_period_remaining,
             )
             motd_no_pkgs_msg = motd_pkgs_msg

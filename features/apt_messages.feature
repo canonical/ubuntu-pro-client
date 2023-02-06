@@ -592,6 +592,31 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": null
+                }
+            }
+        }
+        """
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # *Your Ubuntu Pro subscription has EXPIRED*
+        # Renew your service at https://ubuntu.com/pro
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
         Examples: ubuntu release
           | release |
           | xenial  |

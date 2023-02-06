@@ -1320,14 +1320,17 @@ def _check_subscription_is_expired(
 
     :returns: True if subscription is expired and not renewed.
     """
-    contract_expiry_datetime = status_cache.get("expires")
-    # If we don't have an expire information on the status-cache, we
-    # can assume that the machine is not attached.
-    if contract_expiry_datetime is None:
+    attached = status_cache.get("attached", False)
+    if not attached:
         return False
 
-    tzinfo = contract_expiry_datetime.tzinfo
-    if contract_expiry_datetime < datetime.now(tzinfo):
+    contract_expiry_datetime = status_cache.get("expires")
+    # If we don't have an expire information on the status-cache, we
+    # assume that the contract is expired.
+    if contract_expiry_datetime is None or (
+        contract_expiry_datetime
+        < datetime.now(contract_expiry_datetime.tzinfo)
+    ):
         if dry_run:
             print(messages.SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION)
             return False
