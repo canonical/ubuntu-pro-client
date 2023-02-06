@@ -6,6 +6,7 @@ import pytest
 
 from lib import timer
 from lib.timer import MeteringTimedJob, TimedJob, run_jobs
+from uaclient.exceptions import InvalidFileFormatError
 
 
 class TestTimedJob:
@@ -146,6 +147,46 @@ class TestTimer:
         actual_job_state = fake_file.read().metering
         assert actual_job_state.last_run is None
         assert 0 == m_job_func.call_count
+
+    @pytest.mark.parametrize(
+        "delete_side_effect", (None, OSError(), PermissionError())
+    )
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("lib.timer.AllTimerJobsState")
+    @mock.patch("lib.timer.run_job")
+    def test_run_jobs_tries_to_create_new_file_when_invalid(
+        self,
+        m_run_job,
+        m_jobs_state,
+        delete_side_effect,
+        caplog_text,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        # we lose microseconds when deserializing
+        now = now - datetime.timedelta(microseconds=now.microsecond)
+
+        fake_file = mock.MagicMock()
+        fake_file.read.side_effect = InvalidFileFormatError("file", "json")
+        fake_file.delete.side_effect = delete_side_effect
+
+        with mock.patch.object(timer, "timer_jobs_state_file", fake_file):
+            run_jobs(cfg, now)
+
+        assert [mock.call()] == fake_file.delete.call_args_list
+        if delete_side_effect is None:
+            assert [
+                mock.call(m_jobs_state())
+            ] == fake_file.write.call_args_list
+            assert 2 == m_run_job.call_count
+        else:
+            assert [] == fake_file.write.call_args_list
+            assert 0 == m_run_job.call_count
+            log = caplog_text()
+            assert (
+                "Error trying to delete invalid jobs-status.json file" in log
+            )
 
 
 class TestMeteringTimedJob:
