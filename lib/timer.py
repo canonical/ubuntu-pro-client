@@ -8,6 +8,7 @@ from typing import Callable, Optional
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
+from uaclient.exceptions import InvalidFileFormatError
 from uaclient.files.state_files import (
     AllTimerJobsState,
     TimerJobState,
@@ -139,7 +140,19 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     Persist jobs-status with calculated next_run values to aid in timer
     state introspection for jobs which have not yet run.
     """
-    jobs_status_obj = timer_jobs_state_file.read()
+    jobs_status_obj = None
+    # If the file format is wrong we remove it, and after the jobs are
+    # executed it will be recreated with the proper data.
+    try:
+        jobs_status_obj = timer_jobs_state_file.read()
+    except InvalidFileFormatError:
+        try:
+            timer_jobs_state_file.delete()
+        except (OSError, PermissionError) as exception:
+            msg = "Error trying to delete invalid jobs-status.json file: {}"
+            msg = msg.format(str(exception))
+            LOG.warning(msg)
+            return
 
     if jobs_status_obj is None:
         # We do this for the first run of the timer job, where the file
