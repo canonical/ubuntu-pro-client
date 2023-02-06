@@ -583,7 +583,9 @@ def get_section_column_content(
     return content
 
 
-def format_expires(expires: datetime) -> str:
+def format_expires(expires: Optional[datetime]) -> str:
+    if expires is None:
+        return "Unknown/Expired"
     try:
         expires = expires.astimezone()
     except Exception:
