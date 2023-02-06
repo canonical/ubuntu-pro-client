@@ -2619,7 +2619,7 @@ class TestCheckSubscriptionIsExpired:
     ):
         now = datetime.datetime.utcnow()
         expire_date = now + datetime.timedelta(days=-10)
-        status_cache = {"expires": expire_date}
+        status_cache = {"attached": True, "expires": expire_date}
 
         assert not _check_subscription_is_expired(
             status_cache=status_cache, cfg=None, dry_run=True
@@ -2633,7 +2633,7 @@ class TestCheckSubscriptionIsExpired:
         m_prompt.return_value = False
         now = datetime.datetime.utcnow()
         expire_date = now + datetime.timedelta(days=-10)
-        status_cache = {"expires": expire_date}
+        status_cache = {"attached": True, "expires": expire_date}
 
         assert _check_subscription_is_expired(
             status_cache=status_cache, cfg=None, dry_run=False

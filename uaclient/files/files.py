@@ -231,14 +231,16 @@ class MachineTokenFile:
         return entitlements
 
     @property
-    def contract_expiry_datetime(self) -> datetime:
+    def contract_expiry_datetime(self) -> Optional[datetime]:
         """Return a datetime of the attached contract expiration."""
         if not self._contract_expiry_datetime:
-            self._contract_expiry_datetime = self.machine_token[
-                "machineTokenInfo"
-            ]["contractInfo"]["effectiveTo"]
+            self._contract_expiry_datetime = (
+                self.machine_token.get("machineTokenInfo", {})
+                .get("contractInfo", {})
+                .get("effectiveTo", None)
+            )
 
-        return self._contract_expiry_datetime  # type: ignore
+        return self._contract_expiry_datetime
 
     @property
     def is_attached(self):
@@ -246,13 +248,15 @@ class MachineTokenFile:
         return bool(self.machine_token)  # machine_token is removed on detach
 
     @property
-    def contract_remaining_days(self) -> int:
+    def contract_remaining_days(self) -> Optional[int]:
         """Report num days until contract expiration based on effectiveTo
 
         :return: A positive int representing the number of days the attached
             contract remains in effect. Return a negative int for the number
             of days beyond contract's effectiveTo date.
         """
+        if self.contract_expiry_datetime is None:
+            return None
         delta = self.contract_expiry_datetime.date() - datetime.utcnow().date()
         return delta.days
 
