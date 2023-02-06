@@ -11,11 +11,32 @@ Feature: Attached status
         When I run `pro status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_status` schema
 
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": null
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I run `pro status` with sudo
+        Then stdout contains substring:
+        """
+        Valid until: Unknown/Expired
+        """
+
         Examples: ubuntu release
            | release |
+           | xenial  |
            | bionic  |
            | focal   |
-           | xenial  |
            | jammy   |
            | kinetic |
            | lunar   |
