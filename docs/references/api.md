@@ -31,6 +31,51 @@ standard structure, as can be seen below:
 }
 ```
 
+## Version dependencies
+The package name of Ubuntu Pro Client is `ubuntu-advantage-tools`.
+
+The documentation for each endpoint below states the first version to include that endpoint.
+
+If you depend on these endpoints, we recommend using a standard dependency version requirement to ensure that a sufficiently up-to-date version of the Pro Client is installed before trying to use it.
+
+```{important}
+The `~` at the end of the version is important to ensure that dpkg version comparison works as expected.
+```
+
+For example, if your software is packaged as a deb, then you can add the following to your `Depends` list in your `control` file to ensure the installed version is at least 27.11~:
+```
+ubuntu-advantage-tools (>= 27.11~)
+```
+
+### Runtime version detection
+If you need to detect the current version at runtime, the most reliable way is to query `dpkg`.
+```
+dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools
+```
+
+If you need to compare versions at runtime, make sure you use the `dpkg` version comparison algorithm.
+For example, the following will exit 0 if the currently installed version of Pro Client is at least 27.11~:
+```
+dpkg --compare-versions "$(dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools)" ge "27.11~"
+```
+
+### Runtime feature detection
+As an alternative to version detection, you can use feature detection. This is easier to do when importing the API in python than it is when using the `pro api` subcommand.
+
+In python, try to import the desired endpoint. If an `ImportError` is raised, then the currently installed version of Ubuntu Pro Client doesn't support that endpoint.
+
+For example:
+```python
+try:
+    from uaclient.api.u.pro.version.v1 import version
+    pro_client_api_supported = True
+except ImportError:
+    pro_client_api_supported = False
+```
+
+You could do something similar by catching certain errors when using the `pro api` subcommand, but there are more cases that could indicate an old version, and it generally isn't recommended.
+
+## Available endpoints
 The currently available endpoints are:
 - [u.pro.version.v1](#uproversionv1)
 - [u.pro.attach.magic.initiate.v1](#uproattachmagicinitiatev1)
@@ -46,6 +91,8 @@ The currently available endpoints are:
 - [u.security.package_manifest.v1](#usecuritypackage_manifestv1)
 
 ## u.pro.version.v1
+
+Introduced in Ubuntu Pro Client Version: `27.11~`
 
 Shows the installed Pro Client version.
 
@@ -92,6 +139,8 @@ pro api u.pro.version.v1
 ```
 
 ## u.pro.attach.magic.initiate.v1
+
+Introduced in Ubuntu Pro Client Version: `27.11~`
 
 Initiates the Magic Attach flow, retrieving the User Code to confirm the
 operation and the Token used to proceed.
@@ -150,6 +199,8 @@ pro api u.pro.attach.magic.initiate.v1
 ```
 
 ## u.pro.attach.magic.wait.v1
+
+Introduced in Ubuntu Pro Client Version: `27.11~`
 
 Polls the contract server waiting for the user to confirm the Magic Attach.
 
@@ -214,6 +265,8 @@ pro api u.pro.attach.magic.wait.v1 --args magic_token=<magic_token>
 
 ## u.pro.attach.magic.revoke.v1
 
+Introduced in Ubuntu Pro Client Version: `27.11~`
+
 Revokes a Magic Attach Token.
 
 ### Args
@@ -265,6 +318,8 @@ pro api u.pro.attach.magic.revoke.v1 --args magic_token=<token>
 
 ## u.pro.attach.auto.should_auto_attach.v1
 
+Introduced in Ubuntu Pro Client Version: `27.11~`
+
 Checks if a given system should run auto-attach on boot.
 
 ### Args
@@ -310,6 +365,8 @@ pro api u.pro.attach.auto.should_auto_attach.v1
 ```
 
 ## u.pro.attach.auto.full_auto_attach.v1
+
+Introduced in Ubuntu Pro Client Version: `27.11~`
 
 Runs the whole auto-attach process on the system.
 
@@ -370,6 +427,8 @@ available.
 
 ## u.pro.attach.auto.configure_retry_service.v1
 
+Introduced in Ubuntu Pro Client Version: `27.12~`
+
 Configures options for the retry auto-attach functionality, and creates files
 that will activate the retry auto-attach functionality if
 `ubuntu-advantage.service` runs.
@@ -422,6 +481,8 @@ This endpoint currently has no CLI support. Only the Python-based version is
 available.
 
 ## u.pro.security.status.livepatch_cves.v1
+
+Introduced in Ubuntu Pro Client Version: `27.12~`
 
 Lists Livepatch patches for the currently-running kernel.
 
@@ -484,6 +545,8 @@ pro api u.pro.security.status.livepatch_cves.v1
 
 ## u.pro.security.status.reboot_required.v1
 
+Introduced in Ubuntu Pro Client Version: `27.12~`
+
 Informs if the system should be rebooted or not. Possible outputs are:
 - `yes`: The system should be rebooted.
 - `no`: There is no need to reboot the system.
@@ -534,6 +597,8 @@ pro api u.pro.security.status.reboot_required.v1
 ```
 
 ## u.pro.packages.summary.v1
+
+Introduced in Ubuntu Pro Client Version: `27.12~`
 
 Shows a summary of installed packages in the system, categorized by origin.
 
@@ -603,6 +668,8 @@ pro api u.pro.packages.summary.v1
 ```
 
 ## u.pro.packages.updates.v1
+
+Introduced in Ubuntu Pro Client Version: `27.12~`
 
 Shows available updates for packages in a system, categorized by where they
 can be obtained.
@@ -687,6 +754,8 @@ pro api u.pro.packages.updates.v1
 ```
 
 ## u.security.package_manifest.v1
+
+Introduced in Ubuntu Pro Client Version: `27.12~`
 
 Returns the status of installed packages (`apt` and `snap`), formatted as a
 manifest file (i.e. `package_name\tversion`).
