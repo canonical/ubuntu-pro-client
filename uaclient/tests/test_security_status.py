@@ -238,6 +238,19 @@ class TestSecurityStatus:
         ):
             assert expected_output == get_origin_for_package(package_mock)
 
+    def test_get_origin_for_package_without_candidate(self):
+        """Packages without candidates are unknown."""
+        package_mock = mock_package(
+            "example", mock_version("1.0", [MOCK_ORIGINS["now"]]), []
+        )
+        package_mock.candidate = None
+
+        with mock.patch(
+            M_PATH + "get_origin_information_to_service_map",
+            return_value=ORIGIN_TO_SERVICE_MOCK,
+        ):
+            assert "unknown" == get_origin_for_package(package_mock)
+
     @mock.patch("uaclient.security_status.get_esm_cache", return_value={})
     def test_filter_security_updates(self, _m_get_esm_cache):
         expected_return = defaultdict(

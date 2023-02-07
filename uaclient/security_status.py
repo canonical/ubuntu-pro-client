@@ -105,7 +105,7 @@ def get_origin_for_package(package: apt.package.Package) -> str:
     # candidate version. No candidate means we don't know anything about the
     # package. Otherwise we check for the origins of the candidate version.
     if len(available_origins) == 1:
-        if package.installed == package.candidate:
+        if package.candidate is None or package.installed == package.candidate:
             return "unknown"
         available_origins = package.candidate.origins
 
