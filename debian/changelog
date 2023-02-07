@@ -1,3 +1,29 @@
+ubuntu-advantage-tools (27.13.4~23.04.1) lunar; urgency=medium
+
+  * d/ubuntu-advantage-tools.postinst:
+    - remove stale esm-apps unauthenticated caches (LP: #2004193)
+  * apt-hook:
+    - Change esm-apps advertisement message on apt upgrade to
+      make it clearer that the service is providing more upgrades
+      and not restricting user to only get updates if esm-apps
+      is enabled
+  * contract:
+    - make code aware that the effective date is not a required field
+      in the machine-token.json file (LP: #2006351)
+  * esm_cache
+    - do not fail if we cannot extract information from
+      /etc/os-release file
+  * security-status:
+    -  consider packages without a candidate as 'unknown' (LP: #2006049)
+  * status:
+    - treat null effective contract dates as unknown/expired
+      (LP: #2004650)
+  * timer:
+    - recycle invalid jobs-status.json file if we detect it is
+      corrupted (LP: #2006261)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 07 Feb 2023 16:13:33 -0300
+
 ubuntu-advantage-tools (27.13.3~23.04.1) lunar; urgency=medium
 
   * d/ubuntu-advantage-tools.preinst: (LP: #2004279)
