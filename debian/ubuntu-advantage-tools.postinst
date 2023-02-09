@@ -393,7 +393,7 @@ case "$1" in
         fi
       fi
 
-      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13.3~"; then
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13.5~"; then
           # esm-apps unauthenticated ESM should not be in any release
           esm_apps_cleanup
       fi
