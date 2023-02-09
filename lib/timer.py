@@ -20,7 +20,7 @@ from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
-UPDATE_CONTRACT_INFO_INTERVAL = 14400  # 4 hours
+UPDATE_CONTRACT_INFO_INTERVAL = 86400  # 24 hours
 
 
 class TimedJob:

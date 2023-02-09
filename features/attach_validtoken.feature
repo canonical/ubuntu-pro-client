@@ -398,12 +398,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
        And I append the following on uaclient config:
        """
-         update_contract_info_timer: 0
        features:
          machine_token_overlay: "/tmp/machine-token-overlay.json"
        """
+       And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-       When I run `pro status` with sudo
+       And I run `pro status` with sudo
        Then stdout matches regexp:
        """
        A change has been detected in your contract.

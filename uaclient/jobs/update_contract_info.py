@@ -1,12 +1,11 @@
 import logging
 
-from uaclient import contract, event_logger, messages, util
+from uaclient import contract, messages, util
 from uaclient.config import UAConfig
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 
 LOG = logging.getLogger(__name__)
-event = event_logger.get_event_logger()
 
 
 def update_contract_info(cfg: UAConfig) -> bool:
@@ -28,6 +27,5 @@ def update_contract_info(cfg: UAConfig) -> bool:
                     reason=str(e)
                 )
                 LOG.warning(err_msg)
-                event.warning(err_msg)
             return False
     return True
