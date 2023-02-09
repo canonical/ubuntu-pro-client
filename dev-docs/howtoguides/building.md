@@ -30,7 +30,7 @@ bash ./tools/setup_sbuild.sh
 debuild -S
 sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
 # emulating different architectures in sbuild-launchpad-chroot
-sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "--series=focal
+sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "--series=focal"
 ```
 
 > **Note**
