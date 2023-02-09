@@ -12,13 +12,13 @@ ubuntu-advantage-tools (27.13.4~23.04.1) lunar; urgency=medium
     - Change esm-apps advertisement message on apt upgrade to
       make it clearer that the service is providing more upgrades
       and not restricting user to only get updates if esm-apps
-      is enabled
+      is enabled (LP: #2006510)
   * contract:
     - make code aware that the effective date is not a required field
       in the machine-token.json file (LP: #2006351)
   * esm_cache
     - do not fail if we cannot extract information from
-      /etc/os-release file
+      /etc/os-release file LP: #2006508)
   * security-status:
     -  consider packages without a candidate as 'unknown' (LP: #2006049)
   * status:
