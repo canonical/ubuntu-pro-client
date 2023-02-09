@@ -74,9 +74,11 @@ echo -e "###########################################\n"
 # ----------------------------------------------------------------
 if [ $install_from == 'staging' ]; then
   lxc exec $name -- sudo add-apt-repository ppa:ua-client/staging -y > /dev/null
+  lxc exec $name -- apt-get update > /dev/null
   lxc exec $name -- apt-get install ubuntu-advantage-tools -y > /dev/null
 elif [ $install_from == 'proposed' ]; then
   lxc exec $name -- sh -c "echo \"deb http://archive.ubuntu.com/ubuntu $series-proposed main\" | tee /etc/apt/sources.list.d/proposed.list"
+  lxc exec $name -- apt-get update > /dev/null
   lxc exec $name -- apt-get install ubuntu-advantage-tools -y > /dev/null
 else
   lxc file push $install_from $name/new-ua.deb
