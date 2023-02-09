@@ -154,36 +154,38 @@ Feature: APT Messages
           | release |
           | xenial  |
 
+    @series.bionic
     @series.focal
+    @series.jammy
     @uses.config.machine_type.lxd.container
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `apt-get -y upgrade` with sudo
+        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
-        When I run `apt-get install hello` with sudo
+        When I run `apt-get install <package> -y` with sudo
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
-        Then I will see the following on stdout:
+        Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
         Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
-          hello
+          <package>
         Learn more about Ubuntu Pro at https://ubuntu.com/pro
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I run `apt-get upgrade` with sudo
-        Then I will see the following on stdout:
+        Then stdout matches regexp:
         """
         Reading package lists...
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I attach `contract_token` with sudo
         When I run `apt upgrade --dry-run` with sudo
@@ -194,7 +196,7 @@ Feature: APT Messages
         Reading state information...
         Calculating upgrade...
         The following packages will be upgraded:
-          hello
+          <package>
         """
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
@@ -206,11 +208,13 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+        0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded\.
         """
         Examples: ubuntu release
-          | release |
-          | focal   |
+          | release | package |
+          | bionic  | ansible |
+          | focal   | hello   |
+          | jammy   | hello   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
