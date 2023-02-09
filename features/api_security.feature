@@ -32,7 +32,7 @@ Feature: API security/security status tests
         And I run `apt install jq bzip2 -y` with sudo
         # Install the oscap version 1.3.7 which solved the epoch error message issue
         And I run `apt-get install lcov swig xsltproc rpm-common lua5.3 libyaml-dev libapt-pkg-dev libdbus-1-dev libdbus-glib-1-dev libcurl4-openssl-dev libgcrypt-dev libselinux1-dev libgconf2-dev libacl1-dev libblkid-dev libcap-dev libxml2-dev libxslt1-dev libxml-parser-perl libxml-xpath-perl libperl-dev librpm-dev librtmp-dev libxmlsec1-dev libxmlsec1-openssl cmake make build-essential -y` with sudo
-        And I run `apt-get remove rpm -y` with sudo
+        And I run `apt-get remove *rpm* -y` with sudo
         And I run `wget https://github.com/OpenSCAP/openscap/releases/download/1.3.7/openscap-1.3.7.tar.gz` as non-root
         And I run `tar xzf openscap-1.3.7.tar.gz` as non-root
         And I run shell command `cd openscap-1.3.7/ && mkdir build && cd build/` as non-root
