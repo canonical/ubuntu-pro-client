@@ -127,9 +127,9 @@ def when_i_verify_that_running_cmd_with_spec_exits_with_codes(
 
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
-    if user_spec == "with sudo":
+    if user_spec.lstrip() == "with sudo":
         prefix = ["sudo"]
-    elif user_spec != "as non-root":
+    elif user_spec.lstrip() != "as non-root":
         raise Exception(
             "The two acceptable values for user_spec are: 'with sudo',"
             " 'as non-root'"
