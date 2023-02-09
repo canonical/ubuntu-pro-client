@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (27.13.5~23.04.1) lunar; urgency=medium
+
+  * d/postinst:
+    - fix version for cleaning the esm-apps stale unauthenticated files
+      (LP: #2006765)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 09 Feb 2023 14:20:47 -0300
+
 ubuntu-advantage-tools (27.13.4~23.04.1) lunar; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
