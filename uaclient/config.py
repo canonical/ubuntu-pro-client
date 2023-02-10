@@ -566,10 +566,11 @@ class UAConfig:
             ):
                 services_with_proxies.append("snap")
 
-        from uaclient.entitlements import livepatch
+        from uaclient import livepatch
         from uaclient.entitlements.entitlement_status import ApplicationStatus
+        from uaclient.entitlements.livepatch import LivepatchEntitlement
 
-        livepatch_ent = livepatch.LivepatchEntitlement()
+        livepatch_ent = LivepatchEntitlement()
         livepatch_status, _ = livepatch_ent.application_status()
 
         if livepatch_status == ApplicationStatus.ENABLED:

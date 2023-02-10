@@ -10,7 +10,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
 
 import apt  # type: ignore
 
-from uaclient import messages
+from uaclient import livepatch, messages
 from uaclient.apt import get_esm_cache
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
@@ -18,7 +18,6 @@ from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
 )
-from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.status import status
 from uaclient.system import (
@@ -209,7 +208,9 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
 # Yeah Any is bad, but so is python<3.8 without TypedDict
 def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
     try:
-        out, _err = subp([LIVEPATCH_CMD, "status", "--format", "json"])
+        out, _err = subp(
+            [livepatch.LIVEPATCH_CMD, "status", "--format", "json"]
+        )
     except ProcessExecutionError:
         return []
 
@@ -275,7 +276,7 @@ def get_reboot_status():
 
     try:
         livepatch_status, _ = subp(
-            [LIVEPATCH_CMD, "status", "--format", "json"]
+            [livepatch.LIVEPATCH_CMD, "status", "--format", "json"]
         )
     except ProcessExecutionError:
         # If we can't query the Livepatch status, then return a
