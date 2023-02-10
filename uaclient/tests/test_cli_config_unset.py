@@ -24,7 +24,6 @@ Flags:
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 
-@mock.patch("uaclient.cli.os.getuid", return_value=0)
 @mock.patch("uaclient.cli.setup_logging")
 @mock.patch("uaclient.cli.contract.get_available_resources")
 class TestMainConfigUnSet:
@@ -53,7 +52,6 @@ class TestMainConfigUnSet:
         self,
         _m_resources,
         _logging,
-        _getuid,
         kv_pair,
         err_msg,
         capsys,
@@ -75,11 +73,12 @@ class TestMainConfigUnSet:
 
 
 @mock.patch("uaclient.config.UAConfig.write_cfg")
-@mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestActionConfigUnSet:
-    def test_set_error_on_non_root_user(self, getuid, _write_cfg, FakeConfig):
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    def test_set_error_on_non_root_user(
+        self, we_are_currently_root, _write_cfg, FakeConfig
+    ):
         """Root is required to run pro config unset."""
-        getuid.return_value = 1
         args = mock.MagicMock(key="https_proxy")
         cfg = FakeConfig()
         with pytest.raises(NonRootUserError):
@@ -102,7 +101,6 @@ class TestActionConfigUnSet:
         unconfigure_snap_proxy,
         livepatch_status,
         unconfigure_livepatch_proxy,
-        _getuid,
         _write_cfg,
         key,
         livepatch_enabled,

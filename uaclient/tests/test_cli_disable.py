@@ -51,10 +51,9 @@ Flags:
 )
 
 
-@mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_disable_help(self, _m_resources, _getuid, capsys, FakeConfig):
+    def test_disable_help(self, _m_resources, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
                 with mock.patch(
@@ -79,7 +78,6 @@ class TestDisable:
         m_status,
         m_valid_services,
         m_entitlement_factory,
-        _m_getuid,
         disable_return,
         return_code,
         assume_yes,
@@ -190,7 +188,6 @@ class TestDisable:
         m_status,
         m_valid_services,
         m_entitlement_factory,
-        _m_getuid,
         assume_yes,
         tmpdir,
         event,
@@ -314,28 +311,29 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
+        "root,expected_error_template",
         [
-            (0, messages.INVALID_SERVICE_OP_FAILURE),
-            (1000, messages.NONROOT_USER),
+            (True, messages.INVALID_SERVICE_OP_FAILURE),
+            (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
-        m_getuid,
-        uid,
+        m_we_are_currently_root,
+        root,
         expected_error_template,
         FakeConfig,
         event,
         all_service_msg,
     ):
         """Check invalid service name results in custom error message."""
-        m_getuid.return_value = uid
+        m_we_are_currently_root.return_value = root
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
 
-        if not uid:
+        if root:
             expected_error = expected_error_template.format(
                 operation="disable",
                 invalid_service="bogus",
@@ -381,13 +379,11 @@ class TestDisable:
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
     def test_invalid_service_names(
         self,
-        m_getuid,
         service,
         FakeConfig,
         event,
         all_service_msg,
     ):
-        m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         cfg = FakeConfig.for_attached_machine()
@@ -433,22 +429,28 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
+        "root,expected_error_template",
         [
-            (0, messages.VALID_SERVICE_FAILURE_UNATTACHED),
-            (1000, messages.NONROOT_USER),
+            (True, messages.VALID_SERVICE_FAILURE_UNATTACHED),
+            (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.util.we_are_currently_root")
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template, FakeConfig, event
+        self,
+        m_we_are_currently_root,
+        root,
+        expected_error_template,
+        FakeConfig,
+        event,
     ):
         """Check that root user gets unattached message."""
-        m_getuid.return_value = uid
+        m_we_are_currently_root.return_value = root
 
         cfg = FakeConfig()
         args = mock.MagicMock()
         args.command = "disable"
-        if not uid:
+        if root:
             expected_error = expected_error_template.format(
                 valid_service="esm-infra"
             )
@@ -494,7 +496,6 @@ class TestDisable:
     def test_lock_file_exists(
         self,
         m_subp,
-        m_getuid,
         FakeConfig,
         event,
     ):
@@ -540,9 +541,7 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    def test_format_json_fails_when_assume_yes_flag_not_used(
-        self, _m_getuid, event
-    ):
+    def test_format_json_fails_when_assume_yes_flag_not_used(self, event):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
         args_mock.format = "json"

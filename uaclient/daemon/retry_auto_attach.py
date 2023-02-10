@@ -80,11 +80,9 @@ def cleanup(cfg: UAConfig):
     state_files.retry_auto_attach_options_file.delete()
     system.ensure_file_absent(AUTO_ATTACH_STATUS_MOTD_FILE)
     notices.remove(
-        cfg.root_mode,
         notices.Notice.AUTO_ATTACH_RETRY_FULL_NOTICE,
     )
     notices.remove(
-        cfg.root_mode,
         notices.Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE,
     )
 
@@ -137,7 +135,6 @@ def retry_auto_attach(cfg: UAConfig) -> None:
                 lock_holder="pro.daemon.retry_auto_attach.notice_updates",
             ):
                 notices.add(
-                    cfg.root_mode,
                     notices.Notice.AUTO_ATTACH_RETRY_FULL_NOTICE,
                     num_attempts=offset + index + 1,
                     reason=msg_reason,
@@ -194,7 +191,6 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n\n"
         )
         notices.add(
-            cfg.root_mode,
             notices.Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE,
             num_attempts=len(RETRY_INTERVALS) + 1,
             reason=msg_reason,

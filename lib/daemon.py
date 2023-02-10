@@ -15,7 +15,7 @@ LOG = logging.getLogger("pro")
 
 
 def main() -> int:
-    cfg = UAConfig(root_mode=True)
+    cfg = UAConfig()
     setup_logging(
         logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG
     )

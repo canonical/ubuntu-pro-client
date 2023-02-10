@@ -222,7 +222,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
                 logging.warning("Failed to load file: %s\n%s", f, str(e))
                 continue
             content = util.redact_sensitive_logs(content)
-            if os.getuid() == 0:
+            if util.we_are_currently_root():
                 # if root, overwrite the original with redacted content
                 system.write_file(f, content)
             system.write_file(

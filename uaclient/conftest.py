@@ -48,6 +48,19 @@ def _warn_about_new_version():
         yield original
 
 
+@pytest.yield_fixture(scope="session", autouse=True)
+def util_we_are_currently_root():
+    """
+    A fixture that mocks util.we_are_currently_root for all tests.
+    Default to true as most tests need it to be true.
+    """
+    from uaclient.util import we_are_currently_root
+
+    original = we_are_currently_root
+    with mock.patch("uaclient.util.we_are_currently_root", return_value=True):
+        yield original
+
+
 @pytest.fixture
 def caplog_text(request):
     """
@@ -120,11 +133,10 @@ def FakeConfig(tmpdir):
             self,
             cfg_overrides={},
             features_override=None,
-            root_mode: bool = True,
         ) -> None:
             if not cfg_overrides.get("data_dir"):
                 cfg_overrides.update({"data_dir": tmpdir.strpath})
-            super().__init__(cfg_overrides, root_mode=root_mode)
+            super().__init__(cfg_overrides)
 
         @classmethod
         def for_attached_machine(
@@ -133,7 +145,6 @@ def FakeConfig(tmpdir):
             machine_token: Dict[str, Any] = None,
             status_cache: Dict[str, Any] = None,
             effective_to: datetime.datetime = None,
-            root_mode: bool = True,
         ):
             if not machine_token:
                 machine_token = {
@@ -201,7 +212,7 @@ def FakeConfig(tmpdir):
             if not status_cache:
                 status_cache = {"attached": True}
 
-            config = cls(root_mode=root_mode)
+            config = cls()
             config.machine_token_file._machine_token = machine_token
             config.write_cache("status-cache", status_cache)
             return config

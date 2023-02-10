@@ -28,12 +28,9 @@ Collect logs and relevant system information into a tarball.
 )
 
 
-@mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionCollectLogs:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_help(
-        self, _m_resources, _getuid, capsys, FakeConfig
-    ):
+    def test_collect_logs_help(self, _m_resources, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
@@ -57,7 +54,7 @@ class TestActionCollectLogs:
     @mock.patch("builtins.open")
     @mock.patch(M_PATH + "util.redact_sensitive_logs", return_value="test")
     # let's pretend all files exist
-    @mock.patch(M_PATH + "os.path.isfile", return_value=True)
+    @mock.patch("os.path.isfile", return_value=True)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.system.subp", return_value=(None, None))
@@ -71,7 +68,6 @@ class TestActionCollectLogs:
         _fopen,
         _tarfile,
         _glob,
-        _getuid,
         FakeConfig,
     ):
         cfg = FakeConfig()

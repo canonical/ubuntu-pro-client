@@ -112,7 +112,6 @@ class UAConfig:
         self,
         cfg: Optional[Dict[str, Any]] = None,
         series: Optional[str] = None,
-        root_mode: bool = False,
     ) -> None:
         """"""
         if cfg:
@@ -124,7 +123,6 @@ class UAConfig:
             self.cfg, self.invalid_keys = parse_config(self.cfg_path)
 
         self.series = series
-        self.root_mode = root_mode
         self._machine_token_file = (
             None
         )  # type: Optional[files.MachineTokenFile]
@@ -134,7 +132,6 @@ class UAConfig:
         if not self._machine_token_file:
             self._machine_token_file = files.MachineTokenFile(
                 self.data_dir,
-                self.root_mode,
                 self.features.get("machine_token_overlay"),
             )
         return self._machine_token_file
@@ -342,7 +339,7 @@ class UAConfig:
             system.subp(["ps", lock_pid])
             return (int(lock_pid), lock_holder)
         except exceptions.ProcessExecutionError:
-            if os.getuid() != 0:
+            if not util.we_are_currently_root():
                 logging.debug(
                     "Found stale lock file previously held by %s:%s",
                     lock_pid,
@@ -445,7 +442,7 @@ class UAConfig:
         if key.startswith("machine-access"):
             self._machine_token_file = None
         elif key == "lock":
-            notices.remove(self.root_mode, Notice.OPERATION_IN_PROGRESS)
+            notices.remove(Notice.OPERATION_IN_PROGRESS)
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
@@ -484,7 +481,6 @@ class UAConfig:
         elif key == "lock":
             if ":" in content:
                 notices.add(
-                    self.root_mode,
                     Notice.OPERATION_IN_PROGRESS,
                     operation=content.split(":")[1],
                 )

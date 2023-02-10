@@ -108,7 +108,7 @@ class TestNotices:
         notice = NoticesManager()
         assert [] == notice.list()
         for notice_ in notices:
-            notice.add(True, *notice_)
+            notice.add(*notice_)
         if notices:
             assert expected == notice.list()
         else:
@@ -127,13 +127,15 @@ class TestNotices:
             ),
         ),
     )
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_add_notice_fails_as_nonroot(
         self,
+        m_we_are_currently_root,
         _notices,
     ):
         assert [] == notices.list()
         for notice_ in _notices:
-            notices.add(False, *notice_)
+            notices.add(*notice_)
         assert [] == notices.list()
 
     @pytest.mark.parametrize(
@@ -175,9 +177,9 @@ class TestNotices:
     ):
 
         for notice_ in notices_:
-            notices.add(True, *notice_)
+            notices.add(*notice_)
         for label in removes:
-            notices.remove(True, label)
+            notices.remove(label)
         assert expected == notices.list()
 
 
@@ -209,9 +211,8 @@ class TestEntitlements:
         }
         assert expected == cfg.machine_token_file.entitlements
 
-    @mock.patch("os.getuid", return_value=0)
     def test_entitlements_uses_resource_token_from_machine_token(
-        self, tmpdir, FakeConfig, all_resources_available
+        self, FakeConfig, all_resources_available
     ):
         """Include entitlement-specific resourceTokens from machine_token"""
         cfg = FakeConfig()
@@ -1367,10 +1368,7 @@ class TestMachineTokenOverlay:
         assert expected == cfg.machine_token
 
     @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("os.getuid", return_value=0)
-    def test_machine_token_without_overlay(
-        self, _m_getuid, m_token_read, FakeConfig
-    ):
+    def test_machine_token_without_overlay(self, m_token_read, FakeConfig):
         user_cfg = {}
         m_token_read.return_value = self.machine_token_dict
         cfg = FakeConfig(cfg_overrides=user_cfg)

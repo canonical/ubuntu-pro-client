@@ -1363,7 +1363,6 @@ A fix is available in Ubuntu standard updates.\n"""
     )
     @mock.patch("uaclient.entitlements.base.UAEntitlement.user_facing_status")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
@@ -1372,7 +1371,6 @@ A fix is available in Ubuntu standard updates.\n"""
         prompt_choices,
         get_cloud_type,
         m_run_apt_cmd,
-        _m_os_getuid,
         _m_should_reboot,
         m_user_facing_status,
         affected_pkg_status,
@@ -1476,7 +1474,6 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.security._check_subscription_for_required_service")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
@@ -1485,7 +1482,6 @@ A fix is available in Ubuntu standard updates.\n"""
         m_prompt_choices,
         m_get_cloud_type,
         m_run_apt_cmd,
-        _m_os_getuid,
         _m_input,
         m_action_attach,
         m_check_subscription_for_service,
@@ -1640,14 +1636,12 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
     def test_messages_for_affected_packages_when_required_service_not_enabled(
         self,
         m_prompt_choices,
         m_get_cloud_type,
-        _m_os_getuid,
         _m_input,
         m_action_attach,
         m_should_reboot,
@@ -1737,14 +1731,12 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.cli.action_enable", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="e")
     def test_messages_for_affected_packages_when_service_can_be_enabled(
         self,
         m_prompt_choices,
         m_get_cloud_type,
-        _m_os_getuid,
         _m_run_apt,
         m_action_enable,
         m_check_subscription_expired,
@@ -1828,14 +1820,12 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
     def test_messages_for_affected_packages_when_service_kept_disabled(
         self,
         m_prompt_choices,
         m_get_cloud_type,
-        _m_os_getuid,
         m_check_subscription_expired,
         _m_should_reboot,
         _m_is_config_value_true,
@@ -1927,14 +1917,12 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("uaclient.cli.action_detach")
     @mock.patch("uaclient.security._check_subscription_for_required_service")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="r")
     def test_messages_for_affected_packages_when_subscription_expired(
         self,
         m_prompt_choices,
         m_get_cloud_type,
-        _m_os_getuid,
         m_check_subscription_for_service,
         _m_cli_detach,
         _m_input,
@@ -2004,14 +1992,12 @@ A fix is available in Ubuntu standard updates.\n"""
     )
     @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
     def test_messages_for_affected_packages_when_subscription_not_renewed(
         self,
         m_prompt_choices,
         m_get_cloud_type,
-        _m_os_getuid,
         _m_should_reboot,
         m_is_pocket_beta_service,
         affected_pkg_status,
@@ -2079,12 +2065,10 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     def test_messages_for_affected_packages_when_reboot_required(
         self,
         m_get_cloud_type,
-        _m_os_getuid,
         _m_run_apt_command,
         _m_should_reboot,
         m_add_notice,
@@ -2121,7 +2105,6 @@ A fix is available in Ubuntu standard updates.\n"""
 
         assert [
             mock.call(
-                True,
                 Notice.ENABLE_REBOOT_REQUIRED,
                 ENABLE_REBOOT_REQUIRED_TMPL.format(operation="fix operation"),
             )
@@ -2152,12 +2135,10 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     def test_messages_for_affected_packages_when_reboot_required_but_update_already_installed(  # noqa: E501
         self,
         m_get_cloud_type,
-        _m_os_getuid,
         _m_run_apt_command,
         _m_should_reboot,
         m_add_notice,
@@ -2188,14 +2169,14 @@ A fix is available in Ubuntu standard updates.\n"""
 
 
 class TestUpgradePackagesAndAttach:
-    @pytest.mark.parametrize("getuid_value", ((0), (1)))
-    @mock.patch("os.getuid")
+    @pytest.mark.parametrize("root", ((True), (False)))
+    @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.security.system.subp")
     def test_upgrade_packages_are_installed_without_need_for_ua(
-        self, m_subp, m_os_getuid, getuid_value, capsys
+        self, m_subp, m_we_are_currently_root, root, capsys
     ):
         m_subp.return_value = ("", "")
-        m_os_getuid.return_value = getuid_value
+        m_we_are_currently_root.return_value = root
 
         upgrade_packages_and_attach(
             cfg=None,
@@ -2205,7 +2186,7 @@ class TestUpgradePackagesAndAttach:
         )
 
         out, err = capsys.readouterr()
-        if getuid_value == 0:
+        if root:
             assert m_subp.call_count == 2
             assert "apt update" in out
             assert "apt install --only-upgrade -y t1 t2" in out

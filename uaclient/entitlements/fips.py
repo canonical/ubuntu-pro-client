@@ -201,12 +201,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 )
             if operation == "install":
                 notices.add(
-                    self.cfg.root_mode,
                     Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
                 )
             elif operation == "disable operation":
                 notices.add(
-                    self.cfg.root_mode,
                     Notice.FIPS_DISABLE_REBOOT_REQUIRED,
                 )
 
@@ -273,7 +271,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         if system.is_container() and not system.should_reboot():
             notices.remove(
-                self.cfg.root_mode,
                 Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
             )
             return super_status, super_msg
@@ -284,19 +281,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             # required information regarding the fips metapackage we install.
             if not system.should_reboot(set(self.packages)):
                 notices.remove(
-                    self.cfg.root_mode,
                     Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
                 )
 
             if system.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 notices.remove(
-                    self.cfg.root_mode,
                     Notice.FIPS_MANUAL_DISABLE_URL,
                 )
                 return super_status, super_msg
             else:
                 notices.add(
-                    self.cfg.root_mode,
                     Notice.FIPS_MANUAL_DISABLE_URL,
                 )
                 return (
@@ -341,13 +335,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
             notices.remove(
-                self.cfg.root_mode,
                 Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
             )
-            notices.remove(self.cfg.root_mode, Notice.FIPS_REBOOT_REQUIRED)
-            notices.remove(
-                self.cfg.root_mode, Notice.FIPS_DISABLE_REBOOT_REQUIRED
-            )
+            notices.remove(Notice.FIPS_REBOOT_REQUIRED)
+            notices.remove(Notice.FIPS_DISABLE_REBOOT_REQUIRED)
             return True
 
         return False
@@ -473,7 +464,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             )
         if super()._perform_enable(silent=silent):
             notices.remove(
-                self.cfg.root_mode,
                 Notice.FIPS_INSTALL_OUT_OF_DATE,
             )
             return True

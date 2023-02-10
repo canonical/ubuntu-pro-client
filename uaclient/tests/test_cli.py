@@ -146,10 +146,11 @@ def get_help(request, capsys, FakeConfig):
 class TestCLIParser:
     maxDiff = None
 
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.cli.contract")
     def test_help_descr_and_url_is_wrapped_at_eighty_chars(
-        self, m_contract, m_entitlements, get_help
+        self, m_contract, m_entitlements, m_we_are_currently_root, get_help
     ):
         """Help lines are wrapped at 80 chars"""
 
@@ -170,9 +171,10 @@ class TestCLIParser:
         out, _ = get_help()
         assert "\n".join(lines) in out
 
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.cli.contract")
     def test_help_sourced_dynamically_from_each_entitlement(
-        self, m_contract, get_help
+        self, m_contract, m_we_are_currently_root, get_help
     ):
         """Help output is sourced from entitlement name and description."""
         m_contract.get_available_resources.return_value = AVAILABLE_RESOURCES
@@ -381,7 +383,7 @@ class TestAssertLockFile:
         assert mock.sentinel.success == ret
         lock_msg = "Operation in progress: some operation"
         assert [
-            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+            mock.call(Notice.OPERATION_IN_PROGRESS, lock_msg)
         ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache.call_args_list
         assert [
@@ -391,6 +393,7 @@ class TestAssertLockFile:
 
 class TestAssertRoot:
     def test_assert_root_when_root(self):
+        # autouse mock for we_are_currently_root defaults it to True
         arg, kwarg = mock.sentinel.arg, mock.sentinel.kwarg
 
         @assert_root
@@ -400,8 +403,7 @@ class TestAssertRoot:
 
             return mock.sentinel.success
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=0):
-            ret = test_function(arg, kwarg=kwarg)
+        ret = test_function(arg, kwarg=kwarg)
 
         assert mock.sentinel.success == ret
 
@@ -410,22 +412,26 @@ class TestAssertRoot:
         def test_function():
             pass
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=1000):
+        with mock.patch(
+            "uaclient.cli.util.we_are_currently_root", return_value=False
+        ):
             with pytest.raises(NonRootUserError):
                 test_function()
 
 
 # Test multiple uids, to be sure that the root checking is absent
-@pytest.mark.parametrize("uid", [0, 1000])
+@pytest.mark.parametrize("root", [True, False])
 class TestAssertAttached:
-    def test_assert_attached_when_attached(self, capsys, uid, FakeConfig):
+    def test_assert_attached_when_attached(self, capsys, root, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
 
         cfg = FakeConfig.for_attached_machine()
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+        with mock.patch(
+            "uaclient.cli.util.we_are_currently_root", return_value=root
+        ):
             ret = test_function(mock.Mock(), cfg)
 
         assert mock.sentinel.success == ret
@@ -433,39 +439,45 @@ class TestAssertAttached:
         out, _err = capsys.readouterr()
         assert "" == out.strip()
 
-    def test_assert_attached_when_unattached(self, uid, FakeConfig):
+    def test_assert_attached_when_unattached(self, root, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             pass
 
         cfg = FakeConfig()
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+        with mock.patch(
+            "uaclient.cli.util.we_are_currently_root", return_value=root
+        ):
             with pytest.raises(UnattachedError):
                 test_function(mock.Mock(), cfg)
 
 
-@pytest.mark.parametrize("uid", [0, 1000])
+@pytest.mark.parametrize("root", [True, False])
 class TestAssertNotAttached:
-    def test_when_attached(self, uid, FakeConfig):
+    def test_when_attached(self, root, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             pass
 
         cfg = FakeConfig.for_attached_machine()
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+        with mock.patch(
+            "uaclient.cli.util.we_are_currently_root", return_value=root
+        ):
             with pytest.raises(AlreadyAttachedError):
                 test_function(mock.Mock(), cfg)
 
-    def test_when_not_attached(self, capsys, uid, FakeConfig):
+    def test_when_not_attached(self, capsys, root, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             return mock.sentinel.success
 
         cfg = FakeConfig()
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+        with mock.patch(
+            "uaclient.cli.util.we_are_currently_root", return_value=root
+        ):
             ret = test_function(mock.Mock(), cfg)
 
         assert mock.sentinel.success == ret
@@ -730,8 +742,9 @@ class TestMain:
 
 class TestSetupLogging:
     @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
+    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
     def test_console_log_configured_if_not_present(
-        self, level, capsys, logging_sandbox
+        self, m_we_are_currently_root, level, capsys, logging_sandbox
     ):
         setup_logging(level, logging.INFO)
         logging.log(level, "after setup")
@@ -741,8 +754,9 @@ class TestSetupLogging:
         assert "after setup" in err
         assert "not present" not in err
 
+    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
     def test_console_log_configured_if_already_present(
-        self, capsys, logging_sandbox
+        self, m_we_are_currently_root, capsys, logging_sandbox
     ):
         logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
@@ -756,9 +770,9 @@ class TestSetupLogging:
         assert "ERROR: before setup" not in err
         assert "ERROR: after setup" in err
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=100)
+    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
     def test_file_log_not_configured_if_not_root(
-        self, m_getuid, tmpdir, logging_sandbox
+        self, m_we_are_currently_root, tmpdir, logging_sandbox
     ):
         log_file = tmpdir.join("log_file")
 
@@ -768,10 +782,13 @@ class TestSetupLogging:
         assert not log_file.exists()
 
     @pytest.mark.parametrize("log_filename", (None, "file.log"))
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     @mock.patch("uaclient.cli.config")
     def test_file_log_configured_if_root(
-        self, m_config, _m_getuid, log_filename, logging_sandbox, tmpdir
+        self,
+        m_config,
+        log_filename,
+        logging_sandbox,
+        tmpdir,
     ):
         if log_filename is None:
             log_filename = "default.log"
@@ -785,20 +802,18 @@ class TestSetupLogging:
 
         assert "after setup" in log_file.read()
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
-    @mock.patch("uaclient.cli.config.UAConfig")
     def test_file_log_configured_if_already_present(
-        self, m_config, _m_getuid, logging_sandbox, tmpdir, FakeConfig
+        self,
+        logging_sandbox,
+        tmpdir,
     ):
-        some_file = log_file = tmpdir.join("default.log")
+        some_file = tmpdir.join("default.log")
         logging.getLogger().addHandler(logging.FileHandler(some_file.strpath))
 
         log_file = tmpdir.join("file.log")
-        cfg = FakeConfig({"log_file": log_file.strpath})
-        m_config.return_value = cfg
 
         logging.error("before setup")
-        setup_logging(logging.INFO, logging.INFO)
+        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
         logging.error("after setup")
 
         content = log_file.read()
@@ -806,9 +821,12 @@ class TestSetupLogging:
         assert "[ERROR]: after setup" in content
 
     @mock.patch("uaclient.cli.config.UAConfig")
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_custom_logger_configuration(
-        self, m_getuid, m_config, logging_sandbox, tmpdir, FakeConfig
+        self,
+        m_config,
+        logging_sandbox,
+        tmpdir,
+        FakeConfig,
     ):
         log_file = tmpdir.join("file.log")
         cfg = FakeConfig({"log_file": log_file.strpath})
@@ -824,9 +842,12 @@ class TestSetupLogging:
         assert len(root_logger.handlers) == n_root_handlers
 
     @mock.patch("uaclient.cli.config.UAConfig")
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_no_duplicate_ua_handlers(
-        self, m_getuid, m_config, logging_sandbox, tmpdir, FakeConfig
+        self,
+        m_config,
+        logging_sandbox,
+        tmpdir,
+        FakeConfig,
     ):
         log_file = tmpdir.join("file.log")
         cfg = FakeConfig({"log_file": log_file.strpath})
@@ -868,10 +889,13 @@ class TestSetupLogging:
         assert len(file_handlers) == 1
 
     @pytest.mark.parametrize("pre_existing", (True, False))
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     @mock.patch("uaclient.cli.config")
     def test_file_log_is_world_readable(
-        self, m_config, _m_getuid, logging_sandbox, tmpdir, pre_existing
+        self,
+        m_config,
+        logging_sandbox,
+        tmpdir,
+        pre_existing,
     ):
         log_file = tmpdir.join("root-only.log")
         log_path = log_file.strpath
