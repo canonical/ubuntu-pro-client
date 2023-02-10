@@ -178,11 +178,19 @@ class Field:
     """
 
     def __init__(
-        self, key: str, data_cls: Type[DataValue], required: bool = True
+        self,
+        key: str,
+        data_cls: Type[DataValue],
+        required: bool = True,
+        dict_key: Optional[str] = None,
     ):
         self.key = key
         self.data_cls = data_cls
         self.required = required
+        if dict_key is not None:
+            self.dict_key = dict_key
+        else:
+            self.dict_key = self.key
 
 
 T = TypeVar("T", bound="DataObject")
@@ -241,7 +249,7 @@ class DataObject(DataValue):
                 new_val = val
 
             if new_val is not None or keep_none:
-                d[field.key] = new_val
+                d[field.dict_key] = new_val
         return d
 
     def to_json(self, keep_null: bool = True) -> str:
@@ -256,12 +264,12 @@ class DataObject(DataValue):
         kwargs = {}
         for field in cls.fields:
             try:
-                val = d[field.key]
+                val = d[field.dict_key]
             except KeyError:
                 if field.required:
                     raise IncorrectFieldTypeError(
                         IncorrectTypeError(field.data_cls.__name__, "null"),
-                        field.key,
+                        field.dict_key,
                     )
                 else:
                     val = None
@@ -269,7 +277,7 @@ class DataObject(DataValue):
                 try:
                     val = field.data_cls.from_value(val)
                 except IncorrectTypeError as e:
-                    raise IncorrectFieldTypeError(e, field.key)
+                    raise IncorrectFieldTypeError(e, field.dict_key)
             kwargs[field.key] = val
         return cls(**kwargs)
 
