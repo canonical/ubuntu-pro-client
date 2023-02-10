@@ -3,7 +3,6 @@
 import argparse
 import json
 import logging
-import os
 import pathlib
 import re
 import sys
@@ -154,8 +153,7 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     @staticmethod
     def _get_service_descriptions() -> Tuple[List[str], List[str]]:
-        root_mode = os.getuid() == 0
-        cfg = config.UAConfig(root_mode=root_mode)
+        cfg = config.UAConfig()
 
         service_info_tmpl = " - {name}: {description}{url}"
         non_beta_services_desc = []
@@ -214,7 +212,7 @@ def assert_root(f):
 
     @wraps(f)
     def new_f(*args, **kwargs):
-        if os.getuid() != 0:
+        if not util.we_are_currently_root():
             raise exceptions.NonRootUserError()
         else:
             return f(*args, **kwargs)
@@ -1755,7 +1753,7 @@ def action_refresh(args, *, cfg: config.UAConfig):
 
     if args.target is None or args.target == "contract":
         _action_refresh_contract(args, cfg)
-        notices.remove(cfg.root_mode, Notice.CONTRACT_REFRESH_WARNING)
+        notices.remove(Notice.CONTRACT_REFRESH_WARNING)
 
     if args.target is None or args.target == "messages":
         _action_refresh_messages(args, cfg)
@@ -1848,7 +1846,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     logger.addHandler(console_handler)
 
     # Setup file logging
-    if os.getuid() == 0:
+    if util.we_are_currently_root():
         # Setup readable-by-root-only debug file logging if running as root
         log_file_path = pathlib.Path(log_file)
 
@@ -1954,8 +1952,7 @@ def main_error_handler(func):
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
-    is_root = os.getuid() == 0
-    cfg = config.UAConfig(root_mode=is_root)
+    cfg = config.UAConfig()
     parser = get_parser(cfg=cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:

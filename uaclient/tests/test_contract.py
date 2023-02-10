@@ -225,10 +225,8 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "enabled_services", (([]), (["esm-apps", "livepatch"]))
     )
-    @mock.patch("os.getuid", return_value=0)
     def test_report_machine_activity(
         self,
-        _m_getuid,
         get_machine_id,
         request_url,
         activity_id,

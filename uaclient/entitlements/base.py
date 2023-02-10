@@ -176,8 +176,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         @param config: Parsed configuration dictionary
         """
         if not cfg:
-            root_mode = os.getuid() == 0
-            cfg = config.UAConfig(root_mode=root_mode)
+            cfg = config.UAConfig()
         self.cfg = cfg
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta

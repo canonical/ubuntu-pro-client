@@ -161,8 +161,8 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
 
 def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
-    notices.remove(cfg.root_mode, Notice.AUTO_ATTACH_RETRY_FULL_NOTICE)
-    notices.remove(cfg.root_mode, Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE)
+    notices.remove(Notice.AUTO_ATTACH_RETRY_FULL_NOTICE)
+    notices.remove(Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]
@@ -370,7 +370,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
 
     response.update(_get_config_status(cfg))
 
-    if cfg.root_mode:
+    if util.we_are_currently_root():
         cfg.write_cache("status-cache", response)
 
     response = _handle_beta_resources(cfg, show_all, response)

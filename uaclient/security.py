@@ -1,7 +1,6 @@
 import copy
 import enum
 import json
-import os
 import socket
 import textwrap
 from collections import defaultdict
@@ -1087,7 +1086,6 @@ def prompt_for_affected_packages(
             )
             print(reboot_msg)
             notices.add(
-                cfg.root_mode,
                 Notice.ENABLE_REBOOT_REQUIRED,
                 operation="fix operation",
             )
@@ -1354,7 +1352,7 @@ def upgrade_packages_and_attach(
 
     # If we are running on --dry-run mode, we don't need to be root
     # to understand what will happen with the system
-    if os.getuid() != 0 and not dry_run:
+    if not util.we_are_currently_root() and not dry_run:
         print(messages.SECURITY_APT_NON_ROOT)
         return False
 

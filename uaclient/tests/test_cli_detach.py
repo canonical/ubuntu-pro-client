@@ -28,13 +28,13 @@ def entitlement_cls_mock_factory(can_disable, name=None):
 
 
 @mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
-@mock.patch("uaclient.cli.os.getuid")
 class TestActionDetach:
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
-        self, m_getuid, _m_prompt, FakeConfig, event, capsys
+        self, m_we_are_currently_root, _m_prompt, FakeConfig, event, capsys
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
-        m_getuid.return_value = 1
+        m_we_are_currently_root.return_value = False
         args = mock.MagicMock()
 
         cfg = FakeConfig.for_attached_machine()
@@ -67,11 +67,10 @@ class TestActionDetach:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_unattached_error_message(
-        self, m_getuid, _m_prompt, FakeConfig, capsys, event
+        self, _m_prompt, FakeConfig, capsys, event
     ):
         """Check that root user gets unattached message."""
 
-        m_getuid.return_value = 0
         cfg = FakeConfig()
         args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
@@ -107,14 +106,12 @@ class TestActionDetach:
     def test_lock_file_exists(
         self,
         m_subp,
-        m_getuid,
         m_prompt,
         FakeConfig,
         capsys,
         event,
     ):
         """Check when an operation holds a lock file, detach cannot run."""
-        m_getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
         cfg.write_cache("lock", "123:pro enable")
@@ -164,7 +161,6 @@ class TestActionDetach:
         m_disable_order,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_getuid,
         m_prompt,
         prompt_response,
         assume_yes,
@@ -179,7 +175,6 @@ class TestActionDetach:
         #               to the action
         #   expect_disable: whether or not the enabled entitlement is expected
         #                   to be disabled by the action
-        m_getuid.return_value = 0
 
         cfg = FakeConfig.for_attached_machine()
         fake_client = FakeContractClient(cfg)
@@ -241,12 +236,10 @@ class TestActionDetach:
         m_update_apt_and_motd_msgs,
         m_client,
         m_disable_order,
-        m_getuid,
         _m_prompt,
         FakeConfig,
         tmpdir,
     ):
-        m_getuid.return_value = 0
         m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
@@ -268,13 +261,11 @@ class TestActionDetach:
         m_update_apt_and_motd_msgs,
         m_client,
         m_disable_order,
-        m_getuid,
         _m_prompt,
         capsys,
         FakeConfig,
         tmpdir,
     ):
-        m_getuid.return_value = 0
         m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
@@ -298,12 +289,10 @@ class TestActionDetach:
         m_update_apt_and_motd_msgs,
         m_client,
         m_disable_order,
-        m_getuid,
         _m_prompt,
         FakeConfig,
         tmpdir,
     ):
-        m_getuid.return_value = 0
         m_disable_order.return_value = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
@@ -360,7 +349,6 @@ class TestActionDetach:
         m_ent_factory,
         m_update_apt_and_motd_msgs,
         m_client,
-        m_getuid,
         _m_prompt,
         capsys,
         classes,
@@ -371,7 +359,6 @@ class TestActionDetach:
         tmpdir,
         event,
     ):
-        m_getuid.return_value = 0
         m_ent_factory.side_effect = classes
         m_disable_order.return_value = disable_order
 

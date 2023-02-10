@@ -63,7 +63,7 @@ def _enable_services_by_name(
 
 
 def full_auto_attach(options: FullAutoAttachOptions) -> FullAutoAttachResult:
-    return _full_auto_attach(options, UAConfig(root_mode=True))
+    return _full_auto_attach(options, UAConfig())
 
 
 def _full_auto_attach(

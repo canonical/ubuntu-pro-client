@@ -566,10 +566,12 @@ class TestStatus:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=True)
 
+    @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
         m_get_available_resources,
+        m_we_are_currently_root,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -578,26 +580,32 @@ class TestStatus:
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
-        cfg = FakeConfig(root_mode=False)
+        m_we_are_currently_root.return_value = False
+        cfg = FakeConfig()
         nonroot_status = status.status(cfg=cfg)
 
-        cfg = FakeConfig(root_mode=True)
+        m_we_are_currently_root.return_value = True
+        cfg = FakeConfig()
         root_unattached_status = status.status(cfg=cfg)
 
         assert root_unattached_status == nonroot_status
 
+    @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_root_and_non_root_are_same_attached(
         self,
         m_get_available_resources,
+        m_we_are_currently_root,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_we_are_currently_root.return_value = True
         root_cfg = FakeConfig.for_attached_machine()
         root_status = status.status(cfg=root_cfg)
-        normal_cfg = FakeConfig.for_attached_machine(root_mode=False)
+        m_we_are_currently_root.return_value = False
+        normal_cfg = FakeConfig.for_attached_machine()
         normal_status = status.status(cfg=normal_cfg)
         assert normal_status == root_status
 
@@ -789,23 +797,26 @@ class TestStatus:
             assert 1 == m_livepatch_uf_status.call_count
 
         expected_calls = [
-            mock.call(True, Notice.AUTO_ATTACH_RETRY_FULL_NOTICE),
-            mock.call(True, Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE),
+            mock.call(Notice.AUTO_ATTACH_RETRY_FULL_NOTICE),
+            mock.call(Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE),
         ]
 
         assert expected_calls == mock_notice.remove.call_args_list
 
     @pytest.mark.usefixtures("all_resources_available")
+    @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_expires_handled_appropriately(
         self,
         _m_get_available_resources,
+        m_we_are_currently_root,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
         all_resources_available,
         FakeConfig,
     ):
+        m_we_are_currently_root.return_value = True
         token = {
             "availableResources": all_resources_available,
             "machineTokenInfo": {
@@ -838,10 +849,10 @@ class TestStatus:
 
         # Test that the read from the status cache work properly for non-root
         # users
+        m_we_are_currently_root.return_value = False
         cfg = FakeConfig.for_attached_machine(
             account_name="accountname",
             machine_token=token,
-            root_mode=False,
         )
         assert expected_dt == status.status(cfg=cfg)["expires"]
 

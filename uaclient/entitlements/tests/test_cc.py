@@ -61,12 +61,10 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
             ),
         ),
     )
-    # @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
     @mock.patch("uaclient.system.get_platform_info")
     def test_inapplicable_on_invalid_affordances(
         self,
         m_platform_info,
-        # m_getuid,
         arch,
         series,
         version,

@@ -103,7 +103,7 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
-    cfg = UAConfig(root_mode=True)
+    cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,

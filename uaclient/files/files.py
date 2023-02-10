@@ -63,11 +63,9 @@ class MachineTokenFile:
     def __init__(
         self,
         directory: str = defaults.DEFAULT_DATA_DIR,
-        root_mode: bool = True,
         machine_token_overlay_path: Optional[str] = None,
     ):
         file_name = defaults.MACHINE_TOKEN_FILE
-        self.is_root = root_mode
         self.private_file = UAFile(
             file_name, directory + defaults.PRIVATE_SUBDIR
         )
@@ -79,7 +77,7 @@ class MachineTokenFile:
 
     def write(self, private_content: dict):
         """Update the machine_token file for both pub/private files"""
-        if self.is_root:
+        if util.we_are_currently_root():
             private_content_str = json.dumps(
                 private_content, cls=util.DatetimeAwareJSONEncoder
             )
@@ -103,7 +101,7 @@ class MachineTokenFile:
 
     def delete(self):
         """Delete both pub and private files"""
-        if self.is_root:
+        if util.we_are_currently_root():
             self.public_file.delete()
             self.private_file.delete()
 
@@ -114,7 +112,7 @@ class MachineTokenFile:
             raise exceptions.NonRootUserError()
 
     def read(self) -> Optional[dict]:
-        if self.is_root:
+        if util.we_are_currently_root():
             file_handler = self.private_file
         else:
             file_handler = self.public_file
@@ -129,7 +127,7 @@ class MachineTokenFile:
 
     @property
     def is_present(self):
-        if self.is_root:
+        if util.we_are_currently_root():
             return self.public_file.is_present and self.private_file.is_present
         else:
             return self.public_file.is_present
