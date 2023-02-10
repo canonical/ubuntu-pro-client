@@ -417,7 +417,7 @@ class TestFIPSEntitlementEnable:
     @pytest.mark.parametrize(
         "fips_common_enable_return_value, expected_remove_notice_calls",
         [
-            (True, [mock.call(True, Notice.FIPS_INSTALL_OUT_OF_DATE)]),
+            (True, [mock.call(Notice.FIPS_INSTALL_OUT_OF_DATE)]),
             (False, []),
         ],
     )
@@ -448,11 +448,9 @@ class TestFIPSEntitlementEnable:
                 True,
                 [
                     mock.call(
-                        True,
                         Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
                     ),
                     mock.call(
-                        True,
                         Notice.FIPS_REBOOT_REQUIRED,
                     ),
                 ],
@@ -931,7 +929,7 @@ class TestFIPSEntitlementApplicationStatus:
     def test_non_root_does_not_fail(
         self, _m_should_reboot, super_application_status, FakeConfig
     ):
-        cfg = FakeConfig(root_mode=False)
+        cfg = FakeConfig()
         entitlement = FIPSUpdatesEntitlement(cfg)
         msg = "sure is some status here"
         with mock.patch(
@@ -971,21 +969,18 @@ class TestFIPSEntitlementApplicationStatus:
 
         msg = messages.NamedMessage("test-code", "sure is some status here")
         notice_ent_cls.add(
-            True,
             Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
             messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
         )
 
         if path_exists:
             notice_ent_cls.add(
-                True,
                 Notice.FIPS_REBOOT_REQUIRED,
                 messages.FIPS_REBOOT_REQUIRED_MSG,
             )
 
         if proc_content == "0":
             notice_ent_cls.add(
-                True,
                 Notice.FIPS_DISABLE_REBOOT_REQUIRED,
                 messages.FIPS_DISABLE_REBOOT_REQUIRED,
             )

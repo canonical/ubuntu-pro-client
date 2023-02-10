@@ -27,10 +27,9 @@ Flags:
 """
 
 
-@mock.patch("os.getuid", return_value=0)
 class TestActionRefresh:
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_refresh_help(self, _m_resources, _getuid, capsys, FakeConfig):
+    def test_refresh_help(self, _m_resources, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
                 with mock.patch(
@@ -41,9 +40,11 @@ class TestActionRefresh:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT in out
 
-    def test_non_root_users_are_rejected(self, getuid, FakeConfig):
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    def test_non_root_users_are_rejected(
+        self, we_are_currently_root, FakeConfig
+    ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
-        getuid.return_value = 1
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
@@ -57,7 +58,6 @@ class TestActionRefresh:
     def test_not_attached_errors(
         self,
         _m_write_cfg,
-        getuid,
         target,
         expect_unattached_error,
         FakeConfig,
@@ -75,7 +75,7 @@ class TestActionRefresh:
             action_refresh(mock.MagicMock(target=target), cfg=cfg)
 
     @mock.patch("uaclient.system.subp")
-    def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
+    def test_lock_file_exists(self, m_subp, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()
         cfg.write_cache("lock", "123:pro disable")
@@ -95,7 +95,6 @@ class TestActionRefresh:
         m_remove_notice,
         request_updated_contract,
         logging_error,
-        getuid,
         FakeConfig,
     ):
         """On failure in request_updates_contract emit an error."""
@@ -119,7 +118,6 @@ class TestActionRefresh:
         self,
         m_remove_notice,
         request_updated_contract,
-        getuid,
         capsys,
         FakeConfig,
     ):
@@ -133,12 +131,12 @@ class TestActionRefresh:
         assert messages.REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
         assert [
-            mock.call(True, Notice.CONTRACT_REFRESH_WARNING),
-            mock.call(True, Notice.OPERATION_IN_PROGRESS),
+            mock.call(Notice.CONTRACT_REFRESH_WARNING),
+            mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
 
     @mock.patch("uaclient.cli.update_motd_messages")
-    def test_refresh_messages_error(self, m_update_motd, getuid, FakeConfig):
+    def test_refresh_messages_error(self, m_update_motd, FakeConfig):
         """On failure in update_motd_messages emit an error."""
         m_update_motd.side_effect = Exception("test")
 
@@ -157,7 +155,6 @@ class TestActionRefresh:
         m_subp,
         logging_error,
         _m_path,
-        getuid,
         capsys,
         FakeConfig,
     ):
@@ -179,7 +176,6 @@ class TestActionRefresh:
         self,
         m_update_motd,
         m_refresh_motd,
-        getuid,
         capsys,
         FakeConfig,
     ):
@@ -200,7 +196,6 @@ class TestActionRefresh:
         self,
         _m_process_config,
         _m_logging_error,
-        getuid,
         FakeConfig,
     ):
         """On failure in process_config emit an error."""
@@ -216,7 +211,6 @@ class TestActionRefresh:
     def test_refresh_config_happy_path(
         self,
         m_process_config,
-        getuid,
         capsys,
         FakeConfig,
     ):
@@ -237,7 +231,6 @@ class TestActionRefresh:
         m_remove_notice,
         m_process_config,
         m_request_updated_contract,
-        getuid,
         capsys,
         FakeConfig,
     ):
@@ -253,6 +246,6 @@ class TestActionRefresh:
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_request_updated_contract.call_args_list
         assert [
-            mock.call(True, Notice.CONTRACT_REFRESH_WARNING),
-            mock.call(True, Notice.OPERATION_IN_PROGRESS),
+            mock.call(Notice.CONTRACT_REFRESH_WARNING),
+            mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list

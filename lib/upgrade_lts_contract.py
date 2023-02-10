@@ -55,7 +55,7 @@ current_codename_to_past_codename = {
 
 def process_contract_delta_after_apt_lock() -> None:
     logging.debug("Check whether to upgrade-lts-contract")
-    cfg = UAConfig(root_mode=True)
+    cfg = UAConfig()
     if not cfg.is_attached:
         logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
@@ -85,11 +85,10 @@ def process_contract_delta_after_apt_lock() -> None:
         sys.exit(1)
 
     past_entitlements = UAConfig(
-        series=past_release, root_mode=True
+        series=past_release,
     ).machine_token_file.entitlements
     new_entitlements = UAConfig(
         series=current_release,
-        root_mode=True,
     ).machine_token_file.entitlements
 
     retry_count = 0

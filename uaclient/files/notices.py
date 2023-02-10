@@ -109,7 +109,6 @@ class Notice(NoticeFileDetails, Enum):
 class NoticesManager:
     def add(
         self,
-        root_mode: bool,
         notice_details: Notice,
         description: str,
     ):
@@ -119,7 +118,7 @@ class NoticesManager:
         :param notice_details: Holds details concerning the notice file.
         :param description: The content to be written to the notice file.
         """
-        if not root_mode:
+        if not util.we_are_currently_root():
             with util.disable_log_to_console():
                 LOG.warning("Trying to add a notice as non-root user")
             return
@@ -137,12 +136,12 @@ class NoticesManager:
             description,
         )
 
-    def remove(self, root_mode: bool, notice_details: Notice):
+    def remove(self, notice_details: Notice):
         """Deletes a notice file.
 
         :param notice_details: Holds details concerning the notice file.
         """
-        if not root_mode:
+        if not util.we_are_currently_root():
             with util.disable_log_to_console():
                 LOG.warning("Trying to remove a notice as non-root user")
             return
@@ -200,15 +199,15 @@ def get_notice():
     return _notice_cls
 
 
-def add(root_mode: bool, notice_details: Notice, **kwargs) -> None:
+def add(notice_details: Notice, **kwargs) -> None:
     notice = get_notice()
     description = notice_details.message.format(**kwargs)
-    notice.add(root_mode, notice_details, description)
+    notice.add(notice_details, description)
 
 
-def remove(root_mode: bool, notice_details: Notice) -> None:
+def remove(notice_details: Notice) -> None:
     notice = get_notice()
-    notice.remove(root_mode, notice_details)
+    notice.remove(notice_details)
 
 
 def list() -> List[Tuple[str, str]]:

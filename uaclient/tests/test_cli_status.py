@@ -341,11 +341,9 @@ Flags:
     "uaclient.status.get_contract_information",
     return_value=RESPONSE_CONTRACT_INFO,
 )
-@mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
     def test_status_help(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,
@@ -392,7 +390,6 @@ class TestActionStatus:
     def test_attached(
         self,
         _m_format_expires,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -410,7 +407,7 @@ class TestActionStatus:
         cfg = FakeConfig.for_attached_machine()
         mock_notice = NoticesManager()
         for notice in notices:
-            mock_notice.add(True, notice[0], notice[1])
+            mock_notice.add(notice[0], notice[1])
         with mock.patch(
             "uaclient.config.UAConfig.features",
             new_callable=mock.PropertyMock,
@@ -451,7 +448,6 @@ class TestActionStatus:
     )
     def test_unattached(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -479,7 +475,6 @@ class TestActionStatus:
     )
     def test_simulated(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -507,7 +502,6 @@ class TestActionStatus:
         m_sleep,
         _m_subp,
         _m_get_version,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -525,7 +519,7 @@ class TestActionStatus:
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:
                 os.unlink(lock_file)
-                mock_notice.remove(True, Notice.OPERATION_IN_PROGRESS)
+                mock_notice.remove(Notice.OPERATION_IN_PROGRESS)
 
         m_sleep.side_effect = fake_sleep
 
@@ -560,7 +554,6 @@ class TestActionStatus:
     )
     def test_unattached_formats(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -667,7 +660,6 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_attached_formats(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -797,7 +789,6 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_simulated_formats(
         self,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -945,7 +936,6 @@ class TestActionStatus:
 
     def test_error_on_connectivity_errors(
         self,
-        _m_getuid,
         _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
@@ -974,7 +964,6 @@ class TestActionStatus:
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_format_expires,
-        _m_getuid,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -1035,7 +1024,6 @@ class TestActionStatus:
     )
     def test_errors_are_raised_appropriately(
         self,
-        _m_getuid,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -1086,7 +1074,6 @@ class TestActionStatus:
     )
     def test_errors_for_token_dates(
         self,
-        _m_getuid,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,

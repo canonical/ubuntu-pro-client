@@ -167,7 +167,6 @@ class TestProcessRebootOperations:
 
         expected_calls = [
             mock.call(
-                True,
                 Notice.REBOOT_SCRIPT_FAILED,
                 messages.REBOOT_SCRIPT_FAILED,
             ),

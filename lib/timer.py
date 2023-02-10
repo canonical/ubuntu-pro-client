@@ -184,7 +184,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
-    cfg = UAConfig(root_mode=True)
+    cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
 
     # The ua-timer logger should log everything to its file

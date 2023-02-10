@@ -16,6 +16,11 @@ Refresh your terminal to make sure pyenv is working. Then you can run the unit a
 tox
 ```
 
+> **Note**
+> There are a number of `autouse` mocks in our unit tests. These are intended to prevent accidental side effects on the host system from running the unit tests, as well as prevent leaks of the system environment into the unit tests.
+> One such `autouse` mock tells the unit tests that they are run as root (unless the mock is overriden for a particular test).
+> These `autouse` mocks have helped, but may not be preventing all side effects or environment leakage.
+
 The client also includes built-in dep8 tests. These are run as follows:
 
 ```shell

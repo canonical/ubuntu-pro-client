@@ -31,21 +31,18 @@ Flags:
 )
 
 
-@mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid, FakeConfig):
+@mock.patch(M_PATH + "util.we_are_currently_root", return_value=False)
+def test_non_root_users_are_rejected(we_are_currently_root, FakeConfig):
     """Check that a UID != 0 will receive a message and exit non-zero"""
-    getuid.return_value = 1
 
     cfg = FakeConfig()
     with pytest.raises(exceptions.NonRootUserError):
         action_auto_attach(mock.MagicMock(), cfg=cfg)
 
 
-# For all of these tests we want to appear as root, so mock on the class
-@mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_auto_attach_help(self, _m_resources, _getuid, capsys, FakeConfig):
+    def test_auto_attach_help(self, _m_resources, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
@@ -64,7 +61,6 @@ class TestActionAutoAttach:
         self,
         m_full_auto_attach,
         m_post_cli_attach,
-        _m_getuid,
         FakeConfig,
     ):
         cfg = FakeConfig()
@@ -88,7 +84,6 @@ class TestActionAutoAttach:
         m_full_auto_attach,
         m_post_cli_attach,
         m_event,
-        _m_getuid,
         FakeConfig,
     ):
         m_full_auto_attach.side_effect = exceptions.UrlError(
@@ -127,7 +122,6 @@ class TestActionAutoAttach:
         m_full_auto_attach,
         m_post_cli_attach,
         m_logging,
-        _m_getuid,
         api_side_effect,
         expected_err,
         capsys,
