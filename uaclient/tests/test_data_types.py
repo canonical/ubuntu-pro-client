@@ -356,6 +356,13 @@ class ExampleDataObject(DataObject):
         self.dtlist_opt = dtlist_opt
 
 
+class ExampleObjectWithDictKey(DataObject):
+    fields = [Field("string", StringDataValue, dict_key="S-t/R*i_n#g")]
+
+    def __init__(self, *, string: str):
+        self.string = string
+
+
 example_data_object_dict_no_optionals = {
     "string": "string",
     "integer": 1,
@@ -682,6 +689,12 @@ class TestDataObject:
         with pytest.raises(type(error)) as e:
             ExampleDataObject.from_value(val)
         assert e.value.msg == error.msg
+
+    def test_dict_key(self):
+        d = {"S-t/R*i_n#g": "something"}
+        do = ExampleObjectWithDictKey.from_dict(d)
+        assert do.string == "something"
+        assert d == do.to_dict()
 
     @pytest.mark.parametrize(
         "d",
