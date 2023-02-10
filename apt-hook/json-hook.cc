@@ -239,7 +239,6 @@ struct ESMContext {
 ESMContext get_esm_context() {
     CloudID cloud_id = get_cloud_id();
     bool is_x = is_xenial();
-    bool non_azure_cloud = cloud_id != NONE && cloud_id != AZURE;
 
     ESMContext ret;
     ret.context = "";
