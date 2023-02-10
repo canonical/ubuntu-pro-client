@@ -9,6 +9,7 @@ from uaclient import (
     contract,
     entitlements,
     exceptions,
+    livepatch,
     messages,
 )
 from uaclient import status as ua_status
@@ -20,7 +21,6 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
-from uaclient.entitlements.livepatch import LIVEPATCH_CMD
 from uaclient.files.state_files import timer_jobs_state_file
 
 LOG = logging.getLogger("pro.actions")
@@ -180,7 +180,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
         "pro status --format json", "{}/ua-status.json".format(output_dir)
     )
     _write_command_output_to_file(
-        "{} status".format(LIVEPATCH_CMD),
+        "{} status".format(livepatch.LIVEPATCH_CMD),
         "{}/livepatch-status.txt".format(output_dir),
     )
     _write_command_output_to_file(
