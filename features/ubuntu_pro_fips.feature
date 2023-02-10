@@ -118,7 +118,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And stdout matches regexp:
         """
         NOTICES
-        Disabling FIPS requires system reboot to complete operation.
         FIPS support requires system reboot to complete configuration.
         """
         When I reboot the machine
@@ -336,7 +335,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And stdout matches regexp:
         """
         NOTICES
-        Disabling FIPS requires system reboot to complete operation.
         FIPS support requires system reboot to complete configuration.
         """
         When I reboot the machine
@@ -607,7 +605,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And stdout matches regexp:
         """
         NOTICES
-        Disabling FIPS requires system reboot to complete operation.
         FIPS support requires system reboot to complete configuration.
         """
         When I reboot the machine
