@@ -915,8 +915,8 @@ class TestProcessConfig:
         ],
     )
     @mock.patch("uaclient.util.validate_proxy")
-    @mock.patch("uaclient.entitlements.livepatch.get_config_option_value")
-    @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
+    @mock.patch("uaclient.livepatch.get_config_option_value")
+    @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
     @mock.patch(
         "uaclient.entitlements.livepatch.LivepatchEntitlement.application_status"  # noqa: E501
     )

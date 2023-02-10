@@ -999,7 +999,7 @@ def action_config_set(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    from uaclient.entitlements.livepatch import configure_livepatch_proxy
+    from uaclient.livepatch import configure_livepatch_proxy
     from uaclient.snap import configure_snap_proxy
 
     parser = get_parser(cfg=cfg)
@@ -1126,7 +1126,7 @@ def action_config_unset(args, *, cfg, **kwargs):
     @return: 0 on success, 1 otherwise
     """
     from uaclient.apt import AptProxyScope
-    from uaclient.entitlements.livepatch import unconfigure_livepatch_proxy
+    from uaclient.livepatch import unconfigure_livepatch_proxy
     from uaclient.snap import unconfigure_snap_proxy
 
     if args.key not in config.UA_CONFIGURABLE_KEYS:

@@ -93,7 +93,7 @@ class TestActionConfigUnSet:
             ("https_proxy", True),
         ),
     )
-    @mock.patch(M_LIVEPATCH + "unconfigure_livepatch_proxy")
+    @mock.patch("uaclient.livepatch.unconfigure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
     @mock.patch("uaclient.snap.unconfigure_snap_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
