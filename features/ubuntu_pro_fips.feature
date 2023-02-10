@@ -40,6 +40,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
+        When I run `systemctl daemon-reload` with sudo
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -257,6 +258,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
+        When I run `systemctl daemon-reload` with sudo
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -527,6 +529,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         1
         """
+        When I run `systemctl daemon-reload` with sudo
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
