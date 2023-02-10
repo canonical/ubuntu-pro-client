@@ -345,6 +345,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
             )
             notices.remove(self.cfg.root_mode, Notice.FIPS_REBOOT_REQUIRED)
+            notices.remove(
+                self.cfg.root_mode, Notice.FIPS_DISABLE_REBOOT_REQUIRED
+            )
             return True
 
         return False
