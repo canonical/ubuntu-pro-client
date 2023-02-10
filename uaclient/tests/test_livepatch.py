@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import mock
 import pytest
@@ -8,6 +9,9 @@ from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.files.state_files import LivepatchSupportCacheData
 from uaclient.livepatch import (
     LIVEPATCH_CMD,
+    LivepatchPatchFixStatus,
+    LivepatchPatchStatus,
+    LivepatchStatusStatus,
     UALivepatchClient,
     _on_supported_kernel_api,
     _on_supported_kernel_cache,
@@ -15,10 +19,180 @@ from uaclient.livepatch import (
     configure_livepatch_proxy,
     get_config_option_value,
     on_supported_kernel,
+    status,
     unconfigure_livepatch_proxy,
 )
 
 M_PATH = "uaclient.livepatch."
+
+
+class TestStatus:
+    @pytest.mark.parametrize(
+        [
+            "is_installed",
+            "subp_sideeffect",
+            "expected",
+        ],
+        [
+            (False, None, None),
+            (True, exceptions.ProcessExecutionError(""), None),
+            (True, [("", None)], None),
+            (True, [("{", None)], None),
+            (True, [("{}", None)], None),
+            (True, [('{"Status": false}', None)], None),
+            (True, [('{"Status": []}', None)], None),
+            (
+                True,
+                [('{"Status": [{}]}', None)],
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported=None
+                ),
+            ),
+            (
+                True,
+                [
+                    (
+                        json.dumps(
+                            {
+                                "Status": [
+                                    {
+                                        "Kernel": "installed-kernel-generic",
+                                        "Livepatch": {
+                                            "State": "nothing-to-apply",
+                                        },
+                                    }
+                                ],
+                            }
+                        ),
+                        None,
+                    )
+                ],
+                LivepatchStatusStatus(
+                    kernel="installed-kernel-generic",
+                    livepatch=LivepatchPatchStatus(
+                        state="nothing-to-apply",
+                        fixes=None,
+                    ),
+                    supported=None,
+                ),
+            ),
+            (
+                True,
+                [
+                    (
+                        json.dumps(
+                            {
+                                "Status": [
+                                    {
+                                        "Kernel": "installed-kernel-generic",
+                                        "Livepatch": {
+                                            "State": "applied",
+                                            "Fixes": [
+                                                {
+                                                    "Name": "cve-example",
+                                                    "Description": "",
+                                                    "Bug": "",
+                                                    "Patched": True,
+                                                },
+                                            ],
+                                        },
+                                    }
+                                ],
+                            }
+                        ),
+                        None,
+                    )
+                ],
+                LivepatchStatusStatus(
+                    kernel="installed-kernel-generic",
+                    livepatch=LivepatchPatchStatus(
+                        state="applied",
+                        fixes=[
+                            LivepatchPatchFixStatus(
+                                name="cve-example",
+                                patched=True,
+                            )
+                        ],
+                    ),
+                    supported=None,
+                ),
+            ),
+            (
+                True,
+                [
+                    (
+                        json.dumps(
+                            {
+                                "Client-Version": "version",
+                                "Machine-Id": "machine-id",
+                                "Architecture": "x86_64",
+                                "CPU-Model": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",  # noqa: E501
+                                "Last-Check": "2022-07-05T18:29:00Z",
+                                "Boot-Time": "2022-07-05T18:27:12Z",
+                                "Uptime": "203",
+                                "Status": [
+                                    {
+                                        "Kernel": "4.15.0-187.198-generic",
+                                        "Running": True,
+                                        "Livepatch": {
+                                            "CheckState": "checked",
+                                            "State": "nothing-to-apply",
+                                            "Version": "",
+                                        },
+                                    }
+                                ],
+                                "tier": "stable",
+                            }
+                        ),
+                        None,
+                    )
+                ],
+                LivepatchStatusStatus(
+                    kernel="4.15.0-187.198-generic",
+                    livepatch=LivepatchPatchStatus(
+                        state="nothing-to-apply",
+                        fixes=None,
+                    ),
+                    supported=None,
+                ),
+            ),
+            (
+                True,
+                [
+                    (
+                        json.dumps(
+                            {
+                                "Status": [
+                                    {
+                                        "Supported": "supported",
+                                    }
+                                ],
+                            }
+                        ),
+                        None,
+                    )
+                ],
+                LivepatchStatusStatus(
+                    kernel=None,
+                    livepatch=None,
+                    supported="supported",
+                ),
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "system.subp")
+    @mock.patch(M_PATH + "is_livepatch_installed")
+    def test_status(
+        self,
+        m_is_livepatch_installed,
+        m_subp,
+        is_installed,
+        subp_sideeffect,
+        expected,
+    ):
+        m_is_livepatch_installed.return_value = is_installed
+        m_subp.side_effect = subp_sideeffect
+        assert expected == status()
 
 
 @mock.patch(M_PATH + "serviceclient.UAServiceClient.request_url")
@@ -116,61 +290,45 @@ class TestUALivepatchClient:
 class TestOnSupportedKernel:
     @pytest.mark.parametrize(
         [
-            "is_livepatch_installed",
-            "subp_side_effect",
+            "livepatch_status",
             "expected",
         ],
         [
-            (False, None, None),
-            (True, exceptions.ProcessExecutionError(mock.MagicMock()), None),
-            (True, [("{}", None)], None),
-            (True, [('{"Status": []}', None)], None),
-            (True, [('{"Status": [{}]}', None)], None),
-            (True, [('{"Status": [{"Livepatch": {}}]}', None)], None),
+            (None, None),
             (
-                True,
-                [
-                    (
-                        '{"Status": [{"Supported": "supported"}]}',  # noqa: E501
-                        None,
-                    )
-                ],
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported=None
+                ),
+                None,
+            ),
+            (
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported="supported"
+                ),
                 True,
             ),
             (
-                True,
-                [
-                    (
-                        '{"Status": [{"Supported": "unsupported"}]}',  # noqa: E501
-                        None,
-                    )
-                ],
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported="unsupported"
+                ),
                 False,
             ),
             (
-                True,
-                [
-                    (
-                        '{"Status": [{"Supported": "unknown"}]}',  # noqa: E501
-                        None,
-                    )
-                ],
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported="unknown"
+                ),
                 None,
             ),
         ],
     )
-    @mock.patch(M_PATH + "system.subp")
-    @mock.patch(M_PATH + "is_livepatch_installed")
+    @mock.patch(M_PATH + "status")
     def test_on_supported_kernel_cli(
         self,
-        m_is_livepatch_installed,
-        m_subp,
-        is_livepatch_installed,
-        subp_side_effect,
+        m_livepatch_status,
+        livepatch_status,
         expected,
     ):
-        m_is_livepatch_installed.return_value = is_livepatch_installed
-        m_subp.side_effect = subp_side_effect
+        m_livepatch_status.return_value = livepatch_status
         assert _on_supported_kernel_cli() == expected
 
     @pytest.mark.parametrize(

@@ -1,12 +1,10 @@
-import logging
 from collections import defaultdict
-from json import JSONDecodeError
 from typing import List, Optional
 
 import mock
 import pytest
 
-from uaclient.exceptions import ProcessExecutionError
+from uaclient import livepatch
 from uaclient.security_status import (
     RebootStatus,
     UpdateStatus,
@@ -594,34 +592,21 @@ class TestSecurityStatus:
         assert expected_output == security_status_dict(cfg)
 
 
-@mock.patch(M_PATH + "json.loads")
+@mock.patch(M_PATH + "livepatch.status")
 @mock.patch(M_PATH + "get_kernel_info")
 class TestGetLivepatchFixedCVEs:
-    @mock.patch(M_PATH + "subp")
-    def test_livepatch_subp_error(self, m_subp, _m_kernel_info, _m_loads):
-        m_subp.side_effect = ProcessExecutionError("error")
-
+    def test_livepatch_status_none(self, _m_kernel_info, m_livepatch_status):
+        m_livepatch_status.return_value = None
         assert [] == get_livepatch_fixed_cves()
 
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    def test_livepatch_wrong_json(self, _m_kernel_info, m_loads, caplog_text):
-        m_loads.side_effect = JSONDecodeError("", "", 0)
-
-        assert [] == get_livepatch_fixed_cves()
-        assert "Could not parse Livepatch Status JSON" in caplog_text()
-
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    def test_cant_get_kernel_info(self, m_kernel_info, m_loads, caplog_text):
-        m_loads.return_value = {
-            "Status": [
-                {
-                    "Kernel": "installed-kernel-generic",
-                    "Livepatch": {
-                        "State": "nothing-to-apply",
-                    },
-                }
-            ],
-        }
+    def test_cant_get_kernel_info(self, m_kernel_info, m_livepatch_status):
+        m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
+            kernel="installed-kernel-generic",
+            livepatch=livepatch.LivepatchPatchStatus(
+                state="nothing-to-apply", fixes=None
+            ),
+            supported=None,
+        )
 
         m_kernel_info.return_value = KernelInfo(
             uname_release="",
@@ -635,45 +620,36 @@ class TestGetLivepatchFixedCVEs:
 
         assert [] == get_livepatch_fixed_cves()
 
-    def test_livepatch_no_fixes(self, m_kernel_info, m_loads):
+    def test_livepatch_no_fixes(self, m_kernel_info, m_livepatch_status):
         m_kernel_info.return_value.proc_version_signature_version = (
             "installed-kernel-generic"
         )
-        m_loads.return_value = {
-            "Status": [
-                {
-                    "Kernel": "installed-kernel-generic",
-                    "Livepatch": {
-                        "State": "nothing-to-apply",
-                    },
-                }
-            ],
-        }
+        m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
+            kernel="installed-kernel-generic",
+            livepatch=livepatch.LivepatchPatchStatus(
+                state="nothing-to-apply", fixes=None
+            ),
+            supported=None,
+        )
 
         assert [] == get_livepatch_fixed_cves()
 
-    def test_livepatch_has_fixes(self, m_kernel_info, m_loads):
+    def test_livepatch_has_fixes(self, m_kernel_info, m_livepatch_status):
         m_kernel_info.return_value.proc_version_signature_version = (
             "installed-kernel-generic"
         )
-        m_loads.return_value = {
-            "Status": [
-                {
-                    "Kernel": "installed-kernel-generic",
-                    "Livepatch": {
-                        "State": "applied",
-                        "Fixes": [
-                            {
-                                "Name": "cve-example",
-                                "Description": "",
-                                "Bug": "",
-                                "Patched": True,
-                            },
-                        ],
-                    },
-                }
-            ],
-        }
+        m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
+            kernel="installed-kernel-generic",
+            livepatch=livepatch.LivepatchPatchStatus(
+                state="applied",
+                fixes=[
+                    livepatch.LivepatchPatchFixStatus(
+                        name="cve-example", patched=True
+                    )
+                ],
+            ),
+            supported=None,
+        )
 
         assert [
             {"name": "cve-example", "patched": True}
@@ -696,24 +672,23 @@ class TestRebootStatus:
         assert 1 == m_should_reboot.call_count
         assert 1 == m_load_file.call_count
 
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.security_status.subp")
-    @mock.patch("uaclient.security_status.which", return_value=True)
+    @mock.patch("uaclient.security_status.livepatch.status")
+    @mock.patch(
+        "uaclient.security_status.livepatch.is_livepatch_installed",
+        return_value=True,
+    )
     @mock.patch("uaclient.security_status.load_file")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
-    def test_get_reboot_status_fail_to_parse_livepatch_output(
+    def test_get_reboot_status_livepatch_status_none(
         self,
         m_should_reboot,
         m_load_file,
-        _m_which,
-        m_subp,
-        caplog_text,
+        _m_is_livepatch_installed,
+        m_livepatch_status,
     ):
         m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
-        m_subp.return_value = ('{"test": 123', "")
-
+        m_livepatch_status.return_value = None
         assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
-        assert "Could not parse Livepatch Status JSON" in caplog_text()
 
     @pytest.mark.parametrize(
         "pkgs,expected_state",
@@ -762,16 +737,16 @@ class TestRebootStatus:
         ),
     )
     @mock.patch("uaclient.security_status.get_kernel_info")
-    @mock.patch("uaclient.security_status.which")
-    @mock.patch("uaclient.security_status.subp")
+    @mock.patch("uaclient.security_status.livepatch.is_livepatch_installed")
+    @mock.patch("uaclient.security_status.livepatch.status")
     @mock.patch("uaclient.security_status.load_file")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_reboot_pkgs_file_only_kernel_pkgs(
         self,
         m_should_reboot,
         m_load_file,
-        m_subp,
-        m_which,
+        m_livepatch_status,
+        m_is_livepatch_installed,
         m_kernel_info,
         livepatch_state,
         expected_state,
@@ -780,92 +755,52 @@ class TestRebootStatus:
         m_kernel_info.return_value = mock.MagicMock(
             proc_version_signature_version=kernel_name
         )
-        m_which.return_value = True
+        m_is_livepatch_installed.return_value = True
         m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
-        m_subp.return_value = (
-            """
-            {{
-              "Client-Version": "version",
-              "Machine-Id": "machine-id",
-              "Architecture": "x86_64",
-              "CPU-Model": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
-              "Last-Check": "2022-07-05T18:29:00Z",
-              "Boot-Time": "2022-07-05T18:27:12Z",
-              "Uptime": "203",
-              "Status": [
-                {{
-                    "Kernel": "4.15.0-187.198-generic",
-                    "Running": true,
-                    "Livepatch": {{
-                        "CheckState": "checked",
-                        "State": "{}",
-                        "Version": ""
-                    }}
-                }}
-              ],
-              "tier": "stable"
-            }}
-        """.format(
-                livepatch_state
+        m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
+            kernel="4.15.0-187.198-generic",
+            livepatch=livepatch.LivepatchPatchStatus(
+                state=livepatch_state, fixes=None
             ),
-            "",
+            supported=None,
         )
 
         assert get_reboot_status() == expected_state
         assert 1 == m_should_reboot.call_count
         assert 1 == m_load_file.call_count
-        assert 1 == m_which.call_count
-        assert 1 == m_subp.call_count
+        assert 1 == m_is_livepatch_installed.call_count
+        assert 1 == m_livepatch_status.call_count
         assert 1 == m_kernel_info.call_count
 
     @mock.patch("uaclient.security_status.get_kernel_info")
-    @mock.patch("uaclient.security_status.which")
-    @mock.patch("uaclient.security_status.subp")
+    @mock.patch("uaclient.security_status.livepatch.is_livepatch_installed")
+    @mock.patch("uaclient.security_status.livepatch.status")
     @mock.patch("uaclient.security_status.load_file")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_fail_parsing_kernel_info(
         self,
         m_should_reboot,
         m_load_file,
-        m_subp,
-        m_which,
+        m_livepatch_status,
+        m_is_livepatch_installed,
         m_kernel_info,
     ):
         m_kernel_info.return_value = mock.MagicMock(
             proc_version_signature_version=None
         )
-        m_which.return_value = True
+        m_is_livepatch_installed.return_value = True
         m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
-        m_subp.return_value = (
-            """
-            {
-              "Client-Version": "version",
-              "Machine-Id": "machine-id",
-              "Architecture": "x86_64",
-              "CPU-Model": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
-              "Last-Check": "2022-07-05T18:29:00Z",
-              "Boot-Time": "2022-07-05T18:27:12Z",
-              "Uptime": "203",
-              "Status": [
-                {
-                    "Kernel": "4.15.0-187.198-generic",
-                    "Running": true,
-                    "Livepatch": {
-                        "CheckState": "checked",
-                        "State": "applied",
-                        "Version": ""
-                    }
-                }
-              ],
-              "tier": "stable"
-            }
-            """,
-            "",
+        m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
+            kernel="4.15.0-187.198-generic",
+            livepatch=livepatch.LivepatchPatchStatus(
+                state="applied", fixes=None
+            ),
+            supported=None,
         )
 
         assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
         assert 1 == m_should_reboot.call_count
         assert 1 == m_load_file.call_count
-        assert 1 == m_which.call_count
-        assert 1 == m_subp.call_count
+        assert 1 == m_is_livepatch_installed.call_count
+        assert 1 == m_livepatch_status.call_count
         assert 1 == m_kernel_info.call_count
