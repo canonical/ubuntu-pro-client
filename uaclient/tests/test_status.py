@@ -130,9 +130,7 @@ class TestColorizeCommands:
         assert colorize_commands(commands) == expected
 
 
-@mock.patch(
-    "uaclient.entitlements.livepatch.on_supported_kernel", return_value=None
-)
+@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
 class TestFormatTabular:
     @pytest.mark.parametrize(
         "support_level,expected_colour,istty",
@@ -294,9 +292,7 @@ def ros_desc(FakeConfig):
     return entitlement_factory(cfg=FakeConfig(), name="ros").description
 
 
-@mock.patch(
-    "uaclient.entitlements.livepatch.on_supported_kernel", return_value=None
-)
+@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
 @mock.patch("uaclient.files.notices.NoticesManager.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:

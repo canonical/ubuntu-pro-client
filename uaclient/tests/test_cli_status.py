@@ -327,9 +327,7 @@ Flags:
 )
 
 
-@mock.patch(
-    "uaclient.entitlements.livepatch.on_supported_kernel", return_value=None
-)
+@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
 @mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(

@@ -104,7 +104,7 @@ class TestActionConfigSet:
             ("https_proxy", "https://proxy", True),
         ),
     )
-    @mock.patch(M_LIVEPATCH + "configure_livepatch_proxy")
+    @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.util.validate_proxy")

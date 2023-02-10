@@ -7,11 +7,18 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import event_logger, exceptions, messages, util, version
+from uaclient import (
+    event_logger,
+    exceptions,
+    livepatch,
+    messages,
+    util,
+    version,
+)
 from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlement_factory, livepatch
+from uaclient.entitlements import entitlement_factory
 from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingAvailability,
