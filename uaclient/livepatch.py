@@ -13,6 +13,14 @@ from uaclient import (
     system,
     util,
 )
+from uaclient.data_types import (
+    BoolDataValue,
+    DataObject,
+    Field,
+    IncorrectTypeError,
+    StringDataValue,
+    data_list,
+)
 from uaclient.files import state_files
 
 HTTP_PROXY_OPTION = "http-proxy"
@@ -23,6 +31,123 @@ LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
 LIVEPATCH_API_V1_KERNELS_SUPPORTED = "/v1/api/kernels/supported"
 
 event = event_logger.get_event_logger()
+
+
+class LivepatchPatchFixStatus(DataObject):
+    fields = [
+        Field("name", StringDataValue, required=False, dict_key="Name"),
+        Field("patched", BoolDataValue, required=False, dict_key="Patched"),
+    ]
+
+    def __init__(
+        self,
+        name: Optional[str],
+        patched: Optional[bool],
+    ):
+        self.name = name
+        self.patched = patched
+
+
+class LivepatchPatchStatus(DataObject):
+    fields = [
+        Field("state", StringDataValue, required=False, dict_key="State"),
+        Field(
+            "fixes",
+            data_list(LivepatchPatchFixStatus),
+            required=False,
+            dict_key="Fixes",
+        ),
+    ]
+
+    def __init__(
+        self,
+        state: Optional[str],
+        fixes: Optional[List[LivepatchPatchFixStatus]],
+    ):
+        self.state = state
+        self.fixes = fixes
+
+
+class LivepatchStatusStatus(DataObject):
+    fields = [
+        Field("kernel", StringDataValue, required=False, dict_key="Kernel"),
+        Field(
+            "livepatch",
+            LivepatchPatchStatus,
+            required=False,
+            dict_key="Livepatch",
+        ),
+        Field(
+            "supported",
+            StringDataValue,
+            required=False,
+            dict_key="Supported",
+        ),
+    ]
+
+    def __init__(
+        self,
+        kernel: Optional[str],
+        livepatch: Optional[LivepatchPatchStatus],
+        supported: Optional[str],
+    ):
+        self.kernel = kernel
+        self.livepatch = livepatch
+        self.supported = supported
+
+
+class LivepatchStatus(DataObject):
+    fields = [
+        Field(
+            "status",
+            data_list(LivepatchStatusStatus),
+            required=False,
+            dict_key="Status",
+        ),
+    ]
+
+    def __init__(
+        self,
+        status: Optional[List[LivepatchStatusStatus]],
+    ):
+        self.status = status
+
+
+def status() -> Optional[LivepatchStatusStatus]:
+    if not is_livepatch_installed():
+        logging.debug("canonical-livepatch is not installed")
+        return None
+
+    try:
+        out, _ = system.subp([LIVEPATCH_CMD, "status", "--format", "json"])
+    except exceptions.ProcessExecutionError:
+        logging.warning(
+            "canonical-livepatch returned error when " "checking status"
+        )
+        return None
+
+    try:
+        status_json = json.loads(out)
+    except json.JSONDecodeError:
+        logging.warning(
+            "canonical-livepatch status returned invalid json: {}".format(out)
+        )
+        return None
+
+    try:
+        status_root = LivepatchStatus.from_dict(status_json)
+    except IncorrectTypeError:
+        logging.warning(
+            "canonical-livepatch status returned unexpected "
+            "structure: {}".format(out)
+        )
+        return None
+
+    if status_root.status is None or len(status_root.status) < 1:
+        logging.debug("canonical-livepatch has no status")
+        return None
+
+    return status_root.status[0]
 
 
 class UALivepatchClient(serviceclient.UAServiceClient):
@@ -69,26 +194,13 @@ class UALivepatchClient(serviceclient.UAServiceClient):
 
 
 def _on_supported_kernel_cli() -> Optional[bool]:
-    if is_livepatch_installed():
-        try:
-            out, _ = system.subp([LIVEPATCH_CMD, "status", "--format", "json"])
-        except exceptions.ProcessExecutionError:
-            logging.warning(
-                "canonical-livepatch returned error when "
-                "checking kernel support"
-            )
-            return None
-
-        cli_statuses = json.loads(out).get("Status", [])
-        if len(cli_statuses) > 0:
-            cli_status = cli_statuses[0]
-
-            cli_supported = cli_status.get("Supported", None)
-            if cli_supported == "supported":
-                return True
-            if cli_supported == "unsupported":
-                return False
-
+    lp_status = status()
+    if lp_status is None:
+        return None
+    if lp_status.supported == "supported":
+        return True
+    if lp_status.supported == "unsupported":
+        return False
     return None
 
 
