@@ -1,12 +1,10 @@
-import json
-import logging
 import re
 import textwrap
 from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from random import choice
-from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
+from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 
 import apt  # type: ignore
 
@@ -18,7 +16,6 @@ from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
 )
-from uaclient.exceptions import ProcessExecutionError
 from uaclient.status import status
 from uaclient.system import (
     REBOOT_PKGS_FILE_PATH,
@@ -29,8 +26,6 @@ from uaclient.system import (
     is_supported,
     load_file,
     should_reboot,
-    subp,
-    which,
 )
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
@@ -207,39 +202,21 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
 
 # Yeah Any is bad, but so is python<3.8 without TypedDict
 def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
-    try:
-        out, _err = subp(
-            [livepatch.LIVEPATCH_CMD, "status", "--format", "json"]
-        )
-    except ProcessExecutionError:
-        return []
-
-    try:
-        livepatch_output = json.loads(out)
-    except json.JSONDecodeError:
-        msg = "Could not parse Livepatch Status JSON: {}".format(out)
-        logging.debug(msg)
-        return []
-
-    status_list = livepatch_output.get("Status")
-    if status_list:
-        # Livepatch guarantees this list has only one element
-        lp_kernel_version = status_list[0].get("Kernel")
-        our_kernel_version = get_kernel_info().proc_version_signature_version
-        if (
-            our_kernel_version is not None
-            and our_kernel_version == lp_kernel_version
-        ):
-            livepatch_status = status_list[0].get("Livepatch", {})
-            if livepatch_status.get("State", "") == "applied":
-                fixes = livepatch_status.get("Fixes", [])
-                return [
-                    {
-                        "name": fix.get("Name", ""),
-                        "patched": fix.get("Patched", ""),
-                    }
-                    for fix in fixes
-                ]
+    lp_status = livepatch.status()
+    our_kernel_version = get_kernel_info().proc_version_signature_version
+    if (
+        lp_status is not None
+        and our_kernel_version is not None
+        and our_kernel_version == lp_status.kernel
+        and lp_status.livepatch is not None
+        and lp_status.livepatch.state == "applied"
+        and lp_status.livepatch.fixes is not None
+        and len(lp_status.livepatch.fixes) > 0
+    ):
+        return [
+            {"name": fix.name or "", "patched": fix.patched or False}
+            for fix in lp_status.livepatch.fixes
+        ]
 
     return []
 
@@ -271,42 +248,18 @@ def get_reboot_status():
     if num_kernel_pkgs != num_pkgs:
         return RebootStatus.REBOOT_REQUIRED
 
-    if not which("canonical-livepatch"):
+    if not livepatch.is_livepatch_installed():
         return RebootStatus.REBOOT_REQUIRED
 
-    try:
-        livepatch_status, _ = subp(
-            [livepatch.LIVEPATCH_CMD, "status", "--format", "json"]
-        )
-    except ProcessExecutionError:
-        # If we can't query the Livepatch status, then return a
-        # normal reboot state
-        logging.debug("Could not query Livepatch Status")
-        return RebootStatus.REBOOT_REQUIRED
-
-    try:
-        livepatch_status_dict = json.loads(livepatch_status)
-    except json.JSONDecodeError:
-        # If we cannot parse the json file, we will return a
-        # normal reboot state
-        msg = "Could not parse Livepatch Status JSON: {}".format(
-            livepatch_status
-        )
-        logging.debug(msg)
-        return RebootStatus.REBOOT_REQUIRED
-
-    patch_statuses = livepatch_status_dict.get("Status", [{}])
-
-    kernel_info = get_kernel_info()
-    kernel_name = kernel_info.proc_version_signature_version
-
-    patch_state = ""
-    for patch_status in patch_statuses:
-        livepatch_kernel = patch_status.get("Kernel")
-        if livepatch_kernel and livepatch_kernel == kernel_name:
-            patch_state = patch_status.get("Livepatch", {}).get("State", "")
-
-    if patch_state == "applied":
+    our_kernel_version = get_kernel_info().proc_version_signature_version
+    lp_status = livepatch.status()
+    if (
+        lp_status is not None
+        and our_kernel_version is not None
+        and our_kernel_version == lp_status.kernel
+        and lp_status.livepatch is not None
+        and lp_status.livepatch.state == "applied"
+    ):
         return RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED
 
     # Any other Livepatch status will not be considered here to modify the
