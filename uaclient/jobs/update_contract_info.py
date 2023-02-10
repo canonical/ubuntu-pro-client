@@ -13,12 +13,10 @@ def update_contract_info(cfg: UAConfig) -> bool:
         try:
             if contract.is_contract_changed(cfg):
                 notices.add(
-                    cfg.root_mode,
                     Notice.CONTRACT_REFRESH_WARNING,
                 )
             else:
                 notices.remove(
-                    cfg.root_mode,
                     Notice.CONTRACT_REFRESH_WARNING,
                 )
         except Exception as e:

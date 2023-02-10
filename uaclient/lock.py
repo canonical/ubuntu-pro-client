@@ -50,7 +50,6 @@ class SingleAttemptLock:
             "lock", "{}:{}".format(os.getpid(), self.lock_holder)
         )
         notices.add(
-            self.cfg.root_mode,
             Notice.OPERATION_IN_PROGRESS,
             operation=self.lock_holder,
         )

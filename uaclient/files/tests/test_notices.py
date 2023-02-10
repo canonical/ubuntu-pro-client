@@ -27,7 +27,7 @@ class TestNotices:
         content,
     ):
         notice = NoticesManager()
-        notice.add(True, label, content)
+        notice.add(label, content)
         assert [
             mock.call(
                 os.path.join(defaults.NOTICES_PERMANENT_DIRECTORY, "01-a"),
@@ -35,14 +35,16 @@ class TestNotices:
             )
         ] == sys_write_file.call_args_list
 
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.files.notices.system.write_file")
     def test_add_non_root(
         self,
         m_sys_write_file,
+        m_we_are_currently_root,
         caplog_text,
     ):
         notice = NoticesManager()
-        notice.add(False, FakeNotice.a, "content")
+        notice.add(FakeNotice.a, "content")
         assert [] == m_sys_write_file.call_args_list
         assert "Trying to add a notice as non-root user" in caplog_text()
 
@@ -61,11 +63,11 @@ class TestNotices:
         content,
     ):
         notice = NoticesManager()
-        notice.add(True, label, content)
+        notice.add(label, content)
         with mock.patch(
             "uaclient.files.notices.system.write_file"
         ) as sys_write_file:
-            notice.add(True, label, content)
+            notice.add(label, content)
             assert 1 == sys_write_file.call_count
 
     @pytest.mark.parametrize(
@@ -85,22 +87,24 @@ class TestNotices:
         content,
     ):
         notice = NoticesManager()
-        notice.add(True, label, content)
-        notice.remove(True, label)
+        notice.add(label, content)
+        notice.remove(label)
         assert [
             mock.call(
                 os.path.join(defaults.NOTICES_PERMANENT_DIRECTORY, "01-a"),
             )
         ] == sys_file_absent.call_args_list
 
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.files.notices.system.ensure_file_absent")
     def test_remove_non_root(
         self,
         m_sys_file_absent,
+        m_we_are_currently_root,
         caplog_text,
     ):
         notice = NoticesManager()
-        notice.remove(False, FakeNotice.a)
+        notice.remove(FakeNotice.a)
         assert [] == m_sys_file_absent.call_args_list
         assert "Trying to remove a notice as non-root user" in caplog_text()
 
@@ -110,13 +114,11 @@ class TestNotices:
     def test_notice_module(
         self, notice_cls_add, notice_cls_remove, notice_cls_read
     ):
-        notices.add(True, FakeNotice.a)
+        notices.add(FakeNotice.a)
         assert [
-            mock.call(True, FakeNotice.a, "notice_a"),
+            mock.call(FakeNotice.a, "notice_a"),
         ] == notice_cls_add.call_args_list
-        notices.remove(True, FakeNotice.a)
-        assert [
-            mock.call(True, FakeNotice.a)
-        ] == notice_cls_remove.call_args_list
+        notices.remove(FakeNotice.a)
+        assert [mock.call(FakeNotice.a)] == notice_cls_remove.call_args_list
         notices.list()
         assert 1 == notice_cls_read.call_count

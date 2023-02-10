@@ -433,7 +433,6 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
-    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.should_reboot")
     @mock.patch(M_PATH + "system.subp", return_value=("", ""))
@@ -452,7 +451,6 @@ class TestRepoEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
-        _m_getuid,
         entitlement,
         capsys,
         caplog_text,

@@ -130,7 +130,7 @@ class TestAutoAttach:
 @mock.patch("uaclient.actions._write_command_output_to_file")
 class TestCollectLogs:
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
-    @mock.patch("os.getuid")
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.actions._get_state_files")
@@ -141,13 +141,12 @@ class TestCollectLogs:
         m_get_state_files,
         m_load_file,
         m_write_file,
-        m_getuid,
+        m_we_are_currently_root,
         m_write_cmd,
         caplog_text,
     ):
         m_get_state_files.return_value = ["a", "b"]
         m_load_file.side_effect = [UnicodeError("test"), "test"]
-        m_getuid.return_value = 1
         m_glob.return_value = []
 
         with mock.patch("os.path.isfile", return_value=True):

@@ -41,7 +41,7 @@ class TestLockCommon:
         ] == m_write_cache.call_args_list
         lock_msg = "Operation in progress: some operation"
         assert [
-            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+            mock.call(Notice.OPERATION_IN_PROGRESS, lock_msg)
         ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 
@@ -69,7 +69,7 @@ class TestLockCommon:
         ] == m_write_cache.call_args_list
         lock_msg = "Operation in progress: some operation"
         assert [
-            mock.call(True, Notice.OPERATION_IN_PROGRESS, lock_msg)
+            mock.call(Notice.OPERATION_IN_PROGRESS, lock_msg)
         ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 

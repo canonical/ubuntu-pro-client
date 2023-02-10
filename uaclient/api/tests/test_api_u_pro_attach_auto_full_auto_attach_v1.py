@@ -174,7 +174,7 @@ class TestFullAutoAttachV1:
         _notice_add,
         FakeConfig,
     ):
-        cfg = FakeConfig(root_mode=True)
+        cfg = FakeConfig()
 
         def enable_ent_side_effect(cfg, name, assume_yes, allow_beta):
             if name != "wrong":
@@ -207,7 +207,7 @@ class TestFullAutoAttachV1:
         _notice_add,
         FakeConfig,
     ):
-        cfg = FakeConfig(root_mode=True)
+        cfg = FakeConfig()
         options = FullAutoAttachOptions(
             enable=["esm-infra", "fips"],
             enable_beta=["esm-apps", "ros"],

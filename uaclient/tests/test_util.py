@@ -186,9 +186,12 @@ class TestReadurl:
         assert data == req.data
 
 
+@mock.patch("uaclient.util.we_are_currently_root", return_value=False)
 class TestDisableLogToConsole:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    def test_no_error_if_console_handler_not_found(self, caplog_text):
+    def test_no_error_if_console_handler_not_found(
+        self, m_we_are_currently_root, caplog_text
+    ):
         with mock.patch("uaclient.util.logging.getLogger") as m_getlogger:
             m_getlogger.return_value.handlers = []
             with util.disable_log_to_console():
@@ -198,7 +201,7 @@ class TestDisableLogToConsole:
 
     @pytest.mark.parametrize("disable_log", (True, False))
     def test_disable_log_to_console(
-        self, logging_sandbox, capsys, disable_log
+        self, m_we_are_currently_root, logging_sandbox, capsys, disable_log
     ):
         # This test is parameterised so that we are sure that the context
         # manager is suppressing the output, not some other config change
@@ -223,7 +226,7 @@ class TestDisableLogToConsole:
             assert "test info" in combined_output
 
     def test_disable_log_to_console_does_nothing_at_debug_level(
-        self, logging_sandbox, capsys
+        self, m_we_are_currently_root, logging_sandbox, capsys
     ):
         cli.setup_logging(logging.DEBUG, logging.DEBUG)
 

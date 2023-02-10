@@ -107,10 +107,11 @@ ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
 ] = [ENTITLED_EXAMPLE_ESM_RESOURCE]
 
 
-@mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid, FakeConfig, capsys, event):
+@mock.patch(M_PATH + "util.we_are_currently_root", return_value=False)
+def test_non_root_users_are_rejected(
+    m_we_are_currently_root, FakeConfig, capsys, event
+):
     """Check that a UID != 0 will receive a message and exit non-zero"""
-    getuid.return_value = 1
 
     cfg = FakeConfig()
     with pytest.raises(NonRootUserError):
@@ -141,10 +142,8 @@ def test_non_root_users_are_rejected(getuid, FakeConfig, capsys, event):
     assert expected == json.loads(capsys.readouterr()[0])
 
 
-# For all of these tests we want to appear as root, so mock on the class
-@mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAttach:
-    def test_already_attached(self, _m_getuid, capsys, FakeConfig, event):
+    def test_already_attached(self, capsys, FakeConfig, event):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = "test_account"
         cfg = FakeConfig.for_attached_machine(
@@ -183,7 +182,6 @@ class TestActionAttach:
     def test_lock_file_exists(
         self,
         m_subp,
-        _m_getuid,
         capsys,
         FakeConfig,
         event,
@@ -249,7 +247,6 @@ class TestActionAttach:
         _m_get_available_resources,
         _m_remove_notice,
         _m_should_reboot,
-        _m_get_uid,
         error_class,
         error_str,
         FakeConfig,
@@ -295,7 +292,6 @@ class TestActionAttach:
         m_update_apt_and_motd_msgs,
         _m_remove_notice,
         _m_should_reboot,
-        _m_getuid,
         FakeConfig,
         event,
     ):
@@ -364,7 +360,6 @@ class TestActionAttach:
         _m_get_available_resources,
         _m_remove_notice,
         _m_should_reboot,
-        _m_get_uid,
         auto_enable,
         FakeConfig,
     ):
@@ -385,7 +380,6 @@ class TestActionAttach:
 
     def test_attach_config_and_token_mutually_exclusive(
         self,
-        _m_getuid,
         FakeConfig,
     ):
         args = mock.MagicMock(
@@ -402,7 +396,6 @@ class TestActionAttach:
         self,
         m_attach_with_token,
         _m_post_cli_attach,
-        _m_getuid,
         FakeConfig,
     ):
         args = mock.MagicMock(
@@ -417,7 +410,6 @@ class TestActionAttach:
 
     def test_attach_config_invalid_config(
         self,
-        _m_getuid,
         FakeConfig,
         capsys,
         event,
@@ -491,7 +483,6 @@ class TestActionAttach:
         m_handle_unicode,
         m_attach_with_token,
         m_enable,
-        _m_getuid,
         auto_enable,
         FakeConfig,
         event,
@@ -553,7 +544,6 @@ class TestActionAttach:
         _m_apply_contract_overrides,
         m_process_entitlement_delta,
         m_enable_order,
-        _m_getuid,
         FakeConfig,
         event,
     ):
@@ -634,7 +624,6 @@ class TestActionAttach:
         m_revoke,
         m_wait,
         m_initiate,
-        _m_getuid,
         FakeConfig,
     ):
         m_initiate.return_value = mock.MagicMock(
@@ -650,9 +639,7 @@ class TestActionAttach:
         assert 1 == m_wait.call_count
         assert 1 == m_revoke.call_count
 
-    def test_magic_attach_fails_if_format_json_param_used(
-        self, _m_getuid, FakeConfig
-    ):
+    def test_magic_attach_fails_if_format_json_param_used(self, FakeConfig):
         m_args = mock.MagicMock(token=None, attach_config=None, format="json")
 
         with pytest.raises(MagicAttachInvalidParam) as exc_info:

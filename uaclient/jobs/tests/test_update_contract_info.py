@@ -41,19 +41,17 @@ class TestUpdateContractInfo:
             if contract_changed:
                 assert [
                     mock.call(
-                        True,
                         Notice.CONTRACT_REFRESH_WARNING,
                     )
                 ] == m_notices.add.call_args_list
             else:
                 assert [
                     mock.call(
-                        True,
                         Notice.CONTRACT_REFRESH_WARNING,
                     )
                 ] not in m_notices.add.call_args_list
                 assert [
-                    mock.call(True, Notice.CONTRACT_REFRESH_WARNING)
+                    mock.call(Notice.CONTRACT_REFRESH_WARNING)
                 ] in m_notices.remove.call_args_list
         else:
             assert m_contract_changed.call_count == 0

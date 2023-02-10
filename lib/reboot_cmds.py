@@ -121,14 +121,13 @@ def process_reboot_operations(cfg: config.UAConfig):
             process_remaining_deltas(cfg)
 
             cfg.delete_cache_key("marker-reboot-cmds")
-            notices.remove(cfg.root_mode, Notice.REBOOT_SCRIPT_FAILED)
+            notices.remove(Notice.REBOOT_SCRIPT_FAILED)
             logging.debug("Successfully ran all commands on reboot.")
         except Exception as e:
             msg = "Failed running commands on reboot."
             msg += str(e)
             logging.error(msg)
             notices.add(
-                cfg.root_mode,
                 Notice.REBOOT_SCRIPT_FAILED,
             )
 
@@ -153,6 +152,6 @@ def main(cfg: config.UAConfig):
 
 
 if __name__ == "__main__":
-    cfg = config.UAConfig(root_mode=True)
+    cfg = config.UAConfig()
     setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
     main(cfg=cfg)

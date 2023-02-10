@@ -34,14 +34,12 @@ Flags:
 """
 
 
-@mock.patch("uaclient.cli.os.getuid")
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_enable_help(
         self,
         _m_resources,
-        _getuid,
         _request_updated_contract,
         capsys,
         FakeConfig,
@@ -56,18 +54,18 @@ class TestActionEnable:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_non_root_users_are_rejected(
         self,
         _m_resources,
         _request_updated_contract,
-        getuid,
+        we_are_currently_root,
         capsys,
         event,
         FakeConfig,
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
-        getuid.return_value = 1
         args = mock.MagicMock()
 
         cfg = FakeConfig.for_attached_machine()
@@ -116,13 +114,11 @@ class TestActionEnable:
         self,
         m_subp,
         _request_updated_contract,
-        getuid,
         capsys,
         event,
         FakeConfig,
     ):
         """Check inability to enable if operation holds lock file."""
-        getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("lock", "123:pro disable")
         args = mock.MagicMock()
@@ -168,17 +164,18 @@ class TestActionEnable:
         assert expected == json.loads(capsys.readouterr()[0])
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
+        "root,expected_error_template",
         [
-            (0, messages.VALID_SERVICE_FAILURE_UNATTACHED),
-            (1000, messages.NONROOT_USER),
+            (True, messages.VALID_SERVICE_FAILURE_UNATTACHED),
+            (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.util.we_are_currently_root")
     def test_unattached_error_message(
         self,
+        m_we_are_currently_root,
         _request_updated_contract,
-        m_getuid,
-        uid,
+        root,
         expected_error_template,
         capsys,
         event,
@@ -186,14 +183,14 @@ class TestActionEnable:
     ):
         """Check that root user gets unattached message."""
 
-        m_getuid.return_value = uid
+        m_we_are_currently_root.return_value = root
 
         cfg = FakeConfig()
         args = mock.MagicMock()
         args.command = "enable"
         args.service = ["esm-infra"]
 
-        if not uid:
+        if root:
             expected_error = expected_error_template.format(
                 valid_service="esm-infra"
             )
@@ -230,17 +227,18 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("is_attached", (True, False))
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
+        "root,expected_error_template",
         [
-            (0, messages.INVALID_SERVICE_OP_FAILURE),
-            (1000, messages.NONROOT_USER),
+            (True, messages.INVALID_SERVICE_OP_FAILURE),
+            (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
+        m_we_are_currently_root,
         _request_updated_contract,
-        m_getuid,
-        uid,
+        root,
         expected_error_template,
         is_attached,
         event,
@@ -248,7 +246,7 @@ class TestActionEnable:
     ):
         """Check invalid service name results in custom error message."""
 
-        m_getuid.return_value = uid
+        m_we_are_currently_root.return_value = root
         if is_attached:
             cfg = FakeConfig.for_attached_machine()
             service_msg = "\n".join(
@@ -277,7 +275,7 @@ class TestActionEnable:
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
 
-        if not uid:
+        if root:
             expected_error = expected_error_template.format(
                 operation="enable",
                 invalid_service="bogus",
@@ -307,7 +305,7 @@ class TestActionEnable:
                     "type": "system",
                 }
             ],
-            "failed_services": ["bogus"] if not uid and is_attached else [],
+            "failed_services": ["bogus"] if root and is_attached else [],
             "needs_reboot": False,
             "processed_services": [],
             "warnings": [],
@@ -315,24 +313,25 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
+        "root,expected_error_template",
         [
-            (0, messages.MIXED_SERVICES_FAILURE_UNATTACHED),
-            (1000, messages.NONROOT_USER),
+            (True, messages.MIXED_SERVICES_FAILURE_UNATTACHED),
+            (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.util.we_are_currently_root")
     def test_unattached_invalid_and_valid_service_error_message(
         self,
+        m_we_are_currently_root,
         _request_updated_contract,
-        m_getuid,
-        uid,
+        root,
         expected_error_template,
         event,
         FakeConfig,
     ):
         """Check invalid service name results in custom error message."""
 
-        m_getuid.return_value = uid
+        m_we_are_currently_root.return_value = root
         cfg = FakeConfig()
 
         args = mock.MagicMock()
@@ -341,7 +340,7 @@ class TestActionEnable:
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
 
-        if not uid:
+        if root:
             expected_error = expected_error_template.format(
                 operation="enable",
                 valid_service="fips",
@@ -387,12 +386,10 @@ class TestActionEnable:
         m_valid_services,
         _m_get_available_resources,
         m_request_updated_contract,
-        m_getuid,
         assume_yes,
         FakeConfig,
     ):
         """assume-yes parameter is passed to entitlement instantiation."""
-        m_getuid.return_value = 0
 
         m_entitlement_cls = mock.MagicMock()
         m_valid_services.return_value = ["testitlement"]
@@ -431,11 +428,9 @@ class TestActionEnable:
         m_entitlement_factory,
         _m_get_available_resources,
         _m_request_updated_contract,
-        m_getuid,
         event,
         FakeConfig,
     ):
-        m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
@@ -550,12 +545,10 @@ class TestActionEnable:
         m_entitlement_factory,
         _m_get_available_resources,
         _m_request_updated_contract,
-        m_getuid,
         beta_flag,
         event,
         FakeConfig,
     ):
-        m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
@@ -691,11 +684,9 @@ class TestActionEnable:
         self,
         _m_get_available_resources,
         _m_request_updated_contract,
-        m_getuid,
         event,
         FakeConfig,
     ):
-        m_getuid.return_value = 0
         m_entitlement_cls = mock.Mock()
         type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -767,13 +758,11 @@ class TestActionEnable:
     def test_invalid_service_names(
         self,
         _m_request_updated_contract,
-        m_getuid,
         service,
         beta,
         event,
         FakeConfig,
     ):
-        m_getuid.return_value = 0
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
         expected_msg = "One moment, checking your subscription first\n"
 
@@ -840,12 +829,10 @@ class TestActionEnable:
         m_status,
         _m_get_available_resources,
         _m_request_updated_contract,
-        m_getuid,
         allow_beta,
         event,
         FakeConfig,
     ):
-        m_getuid.return_value = 0
         m_entitlement_cls = mock.Mock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (True, None)
@@ -910,7 +897,7 @@ class TestActionEnable:
         assert expected_ret == ret
 
     def test_format_json_fails_when_assume_yes_flag_not_used(
-        self, _m_get_available_resources, _m_getuid, event
+        self, _m_get_available_resources, event
     ):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()

@@ -628,3 +628,7 @@ def deduplicate_arches(arches: List[str]) -> List[str]:
     for arch in arches:
         deduplicated_arches.add(standardize_arch_name(arch))
     return sorted(list(deduplicated_arches))
+
+
+def we_are_currently_root() -> bool:
+    return os.getuid() == 0
