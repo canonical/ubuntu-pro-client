@@ -35,6 +35,17 @@ class TestNotices:
             )
         ] == sys_write_file.call_args_list
 
+    @mock.patch("uaclient.files.notices.system.write_file")
+    def test_add_non_root(
+        self,
+        m_sys_write_file,
+        caplog_text,
+    ):
+        notice = NoticesManager()
+        notice.add(False, FakeNotice.a, "content")
+        assert [] == m_sys_write_file.call_args_list
+        assert "Trying to add a notice as non-root user" in caplog_text()
+
     @pytest.mark.parametrize(
         "label,content",
         (
@@ -81,6 +92,17 @@ class TestNotices:
                 os.path.join(defaults.NOTICES_PERMANENT_DIRECTORY, "01-a"),
             )
         ] == sys_file_absent.call_args_list
+
+    @mock.patch("uaclient.files.notices.system.ensure_file_absent")
+    def test_remove_non_root(
+        self,
+        m_sys_file_absent,
+        caplog_text,
+    ):
+        notice = NoticesManager()
+        notice.remove(False, FakeNotice.a)
+        assert [] == m_sys_file_absent.call_args_list
+        assert "Trying to remove a notice as non-root user" in caplog_text()
 
     @mock.patch("uaclient.files.notices.NoticesManager.list")
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
