@@ -202,13 +202,29 @@ def run_apt_command(
 
 
 @lru_cache(maxsize=None)
-def get_apt_cache_policy(
-    error_msg: Optional[str] = None,
-    env: Optional[Dict[str, str]] = {},
-) -> str:
-    return run_apt_command(
-        cmd=["apt-cache", "policy"], error_msg=error_msg, env=env
-    )
+def _read_apt_source_files():
+    import apt_pkg
+
+    try:
+        apt_pkg.init()
+        source_lists = apt_pkg.SourceList()
+        source_lists.read_main_list()
+    except Exception as e:
+        raise exceptions.ErrorParsingAPTSourceFile(str(e))
+
+    return source_lists.list
+
+
+def is_uri_in_apt_source_files(url: str) -> bool:
+    """
+    Search the current apt source files for a given url and return
+    trues if it is present.
+    """
+    for pkg in _read_apt_source_files():
+        if url == pkg.uri:
+            return True
+
+    return False
 
 
 def get_apt_cache_policy_for_package(
@@ -235,9 +251,9 @@ def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
         )
     finally:
         # Whenever we run an apt-get update command, we must invalidate
-        # the existing apt-cache policy cache. Otherwise, we could provide
-        # users with incorrect values.
-        get_apt_cache_policy.cache_clear()
+        # the existing _read_apt_source_files cache. Otherwise, we could
+        # provide users with incorrect values.
+        _read_apt_source_files.cache_clear()
 
     return out
 

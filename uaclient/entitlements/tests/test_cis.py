@@ -3,7 +3,7 @@
 import mock
 import pytest
 
-from uaclient import apt, messages
+from uaclient import apt
 from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
@@ -36,7 +36,7 @@ class TestCISEntitlementCanEnable:
 
 
 class TestCISEntitlementEnable:
-    @mock.patch("uaclient.apt.get_apt_cache_policy")
+    @mock.patch("uaclient.apt.is_uri_in_apt_source_files", return_value=False)
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
@@ -47,7 +47,7 @@ class TestCISEntitlementEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
-        m_apt_policy,
+        _m_is_uri_in_apt_source_files,
         capsys,
         event,
         entitlement,
@@ -62,7 +62,6 @@ class TestCISEntitlementEnable:
 
         m_platform_info.side_effect = fake_platform
         m_subp.return_value = ("fakeout", "")
-        m_apt_policy.return_value = "fakeout"
         m_should_reboot.return_value = False
 
         with mock.patch(M_REPOPATH + "exists", mock.Mock(return_value=True)):
@@ -78,12 +77,6 @@ class TestCISEntitlementEnable:
                 ["xenial"],
                 entitlement.repo_key_file,
             )
-        ]
-
-        m_apt_policy_cmds = [
-            mock.call(
-                error_msg=messages.APT_POLICY_FAILED.msg,
-            ),
         ]
 
         subp_apt_cmds = [
@@ -114,8 +107,7 @@ class TestCISEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert subp_apt_cmds == m_subp.call_args_list
-        assert 1 == m_apt_policy.call_count
-        assert m_apt_policy_cmds == m_apt_policy.call_args_list
+        assert 1 == _m_is_uri_in_apt_source_files.call_count
         assert 1 == m_should_reboot.call_count
         expected_stdout = (
             "Updating package lists\n"
