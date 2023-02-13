@@ -119,4 +119,4 @@ constructive feedback.
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-advantage-client/blob/main/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
-.. _our Discourse forum: https://discourse.ubuntu.com/t/ubuntu-pro-beta-invitation/30957
+.. _our Discourse forum: https://discourse.ubuntu.com/c/ubuntu-pro/116
