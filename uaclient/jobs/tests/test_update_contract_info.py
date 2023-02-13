@@ -1,3 +1,5 @@
+import logging
+
 import mock
 import pytest
 
@@ -25,7 +27,6 @@ class TestUpdateContractInfo:
         m_contract_changed,
         contract_changed,
         is_attached,
-        capsys,
         FakeConfig,
     ):
         m_contract_changed.return_value = contract_changed
@@ -51,9 +52,39 @@ class TestUpdateContractInfo:
                         Notice.CONTRACT_REFRESH_WARNING,
                     )
                 ] not in m_notices.add.call_args_list
-                print(m_contract_changed.return_value)
                 assert [
                     mock.call(True, Notice.CONTRACT_REFRESH_WARNING)
                 ] in m_notices.remove.call_args_list
         else:
             assert m_contract_changed.call_count == 0
+
+    @pytest.mark.parametrize(
+        "contract_changed",
+        (
+            False,
+            True,
+            Exception("Error checking contract info"),
+        ),
+    )
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch(M_PATH + "notices", autospec=True)
+    def test_contract_failure(
+        self,
+        m_notices,
+        m_contract_changed,
+        contract_changed,
+        caplog_text,
+        FakeConfig,
+    ):
+        m_contract_changed.side_effect = (contract_changed,)
+        m_notices.add.side_effect = Exception("Error checking contract info")
+        m_notices.remove.side_effect = Exception(
+            "Error checking contract info"
+        )
+        cfg = FakeConfig().for_attached_machine()
+
+        assert False is update_contract_info(cfg=cfg)
+        assert (
+            "Failed to check for change in machine contract."
+            " Reason: Error checking contract info\n"
+        ) in caplog_text()
