@@ -1,10 +1,12 @@
+import logging
 import os
 from collections import namedtuple
 from enum import Enum
 from typing import List, Tuple
 
-from uaclient import defaults, event_logger, messages, system
+from uaclient import defaults, event_logger, messages, system, util
 
+LOG = logging.getLogger(__name__)
 event = event_logger.get_event_logger()
 NoticeFileDetails = namedtuple(
     "NoticeFileDetails", ["order_id", "label", "is_permanent", "message"]
@@ -117,39 +119,43 @@ class NoticesManager:
         :param notice_details: Holds details concerning the notice file.
         :param description: The content to be written to the notice file.
         """
-        if root_mode:
-            directory = (
-                defaults.NOTICES_PERMANENT_DIRECTORY
-                if notice_details.value.is_permanent
-                else defaults.NOTICES_TEMPORARY_DIRECTORY
-            )
-            filename = "{}-{}".format(
-                notice_details.value.order_id, notice_details.value.label
-            )
-            system.write_file(
-                os.path.join(directory, filename),
-                description,
-            )
-        else:
-            event.warning("Trying to add a notice as non-root user")
+        if not root_mode:
+            with util.disable_log_to_console():
+                LOG.warning("Trying to add a notice as non-root user")
+            return
+
+        directory = (
+            defaults.NOTICES_PERMANENT_DIRECTORY
+            if notice_details.value.is_permanent
+            else defaults.NOTICES_TEMPORARY_DIRECTORY
+        )
+        filename = "{}-{}".format(
+            notice_details.value.order_id, notice_details.value.label
+        )
+        system.write_file(
+            os.path.join(directory, filename),
+            description,
+        )
 
     def remove(self, root_mode: bool, notice_details: Notice):
         """Deletes a notice file.
 
         :param notice_details: Holds details concerning the notice file.
         """
-        if root_mode:
-            directory = (
-                defaults.NOTICES_PERMANENT_DIRECTORY
-                if notice_details.value.is_permanent
-                else defaults.NOTICES_TEMPORARY_DIRECTORY
-            )
-            filename = "{}-{}".format(
-                notice_details.value.order_id, notice_details.value.label
-            )
-            system.ensure_file_absent(os.path.join(directory, filename))
-        else:
-            event.warning("Trying to remove a notice as non-root user")
+        if not root_mode:
+            with util.disable_log_to_console():
+                LOG.warning("Trying to remove a notice as non-root user")
+            return
+
+        directory = (
+            defaults.NOTICES_PERMANENT_DIRECTORY
+            if notice_details.value.is_permanent
+            else defaults.NOTICES_TEMPORARY_DIRECTORY
+        )
+        filename = "{}-{}".format(
+            notice_details.value.order_id, notice_details.value.label
+        )
+        system.ensure_file_absent(os.path.join(directory, filename))
 
     def list(self) -> List[Tuple[str, str]]:
         """Gets all the notice files currently saved.
