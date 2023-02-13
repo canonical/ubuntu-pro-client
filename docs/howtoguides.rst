@@ -98,3 +98,11 @@ Create a ``pro`` Golden Image
     :maxdepth: 1
 
     Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image.md>
+
+Use ``pro`` in an airgapped environment
+=======================================
+
+..  toctree::
+    :maxdepth: 1
+
+    Use Ubuntu Pro in an airgapped environment <howtoguides/pro_in_airgapped.md>
