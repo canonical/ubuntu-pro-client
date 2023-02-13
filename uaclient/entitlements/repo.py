@@ -1,7 +1,6 @@
 import abc
 import copy
 import logging
-import re
 from os.path import exists
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -115,11 +114,9 @@ class RepoEntitlement(base.UAEntitlement):
                 ApplicationStatus.DISABLED,
                 messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
-        policy = apt.get_apt_cache_policy(
-            error_msg=messages.APT_POLICY_FAILED.msg
-        )
-        match = re.search(r"{}/ubuntu".format(repo_url), policy)
-        if match:
+
+        repo_url = "{}/ubuntu/".format(repo_url)
+        if apt.is_uri_in_apt_source_files(repo_url):
             return (
                 ApplicationStatus.ENABLED,
                 messages.SERVICE_IS_ACTIVE.format(title=self.title),
