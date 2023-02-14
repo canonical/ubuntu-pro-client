@@ -55,9 +55,8 @@ for you.
 Getting help
 ============
 
-Having trouble? We would like to help! For help on a specific page in this
-documentation, click on the "Have a question?" link at the top of that page.
-You can also...
+Ubuntu Pro is a new product, and we're keen to know about your experience of
+using it!
 
 - **Have questions?**
   You might find the answers `in our FAQ`_.
