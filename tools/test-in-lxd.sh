@@ -1,7 +1,15 @@
 #!/usr/bin/bash
+#
+# test-in-lxd.sh [series]
+#
+# Create an LXD container or vm with the current ubuntu-advantages-tool package
+# built from ../
+
 set -eux
 
 VM=${VM:-0}
+SHELL_BEFORE=${SHELL_BEFORE:-0}
+
 series=${1:-jammy}
 build_out=$(./tools/build.sh "$series")
 hash=$(echo "$build_out" | jq -r .state_hash)
@@ -21,6 +29,17 @@ if [[ "$VM" -ne 0 ]]; then
     sleep 30
 fi
 lxc file push "$deb" "${name}/tmp/ua.deb"
+
+if [[ "$SHELL_BEFORE" -ne 0 ]]; then
+    set +x
+    echo
+    echo
+    echo "New version of pro has not been installed yet."
+    echo "After you exit the shell we'll upgrade pro and bring you right back."
+    echo
+    set -x
+    lxc exec "$name" bash
+fi
 
 lxc exec "$name" -- dpkg -i /tmp/ua.deb
 lxc shell "$name"
