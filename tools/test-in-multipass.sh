@@ -1,22 +1,28 @@
 #!/usr/bin/bash
-series=$1
+#
+# test-in-multipass.sh [series]
+#
+# Create an Multipass instance with the current ubuntu-advantages-tool package
+# built from ../
+set -eux
 
-set -x
+SHELL_BEFORE=${SHELL_BEFORE:-0}
 
-build_out=$(./tools/build.sh $series)
-hash=$(echo $build_out | jq -r .state_hash)
-deb=$(echo $build_out | jq -r .debs[] | grep tools)
+series=${1:-jammy}
+build_out=$(./tools/build.sh "$series")
+hash=$(echo "$build_out" | jq -r .state_hash)
+deb=$(echo "$build_out" | jq -r '.debs[]' | grep tools)
 name=ua-$series-$hash
 
-multipass delete $name --purge
-multipass launch $series --name $name
+multipass delete "$name" --purge || true
+multipass launch "$series" --name "$name"
 sleep 30
 # Snaps won't access /tmp
-cp $deb ~/ua.deb
-multipass transfer ~/ua.deb $name:/tmp/ua.deb
+cp "$deb" ~/ua.deb
+multipass transfer ~/ua.deb "${name}:/tmp/ua.deb"
 rm -f ~/ua.deb
 
-if [ -n "$SHELL_BEFORE" ]; then
+if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     set +x
     echo
     echo
@@ -24,8 +30,8 @@ if [ -n "$SHELL_BEFORE" ]; then
     echo "After you exit the shell we'll upgrade pro and bring you right back."
     echo
     set -x
-    multipass exec $name bash
+    multipass exec "$name" bash
 fi
 
-multipass exec $name -- sudo dpkg -i /tmp/ua.deb
-multipass shell $name
+multipass exec "$name" -- sudo dpkg -i /tmp/ua.deb
+multipass shell "$name"
