@@ -623,7 +623,7 @@ class UAConfig:
             key: getattr(self, key, None) for key in UA_CONFIGURABLE_KEYS
         }
 
-        content += yaml.dump(cfg_dict, default_flow_style=False)
+        content += yaml.safe_dump(cfg_dict, default_flow_style=False)
         system.write_file(config_path, content)
 
     def warn_about_invalid_keys(self):
