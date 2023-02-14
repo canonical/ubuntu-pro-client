@@ -400,7 +400,7 @@ class TestActionAttach:
     ):
         args = mock.MagicMock(
             token=None,
-            attach_config=FakeFile(yaml.dump({"token": "faketoken"})),
+            attach_config=FakeFile(yaml.safe_dump({"token": "faketoken"})),
         )
         cfg = FakeConfig()
         action_attach(args, cfg=cfg)
@@ -417,7 +417,9 @@ class TestActionAttach:
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
-                yaml.dump({"token": "something", "enable_services": "cis"}),
+                yaml.safe_dump(
+                    {"token": "something", "enable_services": "cis"}
+                ),
                 name="fakename",
             ),
         )
@@ -427,7 +429,7 @@ class TestActionAttach:
         assert "Error while reading fakename: " in e.value.msg
 
         args.attach_config = FakeFile(
-            yaml.dump({"token": "something", "enable_services": "cis"}),
+            yaml.safe_dump({"token": "something", "enable_services": "cis"}),
             name="fakename",
         )
         with pytest.raises(SystemExit):
@@ -495,7 +497,9 @@ class TestActionAttach:
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
-                yaml.dump({"token": "faketoken", "enable_services": ["cis"]})
+                yaml.safe_dump(
+                    {"token": "faketoken", "enable_services": ["cis"]}
+                )
             ),
             auto_enable=auto_enable,
         )
@@ -511,7 +515,7 @@ class TestActionAttach:
             assert [] == m_enable.call_args_list
 
         args.attach_config = FakeFile(
-            yaml.dump({"token": "faketoken", "enable_services": ["cis"]})
+            yaml.safe_dump({"token": "faketoken", "enable_services": ["cis"]})
         )
 
         fake_stdout = io.StringIO()

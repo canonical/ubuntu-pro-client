@@ -67,7 +67,7 @@ class DataObjectFile(Generic[DOFType]):
             str_content = content.to_json()
         elif self.file_format == DataObjectFileFormat.YAML:
             data = content.to_dict()
-            str_content = yaml.dump(data, default_flow_style=False)
+            str_content = yaml.safe_dump(data, default_flow_style=False)
 
         self.ua_file.write(str_content)
 

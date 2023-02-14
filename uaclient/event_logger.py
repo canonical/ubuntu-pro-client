@@ -231,7 +231,7 @@ class EventLogger:
                 )
             )
         elif self._event_logger_mode == EventLoggerMode.YAML:
-            print(yaml.dump(output, default_flow_style=False))
+            print(yaml.safe_dump(output, default_flow_style=False))
 
     def process_events(self) -> None:
         """

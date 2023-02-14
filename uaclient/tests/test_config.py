@@ -386,19 +386,19 @@ class TestWriteCfg:
             (
                 CFG_BASE_CONTENT,
                 CFG_BASE_CONTENT
-                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
             ),
             (  # Yaml output is sorted alphabetically by key
                 "\n".join(sorted(CFG_BASE_CONTENT.splitlines(), reverse=True)),
                 CFG_BASE_CONTENT
-                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
             ),
             # Any custom comments or unrecognized config keys are dropped
             (
                 "unknown-keys-not-preserved: true\n# user comments are lost"
                 + CFG_BASE_CONTENT,
                 CFG_BASE_CONTENT
-                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
             ),
             # All features/settings_overrides ordered after ua_config
             (
@@ -406,7 +406,7 @@ class TestWriteCfg:
                 + "features:\n new: 2\n extra_security_params:\n  hide: true\n"
                 " show_beta: true\nsettings_overrides:\n d: 2\n c: 1\n",
                 CFG_FEATURES_CONTENT
-                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
             ),
             (
                 "settings_overrides:\n c: 1\n d: 2\nfeatures:\n"
@@ -414,7 +414,7 @@ class TestWriteCfg:
                 "  hide: true\nsettings_overrides:\n d: 2\n c: 1\n"
                 + CFG_BASE_CONTENT,
                 CFG_FEATURES_CONTENT
-                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                + yaml.safe_dump(UA_CFG_DICT, default_flow_style=False),
             ),
         ),
     )
@@ -1127,7 +1127,7 @@ class TestParseConfig:
         self, config_dict, expected_invalid_keys, tmpdir
     ):
         config_file = tmpdir.join("uaclient.conf")
-        config_file.write(yaml.dump(config_dict))
+        config_file.write(yaml.safe_dump(config_dict))
         env_vars = {"UA_CONFIG_FILE": config_file.strpath}
         with mock.patch.dict("uaclient.config.os.environ", values=env_vars):
             cfg, invalid_keys = parse_config(config_file.strpath)
