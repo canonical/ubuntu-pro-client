@@ -1,27 +1,36 @@
 #!/usr/bin/bash
-series=$1
+#
+# test-in-lxd.sh [series]
+#
+# Create an LXD container or vm with the current ubuntu-advantages-tool package
+# built from ../
 
-set -x
+set -eux
 
-build_out=$(./tools/build.sh $series)
-hash=$(echo $build_out | jq -r .state_hash)
-deb=$(echo $build_out | jq -r .debs[] | grep tools)
+VM=${VM:-0}
+SHELL_BEFORE=${SHELL_BEFORE:-0}
+
+series=${1:-jammy}
+build_out=$(./tools/build.sh "$series")
+hash=$(echo "$build_out" | jq -r .state_hash)
+deb=$(echo "$build_out" | jq -r '.debs[]' | grep tools)
 name=ua-$series-$hash
 
-if [ -n "$VM" ]; then
+flags=
+if [ "$VM" -ne 0 ]; then
     flags="--vm"
 fi
 
-lxc delete $name --force
-lxc launch ubuntu-daily:$series $name $flags
+lxc delete "$name" --force || true
+lxc launch "ubuntu-daily:${series}" "$name" $flags
 sleep 5
-if [ -n "$VM" ]; then
+if [[ "$VM" -ne 0 ]]; then
     echo "vms take a while before the agent is ready"
     sleep 30
 fi
-lxc file push $deb $name/tmp/ua.deb
+lxc file push "$deb" "${name}/tmp/ua.deb"
 
-if [ -n "$SHELL_BEFORE" ]; then
+if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     set +x
     echo
     echo
@@ -29,8 +38,8 @@ if [ -n "$SHELL_BEFORE" ]; then
     echo "After you exit the shell we'll upgrade pro and bring you right back."
     echo
     set -x
-    lxc exec $name bash
+    lxc exec "$name" bash
 fi
 
-lxc exec $name -- dpkg -i /tmp/ua.deb
-lxc shell $name
+lxc exec "$name" -- dpkg -i /tmp/ua.deb
+lxc shell "$name"
