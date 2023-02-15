@@ -1363,6 +1363,8 @@ A fix is available in Ubuntu standard updates.\n"""
     )
     @mock.patch("uaclient.entitlements.base.UAEntitlement.user_facing_status")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
@@ -1371,6 +1373,8 @@ A fix is available in Ubuntu standard updates.\n"""
         prompt_choices,
         get_cloud_type,
         m_run_apt_cmd,
+        _m_get_pkg_cand_ver,
+        _m_os_getuid,
         _m_should_reboot,
         m_user_facing_status,
         affected_pkg_status,
@@ -1477,8 +1481,10 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     def test_messages_for_affected_packages_covering_all_release_pockets(
         self,
+        _m_apt_pkg_candidate_version,
         m_prompt_choices,
         m_get_cloud_type,
         m_run_apt_cmd,
@@ -1562,8 +1568,10 @@ A fix is available in Ubuntu standard updates.\n"""
     )
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.security.upgrade_packages_and_attach")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     def test_messages_for_affected_packages_when_fix_fail(
         self,
+        _m_apt_pkg_candidate_version,
         m_upgrade_packages,
         _m_should_reboot,
         affected_pkg_status,
@@ -1592,6 +1600,70 @@ A fix is available in Ubuntu standard updates.\n"""
                     usn_released_pkgs=usn_released_pkgs,
                     dry_run=False,
                 )
+        out, err = capsys.readouterr()
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                },
+                {
+                    "pkg1": {"pkg1": "1.8"},
+                    "pkg2": {"pkg2": "1.8"},
+                },
+                {
+                    "pkg1": {"pkg1": {"version": "2.0"}},
+                    "pkg2": {"pkg2": {"version": "1.8"}},
+                },
+                textwrap.dedent(
+                    """\
+                    2 affected source packages are installed: pkg1, pkg2
+                    (1/2, 2/2) pkg1, pkg2:
+                    A fix is available in Ubuntu standard updates.
+                    - Cannot install package pkg1 version 2.0
+                    """
+                )
+                + "\n"
+                + "1 package is still affected: pkg1"
+                + "\n"
+                + "{check} CVE-### is not resolved.\n".format(check=FAIL_X),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.apt.compare_versions")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version")
+    def test_messages_for_affected_packages_when_pkg_cannot_be_upgraded(
+        self,
+        m_apt_pkg_candidate_version,
+        m_apt_compare_versions,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+        _subp,
+    ):
+        m_apt_pkg_candidate_version.return_value = 1.8
+        m_apt_compare_versions.side_effect = [False, True, False]
+
+        cfg = FakeConfig()
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="CVE-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+                dry_run=False,
+            )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1635,6 +1707,7 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.util.is_config_value_true", return_value=True)
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.cli.action_attach")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
@@ -1643,6 +1716,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_prompt_choices,
         m_get_cloud_type,
         _m_input,
+        _m_apt_pkg_candidate_version,
         m_action_attach,
         m_should_reboot,
         _m_is_config_value_true,
@@ -1731,12 +1805,16 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.cli.action_enable", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="e")
     def test_messages_for_affected_packages_when_service_can_be_enabled(
         self,
         m_prompt_choices,
         m_get_cloud_type,
+        _m_os_getuid,
+        _m_apt_pkg_candidate_version,
         _m_run_apt,
         m_action_enable,
         m_check_subscription_expired,
@@ -1820,12 +1898,16 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
     def test_messages_for_affected_packages_when_service_kept_disabled(
         self,
         m_prompt_choices,
         m_get_cloud_type,
+        _m_os_getuid,
+        _m_apt_pkg_candidate_version,
         m_check_subscription_expired,
         _m_should_reboot,
         _m_is_config_value_true,
@@ -1913,6 +1995,7 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("uaclient.cli.action_detach")
@@ -1927,6 +2010,7 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_cli_detach,
         _m_input,
         m_cli_attach,
+        _m_apt_pkg_candidate_version,
         _m_run_apt_command,
         _m_should_reboot,
         m_is_pocket_beta_service,
@@ -1992,12 +2076,16 @@ A fix is available in Ubuntu standard updates.\n"""
     )
     @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
     def test_messages_for_affected_packages_when_subscription_not_renewed(
         self,
         m_prompt_choices,
         m_get_cloud_type,
+        _m_os_getuid,
+        _m_apt_pkg_candidate_version,
         _m_should_reboot,
         m_is_pocket_beta_service,
         affected_pkg_status,
@@ -2065,10 +2153,14 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     def test_messages_for_affected_packages_when_reboot_required(
         self,
         m_get_cloud_type,
+        _m_os_getuid,
+        _m_apt_pkg_candidate_version,
         _m_run_apt_command,
         _m_should_reboot,
         m_add_notice,
@@ -2135,10 +2227,14 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.files.notices.NoticesManager.add")
     @mock.patch("uaclient.system.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     def test_messages_for_affected_packages_when_reboot_required_but_update_already_installed(  # noqa: E501
         self,
         m_get_cloud_type,
+        _m_os_getuid,
+        _m_apt_pkg_candidate_version,
         _m_run_apt_command,
         _m_should_reboot,
         m_add_notice,
@@ -2193,6 +2289,32 @@ class TestUpgradePackagesAndAttach:
         else:
             assert SECURITY_APT_NON_ROOT in out
             assert m_subp.call_count == 0
+
+    @pytest.mark.parametrize(
+        "exception_cls, expected_error_msg",
+        (
+            (Exception, "base-exception"),
+            (exceptions.UserFacingError, "pro-exception"),
+        ),
+    )
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.system.subp")
+    def test_upgrade_packages_fail_if_apt_command_fails(
+        self, m_subp, m_os_getuid, exception_cls, expected_error_msg, capsys
+    ):
+        m_subp.side_effect = exception_cls(expected_error_msg)
+        assert (
+            upgrade_packages_and_attach(
+                cfg=None,
+                upgrade_pkgs=["t1=123"],
+                pocket="Ubuntu standard updates",
+                dry_run=False,
+            )
+            is False
+        )
+
+        out, _ = capsys.readouterr()
+        assert expected_error_msg in out
 
 
 class TestGetRelatedUSNs:
