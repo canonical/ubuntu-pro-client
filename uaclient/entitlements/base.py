@@ -5,9 +5,15 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-import yaml
-
-from uaclient import config, contract, event_logger, messages, system, util
+from uaclient import (
+    config,
+    contract,
+    event_logger,
+    messages,
+    system,
+    util,
+    yaml,
+)
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,

@@ -6,8 +6,6 @@ from collections import namedtuple
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
-import yaml
-
 from uaclient import (
     apt,
     event_logger,
@@ -17,6 +15,7 @@ from uaclient import (
     snap,
     system,
     util,
+    yaml,
 )
 from uaclient.defaults import (
     APT_NEWS_URL,

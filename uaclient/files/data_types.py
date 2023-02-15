@@ -2,9 +2,7 @@ import json
 from enum import Enum
 from typing import Callable, Dict, Generic, Optional, Type, TypeVar
 
-import yaml
-
-from uaclient import exceptions
+from uaclient import exceptions, yaml
 from uaclient.data_types import DataObject
 from uaclient.files.files import UAFile
 from uaclient.util import DatetimeAwareJSONDecoder

@@ -349,3 +349,39 @@ Feature: Command behaviour when unattached
           | bionic  |
           | focal   |
           | jammy   |
+
+    @series.jammy
+    @series.kinetic
+    @series.lunar
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: services don't fail when an incompatible yaml package is installed
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt update` with sudo
+        And I run `apt install python3-pip -y` with sudo
+        And I run `pip3 install pyyaml==3.10` with sudo
+        And I run `ls /usr/local/lib/<python_version>/dist-packages/` with sudo
+        Then stdout matches regexp:
+        """
+        yaml
+        """
+        # Test the specific script which triggered LP #2007241
+        When I run `python3 /usr/lib/ubuntu-advantage/esm_cache.py` with sudo
+        And I run `systemctl start esm-cache.service` with sudo
+        And I wait `5` seconds
+        And I run `systemctl --failed` with sudo
+        Then stdout does not match regexp:
+        """
+        esm-cache\.service
+        """        
+        When I run `systemctl start apt-news.service` with sudo
+        And I wait `5` seconds
+        And I run `systemctl --failed` with sudo
+        Then stdout does not match regexp:
+        """
+        apt-news\.service
+        """
+        Examples: ubuntu release
+          | release | python_version |
+          | jammy   | python3.10     |
+          | kinetic | python3.10     |
+          | lunar   | python3.11     |
