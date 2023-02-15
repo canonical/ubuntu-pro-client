@@ -37,6 +37,12 @@ class FormattedNamedMessage(NamedMessage):
             name=self.name, msg=self.tmpl_msg.format(**msg_params)
         )
 
+    def __repr__(self):
+        return "FormattedNamedMessage({}, {})".format(
+            self.name.__repr__(),
+            self.tmpl_msg.__repr__(),
+        )
+
 
 class TxtColor:
     OKGREEN = "\033[92m"
