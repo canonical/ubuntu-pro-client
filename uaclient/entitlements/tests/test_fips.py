@@ -408,10 +408,7 @@ class TestFIPSEntitlementEnable:
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
         assert [
-            (
-                "",
-                messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
-            )
+            messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
         ] == notice_ent_cls.list()
 
     @pytest.mark.parametrize(
@@ -897,10 +894,7 @@ class TestFIPSEntitlementDisable:
         assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
         assert [
-            (
-                "",
-                messages.FIPS_DISABLE_REBOOT_REQUIRED,
-            ),
+            messages.FIPS_DISABLE_REBOOT_REQUIRED,
         ] == notice_ent_cls.list()
 
 
@@ -1003,44 +997,24 @@ class TestFIPSEntitlementApplicationStatus:
         if path_exists and should_reboot and proc_content == "1":
             expected_msg = msg
             assert [
-                (
-                    "",
-                    messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
-                ),
-                (
-                    "",
-                    messages.FIPS_REBOOT_REQUIRED_MSG,
-                ),
+                messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+                messages.FIPS_REBOOT_REQUIRED_MSG,
             ] == notice_ent_cls.list()
         elif path_exists and not should_reboot and proc_content == "1":
             expected_msg = msg
             # we do not delete the FIPS_REBOOT_REQUIRED notices
             # deleting will happen after rebooting
-            assert notice_ent_cls.list() == [
-                ("", messages.FIPS_REBOOT_REQUIRED_MSG)
-            ]
+            assert notice_ent_cls.list() == [messages.FIPS_REBOOT_REQUIRED_MSG]
         elif path_exists and should_reboot and proc_content == "0":
             expected_msg = messages.FIPS_PROC_FILE_ERROR.format(
                 file_name=entitlement.FIPS_PROC_FILE
             )
             expected_status = ApplicationStatus.DISABLED
             assert [
-                (
-                    "",
-                    messages.FIPS_DISABLE_REBOOT_REQUIRED,
-                ),
-                (
-                    "",
-                    messages.NOTICE_FIPS_MANUAL_DISABLE_URL,
-                ),
-                (
-                    "",
-                    messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
-                ),
-                (
-                    "",
-                    messages.FIPS_REBOOT_REQUIRED_MSG,
-                ),
+                messages.FIPS_DISABLE_REBOOT_REQUIRED,
+                messages.NOTICE_FIPS_MANUAL_DISABLE_URL,
+                messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+                messages.FIPS_REBOOT_REQUIRED_MSG,
             ] == notice_ent_cls.list()
         elif path_exists and not should_reboot and proc_content == "0":
             expected_msg = messages.FIPS_PROC_FILE_ERROR.format(

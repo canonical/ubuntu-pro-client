@@ -2,7 +2,7 @@ import logging
 import os
 from collections import namedtuple
 from enum import Enum
-from typing import List, Tuple
+from typing import List
 
 from uaclient import defaults, event_logger, messages, system, util
 
@@ -156,7 +156,7 @@ class NoticesManager:
         )
         system.ensure_file_absent(os.path.join(directory, filename))
 
-    def list(self) -> List[Tuple[str, str]]:
+    def list(self) -> List[str]:
         """Gets all the notice files currently saved.
 
         :returns: List of notice file contents.
@@ -179,7 +179,7 @@ class NoticesManager:
                     os.path.join(notice_directory, notice_file_name)
                 )
                 if notice_file_contents:
-                    notices.append(("", notice_file_contents))
+                    notices.append(notice_file_contents)
                 else:
                     # if no contents of file, default to message
                     # defined in the enum
@@ -191,7 +191,7 @@ class NoticesManager:
                                 notice = n
                         if notice is None:
                             raise Exception()
-                        notices.append(("", notice.value.message))
+                        notices.append(notice.value.message)
                     except Exception:
                         with util.disable_log_to_console():
                             logging.warning(
@@ -226,6 +226,6 @@ def remove(notice_details: Notice) -> None:
     notice.remove(notice_details)
 
 
-def list() -> List[Tuple[str, str]]:
+def list() -> List[str]:
     notice = get_notice()
     return notice.list()

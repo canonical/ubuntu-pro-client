@@ -337,10 +337,6 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     elif os.path.exists(cfg.data_path("marker-reboot-cmds")):
         status_val = userStatus.REBOOTREQUIRED.value
         operation = "configuration changes"
-        for label, description in notices_list:
-            if label == "Reboot required":
-                operation = description
-                break
         status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation=operation
         )
@@ -630,12 +626,10 @@ def format_tabular(status: Dict[str, Any]) -> str:
                 )
             )
 
-        if status.get("notices"):
-            content.extend(
-                get_section_column_content(
-                    status.get("notices") or [], header="NOTICES"
-                )
-            )
+        notices = status.get("notices")
+        if notices:
+            content.append("NOTICES")
+            content.extend(notices)
 
         if status.get("features"):
             content.append("\nFEATURES")
@@ -674,10 +668,9 @@ def format_tabular(status: Dict[str, Any]) -> str:
     if status.get("notices") or len(service_warnings) > 0:
         content.append("")
         content.append("NOTICES")
-        if status.get("notices"):
-            content.extend(
-                get_section_column_content(status.get("notices") or [])
-            )
+        notices = status.get("notices")
+        if notices:
+            content.extend(notices)
         if len(service_warnings) > 0:
             content.extend(service_warnings)
 
