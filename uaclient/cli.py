@@ -13,8 +13,6 @@ import time
 from functools import wraps
 from typing import List, Optional, Tuple  # noqa
 
-import yaml
-
 from uaclient import (
     actions,
     apt,
@@ -32,7 +30,7 @@ from uaclient import (
     security_status,
 )
 from uaclient import status as ua_status
-from uaclient import util, version
+from uaclient import util, version, yaml
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,

@@ -6,9 +6,8 @@ import textwrap
 
 import mock
 import pytest
-import yaml
 
-from uaclient import event_logger, messages, status, util
+from uaclient import event_logger, messages, status, util, yaml
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
