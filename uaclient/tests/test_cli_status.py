@@ -9,9 +9,8 @@ import textwrap
 
 import mock
 import pytest
-import yaml
 
-from uaclient import exceptions, messages, status, util
+from uaclient import exceptions, messages, status, util, yaml
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode

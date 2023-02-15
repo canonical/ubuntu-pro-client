@@ -11,7 +11,7 @@ import json
 import sys
 from typing import Any, Dict, List, Optional, Set, Union  # noqa: F401
 
-import yaml
+from uaclient import yaml
 
 JSON_SCHEMA_VERSION = "0.1"
 EventFieldErrorType = Optional[Union[str, Dict[str, str]]]

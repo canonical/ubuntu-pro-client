@@ -1171,3 +1171,10 @@ from the system by running:
 
 $ sudo rm {lock_file_path}""",
 )
+
+MISSING_YAML_MODULE = NamedMessage(
+    "missing-yaml-module",
+    """\
+Couldn't import the YAML module from /usr/lib/python3/dist-packages.
+Make sure the 'python3-yaml' package is installed correctly.""",
+)

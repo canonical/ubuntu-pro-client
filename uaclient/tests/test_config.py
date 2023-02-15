@@ -8,9 +8,8 @@ import stat
 
 import mock
 import pytest
-import yaml
 
-from uaclient import apt, exceptions, messages, util
+from uaclient import apt, exceptions, messages, util, yaml
 from uaclient.config import (
     PRIVATE_SUBDIR,
     UA_CONFIGURABLE_KEYS,

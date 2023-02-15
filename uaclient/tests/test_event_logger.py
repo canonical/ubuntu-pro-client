@@ -4,8 +4,8 @@ import json
 
 import mock
 import pytest
-import yaml
 
+from uaclient import yaml
 from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
 
 
