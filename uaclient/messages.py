@@ -1178,3 +1178,8 @@ MISSING_YAML_MODULE = NamedMessage(
 Couldn't import the YAML module from /usr/lib/python3/dist-packages.
 Make sure the 'python3-yaml' package is installed correctly.""",
 )
+
+FIX_CANNOT_INSTALL_PACKAGE = FormattedNamedMessage(
+    "fix-cannot-install-package",
+    "Cannot install package {package} version {version}" "",
+)

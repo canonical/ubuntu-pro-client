@@ -58,6 +58,16 @@ ReleasedPackagesInstallResult = NamedTuple(
 )
 
 
+BinaryPackageFix = NamedTuple(
+    "BinaryPackageFix",
+    [
+        ("source_pkg", str),
+        ("binary_pkg", str),
+        ("fixed_version", str),
+    ],
+)
+
+
 @enum.unique
 class FixStatus(enum.Enum):
     """
@@ -892,7 +902,7 @@ def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
 def _handle_released_package_fixes(
     cfg: UAConfig,
     src_pocket_pkgs: Dict[str, List[Tuple[str, CVEPackageStatus]]],
-    binary_pocket_pkgs: Dict[str, List[str]],
+    binary_pocket_pkgs: Dict[str, List[BinaryPackageFix]],
     pkg_index: int,
     num_pkgs: int,
     dry_run: bool,
@@ -907,7 +917,7 @@ def _handle_released_package_fixes(
     all_already_installed = True
     upgrade_status = True
     unfixed_pkgs = set()
-    installed_pkgs = set()
+    installed_pkgs = set()  # type: Set[str]
     if src_pocket_pkgs:
         for pocket in [
             UBUNTU_STANDARD_UPDATES_POCKET,
@@ -936,10 +946,29 @@ def _handle_released_package_fixes(
                         # installed.
                         all_already_installed = False
 
+                upgrade_pkgs = []
+                for binary_pkg in binary_pkgs:
+                    candidate_version = apt.get_pkg_candidate_version(
+                        binary_pkg.binary_pkg
+                    )
+                    if candidate_version and apt.compare_versions(
+                        binary_pkg.fixed_version, candidate_version, "le"
+                    ):
+                        upgrade_pkgs.append(binary_pkg.binary_pkg)
+                    else:
+                        print(
+                            "- "
+                            + messages.FIX_CANNOT_INSTALL_PACKAGE.format(
+                                package=binary_pkg.binary_pkg,
+                                version=binary_pkg.fixed_version,
+                            ).msg
+                        )
+                        unfixed_pkgs.add(binary_pkg.source_pkg)
+
                 pkg_index += len(pkg_src_group)
                 upgrade_status &= upgrade_packages_and_attach(
                     cfg=cfg,
-                    upgrade_pkgs=binary_pkgs,
+                    upgrade_pkgs=upgrade_pkgs,
                     pocket=pocket,
                     dry_run=dry_run,
                 )
@@ -947,7 +976,9 @@ def _handle_released_package_fixes(
             if not upgrade_status:
                 unfixed_pkgs.update([src_pkg for src_pkg, _ in pkg_src_group])
             else:
-                installed_pkgs.update(binary_pkgs)
+                installed_pkgs.update(
+                    binary_pkg.binary_pkg for binary_pkg in binary_pkgs
+                )
 
     return ReleasedPackagesInstallResult(
         fix_status=upgrade_status,
@@ -1040,11 +1071,16 @@ def prompt_for_affected_packages(
                         raise exceptions.SecurityAPIMetadataError(
                             msg, issue_id
                         )
-                    fixed_pkg = usn_released_src[binary_pkg]
-                    fixed_version = fixed_pkg["version"]  # type: ignore
+                    fixed_version = usn_released_src.get(binary_pkg, {}).get(
+                        "version", ""
+                    )
                     if not apt.compare_versions(fixed_version, version, "le"):
                         binary_pocket_pkgs[pkg_status.pocket_source].append(
-                            binary_pkg
+                            BinaryPackageFix(
+                                source_pkg=src_pkg,
+                                binary_pkg=binary_pkg,
+                                fixed_version=fixed_version,
+                            )
                         )
 
     released_pkgs_install_result = _handle_released_package_fixes(
@@ -1061,6 +1097,9 @@ def prompt_for_affected_packages(
     print()
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
+        fix_message = messages.SECURITY_ISSUE_NOT_RESOLVED.format(
+            issue=issue_id
+        )
 
     if released_pkgs_install_result.fix_status:
         # fix_status is True if either:
@@ -1094,7 +1133,11 @@ def prompt_for_affected_packages(
                     messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
                 )
             )
-            return FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
+            return (
+                FixStatus.SYSTEM_STILL_VULNERABLE
+                if unfixed_pkgs
+                else FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
+            )
         else:
             # we successfully installed some packages, and the system
             # reboot-required flag is not set, so we're good
@@ -1385,11 +1428,16 @@ def upgrade_packages_and_attach(
     )
 
     if not dry_run:
-        apt.run_apt_update_command()
-        apt.run_apt_command(
-            cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_pkgs,
-            error_msg=messages.APT_INSTALL_FAILED.msg,
-            env={"DEBIAN_FRONTEND": "noninteractive"},
-        )
+        try:
+            apt.run_apt_update_command()
+            apt.run_apt_command(
+                cmd=["apt-get", "install", "--only-upgrade", "-y"]
+                + upgrade_pkgs,
+                env={"DEBIAN_FRONTEND": "noninteractive"},
+            )
+        except Exception as e:
+            msg = getattr(e, "msg", str(e))
+            print(msg.strip())
+            return False
 
     return True
