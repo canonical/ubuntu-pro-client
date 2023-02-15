@@ -165,27 +165,43 @@ class NoticesManager:
             defaults.NOTICES_PERMANENT_DIRECTORY,
             defaults.NOTICES_TEMPORARY_DIRECTORY,
         )
-        file_notices = []
+        notices = []
         for notice_directory in notice_directories:
             if not os.path.exists(notice_directory):
                 continue
-            notices = [
-                file
-                for file in os.listdir(notice_directory)
-                if os.path.isfile(os.path.join(notice_directory, file))
+            notice_file_names = [
+                file_name
+                for file_name in os.listdir(notice_directory)
+                if os.path.isfile(os.path.join(notice_directory, file_name))
             ]
-            notices = notices if notices is not None else []
-            for notice in notices:
-                file_notices.append(
-                    (
-                        "",
-                        system.load_file(
-                            os.path.join(notice_directory, notice)
-                        ),
-                    ),
+            for notice_file_name in notice_file_names:
+                notice_file_contents = system.load_file(
+                    os.path.join(notice_directory, notice_file_name)
                 )
-        file_notices.sort()
-        return file_notices
+                if notice_file_contents:
+                    notices.append(("", notice_file_contents))
+                else:
+                    # if no contents of file, default to message
+                    # defined in the enum
+                    try:
+                        order_id, label = notice_file_name.split("-")
+                        notice = None
+                        for n in Notice:
+                            if n.order_id == order_id and n.label == label:
+                                notice = n
+                        if notice is None:
+                            raise Exception()
+                        notices.append(("", notice.value.message))
+                    except Exception:
+                        with util.disable_log_to_console():
+                            logging.warning(
+                                "Something went wrong while processing"
+                                " notice: {}.".format(
+                                    notice_file_name,
+                                )
+                            )
+        notices.sort()
+        return notices
 
 
 _notice_cls = None
