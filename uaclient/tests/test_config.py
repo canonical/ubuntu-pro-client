@@ -77,7 +77,7 @@ class TestNotices:
             ([], ()),
             (
                 [[FakeNotice.a2, "a1"]],
-                [("", "a1")],
+                ["a1"],
             ),
             (
                 [
@@ -85,8 +85,8 @@ class TestNotices:
                     [FakeNotice.a2, "a2"],
                 ],
                 [
-                    ("", "a1"),
-                    ("", "a2"),
+                    "a1",
+                    "a2",
                 ],
             ),
             (
@@ -95,7 +95,7 @@ class TestNotices:
                     [FakeNotice.a, "a1"],
                 ],
                 [
-                    ("", "a1"),
+                    "a1",
                 ],
             ),
         ),
@@ -153,7 +153,7 @@ class TestNotices:
                     [FakeNotice.a2],
                 ],
                 [FakeNotice.a],
-                [("", "notice_a2")],
+                ["notice_a2"],
             ),
             (
                 [
@@ -165,7 +165,7 @@ class TestNotices:
                     FakeNotice.a,
                     FakeNotice.a2,
                 ],
-                [("", "notice_b")],
+                ["notice_b"],
             ),
         ),
     )
