@@ -104,27 +104,8 @@ coverage for your applications.
 Your grace period will expire in 9 days.
 ```
 
-### Advertising `esm-apps` service
+### How are these messages updated and inserted into MOTD?
 
-When we detect that `esm-apps` is supported and not enabled on the system, we
-advertise it using the following message that is delivered before the
-`update-notifier` message:
-
-```
-* Introducing Expanded Security Maintenance for Applications.
-  Receive updates to over 25,000 software packages with your
-  Ubuntu Pro subscription. Free for personal use
-
-    https://ubuntu.com/16-04 
-```
-
-```{note}
-Note that we could also advertise the `esm-infra` service instead. This will
-happen if you use an ESM release. Additionally, the the URL we use to advertise
-the service is different based on the series that is running on the machine.
-
-Additionally, all of those Ubuntu Pro custom messages are delivered into
-`/var/lib/ubuntu-advantage/messages`. We also add custom scripts into
-`/etc/update-motd.d` to check if those messages exist and if they do, insert
-them into the full MOTD message.
-```
+1. The contract status is checked periodically in the background when the machine is attached to an Ubuntu Pro contract.
+2. If one of the above messages applies to the contract that the machine is attached to, then the message is stored in `/var/lib/ubuntu-advantage/messages/motd-contract-status`.
+3. At MOTD generation time, the script located at `/etc/update-motd.d/91-contract-ua-esm-status` checks if `/var/lib/ubuntu-advantage/messages/motd-contract-status` exists and if it does, inserts the message into the full MOTD.
