@@ -247,7 +247,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -289,7 +288,6 @@ Feature: APT Messages
 
         # apt update stamp will prevent a apt_news refresh
         When I run `apt-get update` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -305,7 +303,6 @@ Feature: APT Messages
 
         # manual refresh gets new message
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -326,7 +323,6 @@ Feature: APT Messages
         When I run `rm -rf /var/lib/ubuntu-advantage/messages` with sudo
         When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
         When I run `apt-get update` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -360,7 +356,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -386,7 +381,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -413,7 +407,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -438,7 +431,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -468,7 +460,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -494,7 +485,6 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -530,7 +520,6 @@ Feature: APT Messages
         # test that apt update will trigger hook to update apt_news for local override
         When I run shell command `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
         When I run `apt-get update` with sudo
-        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
