@@ -1668,25 +1668,6 @@ def action_status(args, *, cfg: config.UAConfig):
     show_all = args.all if args else False
     token = args.simulate_with_token if args else None
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
-    if cfg.is_attached:
-        try:
-            if contract.is_contract_changed(cfg):
-                notices.add(
-                    cfg.root_mode,
-                    Notice.CONTRACT_REFRESH_WARNING,
-                )
-            else:
-                notices.remove(
-                    cfg.root_mode,
-                    Notice.CONTRACT_REFRESH_WARNING,
-                )
-        except Exception as e:
-            with util.disable_log_to_console():
-                err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
-                    reason=str(e)
-                )
-                logging.warning(err_msg)
-                event.warning(err_msg)
     status, ret = actions.status(
         cfg, simulate_with_token=token, show_all=show_all
     )
