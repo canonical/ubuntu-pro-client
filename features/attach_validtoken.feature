@@ -401,7 +401,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        features:
          machine_token_overlay: "/tmp/machine-token-overlay.json"
        """
-       When I run `pro status` with sudo
+       And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+       And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+       And I run `pro status` with sudo
        Then stdout matches regexp:
        """
        A change has been detected in your contract.
