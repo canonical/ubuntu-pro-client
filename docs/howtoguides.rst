@@ -34,6 +34,7 @@ How to use ``pro`` commands
 ..  toctree::
     :maxdepth: 1
 
+    Disable or re-enable APT News <howtoguides/disable_enable_apt_news.md>
     Configure a proxy <howtoguides/configure_proxies.md>
     Configure a timer job <howtoguides/configuring_timer_jobs.md>
 
