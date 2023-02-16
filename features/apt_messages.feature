@@ -321,6 +321,27 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
 
+        # creates /run/ubuntu-advantage and /var/lib/ubuntu-advantage/messages if not there
+        When I run `rm -rf /run/ubuntu-advantage` with sudo
+        When I run `rm -rf /var/lib/ubuntu-advantage/messages` with sudo
+        When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
+        When I run `apt-get update` with sudo
+        When I run shell command `rm -f /var/lib/ubuntu-advantage/messages/apt-pre*` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # one
+        # two
+        # three
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+
         # more than 3 lines ignored
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
