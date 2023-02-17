@@ -1193,3 +1193,33 @@ FIX_CANNOT_INSTALL_PACKAGE = FormattedNamedMessage(
     "fix-cannot-install-package",
     "Cannot install package {package} version {version}" "",
 )
+
+ERROR_PARSING_APT_SOURCE_FILES = FormattedNamedMessage(
+    name="error-parsing-apt-source-files",
+    msg="""\
+Error parsing APT source files:
+{exception_str}""",
+)
+
+ERROR_RUNNING_CMD = FormattedNamedMessage(
+    "error-running-cmd",
+    """\
+Error running cmd: {cmd}
+{error_our}
+""",
+)
+
+UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
+    "unattended-upgrades-systemd-job-disabled",
+    "apt-daily.timer jobs are not running",
+)
+
+UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY = FormattedNamedMessage(
+    "unattended-upgrades-cfg-list-value-empty",
+    "{cfg_name} is empty",
+)
+
+UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF = FormattedNamedMessage(
+    "unattended-upgrades-cfg-value-turned-off",
+    "{cfg_name} is turned off",
+)

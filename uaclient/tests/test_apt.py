@@ -28,6 +28,7 @@ from uaclient.apt import (
     find_apt_list_files,
     get_apt_cache_policy,
     get_apt_cache_time,
+    get_apt_config_values,
     get_installed_packages_names,
     is_installed,
     remove_apt_list_files,
@@ -1140,3 +1141,30 @@ class TestAptCacheTime:
             m_infra.setup_local_esm_repo.call_count == infra_setup_repo_count
         )
         assert m_apps.setup_local_esm_repo.call_count == apps_setup_repo_count
+
+
+class TestGetAptConfigValues:
+    @mock.patch("uaclient.apt._get_apt_config")
+    def test_apt_config_values(
+        self,
+        m_get_apt_config,
+    ):
+        m_dict = mock.MagicMock()
+        m_get_apt_config.return_value = m_dict
+
+        m_dict.get.side_effect = ["", "foo", "bar", ""]
+        m_dict.value_list.side_effect = [
+            "",
+            ["test1", "test2"],
+        ]
+
+        expected_return = {
+            "val1": None,
+            "val2": "foo",
+            "val3": "bar",
+            "val4": ["test1", "test2"],
+        }
+
+        assert expected_return == get_apt_config_values(
+            ["val1", "val2", "val3", "val4"]
+        )

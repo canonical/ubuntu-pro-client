@@ -28,6 +28,7 @@ VALID_ENDPOINTS = [
     "u.pro.security.status.reboot_required.v1",
     "u.pro.version.v1",
     "u.security.package_manifest.v1",
+    "u.unattended_upgrades.status.v1",
 ]
 
 
