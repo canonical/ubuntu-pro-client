@@ -48,7 +48,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         headers=None,
         method=None,
         query_params=None,
-        potentially_sensitive: bool = True,
+        log_response_body: bool = True,
         timeout: Optional[int] = None,
     ):
         path = path.lstrip("/")
@@ -76,7 +76,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 headers=headers,
                 method=method,
                 timeout=timeout_to_use,
-                potentially_sensitive=potentially_sensitive,
+                log_response_body=log_response_body,
             )
         except error.URLError as e:
             body = None
