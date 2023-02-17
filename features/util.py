@@ -139,6 +139,8 @@ def repo_state_hash(
                 break
         if exclude:
             continue
+        if os.path.isdir(fname):
+            continue
         with open(fname) as f:
             new_file_content += f.read()
 
