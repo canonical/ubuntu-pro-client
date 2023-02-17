@@ -529,3 +529,25 @@ def ensure_folder_absent(folder_path: str) -> None:
     if os.path.exists(folder_path):
         logging.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
+
+
+def get_systemd_job_state(job_name: str) -> bool:
+    """
+    Get if the systemd job is active in the system. Note that any status
+    different from "active" will make this function return False.
+    Additionally, if the system doesn't exist we will also return False
+    here.
+
+    @param job_name: Name of the systemd job to look at
+
+    @return: A Boolean specifying if the job is active or not
+    """
+    try:
+        out, _ = subp(["systemctl", "is-active", job_name])
+    except exceptions.ProcessExecutionError as e:
+        out = e.stdout
+
+    if not out:
+        return False
+
+    return out.strip() == "active"

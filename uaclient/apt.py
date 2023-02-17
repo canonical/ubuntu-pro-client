@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 from functools import lru_cache
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, Iterable, List, NamedTuple, Optional, Union
 
 from uaclient import event_logger, exceptions, gpg, messages, system
 from uaclient.defaults import ESM_APT_ROOTDIR
@@ -712,3 +712,42 @@ def remove_packages(package_names: List[str], error_message: str):
         error_message,
         env={"DEBIAN_FRONTEND": "noninteractive"},
     )
+
+
+def _get_apt_config():
+    import apt_pkg
+
+    # We need to clear the config values in case another module
+    # has already initiated it
+    for key in apt_pkg.config.keys():
+        apt_pkg.config.clear(key)
+
+    apt_pkg.init_config()
+    return apt_pkg.config
+
+
+def get_apt_config_keys(base_key):
+    apt_cfg = _get_apt_config()
+    return apt_cfg.list(base_key)
+
+
+def get_apt_config_values(
+    cfg_names: Iterable[str],
+) -> Dict[str, Union[str, List[str]]]:
+    """
+    Get all APT configuration values for the given config names. If
+    one of the config names is not present on the APT config, that
+    config name will have a value of None
+    """
+    apt_cfg = _get_apt_config()
+    apt_cfg_dict = {}  # type: Dict[str, Union[str, List[str]]]
+
+    for cfg_name in cfg_names:
+        cfg_value = apt_cfg.get(cfg_name)
+
+        if not str(cfg_value):
+            cfg_value = apt_cfg.value_list(cfg_name) or None
+
+        apt_cfg_dict[cfg_name] = cfg_value
+
+    return apt_cfg_dict

@@ -1041,3 +1041,35 @@ class TestSubp:
                 assert log in logs
             else:
                 assert log not in logs
+
+
+class TestGetSystemdJobState:
+    @pytest.mark.parametrize(
+        "systemd_return,expected_return",
+        (
+            ("active", True),
+            ("inactive", False),
+            ("", False),
+            (None, False),
+            ("test", False),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_get_systemd_job_state(
+        self,
+        subp,
+        systemd_return,
+        expected_return,
+    ):
+        subp.return_value = (systemd_return, "")
+        assert expected_return == system.get_systemd_job_state(job_name="test")
+
+    @mock.patch("uaclient.system.subp")
+    def test_systemd_job_state_non_zero(
+        self,
+        subp,
+    ):
+        subp.side_effect = exceptions.ProcessExecutionError(
+            cmd="test", exit_code=3, stdout="inactive", stderr=""
+        )
+        assert False is system.get_systemd_job_state(job_name="test")
