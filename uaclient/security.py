@@ -102,7 +102,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
             headers=headers,
             method=method,
             query_params=query_params,
-            potentially_sensitive=False,
+            log_response_body=False,
         )
 
     def get_cves(

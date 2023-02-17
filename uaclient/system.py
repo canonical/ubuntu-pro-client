@@ -503,13 +503,13 @@ def subp(
             break
         except exceptions.ProcessExecutionError as e:
             if capture:
-                logging.debug(util.redact_sensitive_logs(str(e)))
+                logging.debug(str(e))
                 msg = "Stderr: {}\nStdout: {}".format(e.stderr, e.stdout)
-                logging.warning(util.redact_sensitive_logs(msg))
+                logging.warning(msg)
             if not retry_sleeps:
                 raise
             retry_msg = " Retrying %d more times." % len(retry_sleeps)
-            logging.debug(util.redact_sensitive_logs(str(e) + retry_msg))
+            logging.debug(str(e) + retry_msg)
             time.sleep(retry_sleeps.pop(0))
     return out, err
 

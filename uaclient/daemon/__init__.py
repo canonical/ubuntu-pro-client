@@ -3,7 +3,9 @@ import os
 import sys
 from subprocess import TimeoutExpired
 
-from uaclient import exceptions, system
+from uaclient import exceptions
+from uaclient import log as pro_log
+from uaclient import system
 from uaclient.config import UAConfig
 from uaclient.defaults import DEFAULT_DATA_DIR, DEFAULT_LOG_FORMAT
 
@@ -42,6 +44,7 @@ def setup_logging(console_level, log_level, log_file, logger):
     logger.setLevel(log_level)
 
     logger.handlers = []
+    logger.addFilter(pro_log.RedactionFilter())
 
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setFormatter(logging.Formatter("%(message)s"))

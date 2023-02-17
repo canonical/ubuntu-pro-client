@@ -182,7 +182,7 @@ def get_dict_deltas(
                 + str(new_value)
                 + "'"
             )
-            logging.debug(redact_sensitive_logs(log))
+            logging.debug(log)
             deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:
@@ -301,7 +301,7 @@ def readurl(
     headers: Dict[str, str] = {},
     method: Optional[str] = None,
     timeout: Optional[int] = None,
-    potentially_sensitive: bool = True,
+    log_response_body: bool = True,
 ) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
     if data and not method:
         method = "POST"
@@ -310,13 +310,11 @@ def readurl(
         ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
     )
     logging.debug(
-        redact_sensitive_logs(
-            "URL [{}]: {}, headers: {{{}}}, data: {}".format(
-                method or "GET",
-                url,
-                sorted_header_str,
-                data.decode("utf-8") if data else None,
-            )
+        "URL [{}]: {}, headers: {{{}}}, data: {}".format(
+            method or "GET",
+            url,
+            sorted_header_str,
+            data.decode("utf-8") if data else None,
         )
     )
     http_error_found = False
@@ -333,12 +331,13 @@ def readurl(
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
     )
-    debug_msg = "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
-        method or "GET", url, sorted_header_str, content
+    debug_msg = "URL [{}] response: {}, headers: {{{}}}".format(
+        method or "GET", url, sorted_header_str
     )
-    if potentially_sensitive:
-        # For large responses, this is very slow (several minutes)
-        debug_msg = redact_sensitive_logs(debug_msg)
+    if log_response_body:
+        # Due to implicit logging redaction, large responses might take longer
+        debug_msg += ", data: {}".format(content)
+
     logging.debug(debug_msg)
     if http_error_found:
         raise resp
