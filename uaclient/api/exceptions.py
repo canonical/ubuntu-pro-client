@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 from uaclient import messages
+from uaclient.api.errors import APIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
@@ -47,3 +48,9 @@ class AutoAttachDisabledError(UserFacingError):
             messages.AUTO_ATTACH_DISABLED_ERROR.msg,
             messages.AUTO_ATTACH_DISABLED_ERROR.name,
         )
+
+
+class UnattendedUpgradesError(APIError):
+    def __init__(self, msg):
+        self.msg = msg
+        self.msg_code = "unable-to-determine-unattended-upgrade-status"
