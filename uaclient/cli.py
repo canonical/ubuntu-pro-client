@@ -25,10 +25,9 @@ from uaclient import (
     event_logger,
     exceptions,
     lock,
-    messages,
-    security,
-    security_status,
 )
+from uaclient import log as pro_log
+from uaclient import messages, security, security_status
 from uaclient import status as ua_status
 from uaclient import util, version, yaml
 from uaclient.api.api import call_api
@@ -1841,6 +1840,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
         # Then we configure the root logger
         logger = logging.getLogger()
     logger.setLevel(log_level)
+    logger.addFilter(pro_log.RedactionFilter())
 
     # Clear all handlers, so they are replaced for this logger
     logger.handlers = []
@@ -1977,9 +1977,7 @@ def main(sys_argv=None):
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)
 
-    logging.debug(
-        util.redact_sensitive_logs("Executed with sys.argv: %r" % sys_argv)
-    )
+    logging.debug("Executed with sys.argv: %r" % sys_argv)
 
     with util.disable_log_to_console():
         cfg.warn_about_invalid_keys()
@@ -1990,9 +1988,7 @@ def main(sys_argv=None):
     ]
     if pro_environment:
         logging.debug(
-            util.redact_sensitive_logs(
-                "Executed with environment variables: %r" % pro_environment
-            )
+            "Executed with environment variables: %r" % pro_environment
         )
     return_value = args.action(args, cfg=cfg)
 
