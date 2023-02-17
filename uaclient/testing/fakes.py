@@ -51,3 +51,9 @@ class FakeFile:
         ret = self.content[self.cursor : size]
         self.cursor += size
         return ret
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        pass
