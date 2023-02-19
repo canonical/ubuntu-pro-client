@@ -1,7 +1,7 @@
 Ubuntu Pro Client
 #################
 
-The Ubuntu Pro Client (``pro``) is the offical tool to enable Canonical
+The Ubuntu Pro Client (``pro``) is the official tool to enable Canonical
 offerings on your system.
 
 ``pro`` provides support to view, enable, and disable the following Canonical
