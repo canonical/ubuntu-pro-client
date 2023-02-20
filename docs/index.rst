@@ -1,7 +1,7 @@
 Ubuntu Pro Client
 #################
 
-The Ubuntu Pro Client (``pro``) is the offical tool to enable Canonical
+The Ubuntu Pro Client (``pro``) is the official tool to enable Canonical
 offerings on your system.
 
 ``pro`` provides support to view, enable, and disable the following Canonical
@@ -16,7 +16,7 @@ services:
 - `Livepatch`_
 
 If you need any of those services for your machine, ``pro`` is the right tool
-for you.
+for you. 
 
 ``pro`` is already installed on every Ubuntu system. Try it out by running
 ``pro help``!
@@ -59,8 +59,23 @@ Having trouble? We would like to help! For help on a specific page in this
 documentation, click on the "Have a question?" link at the top of that page.
 You can also...
 
-- Ask a question in the ``#ubuntu-server`` `IRC channel on Libera`_
-- `Report bugs on Launchpad`_
+- **Have questions?**
+  You might find the answers `in our FAQ`_.
+  
+- **Having trouble?**
+  We would like to help! To get help on a specific page in this documentation,
+  simply click on the "Have a question?" link at the top of that page. This
+  will open up an issue in GitHub where you can tell us more about the problem
+  you're having and we will do our best to resolve it for you.
+
+- **Found a bug?**
+  You can `Report bugs on Launchpad`_!
+  
+- **Want to give feedback?**
+  If you have any comments, requests or suggestions that you'd like to share,
+  we'd be very happy to receive them! Please feel free to reach out on
+  `our Discourse forum`_, or you can get in touch via the ``#ubuntu-server``
+  `IRC channel on Libera`_.
 
 Project and community
 =====================
@@ -108,3 +123,5 @@ constructive feedback.
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-advantage-client/blob/main/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
+.. _our Discourse forum: https://discourse.ubuntu.com/c/ubuntu-pro/116
+.. _in our FAQ: https://discourse.ubuntu.com/t/ubuntu-pro-faq/34042
