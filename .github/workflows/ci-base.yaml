@@ -23,33 +23,21 @@ jobs:
         uses: actions/checkout@v3
       - name: Formatting
         run: tox -e black -e isort
+      - name: Style
+        run: tox -e flake8
       - name: Mypy
         run: tox -e mypy
       - name: Version Consistency
         run: python3 ./tools/check-versions-are-consistent.py
   unit-tests:
-    name: Matrix
-    strategy:
-      matrix:
-        testenv:
-          - {os: ubuntu-18.04, pyver: py35, deadsnake: python3.5}
-          - {os: ubuntu-18.04, pyver: py36}
-          - {os: ubuntu-20.04, pyver: py38}
-          - {os: ubuntu-22.04, pyver: py310}
-    runs-on: ${{ matrix.testenv.os }}
+    name: Unit Tests
+    runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
-      - name: Install older Python from deadsnakes PPA
-        if: matrix.testenv.deadsnake != ''
-        run: |
-          sudo add-apt-repository --yes ppa:deadsnakes/ppa
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install "${{ matrix.testenv.deadsnake }}" "${{ matrix.testenv.deadsnake }}-dev"
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Flake8
-        run: tox -e "${{ matrix.testenv.pyver }}-flake8"
       - name: Unit
-        run: tox -e "${{ matrix.testenv.pyver }}-test"
+        run: tox -e test
