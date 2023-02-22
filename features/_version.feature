@@ -25,6 +25,14 @@ Feature: Pro is expected version
         """
         $behave_var{version}
         """
+        # The following doesn't actually assert anything. It merely ensures that the output of
+        # apt-cache policy ubuntu-advantage-tools on the test machine is included in our test output.
+        # This is useful to manually verify the package is installed from the correct source e.g. -proposed.
+        When I check the apt-cache policy of ubuntu-advantage-tools
+        Then the apt-cache policy of ubuntu-advantage-tools is
+        """
+        THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
+        """
         Examples: version
             | release |
             | xenial  |
@@ -49,6 +57,14 @@ Feature: Pro is expected version
         Then I will see the following on stdout
         """
         $behave_var{version}
+        """
+        # The following doesn't actually assert anything. It merely ensures that the output of
+        # apt-cache policy ubuntu-advantage-tools on the test machine is included in our test output.
+        # This is useful to manually verify the package is installed from the correct source e.g. -proposed.
+        When I check the apt-cache policy of ubuntu-advantage-tools
+        Then the apt-cache policy of ubuntu-advantage-tools is
+        """
+        THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
         """
         Examples: version
             | release |
