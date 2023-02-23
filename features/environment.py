@@ -419,10 +419,19 @@ def before_scenario(context: Context, scenario: Scenario):
             return
 
     # before_step doesn't execute early enough to modify the step
-    # so we perform the version step surgery here
+    # so we perform step text surgery here
+    # Also, logging capture is not set up when before_scenario is called,
+    # so if you call logging.info here, then the root logger gets configured
+    # and it messes up all the future behave logging capture machinery.
+    # See https://github.com/behave/behave/blob/v1.2.6/behave/model.py#L700
+    # But we want to log the replacement we're making, so we use the behave
+    # logger and warning log_level to make sure it gets included.
+    logger = logging.getLogger("behave.before_scenario.process_template_vars")
     for step in scenario.steps:
         if step.text:
-            step.text = process_template_vars(context, step.text)
+            step.text = process_template_vars(
+                context, step.text, logger_fn=logger.warn
+            )
 
 
 FAILURE_FILES = (
