@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 from enum import Enum
-from typing import Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional
 
 import yaml
 
@@ -274,12 +274,17 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
     }
 
 
-def _replace_and_log(s, old, new):
-    logging.debug('replacing "{}" with "{}"'.format(old, new))
+def _replace_and_log(s, old, new, logger_fn):
+    logger_fn('replacing "{}" with "{}"'.format(old, new))
     return s.replace(old, new)
 
 
-def process_template_vars(context, template: str) -> str:
+def process_template_vars(
+    context, template: str, logger_fn: Optional[Callable] = None
+) -> str:
+    if logger_fn is None:
+        logger_fn = logging.info
+
     processed_template = template
 
     for match in re.finditer(r"\$behave_var{(.*)}", template):
@@ -291,6 +296,7 @@ def process_template_vars(context, template: str) -> str:
                     processed_template,
                     match.group(0),
                     context.config.check_version,
+                    logger_fn,
                 )
         elif function_name == "machine-ip":
             if args[1] in context.machines:
@@ -298,10 +304,14 @@ def process_template_vars(context, template: str) -> str:
                     processed_template,
                     match.group(0),
                     context.machines[args[1]].instance.ip,
+                    logger_fn,
                 )
         elif function_name == "cloud":
             processed_template = _replace_and_log(
-                processed_template, match.group(0), context.config.cloud
+                processed_template,
+                match.group(0),
+                context.config.cloud,
+                logger_fn,
             )
         elif function_name == "today":
             dt = datetime.datetime.utcnow()
@@ -310,13 +320,17 @@ def process_template_vars(context, template: str) -> str:
                 dt = dt + datetime.timedelta(days=offset)
             dt_str = dt.strftime("%Y-%m-%dT00:00:00Z")
             processed_template = _replace_and_log(
-                processed_template, match.group(0), dt_str
+                processed_template,
+                match.group(0),
+                dt_str,
+                logger_fn,
             )
         elif function_name == "contract_token_staging":
             processed_template = _replace_and_log(
                 processed_template,
                 match.group(0),
                 context.config.contract_token_staging,
+                logger_fn,
             )
 
     return processed_template
