@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (27.13.6~23.04.1) lunar; urgency=medium
+
+  * apt-news:
+    - make sure systems which never ran a pro command get the apt-news message
+      displayed (LP: #2008814)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 28 Feb 2023 15:56:11 -0300
+
 ubuntu-advantage-tools (27.13.5~23.04.1) lunar; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
