@@ -1,10 +1,15 @@
+import json
 import logging
+from io import StringIO
 
 import pytest
 
 from uaclient import log as pro_log
 
-LOG = logging.getLogger("uaclient.test.test_log")
+LOG = logging.getLogger(__name__)
+LOG_FMT = "%(asctime)s%(name)s%(funcName)s%(lineno)s\
+%(levelname)s%(message)s%(extra)s"
+DATE_FMT = "%Y-%m-%dT%H:%M:%S%z"
 
 
 class TestLogger:
@@ -115,3 +120,40 @@ class TestLogger:
         LOG.info(raw_log)
         log = caplog_text()
         assert expected in log
+
+
+class TestLoggerFormatter:
+    @pytest.mark.parametrize(
+        "message,level,log_fn,levelname,extra",
+        (
+            ("mIDValue", logging.DEBUG, LOG.debug, "DEBUG", None),
+            ("2B||~2B", logging.INFO, LOG.info, "INFO", None),
+            (
+                "2B||~2B",
+                logging.WARNING,
+                LOG.warning,
+                "WARNING",
+                {"key": "value"},
+            ),
+        ),
+    )
+    @pytest.mark.parametrize("caplog_text", [logging.NOTSET], indirect=True)
+    def test_valid_json_output(
+        self, caplog_text, message, level, log_fn, levelname, extra
+    ):
+        formatter = pro_log.JsonArrayFormatter(LOG_FMT, DATE_FMT)
+        buffer = StringIO()
+        sh = logging.StreamHandler(buffer)
+        sh.setLevel(level)
+        sh.setFormatter(formatter)
+        LOG.addHandler(sh)
+        log_fn(message, extra={"extra": extra})
+        logged_value = buffer.getvalue()
+        val = json.loads(logged_value)
+        assert val[1] == levelname
+        assert val[2] == __name__
+        assert val[5] == message
+        if extra:
+            assert val[6].get("key") == extra.get("key")
+        else:
+            assert 7 == len(val)
