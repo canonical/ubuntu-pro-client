@@ -664,7 +664,6 @@ class TestMain:
         logging_sandbox,
         caplog_text,
     ):
-
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known"), url=error_url
@@ -817,8 +816,8 @@ class TestSetupLogging:
         logging.error("after setup")
 
         content = log_file.read()
-        assert "[ERROR]: before setup" not in content
-        assert "[ERROR]: after setup" in content
+        assert re.match(r'\[.*"ERROR", "before setup"', content) is None
+        assert re.match(r'\[.*"ERROR",.*"after setup"', content)
 
     @mock.patch("uaclient.cli.config.UAConfig")
     def test_custom_logger_configuration(

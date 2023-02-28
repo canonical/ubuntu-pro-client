@@ -7,7 +7,8 @@ from uaclient import exceptions
 from uaclient import log as pro_log
 from uaclient import system
 from uaclient.config import UAConfig
-from uaclient.defaults import DEFAULT_DATA_DIR, DEFAULT_LOG_FORMAT
+from uaclient.defaults import DEFAULT_DATA_DIR
+from uaclient.log import JsonArrayFormatter
 
 LOG = logging.getLogger("pro.daemon")
 
@@ -53,7 +54,7 @@ def setup_logging(console_level, log_level, log_file, logger):
     logger.addHandler(console_handler)
 
     file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
-    file_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
     file_handler.set_name("ua-file")
     logger.addHandler(file_handler)
