@@ -49,7 +49,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
-from uaclient.defaults import DEFAULT_LOG_FORMAT, PRINT_WRAP_WIDTH
+from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_message,
     entitlements_disable_order,
@@ -64,6 +64,7 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.jobs.update_messaging import refresh_motd, update_motd_messages
+from uaclient.log import JsonArrayFormatter
 
 NAME = "pro"
 
@@ -1835,7 +1836,6 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
         cfg = config.UAConfig()
         log_file = cfg.log_file
     console_formatter = util.LogFormatter()
-    log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     if logger is None:
         # Then we configure the root logger
         logger = logging.getLogger()
@@ -1862,8 +1862,8 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
             log_file_path.chmod(0o644)
 
         file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(JsonArrayFormatter())
         file_handler.setLevel(log_level)
-        file_handler.setFormatter(log_formatter)
         file_handler.set_name("ua-file")
         logger.addHandler(file_handler)
 
