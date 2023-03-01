@@ -1,6 +1,6 @@
 from typing import Optional, Tuple  # noqa: F401
 
-from uaclient import event_logger, messages, system, util
+from uaclient import apt, event_logger, messages, system, util
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
 from uaclient.types import (  # noqa: F401
@@ -91,3 +91,13 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                 )
             ],
         }
+
+    def remove_packages(self) -> None:
+        packages = set(self.packages).intersection(
+            set(apt.get_installed_packages_names())
+        )
+        if packages:
+            apt.remove_packages(
+                list(packages),
+                messages.DISABLE_FAILED_TMPL.format(title=self.title),
+            )
