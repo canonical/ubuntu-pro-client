@@ -29,8 +29,8 @@ Feature: Package related API endpoints
 
         Examples: ubuntu release
             | release | package         | outdated_version | candidate_version        | provided_by       |
-            | xenial  | libcurl3-gnutls | 7.47.0-1ubuntu2  | 7.47.0-1ubuntu2.19\+esm6 | esm-infra         |
-            | bionic  | libcurl4        | 7.58.0-2ubuntu3  | 7.58.0-2ubuntu3.22       | standard-security |
-            | focal   | libcurl4        | 7.68.0-1ubuntu2  | 7.68.0-1ubuntu2.15       | standard-security |
-            | jammy   | libcurl4        | 7.81.0-1         | 7.81.0-1ubuntu1.7        | standard-security |
-            | kinetic | libcurl4        | 7.85.0-1         | 7.85.0-1ubuntu0.2        | standard-security |
+            | xenial  | libcurl3-gnutls | 7.47.0-1ubuntu2  | 7.47.0-1ubuntu2.19\+esm7 | esm-infra         |
+            | bionic  | libcurl4        | 7.58.0-2ubuntu3  | 7.58.0-2ubuntu3.23       | standard-security |
+            | focal   | libcurl4        | 7.68.0-1ubuntu2  | 7.68.0-1ubuntu2.16       | standard-security |
+            | jammy   | libcurl4        | 7.81.0-1         | 7.81.0-1ubuntu1.8        | standard-security |
+            | kinetic | libcurl4        | 7.85.0-1         | 7.85.0-1ubuntu0.3        | standard-security |
