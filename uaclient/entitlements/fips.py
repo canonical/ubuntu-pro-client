@@ -319,17 +319,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         )
         remove_packages = fips_metapackage.intersection(installed_packages)
         if remove_packages:
-            env = {"DEBIAN_FRONTEND": "noninteractive"}
-            apt_options = [
-                '-o Dpkg::Options::="--force-confdef"',
-                '-o Dpkg::Options::="--force-confold"',
-            ]
-            apt.run_apt_command(
-                ["apt-get", "remove", "--assume-yes"]
-                + apt_options
-                + list(remove_packages),
+            apt.remove_packages(
+                list(fips_metapackage),
                 messages.DISABLE_FAILED_TMPL.format(title=self.title),
-                env=env,
             )
 
     def _perform_enable(self, silent: bool = False) -> bool:
