@@ -92,8 +92,22 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
-            This will disable Ubuntu Pro updates to the Real-time kernel on this machine.
-            The Real-time kernel will remain installed.
+            This will remove the boot order preference for the Real-time kernel and
+            disable updates to the Real-time kernel.
+
+            This will NOT fully remove the kernel from your system.
+
+            After this operation is complete you must:
+            - Ensure a different kernel is installed and configured to boot
+            - Reboot into that kernel
+            - Fully remove the realtime kernel packages from your system
+                - This might look something like `apt remove linux*realtime`,
+                  but you must ensure this is correct before running it.
+            """
+        When I run `apt-cache policy ubuntu-realtime` as non-root
+        Then stdout contains substring
+            """
+            Installed: (none)
             """
 
         Examples: ubuntu release
