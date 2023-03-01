@@ -47,7 +47,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-time kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
             """
