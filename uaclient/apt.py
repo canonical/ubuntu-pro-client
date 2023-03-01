@@ -697,3 +697,18 @@ def update_esm_caches(cfg) -> None:
     # in tests - down the rabbit hole, not worth it
     except apt.cache.FetchFailedException:
         logging.warning("Failed to fetch the ESM Apt Cache")
+
+
+def remove_packages(package_names: List[str], error_message: str):
+    run_apt_command(
+        [
+            "apt-get",
+            "remove",
+            "--assume-yes",
+            '-o Dpkg::Options::="--force-confdef"',
+            '-o Dpkg::Options::="--force-confold"',
+        ]
+        + list(package_names),
+        error_message,
+        env={"DEBIAN_FRONTEND": "noninteractive"},
+    )
