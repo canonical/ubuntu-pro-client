@@ -823,8 +823,18 @@ Do you want to continue? [ default = Yes ]: (Y/n) """.format(
     bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
 )
 REALTIME_PRE_DISABLE_PROMPT = """\
-This will disable Ubuntu Pro updates to the Real-time kernel on this machine.
-The Real-time kernel will remain installed.\
+This will remove the boot order preference for the Real-time kernel and
+disable updates to the Real-time kernel.
+
+This will NOT fully remove the kernel from your system.
+
+After this operation is complete you must:
+  - Ensure a different kernel is installed and configured to boot
+  - Reboot into that kernel
+  - Fully remove the realtime kernel packages from your system
+      - This might look something like `apt remove linux*realtime`,
+        but you must ensure this is correct before running it.
+
 Are you sure? (y/N) """
 
 REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
