@@ -44,10 +44,6 @@ def when_i_run_command(
 ):
     command = process_template_vars(context, command)
 
-    if "<ci-proxy-ip>" in command and "proxy" in context.machines:
-        command = command.replace(
-            "<ci-proxy-ip>", context.machines["proxy"].instance.ip
-        )
     prefix = get_command_prefix_for_user_spec(user_spec)
 
     full_cmd = prefix + shlex.split(command)
