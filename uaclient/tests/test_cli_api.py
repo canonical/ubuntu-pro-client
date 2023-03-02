@@ -24,7 +24,8 @@ positional arguments:
 
 
 class TestActionAPI:
-    def test_api_help(self, capsys):
+    @mock.patch("uaclient.cli.entitlements.valid_services", return_value=[])
+    def test_api_help(self, valid_service, capsys):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "api", "--help"]):
                 main()
