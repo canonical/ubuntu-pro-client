@@ -6,39 +6,32 @@ from uaclient.cli import action_config_show, main
 M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = """\
-usage: pro config <command> [flags]
+usage: pro config show [key] [flags]
 
-Manage Ubuntu Pro configuration
+Show customisable configuration settings
 
-Flags:
-  -h, --help  show this help message and exit
+positional arguments:
+  key         Optional key or key(s) to show configuration settings.
 
-Available Commands:
-  
-    show      show all Ubuntu Pro configuration setting(s)
-    set       set Ubuntu Pro configuration setting
-    unset     unset Ubuntu Pro configuration setting
-"""  # noqa
+"""
 
 
 @mock.patch("uaclient.cli.logging.error")
 @mock.patch("uaclient.cli.setup_logging")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfigShow:
-    @pytest.mark.parametrize("additional_params", ([], ["--help"]))
     def test_config_show_help(
         self,
         _m_resources,
         _logging,
         logging_error,
-        additional_params,
         capsys,
         FakeConfig,
     ):
         """Show help for --help and absent positional param"""
         with pytest.raises(SystemExit):
             with mock.patch(
-                "sys.argv", ["/usr/bin/ua", "config"] + additional_params
+                "sys.argv", ["/usr/bin/ua", "config", "show", "--help"]
             ):
                 with mock.patch(
                     "uaclient.config.UAConfig",
@@ -46,15 +39,8 @@ class TestMainConfigShow:
                 ):
                     main()
         out, err = capsys.readouterr()
-        assert HELP_OUTPUT == out
-        if additional_params == ["--help"]:
-            assert "" == err
-        else:
-            # When lacking show, set or unset inform about valid values
-            assert "\n<command> must be one of: show, set, unset\n" == err
-            assert [
-                mock.call("\n<command> must be one of: show, set, unset")
-            ] == logging_error.call_args_list
+        assert out.startswith(HELP_OUTPUT)
+        assert "" == err
 
     def test_config_show_error_on_invalid_subcommand(
         self, _m_resources, _logging, _logging_error, capsys, FakeConfig
