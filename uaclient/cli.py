@@ -324,9 +324,11 @@ def collect_logs_parser(parser):
     return parser
 
 
-def config_show_parser(parser):
+def config_show_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config show' subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="show [key]")
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="{} show [key]".format(parent_command)
+    )
     parser.prog = "show"
     parser.description = "Show customisable configuration settings"
     parser.add_argument(
@@ -337,10 +339,12 @@ def config_show_parser(parser):
     return parser
 
 
-def config_set_parser(parser):
+def config_set_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config set' subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="set <key>=<value>")
-    parser.prog = "set"
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="{} set <key>=<value>".format(parent_command)
+    )
+    parser.prog = "aset"
     parser.description = "Set and apply Ubuntu Pro configuration settings"
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -355,9 +359,11 @@ def config_set_parser(parser):
     return parser
 
 
-def config_unset_parser(parser):
+def config_unset_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config unset' subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="unset <key>")
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="{} unset <key>".format(parent_command)
+    )
     parser.prog = "unset"
     parser.description = "Unset Ubuntu Pro configuration setting"
     parser.add_argument(
@@ -374,8 +380,11 @@ def config_unset_parser(parser):
 
 def config_parser(parser):
     """Build or extend an arg parser for config subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="config <command>")
-    parser.prog = "config"
+    command = "config"
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="{} <command>".format(command)
+    )
+    parser.prog = command
     parser.description = "Manage Ubuntu Pro configuration"
     parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
@@ -385,19 +394,19 @@ def config_parser(parser):
         "show", help="show all Ubuntu Pro configuration setting(s)"
     )
     parser_show.set_defaults(action=action_config_show)
-    config_show_parser(parser_show)
+    config_show_parser(parser_show, parent_command=command)
 
     parser_set = subparsers.add_parser(
         "set", help="set Ubuntu Pro configuration setting"
     )
     parser_set.set_defaults(action=action_config_set)
-    config_set_parser(parser_set)
+    config_set_parser(parser_set, parent_command=command)
 
     parser_unset = subparsers.add_parser(
         "unset", help="unset Ubuntu Pro configuration setting"
     )
     parser_unset.set_defaults(action=action_config_unset)
-    config_unset_parser(parser_unset)
+    config_unset_parser(parser_unset, parent_command=command)
     return parser
 
 
