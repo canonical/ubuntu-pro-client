@@ -6,7 +6,7 @@ from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError
 
 HELP_OUTPUT = """\
-usage: pro unset <key> [flags]
+usage: pro config unset <key> [flags]
 
 Unset Ubuntu Pro configuration setting
 
