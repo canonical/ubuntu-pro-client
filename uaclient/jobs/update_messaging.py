@@ -22,6 +22,7 @@ from uaclient.messages import (
     CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
     CONTRACT_EXPIRED_MOTD_SOON_TMPL,
+    NVIDIA_DGX_ENTITLED_MOTD,
 )
 
 XENIAL_ESM_URL = "https://ubuntu.com/16-04"
@@ -193,6 +194,9 @@ def _write_esm_service_msg_templates(
                 service=ent.name,
             )
             motd_no_pkgs_msg = CONTRACT_EXPIRED_MOTD_NO_PKGS_TMPL
+    elif not cfg.is_attached and system.is_dgx():
+        motd_pkgs_msg = NVIDIA_DGX_ENTITLED_MOTD
+        motd_no_pkgs_msg = NVIDIA_DGX_ENTITLED_MOTD
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     _write_template_or_remove(no_pkgs_msg, os.path.join(msg_dir, no_pkgs_file))

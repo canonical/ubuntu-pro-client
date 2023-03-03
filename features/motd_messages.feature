@@ -284,6 +284,26 @@ Feature: MOTD Messages
 
         [\w\d.]+
         """
+
+        # detach and pretend to be DGX OS to check the special DGX message
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {}
+        """
+        When I run `pro detach --assume-yes` with sudo
+        When I run `touch /etc/dgx-release` with sudo
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        And I run `run-parts /etc/update-motd.d/` with sudo
+        Then stdout matches regexp:
+        """
+        [\w\d.]+
+
+        Your DGX contract entitles you to ESM updates.
+        Please contact your NVIDIA account manager to get your Pro subscription.
+
+        [\w\d.]+
+        """
         Examples: ubuntu release
            | release | service   |
            | xenial  | esm-infra |

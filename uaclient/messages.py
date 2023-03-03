@@ -290,6 +290,10 @@ NVIDIA_DGX_ENTITLED_APT_NEWS = """\
 # Please contact your NVIDIA account manager to get your Pro subscription.
 #
 """
+NVIDIA_DGX_ENTITLED_MOTD = """\
+Your DGX contract entitles you to ESM updates.
+Please contact your NVIDIA account manager to get your Pro subscription.
+"""
 
 # END MOTD and APT command messaging
 
