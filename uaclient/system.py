@@ -518,3 +518,34 @@ def ensure_folder_absent(folder_path: str) -> None:
     if os.path.exists(folder_path):
         logging.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
+
+
+def is_dgx_os() -> bool:
+    return os.path.exists("/etc/dgx-release")
+
+
+def is_dgx_smbios() -> bool:
+    try:
+        baseboard_man_out, _ = subp(
+            ["dmidecode", "-s", "baseboard-manufacturer"]
+        )
+        baseboard_product_out, _ = subp(
+            ["dmidecode", "-s", "baseboard-product-name"]
+        )
+    except exceptions.ProcessExecutionError as e:
+        logging.debug(
+            "error while trying to detect if on dgx machine: %s", str(e)
+        )
+        return False
+
+    if baseboard_man_out.strip().upper() != "NVIDIA":
+        return False
+
+    return (
+        re.match(r"^(NVIDIA\s+)?DGX.*", baseboard_product_out.strip().upper())
+        is not None
+    )
+
+
+def is_dgx() -> bool:
+    return is_dgx_os() or is_dgx_smbios()

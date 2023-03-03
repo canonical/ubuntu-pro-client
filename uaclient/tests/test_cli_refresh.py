@@ -156,7 +156,7 @@ class TestActionRefresh:
         FakeConfig,
     ):
         subp_exc = Exception("test")
-        m_subp.side_effect = [subp_exc, ""]
+        m_subp.side_effect = [subp_exc, ("", ""), ("", ""), ("", "")]
 
         ret = action_refresh(
             mock.MagicMock(target="messages"), cfg=FakeConfig()

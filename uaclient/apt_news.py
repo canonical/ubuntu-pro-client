@@ -190,6 +190,14 @@ def local_apt_news(cfg: UAConfig) -> bool:
     """
     :return: True if local news was written, False otherwise
     """
+    # Check for NVIDIA DGX situation, which is mutually exclusive with the
+    # normal contract expiry situation
+    if not cfg.is_attached and system.is_dgx():
+        state_files.apt_news_contents_file.write(
+            messages.NVIDIA_DGX_ENTITLED_APT_NEWS
+        )
+        return True
+
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
 
     if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:

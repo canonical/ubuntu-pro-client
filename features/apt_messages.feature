@@ -642,6 +642,29 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+
+        # detach and pretend to be DGX OS to check the special DGX message
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {}
+        """
+        When I run `pro detach --assume-yes` with sudo
+        When I run `touch /etc/dgx-release` with sudo
+        When I wait `1` seconds
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then I will see the following on stdout
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        #
+        # Your DGX contract entitles you to ESM updates.
+        # Please contact your NVIDIA account manager to get your Pro subscription.
+        #
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
         Examples: ubuntu release
           | release |
           | xenial  |

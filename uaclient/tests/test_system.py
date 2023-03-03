@@ -1025,3 +1025,48 @@ class TestSubp:
                 assert log in logs
             else:
                 assert log not in logs
+
+
+class TestDGXDetection:
+    @pytest.mark.parametrize(
+        [
+            "baseboard_man_subp_result",
+            "baseboard_product_subp_result",
+            "expected",
+        ],
+        [
+            (("", ""), ("", ""), False),
+            (exceptions.ProcessExecutionError(""), ("", ""), False),
+            (("", ""), exceptions.ProcessExecutionError(""), False),
+            (
+                exceptions.ProcessExecutionError(""),
+                exceptions.ProcessExecutionError(""),
+                False,
+            ),
+            (
+                exceptions.ProcessExecutionError(""),
+                exceptions.ProcessExecutionError(""),
+                False,
+            ),
+            (("Manufacturer", ""), ("Product", ""), False),
+            (("NVIDIA", ""), ("Product", ""), False),
+            (("Manufacturer", ""), ("DGXA100", ""), False),
+            (("NVIDIA", ""), ("DGXA100", ""), True),
+            (("nvidia", ""), ("dgxa100", ""), True),
+            (("NVIDIA", ""), ("DGX-1 with V100-32", ""), True),
+            (("NVIDIA", ""), ("NVIDIA DGX-2", ""), True),
+        ],
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_is_dgx_smbios(
+        self,
+        m_subp,
+        baseboard_man_subp_result,
+        baseboard_product_subp_result,
+        expected,
+    ):
+        m_subp.side_effect = [
+            baseboard_man_subp_result,
+            baseboard_product_subp_result,
+        ]
+        assert expected == system.is_dgx_smbios()

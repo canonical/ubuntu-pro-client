@@ -570,22 +570,44 @@ class TestAptNews:
 
     @pytest.mark.parametrize(
         [
+            "is_attached",
+            "is_dgx",
             "expiry_status",
             "write_calls",
             "expected",
         ],
         [
             (
+                True,
+                False,
                 (ContractExpiryStatus.ACTIVE, 0),
                 [],
                 False,
             ),
             (
+                True,
+                True,
+                (ContractExpiryStatus.ACTIVE, 0),
+                [],
+                False,
+            ),
+            (
+                False,
+                False,
                 (ContractExpiryStatus.NONE, 0),
                 [],
                 False,
             ),
             (
+                False,
+                True,
+                (ContractExpiryStatus.NONE, 0),
+                [mock.call(messages.NVIDIA_DGX_ENTITLED_APT_NEWS)],
+                True,
+            ),
+            (
+                True,
+                False,
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
                 [
                     mock.call(
@@ -597,6 +619,8 @@ class TestAptNews:
                 True,
             ),
             (
+                True,
+                False,
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
                 [
                     mock.call(
@@ -608,6 +632,8 @@ class TestAptNews:
                 True,
             ),
             (
+                True,
+                False,
                 (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
                 [
                     mock.call(
@@ -619,6 +645,8 @@ class TestAptNews:
                 True,
             ),
             (
+                True,
+                False,
                 (ContractExpiryStatus.EXPIRED, -15),
                 [mock.call(messages.CONTRACT_EXPIRED_APT_NEWS)],
                 True,
@@ -627,15 +655,25 @@ class TestAptNews:
     )
     @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
     @mock.patch(M_PATH + "get_contract_expiry_status")
+    @mock.patch(M_PATH + "system.is_dgx")
+    @mock.patch(
+        M_PATH + "UAConfig.is_attached", new_callable=mock.PropertyMock
+    )
     def test_local_apt_news(
         self,
+        m_is_attached,
+        m_is_dgx,
         m_get_contract_expiry_status,
         m_news_write,
+        is_attached,
+        is_dgx,
         expiry_status,
         write_calls,
         expected,
         FakeConfig,
     ):
+        m_is_attached.return_value = is_attached
+        m_is_dgx.return_value = is_dgx
         m_get_contract_expiry_status.return_value = expiry_status
 
         cfg = FakeConfig.for_attached_machine(
