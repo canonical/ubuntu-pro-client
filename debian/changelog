@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (27.14~23.04.1~nvidiadgx1) lunar; urgency=medium
+
+  * messaging:
+    - display special NVIDIA DGX message in apt and motd
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 03 Mar 2023 16:26:09 -0500
+
 ubuntu-advantage-tools (27.13.6~23.04.1) lunar; urgency=medium
 
   * apt-news:
