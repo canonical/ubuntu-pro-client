@@ -287,7 +287,7 @@ def process_template_vars(
 
     processed_template = template
 
-    for match in re.finditer(r"\$behave_var{(.*)}", template):
+    for match in re.finditer(r"\$behave_var{([\w\s\-\+]*)}", template):
         args = match.group(1).split()
         function_name = args[0]
         if function_name == "version":
@@ -332,5 +332,13 @@ def process_template_vars(
                 context.config.contract_token_staging,
                 logger_fn,
             )
+        elif function_name == "stored_var":
+            if context.stored_vars.get(args[1]):
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.stored_vars.get(args[1]),
+                    logger_fn,
+                )
 
     return processed_template
