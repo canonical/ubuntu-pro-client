@@ -133,3 +133,21 @@ def when_i_install_packages(context):
     when_i_run_command(
         context, "apt-get install -y pro-dummy-thirdparty", "with sudo"
     )
+
+
+@when("I store candidate version of package `{package}`")
+def store_candidate_version(context, package):
+    when_i_run_command(
+        context,
+        "apt-cache policy {}".format(package),
+        "as non-root",
+    )
+
+    candidate_version_match = re.search(
+        "Candidate:(?P<candidate>.*)", context.process.stdout
+    )
+
+    if candidate_version_match:
+        context.stored_vars["candidate"] = candidate_version_match.group(
+            1
+        ).strip()

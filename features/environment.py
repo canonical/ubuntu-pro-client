@@ -390,11 +390,8 @@ def before_feature(context: Context, feature: Feature):
 
 
 def before_scenario(context: Context, scenario: Scenario):
-    """
-    In this function, we launch a container, install ubuntu-advantage-tools and
-    then capture an image. This image is then reused by each scenario, reducing
-    test execution time.
-    """
+    context.stored_vars = {}
+
     reason = _should_skip_tags(context, scenario.effective_tags)
     if reason:
         scenario.skip(reason=reason)

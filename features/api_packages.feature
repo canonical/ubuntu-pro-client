@@ -21,16 +21,18 @@ Feature: Package related API endpoints
         # Install some outdated package
         And I run `apt install <package>=<outdated_version> -y --allow-downgrades` with sudo
         # See the update there
-        When I run `pro api u.pro.packages.updates.v1` as non-root
+        When I store candidate version of package `<package>`
+        And I regexify `candidate` stored var
+        And I run `pro api u.pro.packages.updates.v1` as non-root
         Then stdout matches regexp:
         """
-        {"download_size": \d+, "origin": ".+", "package": "<package>", "provided_by": "<provided_by>", "status": "upgrade_available", "version": "<candidate_version>"}
+        {"download_size": \d+, "origin": ".+", "package": "<package>", "provided_by": "<provided_by>", "status": "upgrade_available", "version": "$behave_var{stored_var candidate}"}
         """
 
         Examples: ubuntu release
-            | release | package         | outdated_version | candidate_version        | provided_by       |
-            | xenial  | libcurl3-gnutls | 7.47.0-1ubuntu2  | 7.47.0-1ubuntu2.19\+esm7 | esm-infra         |
-            | bionic  | libcurl4        | 7.58.0-2ubuntu3  | 7.58.0-2ubuntu3.23       | standard-security |
-            | focal   | libcurl4        | 7.68.0-1ubuntu2  | 7.68.0-1ubuntu2.16       | standard-security |
-            | jammy   | libcurl4        | 7.81.0-1         | 7.81.0-1ubuntu1.8        | standard-security |
-            | kinetic | libcurl4        | 7.85.0-1         | 7.85.0-1ubuntu0.3        | standard-security |
+            | release | package         | outdated_version | provided_by       |
+            | xenial  | libcurl3-gnutls | 7.47.0-1ubuntu2  | esm-infra         |
+            | bionic  | libcurl4        | 7.58.0-2ubuntu3  | standard-security |
+            | focal   | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
+            | jammy   | libcurl4        | 7.81.0-1         | standard-security |
+            | kinetic | libcurl4        | 7.85.0-1         | standard-security |
