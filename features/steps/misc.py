@@ -1,4 +1,5 @@
 import json
+import re
 import time
 
 from behave import then, when
@@ -84,3 +85,11 @@ def then_folder_does_not_exist(context, folder):
         user_spec="with sudo",
     )
     assert_that(context.process.stdout.strip(), equal_to("empty"))
+
+
+@when("I regexify `{var_name}` stored var")
+def regixify_stored_var(context, var_name):
+    val = context.stored_vars.get(var_name)
+
+    if val:
+        context.stored_vars[var_name] = re.escape(val)
