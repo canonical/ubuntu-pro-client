@@ -19,7 +19,6 @@ from uaclient.apt import (
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
     KEYRINGS_DIR,
-    _read_apt_source_files,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
@@ -27,6 +26,7 @@ from uaclient.apt import (
     clean_apt_files,
     compare_versions,
     find_apt_list_files,
+    get_apt_cache_policy,
     get_apt_cache_time,
     get_installed_packages_names,
     is_installed,
@@ -904,60 +904,44 @@ class TestRunAptCommand:
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg
 
-    @mock.patch("apt_pkg.init")
-    @mock.patch("apt_pkg.SourceList")
     @mock.patch("uaclient.apt.system.subp")
-    def test_run_update_command_clean_read_apt_source_cache(
-        self,
-        m_subp,
-        m_source_list,
-        _m_apt_init,
-    ):
-        m_list = mock.MagicMock()
-        m_source_list.return_value = m_list
-        type(m_list).list = mock.PropertyMock(
-            side_effect=["policy1", "policy2"]
-        )
+    def test_run_update_command_clean_apt_cache_policy_cache(self, m_subp):
         m_subp.side_effect = [
+            ("policy1", ""),
             ("update", ""),
+            ("policy2", ""),
         ]
 
-        assert "policy1" == _read_apt_source_files()
+        assert "policy1" == get_apt_cache_policy()
         # Confirming that caching is happening
-        assert "policy1" == _read_apt_source_files()
+        assert "policy1" == get_apt_cache_policy()
 
         run_apt_update_command()
 
         # Confirm cache was cleared
-        assert "policy2" == _read_apt_source_files()
-        _read_apt_source_files.cache_clear()
+        assert "policy2" == get_apt_cache_policy()
+        get_apt_cache_policy.cache_clear()
 
-    @mock.patch("apt_pkg.init")
-    @mock.patch("apt_pkg.SourceList")
     @mock.patch("uaclient.apt.system.subp")
-    def test_failed_run_update_command_clean_read_apt_source_cache(
-        self,
-        m_subp,
-        m_source_list,
-        _m_apt_init,
+    def test_failed_run_update_command_clean_apt_cache_policy_cache(
+        self, m_subp
     ):
-        m_list = mock.MagicMock()
-        m_source_list.return_value = m_list
-        type(m_list).list = mock.PropertyMock(
-            side_effect=["policy1", "policy2"]
-        )
-        m_subp.side_effect = exceptions.UserFacingError("test")
+        m_subp.side_effect = [
+            ("policy1", ""),
+            exceptions.UserFacingError("test"),
+            ("policy2", ""),
+        ]
 
-        assert "policy1" == _read_apt_source_files()
+        assert "policy1" == get_apt_cache_policy()
         # Confirming that caching is happening
-        assert "policy1" == _read_apt_source_files()
+        assert "policy1" == get_apt_cache_policy()
 
         with pytest.raises(exceptions.UserFacingError):
             run_apt_update_command()
 
         # Confirm cache was cleared
-        assert "policy2" == _read_apt_source_files()
-        _read_apt_source_files.cache_clear()
+        assert "policy2" == get_apt_cache_policy()
+        get_apt_cache_policy.cache_clear()
 
 
 class TestAptProxyConfig:

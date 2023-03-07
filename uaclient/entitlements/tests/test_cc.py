@@ -8,7 +8,7 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, status
+from uaclient import apt, messages, status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -116,14 +116,14 @@ class TestCommonCriteriaEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.is_uri_in_apt_source_files", return_value=False)
+    @mock.patch("uaclient.apt.get_apt_cache_policy")
     @mock.patch("uaclient.system.get_platform_info")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_contract_overrides,
         m_platform_info,
-        _m_is_uri_in_apt_source_files,
+        m_apt_cache_policy,
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
@@ -136,6 +136,7 @@ class TestCommonCriteriaEntitlementEnable:
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_subp.return_value = ("fakeout", "")
+        m_apt_cache_policy.return_value = "fakeout"
         m_should_reboot.return_value = False
         original_exists = os.path.exists
 
@@ -173,6 +174,12 @@ class TestCommonCriteriaEntitlementEnable:
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
+            )
+        ]
+
+        apt_cache_policy_cmds = [
+            mock.call(
+                error_msg=messages.APT_POLICY_FAILED.msg,
             )
         ]
 
@@ -228,7 +235,8 @@ class TestCommonCriteriaEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert 1 == m_should_reboot.call_count
-        assert 1 == _m_is_uri_in_apt_source_files.call_count
+        assert 1 == m_apt_cache_policy.call_count
+        assert apt_cache_policy_cmds == m_apt_cache_policy.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout += "\n".join(
             [

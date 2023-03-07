@@ -475,11 +475,3 @@ class InvalidLockFile(UserFacingError):
     def __init__(self, lock_file_path):
         msg = messages.INVALID_LOCK_FILE.format(lock_file_path=lock_file_path)
         super().__init__(msg=msg.msg, msg_code=msg.name)
-
-
-class ErrorParsingAPTSourceFile(UserFacingError):
-    def __init__(self, exception_str: str):
-        msg = messages.ERROR_PARSING_APT_SOURCE_FILES.format(
-            exception_str=exception_str
-        )
-        super().__init__(msg=msg.msg, msg_code=msg.name)
