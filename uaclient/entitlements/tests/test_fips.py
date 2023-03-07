@@ -1035,6 +1035,24 @@ class TestFIPSEntitlementApplicationStatus:
         assert expected_msg.msg == actual_msg.msg
         assert expected_msg.name == actual_msg.name
 
+    def test_fips_does_not_show_enabled_when_fips_updates_is(
+        self, _m_should_reboot, entitlement
+    ):
+        with mock.patch("uaclient.apt.get_apt_cache_policy") as m_apt_policy:
+            m_apt_policy.return_value = (
+                "1001 http://FIPS-UPDATES/ubuntu"
+                " xenial-updates/main amd64 Packages\n"
+                ""
+            )
+
+            application_status, _ = entitlement.application_status()
+
+        expected_status = ApplicationStatus.DISABLED
+        if isinstance(entitlement, FIPSUpdatesEntitlement):
+            expected_status = ApplicationStatus.ENABLED
+
+        assert expected_status == application_status
+
 
 class TestFipsEntitlementInstallPackages:
     @mock.patch(M_PATH + "apt.run_apt_command")

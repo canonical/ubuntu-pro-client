@@ -962,22 +962,30 @@ class TestApplicationStatus:
         )
 
     @pytest.mark.parametrize(
-        "enabled",
+        "policy_url,enabled",
         (
-            (False),
-            (True),
+            ("https://esm.ubuntu.com/apps/ubuntu", False),
+            ("https://esm.ubuntu.com/ubuntu", True),
         ),
     )
-    @mock.patch(M_PATH + "apt.is_uri_in_apt_source_files")
+    @mock.patch(M_PATH + "apt.get_apt_cache_policy")
     def test_enabled_status_by_apt_policy(
-        self, m_is_uri_in_apt_source_files, enabled, entitlement_factory
+        self, m_run_apt_policy, policy_url, enabled, entitlement_factory
     ):
         """Report ENABLED when apt-policy lists specific aptURL."""
-        m_is_uri_in_apt_source_files.return_value = enabled
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             directives={"aptURL": "https://esm.ubuntu.com"},
         )
+
+        policy_lines = [
+            "500 {policy_url} bionic-security/main amd64 Packages".format(
+                policy_url=policy_url
+            ),
+            " release v=18.04,o=UbuntuESMApps,...,n=bionic,l=UbuntuESMApps",
+            "  origin esm.ubuntu.com",
+        ]
+        m_run_apt_policy.return_value = "\n".join(policy_lines)
 
         application_status, explanation = entitlement.application_status()
 
