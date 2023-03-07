@@ -145,6 +145,7 @@ class TestActionRefresh:
 
         assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
 
+    @mock.patch("uaclient.apt_news.update_apt_news")
     @mock.patch("uaclient.jobs.update_messaging.exists", return_value=True)
     @mock.patch("logging.exception")
     @mock.patch("uaclient.system.subp")
@@ -155,6 +156,7 @@ class TestActionRefresh:
         m_subp,
         logging_error,
         _m_path,
+        _m_update_apt_news,
         capsys,
         FakeConfig,
     ):
@@ -170,12 +172,14 @@ class TestActionRefresh:
         assert [mock.call(subp_exc)] == logging_error.call_args_list
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
 
+    @mock.patch("uaclient.apt_news.update_apt_news")
     @mock.patch("uaclient.cli.refresh_motd")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_refresh_messages_happy_path(
         self,
         m_update_motd,
         m_refresh_motd,
+        m_update_apt_news,
         capsys,
         FakeConfig,
     ):
@@ -187,6 +191,9 @@ class TestActionRefresh:
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == m_update_motd.call_args_list
         assert [mock.call()] == m_refresh_motd.call_args_list
+        assert 1 == m_update_motd.call_count
+        assert 1 == m_refresh_motd.call_count
+        assert 1 == m_update_apt_news.call_count
 
     @mock.patch("logging.exception")
     @mock.patch(
@@ -223,6 +230,9 @@ class TestActionRefresh:
         assert messages.REFRESH_CONFIG_SUCCESS in capsys.readouterr()[0]
         assert [mock.call()] == m_process_config.call_args_list
 
+    @mock.patch("uaclient.apt_news.update_apt_news")
+    @mock.patch("uaclient.cli.refresh_motd")
+    @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.contract.request_updated_contract")
     @mock.patch("uaclient.config.UAConfig.process_config")
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
@@ -231,6 +241,9 @@ class TestActionRefresh:
         m_remove_notice,
         m_process_config,
         m_request_updated_contract,
+        m_update_motd,
+        m_refresh_motd,
+        m_update_apt_news,
         capsys,
         FakeConfig,
     ):
@@ -243,9 +256,13 @@ class TestActionRefresh:
         assert 0 == ret
         assert messages.REFRESH_CONFIG_SUCCESS in out
         assert messages.REFRESH_CONTRACT_SUCCESS in out
+        assert messages.REFRESH_MESSAGES_SUCCESS in out
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_request_updated_contract.call_args_list
         assert [
             mock.call(Notice.CONTRACT_REFRESH_WARNING),
             mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
+        assert 1 == m_update_motd.call_count
+        assert 1 == m_refresh_motd.call_count
+        assert 1 == m_update_apt_news.call_count
