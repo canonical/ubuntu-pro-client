@@ -216,12 +216,14 @@ Feature: APT Messages
           | focal   | hello   |
           | jammy   | hello   |
 
-    @series.lts
+    @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline: APT News
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        # On interim releases we will not enable any service, so we need a manual apt-get update
+        When I run `apt-get update` with sudo
+        When I run `DEBIAN_FRONTEND=noninteractive apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get autoremove -y` with sudo
         When I run `pro detach --assume-yes` with sudo
 
@@ -300,7 +302,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # manual refresh gets new message
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
@@ -317,7 +319,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # creates /run/ubuntu-advantage and /var/lib/ubuntu-advantage/messages if not there
         When I run `rm -rf /run/ubuntu-advantage` with sudo
         When I run `rm -rf /var/lib/ubuntu-advantage/messages` with sudo
@@ -337,7 +339,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # more than 3 lines ignored
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -365,7 +367,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # more than 77 chars ignored
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -390,7 +392,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # end is respected
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -443,7 +445,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # begin >30 days ago ignored, even if end is set to future
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -469,7 +471,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # begin in future
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -494,7 +496,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-
+        
         # local apt news overrides for contract expiry notices
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -607,6 +609,7 @@ Feature: APT Messages
           | bionic  |
           | focal   |
           | jammy   |
+          | kinetic |
 
     @series.xenial
     @series.bionic
@@ -661,3 +664,53 @@ Feature: APT Messages
           | release | msg                                                                    |
           | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
           | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
+
+    @series.kinetic
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt-get update` with sudo
+        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        When I run `apt-get -y autoremove` with sudo
+        When I run `apt-get install hello -y` with sudo
+        When I run `pro config set apt_news=false` with sudo
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then stdout does not match regexp:
+        """
+        Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
+        """
+        When I run `apt-get upgrade` with sudo
+        Then I will see the following on stdout:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I attach `contract_token` with sudo
+        When I run `apt upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+        """
+        When I run `apt-get upgrade -y` with sudo
+        When I run `pro detach --assume-yes` with sudo
+        When I run `pro refresh messages` with sudo
+        When I run `apt upgrade` with sudo
+        Then stdout matches regexp:
+        """
+        Reading package lists...
+        Building dependency tree...
+        Reading state information...
+        Calculating upgrade...
+        0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+        """
+        Examples: ubuntu release
+          | release |
+          | kinetic |
