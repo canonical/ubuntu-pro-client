@@ -76,6 +76,56 @@ Feature: Livepatch
             | release |
             | focal   |
 
+    @series.focal
+    @uses.config.machine_type.any
+    @uses.config.machine_type.gcp.generic
+    Scenario Outline: Attached livepatch status shows upgrade required when on an old kernel
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        When I run `apt-get install linux-headers-<old_kernel_version> linux-image-<old_kernel_version> -y` with sudo
+        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-gcp -y` with sudo
+        When I run `update-grub` with sudo
+        When I reboot the machine
+        When I run `uname -r` with sudo
+        Then stdout contains substring:
+        """
+        <old_kernel_version>
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +warning +Canonical Livepatch service
+        """
+        Then stdout contains substring:
+        """
+        NOTICES
+        The running kernel has reached the end of its active livepatch window.
+        Please upgrade the kernel with apt and reboot for continued livepatch support.
+
+        """
+        When I run `apt-get install linux-headers-generic linux-image-generic -y` with sudo
+        When I reboot the machine
+        When I run `uname -r` with sudo
+        Then stdout does not contain substring:
+        """
+        <old_kernel_version>
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +enabled +Canonical Livepatch service
+        """
+        Then stdout does not contain substring:
+        """
+        NOTICES
+        The running kernel has reached the end of its active livepatch window.
+        Please upgrade the kernel with apt and reboot for continued livepatch support.
+
+        """
+        Examples: ubuntu release
+            | release | machine_type | old_kernel_version |
+            | focal   | gcp.generic  | 5.4.0-28-generic   |
+
     @series.kinetic
     @series.lunar
     @uses.config.machine_type.lxd-vm
