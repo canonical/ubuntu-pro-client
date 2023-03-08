@@ -235,7 +235,8 @@ class LivepatchEntitlement(UAEntitlement):
     def enabled_warning_status(
         self,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
-        if livepatch.on_supported_kernel() is False:
+        support = livepatch.on_supported_kernel()
+        if support == livepatch.LivepatchSupport.UNSUPPORTED:
             kernel_info = system.get_kernel_info()
             return (
                 True,
@@ -244,13 +245,28 @@ class LivepatchEntitlement(UAEntitlement):
                     arch=kernel_info.uname_machine_arch,
                 ),
             )
-        # if on_supported_kernel returns None we default to no warning
+        if support == livepatch.LivepatchSupport.KERNEL_EOL:
+            kernel_info = system.get_kernel_info()
+            return (
+                True,
+                messages.LIVEPATCH_KERNEL_EOL.format(
+                    version=kernel_info.uname_release,
+                    arch=kernel_info.uname_machine_arch,
+                ),
+            )
+        if support == livepatch.LivepatchSupport.KERNEL_UPGRADE_REQUIRED:
+            return (
+                True,
+                messages.LIVEPATCH_KERNEL_UPGRADE_REQUIRED,
+            )
+        # if on_supported_kernel returns UNKNOWN we default to no warning
         # because there would be no way for a user to resolve the warning
         return False, None
 
     def status_description_override(self):
         if (
-            livepatch.on_supported_kernel() is False
+            livepatch.on_supported_kernel()
+            == livepatch.LivepatchSupport.UNSUPPORTED
             and not system.is_container()
         ):
             return messages.LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION
