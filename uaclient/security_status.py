@@ -266,6 +266,7 @@ def get_reboot_status():
         and our_kernel_version == lp_status.kernel
         and lp_status.livepatch is not None
         and lp_status.livepatch.state == "applied"
+        and lp_status.supported == "supported"
     ):
         return RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED
 
