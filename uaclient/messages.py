@@ -1247,3 +1247,8 @@ Warning: Failed to migrate user_config from /etc/ubuntu-advantage/uaclient.conf
 USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = """\
 Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
          Please add following to uaclient.conf to keep your config:"""
+
+LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE = NamedMessage(
+    "livepatch-client-failure",
+    "canonical-livepatch status didn't finish successfully",
+)

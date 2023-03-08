@@ -865,41 +865,40 @@ class TestLivepatchEntitlementEnable:
 
 class TestLivepatchApplicationStatus:
     @pytest.mark.parametrize("which_result", (("/path/to/exe"), (None)))
-    @pytest.mark.parametrize("subp_raise_exception", ((True), (False)))
+    @pytest.mark.parametrize(
+        "livepatch_status_result",
+        (
+            (None),
+            (
+                livepatch.LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported=None
+                )
+            ),
+        ),
+    )
     @mock.patch("uaclient.system.which")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.livepatch.status")
     def test_application_status(
-        self, m_subp, m_which, subp_raise_exception, which_result, entitlement
+        self,
+        m_livepatch_status,
+        m_which,
+        livepatch_status_result,
+        which_result,
+        entitlement,
     ):
         m_which.return_value = which_result
-
-        if subp_raise_exception:
-            m_subp.side_effect = exceptions.ProcessExecutionError("error msg")
+        m_livepatch_status.return_value = livepatch_status_result
 
         status, details = entitlement.application_status()
 
         if not which_result:
             assert status == ApplicationStatus.DISABLED
             assert "canonical-livepatch snap is not installed." in details.msg
-        elif subp_raise_exception:
+        elif livepatch_status_result is None:
             assert status == ApplicationStatus.DISABLED
-            assert "error msg" in details.msg
+            assert (
+                messages.LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE == details
+            )
         else:
             assert status == ApplicationStatus.ENABLED
             assert details is None
-
-    @mock.patch("time.sleep")
-    @mock.patch("uaclient.system.which", return_value="/path/to/exe")
-    def test_status_command_retry_on_application_status(
-        self, m_which, m_sleep, entitlement
-    ):
-        from uaclient import system
-
-        with mock.patch.object(system, "_subp") as m_subp:
-            m_subp.side_effect = exceptions.ProcessExecutionError("error msg")
-            status, details = entitlement.application_status()
-
-            assert m_subp.call_count == 3
-            assert m_sleep.call_count == 2
-            assert status == ApplicationStatus.DISABLED
-            assert "error msg" in details.msg
