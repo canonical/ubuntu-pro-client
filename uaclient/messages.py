@@ -1216,6 +1216,19 @@ INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "Value provided was not found in {enum_class}'s allowed: value: {values}",
 )
 
+LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
+    name="livepatch-kernel-upgrade-required",
+    msg="""\
+The running kernel has reached the end of its active livepatch window.
+Please upgrade the kernel with apt and reboot for continued livepatch support.""",  # noqa: E501
+)
+LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
+    name="livepatch-kernel-eol",
+    msg="""\
+The current kernel ({version}, {arch}) has reached the end of its livepatch support.
+Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""",  # noqa: E501
+)
 LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
     name="livepatch-kernel-not-supported",
     msg="""\

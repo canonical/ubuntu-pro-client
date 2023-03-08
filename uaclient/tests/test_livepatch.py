@@ -12,6 +12,7 @@ from uaclient.livepatch import (
     LivepatchPatchFixStatus,
     LivepatchPatchStatus,
     LivepatchStatusStatus,
+    LivepatchSupport,
     UALivepatchClient,
     _on_supported_kernel_api,
     _on_supported_kernel_cache,
@@ -307,19 +308,33 @@ class TestOnSupportedKernel:
                 LivepatchStatusStatus(
                     kernel=None, livepatch=None, supported="supported"
                 ),
-                True,
+                LivepatchSupport.SUPPORTED,
             ),
             (
                 LivepatchStatusStatus(
                     kernel=None, livepatch=None, supported="unsupported"
                 ),
-                False,
+                LivepatchSupport.UNSUPPORTED,
+            ),
+            (
+                LivepatchStatusStatus(
+                    kernel=None,
+                    livepatch=None,
+                    supported="kernel-upgrade-required",
+                ),
+                LivepatchSupport.KERNEL_UPGRADE_REQUIRED,
+            ),
+            (
+                LivepatchStatusStatus(
+                    kernel=None, livepatch=None, supported="kernel-end-of-life"
+                ),
+                LivepatchSupport.KERNEL_EOL,
             ),
             (
                 LivepatchStatusStatus(
                     kernel=None, livepatch=None, supported="unknown"
                 ),
-                None,
+                LivepatchSupport.UNKNOWN,
             ),
         ],
     )
@@ -554,9 +569,9 @@ class TestOnSupportedKernel:
             "expected",
         ],
         [
-            # cli result true
+            # cli result supported
             (
-                True,
+                LivepatchSupport.SUPPORTED,
                 None,
                 None,
                 None,
@@ -564,11 +579,11 @@ class TestOnSupportedKernel:
                 None,
                 [],
                 [],
-                True,
+                LivepatchSupport.SUPPORTED,
             ),
-            # cli result false
+            # cli result unsupported
             (
-                False,
+                LivepatchSupport.UNSUPPORTED,
                 None,
                 None,
                 None,
@@ -576,7 +591,43 @@ class TestOnSupportedKernel:
                 None,
                 [],
                 [],
-                False,
+                LivepatchSupport.UNSUPPORTED,
+            ),
+            # cli result upgrade-required
+            (
+                LivepatchSupport.KERNEL_UPGRADE_REQUIRED,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                LivepatchSupport.KERNEL_UPGRADE_REQUIRED,
+            ),
+            # cli result eol
+            (
+                LivepatchSupport.KERNEL_EOL,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                LivepatchSupport.KERNEL_EOL,
+            ),
+            # cli result definite unknown
+            (
+                LivepatchSupport.UNKNOWN,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                LivepatchSupport.UNKNOWN,
             ),
             # insufficient kernel info
             (
@@ -597,7 +648,7 @@ class TestOnSupportedKernel:
                 None,
                 [],
                 [],
-                None,
+                LivepatchSupport.UNKNOWN,
             ),
             # cache result true
             (
@@ -618,7 +669,7 @@ class TestOnSupportedKernel:
                 None,
                 [mock.call("5.6", "generic", "amd64", "xenial")],
                 [],
-                True,
+                LivepatchSupport.SUPPORTED,
             ),
             # cache result false
             (
@@ -639,7 +690,7 @@ class TestOnSupportedKernel:
                 None,
                 [mock.call("5.6", "generic", "amd64", "xenial")],
                 [],
-                False,
+                LivepatchSupport.UNSUPPORTED,
             ),
             # cache result none
             (
@@ -660,7 +711,7 @@ class TestOnSupportedKernel:
                 None,
                 [mock.call("5.6", "generic", "amd64", "xenial")],
                 [],
-                None,
+                LivepatchSupport.UNKNOWN,
             ),
             # api result true
             (
@@ -681,7 +732,7 @@ class TestOnSupportedKernel:
                 True,
                 [mock.call("5.6", "generic", "amd64", "xenial")],
                 [mock.call("5.6", "generic", "amd64", "xenial")],
-                True,
+                LivepatchSupport.SUPPORTED,
             ),
         ],
     )
