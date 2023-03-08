@@ -1,13 +1,20 @@
 import copy
 import enum
-import json
 import socket
 import textwrap
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import apt, exceptions, messages, serviceclient, system, util
+from uaclient import (
+    apt,
+    exceptions,
+    livepatch,
+    messages,
+    serviceclient,
+    system,
+    util,
+)
 from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
 from uaclient.api.u.pro.attach.magic.revoke.v1 import (
     MagicAttachRevokeOptions,
@@ -586,39 +593,21 @@ def fix_security_issue_id(
 
     if "CVE" in issue_id:
         # Check livepatch status for CVE in fixes before checking CVE api
-        status_stdout = None
-        try:
-            status_stdout, _ = system.subp(
-                [
-                    "canonical-livepatch",
-                    "status",
-                    "--verbose",
-                    "--format=json",
-                ]
-            )
-        except exceptions.ProcessExecutionError:
-            pass
-        if status_stdout:
-            try:
-                parsed_patch = json.loads(status_stdout)["Status"][0][
-                    "Livepatch"
-                ]
-
-                if parsed_patch:
-                    fixes = parsed_patch.get("Fixes", [])
-                    if any(
-                        fix["Name"] == issue_id.lower() and fix["Patched"]
-                        for fix in fixes
-                    ):
-                        print(
-                            messages.CVE_FIXED_BY_LIVEPATCH.format(
-                                issue=issue_id,
-                                version=parsed_patch.get("Version", "N/A"),
-                            )
+        lp_status = livepatch.status()
+        if (
+            lp_status is not None
+            and lp_status.livepatch is not None
+            and lp_status.livepatch.fixes is not None
+        ):
+            for fix in lp_status.livepatch.fixes:
+                if fix.name == issue_id.lower() and fix.patched:
+                    print(
+                        messages.CVE_FIXED_BY_LIVEPATCH.format(
+                            issue=issue_id,
+                            version=lp_status.livepatch.version or "N/A",
                         )
-                        return FixStatus.SYSTEM_NON_VULNERABLE
-            except (ValueError, KeyError, IndexError):
-                pass
+                    )
+                    return FixStatus.SYSTEM_NON_VULNERABLE
 
         try:
             cve = client.get_cve(cve_id=issue_id)

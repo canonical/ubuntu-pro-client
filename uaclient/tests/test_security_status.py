@@ -603,7 +603,7 @@ class TestGetLivepatchFixedCVEs:
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="installed-kernel-generic",
             livepatch=livepatch.LivepatchPatchStatus(
-                state="nothing-to-apply", fixes=None
+                state="nothing-to-apply", fixes=None, version=None
             ),
             supported=None,
         )
@@ -627,7 +627,7 @@ class TestGetLivepatchFixedCVEs:
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="installed-kernel-generic",
             livepatch=livepatch.LivepatchPatchStatus(
-                state="nothing-to-apply", fixes=None
+                state="nothing-to-apply", fixes=None, version=None
             ),
             supported=None,
         )
@@ -647,6 +647,7 @@ class TestGetLivepatchFixedCVEs:
                         name="cve-example", patched=True
                     )
                 ],
+                version=None,
             ),
             supported=None,
         )
@@ -760,7 +761,7 @@ class TestRebootStatus:
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="4.15.0-187.198-generic",
             livepatch=livepatch.LivepatchPatchStatus(
-                state=livepatch_state, fixes=None
+                state=livepatch_state, fixes=None, version=None
             ),
             supported=None,
         )
@@ -793,7 +794,7 @@ class TestRebootStatus:
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="4.15.0-187.198-generic",
             livepatch=livepatch.LivepatchPatchStatus(
-                state="applied", fixes=None
+                state="applied", fixes=None, version=None
             ),
             supported=None,
         )
