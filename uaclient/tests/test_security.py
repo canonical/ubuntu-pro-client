@@ -1,13 +1,12 @@
 import copy
 import datetime
-import json
 import textwrap
 from collections import defaultdict
 
 import mock
 import pytest
 
-from uaclient import exceptions
+from uaclient import exceptions, livepatch
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -2379,35 +2378,27 @@ class TestFixSecurityIssueId:
         (
             (
                 "cve-2013-1798",
-                {
-                    "Status": [
-                        {
-                            "Kernel": "4.4.0-210.242-generic",
-                            "Running": True,
-                            "Livepatch": {
-                                "CheckState": "checked",
-                                "State": "applied",
-                                "Version": "87.1",
-                                "Fixes": [
-                                    {
-                                        "Name": "cve-2013-1798",
-                                        "Description": "Mock Description",
-                                        "Bug": "",
-                                        "Patched": True,
-                                    }
-                                ],
-                            },
-                        }
-                    ]
-                },
+                livepatch.LivepatchStatusStatus(
+                    kernel="4.4.0-210.242-generic",
+                    supported=None,
+                    livepatch=livepatch.LivepatchPatchStatus(
+                        state="applied",
+                        version="87.1",
+                        fixes=[
+                            livepatch.LivepatchPatchFixStatus(
+                                name="cve-2013-1798", patched=True
+                            )
+                        ],
+                    ),
+                ),
                 FixStatus.SYSTEM_NON_VULNERABLE,
             ),
         ),
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.livepatch.status")
     def test_patched_msg_when_issue_id_fixed_by_livepatch(
         self,
-        subp,
+        m_livepatch_status,
         issue_id,
         livepatch_status,
         exp_ret,
@@ -2415,7 +2406,7 @@ class TestFixSecurityIssueId:
     ):
         """fix_security_id returns system not vulnerable when issue_id fixed
         by livepatch"""
-        subp.return_value = json.dumps(livepatch_status), ""
+        m_livepatch_status.return_value = livepatch_status
         with mock.patch(
             "uaclient.security.query_installed_source_pkg_versions"
         ):

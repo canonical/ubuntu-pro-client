@@ -57,15 +57,18 @@ class LivepatchPatchStatus(DataObject):
             required=False,
             dict_key="Fixes",
         ),
+        Field("version", StringDataValue, required=False, dict_key="Version"),
     ]
 
     def __init__(
         self,
         state: Optional[str],
         fixes: Optional[List[LivepatchPatchFixStatus]],
+        version: Optional[str],
     ):
         self.state = state
         self.fixes = fixes
+        self.version = version
 
 
 class LivepatchStatusStatus(DataObject):
@@ -119,7 +122,9 @@ def status() -> Optional[LivepatchStatusStatus]:
         return None
 
     try:
-        out, _ = system.subp([LIVEPATCH_CMD, "status", "--format", "json"])
+        out, _ = system.subp(
+            [LIVEPATCH_CMD, "status", "--verbose", "--format", "json"]
+        )
     except exceptions.ProcessExecutionError:
         with util.disable_log_to_console():
             logging.warning(

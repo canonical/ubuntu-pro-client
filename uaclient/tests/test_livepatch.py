@@ -59,6 +59,7 @@ class TestStatus:
                                         "Kernel": "installed-kernel-generic",
                                         "Livepatch": {
                                             "State": "nothing-to-apply",
+                                            "Version": "100",
                                         },
                                     }
                                 ],
@@ -72,6 +73,7 @@ class TestStatus:
                     livepatch=LivepatchPatchStatus(
                         state="nothing-to-apply",
                         fixes=None,
+                        version="100",
                     ),
                     supported=None,
                 ),
@@ -113,6 +115,7 @@ class TestStatus:
                                 patched=True,
                             )
                         ],
+                        version=None,
                     ),
                     supported=None,
                 ),
@@ -150,8 +153,7 @@ class TestStatus:
                 LivepatchStatusStatus(
                     kernel="4.15.0-187.198-generic",
                     livepatch=LivepatchPatchStatus(
-                        state="nothing-to-apply",
-                        fixes=None,
+                        state="nothing-to-apply", fixes=None, version=""
                     ),
                     supported=None,
                 ),
