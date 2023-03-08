@@ -121,26 +121,31 @@ def status() -> Optional[LivepatchStatusStatus]:
     try:
         out, _ = system.subp([LIVEPATCH_CMD, "status", "--format", "json"])
     except exceptions.ProcessExecutionError:
-        logging.warning(
-            "canonical-livepatch returned error when " "checking status"
-        )
+        with util.disable_log_to_console():
+            logging.warning(
+                "canonical-livepatch returned error when checking status"
+            )
         return None
 
     try:
         status_json = json.loads(out)
     except json.JSONDecodeError:
-        logging.warning(
-            "canonical-livepatch status returned invalid json: {}".format(out)
-        )
+        with util.disable_log_to_console():
+            logging.warning(
+                "canonical-livepatch status returned invalid json: {}".format(
+                    out
+                )
+            )
         return None
 
     try:
         status_root = LivepatchStatus.from_dict(status_json)
     except IncorrectTypeError:
-        logging.warning(
-            "canonical-livepatch status returned unexpected "
-            "structure: {}".format(out)
-        )
+        with util.disable_log_to_console():
+            logging.warning(
+                "canonical-livepatch status returned unexpected "
+                "structure: {}".format(out)
+            )
         return None
 
     if status_root.status is None or len(status_root.status) < 1:
