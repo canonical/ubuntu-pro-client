@@ -712,26 +712,41 @@ class TestRebootStatus:
         assert 1 == m_load_file.call_count
 
     @pytest.mark.parametrize(
-        "livepatch_state,expected_state,kernel_name",
+        [
+            "livepatch_state",
+            "supported_state",
+            "expected_state",
+            "kernel_name",
+        ],
         (
             (
                 "applied",
+                "supported",
                 RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED,
                 "4.15.0-187.198-generic",
             ),
-            ("applied", RebootStatus.REBOOT_REQUIRED, "test"),
+            (
+                "applied",
+                None,
+                RebootStatus.REBOOT_REQUIRED,
+                "4.15.0-187.198-generic",
+            ),
+            ("applied", "supported", RebootStatus.REBOOT_REQUIRED, "test"),
             (
                 "nothing-to-apply",
+                "supported",
                 RebootStatus.REBOOT_REQUIRED,
                 "4.15.0-187.198-generic",
             ),
             (
                 "applying",
+                "supported",
                 RebootStatus.REBOOT_REQUIRED,
                 "4.15.0-187.198-generic",
             ),
             (
                 "apply-failed",
+                "supported",
                 RebootStatus.REBOOT_REQUIRED,
                 "4.15.0-187.198-generic",
             ),
@@ -750,6 +765,7 @@ class TestRebootStatus:
         m_is_livepatch_installed,
         m_kernel_info,
         livepatch_state,
+        supported_state,
         expected_state,
         kernel_name,
     ):
@@ -763,7 +779,7 @@ class TestRebootStatus:
             livepatch=livepatch.LivepatchPatchStatus(
                 state=livepatch_state, fixes=None, version=None
             ),
-            supported=None,
+            supported=supported_state,
         )
 
         assert get_reboot_status() == expected_state
