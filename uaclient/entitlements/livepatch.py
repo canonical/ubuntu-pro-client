@@ -221,17 +221,11 @@ class LivepatchEntitlement(UAEntitlement):
         if not livepatch.is_livepatch_installed():
             return (ApplicationStatus.DISABLED, messages.LIVEPATCH_NOT_ENABLED)
 
-        try:
-            system.subp(
-                [livepatch.LIVEPATCH_CMD, "status"],
-                retry_sleeps=LIVEPATCH_RETRIES,
-            )
-        except exceptions.ProcessExecutionError as e:
+        if livepatch.status() is None:
             # TODO(May want to parse INACTIVE/failure assessment)
-            logging.debug("Livepatch not enabled. %s", str(e))
             return (
                 ApplicationStatus.DISABLED,
-                messages.NamedMessage(name="", msg=str(e)),
+                messages.LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE,
             )
         return status
 
