@@ -125,12 +125,13 @@ def get_help(request, capsys, FakeConfig):
     elif "help" in request.param:
 
         def _get_help_output():
-            with mock.patch("sys.argv", request.param.split(" ")):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
+            with mock.patch("uaclient.cli.setup_logging"):
+                with mock.patch("sys.argv", request.param.split(" ")):
+                    with mock.patch(
+                        "uaclient.config.UAConfig",
+                        return_value=FakeConfig(),
+                    ):
+                        main()
             out, _err = capsys.readouterr()
 
             if "--all" in request.param:
@@ -664,7 +665,6 @@ class TestMain:
         logging_sandbox,
         caplog_text,
     ):
-
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known"), url=error_url
@@ -744,9 +744,10 @@ class TestSetupLogging:
     @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
     def test_console_log_configured_if_not_present(
-        self, m_we_are_currently_root, level, capsys, logging_sandbox
+        self, m_we_are_currently_root, level, capsys, logging_sandbox, tmpdir
     ):
-        setup_logging(level, logging.INFO)
+        log_file = tmpdir.join("log_file")
+        setup_logging(level, logging.INFO, log_file.strpath)
         logging.log(level, "after setup")
         logging.log(level - 1, "not present")
 
@@ -756,12 +757,13 @@ class TestSetupLogging:
 
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
     def test_console_log_configured_if_already_present(
-        self, m_we_are_currently_root, capsys, logging_sandbox
+        self, m_we_are_currently_root, capsys, logging_sandbox, tmpdir
     ):
         logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
         logging.error("before setup")
-        setup_logging(logging.INFO, logging.INFO)
+        log_file = tmpdir.join("log_file")
+        setup_logging(logging.INFO, logging.INFO, log_file.strpath)
         logging.error("after setup")
 
         # 'before setup' will be in stderr, so check that setup_logging
@@ -771,7 +773,7 @@ class TestSetupLogging:
         assert "ERROR: after setup" in err
 
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
-    def test_file_log_not_configured_if_not_root(
+    def test_file_log_configured_even_as_non_root(
         self, m_we_are_currently_root, tmpdir, logging_sandbox
     ):
         log_file = tmpdir.join("log_file")
@@ -779,7 +781,7 @@ class TestSetupLogging:
         setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
         logging.info("after setup")
 
-        assert not log_file.exists()
+        assert log_file.exists()
 
     @pytest.mark.parametrize("log_filename", (None, "file.log"))
     @mock.patch("uaclient.cli.config")
@@ -836,7 +838,12 @@ class TestSetupLogging:
         root_logger = logging.getLogger()
         n_root_handlers = len(root_logger.handlers)
 
-        setup_logging(logging.INFO, logging.INFO, logger=custom_logger)
+        setup_logging(
+            logging.INFO,
+            logging.INFO,
+            logger=custom_logger,
+            log_file=log_file.strpath,
+        )
 
         assert len(custom_logger.handlers) == 2
         assert len(root_logger.handlers) == n_root_handlers
@@ -854,7 +861,8 @@ class TestSetupLogging:
         m_config.return_value = cfg
         root_logger = logging.getLogger()
 
-        setup_logging(logging.INFO, logging.DEBUG)
+        log_file = tmpdir.join("file.log")
+        setup_logging(logging.INFO, logging.DEBUG, log_file=log_file.strpath)
         stream_handlers = [
             h
             for h in root_logger.handlers
@@ -871,7 +879,7 @@ class TestSetupLogging:
         assert len(stream_handlers) == 1
         assert len(file_handlers) == 1
 
-        setup_logging(logging.INFO, logging.DEBUG)
+        setup_logging(logging.INFO, logging.DEBUG, log_file=log_file.strpath)
         stream_handlers = [
             h
             for h in root_logger.handlers

@@ -373,6 +373,13 @@ case "$1" in
           chmod 0644 /var/log/ubuntu-advantage.log
       fi
       chown root:root /var/log/ubuntu-advantage.log
+      # create the log file writable by non-root user
+      if [ ! -f /var/log/ubuntu-advantage-nonroot.log ]; then
+          touch /var/log/ubuntu-advantage-nonroot.log
+          chmod 0664 /var/log/ubuntu-advantage-nonroot.log
+      fi
+      # TODO: $USER -> root
+      chown $USER:$USER /var/log/ubuntu-advantage-nonroot.log
 
       private_dir="/var/lib/ubuntu-advantage/private"
       if [ -d "$private_dir" ]; then

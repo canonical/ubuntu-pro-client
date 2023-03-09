@@ -36,10 +36,12 @@ Flags:
 
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_enable_help(
         self,
         _m_resources,
+        _m_logging,
         _request_updated_contract,
         capsys,
         FakeConfig,
@@ -55,10 +57,12 @@ class TestActionEnable:
         assert HELP_OUTPUT == out
 
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_non_root_users_are_rejected(
         self,
         _m_resources,
+        _m_logging,
         _request_updated_contract,
         we_are_currently_root,
         capsys,
@@ -109,10 +113,12 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
+        _m_logging,
         _request_updated_contract,
         capsys,
         event,
@@ -170,10 +176,12 @@ class TestActionEnable:
             (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_unattached_error_message(
         self,
         m_we_are_currently_root,
+        _m_logging,
         _request_updated_contract,
         root,
         expected_error_template,
@@ -319,10 +327,12 @@ class TestActionEnable:
             (False, messages.NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_unattached_invalid_and_valid_service_error_message(
         self,
         m_we_are_currently_root,
+        _m_logging,
         _request_updated_contract,
         root,
         expected_error_template,
@@ -419,6 +429,7 @@ class TestActionEnable:
             )
         ] == m_entitlement_cls.call_args_list
 
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -427,6 +438,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_logging,
         _m_request_updated_contract,
         event,
         FakeConfig,
@@ -536,6 +548,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -544,6 +557,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_logging,
         _m_request_updated_contract,
         beta_flag,
         event,
@@ -679,10 +693,12 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
+        _m_logging,
         _m_request_updated_contract,
         event,
         FakeConfig,
@@ -822,12 +838,14 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_enabled(
         self,
         m_status,
         _m_get_available_resources,
+        _m_logging,
         _m_request_updated_contract,
         allow_beta,
         event,

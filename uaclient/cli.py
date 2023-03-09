@@ -1861,11 +1861,21 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
             log_file_path.touch()
             log_file_path.chmod(0o644)
 
+    # CAUTION:
+    # add try...except
+    # Add integration test to cover this scenario
+    # is it okay for the non-root log file to be created if deleted?
+    # What about permissions in /var/log/ ?
+    # FileHandler creates $USER:$USER with 0o644 file
+    try:
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(log_level)
         file_handler.setFormatter(log_formatter)
         file_handler.set_name("ua-file")
         logger.addHandler(file_handler)
+    except PermissionError as e:
+        logging.error(e)
+        return 1
 
 
 def set_event_mode(cmd_args):
@@ -1975,7 +1985,12 @@ def main(sys_argv=None):
 
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
-    setup_logging(console_level, log_level, cfg.log_file)
+    log_file = (
+        cfg.log_file
+        if util.we_are_currently_root()
+        else defaults.NON_ROOT_LOG_FILE
+    )
+    setup_logging(console_level, log_level, log_file)
 
     logging.debug("Executed with sys.argv: %r" % sys_argv)
 

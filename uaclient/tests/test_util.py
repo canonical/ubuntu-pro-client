@@ -8,7 +8,7 @@ import urllib
 import mock
 import pytest
 
-from uaclient import cli, exceptions, messages, util
+from uaclient import cli, exceptions, messages, util, log as pro_log
 
 
 class TestGetDictDeltas:
@@ -71,7 +71,11 @@ class TestIsServiceUrl:
 
 
 class TestReadurl:
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "caplog_text",
+        [(logging.DEBUG, pro_log.RedactionFilter)],
+        indirect=True,
+    )
     @pytest.mark.parametrize(
         "headers,data,method,url,response,expected_logs",
         (
@@ -137,6 +141,7 @@ class TestReadurl:
         response,
         expected_logs,
         caplog_text,
+        tmpdir,
     ):
         """Log and redact sensitive data from logs for url interactions."""
 
@@ -201,12 +206,20 @@ class TestDisableLogToConsole:
 
     @pytest.mark.parametrize("disable_log", (True, False))
     def test_disable_log_to_console(
-        self, m_we_are_currently_root, logging_sandbox, capsys, disable_log
+        self,
+        m_we_are_currently_root,
+        logging_sandbox,
+        capsys,
+        disable_log,
+        tmpdir,
     ):
         # This test is parameterised so that we are sure that the context
         # manager is suppressing the output, not some other config change
 
-        cli.setup_logging(logging.INFO, logging.INFO)
+        log_file = tmpdir.join("file.log")
+        cli.setup_logging(
+            logging.INFO, logging.INFO, log_file=log_file.strpath
+        )
 
         if disable_log:
             context_manager = util.disable_log_to_console
@@ -226,9 +239,12 @@ class TestDisableLogToConsole:
             assert "test info" in combined_output
 
     def test_disable_log_to_console_does_nothing_at_debug_level(
-        self, m_we_are_currently_root, logging_sandbox, capsys
+        self, m_we_are_currently_root, logging_sandbox, capsys, tmpdir
     ):
-        cli.setup_logging(logging.DEBUG, logging.DEBUG)
+        log_file = tmpdir.join("file.log")
+        cli.setup_logging(
+            logging.DEBUG, logging.DEBUG, log_file=log_file.strpath
+        )
 
         with util.disable_log_to_console():
             logging.error("test error")
@@ -264,7 +280,6 @@ class TestDatetimeAwareJSONEncoder:
 
 
 class TestDatetimeAwareJSONDecoder:
-
     # Note that the parameter names are flipped from
     # TestDatetimeAwareJSONEncoder
     @pytest.mark.parametrize("out,input", JSON_TEST_PAIRS)
