@@ -1,7 +1,7 @@
 [Unit]
-Description=Ubuntu Advantage reboot cmds
+Description=Ubuntu Pro reboot cmds
 ConditionPathExists=/var/lib/ubuntu-advantage/marker-reboot-cmds-required
-Wants=ua-auto-attach.service
+ConditionPathExists=/var/lib/ubuntu-advantage/private/machine-token.json
 After=ua-auto-attach.service
 
 [Service]
