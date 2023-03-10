@@ -4,7 +4,7 @@ window.onload = function() {
     link.classList.add("github-issue-link");
     link.text = "Have a question?";
     link.href = (
-        "https://github.com/canonical/ubuntu-advantage-client/issues/new?"
+        "https://github.com/canonical/ubuntu-pro-client/issues/new?"
         + "title=docs%3A+TYPE+YOUR+QUESTION+HERE"
         + "&body=*Please describe the question or issue you're facing with "
         + `"${document.title}"`
