@@ -5,7 +5,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Enable Real-time kernel service in a container
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
             """
@@ -25,7 +25,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-time kernel service on unsupported release
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
             """
@@ -98,11 +98,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             This will NOT fully remove the kernel from your system.
 
             After this operation is complete you must:
-            - Ensure a different kernel is installed and configured to boot
-            - Reboot into that kernel
-            - Fully remove the realtime kernel packages from your system
-                - This might look something like `apt remove linux*realtime`,
-                  but you must ensure this is correct before running it.
+              - Ensure a different kernel is installed and configured to boot
+              - Reboot into that kernel
+              - Fully remove the realtime kernel packages from your system
+                  - This might look something like `apt remove linux\*realtime`,
+                    but you must ensure this is correct before running it.
             """
         When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout contains substring
@@ -118,7 +118,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-time kernel service access-only
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
         When I run `pro enable realtime-kernel --beta --access-only` with sudo
         Then stdout matches regexp:
         """
