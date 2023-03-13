@@ -89,6 +89,7 @@ The currently available endpoints are:
 - [u.pro.packages.summary.v1](#upropackagessummaryv1)
 - [u.pro.packages.updates.v1](#upropackagesupdatesv1)
 - [u.security.package_manifest.v1](#usecuritypackage_manifestv1)
+- [u.unattended_upgrades.status.v1](#uunattended_upgradesstatusv1)
 
 ## u.pro.version.v1
 
@@ -799,5 +800,107 @@ pro api u.security.package_manifest.v1
 ```json
 {
     "package_manifest":"package1\t1.0\npackage2\t2.3\n"
+}
+```
+
+## u.unattended_upgrades.status.v1
+
+Introduced in Ubuntu Pro Client Version: `27.14~`
+
+Returns the status around unattended-upgrades. The focus of the endpoint
+is to verify if the application is running and how it is configured on
+the machine.
+
+```{important}
+For this endpoint, we deliver a unique key under `meta` called `raw_config`. This field contains
+all related unattended-upgrades configurations unparsed. This means that this field will maintain
+both original name and values for those configurations.
+``` 
+
+### Args
+
+This endpoint takes no arguments.
+
+### Python API interaction
+
+#### Calling from Python code
+
+```python
+from uaclient.api.u.unattended_upgrades.status.v1 import status
+
+result = status()
+```
+
+#### Expected return object:
+`uaclient.api.u.unattended_upgrades.status.v1.UnattendedUpgradesStatusResult
+
+|Field Name|Type|Description|
+|-|-|-|
+|`systemd_apt_timer_enabled`|*bool*|Indicate if the apt-daily.timer jobs are enabled|
+|`apt_periodic_job_enabled`|*bool*|Indicate if the APT::Periodic::Enabled configuration is turned off|
+|`package_lists_refresh_frequency_days`|*int*|The value of the APT::Periodic::Update-Package-Lists configuration|
+|`unattended_upgrades_frequency_days`|*int*|The value of the APT::Periodic::Unattended-Upgrade configuration|
+|`unattended_upgrades_allowed_origins`|*List[str]*|The value of the Unattended-Upgrade::Allowed-Origins configuration|
+|`unattended_upgrades_running`|*bool*|Indicate if the unattended-upgrade service is correctly configured and running|
+|`unattended_upgrades_disabled_reason`|*object*|Object that explains why unattended-upgrades is not running. In case the application is running, the object will be null|
+|`unatteded_upgrades_last_run`|`datetime.datetime`|The last time unattended-upgrades has run|
+
+`uaclient.api.u.unattended_upgrades.status.v1.UnattendedUpgradesStatusDisabledReason`
+
+|Field Name|Type|Description|
+|-|-|-|
+|`msg`|*str*|The reason why unattended-upgrades is not running in the system|
+|`code`|*str*|The message code associated with the message|
+
+### Raised exceptions
+
+- `UnattendedUpgradesError`: Raised in case we cannot run a necessary command to show the status
+  of unattended-upgrades
+
+### CLI interaction
+
+#### Calling from the CLI:
+
+```bash
+pro api u.unattended_upgrades.status.v1
+```
+
+#### Expected attributes in JSON structure
+
+```json
+{
+    "apt_periodic_job_enabled": true,
+    "package_lists_refresh_frequency_days": 1,
+    "systemd_apt_timer_enabled": true,
+    "unattended_upgrades_allowed_origins": [
+      "${distro_id}:${distro_codename}",
+      "${distro_id}:${distro_codename}-security",
+      "${distro_id}ESMApps:${distro_codename}-apps-security",
+      "${distro_id}ESM:${distro_codename}-infra-security"
+    ],
+    "unattended_upgrades_disabled_reason": null,
+    "unattended_upgrades_frequency_days": 1,
+    "unattended_upgrades_last_run": null,
+    "unattended_upgrades_running": true
+}
+```
+
+#### Possible attributes in JSON meta field
+```json
+{
+    "meta": {
+      "environment_vars": [],
+      "raw_config": {
+        "APT::Periodic::Enable": "1",
+        "APT::Periodic::Unattended-Upgrade": "1",
+        "APT::Periodic::Update-Package-Lists": "1",
+        "Unattended-Upgrade::Allowed-Origins": [
+          "${distro_id}:${distro_codename}",
+          "${distro_id}:${distro_codename}-security",
+          "${distro_id}ESMApps:${distro_codename}-apps-security",
+          "${distro_id}ESM:${distro_codename}-infra-security"
+        ]
+      }
+    }
 }
 ```
