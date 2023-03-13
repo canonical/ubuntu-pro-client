@@ -670,23 +670,47 @@ def update_esm_caches(cfg) -> None:
 
     import apt  # type: ignore
 
+    from uaclient.actions import status
     from uaclient.entitlements.entitlement_status import ApplicationStatus
     from uaclient.entitlements.esm import (
         ESMAppsEntitlement,
         ESMInfraEntitlement,
     )
 
+    apps_available = False
+    infra_available = False
+
+    current_status = cfg.read_cache("status-cache")
+    if current_status is None:
+        current_status = status(cfg)[0]
+
+    for service in current_status.get("services", []):
+        if service.get("name", "") == "esm-apps":
+            apps_available = service.get("available", "no") == "yes"
+        if service.get("name", "") == "esm-infra":
+            infra_available = service.get("available", "no") == "yes"
+
     apps = ESMAppsEntitlement(cfg)
 
     # Always setup ESM-Apps
-    if apps.application_status()[0] == ApplicationStatus.DISABLED:
+    if (
+        apps_available
+        and apps.application_status()[0] == ApplicationStatus.DISABLED
+    ):
         apps.setup_local_esm_repo()
+    else:
+        apps.disable_local_esm_repo()
 
     # Only setup ESM-Infra for EOSS systems
     if system.is_current_series_active_esm():
         infra = ESMInfraEntitlement(cfg)
-        if infra.application_status()[0] == ApplicationStatus.DISABLED:
+        if (
+            infra_available
+            and infra.application_status()[0] == ApplicationStatus.DISABLED
+        ):
             infra.setup_local_esm_repo()
+        else:
+            infra.disable_local_esm_repo()
 
     # Read the cache and update it
     cache = get_esm_cache()
