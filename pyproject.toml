@@ -5,3 +5,23 @@ target_version = ['py34', 'py35', 'py36', 'py37']
 [tool.isort]
 profile = "black"
 line_length = 79
+
+[tool.mypy]
+check_untyped_defs = "true"
+explicit_package_bases = "true"
+
+[[tool.mypy.overrides]]
+module = [
+  "*.tests.*",
+  "uaclient.conftest",
+  "uaclient.testing.*",
+]
+ignore_errors = "true"
+
+[[tool.mypy.overrides]]
+module = [
+  "apt_pkg",
+  "behave.*",
+  "hamcrest",
+]
+ignore_missing_imports = "true"
