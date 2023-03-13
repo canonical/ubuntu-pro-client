@@ -435,14 +435,6 @@ class UAConfig:
         cache_path = self.data_path(key)
         return os.path.exists(cache_path)
 
-    def _perform_delete(self, cache_path: str) -> None:
-        """Delete the given cache_path if it exists.
-
-        (This is a separate method to allow easier disabling of deletion during
-        tests.)
-        """
-        system.ensure_file_absent(cache_path)
-
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
         if not key:
@@ -454,7 +446,7 @@ class UAConfig:
         elif key == "lock":
             notices.remove(Notice.OPERATION_IN_PROGRESS)
         cache_path = self.data_path(key)
-        self._perform_delete(cache_path)
+        system.ensure_file_absent(cache_path)
 
     def delete_cache(self):
         """
