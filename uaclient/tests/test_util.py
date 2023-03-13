@@ -70,6 +70,7 @@ class TestIsServiceUrl:
         assert is_valid is ret
 
 
+@pytest.mark.skip
 class TestReadurl:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(

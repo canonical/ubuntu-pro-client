@@ -251,3 +251,11 @@ def mock_notices_dir(tmpdir_factory):
             temp_dir.strpath,
         ):
             yield
+
+
+@pytest.yield_fixture(autouse=True)
+def m_early_logs():
+    with mock.patch(
+        "uaclient.cli.pro_log.EarlyLoggingSetup",
+    ):
+        yield

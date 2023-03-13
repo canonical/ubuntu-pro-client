@@ -954,6 +954,7 @@ class TestProcessConfig:
         capsys,
         tmpdir,
         FakeConfig,
+        caplog_text,
     ):
         m_snap_is_installed.return_value = snap_is_installed
         m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]

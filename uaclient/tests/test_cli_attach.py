@@ -655,7 +655,8 @@ class TestActionAttach:
 
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestParser:
-    def test_attach_help(self, _m_resources, capsys, FakeConfig):
+    @mock.patch("uaclient.cli.pro_log.EarlyLoggingSetup")
+    def test_attach_help(self, _m_resources, _m_l, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/pro", "attach", "--help"]):
                 with mock.patch(

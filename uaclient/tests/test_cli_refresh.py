@@ -1,3 +1,5 @@
+import logging
+
 import mock
 import pytest
 
@@ -28,8 +30,12 @@ Flags:
 
 
 class TestActionRefresh:
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.cli.pro_log.EarlyLoggingSetup")
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_refresh_help(self, _m_resources, capsys, FakeConfig):
+    def test_refresh_help(
+        self, _m_resources, m_l, caplog_text, capsys, FakeConfig
+    ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
                 with mock.patch(

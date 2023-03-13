@@ -24,10 +24,10 @@ import logging
 import sys
 import time
 
-from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.contract import process_entitlements_delta
 from uaclient.defaults import ESM_APT_ROOTDIR
+from uaclient.log import setup_logging
 from uaclient.system import ensure_folder_absent, parse_os_release, subp
 
 version_to_codename = {

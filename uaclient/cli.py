@@ -3,7 +3,6 @@
 import argparse
 import json
 import logging
-import pathlib
 import re
 import sys
 import tarfile
@@ -64,7 +63,7 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.jobs.update_messaging import refresh_motd, update_motd_messages
-from uaclient.log import JsonArrayFormatter
+from uaclient.log import setup_logging  # noqa  # TODO
 
 NAME = "pro"
 
@@ -1830,44 +1829,6 @@ def _warn_about_new_version(cmd_args=None) -> None:
         logging.warning(NEW_VERSION_NOTICE.format(version=new_version))
 
 
-def setup_logging(console_level, log_level, log_file=None, logger=None):
-    """Setup console logging and debug logging to log_file"""
-    if log_file is None:
-        cfg = config.UAConfig()
-        log_file = cfg.log_file
-    console_formatter = util.LogFormatter()
-    if logger is None:
-        # Then we configure the root logger
-        logger = logging.getLogger()
-    logger.setLevel(log_level)
-    logger.addFilter(pro_log.RedactionFilter())
-
-    # Clear all handlers, so they are replaced for this logger
-    logger.handlers = []
-
-    # Setup console logging
-    console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(console_level)
-    console_handler.set_name("ua-console")  # Used to disable console logging
-    logger.addHandler(console_handler)
-
-    # Setup file logging
-    if util.we_are_currently_root():
-        # Setup readable-by-root-only debug file logging if running as root
-        log_file_path = pathlib.Path(log_file)
-
-        if not log_file_path.exists():
-            log_file_path.touch()
-            log_file_path.chmod(0o644)
-
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(JsonArrayFormatter())
-        file_handler.setLevel(log_level)
-        file_handler.set_name("ua-file")
-        logger.addHandler(file_handler)
-
-
 def set_event_mode(cmd_args):
     """Set the right event mode based on the args provided"""
     if cmd_args.command in ("attach", "detach", "enable", "disable", "status"):
@@ -1959,23 +1920,32 @@ def main_error_handler(func):
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
-    cfg = config.UAConfig()
-    parser = get_parser(cfg=cfg)
-    cli_arguments = sys_argv[1:]
-    if not cli_arguments:
-        parser.print_usage()
-        print(TRY_HELP)
-        sys.exit(1)
-    args = parser.parse_args(args=cli_arguments)
-    set_event_mode(args)
+    with pro_log.EarlyLoggingSetup(
+        console_level=logging.INFO,
+        log_level=logging.DEBUG,
+        log_file=pro_log.LogFile.MAIN,
+    ) as early_logging:
+        cfg = config.UAConfig()
+        parser = get_parser(cfg=cfg)
+        cli_arguments = sys_argv[1:]
+        if not cli_arguments:
+            parser.print_usage()
+            print(TRY_HELP)
+            sys.exit(1)
+        early_logging.ua_cfg = cfg
+        args = parser.parse_args(args=cli_arguments)
+        set_event_mode(args)
 
-    http_proxy = cfg.http_proxy
-    https_proxy = cfg.https_proxy
-    util.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
+        http_proxy = cfg.http_proxy
+        https_proxy = cfg.https_proxy
+        util.configure_web_proxy(
+            http_proxy=http_proxy, https_proxy=https_proxy
+        )
 
-    log_level = cfg.log_level
-    console_level = logging.DEBUG if args.debug else logging.INFO
-    setup_logging(console_level, log_level, cfg.log_file)
+        early_logging.log_level = cfg.log_level
+        early_logging.console_level = (
+            logging.DEBUG if args.debug else logging.INFO
+        )
 
     logging.debug("Executed with sys.argv: %r" % sys_argv)
 

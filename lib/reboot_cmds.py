@@ -19,10 +19,10 @@ import os
 import sys
 
 from uaclient import config, contract, exceptions, lock, messages
-from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices
 from uaclient.files.notices import Notice
+from uaclient.log import setup_logging
 from uaclient.system import subp
 
 # Retry sleep backoff algorithm if lock is held.

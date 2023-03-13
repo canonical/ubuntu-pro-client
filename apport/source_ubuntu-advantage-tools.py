@@ -12,6 +12,7 @@ def add_info(report, ui=None):
     cfg = UAConfig()
     with tempfile.TemporaryDirectory() as output_dir:
         collect_logs(cfg, output_dir)
+        # TODO: collect default logs
         auto_include_log_files = [
             "cloud-id.txt",
             "cloud-id.txt-error",
