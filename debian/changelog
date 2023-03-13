@@ -4,6 +4,43 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.14~23.04.1) lunar; urgency=medium
+
+  * d/ubuntu-advantage-tools.{postinst,postrm,preinst}:
+    - migrate certain settings out of uaclient.conf to a new file managed by
+      the pro config subcommand (LP: #2004280)
+  * d/ubuntu-advantage-tools.postinst:
+    - refactor PREVIOUS_PKG_VER as a global variable
+    - simplify how we add notices
+  * New upstream release 27.14 (LP: #2011477)
+    - api: new u.unattended_upgrades.status.v1 endpoint for querying status of
+      unattended upgrades
+    - apt:
+      + remove legacy apt-hook
+      + deliver json apt-hook for interim releases
+      + fix cloud identification logic in json apt-hook
+      + make all calls to esm-cache isolated from system configuration
+      + only set up the esm cache on supported systems (LP: #2004018)
+    - fix:
+      + format the output to be more readable (LP: #1926182)
+      + add option to attach during a fix without a token
+      + verify if fixed version can be installed before trying (LP: #2006705)
+    - livepatch: show warning if current kernel is not supported
+    - locks: alert user about corrupted lock files (LP: #1996931)
+    - logging: logs are now formatted as jsonlines
+    - motd: remove esm-apps announcement
+    - notices: new representation on disk as separate files
+    - realtime: remove ubuntu-realtime package on disablement
+    - status:
+      + removed contract info update check network call
+      + no longer includes warnings about notices when non-root
+      + unattached status sends virt type to contract server for better
+        resource availability calculation
+    - timer jobs: add daily job to check for contract updates
+    - yaml: always import distro-provided pyyaml (LP: #2007234, LP: #2007241)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 13 Mar 2023 15:28:33 -0400
+
 ubuntu-advantage-tools (27.13.6~23.04.1) lunar; urgency=medium
 
   * apt-news:
