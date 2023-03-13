@@ -71,9 +71,8 @@ VALID_UA_CONFIG_KEYS = (
 )
 
 # A data path is a filename, an attribute ("private") indicating whether it
-# should only be readable by root, and an attribute ("permanent") indicating
-# whether it should stick around even when detached.
-DataPath = namedtuple("DataPath", ("filename", "private", "permanent"))
+# should only be readable by root.
+DataPath = namedtuple("DataPath", ("filename", "private"))
 
 event = event_logger.get_event_logger()
 
@@ -89,13 +88,11 @@ def str_cache(func: Callable[..., S]) -> S:
 class UAConfig:
 
     data_paths = {
-        "instance-id": DataPath("instance-id", True, False),
-        "machine-access-cis": DataPath("machine-access-cis.json", True, False),
-        "lock": DataPath("lock", False, False),
-        "status-cache": DataPath("status.json", False, False),
-        "marker-reboot-cmds": DataPath(
-            "marker-reboot-cmds-required", False, False
-        ),
+        "instance-id": DataPath("instance-id", True),
+        "machine-access-cis": DataPath("machine-access-cis.json", True),
+        "lock": DataPath("lock", False),
+        "status-cache": DataPath("status.json", False),
+        "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
     }  # type: Dict[str, DataPath]
 
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
@@ -459,15 +456,12 @@ class UAConfig:
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
-    def delete_cache(self, delete_permanent: bool = False):
+    def delete_cache(self):
         """
         Remove configuration cached response files class attributes.
-
-        :param delete_permanent: even delete the "permanent" files
         """
         for path_key in self.data_paths.keys():
-            if delete_permanent or not self.data_paths[path_key].permanent:
-                self.delete_cache_key(path_key)
+            self.delete_cache_key(path_key)
 
     def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
         cache_path = self.data_path(key)
