@@ -303,7 +303,7 @@ class TestDataPath:
         self, FakeConfig
     ):
         cfg = FakeConfig({"data_dir": "/my/d"})
-        cfg.data_paths["test_path"] = DataPath("test_path", False, False)
+        cfg.data_paths["test_path"] = DataPath("test_path", False)
         assert "/my/d/test_path" == cfg.data_path("test_path")
 
 
@@ -441,8 +441,8 @@ class TestWriteCache:
     @pytest.mark.parametrize(
         "datapath,mode",
         (
-            (DataPath("path", False, False), 0o644),
-            (DataPath("path", True, False), 0o600),
+            (DataPath("path", False), 0o644),
+            (DataPath("path", True), 0o600),
         ),
     )
     def test_permissions(self, FakeConfig, datapath, mode):
@@ -598,7 +598,7 @@ class TestDeleteCache:
         cfg.machine_token_file.delete()
         assert {} == cfg.machine_token_file.entitlements
 
-    def test_delete_cache_removes_all_data_path_files_with_delete_permanent(
+    def test_delete_cache_removes_all_data_path_files(
         self, tmpdir, FakeConfig
     ):
         """Any cached files defined in cfg.data_paths will be removed."""
@@ -619,7 +619,7 @@ class TestDeleteCache:
             )
         )
         assert len(odd_keys) == len(present_files)
-        cfg.delete_cache(delete_permanent=True)
+        cfg.delete_cache()
         dirty_files = list(
             itertools.chain(
                 *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
@@ -628,39 +628,6 @@ class TestDeleteCache:
         assert 0 == len(dirty_files), "{} files not deleted".format(
             ", ".join(dirty_files)
         )
-
-    def test_delete_cache_ignores_permanent_data_path_files(
-        self, tmpdir, FakeConfig
-    ):
-        """Any cached files defined in cfg.data_paths will be removed."""
-        cfg = FakeConfig()
-        for key in cfg.data_paths.keys():
-            if key == "notices":
-                # notices key expects specific list or lists format
-                value = [[key, key]]
-            else:
-                value = key
-            cfg.write_cache(key, value)
-
-        num_permanent_files = len(
-            [v for v in cfg.data_paths.values() if v.permanent]
-        )
-        present_files = list(
-            itertools.chain(
-                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
-            )
-        )
-        assert len(cfg.data_paths.keys()) == len(present_files)
-        cfg.delete_cache()
-        cfg.machine_token_file.delete()
-        dirty_files = list(
-            itertools.chain(
-                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
-            )
-        )
-        assert num_permanent_files == len(
-            dirty_files
-        ), "{} files not deleted".format(", ".join(dirty_files))
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
         self, tmpdir, FakeConfig
