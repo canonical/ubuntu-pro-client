@@ -575,6 +575,75 @@ def get_related_usns(usn, client):
     return list(sorted(related_usns.values(), key=lambda x: x.id))
 
 
+def _check_cve_fixed_by_livepatch(
+    issue_id: str,
+) -> Tuple[Optional[FixStatus], Optional[str]]:
+    # Check livepatch status for CVE in fixes before checking CVE api
+    lp_status = livepatch.status()
+    if (
+        lp_status is not None
+        and lp_status.livepatch is not None
+        and lp_status.livepatch.fixes is not None
+    ):
+        for fix in lp_status.livepatch.fixes:
+            if fix.name == issue_id.lower() and fix.patched:
+                version = lp_status.livepatch.version or "N/A"
+                return (FixStatus.SYSTEM_NON_VULNERABLE, version)
+
+    return (None, None)
+
+
+def _fix_cve(
+    cve: CVE,
+    usns: List[USN],
+    issue_id: str,
+    installed_packages: Dict[str, Dict[str, str]],
+    cfg: UAConfig,
+    beta_pockets: Dict[str, bool],
+    dry_run: bool,
+) -> FixStatus:
+    affected_pkg_status = get_cve_affected_source_packages_status(
+        cve=cve, installed_packages=installed_packages
+    )
+    usn_released_pkgs = merge_usn_released_binary_package_versions(
+        usns, beta_pockets
+    )
+
+    return prompt_for_affected_packages(
+        cfg=cfg,
+        issue_id=issue_id,
+        affected_pkg_status=affected_pkg_status,
+        installed_packages=installed_packages,
+        usn_released_pkgs=usn_released_pkgs,
+        dry_run=dry_run,
+    )
+
+
+def _fix_usn(
+    usn: USN,
+    usns: List[USN],
+    issue_id: str,
+    installed_packages: Dict[str, Dict[str, str]],
+    cfg: UAConfig,
+    beta_pockets: Dict[str, bool],
+    dry_run: bool,
+) -> FixStatus:
+    affected_pkg_status = get_usn_affected_packages_status(
+        usn=usn, installed_packages=installed_packages
+    )
+    usn_released_pkgs = merge_usn_released_binary_package_versions(
+        usns, beta_pockets
+    )
+    return prompt_for_affected_packages(
+        cfg=cfg,
+        issue_id=issue_id,
+        affected_pkg_status=affected_pkg_status,
+        installed_packages=installed_packages,
+        usn_released_pkgs=usn_released_pkgs,
+        dry_run=dry_run,
+    )
+
+
 def fix_security_issue_id(
     cfg: UAConfig, issue_id: str, dry_run: bool = False
 ) -> FixStatus:
@@ -592,22 +661,18 @@ def fix_security_issue_id(
     }
 
     if "CVE" in issue_id:
-        # Check livepatch status for CVE in fixes before checking CVE api
-        lp_status = livepatch.status()
-        if (
-            lp_status is not None
-            and lp_status.livepatch is not None
-            and lp_status.livepatch.fixes is not None
-        ):
-            for fix in lp_status.livepatch.fixes:
-                if fix.name == issue_id.lower() and fix.patched:
-                    print(
-                        messages.CVE_FIXED_BY_LIVEPATCH.format(
-                            issue=issue_id,
-                            version=lp_status.livepatch.version or "N/A",
-                        )
-                    )
-                    return FixStatus.SYSTEM_NON_VULNERABLE
+        livepatch_cve_status, patch_version = _check_cve_fixed_by_livepatch(
+            issue_id
+        )
+
+        if livepatch_cve_status:
+            print(
+                messages.CVE_FIXED_BY_LIVEPATCH.format(
+                    issue=issue_id,
+                    version=patch_version,
+                )
+            )
+            return livepatch_cve_status
 
         try:
             cve = client.get_cve(cve_id=issue_id)
@@ -620,13 +685,17 @@ def fix_security_issue_id(
                 )
             raise exceptions.UserFacingError(msg)
 
-        affected_pkg_status = get_cve_affected_source_packages_status(
-            cve=cve, installed_packages=installed_packages
-        )
         print(cve.get_url_header())
-        usn_released_pkgs = merge_usn_released_binary_package_versions(
-            usns, beta_pockets
+        return _fix_cve(
+            cve=cve,
+            usns=usns,
+            issue_id=issue_id,
+            installed_packages=installed_packages,
+            cfg=cfg,
+            beta_pockets=beta_pockets,
+            dry_run=dry_run,
         )
+
     else:  # USN
         try:
             usn = client.get_notice(notice_id=issue_id)
@@ -638,12 +707,7 @@ def fix_security_issue_id(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
-        affected_pkg_status = get_usn_affected_packages_status(
-            usn=usn, installed_packages=installed_packages
-        )
-        usn_released_pkgs = merge_usn_released_binary_package_versions(
-            usns, beta_pockets
-        )
+
         print(usn.get_url_header())
         if not usn.response["release_packages"]:
             # Since usn.release_packages filters to our current release only
@@ -654,14 +718,16 @@ def fix_security_issue_id(
                 ),
                 issue_id=issue_id,
             )
-    return prompt_for_affected_packages(
-        cfg=cfg,
-        issue_id=issue_id,
-        affected_pkg_status=affected_pkg_status,
-        installed_packages=installed_packages,
-        usn_released_pkgs=usn_released_pkgs,
-        dry_run=dry_run,
-    )
+
+        return _fix_usn(
+            usn=usn,
+            usns=usns,
+            issue_id=issue_id,
+            installed_packages=installed_packages,
+            cfg=cfg,
+            beta_pockets=beta_pockets,
+            dry_run=dry_run,
+        )
 
 
 def get_affected_packages_from_cves(cves, installed_packages):
