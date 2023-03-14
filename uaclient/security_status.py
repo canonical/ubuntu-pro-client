@@ -57,12 +57,23 @@ def get_origin_information_to_service_map():
     }
 
 
+def _setup_apt_cache():
+    import apt  # type: ignore
+    import apt_pkg
+
+    for key in apt_pkg.config.keys():
+        apt_pkg.config.clear(key)
+    apt_pkg.init()
+
+    return apt.Cache()
+
+
 def get_installed_packages_by_origin() -> DefaultDict[
     "str", List[apt.package.Package]
 ]:
+    cache = _setup_apt_cache()
     result = defaultdict(list)
 
-    cache = apt.Cache()
     installed_packages = [package for package in cache if package.is_installed]
     result["all"] = installed_packages
 

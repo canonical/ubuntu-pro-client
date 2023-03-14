@@ -212,14 +212,14 @@ def get_apt_cache_policy(
 
 
 @lru_cache(maxsize=None)
-def _get_apt_cache():
+def get_apt_cache():
     import apt  # type: ignore
 
     return apt.Cache()
 
 
 def get_pkg_candidate_version(pkg: str) -> Optional[str]:
-    cache = _get_apt_cache()
+    cache = get_apt_cache()
 
     try:
         package = cache[pkg]
