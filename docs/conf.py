@@ -105,7 +105,7 @@ html_static_path = ["_static"]
 html_css_files = [
     "css/logo.css",
     "css/github_issue_links.css",
-    "css/custom.css"
+    "css/custom.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
