@@ -1,5 +1,4 @@
 import copy
-from types import MappingProxyType
 
 import mock
 import pytest
@@ -15,15 +14,6 @@ from uaclient.entitlements.tests.conftest import machine_token
 
 M_PATH = "uaclient.entitlements.repo."
 M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."
-
-PLATFORM_INFO_SUPPORTED = MappingProxyType(
-    {
-        "arch": "x86_64",
-        "kernel": "4.4.0-00-generic",
-        "series": "xenial",
-        "version": "16.04 LTS (Xenial Xerus)",
-    }
-)
 
 
 class RepoTestEntitlement(RepoEntitlement):
@@ -47,27 +37,25 @@ def entitlement(entitlement_factory):
 
 
 class TestUserFacingStatus:
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_inapplicable_on_inapplicable_applicability_status(
-        self, m_platform_info, entitlement
+        self, m_release_info, entitlement
     ):
         """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
-        platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        platform_unsupported["series"] = "example"
-        platform_unsupported["version"] = "01.01 LTS (Example Version)"
-        m_platform_info.return_value = platform_unsupported
+        m_release_info.return_value = mock.MagicMock(
+            series="example", pretty_version="version"
+        )
         applicability, details = entitlement.applicability_status()
         assert ApplicabilityStatus.INAPPLICABLE == applicability
         expected_details = (
-            "Repo Test Class is not available for Ubuntu 01.01"
-            " LTS (Example Version)."
+            "Repo Test Class is not available for Ubuntu version."
         )
         assert expected_details == details.msg
         uf_status, _ = entitlement.user_facing_status()
         assert UserFacingStatus.INAPPLICABLE == uf_status
 
-    @mock.patch(M_PATH + "system.get_platform_info")
-    def test_unavailable_on_unentitled(self, m_platform_info, entitlement):
+    @mock.patch(M_PATH + "system.get_release_info")
+    def test_unavailable_on_unentitled(self, m_release_info, entitlement):
         """When unentitled, return UNAVAILABLE."""
         no_entitlements = copy.deepcopy(machine_token("blah"))
         # delete all enttlements
@@ -75,7 +63,7 @@ class TestUserFacingStatus:
             "resourceEntitlements"
         ].pop()
         entitlement.cfg.machine_token_file.write(no_entitlements)
-        m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
+        m_release_info.return_value = mock.MagicMock(series="xenial")
         applicability, _details = entitlement.applicability_status()
         assert ApplicabilityStatus.APPLICABLE == applicability
         uf_status, uf_details = entitlement.user_facing_status()
@@ -260,7 +248,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -271,7 +259,7 @@ class TestProcessContractDeltas:
         m_remove_apt_config,
         m_setup_apt_config,
         m_remove_auth_apt_repo,
-        m_platform_info,
+        m_release_info,
         m_read_cache,
         m_process_contract_deltas,
         entitlement,
@@ -320,7 +308,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -331,7 +319,7 @@ class TestProcessContractDeltas:
         m_remove_apt_config,
         m_setup_apt_config,
         m_remove_auth_apt_repo,
-        m_platform_info,
+        m_release_info,
         m_read_cache,
         m_process_contract_deltas,
         entitlement,
@@ -438,14 +426,14 @@ class TestRepoEnable:
     @mock.patch(M_PATH + "system.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "exists", return_value=True)
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch.object(
         RepoTestEntitlement, "can_enable", return_value=(True, None)
     )
     def test_enable_calls_adds_apt_repo_and_calls_apt_update(
         self,
         m_can_enable,
-        m_platform,
+        m_release_info,
         m_exists,
         m_apt_add,
         m_subp,
@@ -460,7 +448,7 @@ class TestRepoEnable:
         should_reboot,
     ):
         """On enable add authenticated apt repo and refresh package lists."""
-        m_platform.return_value = {"series": "xenial"}
+        m_release_info.return_value = mock.MagicMock(series="xenial")
         m_should_reboot.return_value = should_reboot
 
         pre_install_msgs = ["Some pre-install information", "Some more info"]
@@ -673,17 +661,17 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_disable_removes_all_apt_config(
         self,
-        m_get_platform,
+        m_get_release_info,
         _m_run_apt_command,
         m_remove_apt_list_files,
         m_remove_auth_apt_repo,
         entitlement_factory,
     ):
         """Remove all APT config when disable_apt_auth_only is False"""
-        m_get_platform.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
 
         entitlement = entitlement_factory(
             RepoTestEntitlement,
@@ -706,12 +694,12 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_repo_pin_priority_int_removes_apt_preferences(
         self,
         _m_contract_overrides,
-        m_get_platform,
+        m_get_release_info,
         _m_run_apt_command,
         _m_remove_apt_list_files,
         _m_remove_auth_apt_repo,
@@ -719,7 +707,7 @@ class TestRemoveAptConfig:
         entitlement_factory,
     ):
         """Remove apt preferences file when repo_pin_priority is an int."""
-        m_get_platform.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
 
         entitlement = entitlement_factory(
             RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
@@ -862,12 +850,12 @@ class TestSetupAptConfig:
         assert install_call in m_run_apt_install_command.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_setup_error_with_repo_pin_priority_and_missing_origin(
-        self, m_get_platform_info, _setup_apt_proxy, entitlement_factory
+        self, m_get_release_info, _setup_apt_proxy, entitlement_factory
     ):
         """Raise error when repo_pin_priority is set and origin is None."""
-        m_get_platform_info.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
         entitlement = entitlement_factory(
             RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
@@ -882,12 +870,12 @@ class TestSetupAptConfig:
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_update_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "contract.apply_contract_overrides")
     def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
         self,
         _m_apply_overrides,
-        m_get_platform_info,
+        m_get_release_info,
         m_add_ppa_pinning,
         m_run_apt_update_command,
         m_add_auth_repo,
@@ -895,7 +883,7 @@ class TestSetupAptConfig:
         entitlement_factory,
     ):
         """When repo_pin_priority is an int, set pin in apt preferences."""
-        m_get_platform_info.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
         entitlement = entitlement_factory(
             RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )

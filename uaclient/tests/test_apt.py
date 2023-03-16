@@ -58,10 +58,12 @@ b/release-updates, now 1.2+3 arch123 [i,a]
 
 
 class TestAddPPAPinning:
-    @mock.patch("uaclient.system.get_platform_info")
-    def test_write_apt_pin_file_to_apt_preferences(self, m_platform, tmpdir):
+    @mock.patch("uaclient.system.get_release_info")
+    def test_write_apt_pin_file_to_apt_preferences(
+        self, m_get_release_info, tmpdir
+    ):
         """Write proper apt pin file to specified apt_preference_file."""
-        m_platform.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
         pref_file = tmpdir.join("preffile").strpath
         assert None is add_ppa_pinning(
             pref_file,
@@ -294,11 +296,12 @@ class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_sources_file(
         self,
-        m_platform,
+        m_get_release_info,
         m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
@@ -334,11 +337,12 @@ class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
         self,
-        m_platform,
+        m_get_release_info,
         m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
@@ -382,11 +386,12 @@ class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
         self,
-        m_platform,
+        m_get_release_info,
         m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
@@ -427,11 +432,12 @@ class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
         self,
-        m_platform,
+        m_get_release_info,
         m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
@@ -463,11 +469,12 @@ class TestAddAuthAptRepo:
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
         self,
-        m_platform,
+        m_get_release_info,
         m_valid_creds,
         m_get_apt_auth_file,
         m_subp,

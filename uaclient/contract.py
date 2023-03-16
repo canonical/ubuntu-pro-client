@@ -342,23 +342,27 @@ class UAContractClient(serviceclient.UAServiceClient):
         """Return a dict of platform-related data for contract requests"""
         if not machine_id:
             machine_id = system.get_machine_id(self.cfg)
-        platform = system.get_platform_info()
-        platform_os = platform.copy()
-        arch = platform_os.pop("arch")
         return {
             "machineId": machine_id,
-            "architecture": arch,
-            "os": platform_os,
+            "architecture": system.get_dpkg_arch(),
+            "os": {
+                "type": "Linux",
+                "distribution": system.get_release_info().distribution,
+                "release": system.get_release_info().release,
+                "series": system.get_release_info().series,
+                "version": system.get_release_info().pretty_version,
+                "kernel": system.get_kernel_info().uname_release,
+                "virt": system.get_virt_type(),
+            },
         }
 
     def _get_platform_basic_info(self):
         """Return a dict of platform basic info for some contract requests"""
-        platform = system.get_platform_info()
         return {
-            "architecture": platform["arch"],
-            "series": platform["series"],
-            "kernel": platform["kernel"],
-            "virt": platform["virt"],
+            "architecture": system.get_dpkg_arch(),
+            "series": system.get_release_info().series,
+            "kernel": system.get_kernel_info().uname_release,
+            "virt": system.get_virt_type(),
         }
 
     def _get_activity_info(self, machine_id: Optional[str] = None):
@@ -733,7 +737,7 @@ def apply_contract_overrides(
         )
 
     series_name = (
-        system.get_platform_info()["series"] if series is None else series
+        system.get_release_info().series if series is None else series
     )
     cloud_type, _ = get_cloud_type()
     orig_entitlement = orig_access.get("entitlement", {})

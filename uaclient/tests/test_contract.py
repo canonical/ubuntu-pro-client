@@ -49,12 +49,18 @@ class TestUAContractClient:
         "machine_id_response", (("contract-machine-id"), None)
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.system.get_platform_info")
+    @mock.patch("uaclient.contract.system.get_virt_type")
+    @mock.patch("uaclient.contract.system.get_dpkg_arch")
+    @mock.patch("uaclient.contract.system.get_kernel_info")
+    @mock.patch("uaclient.contract.system.get_release_info")
     def test__request_machine_token_update(
         self,
-        get_platform_info,
-        get_machine_id,
-        request_url,
+        m_get_release_info,
+        m_get_kernel_info,
+        m_get_dpkg_arch,
+        m_get_virt_type,
+        m_get_machine_id,
+        m_request_url,
         machine_id_response,
         activity_id,
         FakeConfig,
@@ -63,8 +69,16 @@ class TestUAContractClient:
 
         Setting detach=True will result in a DELETE operation.
         """
-        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
-        get_machine_id.return_value = "machineId"
+        m_get_release_info.return_value = mock.MagicMock(
+            distribution="Ubuntu",
+            release="release",
+            series="series",
+            pretty_version="version",
+        )
+        m_get_kernel_info.return_value = mock.MagicMock(uname_release="kernel")
+        m_get_dpkg_arch.return_value = "arch"
+        m_get_virt_type.return_value = "virt"
+        m_get_machine_id.return_value = "machineId"
 
         machine_token = {"machineTokenInfo": {}}
         if machine_id_response:
@@ -72,7 +86,7 @@ class TestUAContractClient:
                 "machineId"
             ] = machine_id_response
 
-        request_url.return_value = (machine_token, {})
+        m_request_url.return_value = (machine_token, {})
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
@@ -114,14 +128,22 @@ class TestUAContractClient:
         params["data"] = {
             "machineId": "machineId",
             "architecture": "arch",
-            "os": {"kernel": "kernel"},
+            "os": {
+                "type": "Linux",
+                "kernel": "kernel",
+                "distribution": "Ubuntu",
+                "release": "release",
+                "series": "series",
+                "version": "version",
+                "virt": "virt",
+            },
             "activityInfo": {
                 "activityToken": None,
                 "activityID": expected_activity_id,
                 "resources": enabled_services,
             },
         }
-        assert request_url.call_args_list == [
+        assert m_request_url.call_args_list == [
             mock.call("/v1/contracts/cId/context/machines/machineId", **params)
         ]
 
@@ -134,12 +156,12 @@ class TestUAContractClient:
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.system.get_platform_info")
+    @mock.patch("uaclient.contract.system.get_release_info")
     @mock.patch.object(UAContractClient, "_get_platform_data")
     def test_get_updated_contract_info(
         self,
         m_platform_data,
-        get_platform_info,
+        get_release_info,
         get_machine_id,
         request_url,
         detach,
@@ -154,12 +176,10 @@ class TestUAContractClient:
             return {"machineId": machine_id}
 
         m_platform_data.side_effect = fake_platform_data
-        get_platform_info.return_value = {
-            "arch": "arch",
-            "kernel": "kernel",
-            "series": "series",
-            "virt": "mtype",
-        }
+        get_release_info.return_value = mock.MagicMock(
+            kernel="kernel",
+            series="series",
+        )
 
         get_machine_id.return_value = "machineId"
         machine_token = {"machineTokenInfo": {}}
@@ -548,8 +568,8 @@ class TestProcessEntitlementDeltas:
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(
-        "uaclient.system.get_platform_info",
-        return_value={"series": "fake_series"},
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="fake_series"),
     )
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
     def test_overrides_applied_before_comparison(
@@ -1073,13 +1093,14 @@ class TestApplyContractOverrides:
 
     @pytest.mark.parametrize("include_overrides", (True, False))
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
         "uaclient.clouds.identity.get_cloud_type", return_value=(None, "")
     )
     def test_return_same_dict_when_no_overrides_match(
-        self, _m_cloud_type, _m_platform_info, include_overrides
+        self, _m_cloud_type, _m_release_info, include_overrides
     ):
         orig_access = {
             "entitlement": {
@@ -1127,9 +1148,10 @@ class TestApplyContractOverrides:
         assert expected == orig_access
 
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
     )
-    def test_missing_keys_are_included(self, _m_platform_info):
+    def test_missing_keys_are_included(self, _m_release_info):
         orig_access = {
             "entitlement": {
                 "series": {"ubuntuX": {"directives": {"suites": ["ubuntuX"]}}}
@@ -1157,7 +1179,8 @@ class TestApplyContractOverrides:
         ),
     )
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
         "uaclient.clouds.identity.get_cloud_type",
@@ -1166,7 +1189,7 @@ class TestApplyContractOverrides:
     def test_applies_contract_overrides_respecting_weight(
         self,
         _m_cloud_type,
-        _m_platform_info,
+        _m_release_info,
         series_selector,
         cloud_selector,
         series_cloud_selector,
@@ -1217,14 +1240,15 @@ class TestApplyContractOverrides:
         assert orig_access == expected
 
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "ubuntuX"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
         "uaclient.clouds.identity.get_cloud_type",
         return_value=("cloudX", None),
     )
     def test_different_overrides_applied_together(
-        self, _m_cloud_type, _m_platform_info
+        self, _m_cloud_type, _m_release_info
     ):
         """Apply different overrides from different matching selectors."""
         orig_access = {

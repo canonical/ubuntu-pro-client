@@ -105,7 +105,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
         )
 
     def should_poll_for_pro_license(self) -> bool:
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         if series not in GCP_LICENSES:
             LOG.info("This series isn't supported for GCP auto-attach.")
             return False
@@ -132,5 +132,5 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
         license_ids = [license["id"] for license in licenses]
         self.etag = headers.get("ETag", None)
 
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         return GCP_LICENSES.get(series) in license_ids
