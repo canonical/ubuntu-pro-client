@@ -21,7 +21,7 @@ from uaclient.system import (
     REBOOT_PKGS_FILE_PATH,
     get_distro_info,
     get_kernel_info,
-    get_platform_info,
+    get_release_info,
     is_current_series_lts,
     is_supported,
     load_file,
@@ -47,7 +47,7 @@ class RebootStatus(Enum):
 
 @lru_cache(maxsize=None)
 def get_origin_information_to_service_map():
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     return {
         ("Ubuntu", "{}-security".format(series)): "standard-security",
         ("UbuntuESMApps", "{}-apps-security".format(series)): "esm-apps",
@@ -420,7 +420,7 @@ def _print_package_summary(
 
 
 def _print_interim_release_support():
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     eol_date = get_distro_info(series).eol
     date = "{}/{}".format(str(eol_date.month), str(eol_date.year))
     print(messages.SS_INTERIM_SUPPORT.format(date=date))
@@ -428,7 +428,7 @@ def _print_interim_release_support():
 
 
 def _print_lts_support():
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     if is_supported(series):
         eol_date = get_distro_info(series).eol
         print(messages.SS_LTS_SUPPORT.format(date=str(eol_date.year)))
@@ -445,7 +445,7 @@ def _print_service_support(
     available_updates: int,
     is_attached: bool,
 ):
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     eol_date_esm = get_distro_info(series).eol_esm
     if service_status == ApplicationStatus.ENABLED:
         message = messages.SS_SERVICE_ENABLED.format(
@@ -526,7 +526,7 @@ def security_status(cfg: UAConfig):
     esm_apps_status = ESMAppsEntitlement(cfg).application_status()[0]
     esm_apps_applicability = ESMAppsEntitlement(cfg).applicability_status()[0]
 
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     is_lts = is_current_series_lts()
     is_attached = get_ua_info(cfg)["attached"]
 
@@ -643,7 +643,7 @@ def list_esm_infra_packages(cfg):
     for update, _ in security_upgradable_versions:
         infra_updates.add(update.package)
 
-    series = get_platform_info()["series"]
+    series = get_release_info().series
     is_lts = is_current_series_lts()
 
     esm_infra_status = ESMInfraEntitlement(cfg).application_status()[0]

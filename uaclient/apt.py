@@ -376,7 +376,7 @@ def add_auth_apt_repo(
     except ValueError:  # Then we have a bearer token
         username = "bearer"
         password = credentials
-    series = system.get_platform_info()["series"]
+    series = system.get_release_info().series
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
     assert_valid_apt_credentials(repo_url, username, password)

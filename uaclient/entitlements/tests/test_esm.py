@@ -8,7 +8,6 @@ from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 
 M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
-M_GETPLATFORM = M_REPOPATH + "system.get_platform_info"
 
 
 @pytest.fixture(params=[ESMAppsEntitlement, ESMInfraEntitlement])
@@ -18,7 +17,8 @@ def entitlement(request, entitlement_factory):
 
 @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
 @mock.patch(
-    "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+    "uaclient.system.get_release_info",
+    return_value=mock.MagicMock(series="xenial"),
 )
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
@@ -26,7 +26,7 @@ class TestESMEntitlementDisable:
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
         m_can_disable,
-        _m_platform_info,
+        _m_get_release_info,
         m_update_apt_and_motd_msgs,
         silent,
     ):
@@ -57,7 +57,7 @@ class TestESMEntitlementDisable:
         self,
         m_active_esm,
         m_lts,
-        _m_platform_info,
+        _m_get_release_info,
         m_update_apt_and_motd_msgs,
         is_active_esm,
         is_lts,
@@ -96,7 +96,7 @@ class TestESMEntitlementDisable:
 class TestUpdateESMCaches:
     @pytest.mark.parametrize("file_exists", (False, True))
     @mock.patch("uaclient.apt.os.path.exists")
-    @mock.patch("uaclient.apt.system.get_platform_info")
+    @mock.patch("uaclient.apt.system.get_release_info")
     @mock.patch("uaclient.apt.system.write_file")
     @mock.patch("uaclient.apt.os.makedirs")
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
@@ -105,12 +105,12 @@ class TestUpdateESMCaches:
         m_export_gpg,
         m_makedirs,
         m_write_file,
-        m_get_platform_info,
+        m_get_release_info,
         m_exists,
         file_exists,
         entitlement,
     ):
-        m_get_platform_info.return_value = {"series": "example"}
+        m_get_release_info.return_value = mock.MagicMock(series="example")
         m_exists.return_value = file_exists
 
         entitlement.setup_local_esm_repo()
