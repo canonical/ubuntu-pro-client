@@ -1,9 +1,12 @@
 import datetime
 import json
+import logging
 from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions, messages, util
+
+LOG = logging.getLogger(__name__)
 
 
 class IncorrectTypeError(exceptions.UserFacingError):
@@ -290,16 +293,13 @@ class DataObject(DataValue):
                     val = field.data_cls.from_value(val)
                 except IncorrectTypeError as e:
                     if not field.required and optional_type_errors_become_null:
-                        # SC-1428: we should warn here, but this currently runs
-                        # before setup_logging() in the case of
-                        # user-config.json.
-                        #
-                        # logging.warning(
-                        #     "{} is wrong type (expected {} but got {}) but "
-                        #     "considered optional - treating as null".format(
-                        #         field.key, e.expected_type, e.got_type
-                        #     )
-                        # )
+                        LOG.warning(
+                            "%s is wrong type (expected %s but got %s) but "
+                            "considered optional - treating as null",
+                            field.key,
+                            e.expected_type,
+                            e.got_type,
+                        )
                         val = None
                     else:
                         raise IncorrectFieldTypeError(e, field.dict_key)
