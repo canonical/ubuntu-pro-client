@@ -1,4 +1,5 @@
 import datetime
+import logging
 from typing import List, Optional
 
 import pytest
@@ -696,7 +697,8 @@ class TestDataObject:
         assert do.string == "something"
         assert d == do.to_dict()
 
-    def test_optional_type_errors_become_null(self):
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    def test_optional_type_errors_become_null(self, caplog_text):
         result = ExampleDataObject.from_dict(
             {
                 **example_data_object_dict_with_optionals,
@@ -723,6 +725,11 @@ class TestDataObject:
         assert result.enum_opt_list is None
         assert result.dt_opt is None
         assert result.dtlist_opt is None
+        logs = caplog_text()
+        assert (
+            "string_opt is wrong type (expected str but got int) but "
+            "considered optional - treating as null"
+        ) in logs
 
     @pytest.mark.parametrize(
         "d",
