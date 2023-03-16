@@ -8,7 +8,7 @@ Feature: Logs in Json Array Formatter
         And I run `apt install jq -y` with sudo
         And I verify that running `pro status` `with sudo` exits `0`
         And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
-        And I run shell command `cat /var/log/ubuntu-advantage.log | jq -r .` as non-root
+        And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` as non-root
         Then I will see the following on stderr
         """
         """
@@ -16,7 +16,7 @@ Feature: Logs in Json Array Formatter
         And I verify that running `pro refresh` `with sudo` exits `0`
         And I verify that running `pro status` `with sudo` exits `0`
         And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
-        And I run shell command `cat /var/log/ubuntu-advantage.log | jq -r .` as non-root
+        And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` as non-root
         Then I will see the following on stderr
         """
         """
