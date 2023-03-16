@@ -453,8 +453,12 @@ case "$1" in
       fi
 
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
-          echo "Warning: uaclient.conf uses old ua_config field. Please remove and use" >&2
-          echo "         pro config set to configure any custom settings." >&2
+          echo "Warning: uaclient.conf contains old ua_config field."
+          echo "         Please do the following:" >&2
+          echo "         1. Run 'pro config set field=value' for each field/value pair" >&2
+          echo "            present under ua_config in /etc/ubuntu-advantage/uaclient.conf" >&2
+          echo "         2. Delete ua_config and all sub-fields in" >&2
+          echo "            /etc/ubuntu-advantage/uaclient.conf" >&2
       fi
       ;;
 esac
