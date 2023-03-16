@@ -12,7 +12,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, messages, status
+from uaclient import defaults, exceptions, messages, status
 from uaclient.cli import (
     action_help,
     assert_attached,
@@ -716,6 +716,45 @@ class TestMain:
 
         assert "UA_ENV=YES" in log
         assert "UA_FEATURES_WOW=XYZ" in log
+
+    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("uaclient.cli.config.UAConfig")
+    @pytest.mark.parametrize("config_error", [True, False])
+    def test_setup_logging_with_defaults(
+        self,
+        m_config,
+        _m_get_parser,
+        m_setup_logging,
+        config_error,
+        logging_sandbox,
+        tmpdir,
+        FakeConfig,
+    ):
+        log_file = tmpdir.join("file.log")
+        cfg = FakeConfig({"log_file": log_file.strpath})
+        if not config_error:
+            m_config.return_value = cfg
+        else:
+            m_config.side_effect = OSError("Error reading UAConfig")
+
+        with contextlib.suppress(SystemExit):
+            main(["some", "args"])
+
+        expected_setup_logging_calls = [
+            mock.call(
+                logging.INFO,
+                defaults.CONFIG_DEFAULTS["log_level"],
+                defaults.CONFIG_DEFAULTS["log_file"],
+            )
+        ]
+
+        if not config_error:
+            expected_setup_logging_calls.append(
+                mock.call(mock.ANY, mock.ANY, log_file),
+            )
+
+        assert expected_setup_logging_calls == m_setup_logging.call_args_list
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_argparse_errors_well_formatted(

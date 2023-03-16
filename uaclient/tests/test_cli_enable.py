@@ -36,10 +36,12 @@ Flags:
 
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_enable_help(
         self,
         _m_resources,
+        _m_setup_logging,
         _request_updated_contract,
         capsys,
         FakeConfig,

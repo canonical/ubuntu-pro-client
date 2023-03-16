@@ -1835,6 +1835,8 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     if log_file is None:
         cfg = config.UAConfig()
         log_file = cfg.log_file
+    if isinstance(log_level, str):
+        log_level = log_level.upper()
     console_formatter = util.LogFormatter()
     if logger is None:
         # Then we configure the root logger
@@ -1957,6 +1959,11 @@ def main_error_handler(func):
 
 @main_error_handler
 def main(sys_argv=None):
+    setup_logging(
+        logging.INFO,
+        defaults.CONFIG_DEFAULTS["log_level"],
+        defaults.CONFIG_DEFAULTS["log_file"],
+    )
     if not sys_argv:
         sys_argv = sys.argv
     cfg = config.UAConfig()
