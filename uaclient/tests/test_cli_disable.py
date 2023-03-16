@@ -52,8 +52,11 @@ Flags:
 
 
 class TestDisable:
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_disable_help(self, _m_resources, capsys, FakeConfig):
+    def test_disable_help(
+        self, _m_resources, _m_setup_logging, capsys, FakeConfig
+    ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
                 with mock.patch(
