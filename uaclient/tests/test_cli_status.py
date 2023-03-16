@@ -340,8 +340,10 @@ Flags:
     return_value=RESPONSE_CONTRACT_INFO,
 )
 class TestActionStatus:
+    @mock.patch(M_PATH + "setup_logging")
     def test_status_help(
         self,
+        _m_setup_logging,
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,

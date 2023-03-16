@@ -22,7 +22,8 @@ for the machine regarding reboot:
 
 
 class TestActionRebootRequired:
-    def test_enable_help(self, capsys, FakeConfig):
+    @mock.patch("uaclient.cli.setup_logging")
+    def test_enable_help(self, _m_setup_logging, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv",
