@@ -57,6 +57,20 @@ APT_NEWS_FLAG_FILE="$UA_FLAGS_DIR/show-apt-news"
 
 TMP_CANDIDATE_CACHE_PATH="/tmp/ubuntu-advantage/candidate-version"
 
+NOTICES_DIR="/var/lib/ubuntu-advantage/notices"
+TEMP_NOTICES_DIR="/run/ubuntu-advantage/notices"
+
+add_notice() {
+    notice=$1
+    mkdir -p $NOTICES_DIR
+    touch $NOTICES_DIR/$notice
+}
+add_temp_notice() {
+    notice=$1
+    mkdir -p $TEMP_NOTICES_DIR
+    touch $TEMP_NOTICES_DIR/$notice
+}
+
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
@@ -141,8 +155,7 @@ mark_reboot_for_fips_pro() {
     FIPS_HOLDS=$(apt-mark showholds | grep -E 'fips|libssl1|openssh-client|openssh-server|linux-fips|openssl|strongswan' || exit 0)
     if [ "$FIPS_HOLDS" ]; then
        mark_reboot_cmds_as_needed
-       mkdir -p /run/ubuntu-advantage/notices
-       touch /run/ubuntu-advantage/notices/20-fips_reboot_required
+       add_temp_notice 20-fips_reboot_required
     fi
 }
 
@@ -184,8 +197,7 @@ notify_wrong_fips_metapackage_on_cloud() {
 
     if echo "$cloud_id" | grep -E -q "^(azure|aws)"; then
       if echo "$fips_installed" | grep -E -q "installed"; then
-        mkdir -p /var/lib/ubuntu-advantage/notices
-        touch /var/lib/ubuntu-advantage/notices/25-wrong_fips_metapackage_on_cloud
+        add_notice 25-wrong_fips_metapackage_on_cloud
       fi
     fi
 }
@@ -303,8 +315,7 @@ migrate_old_notices(){
     # All notices with "reboot" in them can be safely transformed into a generic reboot required message.
     # The new message won't include the exact reason for the reboot, but the recommended action is the same.
     if grep -q -i "reboot" $notices_file; then
-        mkdir -p /run/ubuntu-advantage/notices
-        touch /run/ubuntu-advantage/notices/10-reboot_required
+        add_temp_notice 10-reboot_required
     fi
     rm $notices_file
 }
@@ -366,8 +377,7 @@ case "$1" in
       # Repo for FIPS packages changed from old client
       if [ -f $FIPS_APT_SOURCE_FILE ]; then
         if grep -q $OLD_CLIENT_FIPS_PPA $FIPS_APT_SOURCE_FILE; then
-            mkdir -p /var/lib/ubuntu-advantage/notices
-            touch /var/lib/ubuntu-advantage/notices/22-fips_install_out_of_date
+            add_notice 22-fips_install_out_of_date
         fi
       fi
 
@@ -394,8 +404,7 @@ case "$1" in
       if [ "$VERSION_ID" = "16.04" ]; then
         if echo "$PREVIOUS_PKG_VER" | grep -q "14.04"; then
           mark_reboot_cmds_as_needed
-          mkdir -p /run/ubuntu-advantage/notices
-          touch /run/ubuntu-advantage/notices/30-lp_lts_reboot_required
+          add_temp_notice 30-lp_lts_reboot_required
         fi
         if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "27.13~"; then
           # Clean any unauthenticated ESM infra files previously inserted
