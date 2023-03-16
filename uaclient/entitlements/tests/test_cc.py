@@ -1,14 +1,12 @@
 """Tests related to uaclient.entitlement.base module."""
 
-import copy
 import itertools
 import os.path
-from types import MappingProxyType
 
 import mock
 import pytest
 
-from uaclient import apt, messages, status
+from uaclient import apt, messages, status, system
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -28,16 +26,6 @@ CC_MACHINE_TOKEN = machine_token(
         "architectures": ["x86_64", "ppc64le", "s390x"],
         "series": ["xenial"],
     },
-)
-
-
-PLATFORM_INFO_SUPPORTED = MappingProxyType(
-    {
-        "arch": "s390x",
-        "series": "xenial",
-        "kernel": "4.15.0-00-generic",
-        "version": "16.04 LTS (Xenial Xerus)",
-    }
 )
 
 
@@ -61,10 +49,12 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_dpkg_arch")
+    @mock.patch("uaclient.system.get_release_info")
     def test_inapplicable_on_invalid_affordances(
         self,
-        m_platform_info,
+        m_release_info,
+        m_dpkg_arch,
         arch,
         series,
         version,
@@ -72,11 +62,10 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         FakeConfig,
     ):
         """Test invalid affordances result in inapplicable status."""
-        unsupported_info = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_info["arch"] = arch
-        unsupported_info["series"] = series
-        unsupported_info["version"] = version
-        m_platform_info.return_value = unsupported_info
+        m_release_info.return_value = system.ReleaseInfo(
+            distribution="", release="", series=series, pretty_version=version
+        )
+        m_dpkg_arch.return_value = arch
         cfg = FakeConfig().for_attached_machine(
             machine_token=CC_MACHINE_TOKEN,
         )
@@ -88,12 +77,16 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
 
 class TestCommonCriteriaEntitlementCanEnable:
     @mock.patch("uaclient.system.subp", return_value=("", ""))
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_dpkg_arch")
+    @mock.patch("uaclient.system.get_release_info")
     def test_can_enable_true_on_entitlement_inactive(
-        self, m_platform_info, _m_subp, capsys, FakeConfig
+        self, m_release_info, m_dpkg_arch, _m_subp, capsys, FakeConfig
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
-        m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
+        m_release_info.return_value = system.ReleaseInfo(
+            distribution="", release="", series="xenial", pretty_version=""
+        )
+        m_dpkg_arch.return_value = "s390x"
         cfg = FakeConfig().for_attached_machine(
             machine_token=CC_MACHINE_TOKEN,
         )
@@ -117,12 +110,14 @@ class TestCommonCriteriaEntitlementEnable:
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_cache_policy")
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_dpkg_arch")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_contract_overrides,
-        m_platform_info,
+        m_release_info,
+        m_dpkg_arch,
         m_apt_cache_policy,
         m_subp,
         m_should_reboot,
@@ -138,12 +133,11 @@ class TestCommonCriteriaEntitlementEnable:
         m_subp.return_value = ("fakeout", "")
         m_apt_cache_policy.return_value = "fakeout"
         m_should_reboot.return_value = False
+        m_release_info.return_value = system.ReleaseInfo(
+            distribution="", release="", series="xenial", pretty_version=""
+        )
+        m_dpkg_arch.return_value = "s390x"
         original_exists = os.path.exists
-
-        def fake_platform(key=None):
-            if key == "series":
-                return PLATFORM_INFO_SUPPORTED[key]
-            return PLATFORM_INFO_SUPPORTED
 
         def exists(path):
             if path == apt.APT_METHOD_HTTPS_FILE:
@@ -156,7 +150,6 @@ class TestCommonCriteriaEntitlementEnable:
                 )
             return original_exists(path)
 
-        m_platform_info.side_effect = fake_platform
         cfg = FakeConfig().for_attached_machine(
             machine_token=CC_MACHINE_TOKEN,
         )

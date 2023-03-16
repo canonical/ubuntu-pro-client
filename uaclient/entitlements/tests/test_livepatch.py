@@ -5,7 +5,6 @@ import copy
 import io
 import logging
 from functools import partial
-from types import MappingProxyType
 
 import mock
 import pytest
@@ -24,15 +23,6 @@ from uaclient.entitlements.livepatch import (
 )
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.snap import SNAP_CMD
-
-PLATFORM_INFO_SUPPORTED = MappingProxyType(
-    {
-        "arch": "x86_64",
-        "kernel": "4.4.0-00-generic",
-        "series": "xenial",
-        "version": "16.04 LTS (Xenial Xerus)",
-    }
-)
 
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
@@ -97,9 +87,9 @@ class TestLivepatchUserFacingStatus:
         entitlement = livepatch_entitlement_factory(affordances=affordances)
 
         with mock.patch(
-            "uaclient.system.get_platform_info"
-        ) as m_platform_info:
-            m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
+            "uaclient.system.get_release_info"
+        ) as m_get_release_info:
+            m_get_release_info.return_value = mock.MagicMock(series="xenial")
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == UserFacingStatus.INAPPLICABLE
         expected_details = "Cannot install Livepatch on a container."
@@ -115,9 +105,9 @@ class TestLivepatchUserFacingStatus:
         entitlement.cfg.machine_token_file.write(no_entitlements)
 
         with mock.patch(
-            "uaclient.system.get_platform_info"
-        ) as m_platform_info:
-            m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
+            "uaclient.system.get_release_info"
+        ) as m_get_release_info:
+            m_get_release_info.return_value = mock.MagicMock(series="xenial")
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == UserFacingStatus.UNAVAILABLE
         assert "Livepatch is not entitled" == details.msg
@@ -226,12 +216,12 @@ class TestLivepatchEntitlementCanEnable:
     )
     @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch(
-        "uaclient.system.get_platform_info",
-        return_value=PLATFORM_INFO_SUPPORTED,
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_can_enable_true_on_entitlement_inactive(
         self,
-        _m_platform,
+        _m_get_release_info,
         m_kernel_info,
         _m_is_container,
         _m_livepatch_status,
@@ -248,21 +238,31 @@ class TestLivepatchEntitlementCanEnable:
         assert ("", "") == capsys.readouterr()
         assert [mock.call()] == m_container.call_args_list
 
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
+    )
+    @mock.patch(
+        "uaclient.system.get_kernel_info",
+        return_value=mock.MagicMock(uname_release="4.2.9-00-generic"),
+    )
     def test_can_enable_false_on_containers(
-        self, m_is_container, _m_livepatch_status, _m_fips_status, entitlement
+        self,
+        _m_get_kernel_info,
+        _m_get_release_info,
+        m_is_container,
+        _m_livepatch_status,
+        _m_fips_status,
+        entitlement,
     ):
         """When is_container is True, can_enable returns False."""
-        unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
-        with mock.patch("uaclient.system.get_platform_info") as m_platform:
-            m_platform.return_value = unsupported_min_kernel
-            m_is_container.return_value = True
-            entitlement = LivepatchEntitlement(entitlement.cfg)
-            result, reason = entitlement.can_enable()
-            assert False is result
-            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
-            msg = "Cannot install Livepatch on a container."
-            assert msg == reason.message.msg
+        m_is_container.return_value = True
+        entitlement = LivepatchEntitlement(entitlement.cfg)
+        result, reason = entitlement.can_enable()
+        assert False is result
+        assert CanEnableFailureReason.INAPPLICABLE == reason.reason
+        msg = "Cannot install Livepatch on a container."
+        assert msg == reason.message.msg
 
 
 class TestLivepatchProcessContractDeltas:
@@ -412,7 +412,7 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("apt_update_success", (True, False))
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.apt.run_apt_install_command")
@@ -431,7 +431,7 @@ class TestLivepatchEntitlementEnable:
         m_run_apt_install,
         _m_contract_overrides,
         m_subp,
-        _m_get_platform_info,
+        _m_get_release_info,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -481,7 +481,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch(
@@ -499,7 +499,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         _m_contract_overrides,
         m_subp,
-        _m_get_platform_info,
+        _m_get_release_info,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -572,7 +572,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch(
@@ -589,7 +589,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         _m_contract_overrides,
         m_subp,
-        _m_get_platform_info,
+        _m_get_release_info,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
@@ -628,7 +628,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch(
@@ -645,7 +645,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         _m_contract_overrides,
         m_subp,
-        _m_get_platform_info,
+        _m_get_release_info,
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,

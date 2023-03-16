@@ -32,7 +32,6 @@ from uaclient.files.notices import Notice, NoticesManager
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
-M_GETPLATFORM = M_REPOPATH + "system.get_platform_info"
 FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
 
 
@@ -92,10 +91,10 @@ class TestFIPSEntitlementDefaults:
         ),
     )
     @mock.patch("uaclient.system.is_container")
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_conditional_packages(
         self,
-        m_get_platform_info,
+        m_get_release_info,
         m_is_container,
         series,
         is_container,
@@ -103,7 +102,7 @@ class TestFIPSEntitlementDefaults:
         entitlement,
     ):
         """Test conditional package respect series restrictions"""
-        m_get_platform_info.return_value = {"series": series}
+        m_get_release_info.return_value = mock.MagicMock(series=series)
         m_is_container.return_value = is_container
 
         conditional_packages = entitlement.conditional_packages
@@ -303,7 +302,10 @@ class TestFIPSEntitlementEnable:
                 mock.patch("uaclient.util.handle_message_operations")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+                mock.patch(
+                    "uaclient.system.get_release_info",
+                    return_value=mock.MagicMock(series="xenial"),
+                )
             )
             stack.enter_context(
                 mock.patch(
@@ -475,11 +477,12 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
     )
     def test_enable_returns_false_on_missing_suites_directive(
         self,
-        m_platform_info,
+        m_get_release_info,
         m_add_apt,
         _m_setup_apt_proxy,
         fips_entitlement_factory,
@@ -525,7 +528,10 @@ class TestFIPSEntitlementEnable:
                 mock.patch.object(entitlement, "remove_apt_config")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+                mock.patch(
+                    "uaclient.system.get_release_info",
+                    return_value=mock.MagicMock(series="xenial"),
+                )
             )
             stack.enter_context(mock.patch(M_REPOPATH + "exists"))
 
@@ -544,7 +550,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch(
         "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
     )
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
     @mock.patch("uaclient.util.handle_message_operations")
@@ -555,14 +561,14 @@ class TestFIPSEntitlementEnable:
         m_handle_message_op,
         m_prompt,
         m_is_config_value_true,
-        m_platform_info,
+        m_get_release_info,
         m_get_cloud_type,
         entitlement_factory,
     ):
         fips_ent = entitlement_factory(FIPSEntitlement)
         m_handle_message_op.return_value = True
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
-        m_platform_info.return_value = {"series": "test"}
+        m_get_release_info.return_value = mock.MagicMock(series="test")
 
         with mock.patch(
             "{}.application_status".format(base_path)
@@ -651,7 +657,7 @@ class TestFIPSEntitlementEnable:
                 )
                 assert expected_msg.strip() == reason.message.msg.strip()
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.system.is_container", return_value=False)
@@ -660,12 +666,12 @@ class TestFIPSEntitlementEnable:
         m_is_container,
         m_handle_message_op,
         m_cloud_type,
-        m_platform_info,
+        m_get_release_info,
         entitlement,
     ):
         m_handle_message_op.return_value = True
         m_cloud_type.return_value = ("gce", None)
-        m_platform_info.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
 
         with mock.patch(
@@ -678,7 +684,7 @@ class TestFIPSEntitlementEnable:
             Ubuntu Xenial does not provide a GCP optimized FIPS kernel"""
             assert expected_msg.strip() in reason.message.msg.strip()
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.util.handle_message_operations")
@@ -689,12 +695,12 @@ class TestFIPSEntitlementEnable:
         m_handle_message_op,
         m_get_cloud_type,
         m_is_config_value_true,
-        m_platform_info,
+        m_get_release_info,
         entitlement,
     ):
         m_handle_message_op.return_value = True
         m_get_cloud_type.return_value = ("gce", None)
-        m_platform_info.return_value = {"series": "test"}
+        m_get_release_info.return_value = mock.MagicMock(series="test")
 
         ent_name = entitlement.name
         fips_cls_name = "FIPS" if ent_name == "fips" else "FIPSUpdates"
@@ -817,14 +823,17 @@ class TestFIPSEntitlementEnable:
 
 class TestFIPSEntitlementRemovePackages:
     @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
-    @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
+    )
     @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_remove_packages_only_removes_if_package_is_installed(
         self,
         m_get_installed_packages,
         m_subp,
-        _m_get_platform,
+        _m_get_release_info,
         installed_pkgs,
         entitlement,
     ):
@@ -849,11 +858,18 @@ class TestFIPSEntitlementRemovePackages:
         else:
             assert 0 == m_subp.call_count
 
-    @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="xenial"),
+    )
     @mock.patch(M_PATH + "system.subp")
     @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_remove_packages_output_message_when_fail(
-        self, m_get_installed_packages, m_subp, _m_get_platform, entitlement
+        self,
+        m_get_installed_packages,
+        m_subp,
+        _m_get_release_info,
+        entitlement,
     ):
         m_get_installed_packages.return_value = ["ubuntu-fips"]
         m_subp.side_effect = exceptions.ProcessExecutionError(cmd="test")
@@ -868,12 +884,13 @@ class TestFIPSEntitlementRemovePackages:
 @mock.patch("uaclient.util.handle_message_operations", return_value=True)
 @mock.patch("uaclient.system.should_reboot", return_value=True)
 @mock.patch(
-    "uaclient.system.get_platform_info", return_value={"series": "xenial"}
+    "uaclient.system.get_release_info",
+    return_value=mock.MagicMock(series="xenial"),
 )
 class TestFIPSEntitlementDisable:
     def test_disable_on_can_disable_true_removes_apt_config_and_packages(
         self,
-        _m_platform_info,
+        _m_get_release_info,
         _m_should_reboot,
         m_handle_message_operations,
         entitlement,
@@ -1165,53 +1182,53 @@ class TestFipsSetupAPTConfig:
 
 class TestFipsEntitlementPackages:
     @mock.patch(M_PATH + "apt.get_installed_packages_names", return_value=[])
-    @mock.patch("uaclient.system.get_platform_info")
-    def test_packages_is_list(self, m_platform_info, _mock, entitlement):
+    @mock.patch("uaclient.system.get_release_info")
+    def test_packages_is_list(self, m_get_release_info, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
 
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
-        m_platform_info.return_value = {"series": "test"}
+        m_get_release_info.return_value = mock.MagicMock(series="test")
 
         assert isinstance(entitlement.packages, list)
 
     @mock.patch(M_PATH + "apt.get_installed_packages_names", return_value=[])
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_fips_required_packages_included(
-        self, m_platform_info, _mock, entitlement
+        self, m_get_release_info, _mock, entitlement
     ):
         """The fips_required_packages should always be in .packages"""
 
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
-        m_platform_info.return_value = {"series": "test"}
+        m_get_release_info.return_value = mock.MagicMock(series="test")
 
         assert set(FIPS_ADDITIONAL_PACKAGES).issubset(
             set(entitlement.packages)
         )
 
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_currently_installed_packages_are_included_in_packages(
-        self, m_platform_info, entitlement
+        self, m_get_release_info, entitlement
     ):
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
         # and xenial should not trigger that
-        m_platform_info.return_value = {"series": "xenial"}
+        m_get_release_info.return_value = mock.MagicMock(series="xenial")
 
         assert sorted(FIPS_ADDITIONAL_PACKAGES) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages_names")
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_multiple_packages_calls_dont_mutate_state(
-        self, m_platform_info, m_get_installed_packages, entitlement
+        self, m_get_release_info, m_get_installed_packages, entitlement
     ):
         # Make it appear like all packages are installed
         m_get_installed_packages.return_value.__contains__.return_value = True
 
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
-        m_platform_info.return_value = {"series": "test"}
+        m_get_release_info.return_value = mock.MagicMock(series="test")
 
         before = copy.deepcopy(entitlement.conditional_packages)
 

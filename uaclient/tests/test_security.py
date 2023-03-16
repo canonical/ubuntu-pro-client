@@ -223,17 +223,17 @@ class TestGetCVEAffectedPackageStatus:
             ("focal", {"samba": "1000"}, {}),
         ),
     )
-    @mock.patch("uaclient.security.system.get_platform_info")
+    @mock.patch("uaclient.security.system.get_release_info")
     def test_affected_packages_status_filters_by_installed_pkgs_and_series(
         self,
-        get_platform_info,
+        m_get_release_info,
         series,
         installed_packages,
         expected_status,
         FakeConfig,
     ):
         """Package statuses are filtered if not installed"""
-        get_platform_info.return_value = {"series": series}
+        m_get_release_info.return_value = mock.MagicMock(series=series)
         client = UASecurityClient(FakeConfig())
         cve = CVE(client, SAMPLE_CVE_RESPONSE)
         affected_packages = get_cve_affected_source_packages_status(
@@ -448,11 +448,11 @@ class TestUSN:
             ("series-example-3", {}),
         ),
     )
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_release_packages_returns_source_and_binary_pkgs_for_series(
-        self, get_platform_info, series, expected, FakeConfig
+        self, m_get_release_info, series, expected, FakeConfig
     ):
-        get_platform_info.return_value = {"series": series}
+        m_get_release_info.return_value = mock.MagicMock(series=series)
         client = UASecurityClient(FakeConfig())
         usn = USN(client, SAMPLE_USN_RESPONSE)
 
@@ -475,12 +475,14 @@ class TestUSN:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_release_packages_errors_on_sparse_source_url(
-        self, get_platform_info, source_link, error_msg, FakeConfig
+        self, m_get_release_info, source_link, error_msg, FakeConfig
     ):
         """Raise errors when USN metadata contains no valid source_link."""
-        get_platform_info.return_value = {"series": "series-example-1"}
+        m_get_release_info.return_value = mock.MagicMock(
+            series="series-example-1"
+        )
         client = UASecurityClient(FakeConfig())
         sparse_md = copy.deepcopy(SAMPLE_USN_RESPONSE)
         sparse_md["release_packages"]["series-example-1"].append(
@@ -893,11 +895,11 @@ class TestQueryInstalledPkgSources:
         ),
     )
     @mock.patch("uaclient.security.system.subp")
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_result_keyed_by_source_package_name(
-        self, get_platform_info, subp, dpkg_out, results
+        self, m_get_release_info, subp, dpkg_out, results
     ):
-        get_platform_info.return_value = {"series": "bionic"}
+        m_get_release_info.return_value = mock.MagicMock(series="bionic")
         subp.return_value = dpkg_out, ""
         assert results == query_installed_source_pkg_versions()
         _format = "-f=${Package},${Source},${Version},${db:Status-Status}\n"
@@ -2341,15 +2343,15 @@ class TestGetUSNAffectedPackagesStatus:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_pkgs_come_from_release_packages_if_usn_has_no_cves(
         self,
-        m_platform_info,
+        m_get_release_info,
         installed_packages,
         affected_packages,
         FakeConfig,
     ):
-        m_platform_info.return_value = {"series": "bionic"}
+        m_get_release_info.return_value = mock.MagicMock(series="bionic")
 
         cfg = FakeConfig()
         client = UASecurityClient(cfg=cfg)

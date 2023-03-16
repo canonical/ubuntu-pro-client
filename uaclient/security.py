@@ -338,7 +338,7 @@ class CVE:
         if hasattr(self, "_packages_status"):
             return self._packages_status  # type: ignore
         self._packages_status = {}
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         for package in self.response["packages"]:
             for pkg_status in package["statuses"]:
                 if pkg_status["release_codename"] == series:
@@ -426,7 +426,7 @@ class USN:
         """
         if hasattr(self, "_release_packages"):
             return self._release_packages
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         self._release_packages = {}  # type: Dict[str, Dict[str, Any]]
         # Organize source and binary packages under a common source package key
         for pkg in self.response.get("release_packages", {}).get(series, []):
