@@ -73,16 +73,20 @@ This means that `/etc/ubuntu-advantage/uaclient.conf` was unable to be written o
 
 Ensure that the settings listed in the warning output make it into your new uaclient.conf.
 
-### Log warning in versions >=27.14~
+### Warnings in versions >=27.14~
 
 **Error message:**
 ```
 legacy "ua_config" found in uaclient.conf
 ```
+or
+```
+Warning: uaclient.conf contains old ua_config field.
+```
 
 **Where you'll see it:**
 
-In `/var/log/ubuntu-advantage.log` after using the `pro` cli.
+In `/var/log/ubuntu-advantage.log` after using the `pro` cli or during an `apt upgrade` to a newer version of ubuntu-advantage-tools.
 
 **What does it mean:**
 
