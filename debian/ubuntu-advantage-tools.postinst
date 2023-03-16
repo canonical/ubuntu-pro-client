@@ -317,7 +317,7 @@ migrate_old_notices(){
     if grep -q -i "reboot" $notices_file; then
         add_temp_notice 10-reboot_required
     fi
-    rm $notices_file
+    rm -f $notices_file
 }
 
 
