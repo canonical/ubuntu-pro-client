@@ -29,8 +29,11 @@ Collect logs and relevant system information into a tarball.
 
 
 class TestActionCollectLogs:
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_help(self, _m_resources, capsys, FakeConfig):
+    def test_collect_logs_help(
+        self, _m_resources, _m_setup_logging, capsys, FakeConfig
+    ):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
