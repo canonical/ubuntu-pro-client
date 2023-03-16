@@ -686,19 +686,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if functor() != expected_result:
                 return ApplicabilityStatus.INAPPLICABLE, error_message
         affordances = entitlement_cfg["entitlement"].get("affordances", {})
-        platform = system.get_platform_info()
         affordance_arches = affordances.get("architectures", None)
         if (
             self.affordance_check_arch
             and affordance_arches is not None
-            and platform["arch"] not in affordance_arches
+            and system.get_dpkg_arch() not in affordance_arches
         ):
             deduplicated_arches = util.deduplicate_arches(affordance_arches)
             return (
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_ARCH.format(
                     title=self.title,
-                    arch=platform["arch"],
+                    arch=system.get_dpkg_arch(),
                     supported_arches=", ".join(deduplicated_arches),
                 ),
             )
@@ -706,12 +705,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if (
             self.affordance_check_series
             and affordance_series is not None
-            and platform["series"] not in affordance_series
+            and system.get_release_info().series not in affordance_series
         ):
             return (
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_SERIES.format(
-                    title=self.title, series=platform["version"]
+                    title=self.title,
+                    series=system.get_release_info().pretty_version,
                 ),
             )
         kernel_info = system.get_kernel_info()

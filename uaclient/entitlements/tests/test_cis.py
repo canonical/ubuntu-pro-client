@@ -3,7 +3,7 @@
 import mock
 import pytest
 
-from uaclient import apt, messages
+from uaclient import apt, messages, system
 from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
@@ -40,10 +40,12 @@ class TestCISEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.system.get_platform_info")
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.system.get_release_info")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
-        m_platform_info,
+        m_release_info,
+        m_kernel_info,
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
@@ -60,7 +62,19 @@ class TestCISEntitlementEnable:
                 return info[key]
             return info
 
-        m_platform_info.side_effect = fake_platform
+        m_release_info.return_value = system.ReleaseInfo(
+            distribution="", release="", series="xenial", pretty_version=""
+        )
+        m_kernel_info.return_value = system.KernelInfo(
+            uname_machine_arch="x86_64",
+            uname_release="4.15.0-00-generic",
+            proc_version_signature_version=None,
+            major=None,
+            minor=None,
+            patch=None,
+            abi=None,
+            flavor=None,
+        )
         m_subp.return_value = ("fakeout", "")
         m_apt_policy.return_value = "fakeout"
         m_should_reboot.return_value = False

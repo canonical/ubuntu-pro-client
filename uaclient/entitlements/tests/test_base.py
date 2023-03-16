@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import messages, util
+from uaclient import messages, system, util
 from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -945,7 +945,10 @@ class TestUaEntitlementProcessContractDeltas:
         ),
     )
     @mock.patch(
-        "uaclient.system.get_platform_info", return_value={"series": "example"}
+        "uaclient.system.get_release_info",
+        return_value=system.ReleaseInfo(
+            distribution="", release="", series="example", pretty_version=""
+        ),
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
         self, m_platform_info, concrete_entitlement_factory, orig_access, delta

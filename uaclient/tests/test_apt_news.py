@@ -159,7 +159,7 @@ class TestAptNews:
         ],
     )
     @mock.patch(M_PATH + "get_cloud_type")
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_do_selectors_apply(
         self,
         m_get_platform_info,
@@ -175,7 +175,7 @@ class TestAptNews:
             cfg = FakeConfig.for_attached_machine()
         else:
             cfg = FakeConfig()
-        m_get_platform_info.return_value = {"series": series}
+        m_get_platform_info.return_value = mock.MagicMock(series=series)
         m_get_cloud_type.return_value = cloud_type
         assert expected == apt_news.do_selectors_apply(cfg, selectors)
 

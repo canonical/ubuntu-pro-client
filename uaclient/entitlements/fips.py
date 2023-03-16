@@ -126,7 +126,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         2. Install the corresponding hmac version of that package
            when available.
         """
-        series = system.get_platform_info().get("series", "")
+        series = system.get_release_info().series
 
         if system.is_container():
             return FIPS_CONTAINER_CONDITIONAL_PACKAGES.get(series, [])
@@ -246,7 +246,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if cloud_id is None:
             cloud_id = ""
 
-        series = system.get_platform_info().get("series", "")
+        series = system.get_release_info().series
         blocked_message = messages.FIPS_BLOCK_ON_CLOUD.format(
             series=series.title(), cloud=cloud_titles.get(cloud_id)
         )

@@ -31,7 +31,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         return enable_performed
 
     def setup_local_esm_repo(self) -> None:
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         # Ugly? Yes, but so is python < 3.8 without removeprefix
         assert self.name.startswith("esm-")
         esm_name = self.name[len("esm-") :]

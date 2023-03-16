@@ -305,7 +305,7 @@ def on_supported_kernel() -> Optional[bool]:
         return None
 
     arch = util.standardize_arch_name(kernel_info.uname_machine_arch)
-    codename = system.get_platform_info()["series"]
+    codename = system.get_release_info().series
 
     lp_api_kernel_ver = "{major}.{minor}".format(
         major=kernel_info.major, minor=kernel_info.minor

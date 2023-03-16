@@ -547,9 +547,9 @@ version,codename,series,created,release,eol,eol-server,eol-esm
         assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.msg
 
 
-class TestGetPlatformInfo:
+class TestGetReleaseInfo:
     @pytest.mark.parametrize(
-        "version, expected_exception",
+        ["version", "expected_exception"],
         (
             (
                 "junk",
@@ -562,94 +562,66 @@ class TestGetPlatformInfo:
         ),
     )
     @mock.patch("uaclient.system.parse_os_release")
-    def test_get_platform_info_error(
-        self, m_parse, version, expected_exception
+    def test_get_release_info_error(
+        self, m_parse_os_release, version, expected_exception
     ):
-        """get_platform_info errors when it cannot parse os-release."""
-        m_parse.return_value = {"VERSION": version}
+        """get_release_info errors when it cannot parse os-release."""
+        m_parse_os_release.return_value = {"VERSION": version}
         with pytest.raises(expected_exception):
             # Use __wrapped__ to avoid hitting the
             # lru_cached value across tests
-            system.get_platform_info.__wrapped__()
+            system.get_release_info.__wrapped__()
 
     @pytest.mark.parametrize(
-        "os_release,arch,kernel,virt,expected",
+        ["os_release", "expected"],
         [
             (
                 {
                     "NAME": "Ubuntu",
                     "VERSION": "16.04.5 LTS (Xenial Xerus)",
                 },
-                "arm64",
-                "kernel-ver1",
-                "lxd",
-                {
-                    "arch": "arm64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver1",
-                    "release": "16.04",
-                    "series": "xenial",
-                    "type": "Linux",
-                    "version": "16.04 LTS (Xenial Xerus)",
-                    "virt": "lxd",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="16.04",
+                    series="xenial",
+                    pretty_version="16.04 LTS (Xenial Xerus)",
+                ),
             ),
             (
                 {
                     "NAME": "Ubuntu",
                     "VERSION": "18.04.1 LTS (Bionic Beaver)",
                 },
-                "amd64",
-                "kernel-ver2",
-                "none",
-                {
-                    "arch": "amd64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver2",
-                    "release": "18.04",
-                    "series": "bionic",
-                    "type": "Linux",
-                    "version": "18.04 LTS (Bionic Beaver)",
-                    "virt": "none",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="18.04",
+                    series="bionic",
+                    pretty_version="18.04 LTS (Bionic Beaver)",
+                ),
             ),
             (
                 {
                     "NAME": "Ubuntu",
                     "VERSION": "22.04.1 LTS (Jammy Jellyfish)",
                 },
-                "arm64",
-                "kernel-ver3",
-                "qemu",
-                {
-                    "arch": "arm64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver3",
-                    "release": "22.04",
-                    "series": "jammy",
-                    "type": "Linux",
-                    "version": "22.04 LTS (Jammy Jellyfish)",
-                    "virt": "qemu",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="22.04",
+                    series="jammy",
+                    pretty_version="22.04 LTS (Jammy Jellyfish)",
+                ),
             ),
             (
                 {
                     "NAME": "Ubuntu",
-                    "VERSION": "22.10 LTS (Kinetic Kudu)",
+                    "VERSION": "22.10 (Kinetic Kudu)",
                 },
-                "amd64",
-                "kernel-ver4",
-                "wsl",
-                {
-                    "arch": "amd64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver4",
-                    "release": "22.10",
-                    "series": "kinetic",
-                    "type": "Linux",
-                    "version": "22.10 LTS (Kinetic Kudu)",
-                    "virt": "wsl",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="22.10",
+                    series="kinetic",
+                    pretty_version="22.10 (Kinetic Kudu)",
+                ),
             ),
             (
                 {
@@ -657,19 +629,12 @@ class TestGetPlatformInfo:
                     "VERSION": "22.04 LTS",
                     "VERSION_CODENAME": "Jammy",
                 },
-                "amd64",
-                "kernel-ver4",
-                "lxd",
-                {
-                    "arch": "amd64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver4",
-                    "release": "22.04",
-                    "series": "jammy",
-                    "type": "Linux",
-                    "version": "22.04 LTS",
-                    "virt": "lxd",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="22.04",
+                    series="jammy",
+                    pretty_version="22.04 LTS",
+                ),
             ),
             (
                 {
@@ -678,19 +643,12 @@ class TestGetPlatformInfo:
                     "VERSION_CODENAME": "Jammy",
                     "VERSION_ID": "22.04",
                 },
-                "amd64",
-                "kernel-ver4",
-                "lxd",
-                {
-                    "arch": "amd64",
-                    "distribution": "Ubuntu",
-                    "kernel": "kernel-ver4",
-                    "release": "22.04",
-                    "series": "jammy",
-                    "type": "Linux",
-                    "version": "CORRUPTED",
-                    "virt": "lxd",
-                },
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="22.04",
+                    series="jammy",
+                    pretty_version="CORRUPTED",
+                ),
             ),
         ],
     )
@@ -698,23 +656,17 @@ class TestGetPlatformInfo:
     @mock.patch("uaclient.system.get_dpkg_arch")
     @mock.patch("uaclient.system.parse_os_release")
     @mock.patch("uaclient.system.get_virt_type")
-    def test_get_platform_info_with_version(
+    def test_get_release_info_with_version(
         self,
         m_get_virt_type,
         m_parse_os_release,
         m_get_dpkg_arch,
         m_get_kernel_info,
         os_release,
-        arch,
-        kernel,
-        virt,
         expected,
     ):
         m_parse_os_release.return_value = os_release
-        m_get_dpkg_arch.return_value = arch
-        m_get_kernel_info.return_value = mock.MagicMock(uname_release=kernel)
-        m_get_virt_type.return_value = virt
-        assert expected == system.get_platform_info.__wrapped__()
+        assert expected == system.get_release_info.__wrapped__()
 
 
 class TestGetMachineId:

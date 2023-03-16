@@ -5,6 +5,7 @@ from urllib.error import HTTPError
 import mock
 import pytest
 
+from uaclient import system
 from uaclient.clouds.gcp import (
     LAST_ETAG,
     LICENSES_URL,
@@ -123,7 +124,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([], {}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 None,
                 False,
                 [
@@ -136,7 +142,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "8045211386737108299"}], {}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 None,
                 True,
                 [
@@ -149,7 +160,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "8045211386737108299"}], {}),
-                {"series": "bionic"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="bionic",
+                    pretty_version="",
+                ),
                 None,
                 False,
                 [
@@ -162,7 +178,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "6022427724719891830"}], {}),
-                {"series": "bionic"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="bionic",
+                    pretty_version="",
+                ),
                 None,
                 True,
                 [
@@ -175,7 +196,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "599959289349842382"}], {}),
-                {"series": "focal"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="focal",
+                    pretty_version="",
+                ),
                 None,
                 True,
                 [
@@ -188,7 +214,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 "test-etag",
                 True,
                 [
@@ -201,7 +232,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 False,
                 ([{"id": "wrong"}], {"ETag": "test-etag"}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 "test-etag",
                 False,
                 [
@@ -214,7 +250,12 @@ class TestUAAutoAttachGCPInstance:
                 None,
                 True,
                 ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 "test-etag",
                 True,
                 [
@@ -228,7 +269,12 @@ class TestUAAutoAttachGCPInstance:
                 "existing-etag",
                 True,
                 ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
-                {"series": "xenial"},
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
                 "test-etag",
                 True,
                 [
@@ -242,12 +288,12 @@ class TestUAAutoAttachGCPInstance:
             ),
         ),
     )
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "util.readurl")
     def test_is_license_present(
         self,
         m_readurl,
-        m_get_platform_info,
+        m_get_release_info,
         existing_etag,
         wait_for_change,
         metadata_response,
@@ -259,7 +305,7 @@ class TestUAAutoAttachGCPInstance:
         instance = UAAutoAttachGCPInstance()
         instance.etag = existing_etag
         m_readurl.return_value = metadata_response
-        m_get_platform_info.return_value = platform_info
+        m_get_release_info.return_value = platform_info
 
         result = instance.is_pro_license_present(
             wait_for_change=wait_for_change
@@ -273,18 +319,58 @@ class TestUAAutoAttachGCPInstance:
     @pytest.mark.parametrize(
         "platform_info, expected_result",
         (
-            ({"series": "xenial"}, True),
-            ({"series": "bionic"}, True),
-            ({"series": "focal"}, True),
-            ({"series": "non_lts"}, False),
-            ({"series": "jammy"}, True),
+            (
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="xenial",
+                    pretty_version="",
+                ),
+                True,
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="bionic",
+                    pretty_version="",
+                ),
+                True,
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="focal",
+                    pretty_version="",
+                ),
+                True,
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="non_lts",
+                    pretty_version="",
+                ),
+                False,
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="",
+                    release="",
+                    series="jammy",
+                    pretty_version="",
+                ),
+                True,
+            ),
         ),
     )
-    @mock.patch(M_PATH + "system.get_platform_info")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_should_poll_for_license(
-        self, m_get_platform_info, platform_info, expected_result
+        self, m_get_release_info, platform_info, expected_result
     ):
-        m_get_platform_info.return_value = platform_info
+        m_get_release_info.return_value = platform_info
         instance = UAAutoAttachGCPInstance()
         result = instance.should_poll_for_pro_license()
         assert expected_result == result

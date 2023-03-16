@@ -399,7 +399,7 @@ class RepoEntitlement(base.UAEntitlement):
         :param run_apt_update: If after removing the apt update
             command after removing the apt files.
         """
-        series = system.get_platform_info()["series"]
+        series = system.get_release_info().series
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         entitlement = self.cfg.machine_token_file.entitlements[self.name].get(
             "entitlement", {}

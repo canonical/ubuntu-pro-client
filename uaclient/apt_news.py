@@ -81,7 +81,7 @@ def do_selectors_apply(
         return True
 
     if selectors.codenames is not None:
-        if system.get_platform_info()["series"] not in selectors.codenames:
+        if system.get_release_info().series not in selectors.codenames:
             return False
 
     if selectors.clouds is not None:

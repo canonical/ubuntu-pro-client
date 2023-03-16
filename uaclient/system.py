@@ -19,7 +19,7 @@ ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
-# N.B. this relies on the version normalisation we perform in get_platform_info
+# N.B. this relies on the version normalisation we perform in get_release_info
 REGEX_OS_RELEASE_VERSION = (
     r"(?P<release>\d+\.\d+) (LTS\s*)?(\((?P<series>\w+))?.*"
 )
@@ -53,6 +53,16 @@ KernelInfo = NamedTuple(
         ("patch", Optional[int]),
         ("abi", Optional[str]),
         ("flavor", Optional[str]),
+    ],
+)
+
+ReleaseInfo = NamedTuple(
+    "ReleaseInfo",
+    [
+        ("distribution", str),
+        ("release", str),
+        ("series", str),
+        ("pretty_version", str),
     ],
 )
 
@@ -141,49 +151,35 @@ def get_machine_id(cfg) -> str:
 
 
 @lru_cache(maxsize=None)
-def get_platform_info() -> Dict[str, str]:
-    """
-    Returns a dict of platform information.
-
-    N.B. This dict is sent to the contract server, which requires the
-    distribution, type and release keys.
-    """
+def get_release_info() -> ReleaseInfo:
     os_release = parse_os_release()
-    platform_info = {
-        "distribution": os_release.get("NAME", "UNKNOWN"),
-        "type": "Linux",
-    }
-
-    version = re.sub(r"\.\d LTS", " LTS", os_release.get("VERSION", ""))
-    platform_info["version"] = version
+    distribution = os_release.get("NAME", "UNKNOWN")
+    pretty_version = re.sub(r"\.\d LTS", " LTS", os_release.get("VERSION", ""))
     series = os_release.get("VERSION_CODENAME", "")
     release = os_release.get("VERSION_ID", "")
 
     if not series or not release:
-        match = re.match(REGEX_OS_RELEASE_VERSION, version)
+        match = re.match(REGEX_OS_RELEASE_VERSION, pretty_version)
         if not match:
             raise exceptions.ParsingErrorOnOSReleaseFile(
-                orig_ver=os_release.get("VERSION", ""), mod_ver=version
+                orig_ver=os_release.get("VERSION", ""), mod_ver=pretty_version
             )
 
         match_dict = match.groupdict()
         series = series or match_dict.get("series", "")
         if not series:
-            raise exceptions.MissingSeriesOnOSReleaseFile(version=version)
+            raise exceptions.MissingSeriesOnOSReleaseFile(
+                version=pretty_version
+            )
 
         release = release or match_dict.get("release", "")
 
-    platform_info.update(
-        {
-            "release": release,
-            "series": series.lower(),
-            "kernel": get_kernel_info().uname_release,
-            "arch": get_dpkg_arch(),
-            "virt": get_virt_type(),
-        }
+    return ReleaseInfo(
+        distribution=distribution,
+        release=release,
+        series=series.lower(),
+        pretty_version=pretty_version,
     )
-
-    return platform_info
 
 
 @lru_cache(maxsize=None)
@@ -194,7 +190,7 @@ def is_lts(series: str) -> bool:
 
 @lru_cache(maxsize=None)
 def is_current_series_lts() -> bool:
-    return is_lts(get_platform_info()["series"])
+    return is_lts(get_release_info().series)
 
 
 @lru_cache(maxsize=None)
@@ -216,7 +212,7 @@ def is_active_esm(series: str) -> bool:
 
 @lru_cache(maxsize=None)
 def is_current_series_active_esm() -> bool:
-    return is_active_esm(get_platform_info()["series"])
+    return is_active_esm(get_release_info().series)
 
 
 @lru_cache(maxsize=None)
