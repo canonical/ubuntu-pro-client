@@ -334,7 +334,7 @@ cleanup_apt_news_flag_file() {
 }
 
 cleanup_old_motd_files() {
-    rm -f $UA_MESSAGES_DIR/motd*
+    rm -rf $UA_MESSAGES_DIR/motd*
 }
 
 migrate_user_config_post() {
