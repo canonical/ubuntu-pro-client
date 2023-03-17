@@ -54,11 +54,20 @@ UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
 UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
 
+UnfixedPackage = NamedTuple(
+    "UnfixedPackage",
+    [
+        ("pkg", str),
+        ("unfixed_reason", str),
+    ],
+)
+
+
 ReleasedPackagesInstallResult = NamedTuple(
     "ReleasedPackagesInstallResult",
     [
         ("fix_status", bool),
-        ("unfixed_pkgs", Set[str]),
+        ("unfixed_pkgs", List[UnfixedPackage]),
         ("installed_pkgs", Set[str]),
         ("all_already_installed", bool),
     ],
@@ -75,15 +84,41 @@ BinaryPackageFix = NamedTuple(
 )
 
 
-@enum.unique
+UpgradeResult = NamedTuple(
+    "UpgradeResult",
+    [
+        ("status", bool),
+        ("failure_reason", Optional[str]),
+    ],
+)
+
+
 class FixStatus(enum.Enum):
     """
     An enum to represent the system status after fix operation
     """
 
-    SYSTEM_NON_VULNERABLE = 0
-    SYSTEM_STILL_VULNERABLE = 1
-    SYSTEM_VULNERABLE_UNTIL_REBOOT = 2
+    class _Value:
+        def __init__(self, value):
+            self.value = value
+
+    SYSTEM_NON_VULNERABLE = _Value(0)
+    SYSTEM_NOT_AFFECTED = _Value(0)
+    SYSTEM_STILL_VULNERABLE = _Value(1)
+    SYSTEM_VULNERABLE_UNTIL_REBOOT = _Value(2)
+
+    @property
+    def val(self):
+        return self.value.value
+
+
+FixResult = NamedTuple(
+    "FixResult",
+    [
+        ("status", FixStatus),
+        ("unfixed_pkgs", Optional[List[UnfixedPackage]]),
+    ],
+)
 
 
 class UASecurityClient(serviceclient.UAServiceClient):
@@ -234,22 +269,22 @@ class CVEPackageStatus:
     @property
     def status_message(self):
         if self.status == "needed":
-            return "Sorry, no fix is available yet."
+            return messages.SECURITY_CVE_STATUS_NEEDED
         elif self.status == "needs-triage":
-            return "Ubuntu security engineers are investigating this issue."
+            return messages.SECURITY_CVE_STATUS_TRIAGE
         elif self.status == "pending":
-            return "A fix is coming soon. Try again tomorrow."
+            return messages.SECURITY_CVE_STATUS_PENDING
         elif self.status in ("ignored", "deferred"):
-            return "Sorry, no fix is available."
+            return messages.SECURITY_CVE_STATUS_IGNORED
         elif self.status == "DNE":
-            return "Source package does not exist on this release."
+            return messages.SECURITY_CVE_STATUS_DNE
         elif self.status == "not-affected":
-            return "Source package is not affected on this release."
+            return messages.SECURITY_CVE_STATUS_NOT_AFFECTED
         elif self.status == "released":
             return messages.SECURITY_FIX_RELEASE_STREAM.format(
                 fix_stream=self.pocket_source
             )
-        return "UNKNOWN: {}".format(self.status)
+        return messages.SECURITY_CVE_STATUS_UNKNOWN.format(status=self.status)
 
     @property
     def requires_ua(self) -> bool:
@@ -559,14 +594,15 @@ def get_related_usns(usn, client):
     """
 
     # If the usn does not have any associated cves on it,
-    # we must consider that only the current usn should be
-    # evaluated.
+    # we cannot stablish a relation between USNs
     if not usn.cves:
-        return [usn]
+        return []
 
     related_usns = {}
     for cve in usn.cves:
         for related_usn_id in cve.notices_ids:
+            if related_usn_id == usn.id:
+                continue
             if related_usn_id not in related_usns:
                 related_usns[related_usn_id] = client.get_notice(
                     notice_id=related_usn_id
@@ -609,6 +645,7 @@ def _fix_cve(
         usns, beta_pockets
     )
 
+    print()
     return prompt_for_affected_packages(
         cfg=cfg,
         issue_id=issue_id,
@@ -616,25 +653,30 @@ def _fix_cve(
         installed_packages=installed_packages,
         usn_released_pkgs=usn_released_pkgs,
         dry_run=dry_run,
-    )
+    ).status
 
 
 def _fix_usn(
     usn: USN,
-    usns: List[USN],
+    related_usns: List[USN],
     issue_id: str,
     installed_packages: Dict[str, Dict[str, str]],
     cfg: UAConfig,
     beta_pockets: Dict[str, bool],
     dry_run: bool,
 ) -> FixStatus:
-    affected_pkg_status = get_usn_affected_packages_status(
+    # We should only highlight the target USN if we have related USNs to fix
+    print(
+        "\n" + messages.SECURITY_FIXING_REQUESTED_USN.format(issue_id=issue_id)
+    )
+
+    affected_pkg_status = get_affected_packages_from_usn(
         usn=usn, installed_packages=installed_packages
     )
     usn_released_pkgs = merge_usn_released_binary_package_versions(
-        usns, beta_pockets
+        [usn], beta_pockets
     )
-    return prompt_for_affected_packages(
+    target_fix_status, _ = prompt_for_affected_packages(
         cfg=cfg,
         issue_id=issue_id,
         affected_pkg_status=affected_pkg_status,
@@ -642,6 +684,86 @@ def _fix_usn(
         usn_released_pkgs=usn_released_pkgs,
         dry_run=dry_run,
     )
+
+    if target_fix_status not in (
+        FixStatus.SYSTEM_NON_VULNERABLE,
+        FixStatus.SYSTEM_NOT_AFFECTED,
+    ):
+        return target_fix_status
+
+    if not related_usns:
+        return target_fix_status
+
+    print(
+        "\n"
+        + messages.SECURITY_RELATED_USNS.format(
+            related_usns="\n- ".join(usn.id for usn in related_usns)
+        )
+    )
+
+    print("\n" + messages.SECURITY_FIXING_RELATED_USNS)
+    related_usn_status = {}  # type: Dict[str, FixResult]
+    for related_usn in related_usns:
+        print("- {}".format(related_usn.id))
+        affected_pkg_status = get_affected_packages_from_usn(
+            usn=related_usn, installed_packages=installed_packages
+        )
+        usn_released_pkgs = merge_usn_released_binary_package_versions(
+            [related_usn], beta_pockets
+        )
+
+        related_fix_status = prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id=related_usn.id,
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
+            dry_run=dry_run,
+        )
+
+        related_usn_status[related_usn.id] = related_fix_status
+        print()
+
+    print(messages.SECURITY_USN_SUMMARY)
+    _handle_fix_status_message(
+        target_fix_status, issue_id, extra_info=" [requested]"
+    )
+
+    failure_on_related_usn = False
+    for related_usn in related_usns:
+        status = related_usn_status[related_usn.id].status
+        _handle_fix_status_message(
+            status, related_usn.id, extra_info=" [related]"
+        )
+
+        if status == FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT:
+            print(
+                "- "
+                + messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                )
+            )
+            failure_on_related_usn = True
+        if status == FixStatus.SYSTEM_STILL_VULNERABLE:
+            unfixed_pkgs = (
+                related_usn_status[related_usn.id].unfixed_pkgs or []
+            )
+            for unfixed_pkg in unfixed_pkgs:
+                if unfixed_pkg.unfixed_reason:
+                    print(
+                        "  - {}: {}".format(
+                            unfixed_pkg.pkg, unfixed_pkg.unfixed_reason
+                        )
+                    )
+            failure_on_related_usn = True
+
+    if failure_on_related_usn:
+        print(
+            "\n"
+            + messages.SECURITY_RELATED_USN_ERROR.format(issue_id=issue_id)
+        )
+
+    return target_fix_status
 
 
 def fix_security_issue_id(
@@ -721,7 +843,7 @@ def fix_security_issue_id(
 
         return _fix_usn(
             usn=usn,
-            usns=usns,
+            related_usns=usns,
             issue_id=issue_id,
             installed_packages=installed_packages,
             cfg=cfg,
@@ -758,7 +880,7 @@ def get_affected_packages_from_usn(usn, installed_packages):
         cve_response = defaultdict(str)
         cve_response["status"] = "released"
         # Here we are assuming that the pocket will be the same one across
-        # the different binary packages.
+        # all the different binary packages.
         all_pockets = {
             pkg_bin_info["pocket"]
             for _, pkg_bin_info in pkg_info.items()
@@ -821,13 +943,17 @@ def print_affected_packages_header(
     count = len(affected_pkg_status)
     if count == 0:
         print(
-            "\n"
-            + messages.SECURITY_AFFECTED_PKGS.format(
+            messages.SECURITY_AFFECTED_PKGS.format(
                 count="No", plural_str="s are"
             )
             + "."
         )
-        print("\n" + messages.SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id))
+        print(
+            "\n"
+            + messages.SECURITY_ISSUE_UNAFFECTED.format(
+                issue=issue_id, extra_info=""
+            )
+        )
         return
 
     if count == 1:
@@ -835,8 +961,7 @@ def print_affected_packages_header(
     else:
         plural_str = "s are"
     msg = (
-        "\n"
-        + messages.SECURITY_AFFECTED_PKGS.format(
+        messages.SECURITY_AFFECTED_PKGS.format(
             count=count, plural_str=plural_str
         )
         + ": "
@@ -954,6 +1079,43 @@ def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
     return False
 
 
+def _handle_fix_status_message(
+    status: FixStatus, issue_id: str, extra_info: str = ""
+):
+    if status == FixStatus.SYSTEM_NON_VULNERABLE:
+        print(
+            util.handle_unicode_characters(
+                messages.SECURITY_ISSUE_RESOLVED.format(
+                    issue=issue_id, extra_info=extra_info
+                )
+            )
+        )
+    elif status == FixStatus.SYSTEM_NOT_AFFECTED:
+        print(
+            util.handle_unicode_characters(
+                messages.SECURITY_ISSUE_UNAFFECTED.format(
+                    issue=issue_id, extra_info=extra_info
+                )
+            )
+        )
+    elif status == FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT:
+        print(
+            util.handle_unicode_characters(
+                messages.SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id, extra_info=extra_info
+                )
+            )
+        )
+    else:
+        print(
+            util.handle_unicode_characters(
+                messages.SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id, extra_info=extra_info
+                )
+            )
+        )
+
+
 def _handle_released_package_fixes(
     cfg: UAConfig,
     src_pocket_pkgs: Dict[str, List[Tuple[str, CVEPackageStatus]]],
@@ -971,7 +1133,7 @@ def _handle_released_package_fixes(
     """
     all_already_installed = True
     upgrade_status = True
-    unfixed_pkgs = set()
+    unfixed_pkgs = []  # type: List[UnfixedPackage]
     installed_pkgs = set()  # type: Set[str]
     if src_pocket_pkgs:
         for pocket in [
@@ -981,6 +1143,9 @@ def _handle_released_package_fixes(
         ]:
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
+            failure_msg = messages.SECURITY_UA_SERVICE_REQUIRED.format(
+                service=pocket
+            )
 
             if upgrade_status:
                 msg = _format_packages_message(
@@ -1011,25 +1176,40 @@ def _handle_released_package_fixes(
                     ):
                         upgrade_pkgs.append(binary_pkg.binary_pkg)
                     else:
-                        print(
-                            "- "
-                            + messages.FIX_CANNOT_INSTALL_PACKAGE.format(
+                        unfixed_reason = (
+                            messages.FIX_CANNOT_INSTALL_PACKAGE.format(
                                 package=binary_pkg.binary_pkg,
                                 version=binary_pkg.fixed_version,
                             ).msg
                         )
-                        unfixed_pkgs.add(binary_pkg.source_pkg)
+                        print("- " + unfixed_reason)
+                        unfixed_pkgs.append(
+                            UnfixedPackage(
+                                pkg=binary_pkg.source_pkg,
+                                unfixed_reason=unfixed_reason,
+                            )
+                        )
 
                 pkg_index += len(pkg_src_group)
-                upgrade_status &= upgrade_packages_and_attach(
+                upgrade_result = upgrade_packages_and_attach(
                     cfg=cfg,
                     upgrade_pkgs=upgrade_pkgs,
                     pocket=pocket,
                     dry_run=dry_run,
                 )
+                upgrade_status &= upgrade_result.status
+                failure_msg = upgrade_result.failure_reason or ""
 
             if not upgrade_status:
-                unfixed_pkgs.update([src_pkg for src_pkg, _ in pkg_src_group])
+                unfixed_pkgs.extend(
+                    [
+                        UnfixedPackage(
+                            pkg=src_pkg,
+                            unfixed_reason=failure_msg,
+                        )
+                        for src_pkg, _ in pkg_src_group
+                    ]
+                )
             else:
                 installed_pkgs.update(
                     binary_pkg.binary_pkg for binary_pkg in binary_pkgs
@@ -1043,7 +1223,7 @@ def _handle_released_package_fixes(
     )
 
 
-def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
+def _format_unfixed_packages_msg(unfixed_pkgs: List[UnfixedPackage]) -> str:
     """Format the list of unfixed packages into an message.
 
     :returns: A string containing the message output for the unfixed
@@ -1055,7 +1235,7 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
             num_pkgs_unfixed,
             "s" if num_pkgs_unfixed > 1 else "",
             "are" if num_pkgs_unfixed > 1 else "is",
-            ", ".join(sorted(unfixed_pkgs)),
+            ", ".join(sorted(pkg.pkg for pkg in unfixed_pkgs)),
         ),
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
@@ -1069,7 +1249,7 @@ def prompt_for_affected_packages(
     installed_packages: Dict[str, Dict[str, str]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     dry_run: bool,
-) -> FixStatus:
+) -> FixResult:
     """Process security CVE dict returning a CVEStatus object.
 
     Since CVEs point to a USN if active, get_notice may be called to fill in
@@ -1081,8 +1261,9 @@ def prompt_for_affected_packages(
     count = len(affected_pkg_status)
     print_affected_packages_header(issue_id, affected_pkg_status)
     if count == 0:
-        return FixStatus.SYSTEM_NON_VULNERABLE
-    fix_message = messages.SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+        return FixResult(
+            status=FixStatus.SYSTEM_NOT_AFFECTED, unfixed_pkgs=None
+        )
     src_pocket_pkgs = defaultdict(list)
     binary_pocket_pkgs = defaultdict(list)
     pkg_index = 0
@@ -1091,12 +1272,10 @@ def prompt_for_affected_packages(
         affected_pkg_status, usn_released_pkgs
     )
 
-    unfixed_pkgs = []
+    unfixed_pkgs = []  # type: List[UnfixedPackage]
     for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
         if status_value != "released":
-            fix_message = messages.SECURITY_ISSUE_NOT_RESOLVED.format(
-                issue=issue_id
-            )
+            fix_result = FixStatus.SYSTEM_NON_VULNERABLE
             print(
                 _format_packages_message(
                     pkg_status_list=pkg_status_group,
@@ -1105,7 +1284,11 @@ def prompt_for_affected_packages(
                 )
             )
             pkg_index += len(pkg_status_group)
-            unfixed_pkgs += [src_pkg for src_pkg, _ in pkg_status_group]
+            status_msg = pkg_status_group[0][1].status_message
+            unfixed_pkgs += [
+                UnfixedPackage(pkg=src_pkg, unfixed_reason=status_msg)
+                for src_pkg, _ in pkg_status_group
+            ]
         else:
             for src_pkg, pkg_status in pkg_status_group:
                 src_pocket_pkgs[pkg_status.pocket_source].append(
@@ -1114,21 +1297,11 @@ def prompt_for_affected_packages(
                 for binary_pkg, version in installed_packages[src_pkg].items():
                     usn_released_src = usn_released_pkgs.get(src_pkg, {})
                     if binary_pkg not in usn_released_src:
-                        unfixed_pkgs += [
-                            src_pkg for src_pkg, _ in pkg_status_group
-                        ]
-                        msg = (
-                            "{issue} metadata defines no fixed version for"
-                            " {pkg}.\n".format(pkg=binary_pkg, issue=issue_id)
-                        )
-
-                        msg += _format_unfixed_packages_msg(unfixed_pkgs)
-                        raise exceptions.SecurityAPIMetadataError(
-                            msg, issue_id
-                        )
+                        continue
                     fixed_version = usn_released_src.get(binary_pkg, {}).get(
                         "version", ""
                     )
+
                     if not apt.compare_versions(fixed_version, version, "le"):
                         binary_pocket_pkgs[pkg_status.pocket_source].append(
                             BinaryPackageFix(
@@ -1152,9 +1325,6 @@ def prompt_for_affected_packages(
     print()
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
-        fix_message = messages.SECURITY_ISSUE_NOT_RESOLVED.format(
-            issue=issue_id
-        )
 
     if released_pkgs_install_result.fix_status:
         # fix_status is True if either:
@@ -1163,8 +1333,7 @@ def prompt_for_affected_packages(
         # In case (2), then all_already_installed is also True
         if released_pkgs_install_result.all_already_installed:
             # we didn't install any packages, so we're good
-            print(util.handle_unicode_characters(fix_message))
-            return (
+            fix_result = (
                 FixStatus.SYSTEM_STILL_VULNERABLE
                 if unfixed_pkgs
                 else FixStatus.SYSTEM_NON_VULNERABLE
@@ -1183,12 +1352,7 @@ def prompt_for_affected_packages(
                 Notice.ENABLE_REBOOT_REQUIRED,
                 operation="fix operation",
             )
-            print(
-                util.handle_unicode_characters(
-                    messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
-                )
-            )
-            return (
+            fix_result = (
                 FixStatus.SYSTEM_STILL_VULNERABLE
                 if unfixed_pkgs
                 else FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
@@ -1196,19 +1360,19 @@ def prompt_for_affected_packages(
         else:
             # we successfully installed some packages, and the system
             # reboot-required flag is not set, so we're good
-            print(util.handle_unicode_characters(fix_message))
-            return (
+            fix_result = (
                 FixStatus.SYSTEM_STILL_VULNERABLE
                 if unfixed_pkgs
                 else FixStatus.SYSTEM_NON_VULNERABLE
             )
     else:
-        print(
-            util.handle_unicode_characters(
-                messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
-            )
-        )
-        return FixStatus.SYSTEM_STILL_VULNERABLE
+        fix_result = FixStatus.SYSTEM_STILL_VULNERABLE
+
+    _handle_fix_status_message(fix_result, issue_id)
+    return FixResult(
+        status=fix_result,
+        unfixed_pkgs=unfixed_pkgs,
+    )
 
 
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
@@ -1437,7 +1601,7 @@ def _check_subscription_is_expired(
 
 def upgrade_packages_and_attach(
     cfg: UAConfig, upgrade_pkgs: List[str], pocket: str, dry_run: bool
-) -> bool:
+) -> UpgradeResult:
     """Upgrade available packages to fix a CVE.
 
     Upgrade all packages in upgrades_packages and, if necessary,
@@ -1446,13 +1610,14 @@ def upgrade_packages_and_attach(
     :return: True if package upgrade completed or unneeded, False otherwise.
     """
     if not upgrade_pkgs:
-        return True
+        return UpgradeResult(status=True, failure_reason=None)
 
     # If we are running on --dry-run mode, we don't need to be root
     # to understand what will happen with the system
     if not util.we_are_currently_root() and not dry_run:
-        print(messages.SECURITY_APT_NON_ROOT)
-        return False
+        msg = messages.SECURITY_APT_NON_ROOT
+        print(msg)
+        return UpgradeResult(status=False, failure_reason=msg)
 
     if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
         # We are now using status-cache because non-root users won't
@@ -1462,15 +1627,30 @@ def upgrade_packages_and_attach(
         status_cache = cfg.read_cache("status-cache") or {}
         if not status_cache.get("attached", False):
             if not _check_attached(cfg, dry_run):
-                return False
+                return UpgradeResult(
+                    status=False,
+                    failure_reason=messages.SECURITY_UA_SERVICE_REQUIRED.format(  # noqa
+                        service=pocket
+                    ),
+                )
         elif _check_subscription_is_expired(
             status_cache=status_cache, cfg=cfg, dry_run=dry_run
         ):
-            return False
+            return UpgradeResult(
+                status=False,
+                failure_reason=messages.SECURITY_UA_SERVICE_WITH_EXPIRED_SUB.format(  # noqa
+                    service=pocket
+                ),
+            )
 
         if not _check_subscription_for_required_service(pocket, cfg, dry_run):
             # User subscription does not have required service enabled
-            return False
+            return UpgradeResult(
+                status=False,
+                failure_reason=messages.SECURITY_UA_SERVICE_NOT_ENABLED_SHORT.format(  # noqa
+                    service=pocket
+                ),
+            )
 
     print(
         colorize_commands(
@@ -1493,6 +1673,8 @@ def upgrade_packages_and_attach(
         except Exception as e:
             msg = getattr(e, "msg", str(e))
             print(msg.strip())
-            return False
+            return UpgradeResult(
+                status=False, failure_reason=messages.SECURITY_UA_APT_FAILURE
+            )
 
-    return True
+    return UpgradeResult(status=True, failure_reason=None)
