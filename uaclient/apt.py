@@ -10,6 +10,9 @@ import tempfile
 from functools import lru_cache
 from typing import Dict, Iterable, List, NamedTuple, Optional, Union
 
+import apt  # type: ignore
+import apt_pkg  # type: ignore
+
 from uaclient import event_logger, exceptions, gpg, messages, system
 from uaclient.defaults import ESM_APT_ROOTDIR
 
@@ -211,15 +214,34 @@ def get_apt_cache_policy(
     )
 
 
-@lru_cache(maxsize=None)
-def _get_apt_cache():
-    import apt  # type: ignore
+def get_apt_cache():
+    for key in apt_pkg.config.keys():
+        apt_pkg.config.clear(key)
+    apt_pkg.init()
+    cache = apt.Cache()
+    return cache
 
-    return apt.Cache()
+
+def get_esm_cache():
+    try:
+        # Take care to initialize the cache with only the
+        # Acquire configuration preserved
+        for key in apt_pkg.config.keys():
+            if "Acquire" not in key:
+                apt_pkg.config.clear(key)
+        apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
+        apt_pkg.init()
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
+    except Exception:
+        cache = {}
+
+    return cache
 
 
 def get_pkg_candidate_version(pkg: str) -> Optional[str]:
-    cache = _get_apt_cache()
+    cache = get_apt_cache()
 
     try:
         package = cache[pkg]
@@ -642,33 +664,9 @@ def get_apt_cache_datetime() -> Optional[datetime.datetime]:
     return datetime.datetime.fromtimestamp(cache_time, datetime.timezone.utc)
 
 
-@lru_cache(maxsize=None)
-def get_esm_cache():
-    import apt  # type: ignore
-    import apt_pkg  # type: ignore
-
-    try:
-        # Take care to initialize the cache with only the
-        # Acquire configuration preserved
-        for key in apt_pkg.config.keys():
-            if "Acquire" not in key:
-                apt_pkg.config.clear(key)
-        apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
-        apt_pkg.init_config()
-        # If the rootdir folder doesn't contain any apt source info, the
-        # cache will be empty
-        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
-    except Exception:
-        cache = {}
-
-    return cache
-
-
 def update_esm_caches(cfg) -> None:
     if not system.is_current_series_lts():
         return
-
-    import apt  # type: ignore
 
     from uaclient.actions import status
     from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -739,8 +737,6 @@ def remove_packages(package_names: List[str], error_message: str):
 
 
 def _get_apt_config():
-    import apt_pkg
-
     # We need to clear the config values in case another module
     # has already initiated it
     for key in apt_pkg.config.keys():

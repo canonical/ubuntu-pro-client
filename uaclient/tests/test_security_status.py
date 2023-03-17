@@ -522,7 +522,7 @@ class TestSecurityStatus:
     @mock.patch(M_PATH + "status", return_value={"attached": False})
     @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
     @mock.patch(M_PATH + "filter_security_updates")
-    @mock.patch(M_PATH + "apt.Cache")
+    @mock.patch(M_PATH + "get_apt_cache")
     def test_security_status_dict(
         self,
         m_cache,
