@@ -1,0 +1,27 @@
+---
+
+name: Custom PR Checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+    branches:
+      - main
+
+jobs:
+  bug-refs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: cd ./.github/actions/bug-refs && npm install
+      - name: Check for bug references
+        uses: ./.github/actions/bug-refs
+        id: bug-refs
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

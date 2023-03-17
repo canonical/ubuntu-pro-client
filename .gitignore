@@ -45,3 +45,6 @@ apt-hook/json-hook-test
 
 # docs
 docs/build/
+
+# custom github actions use node
+node_modules
