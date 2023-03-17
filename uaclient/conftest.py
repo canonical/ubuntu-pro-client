@@ -8,15 +8,21 @@ from typing import Any, Dict
 import mock
 import pytest
 
-from uaclient import event_logger
-from uaclient.config import UAConfig
-from uaclient.files.notices import NoticeFileDetails
-from uaclient.files.state_files import UserConfigData
-
 # We are doing this because we are sure that python3-apt comes with the distro,
 # but it cannot be installed in a virtual environment to be properly tested.
+# Those need to be mocked here, before importing our modules, so the pytest
+# virtualenv doesn't cry because it can't find the modules
 sys.modules["apt"] = mock.MagicMock()
 sys.modules["apt_pkg"] = mock.MagicMock()
+
+# Useless try/except to make flake8 happy \_("/)_/
+try:
+    from uaclient import event_logger
+    from uaclient.config import UAConfig
+    from uaclient.files.notices import NoticeFileDetails
+    from uaclient.files.state_files import UserConfigData
+except ImportError:
+    raise
 
 
 @pytest.yield_fixture(scope="session", autouse=True)
