@@ -93,12 +93,8 @@ class RepoEntitlement(base.UAEntitlement):
     def _perform_disable(self, silent=False):
         if hasattr(self, "remove_packages"):
             self.remove_packages()
-        self._cleanup(silent=silent)
-        return True
-
-    def _cleanup(self, silent: bool = False) -> None:
-        """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config(silent=silent)
+        return True
 
     def application_status(
         self,
@@ -264,7 +260,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
         except exceptions.UserFacingError:
             if cleanup_on_failure:
-                self._cleanup()
+                self.remove_apt_config()
             raise
 
     def setup_apt_config(self, silent: bool = False) -> None:
