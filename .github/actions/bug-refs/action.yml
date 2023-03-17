@@ -1,0 +1,9 @@
+name: 'Require Bug References'
+description: 'Block PRs on missing bug references'
+inputs:
+  repo-token:
+    description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
+runs:
+  using: 'node16'
+  main: 'index.js'
