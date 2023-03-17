@@ -38,64 +38,105 @@ Feature: Ua fix command behaviour
         When I run `apt-get update` with sudo
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
-            """
-            Error: CVE-1800-123456 not found.
-            """
+        """
+        Error: CVE-1800-123456 not found.
+        """
         When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
         Then I will see the following on stderr:
-            """
-            Error: USN-12345-12 not found.
-            """
+        """
+        Error: USN-12345-12 not found.
+        """
         When I verify that running `pro fix CVE-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
-            """
-            Error: issue "CVE-12345678-12" is not recognized.
-            Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
-            """
+        """
+        Error: issue "CVE-12345678-12" is not recognized.
+        Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
+        """
         When I verify that running `pro fix USN-12345678-12` `as non-root` exits `1`
         Then I will see the following on stderr:
-            """
-            Error: issue "USN-12345678-12" is not recognized.
-            Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
-            """
+        """
+        Error: issue "USN-12345678-12" is not recognized.
+        Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
+        """
         When I run `apt install -y libawl-php=0.60-1 --allow-downgrades` with sudo
         And I run `pro fix USN-4539-1` with sudo
         Then stdout matches regexp:
-            """
-            USN-4539-1: AWL vulnerability
-            Found CVEs:
-             - https://ubuntu.com/security/CVE-2020-11728
+        """
+        USN-4539-1: AWL vulnerability
+        Found CVEs:
+         - https://ubuntu.com/security/CVE-2020-11728
 
-            1 affected source package is installed: awl
-            \(1/1\) awl:
-            A fix is available in Ubuntu standard updates.
-            .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
+        Fixing requested USN-4539-1
+        1 affected source package is installed: awl
+        \(1/1\) awl:
+        A fix is available in Ubuntu standard updates.
+        .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
 
-            .*✔.* USN-4539-1 is resolved.
-            """
+        .*✔.* USN-4539-1 is resolved.
+        """
         When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
-            """
-            CVE-2020-28196: Kerberos vulnerability
-             - https://ubuntu.com/security/CVE-2020-28196
+        """
+        CVE-2020-28196: Kerberos vulnerability
+         - https://ubuntu.com/security/CVE-2020-28196
 
-            1 affected source package is installed: krb5
-            \(1/1\) krb5:
-            A fix is available in Ubuntu standard updates.
-            The update is already installed.
+        1 affected source package is installed: krb5
+        \(1/1\) krb5:
+        A fix is available in Ubuntu standard updates.
+        The update is already installed.
 
-            .*✔.* CVE-2020-28196 is resolved.
-            """
+        .*✔.* CVE-2020-28196 is resolved.
+        """
         When I run `pro fix CVE-2022-24959` as non-root
         Then stdout matches regexp:
-            """
-            CVE-2022-24959: Linux kernel vulnerabilities
-             - https://ubuntu.com/security/CVE-2022-24959
+        """
+        CVE-2022-24959: Linux kernel vulnerabilities
+         - https://ubuntu.com/security/CVE-2022-24959
 
-            No affected source packages are installed.
+        No affected source packages are installed.
 
-            .*✔.* CVE-2022-24959 does not affect your system.
-            """
+        .*✔.* CVE-2022-24959 does not affect your system.
+        """
+        When I run `apt install -y rsync=3.1.3-8 --allow-downgrades` with sudo
+        And I run `apt install -y zlib1g=1:1.2.11.dfsg-2ubuntu1 --allow-downgrades` with sudo
+        And I run `pro fix USN-5573-1` with sudo
+        Then stdout matches regexp:
+        """
+        USN-5573-1: rsync vulnerability
+        Found CVEs:
+         - https://ubuntu.com/security/CVE-2022-37434
+
+        Fixing requested USN-5573-1
+        1 affected source package is installed: rsync
+        \(1/1\) rsync:
+        A fix is available in Ubuntu standard updates.
+        .*\{ apt update && apt install --only-upgrade -y rsync \}.*
+
+        .*✔.* USN-5573-1 is resolved.
+
+        Found related USNs:
+        - USN-5570-1
+        - USN-5570-2
+
+        Fixing related USNs:
+        - USN-5570-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5570-1 does not affect your system.
+
+        - USN-5570-2
+        1 affected source package is installed: zlib
+        \(1/1\) zlib:
+        A fix is available in Ubuntu standard updates.
+        .*\{ apt update && apt install --only-upgrade -y zlib1g \}.*
+
+        .*✔.* USN-5570-2 is resolved.
+
+        Summary:
+        .*✔.* USN-5573-1 \[requested\] is resolved.
+        .*✔.* USN-5570-1 \[related\] does not affect your system.
+        .*✔.* USN-5570-2 \[related\] is resolved.
+        """
 
         Examples: ubuntu release details
            | release |
@@ -109,19 +150,17 @@ Feature: Ua fix command behaviour
         When I run `apt-get update` with sudo
         When I run `apt install -y libawl-php` with sudo
         And I reboot the machine
-        And I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
+        And I run `pro fix USN-4539-1` as non-root
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
         Found CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
-        1 affected source package is installed: awl
-        \(1/1\) awl:
-        Ubuntu security engineers are investigating this issue.
+        Fixing requested USN-4539-1
+        No affected source packages are installed.
 
-        1 package is still affected: awl
-        .*✘.* USN-4539-1 is not resolved.
+        .*✔.* USN-4539-1 does not affect your system.
         """
         When I run `pro fix CVE-2020-15180` as non-root
         Then stdout matches regexp:
@@ -191,6 +230,7 @@ Feature: Ua fix command behaviour
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
+        Fixing requested USN-5079-2
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -206,6 +246,19 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
 
         .*✔.* USN-5079-2 is resolved.
+
+        Found related USNs:
+        - USN-5079-1
+
+        Fixing related USNs:
+        - USN-5079-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5079-1 does not affect your system.
+
+        Summary:
+        .*✔.* USN-5079-2 \[requested\] is resolved.
+        .*✔.* USN-5079-1 \[related\] does not affect your system.
         """
         When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
         Then stdout matches regexp
@@ -215,6 +268,7 @@ Feature: Ua fix command behaviour
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
+        Fixing requested USN-5079-2
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -239,6 +293,7 @@ Feature: Ua fix command behaviour
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
+        Fixing requested USN-5079-2
         1 affected source package is installed: curl
         \(1/1\) curl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -258,6 +313,19 @@ Feature: Ua fix command behaviour
         .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
 
         .*✔.* USN-5079-2 is resolved.
+
+        Found related USNs:
+        - USN-5079-1
+
+        Fixing related USNs:
+        - USN-5079-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5079-1 does not affect your system.
+
+        Summary:
+        .*✔.* USN-5079-2 \[requested\] is resolved.
+        .*✔.* USN-5079-1 \[related\] does not affect your system.
         """
         When I verify that running `pro fix USN-5051-2` `with sudo` exits `2`
         Then stdout matches regexp:
@@ -266,6 +334,7 @@ Feature: Ua fix command behaviour
         Found CVEs:
          - https://ubuntu.com/security/CVE-2021-3712
 
+        Fixing requested USN-5051-2
         1 affected source package is installed: openssl
         \(1/1\) openssl:
         A fix is available in Ubuntu Pro: ESM Infra.
@@ -275,6 +344,8 @@ Feature: Ua fix command behaviour
         .*✘.* USN-5051-2 is not resolved.
         """
         When I run `pro disable esm-infra` with sudo
+        # Allow esm-cache to be populated
+        And I run `sleep 5` as non-root
         And I run `apt-get install gzip -y` with sudo
         And I run `pro fix USN-5378-4 --dry-run` as non-root
         Then stdout matches regexp:
@@ -285,17 +356,53 @@ Feature: Ua fix command behaviour
         Found CVEs:
          - https://ubuntu.com/security/CVE-2022-1271
 
-        2 affected source packages are installed: gzip, xz-utils
-        \(1/2, 2/2\) gzip, xz-utils:
+        Fixing requested USN-5378-4
+        1 affected source package is installed: gzip
+        \(1/1\) gzip:
         A fix is available in Ubuntu Pro: ESM Infra.
 
         .*Ubuntu Pro service: esm-infra is not enabled.
         To proceed with the fix, a prompt would ask permission to automatically enable
         this service.
         \{ pro enable esm-infra \}.*
-        .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
+        .*\{ apt update && apt install --only-upgrade -y gzip \}.*
 
         .*✔.* USN-5378-4 is resolved.
+
+        Found related USNs:
+        - USN-5378-1
+        - USN-5378-2
+        - USN-5378-3
+
+        Fixing related USNs:
+        - USN-5378-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5378-1 does not affect your system.
+
+        - USN-5378-2
+        No affected source packages are installed.
+
+        .*✔.* USN-5378-2 does not affect your system.
+
+        - USN-5378-3
+        1 affected source package is installed: xz-utils
+        \(1/1\) xz-utils:
+        A fix is available in Ubuntu Pro: ESM Infra.
+
+        .*Ubuntu Pro service: esm-infra is not enabled.
+        To proceed with the fix, a prompt would ask permission to automatically enable
+        this service.
+        \{ pro enable esm-infra \}.*
+        .*\{ apt update && apt install --only-upgrade -y liblzma5 xz-utils \}.*
+
+        .*✔.* USN-5378-3 is resolved.
+
+        Summary:
+        .*✔.* USN-5378-4 \[requested\] is resolved.
+        .*✔.* USN-5378-1 \[related\] does not affect your system.
+        .*✔.* USN-5378-2 \[related\] does not affect your system.
+        .*✔.* USN-5378-3 \[related\] is resolved.
         """
         When I run `pro fix USN-5378-4` `with sudo` and stdin `E`
         Then stdout matches regexp:
@@ -304,8 +411,9 @@ Feature: Ua fix command behaviour
         Found CVEs:
          - https://ubuntu.com/security/CVE-2022-1271
 
-        2 affected source packages are installed: gzip, xz-utils
-        \(1/2, 2/2\) gzip, xz-utils:
+        Fixing requested USN-5378-4
+        1 affected source package is installed: gzip
+        \(1/1\) gzip:
         A fix is available in Ubuntu Pro: ESM Infra.
         The update is not installed because this system does not have
         esm-infra enabled.
@@ -315,9 +423,39 @@ Feature: Ua fix command behaviour
         One moment, checking your subscription first
         Updating package lists
         Ubuntu Pro: ESM Infra enabled
-        .*\{ apt update && apt install --only-upgrade -y gzip liblzma5 xz-utils \}.*
+        .*\{ apt update && apt install --only-upgrade -y gzip \}.*
 
         .*✔.* USN-5378-4 is resolved.
+
+        Found related USNs:
+        - USN-5378-1
+        - USN-5378-2
+        - USN-5378-3
+
+        Fixing related USNs:
+        - USN-5378-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5378-1 does not affect your system.
+
+        - USN-5378-2
+        No affected source packages are installed.
+
+        .*✔.* USN-5378-2 does not affect your system.
+
+        - USN-5378-3
+        1 affected source package is installed: xz-utils
+        \(1/1\) xz-utils:
+        A fix is available in Ubuntu Pro: ESM Infra.
+        .*\{ apt update && apt install --only-upgrade -y liblzma5 xz-utils \}.*
+
+        .*✔.* USN-5378-3 is resolved.
+
+        Summary:
+        .*✔.* USN-5378-4 \[requested\] is resolved.
+        .*✔.* USN-5378-1 \[related\] does not affect your system.
+        .*✔.* USN-5378-2 \[related\] does not affect your system.
+        .*✔.* USN-5378-3 \[related\] is resolved.
         """
 
         Examples: ubuntu release details
@@ -352,7 +490,7 @@ Feature: Ua fix command behaviour
         Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
         """
         When I run `apt install -y libawl-php` with sudo
-        And I verify that running `pro fix USN-4539-1 --dry-run` `as non-root` exits `1`
+        And I run `pro fix USN-4539-1 --dry-run` as non-root
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -361,26 +499,22 @@ Feature: Ua fix command behaviour
         Found CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
-        1 affected source package is installed: awl
-        \(1/1\) awl:
-        Ubuntu security engineers are investigating this issue.
+        Fixing requested USN-4539-1
+        No affected source packages are installed.
 
-        1 package is still affected: awl
-        .*✘.* USN-4539-1 is not resolved.
+        .*✔.* USN-4539-1 does not affect your system.
         """
-        When I verify that running `pro fix USN-4539-1` `as non-root` exits `1`
+        When I run `pro fix USN-4539-1` as non-root
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
         Found CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
-        1 affected source package is installed: awl
-        \(1/1\) awl:
-        Ubuntu security engineers are investigating this issue.
+        Fixing requested USN-4539-1
+        No affected source packages are installed.
 
-        1 package is still affected: awl
-        .*✘.* USN-4539-1 is not resolved.
+        .*✔.* USN-4539-1 does not affect your system.
         """
         When I run `pro fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -461,6 +595,7 @@ Feature: Ua fix command behaviour
         Found Launchpad bugs:
          - https://launchpad.net/bugs/1834494
 
+        Fixing requested USN-4038-3
         1 affected source package is installed: bzip2
         \(1/1\) bzip2:
         A fix is available in Ubuntu standard updates.
