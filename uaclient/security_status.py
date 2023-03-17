@@ -9,7 +9,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import livepatch, messages
-from uaclient.apt import get_esm_cache
+from uaclient.apt import get_apt_cache, get_esm_cache
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
@@ -62,7 +62,7 @@ def get_installed_packages_by_origin() -> DefaultDict[
 ]:
     result = defaultdict(list)
 
-    cache = apt.Cache()
+    cache = get_apt_cache()
     installed_packages = [package for package in cache if package.is_installed]
     result["all"] = installed_packages
 
