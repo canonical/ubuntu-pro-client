@@ -88,10 +88,10 @@ SECURITY_USE_PRO_TMPL = (
     "For easiest security on {title}, use Ubuntu Pro."
     " https://ubuntu.com/{cloud}/pro."
 )
-SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
-SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue} is not resolved."
+SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
+SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
-    OKGREEN_CHECK + " {issue} does not affect your system."
+    OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
 )
 SECURITY_AFFECTED_PKGS = (
     "{count} affected source package{plural_str} installed"
@@ -135,6 +135,44 @@ Without it, we cannot fix the system."""
 SECURITY_UA_SERVICE_NOT_ENTITLED = """\
 Error: The current Ubuntu Pro subscription is not entitled to: {service}.
 Without it, we cannot fix the system."""
+SECURITY_UA_SERVICE_REQUIRED = """\
+{service} is required for upgrade."""
+SECURITY_UA_SERVICE_WITH_EXPIRED_SUB = """\
+{service} is required for upgrade, but subscription is expired."""
+SECURITY_UA_SERVICE_NOT_ENABLED_SHORT = """\
+{service} is required for upgrade, but it is not enabled."""
+SECURITY_UA_APT_FAILURE = """\
+APT failed to install the package.
+"""
+SECURITY_CVE_STATUS_NEEDED = """\
+Sorry, no fix is available yet."""
+SECURITY_CVE_STATUS_TRIAGE = """\
+Ubuntu security engineers are investigating this issue."""
+SECURITY_CVE_STATUS_PENDING = """\
+A fix is coming soon. Try again tomorrow."""
+SECURITY_CVE_STATUS_IGNORED = """\
+Sorry, no fix is available."""
+SECURITY_CVE_STATUS_DNE = """\
+Source package does not exist on this release."""
+SECURITY_CVE_STATUS_NOT_AFFECTED = """\
+Source package is not affected on this release."""
+SECURITY_CVE_STATUS_UNKNOWN = """\
+UNKNOWN: {status}"""
+
+SECURITY_FIXING_REQUESTED_USN = """\
+Fixing requested {issue_id}"""
+SECURITY_FIXING_RELATED_USNS = """\
+Fixing related USNs:"""
+SECURITY_RELATED_USNS = """\
+Found related USNs:\n- {related_usns}"""
+SECURITY_USN_SUMMARY = """\
+Summary:"""
+SECURITY_RELATED_USN_ERROR = """\
+Even though a related USN failed to be fixed, note
+that {issue_id} was fixed. Related USNs do not have
+affect the original USN. Learn more about the related
+USNs, please read this doc here."""
+
 APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"

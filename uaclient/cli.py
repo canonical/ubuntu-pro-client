@@ -625,7 +625,7 @@ def action_fix(args, *, cfg, **kwargs):
         issue_id=args.security_issue,
         dry_run=args.dry_run,
     )
-    return fix_status.value
+    return fix_status.val
 
 
 def detach_parser(parser):
