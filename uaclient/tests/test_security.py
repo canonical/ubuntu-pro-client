@@ -20,13 +20,19 @@ from uaclient.messages import (
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
     SECURITY_APT_NON_ROOT,
+    SECURITY_CVE_STATUS_IGNORED,
+    SECURITY_CVE_STATUS_NEEDED,
+    SECURITY_CVE_STATUS_PENDING,
+    SECURITY_CVE_STATUS_TRIAGE,
     SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION,
     SECURITY_DRY_RUN_UA_NOT_ATTACHED,
     SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED,
-    SECURITY_ISSUE_NOT_RESOLVED,
+    SECURITY_FIXING_REQUESTED_USN,
+    SECURITY_RELATED_USN_ERROR,
     SECURITY_SERVICE_DISABLED,
     SECURITY_UA_SERVICE_NOT_ENABLED,
     SECURITY_UA_SERVICE_NOT_ENTITLED,
+    SECURITY_UA_SERVICE_REQUIRED,
     SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
     SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
     SECURITY_USE_PRO_TMPL,
@@ -41,9 +47,12 @@ from uaclient.security import (
     CVEPackageStatus,
     FixStatus,
     UASecurityClient,
+    UnfixedPackage,
+    UpgradeResult,
     _check_attached,
     _check_subscription_for_required_service,
     _check_subscription_is_expired,
+    _fix_usn,
     _prompt_for_attach,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
@@ -953,49 +962,9 @@ CVE_PKG_STATUS_NEEDED = {"description": "", "pocket": None, "status": "needed"}
 
 class TestPromptForAffectedPackages:
     @pytest.mark.parametrize(
-        "affected_pkg_status,installed_packages,usn_released_pkgs",
-        (
-            (
-                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
-                {"slsrc": {"sl": "2.0"}},
-                {},
-            ),
-        ),
-    )
-    def test_raise_userfacing_error_on_invalid_usn_metadata(
-        self,
-        affected_pkg_status,
-        installed_packages,
-        usn_released_pkgs,
-        FakeConfig,
-    ):
-        with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
-            with mock.patch("uaclient.util.sys") as m_sys:
-                m_stdout = mock.MagicMock()
-                type(m_sys).stdout = m_stdout
-                type(m_stdout).encoding = mock.PropertyMock(
-                    return_value="utf-8"
-                )
-                prompt_for_affected_packages(
-                    cfg=FakeConfig(),
-                    issue_id="USN-###",
-                    affected_pkg_status=affected_pkg_status,
-                    installed_packages=installed_packages,
-                    usn_released_pkgs=usn_released_pkgs,
-                    dry_run=False,
-                )
-        assert (
-            "Error: USN-### metadata defines no fixed version for sl.\n"
-            "1 package is still affected: slsrc\n"
-            "{msg}".format(
-                msg=SECURITY_ISSUE_NOT_RESOLVED.format(issue="USN-###")
-            )
-            == exc.value.msg
-        )
-
-    @pytest.mark.parametrize(
         "affected_pkg_status,installed_packages,"
-        "usn_released_pkgs,cloud_type,expected,expected_ret",
+        "usn_released_pkgs,cloud_type,expected,expected_ret,"
+        "expected_unfixed_pkgs",
         (
             (  # No affected_packages listed
                 {},
@@ -1004,14 +973,15 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    No affected source packages are installed.
+                   No affected source packages are installed.
 
-                    {check} USN-### does not affect your system.
-                    """.format(
+                   {check} USN-### does not affect your system.
+                   """.format(
                         check=OKGREEN_CHECK  # noqa: E126
                     )  # noqa: E126
                 ),
-                FixStatus.SYSTEM_NON_VULNERABLE,
+                FixStatus.SYSTEM_NOT_AFFECTED,
+                None,
             ),
             (  # version is >= released affected package
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -1020,17 +990,18 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected source package is installed: slsrc
-                    (1/1) slsrc:
-                    A fix is available in Ubuntu standard updates.
-                    The update is already installed.
+                   1 affected source package is installed: slsrc
+                   (1/1) slsrc:
+                   A fix is available in Ubuntu standard updates.
+                   The update is already installed.
 
-                    {check} USN-### is resolved.
-                    """.format(
+                   {check} USN-### is resolved.
+                   """.format(
                         check=OKGREEN_CHECK  # noqa: E126
                     )  # noqa: E126
                 ),
                 FixStatus.SYSTEM_NON_VULNERABLE,
+                [],
             ),
             (  # usn_released_pkgs version is used instead of CVE (2.1)
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -1039,10 +1010,10 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected source package is installed: slsrc
-                    (1/1) slsrc:
-                    A fix is available in Ubuntu standard updates.
-                    """
+                   1 affected source package is installed: slsrc
+                   (1/1) slsrc:
+                   A fix is available in Ubuntu standard updates.
+                   """
                 )
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y sl"]]
@@ -1050,6 +1021,7 @@ class TestPromptForAffectedPackages:
                 + "\n\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
                 FixStatus.SYSTEM_NON_VULNERABLE,
+                [],
             ),
             (  # version is < released affected package standard updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -1058,10 +1030,10 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected source package is installed: slsrc
-                    (1/1) slsrc:
-                    A fix is available in Ubuntu standard updates.
-                    """
+                   1 affected source package is installed: slsrc
+                   (1/1) slsrc:
+                   A fix is available in Ubuntu standard updates.
+                   """
                 )
                 + "\n".join(
                     [
@@ -1080,6 +1052,7 @@ class TestPromptForAffectedPackages:
                     ]
                 ),
                 FixStatus.SYSTEM_NON_VULNERABLE,
+                [],
             ),
             (  # version is < released affected package esm-infra updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
@@ -1102,6 +1075,14 @@ class TestPromptForAffectedPackages:
                     ]
                 ),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="slsrc",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Infra"
+                        ),
+                    ),
+                ],
             ),
             (  # version < released package in esm-infra updates and aws cloud
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
@@ -1122,6 +1103,14 @@ class TestPromptForAffectedPackages:
                     ]
                 ),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="slsrc",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Infra"
+                        ),
+                    ),
+                ],
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1162,6 +1151,14 @@ class TestPromptForAffectedPackages:
                 + "\n\n"
                 + "1 package is still affected: slsrc",
                 FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="slsrc",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Apps"
+                        ),
+                    ),
+                ],
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1256,6 +1253,68 @@ class TestPromptForAffectedPackages:
                     )
                 ),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="pkg1",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg2",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg9",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg7",
+                        unfixed_reason=SECURITY_CVE_STATUS_NEEDED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg8",
+                        unfixed_reason=SECURITY_CVE_STATUS_NEEDED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg5",
+                        unfixed_reason=SECURITY_CVE_STATUS_TRIAGE,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg6",
+                        unfixed_reason=SECURITY_CVE_STATUS_TRIAGE,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg3",
+                        unfixed_reason=SECURITY_CVE_STATUS_PENDING,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg4",
+                        unfixed_reason=SECURITY_CVE_STATUS_PENDING,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg12",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Infra"
+                        ),
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg13",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Infra"
+                        ),
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg14",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Apps"
+                        ),
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg15",
+                        unfixed_reason=SECURITY_UA_SERVICE_REQUIRED.format(
+                            service="Ubuntu Pro: ESM Apps"
+                        ),
+                    ),
+                ],
             ),
             (  # No released version
                 {
@@ -1296,6 +1355,44 @@ class TestPromptForAffectedPackages:
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="pkg1",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg2",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg9",
+                        unfixed_reason=SECURITY_CVE_STATUS_IGNORED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg7",
+                        unfixed_reason=SECURITY_CVE_STATUS_NEEDED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg8",
+                        unfixed_reason=SECURITY_CVE_STATUS_NEEDED,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg5",
+                        unfixed_reason=SECURITY_CVE_STATUS_TRIAGE,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg6",
+                        unfixed_reason=SECURITY_CVE_STATUS_TRIAGE,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg3",
+                        unfixed_reason=SECURITY_CVE_STATUS_PENDING,
+                    ),
+                    UnfixedPackage(
+                        pkg="pkg4",
+                        unfixed_reason=SECURITY_CVE_STATUS_PENDING,
+                    ),
+                ],
             ),
             (  # text wrapping required in several places
                 {
@@ -1359,6 +1456,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "\n\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
                 FixStatus.SYSTEM_NON_VULNERABLE,
+                [],
             ),
         ),
     )
@@ -1384,6 +1482,7 @@ A fix is available in Ubuntu standard updates.\n"""
         cloud_type,
         expected,
         expected_ret,
+        expected_unfixed_pkgs,
         FakeConfig,
         capsys,
         _subp,
@@ -1407,7 +1506,8 @@ A fix is available in Ubuntu standard updates.\n"""
                     usn_released_pkgs=usn_released_pkgs,
                     dry_run=False,
                 )
-                assert expected_ret == actual_ret
+                assert expected_ret == actual_ret.status
+                assert expected_unfixed_pkgs == actual_ret.unfixed_pkgs
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1583,7 +1683,9 @@ A fix is available in Ubuntu standard updates.\n"""
         capsys,
         _subp,
     ):
-        m_upgrade_packages.return_value = False
+        m_upgrade_packages.return_value = UpgradeResult(
+            status=False, failure_reason=None
+        )
 
         cfg = FakeConfig()
         with mock.patch("uaclient.system._subp", side_effect=_subp):
@@ -1602,6 +1704,8 @@ A fix is available in Ubuntu standard updates.\n"""
                     dry_run=False,
                 )
         out, err = capsys.readouterr()
+        print(out)
+        print(expected)
         assert expected in out
 
     @pytest.mark.parametrize(
@@ -1969,8 +2073,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"pkg1": {"pkg1": "1.8"}},
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
-                "\n"
-                + textwrap.dedent(
+                textwrap.dedent(
                     """\
                     1 affected source package is installed: pkg1
                     (1/1) pkg1:
@@ -2192,7 +2295,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     usn_released_pkgs=usn_released_pkgs,
                     dry_run=False,
                 )
-                assert exp_ret == actual_ret
+                assert exp_ret == actual_ret.status
         out, err = capsys.readouterr()
         assert exp_msg in out
 
@@ -2310,7 +2413,7 @@ class TestUpgradePackagesAndAttach:
                 upgrade_pkgs=["t1=123"],
                 pocket="Ubuntu standard updates",
                 dry_run=False,
-            )
+            ).status
             is False
         )
 
@@ -2319,12 +2422,12 @@ class TestUpgradePackagesAndAttach:
 
 
 class TestGetRelatedUSNs:
-    def test_original_usn_returned_when_no_cves_are_found(self, FakeConfig):
+    def test_no_usns_returned_when_no_cves_are_found(self, FakeConfig):
         cfg = FakeConfig()
         client = UASecurityClient(cfg=cfg)
         usn = USN(client, SAMPLE_USN_RESPONSE_NO_CVES)
 
-        assert [usn] == get_related_usns(usn, client)
+        assert [] == get_related_usns(usn, client)
 
 
 class TestGetUSNAffectedPackagesStatus:
@@ -2765,3 +2868,213 @@ class TestPromptForAttach:
         assert 1 == m_initiate.call_count
         assert 1 == m_wait.call_count
         assert 1 == m_revoke.call_count
+
+
+class TestFixUSN:
+    @mock.patch("uaclient.security._check_attached", return_value=False)
+    @mock.patch("uaclient.apt.compare_versions")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
+    @mock.patch("uaclient.security.get_affected_packages_from_usn")
+    def test_fix_usn_with_related_usns(
+        self,
+        m_affected_pkgs,
+        m_merge_usn,
+        _m_get_pkg_cand_ver,
+        m_compare_versions,
+        _m_check_attached,
+        capsys,
+        FakeConfig,
+    ):
+        usn = mock.MagicMock()
+        issue_id = "USN-123"
+        related_usns = [
+            mock.MagicMock(id="USN-456"),
+            mock.MagicMock(id="USN-789"),
+            mock.MagicMock(id="USN-822"),
+        ]
+        installed_packages = {
+            "pkg1": {"pkg1": "1.0"},
+            "pkg2": {"pkg2": "1.0"},
+            "pkg3": {"pkg3": "1.0"},
+            "pkg4": {"pkg4": "1.0"},
+            "pkg5": {"pkg5": "1.0"},
+        }
+        cfg = FakeConfig()
+        beta_pockets = {}
+        dry_run = False
+
+        m_affected_pkgs.side_effect = [
+            {
+                "pkg1": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "security",
+                    }
+                )
+            },
+            {
+                "pkg2": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-infra",
+                    }
+                )
+            },
+            {
+                "pkg3": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-apps",
+                    }
+                ),
+                "pkg4": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-apps",
+                    }
+                ),
+            },
+            {
+                "pkg5": CVEPackageStatus(
+                    {
+                        "status": "pending",
+                        "pocket": "security",
+                    }
+                )
+            },
+        ]
+        m_merge_usn.side_effect = [
+            {
+                "pkg1": {"pkg1": {"version": "1.2", "name": "pkg1"}},
+            },
+            {
+                "pkg2": {"pkg2": {"version": "1.2", "name": "pkg2"}},
+            },
+            {
+                "pkg3": {"pkg3": {"version": "1.2", "name": "pkg3"}},
+                "pkg4": {"pkg4": {"version": "1.2", "name": "pkg4"}},
+            },
+            {
+                "pkg5": {"pkg5": {"version": "1.2", "name": "pkg5"}},
+            },
+        ]
+
+        m_compare_versions.side_effect = [
+            False,
+            True,
+            False,
+            True,
+            False,
+            False,
+            True,
+            True,
+            False,
+            True,
+        ]
+
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            actual_ret = _fix_usn(
+                usn=usn,
+                related_usns=related_usns,
+                issue_id=issue_id,
+                installed_packages=installed_packages,
+                cfg=cfg,
+                beta_pockets=beta_pockets,
+                dry_run=dry_run,
+            )
+
+        expected_msg = (
+            "\n"
+            + SECURITY_FIXING_REQUESTED_USN.format(issue_id=issue_id)
+            + "\n"
+            + textwrap.dedent(
+                """\
+                1 affected source package is installed: pkg1
+                (1/1) pkg1:
+                A fix is available in Ubuntu standard updates.
+                """
+            )
+            + colorize_commands(
+                [["apt update && apt install --only-upgrade" " -y pkg1"]]
+            )
+            + "\n\n"
+            + "{check} USN-123 is resolved.\n".format(check=OKGREEN_CHECK)
+            + "\n"
+            + textwrap.dedent(
+                """\
+                Found related USNs:
+                - USN-456
+                - USN-789
+                - USN-822
+                """
+            )
+            + "\n"
+            + textwrap.dedent(
+                """\
+                Fixing related USNs:
+                - USN-456
+                1 affected source package is installed: pkg2
+                (1/1) pkg2:
+                A fix is available in Ubuntu Pro: ESM Infra.
+                """
+            )
+            + "\n"
+            + "1 package is still affected: pkg2"
+            + "\n"
+            + "{check} USN-456 is not resolved.".format(check=FAIL_X)
+            + "\n\n"
+            + textwrap.dedent(
+                """\
+                - USN-789
+                2 affected source packages are installed: pkg3, pkg4
+                (1/2, 2/2) pkg3, pkg4:
+                A fix is available in Ubuntu Pro: ESM Apps.
+                """
+            )
+            + "\n"
+            + "2 packages are still affected: pkg3, pkg4"
+            + "\n"
+            + "{check} USN-789 is not resolved.".format(check=FAIL_X)
+            + "\n\n"
+            + textwrap.dedent(
+                """\
+                - USN-822
+                1 affected source package is installed: pkg5
+                (1/1) pkg5:
+                A fix is coming soon. Try again tomorrow.
+                """
+            )
+            + "\n"
+            + "1 package is still affected: pkg5"
+            + "\n"
+            + "{check} USN-822 is not resolved.".format(check=FAIL_X)
+            + "\n\n"
+            + "Summary:"
+            + "\n"
+            + "{check} USN-123 [requested] is resolved.".format(
+                check=OKGREEN_CHECK
+            )
+            + "\n"
+            + "{check} USN-456 [related] is not resolved.".format(check=FAIL_X)
+            + "\n"
+            + "  - pkg2: Ubuntu Pro: ESM Infra is required for upgrade."
+            + "\n"
+            + "{check} USN-789 [related] is not resolved.".format(check=FAIL_X)
+            + "\n"
+            + "  - pkg3: Ubuntu Pro: ESM Apps is required for upgrade."
+            + "\n"
+            + "  - pkg4: Ubuntu Pro: ESM Apps is required for upgrade."
+            + "\n"
+            + "{check} USN-822 [related] is not resolved.".format(check=FAIL_X)
+            + "\n"
+            + "  - pkg5: A fix is coming soon. Try again tomorrow."
+            + "\n\n"
+            + SECURITY_RELATED_USN_ERROR.format(issue_id="USN-123")
+        )
+        out, err = capsys.readouterr()
+        assert expected_msg in out
+        assert FixStatus.SYSTEM_NON_VULNERABLE == actual_ret

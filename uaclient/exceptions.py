@@ -288,7 +288,9 @@ class SecurityAPIMetadataError(UserFacingError):
             "Error: "
             + msg
             + "\n"
-            + messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+            + messages.SECURITY_ISSUE_NOT_RESOLVED.format(
+                issue=issue_id, extra_info=""
+            )
         )
 
 
