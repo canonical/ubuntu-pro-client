@@ -29,11 +29,11 @@ ubuntu-advantage-tools (27.14~23.04.1) lunar; urgency=medium
     - locks: alert user about corrupted lock files (LP: #1996931)
     - logging: logs are now formatted as jsonlines
     - motd: remove esm-apps announcement
-    - notices: new representation on disk as separate files
+    - notices: new representation on disk as separate files (LP: #1987738)
     - realtime: remove ubuntu-realtime package on disablement
     - status:
       + removed contract info update check network call
-      + no longer includes warnings about notices when non-root
+      + no longer includes warnings about notices when non-root (LP: #2006138)
       + unattached status sends virt type to contract server for better
         resource availability calculation
     - timer jobs: add daily job to check for contract updates
