@@ -4,6 +4,7 @@ import sys
 
 from systemd.daemon import notify  # type: ignore
 
+from uaclient import defaults
 from uaclient.config import UAConfig
 from uaclient.daemon import (
     poll_for_pro_license,
@@ -15,6 +16,12 @@ LOG = logging.getLogger("pro")
 
 
 def main() -> int:
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        defaults.CONFIG_DEFAULTS["daemon_log_file"],
+        logger=LOG,
+    )
     cfg = UAConfig()
     setup_logging(
         logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG

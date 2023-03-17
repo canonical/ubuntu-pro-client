@@ -2,6 +2,7 @@
 
 import logging
 
+from uaclient import defaults
 from uaclient.apt import update_esm_caches
 from uaclient.config import UAConfig
 from uaclient.daemon import setup_logging
@@ -18,6 +19,12 @@ def main(cfg: UAConfig) -> None:
 
 
 if __name__ == "__main__":
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        defaults.CONFIG_DEFAULTS["log_file"],
+        logger=logging.getLogger(),
+    )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,

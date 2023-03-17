@@ -18,7 +18,7 @@ import logging
 import os
 import sys
 
-from uaclient import config, contract, exceptions, lock, messages
+from uaclient import config, contract, defaults, exceptions, lock, messages
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices
@@ -152,6 +152,11 @@ def main(cfg: config.UAConfig):
 
 
 if __name__ == "__main__":
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        defaults.CONFIG_DEFAULTS["log_file"],
+    )
     cfg = config.UAConfig()
     setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
     main(cfg=cfg)

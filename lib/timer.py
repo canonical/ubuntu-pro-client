@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
+from uaclient import defaults
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
@@ -184,6 +185,12 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
+    setup_logging(
+        logging.CRITICAL,
+        logging.DEBUG,
+        defaults.CONFIG_DEFAULTS["timer_log_file"],
+        logger=LOG,
+    )
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
 

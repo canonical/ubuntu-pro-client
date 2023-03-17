@@ -13,7 +13,7 @@ their side.
 import logging
 import sys
 
-from uaclient import messages, system
+from uaclient import defaults, messages, system
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
@@ -103,6 +103,12 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        defaults.CONFIG_DEFAULTS["log_file"],
+        logger=logging.getLogger(),
+    )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
