@@ -1060,7 +1060,7 @@ class TestFipsEntitlementInstallPackages:
         self, m_run_apt, entitlement
     ):
         m_run_apt.side_effect = exceptions.UserFacingError("error")
-        with mock.patch.object(entitlement, "_cleanup"):
+        with mock.patch.object(entitlement, "remove_apt_config"):
             with pytest.raises(exceptions.UserFacingError):
                 entitlement.install_packages()
 
