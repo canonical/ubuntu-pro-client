@@ -237,6 +237,13 @@ def get_esm_cache():
     except Exception:
         cache = {}
 
+    # We need to restore the apt cache configuration after creating our cache,
+    # otherwise we may break people interacting with the library after
+    # importing our modules.
+    for key in apt_pkg.config.keys():
+        apt_pkg.config.clear(key)
+    apt_pkg.init()
+
     return cache
 
 
