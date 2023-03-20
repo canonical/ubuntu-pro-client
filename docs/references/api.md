@@ -75,6 +75,28 @@ except ImportError:
 
 You could do something similar by catching certain errors when using the `pro api` subcommand, but there are more cases that could indicate an old version, and it generally isn't recommended.
 
+
+### Errors and Warnings fields
+
+When using the API through the CLI, we use two distinct fields to list issues to the users; *errors*
+and *warnings*. Both of those fields will contain a list of JSON objects explaining unexpected
+behavior during the execution of a command. For example, the *errors* field will be populated like
+this if we have a connectivity issue when running a `pro api` command:
+
+```json
+[
+    {
+        "msg": "Failed to connect to authentication server",
+        "code": "connectivity-error",
+        "meta": {}
+    }
+]
+```
+
+Finally, *warnings* follow the exact same structure as *errors*. The only difference is that
+*warnings* means that the command was able to complete although unexpected scenarios happened
+when executing the command.
+
 ## Available endpoints
 The currently available endpoints are:
 - [u.pro.version.v1](#uproversionv1)
