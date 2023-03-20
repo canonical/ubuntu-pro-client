@@ -20,6 +20,7 @@ ubuntu-advantage-tools (27.14~23.04.1) lunar; urgency=medium
       + deliver json apt-hook for interim releases
       + fix cloud identification logic in json apt-hook
       + make all calls to esm-cache isolated from system configuration
+        (LP: #2008280)
       + only set up the esm cache on supported systems (LP: #2004018)
     - fix:
       + format the output to be more readable (LP: #1926182)
