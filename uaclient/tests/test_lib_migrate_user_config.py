@@ -1,6 +1,5 @@
 import mock
 import pytest
-import yaml
 
 from lib.migrate_user_config import (
     create_new_uaclient_conffile,
@@ -9,6 +8,7 @@ from lib.migrate_user_config import (
 )
 from uaclient import messages
 from uaclient.testing.fakes import FakeFile
+from uaclient.yaml import safe_load
 
 
 class TestLoadPreUpgradeConf:
@@ -27,7 +27,7 @@ features: {allow_beta: true}
     @mock.patch("builtins.open")
     def test_success(self, m_open, contents, capsys):
         m_open.return_value = FakeFile(contents)
-        assert yaml.safe_load(contents) == load_pre_upgrade_conf()
+        assert safe_load(contents) == load_pre_upgrade_conf()
         assert ("", "") == capsys.readouterr()
 
     @pytest.mark.parametrize(
@@ -221,7 +221,7 @@ class TestCreateNewUaclientConffile:
         ],
     )
     @mock.patch("os.rename")
-    @mock.patch("yaml.dump")
+    @mock.patch("lib.migrate_user_config.safe_dump")
     @mock.patch("builtins.open")
     def test_success(
         self,

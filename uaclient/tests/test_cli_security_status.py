@@ -75,7 +75,7 @@ class TestActionSecurityStatus:
         assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize("output_format", ("json", "yaml", "text"))
-    @mock.patch(M_PATH + "yaml.safe_dump")
+    @mock.patch(M_PATH + "safe_dump")
     @mock.patch(M_PATH + "json.dumps")
     def test_action_security_status(
         self,

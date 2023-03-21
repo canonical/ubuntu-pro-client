@@ -9,7 +9,7 @@ import stat
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, util, yaml
+from uaclient import apt, exceptions, messages, util
 from uaclient.config import (
     PRIVATE_SUBDIR,
     UA_CONFIGURABLE_KEYS,
@@ -25,6 +25,7 @@ from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices
 from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
+from uaclient.yaml import safe_dump
 
 KNOWN_DATA_PATHS = (
     ("machine-access-cis", "machine-access-cis.json"),
@@ -1060,7 +1061,7 @@ class TestParseConfig:
         self, config_dict, expected_invalid_keys, tmpdir
     ):
         config_file = tmpdir.join("uaclient.conf")
-        config_file.write(yaml.safe_dump(config_dict))
+        config_file.write(safe_dump(config_dict))
         env_vars = {"UA_CONFIG_FILE": config_file.strpath}
         with mock.patch.dict("uaclient.config.os.environ", values=env_vars):
             cfg, invalid_keys = parse_config(config_file.strpath)
