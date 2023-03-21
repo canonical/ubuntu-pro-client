@@ -1842,10 +1842,17 @@ def _warn_about_new_version(cmd_args=None) -> None:
 
 
 def setup_logging(console_level, log_level, log_file=None, logger=None):
-    """Setup console logging and debug logging to log_file"""
+    """Setup console logging and debug logging to log_file
+
+    If run as non_root and cfg.log_file is provided, it is replaced
+    with another non-root log file.
+    """
     if log_file is None:
         cfg = config.UAConfig()
         log_file = cfg.log_file
+    # if we are running as non-root, change log file
+    if not util.we_are_currently_root():
+        log_file = pro_log.get_user_log_file()
     if isinstance(log_level, str):
         log_level = log_level.upper()
     console_formatter = util.LogFormatter()
@@ -1865,20 +1872,18 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     console_handler.set_name("ua-console")  # Used to disable console logging
     logger.addHandler(console_handler)
 
+    log_file_path = pathlib.Path(log_file)
+
+    if not log_file_path.exists():
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file_path.touch(mode=0o640)
     # Setup file logging
-    if util.we_are_currently_root():
-        # Setup readable-by-root-only debug file logging if running as root
-        log_file_path = pathlib.Path(log_file)
 
-        if not log_file_path.exists():
-            log_file_path.touch()
-            log_file_path.chmod(0o644)
-
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(JsonArrayFormatter())
-        file_handler.setLevel(log_level)
-        file_handler.set_name("ua-file")
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(JsonArrayFormatter())
+    file_handler.setLevel(log_level)
+    file_handler.set_name("ua-file")
+    logger.addHandler(file_handler)
 
 
 def set_event_mode(cmd_args):
