@@ -15,7 +15,6 @@ from uaclient import (
     snap,
     system,
     util,
-    yaml,
 )
 from uaclient.defaults import (
     APT_NEWS_URL,
@@ -29,6 +28,7 @@ from uaclient.defaults import (
 )
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
+from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(__name__)
 
@@ -669,7 +669,7 @@ def parse_config(config_path=None):
 
     LOG.debug("Using client configuration file at %s", config_path)
     if os.path.exists(config_path):
-        cfg.update(yaml.safe_load(system.load_file(config_path)))
+        cfg.update(safe_load(system.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
         key = key.lower()
@@ -686,7 +686,7 @@ def parse_config(config_path=None):
                 # with it
                 if value.endswith("yaml"):
                     if os.path.exists(value):
-                        value = yaml.safe_load(system.load_file(value))
+                        value = safe_load(system.load_file(value))
                     else:
                         raise exceptions.UserFacingError(
                             "Could not find yaml file: {}".format(value)

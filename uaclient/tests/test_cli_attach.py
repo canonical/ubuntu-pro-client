@@ -7,7 +7,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, messages, status, util, yaml
+from uaclient import event_logger, messages, status, util
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -26,6 +26,7 @@ from uaclient.exceptions import (
     UserFacingError,
 )
 from uaclient.testing.fakes import FakeFile
+from uaclient.yaml import safe_dump
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -399,7 +400,7 @@ class TestActionAttach:
     ):
         args = mock.MagicMock(
             token=None,
-            attach_config=FakeFile(yaml.safe_dump({"token": "faketoken"})),
+            attach_config=FakeFile(safe_dump({"token": "faketoken"})),
         )
         cfg = FakeConfig()
         action_attach(args, cfg=cfg)
@@ -416,9 +417,7 @@ class TestActionAttach:
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
-                yaml.safe_dump(
-                    {"token": "something", "enable_services": "cis"}
-                ),
+                safe_dump({"token": "something", "enable_services": "cis"}),
                 name="fakename",
             ),
         )
@@ -428,7 +427,7 @@ class TestActionAttach:
         assert "Error while reading fakename: " in e.value.msg
 
         args.attach_config = FakeFile(
-            yaml.safe_dump({"token": "something", "enable_services": "cis"}),
+            safe_dump({"token": "something", "enable_services": "cis"}),
             name="fakename",
         )
         with pytest.raises(SystemExit):
@@ -496,9 +495,7 @@ class TestActionAttach:
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
-                yaml.safe_dump(
-                    {"token": "faketoken", "enable_services": ["cis"]}
-                )
+                safe_dump({"token": "faketoken", "enable_services": ["cis"]})
             ),
             auto_enable=auto_enable,
         )
@@ -514,7 +511,7 @@ class TestActionAttach:
             assert [] == m_enable.call_args_list
 
         args.attach_config = FakeFile(
-            yaml.safe_dump({"token": "faketoken", "enable_services": ["cis"]})
+            safe_dump({"token": "faketoken", "enable_services": ["cis"]})
         )
 
         fake_stdout = io.StringIO()

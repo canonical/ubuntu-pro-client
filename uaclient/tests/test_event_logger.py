@@ -5,8 +5,8 @@ import json
 import mock
 import pytest
 
-from uaclient import yaml
 from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
+from uaclient.yaml import safe_load
 
 
 class TestEventLogger:
@@ -87,7 +87,7 @@ class TestEventLogger:
                 fake_stdout.getvalue().strip()
             )
         else:
-            assert expected_machine_out == yaml.safe_load(
+            assert expected_machine_out == safe_load(
                 fake_stdout.getvalue().strip()
             )
 
@@ -162,6 +162,6 @@ class TestEventLogger:
                 fake_stdout.getvalue().strip()
             )
         else:
-            assert expected_machine_out == yaml.safe_load(
+            assert expected_machine_out == safe_load(
                 fake_stdout.getvalue().strip()
             )

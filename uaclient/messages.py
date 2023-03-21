@@ -1192,8 +1192,14 @@ $ sudo rm {lock_file_path}""",
 MISSING_YAML_MODULE = NamedMessage(
     "missing-yaml-module",
     """\
-Couldn't import the YAML module from /usr/lib/python3/dist-packages.
-Make sure the 'python3-yaml' package is installed correctly.""",
+Couldn't import the YAML module.
+Make sure the 'python3-yaml' package is installed correctly
+and /usr/lib/python3/dist-packages is in yout PYTHONPATH.""",
+)
+
+BROKEN_YAML_MODULE = FormattedNamedMessage(
+    "broken-yaml-module",
+    "Error while trying to parse a yaml file using 'yaml' from {path}",
 )
 
 FIX_CANNOT_INSTALL_PACKAGE = FormattedNamedMessage(
