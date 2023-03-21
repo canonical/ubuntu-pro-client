@@ -1,3 +1,4 @@
+import copy
 import datetime
 import enum
 import glob
@@ -214,6 +215,29 @@ def get_apt_cache_policy(
     )
 
 
+class PreserveAptCfg:
+    def __init__(self, apt_func):
+        self.apt_func = apt_func
+        self.current_apt_cfg = {}  # Dict[str, Any]
+
+    def __enter__(self):
+        cfg = apt_pkg.config
+        self.current_apt_cfg = {
+            key: copy.deepcopy(cfg.get(key)) for key in cfg.keys()
+        }
+
+        return self.apt_func()
+
+    def __exit__(self, type, value, traceback):
+        cfg = apt_pkg.config
+        # We need to restore the apt cache configuration after creating our
+        # cache, otherwise we may break people interacting with the
+        # library after importing our modules.
+        for key in self.current_apt_cfg.keys():
+            cfg.set(key, self.current_apt_cfg[key])
+        apt_pkg.init_system()
+
+
 def get_apt_cache():
     for key in apt_pkg.config.keys():
         apt_pkg.config.clear(key)
@@ -236,13 +260,6 @@ def get_esm_cache():
         cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
     except Exception:
         cache = {}
-
-    # We need to restore the apt cache configuration after creating our cache,
-    # otherwise we may break people interacting with the library after
-    # importing our modules.
-    for key in apt_pkg.config.keys():
-        apt_pkg.config.clear(key)
-    apt_pkg.init()
 
     return cache
 
@@ -754,8 +771,10 @@ def _get_apt_config():
 
 
 def get_apt_config_keys(base_key):
-    apt_cfg = _get_apt_config()
-    return apt_cfg.list(base_key)
+    with PreserveAptCfg(_get_apt_config) as apt_cfg:
+        apt_cfg_keys = apt_cfg.list(base_key)
+
+    return apt_cfg_keys
 
 
 def get_apt_config_values(
@@ -766,15 +785,15 @@ def get_apt_config_values(
     one of the config names is not present on the APT config, that
     config name will have a value of None
     """
-    apt_cfg = _get_apt_config()
     apt_cfg_dict = {}  # type: Dict[str, Union[str, List[str]]]
 
-    for cfg_name in cfg_names:
-        cfg_value = apt_cfg.get(cfg_name)
+    with PreserveAptCfg(_get_apt_config) as apt_cfg:
+        for cfg_name in cfg_names:
+            cfg_value = apt_cfg.get(cfg_name)
 
-        if not str(cfg_value):
-            cfg_value = apt_cfg.value_list(cfg_name) or None
+            if not str(cfg_value):
+                cfg_value = apt_cfg.value_list(cfg_name) or None
 
-        apt_cfg_dict[cfg_name] = cfg_value
+            apt_cfg_dict[cfg_name] = cfg_value
 
     return apt_cfg_dict

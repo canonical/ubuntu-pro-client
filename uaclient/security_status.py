@@ -9,7 +9,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import livepatch, messages
-from uaclient.apt import get_apt_cache, get_esm_cache
+from uaclient.apt import PreserveAptCfg, get_apt_cache, get_esm_cache
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
@@ -62,12 +62,14 @@ def get_installed_packages_by_origin() -> DefaultDict[
 ]:
     result = defaultdict(list)
 
-    cache = get_apt_cache()
-    installed_packages = [package for package in cache if package.is_installed]
-    result["all"] = installed_packages
+    with PreserveAptCfg(get_apt_cache) as cache:
+        installed_packages = [
+            package for package in cache if package.is_installed
+        ]
+        result["all"] = installed_packages
 
-    for package in installed_packages:
-        result[get_origin_for_package(package)].append(package)
+        for package in installed_packages:
+            result[get_origin_for_package(package)].append(package)
 
     return result
 
@@ -135,37 +137,14 @@ def filter_security_updates(
     # but has be advertised about esm packages. Since those
     # sources live in a private folder, we need a different apt cache
     # to access them.
-    esm_cache = get_esm_cache()
+    with PreserveAptCfg(get_esm_cache) as esm_cache:
+        esm_cache = get_esm_cache()
 
-    for package in packages:
-        if package.is_installed:
-            for version in package.versions:
-                if version > package.installed:
-                    counted_as_security = False
-                    for origin in version.origins:
-                        service = get_origin_information_to_service_map().get(
-                            (origin.origin, origin.archive)
-                        )
-                        if service:
-                            result[service].append((version, origin.site))
-                            counted_as_security = True
-                            break  # No need to loop through all the origins
-                    # Also no need to report backports at least for now...
-                    expected_origin = version.origins[0]
-                    if (
-                        not counted_as_security
-                        and "backports" not in expected_origin.archive
-                    ):
-                        result["standard-updates"].append(
-                            (version, expected_origin.site)
-                        )
-
-            # This loop should be only used if the user does not have esm
-            # (infra or apps) enabled, and it is shorter than the previous one
-            if package.name in esm_cache:
-                esm_package = esm_cache[package.name]
-                for version in esm_package.versions:
+        for package in packages:
+            if package.is_installed:
+                for version in package.versions:
                     if version > package.installed:
+                        counted_as_security = False
                         for origin in version.origins:
                             service = (
                                 get_origin_information_to_service_map().get(
@@ -174,7 +153,35 @@ def filter_security_updates(
                             )
                             if service:
                                 result[service].append((version, origin.site))
+                                counted_as_security = True
+                                # No need to loop through all the origins
                                 break
+                        # Also no need to report backports at least for now...
+                        expected_origin = version.origins[0]
+                        if (
+                            not counted_as_security
+                            and "backports" not in expected_origin.archive
+                        ):
+                            result["standard-updates"].append(
+                                (version, expected_origin.site)
+                            )
+
+                # This loop should be only used if the user does not have esm
+                # (infra or apps) enabled, and it is shorter than the
+                # previous one
+                if package.name in esm_cache:
+                    esm_package = esm_cache[package.name]
+                    for version in esm_package.versions:
+                        if version > package.installed:
+                            for origin in version.origins:
+                                service = get_origin_information_to_service_map().get(  # noqa
+                                    (origin.origin, origin.archive)
+                                )
+                                if service:
+                                    result[service].append(
+                                        (version, origin.site)
+                                    )
+                                    break
 
     return result
 
