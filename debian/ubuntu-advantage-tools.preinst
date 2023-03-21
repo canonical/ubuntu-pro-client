@@ -14,6 +14,9 @@ migrate_user_config_pre() {
     if [ "$curr_conf_hash" != "$expected_conf_hash" ]; then
         # Back up existing conffile in case of an error unwind
         cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.preinst-backup
+        # Create this backup in case the user has made some comments on the config file.
+        # In that way, the user can retrive them if they want to
+        cp -a /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf.dpkg-bak
         # Insert the new about-to-be-installed uaclient.conf to avoid conffile prompts
         cat > /etc/ubuntu-advantage/uaclient.conf <<EOT
 contract_url: https://contracts.canonical.com

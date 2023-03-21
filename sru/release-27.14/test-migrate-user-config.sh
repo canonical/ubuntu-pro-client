@@ -74,6 +74,11 @@ function test_normal_upgrade {
     lxc exec $name -- cat /etc/ubuntu-advantage/uaclient.conf
     echo "-------------------------------------------"
     echo -e "\n-------------------------------------------"
+    echo "** Show no uaclient.conf.dpkg-bak"
+    echo "-------------------------------------------"
+    lxc exec $name -- sh -c "ls -al  /etc/ubuntu-advantage/uaclient.conf.dpkg-bak || true"
+    echo "-------------------------------------------"
+    echo -e "\n-------------------------------------------"
     echo "** Show user config"
     echo "-------------------------------------------"
     lxc exec $name -- sh -c "ls -al /var/lib/ubuntu-advantage/user-config.json || true"
@@ -130,6 +135,11 @@ function test_apt_news_false_upgrade {
     echo "** Show uaclient.conf"
     echo "-------------------------------------------"
     lxc exec $name -- cat /etc/ubuntu-advantage/uaclient.conf
+    echo "-------------------------------------------"
+    echo -e "\n-------------------------------------------"
+    echo "** Show uaclient.conf.dpkg-bak"
+    echo "-------------------------------------------"
+    lxc exec $name -- cat /etc/ubuntu-advantage/uaclient.conf.dpkg-bak
     echo "-------------------------------------------"
     echo -e "\n-------------------------------------------"
     echo "** Show user config"
@@ -196,6 +206,11 @@ function test_uaclient_conf_changes_upgrade {
     echo "** Show uaclient.conf"
     echo "-------------------------------------------"
     lxc exec $name -- cat /etc/ubuntu-advantage/uaclient.conf
+    echo "-------------------------------------------"
+    echo -e "\n-------------------------------------------"
+    echo "** Show uaclient.conf.dpkg-bak"
+    echo "-------------------------------------------"
+    lxc exec $name -- cat /etc/ubuntu-advantage/uaclient.conf.dpkg-bak
     echo "-------------------------------------------"
     echo -e "\n-------------------------------------------"
     echo "** Show user config"
