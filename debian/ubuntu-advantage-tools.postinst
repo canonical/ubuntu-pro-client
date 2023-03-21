@@ -328,11 +328,21 @@ cleanup_old_motd_files() {
 
 migrate_user_config_post() {
     # LP: #2004280
+    preinst_file="/etc/ubuntu-advantage/uaclient.conf.preinst-backup"
+    bkp_file="/etc/ubuntu-advantage/uaclient.conf.dpkg-bak"
+
     if [ -f /etc/ubuntu-advantage/uaclient.conf.preinst-backup ]; then
         # This script modifies the preinst-backup version of the file in-place
         /usr/bin/python3 /usr/lib/ubuntu-advantage/migrate_user_config.py
+
+        if cmp --silent $preinst_file $bkp_file; then
+            # This should only happen if we failed to perform the migration.
+            # Therefore, there is no need to keep the backup file around
+            rm -f $bkp_file
+        fi
+
         # Overwrite uaclient.conf with the now-migrated version from preinst
-        mv /etc/ubuntu-advantage/uaclient.conf.preinst-backup /etc/ubuntu-advantage/uaclient.conf
+        mv $preinst_file /etc/ubuntu-advantage/uaclient.conf
         # just in case this temp file was left behind
         rm -f /etc/ubuntu-advantage/uaclient.conf.preinst-backup-migrated-temp
     fi
