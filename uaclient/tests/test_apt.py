@@ -19,6 +19,7 @@ from uaclient.apt import (
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
     KEYRINGS_DIR,
+    PreserveAptCfg,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
@@ -1212,3 +1213,33 @@ class TestGetAptConfigValues:
         assert expected_return == get_apt_config_values(
             ["val1", "val2", "val3", "val4"]
         )
+
+
+class TestPreserveAptCfg:
+    def test_apt_config_is_preserved(
+        self,
+        apt_pkg,
+    ):
+        class AptDict(dict):
+            def set(self, key, value):
+                super().__setitem__(key, value)
+
+        apt_cfg = AptDict()
+        apt_cfg["test"] = 1
+        apt_cfg["test1"] = [1, 2, 3]
+        apt_cfg["test2"] = {"foo": "bar"}
+
+        type(apt_pkg).config = mock.PropertyMock(return_value=apt_cfg)
+
+        def apt_func():
+            apt_cfg["test"] = 3
+            apt_cfg["test1"] = [3, 2, 1]
+            apt_cfg["test2"] = {"foo": "test"}
+            return apt_cfg
+
+        with PreserveAptCfg(apt_func):
+            pass
+
+        assert 1 == apt_cfg["test"]
+        assert [1, 2, 3] == apt_cfg["test1"]
+        assert {"foo": "bar"} == apt_cfg["test2"]

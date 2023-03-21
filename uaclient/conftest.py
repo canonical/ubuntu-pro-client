@@ -12,8 +12,9 @@ import pytest
 # but it cannot be installed in a virtual environment to be properly tested.
 # Those need to be mocked here, before importing our modules, so the pytest
 # virtualenv doesn't cry because it can't find the modules
+m_apt_pkg = mock.MagicMock()
 sys.modules["apt"] = mock.MagicMock()
-sys.modules["apt_pkg"] = mock.MagicMock()
+sys.modules["apt_pkg"] = m_apt_pkg
 
 # Useless try/except to make flake8 happy \_("/)_/
 try:
@@ -261,3 +262,8 @@ def mock_notices_dir(tmpdir_factory):
             temp_dir.strpath,
         ):
             yield
+
+
+@pytest.fixture
+def apt_pkg():
+    return m_apt_pkg
