@@ -2,10 +2,12 @@ import json
 from enum import Enum
 from typing import Callable, Dict, Generic, Optional, Type, TypeVar
 
-from uaclient import exceptions, yaml
+from uaclient import exceptions
 from uaclient.data_types import DataObject
 from uaclient.files.files import UAFile
 from uaclient.util import DatetimeAwareJSONDecoder
+from uaclient.yaml import parser as yaml_parser
+from uaclient.yaml import safe_dump, safe_load
 
 
 class DataObjectFileFormat(Enum):
@@ -50,8 +52,8 @@ class DataObjectFile(Generic[DOFType]):
                 )
         elif self.file_format == DataObjectFileFormat.YAML:
             try:
-                parsed_data = yaml.safe_load(raw_data)
-            except yaml.parser.ParserError:
+                parsed_data = safe_load(raw_data)
+            except yaml_parser.ParserError:
                 raise exceptions.InvalidFileFormatError(
                     self.ua_file.path, "yaml"
                 )
@@ -72,7 +74,7 @@ class DataObjectFile(Generic[DOFType]):
             str_content = content.to_json()
         elif self.file_format == DataObjectFileFormat.YAML:
             data = content.to_dict()
-            str_content = yaml.safe_dump(data, default_flow_style=False)
+            str_content = safe_dump(data, default_flow_style=False)
 
         self.ua_file.write(str_content)
 
