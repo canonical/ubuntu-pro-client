@@ -65,6 +65,13 @@ def then_stream_contains_substring(context, stream):
     assert_that(content, contains_string(text))
 
 
+@then("{stream} does not contain substring")
+def then_stream_not_contains_substring(context, stream):
+    content = getattr(context.process, stream).strip()
+    text = process_template_vars(context, context.text)
+    assert_that(content, not_(contains_string(text)))
+
+
 @then("I will see the following on stderr")
 def then_i_will_see_on_stderr(context):
     text = process_template_vars(context, context.text)

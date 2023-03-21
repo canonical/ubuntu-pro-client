@@ -10,8 +10,9 @@ from uaclient import (
     entitlements,
     exceptions,
     livepatch,
-    messages,
 )
+from uaclient import log as pro_log
+from uaclient import messages
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -34,6 +35,8 @@ UA_SERVICES = (
     "ua-reboot-cmds.service",
     "ubuntu-advantage.service",
 )
+
+USER_LOG_COLLECTED_LIMIT = 10
 
 
 def attach_with_token(
@@ -210,6 +213,23 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
         )
 
     state_files = _get_state_files(cfg)
+    user_log_files = (
+        pro_log.get_all_user_log_files()[:USER_LOG_COLLECTED_LIMIT]
+        if util.we_are_currently_root()
+        else [pro_log.get_user_log_file()]
+    )
+    # save log file in compressed file
+    for log_file_idx, log_file in enumerate(user_log_files):
+        try:
+            content = util.redact_sensitive_logs(system.load_file(log_file))
+            system.write_file(
+                os.path.join(output_dir, "user{}.log".format(log_file_idx)),
+                content,
+            )
+        except Exception as e:
+            logging.warning(
+                "Failed to collect user log file: %s\n%s", log_file, str(e)
+            )
 
     # also get default logrotated log files
     for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
@@ -226,6 +246,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             if util.we_are_currently_root():
                 # if root, overwrite the original with redacted content
                 system.write_file(f, content)
+
             system.write_file(
                 os.path.join(output_dir, os.path.basename(f)), content
             )

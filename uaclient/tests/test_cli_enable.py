@@ -66,6 +66,7 @@ class TestActionEnable:
         capsys,
         event,
         FakeConfig,
+        tmpdir,
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         args = mock.MagicMock()
@@ -73,6 +74,12 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(args, cfg=cfg)
+
+        default_get_user_log_file = tmpdir.join("default.log").strpath
+        defaults_ret = {
+            "log_level": "debug",
+            "log_file": default_get_user_log_file,
+        }
 
         with pytest.raises(SystemExit):
             with mock.patch(
@@ -90,7 +97,15 @@ class TestActionEnable:
                     "uaclient.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
-                    main()
+                    with mock.patch(
+                        "uaclient.log.get_user_log_file",
+                        return_value=tmpdir.join("user.log").strpath,
+                    ):
+                        with mock.patch.dict(
+                            "uaclient.cli.defaults.CONFIG_DEFAULTS",
+                            defaults_ret,
+                        ):
+                            main()
 
         expected_message = messages.NONROOT_USER
         expected = {

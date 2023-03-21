@@ -46,6 +46,8 @@ class TestActionCollectLogs:
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
 
+    @pytest.mark.parametrize("is_root", ((True), (False)))
+    @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch(
         "glob.glob",
         return_value=[
@@ -57,22 +59,47 @@ class TestActionCollectLogs:
     @mock.patch("builtins.open")
     @mock.patch(M_PATH + "util.redact_sensitive_logs", return_value="test")
     # let's pretend all files exist
+    @mock.patch("pathlib.Path.stat")
+    @mock.patch("os.chown")
     @mock.patch("os.path.isfile", return_value=True)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.system.subp", return_value=(None, None))
+    @mock.patch("uaclient.log.get_user_log_file")
+    @mock.patch("uaclient.log.get_all_user_log_files")
     def test_collect_logs(
         self,
+        m_get_users,
+        m_get_user,
         m_subp,
         _load_file,
         _write_file,
         m_isfile,
+        _chown,
+        _stat,
         redact,
         _fopen,
         _tarfile,
         _glob,
+        util_we_are_currently_root,
+        is_root,
         FakeConfig,
+        tmpdir,
     ):
+        util_we_are_currently_root.return_value = is_root
+        m_get_user.return_value = tmpdir.join("user-log").strpath
+        m_get_users.return_value = [
+            tmpdir.join("user1-log").strpath,
+            tmpdir.join("user2-log").strpath,
+        ]
+        is_file_calls = 17
+        user_log_files = [mock.call(m_get_user())]
+        if util_we_are_currently_root():
+            user_log_files = [
+                mock.call(m_get_users()[0]),
+                mock.call(m_get_users()[1]),
+            ]
+
         cfg = FakeConfig()
         action_collect_logs(mock.MagicMock(), cfg=cfg)
 
@@ -120,7 +147,7 @@ class TestActionCollectLogs:
             ),
         ]
 
-        assert m_isfile.call_count == 17
+        assert m_isfile.call_count == is_file_calls
         assert m_isfile.call_args_list == [
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
             mock.call(cfg.log_file),
@@ -140,7 +167,7 @@ class TestActionCollectLogs:
             mock.call("/var/log/ubuntu-advantage.log"),
             mock.call("/var/log/ubuntu-advantage.log.1"),
         ]
-        assert redact.call_count == 17
+        assert redact.call_count == is_file_calls + len(user_log_files)
 
 
 class TestParser:
