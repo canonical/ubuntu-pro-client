@@ -135,8 +135,10 @@ class TestCollectLogs:
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.actions._get_state_files")
     @mock.patch("glob.glob")
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_collect_logs_invalid_file(
         self,
+        m_get_user,
         m_glob,
         m_get_state_files,
         m_load_file,
@@ -144,18 +146,29 @@ class TestCollectLogs:
         m_we_are_currently_root,
         m_write_cmd,
         caplog_text,
+        tmpdir,
     ):
+        log_file = tmpdir.join("user-log").strpath
+        m_get_user.return_value = log_file
         m_get_state_files.return_value = ["a", "b"]
-        m_load_file.side_effect = [UnicodeError("test"), "test"]
+        m_load_file.side_effect = ["test", UnicodeError("test"), "test"]
         m_glob.return_value = []
 
         with mock.patch("os.path.isfile", return_value=True):
             collect_logs(cfg=mock.MagicMock(), output_dir="test")
 
-        assert 2 == m_load_file.call_count
-        assert [mock.call("a"), mock.call("b")] == m_load_file.call_args_list
-        assert 1 == m_write_file.call_count
-        assert [mock.call("test/b", "test")] == m_write_file.call_args_list
+        assert 3 == m_load_file.call_count
+        assert [
+            mock.call(log_file),
+            mock.call("a"),
+            mock.call("b"),
+        ] == m_load_file.call_args_list
+        assert 2 == m_write_file.call_count
+        print(m_write_file.call_args_list)
+        assert [
+            mock.call("test/user0.log", "test"),
+            mock.call("test/b", "test"),
+        ] == m_write_file.call_args_list
         assert "Failed to load file: a\n" in caplog_text()
 
 

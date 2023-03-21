@@ -203,13 +203,22 @@ class TestDisableLogToConsole:
         assert "no console handler found" in caplog_text()
 
     @pytest.mark.parametrize("disable_log", (True, False))
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_disable_log_to_console(
-        self, m_we_are_currently_root, logging_sandbox, capsys, disable_log
+        self,
+        m_get_user,
+        m_we_are_currently_root,
+        logging_sandbox,
+        capsys,
+        tmpdir,
+        disable_log,
     ):
         # This test is parameterised so that we are sure that the context
         # manager is suppressing the output, not some other config change
 
-        cli.setup_logging(logging.INFO, logging.INFO)
+        log_file = tmpdir.join("file.log").strpath
+        m_get_user.return_value = log_file
+        cli.setup_logging(logging.INFO, logging.INFO, log_file=log_file)
 
         if disable_log:
             context_manager = util.disable_log_to_console
@@ -228,14 +237,25 @@ class TestDisableLogToConsole:
             assert "test error" in combined_output
             assert "test info" in combined_output
 
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_disable_log_to_console_does_nothing_at_debug_level(
-        self, m_we_are_currently_root, logging_sandbox, capsys
+        self,
+        m_get_user,
+        m_we_are_currently_root,
+        logging_sandbox,
+        capsys,
+        FakeConfig,
+        tmpdir,
     ):
-        cli.setup_logging(logging.DEBUG, logging.DEBUG)
+        m_get_user.return_value = tmpdir.join("file.log").strpath
+        with mock.patch(
+            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
+        ):
+            cli.setup_logging(logging.DEBUG, logging.DEBUG)
 
-        with util.disable_log_to_console():
-            logging.error("test error")
-            logging.info("test info")
+            with util.disable_log_to_console():
+                logging.error("test error")
+                logging.info("test info")
 
         out, err = capsys.readouterr()
         combined_output = out + err
