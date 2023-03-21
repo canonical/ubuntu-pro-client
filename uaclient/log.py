@@ -1,9 +1,11 @@
 import json
 import logging
+import os
+import pathlib
 from collections import OrderedDict
-from typing import Any, Dict  # noqa: F401
+from typing import Any, Dict, List  # noqa: F401
 
-from uaclient import util
+from uaclient import defaults, util
 
 
 class RedactionFilter(logging.Filter):
@@ -58,3 +60,35 @@ class JsonArrayFormatter(logging.Formatter):
 
         local_log_record["extra"] = extra_message_dict
         return json.dumps(list(local_log_record.values()))
+
+
+def get_user_log_file() -> str:
+    """Gets the correct user log_file storage location
+
+    returns XDG_CACHE_HOME env variable, if it is set,
+    If not set, we return the default path
+    """
+    user_cache = os.environ.get("XDG_CACHE_HOME")
+    log_file = defaults.USER_LOG_FILE_PATH
+    if user_cache:
+        return user_cache + "/" + log_file
+    return pathlib.Path.home().as_posix() + "/.cache/" + log_file
+
+
+def get_all_user_log_files() -> List[str]:
+    """Gets all the log files for the users in the system
+
+    Returns a list of all user log files in their home directories.
+    """
+    user_directories = os.listdir("/home")
+    log_files = []
+    for user_directory in user_directories:
+        user_path = (
+            "/home/"
+            + user_directory
+            + "/.cache/"
+            + defaults.USER_LOG_FILE_PATH
+        )
+        if os.path.isfile(user_path):
+            log_files.append(user_path)
+    return log_files

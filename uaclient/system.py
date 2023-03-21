@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import re
+import stat
 import subprocess
 import tempfile
 import time
@@ -370,14 +371,28 @@ def create_file(filename: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
-def write_file(filename: str, content: str, mode: int = 0o644) -> None:
+def write_file(
+    filename: str, content: str, mode: Optional[int] = None
+) -> None:
     """Write content to the provided filename encoding it if necessary.
+
+    We preserve the file ownership and permissions if the file is present
+    and no mode argument is provided.
 
     @param filename: The full path of the file to write.
     @param content: The content to write to the file.
     @param mode: The filesystem mode to set on the file.
     """
     tmpf = None
+    is_file_present = os.path.isfile(filename)
+    if is_file_present:
+        file_stat = pathlib.Path(filename).stat()
+        f_mode = stat.S_IMODE(file_stat.st_mode)
+        if mode is None:
+            mode = f_mode
+
+    elif mode is None:
+        mode = 0o644
     try:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         tmpf = tempfile.NamedTemporaryFile(
@@ -390,6 +405,8 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         tmpf.flush()
         tmpf.close()
         os.chmod(tmpf.name, mode)
+        if is_file_present:
+            os.chown(tmpf.name, file_stat.st_uid, file_stat.st_gid)
         os.rename(tmpf.name, filename)
     except Exception as e:
         if tmpf is not None:

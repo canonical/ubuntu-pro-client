@@ -30,7 +30,6 @@ event = event_logger.get_event_logger()
 
 
 class LogFormatter(logging.Formatter):
-
     FORMATS = {
         logging.ERROR: "ERROR: %(message)s",
         logging.DEBUG: "DEBUG: %(message)s",

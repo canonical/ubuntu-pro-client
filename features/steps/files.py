@@ -36,8 +36,11 @@ def when_i_add_this_text_on_file_above_line(
     )
 
 
+@when("I verify `{file_name}` is empty")
 @when("I verify `{file_name}` is empty on `{machine_name}` machine")
-def when_i_verify_file_is_empty_on_machine(context, file_name, machine_name):
+def when_i_verify_file_is_empty_on_machine(
+    context, file_name, machine_name=SUT
+):
     command = 'sh -c "cat {} | wc -l"'.format(file_name)
     when_i_run_command(
         context, command, user_spec="with sudo", machine_name=machine_name
