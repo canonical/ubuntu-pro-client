@@ -354,34 +354,73 @@ Feature: Command behaviour when unattached
     @series.kinetic
     @series.lunar
     @uses.config.machine_type.lxd.container
-    Scenario Outline: services don't fail when an incompatible yaml package is installed
+    # Services fail, degraded systemctl, but no crashes.
+    Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo
-        And I run `apt install python3-pip -y` with sudo
-        And I run `pip3 install pyyaml==3.10` with sudo
+        And I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
+        And I verify that running `pro status` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Couldn't import the YAML module.
+        Make sure the 'python3-yaml' package is installed correctly
+        and \/usr\/lib\/python3\/dist-packages is in yout PYTHONPATH\.
+        """
+        When I verify that running `python3 /usr/lib/ubuntu-advantage/esm_cache.py` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Couldn't import the YAML module.
+        Make sure the 'python3-yaml' package is installed correctly
+        and \/usr\/lib\/python3\/dist-packages is in yout PYTHONPATH\.
+        """
+        When I verify that running `systemctl start apt-news.service` `with sudo` exits `1`
+        And I verify that running `systemctl start esm-cache.service` `with sudo` exits `1`
+        And I run `systemctl --failed` with sudo
+        Then stdout matches regexp:
+        """
+        apt-news.service
+        """
+        And stdout matches regexp:
+        """
+        esm-cache.service
+        """
+        When I run `apt install python3-pip -y` with sudo
+        And I run `pip3 install pyyaml==3.10 <suffix>` with sudo
         And I run `ls /usr/local/lib/<python_version>/dist-packages/` with sudo
         Then stdout matches regexp:
         """
         yaml
         """
+        And I verify that running `pro status` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Error while trying to parse a yaml file using 'yaml' from
+        """
         # Test the specific script which triggered LP #2007241
-        When I run `python3 /usr/lib/ubuntu-advantage/esm_cache.py` with sudo
-        And I run `systemctl start esm-cache.service` with sudo
-        And I wait `5` seconds
+        When I verify that running `python3 /usr/lib/ubuntu-advantage/esm_cache.py` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Error while trying to parse a yaml file using 'yaml' from
+        """
+        When I verify that running `systemctl start apt-news.service` `with sudo` exits `1`
+        And I verify that running `systemctl start esm-cache.service` `with sudo` exits `1`
         And I run `systemctl --failed` with sudo
-        Then stdout does not match regexp:
+        Then stdout matches regexp:
         """
-        esm-cache\.service
-        """        
-        When I run `systemctl start apt-news.service` with sudo
-        And I wait `5` seconds
-        And I run `systemctl --failed` with sudo
-        Then stdout does not match regexp:
+        apt-news.service
         """
-        apt-news\.service
+        And stdout matches regexp:
         """
+        esm-cache.service
+        """
+        When I run `ls /var/crash` with sudo
+        Then I will see the following on stdout
+        """
+        """
+
         Examples: ubuntu release
-          | release | python_version |
-          | jammy   | python3.10     |
-          | kinetic | python3.10     |
-          | lunar   | python3.11     |
+          | release | python_version | suffix                  |
+          | jammy   | python3.10     |                         |
+          | kinetic | python3.10     |                         |
+          # Lunar has a BIG error message explaining why this is a clear user error...
+          | lunar   | python3.11     | --break-system-packages |

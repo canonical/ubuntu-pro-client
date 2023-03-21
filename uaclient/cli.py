@@ -29,7 +29,7 @@ from uaclient import (
 from uaclient import log as pro_log
 from uaclient import messages, security, security_status
 from uaclient import status as ua_status
-from uaclient import util, version, yaml
+from uaclient import util, version
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -65,6 +65,7 @@ from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.jobs.update_messaging import refresh_motd, update_motd_messages
 from uaclient.log import JsonArrayFormatter
+from uaclient.yaml import safe_dump, safe_load
 
 NAME = "pro"
 
@@ -603,7 +604,7 @@ def action_security_status(args, *, cfg, **kwargs):
         )
     else:
         print(
-            yaml.safe_dump(
+            safe_dump(
                 security_status.security_status_dict(cfg),
                 default_flow_style=False,
             )
@@ -1473,7 +1474,7 @@ def action_attach(args, *, cfg):
     else:
         try:
             attach_config = AttachActionsConfigFile.from_dict(
-                yaml.safe_load(args.attach_config)
+                safe_load(args.attach_config)
             )
         except IncorrectTypeError as e:
             raise exceptions.AttachInvalidConfigFileError(

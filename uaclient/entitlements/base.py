@@ -5,15 +5,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from uaclient import (
-    config,
-    contract,
-    event_logger,
-    messages,
-    system,
-    util,
-    yaml,
-)
+from uaclient import config, contract, event_logger, messages, system, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -27,6 +19,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.types import MessagingOperationsDict, StaticAffordance
 from uaclient.util import is_config_value_true
+from uaclient.yaml import safe_load
 
 event = event_logger.get_event_logger()
 
@@ -119,7 +112,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
             if os.path.exists(DEFAULT_HELP_FILE):
                 with open(DEFAULT_HELP_FILE, "r") as f:
-                    help_dict = yaml.safe_load(f)
+                    help_dict = safe_load(f)
 
             self._help_info = help_dict.get(self.name, {}).get("help", "")
 

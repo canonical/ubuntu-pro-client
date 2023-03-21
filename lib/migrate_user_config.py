@@ -14,9 +14,8 @@ import json
 import os
 import sys
 
-import yaml
-
 from uaclient import defaults, messages
+from uaclient.yaml import safe_dump, safe_load
 
 UACLIENT_CONF_BACKUP_PATH = (
     "/etc/ubuntu-advantage/uaclient.conf.preinst-backup"
@@ -45,7 +44,7 @@ def load_pre_upgrade_conf():
     # Step 1: Load pre-upgrade uaclient.conf backed up in preinst
     try:
         with open(UACLIENT_CONF_BACKUP_PATH, "r") as uaclient_conf_file:
-            old_uaclient_conf = yaml.safe_load(uaclient_conf_file)
+            old_uaclient_conf = safe_load(uaclient_conf_file)
     except Exception:
         print(
             messages.USER_CONFIG_MIGRATION_WARNING_UACLIENT_CONF_LOAD,
@@ -124,7 +123,7 @@ def create_new_uaclient_conffile(old_uaclient_conf):
 
     try:
         print(messages.USER_CONFIG_MIGRATION_MIGRATING, file=sys.stderr)
-        new_uaclient_conf_str = yaml.dump(
+        new_uaclient_conf_str = safe_dump(
             new_uaclient_conf,
             default_flow_style=False,
         )

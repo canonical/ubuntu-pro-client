@@ -10,11 +10,12 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, messages, status, util, yaml
+from uaclient import exceptions, messages, status, util
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
 from uaclient.files.notices import Notice, NoticesManager
+from uaclient.yaml import safe_load
 
 M_PATH = "uaclient.cli."
 
@@ -639,7 +640,7 @@ class TestActionStatus:
         if format_type == "json":
             assert expected == json.loads(capsys.readouterr()[0])
         else:
-            assert expected == yaml.safe_load(capsys.readouterr()[0])
+            assert expected == safe_load(capsys.readouterr()[0])
 
     @pytest.mark.parametrize(
         "format_type,event_logger_mode",
@@ -763,7 +764,7 @@ class TestActionStatus:
         if format_type == "json":
             assert expected == json.loads(capsys.readouterr()[0])
         else:
-            yaml_output = yaml.safe_load(capsys.readouterr()[0])
+            yaml_output = safe_load(capsys.readouterr()[0])
 
             # On earlier versions of pyyaml, we don't add the timezone
             # info when converting a date string into a datetime object.
@@ -931,14 +932,14 @@ class TestActionStatus:
                 capsys.readouterr()[0], cls=util.DatetimeAwareJSONDecoder
             )
         else:
-            expected["account"]["created_at"] = yaml.safe_load(
+            expected["account"]["created_at"] = safe_load(
                 "2019-06-14 06:45:50+00:00"
             )
-            expected["contract"]["created_at"] = yaml.safe_load(
+            expected["contract"]["created_at"] = safe_load(
                 "2021-05-21 20:00:53+00:00"
             )
-            expected["expires"] = yaml.safe_load("9999-12-31 00:00:00+00:00")
-            assert expected == yaml.safe_load(capsys.readouterr()[0])
+            expected["expires"] = safe_load("9999-12-31 00:00:00+00:00")
+            assert expected == safe_load(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
         self,
@@ -1117,7 +1118,7 @@ class TestActionStatus:
         if format_type == "json":
             output = json.loads(capsys.readouterr()[0])
         else:
-            output = yaml.safe_load(capsys.readouterr()[0])
+            output = safe_load(capsys.readouterr()[0])
 
         assert output["errors"][0]["message"] == warning_message
 
