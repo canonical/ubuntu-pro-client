@@ -251,7 +251,7 @@ def get_esm_cache():
         # Take care to initialize the cache with only the
         # Acquire configuration preserved
         for key in apt_pkg.config.keys():
-            if "Acquire" not in key:
+            if not re.search("^Acquire", key):
                 apt_pkg.config.clear(key)
         apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
         apt_pkg.init()
