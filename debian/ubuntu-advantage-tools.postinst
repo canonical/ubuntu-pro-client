@@ -453,7 +453,7 @@ case "$1" in
       fi
 
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
-          echo "Warning: uaclient.conf contains old ua_config field."
+          echo "Warning: uaclient.conf contains old ua_config field." >&2
           echo "         Please do the following:" >&2
           echo "         1. Run 'pro config set field=value' for each field/value pair" >&2
           echo "            present under ua_config in /etc/ubuntu-advantage/uaclient.conf" >&2
