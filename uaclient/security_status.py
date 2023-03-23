@@ -138,8 +138,6 @@ def filter_security_updates(
     # sources live in a private folder, we need a different apt cache
     # to access them.
     with PreserveAptCfg(get_esm_cache) as esm_cache:
-        esm_cache = get_esm_cache()
-
         for package in packages:
             if package.is_installed:
                 for version in package.versions:
