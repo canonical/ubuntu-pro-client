@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (27.14.1~23.04.1) lunar; urgency=medium
+
+  * New upstream release 27.14.1
+    - apt: fix a configuration leak in the apt.get_pkg_candidate_version
+      function (LP: #2012642)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 23 Mar 2023 13:41:05 -0300
+
 ubuntu-advantage-tools (27.14~23.04.1) lunar; urgency=medium
 
   * d/ubuntu-advantage-tools.{postinst,postrm,preinst}:
