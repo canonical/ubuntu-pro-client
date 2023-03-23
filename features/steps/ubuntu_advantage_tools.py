@@ -253,13 +253,14 @@ def create_local_ppa(context, release):
 
 
 @when("I install ubuntu-advantage-pro")
-def when_i_install_pro(context):
+def when_i_install_pro(context, machine_name=SUT):
     if context.config.install_from is InstallationSource.LOCAL:
-        deb_paths = build_debs(context.machines[SUT].instance.series)
+        series = context.machines[machine_name].series
+        deb_paths = build_debs(series)
 
         for deb_path in deb_paths:
             if "pro" in deb_path:
-                context.instances["uaclient"].push_file(
+                context.machines[machine_name].instance.push_file(
                     deb_path, "/tmp/pro.deb"
                 )
                 when_i_run_command(
