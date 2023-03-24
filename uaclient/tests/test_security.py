@@ -2903,6 +2903,7 @@ class TestFixUSN:
         cfg = FakeConfig()
         beta_pockets = {}
         dry_run = False
+        no_related = False
 
         m_affected_pkgs.side_effect = [
             {
@@ -2985,6 +2986,7 @@ class TestFixUSN:
                 cfg=cfg,
                 beta_pockets=beta_pockets,
                 dry_run=dry_run,
+                no_related=no_related,
             )
 
         expected_msg = (
@@ -3074,6 +3076,123 @@ class TestFixUSN:
             + "  - pkg5: A fix is coming soon. Try again tomorrow."
             + "\n\n"
             + SECURITY_RELATED_USN_ERROR.format(issue_id="USN-123")
+        )
+        out, err = capsys.readouterr()
+        assert expected_msg in out
+        assert FixStatus.SYSTEM_NON_VULNERABLE == actual_ret
+
+    @mock.patch("uaclient.apt.compare_versions")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
+    @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
+    @mock.patch("uaclient.security.get_affected_packages_from_usn")
+    def test_fix_usn_when_no_related_value_is_true(
+        self,
+        m_affected_pkgs,
+        m_merge_usn,
+        _m_get_pkg_cand_ver,
+        m_compare_versions,
+        capsys,
+        FakeConfig,
+    ):
+        usn = mock.MagicMock()
+        issue_id = "USN-123"
+        related_usns = [
+            mock.MagicMock(id="USN-456"),
+            mock.MagicMock(id="USN-789"),
+            mock.MagicMock(id="USN-822"),
+        ]
+        installed_packages = {
+            "pkg1": {"pkg1": "1.0"},
+            "pkg2": {"pkg2": "1.0"},
+            "pkg3": {"pkg3": "1.0"},
+            "pkg4": {"pkg4": "1.0"},
+            "pkg5": {"pkg5": "1.0"},
+        }
+        cfg = FakeConfig()
+        beta_pockets = {}
+        dry_run = False
+        no_related = True
+
+        m_affected_pkgs.side_effect = [
+            {
+                "pkg1": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "security",
+                    }
+                )
+            },
+            {
+                "pkg2": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-infra",
+                    }
+                )
+            },
+            {
+                "pkg3": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-apps",
+                    }
+                ),
+                "pkg4": CVEPackageStatus(
+                    {
+                        "status": "released",
+                        "pocket": "esm-apps",
+                    }
+                ),
+            },
+            {
+                "pkg5": CVEPackageStatus(
+                    {
+                        "status": "pending",
+                        "pocket": "security",
+                    }
+                )
+            },
+        ]
+        m_merge_usn.side_effect = [
+            {
+                "pkg1": {"pkg1": {"version": "1.2", "name": "pkg1"}},
+            },
+        ]
+
+        m_compare_versions.side_effect = [
+            False,
+            True,
+        ]
+
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            actual_ret = _fix_usn(
+                usn=usn,
+                related_usns=related_usns,
+                issue_id=issue_id,
+                installed_packages=installed_packages,
+                cfg=cfg,
+                beta_pockets=beta_pockets,
+                dry_run=dry_run,
+                no_related=no_related,
+            )
+
+        expected_msg = (
+            "\n"
+            + SECURITY_FIXING_REQUESTED_USN.format(issue_id=issue_id)
+            + "\n"
+            + textwrap.dedent(
+                """\
+                1 affected source package is installed: pkg1
+                (1/1) pkg1:
+                A fix is available in Ubuntu standard updates.
+                """
+            )
+            + colorize_commands(
+                [["apt update && apt install --only-upgrade" " -y pkg1"]]
+            )
         )
         out, err = capsys.readouterr()
         assert expected_msg in out
