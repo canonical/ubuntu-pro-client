@@ -137,6 +137,59 @@ Feature: Ua fix command behaviour
         .*✔.* USN-5570-1 \[related\] does not affect your system.
         .*✔.* USN-5570-2 \[related\] is resolved.
         """
+        When I run `pro fix USN-5573-1` with sudo
+        Then stdout matches regexp:
+        """
+        USN-5573-1: rsync vulnerability
+        Found CVEs:
+         - https://ubuntu.com/security/CVE-2022-37434
+
+        Fixing requested USN-5573-1
+        1 affected source package is installed: rsync
+        \(1/1\) rsync:
+        A fix is available in Ubuntu standard updates.
+        The update is already installed.
+
+        .*✔.* USN-5573-1 is resolved.
+
+        Found related USNs:
+        - USN-5570-1
+        - USN-5570-2
+
+        Fixing related USNs:
+        - USN-5570-1
+        No affected source packages are installed.
+
+        .*✔.* USN-5570-1 does not affect your system.
+
+        - USN-5570-2
+        1 affected source package is installed: zlib
+        \(1/1\) zlib:
+        A fix is available in Ubuntu standard updates.
+        The update is already installed.
+
+        .*✔.* USN-5570-2 is resolved.
+
+        Summary:
+        .*✔.* USN-5573-1 \[requested\] is resolved.
+        .*✔.* USN-5570-1 \[related\] does not affect your system.
+        .*✔.* USN-5570-2 \[related\] is resolved.
+        """
+        When I run `pro fix USN-5573-1 --no-related` with sudo
+        Then stdout matches regexp:
+        """
+        USN-5573-1: rsync vulnerability
+        Found CVEs:
+         - https://ubuntu.com/security/CVE-2022-37434
+
+        Fixing requested USN-5573-1
+        1 affected source package is installed: rsync
+        \(1/1\) rsync:
+        A fix is available in Ubuntu standard updates.
+        The update is already installed.
+
+        .*✔.* USN-5573-1 is resolved.
+        """
 
         Examples: ubuntu release details
            | release |
