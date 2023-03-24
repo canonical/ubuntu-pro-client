@@ -108,7 +108,7 @@ class FixStatus(enum.Enum):
     SYSTEM_VULNERABLE_UNTIL_REBOOT = _Value(2)
 
     @property
-    def val(self):
+    def exit_code(self):
         return self.value.value
 
 
@@ -594,7 +594,7 @@ def get_related_usns(usn, client):
     """
 
     # If the usn does not have any associated cves on it,
-    # we cannot stablish a relation between USNs
+    # we cannot establish a relation between USNs
     if not usn.cves:
         return []
 
@@ -664,6 +664,7 @@ def _fix_usn(
     cfg: UAConfig,
     beta_pockets: Dict[str, bool],
     dry_run: bool,
+    no_related: bool,
 ) -> FixStatus:
     # We should only highlight the target USN if we have related USNs to fix
     print(
@@ -691,7 +692,7 @@ def _fix_usn(
     ):
         return target_fix_status
 
-    if not related_usns:
+    if not related_usns or no_related:
         return target_fix_status
 
     print(
@@ -767,7 +768,10 @@ def _fix_usn(
 
 
 def fix_security_issue_id(
-    cfg: UAConfig, issue_id: str, dry_run: bool = False
+    cfg: UAConfig,
+    issue_id: str,
+    dry_run: bool = False,
+    no_related: bool = False,
 ) -> FixStatus:
     if dry_run:
         print(messages.SECURITY_DRY_RUN_WARNING)
@@ -849,6 +853,7 @@ def fix_security_issue_id(
             cfg=cfg,
             beta_pockets=beta_pockets,
             dry_run=dry_run,
+            no_related=no_related,
         )
 
 

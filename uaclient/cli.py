@@ -486,6 +486,14 @@ def fix_parser(parser):
             " command."
         ),
     )
+    parser.add_argument(
+        "--no-related",
+        action="store_true",
+        help=(
+            "If used, when fixing a USN, the command will not try to"
+            " also fix related USNs to the target USN."
+        ),
+    )
 
     return parser
 
@@ -624,8 +632,9 @@ def action_fix(args, *, cfg, **kwargs):
         cfg=cfg,
         issue_id=args.security_issue,
         dry_run=args.dry_run,
+        no_related=args.no_related,
     )
-    return fix_status.val
+    return fix_status.exit_code
 
 
 def detach_parser(parser):
