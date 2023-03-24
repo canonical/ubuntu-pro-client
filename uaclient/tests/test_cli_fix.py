@@ -25,6 +25,8 @@ Flags:
   --dry-run       If used, fix will not actually run but will display
                   everything that will happen on the machine during the
                   command.
+  --no-related    If used, when fixing a USN, the command will not try to also
+                  fix related USNs to the target USN.
 """
 )
 
@@ -70,12 +72,16 @@ class TestActionFix:
     ):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig()
-        args = mock.MagicMock(security_issue=issue, dry_run=False)
+        args = mock.MagicMock(
+            security_issue=issue, dry_run=False, no_related=False
+        )
         m_fix_security_issue_id.return_value = FixStatus.SYSTEM_NON_VULNERABLE
         if is_valid:
             assert 0 == action_fix(args, cfg=cfg)
             assert [
-                mock.call(cfg=cfg, issue_id=issue, dry_run=False)
+                mock.call(
+                    cfg=cfg, issue_id=issue, dry_run=False, no_related=False
+                )
             ] == m_fix_security_issue_id.call_args_list
         else:
             with pytest.raises(exceptions.UserFacingError) as excinfo:

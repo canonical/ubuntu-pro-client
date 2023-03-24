@@ -138,7 +138,7 @@ Without it, we cannot fix the system."""
 SECURITY_UA_SERVICE_REQUIRED = """\
 {service} is required for upgrade."""
 SECURITY_UA_SERVICE_WITH_EXPIRED_SUB = """\
-{service} is required for upgrade, but subscription is expired."""
+{service} is required for upgrade, but current subscription is expired."""
 SECURITY_UA_SERVICE_NOT_ENABLED_SHORT = """\
 {service} is required for upgrade, but it is not enabled."""
 SECURITY_UA_APT_FAILURE = """\
@@ -169,9 +169,12 @@ SECURITY_USN_SUMMARY = """\
 Summary:"""
 SECURITY_RELATED_USN_ERROR = """\
 Even though a related USN failed to be fixed, note
-that {issue_id} was fixed. Related USNs do not have
+that {issue_id} was fixed. Related USNs do not
 affect the original USN. Learn more about the related
-USNs, please read this doc here."""
+USNs, please refer to this page:
+
+https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/cves_and_usns_explained.html#what-are-related-usns
+"""  # noqa
 
 APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
