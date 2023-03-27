@@ -60,6 +60,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # List of services that depend on this service
     _dependent_services = ()  # type: Tuple[Type[UAEntitlement], ...]
 
+    # List of variants this service supports
+    _variants = ()  # type: Tuple[Type[UAEntitlement], ...]
+
     affordance_check_arch = True
     affordance_check_series = True
     affordance_check_kernel_min_version = True
@@ -96,8 +99,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """The user-facing name shown for this entitlement"""
         if self.cfg.machine_token_file.is_present:
             return (
-                self.cfg.machine_token_file.entitlements.get(self.name, {})
-                .get("entitlement", {})
+                self.entitlement_cfg.get("entitlement", {})
                 .get("affordances", {})
                 .get("presentedAs", self.name)
             )
@@ -156,6 +158,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         return self._dependent_services
 
+    @property
+    def variants(self) -> Tuple[Type["UAEntitlement"], ...]:
+        """
+        Return a list of services that are considered a variant
+        of the main service.
+        """
+        return self._variants
+
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
@@ -194,6 +204,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
         return self._valid_service
+
+    @property
+    def entitlement_cfg(self):
+        return self.cfg.machine_token_file.entitlements.get(self.name, {})
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
@@ -674,9 +688,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             platform passes all defined affordances, INAPPLICABLE if it doesn't
             meet all of the provided constraints.
         """
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
+        entitlement_cfg = self.entitlement_cfg
         if not entitlement_cfg:
             return (
                 ApplicabilityStatus.APPLICABLE,
@@ -765,9 +777,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """Return whether the user is entitled to the entitlement or not"""
         if not self.cfg.is_attached:
             return ContractStatus.UNENTITLED
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
-        )
+        entitlement_cfg = self.entitlement_cfg
         if entitlement_cfg and entitlement_cfg["entitlement"].get("entitled"):
             return ContractStatus.ENTITLED
         return ContractStatus.UNENTITLED
@@ -779,9 +789,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
             return UserFacingStatus.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
+        entitlement_cfg = self.entitlement_cfg
         if not entitlement_cfg:
             return (
                 UserFacingStatus.UNAVAILABLE,
@@ -836,11 +844,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""
-        entitlement_contract = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
-        )
         # TODO(No expiry per resource in MVP yet)
-        expire_str = entitlement_contract.get("expires")
+        expire_str = self.entitlement_cfg.get("expires")
         if not expire_str:
             return False
         expiry = datetime.strptime(expire_str, "%Y-%m-%dT%H:%M:%S.%fZ")
