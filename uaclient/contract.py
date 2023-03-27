@@ -1,3 +1,4 @@
+import copy
 import logging
 import socket
 from typing import Any, Dict, List, Optional, Tuple
@@ -699,7 +700,7 @@ def _select_overrides(
             OVERRIDE_SELECTOR_WEIGHTS["series_overrides"]
         ] = series_overrides
 
-    general_overrides = entitlement.pop("overrides", [])
+    general_overrides = copy.deepcopy(entitlement.get("overrides", []))
     for override in general_overrides:
         weight = _get_override_weight(
             override.pop("selector"), selector_values
