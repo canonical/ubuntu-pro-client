@@ -1118,6 +1118,21 @@ class TestApplyContractOverrides:
             }
         }
         if include_overrides:
+            overrides = [
+                {
+                    "selector": {"series": "dontMatch"},
+                    "affordances": {
+                        "some_affordance": ["ubuntuX-series-overriden"]
+                    },
+                },
+                {
+                    "selector": {"cloud": "dontMatch"},
+                    "affordances": {
+                        "some_affordance": ["ubuntuX-cloud-overriden"]
+                    },
+                },
+            ]
+
             orig_access["entitlement"].update(
                 {
                     "series": {
@@ -1127,22 +1142,10 @@ class TestApplyContractOverrides:
                             }
                         }
                     },
-                    "overrides": [
-                        {
-                            "selector": {"series": "dontMatch"},
-                            "affordances": {
-                                "some_affordance": ["ubuntuX-series-overriden"]
-                            },
-                        },
-                        {
-                            "selector": {"cloud": "dontMatch"},
-                            "affordances": {
-                                "some_affordance": ["ubuntuX-cloud-overriden"]
-                            },
-                        },
-                    ],
+                    "overrides": overrides,
                 }
             )
+            expected["entitlement"]["overrides"] = overrides
 
         apply_contract_overrides(orig_access)
         assert expected == orig_access
@@ -1196,6 +1199,24 @@ class TestApplyContractOverrides:
         expected_value,
     ):
         """Apply the expected overrides to orig_access dict when called."""
+        overrides = [
+            {
+                "selector": {"series": series_selector},
+                "affordances": {"some_affordance": ["series_overriden"]},
+            },
+            {
+                "selector": {"cloud": cloud_selector},
+                "affordances": {"some_affordance": ["cloud_overriden"]},
+            },
+            {
+                "selector": {
+                    "series": series_selector,
+                    "cloud": series_cloud_selector,
+                },
+                "affordances": {"some_affordance": ["both_overriden"]},
+            },
+        ]
+
         orig_access = {
             "entitlement": {
                 "affordances": {"some_affordance": ["original_affordance"]},
@@ -1206,33 +1227,14 @@ class TestApplyContractOverrides:
                         }
                     }
                 },
-                "overrides": [
-                    {
-                        "selector": {"series": series_selector},
-                        "affordances": {
-                            "some_affordance": ["series_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {"cloud": cloud_selector},
-                        "affordances": {
-                            "some_affordance": ["cloud_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {
-                            "series": series_selector,
-                            "cloud": series_cloud_selector,
-                        },
-                        "affordances": {"some_affordance": ["both_overriden"]},
-                    },
-                ],
+                "overrides": overrides,
             }
         }
 
         expected = {
             "entitlement": {
-                "affordances": {"some_affordance": [expected_value]}
+                "affordances": {"some_affordance": [expected_value]},
+                "overrides": overrides,
             }
         }
 
@@ -1251,6 +1253,24 @@ class TestApplyContractOverrides:
         self, _m_cloud_type, _m_release_info
     ):
         """Apply different overrides from different matching selectors."""
+        overrides = [
+            {
+                "selector": {"series": "ubuntuX"},
+                "affordances": {"some_affordance": ["series_overriden"]},
+            },
+            {
+                "selector": {"cloud": "cloudX"},
+                "directives": {"some_directive": ["cloud_overriden"]},
+            },
+            {
+                "selector": {"series": "ubuntuX", "cloud": "cloudX"},
+                "obligations": {
+                    "new_obligation": True,
+                    "some_obligation": True,
+                },
+            },
+        ]
+
         orig_access = {
             "entitlement": {
                 "affordances": {"some_affordance": ["original_affordance"]},
@@ -1263,25 +1283,7 @@ class TestApplyContractOverrides:
                         }
                     }
                 },
-                "overrides": [
-                    {
-                        "selector": {"series": "ubuntuX"},
-                        "affordances": {
-                            "some_affordance": ["series_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {"cloud": "cloudX"},
-                        "directives": {"some_directive": ["cloud_overriden"]},
-                    },
-                    {
-                        "selector": {"series": "ubuntuX", "cloud": "cloudX"},
-                        "obligations": {
-                            "new_obligation": True,
-                            "some_obligation": True,
-                        },
-                    },
-                ],
+                "overrides": overrides,
             }
         }
 
@@ -1296,6 +1298,7 @@ class TestApplyContractOverrides:
                     "new_obligation": True,
                     "some_obligation": True,
                 },
+                "overrides": overrides,
             }
         }
 
