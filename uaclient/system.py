@@ -93,23 +93,6 @@ def get_kernel_info() -> KernelInfo:
 
 
 @lru_cache(maxsize=None)
-def get_lscpu_arch() -> str:
-    """used for livepatch"""
-    out, _err = subp(["lscpu"])
-    for line in out.splitlines():
-        if line.strip().startswith("Architecture:"):
-            arch = line.split(":")[1].strip()
-            if arch:
-                return arch
-            else:
-                break
-    error_msg = messages.LSCPU_ARCH_PARSE_ERROR
-    raise exceptions.UserFacingError(
-        msg=error_msg.msg, msg_code=error_msg.name
-    )
-
-
-@lru_cache(maxsize=None)
 def get_dpkg_arch() -> str:
     out, _err = subp(["dpkg", "--print-architecture"])
     return out.strip()
