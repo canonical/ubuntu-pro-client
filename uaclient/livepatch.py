@@ -299,7 +299,7 @@ def on_supported_kernel() -> Optional[bool]:
         )
         return None
 
-    arch = util.standardize_arch_name(system.get_lscpu_arch())
+    arch = util.standardize_arch_name(system.get_dpkg_arch())
     codename = system.get_platform_info()["series"]
 
     lp_api_kernel_ver = "{major}.{minor}".format(
