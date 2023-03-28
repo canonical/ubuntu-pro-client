@@ -240,7 +240,7 @@ class LivepatchEntitlement(UAEntitlement):
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         if livepatch.on_supported_kernel() is False:
             kernel_info = system.get_kernel_info()
-            arch = system.get_lscpu_arch()
+            arch = system.get_dpkg_arch()
             return (
                 True,
                 messages.LIVEPATCH_KERNEL_NOT_SUPPORTED.format(

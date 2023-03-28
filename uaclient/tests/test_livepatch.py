@@ -210,7 +210,7 @@ class TestUALivepatchClient:
             (
                 "1.23-4",
                 "generic",
-                "x86_64",
+                "amd64",
                 "xenial",
                 [
                     mock.call(
@@ -219,7 +219,7 @@ class TestUALivepatchClient:
                         query_params={
                             "kernel-version": "1.23-4",
                             "flavour": "generic",
-                            "architecture": "x86_64",
+                            "architecture": "amd64",
                             "codename": "xenial",
                         },
                     )
@@ -340,11 +340,11 @@ class TestOnSupportedKernel:
         [
             # valid true
             (
-                ("5.14-14", "generic", "x86_64", "focal"),
+                ("5.14-14", "generic", "amd64", "focal"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -354,11 +354,11 @@ class TestOnSupportedKernel:
             ),
             # valid false
             (
-                ("5.14-14", "generic", "x86_64", "focal"),
+                ("5.14-14", "generic", "amd64", "focal"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -368,11 +368,11 @@ class TestOnSupportedKernel:
             ),
             # valid none
             (
-                ("5.14-14", "generic", "x86_64", "focal"),
+                ("5.14-14", "generic", "amd64", "focal"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -382,11 +382,11 @@ class TestOnSupportedKernel:
             ),
             # invalid version doesn't match
             (
-                ("5.14-13", "generic", "x86_64", "focal"),
+                ("5.14-13", "generic", "amd64", "focal"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -396,11 +396,11 @@ class TestOnSupportedKernel:
             ),
             # invalid flavor doesn't match
             (
-                ("5.14-14", "kvm", "x86_64", "focal"),
+                ("5.14-14", "kvm", "amd64", "focal"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -414,7 +414,7 @@ class TestOnSupportedKernel:
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -424,11 +424,11 @@ class TestOnSupportedKernel:
             ),
             # invalid codename doesn't match
             (
-                ("5.14-14", "generic", "x86_64", "xenial"),
+                ("5.14-14", "generic", "amd64", "xenial"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=6),
@@ -438,11 +438,11 @@ class TestOnSupportedKernel:
             ),
             # invalid too old
             (
-                ("5.14-14", "generic", "x86_64", "xenial"),
+                ("5.14-14", "generic", "amd64", "xenial"),
                 LivepatchSupportCacheData(
                     version="5.14-14",
                     flavor="generic",
-                    arch="x86_64",
+                    arch="amd64",
                     codename="focal",
                     cached_at=datetime.datetime.now(datetime.timezone.utc)
                     - datetime.timedelta(days=8),
@@ -472,14 +472,14 @@ class TestOnSupportedKernel:
         ],
         [
             (
-                ("5.14-14", "generic", "x86_64", "focal"),
+                ("5.14-14", "generic", "amd64", "focal"),
                 True,
                 [
                     mock.call(
                         LivepatchSupportCacheData(
                             version="5.14-14",
                             flavor="generic",
-                            arch="x86_64",
+                            arch="amd64",
                             codename="focal",
                             supported=True,
                             cached_at=mock.ANY,
@@ -682,14 +682,14 @@ class TestOnSupportedKernel:
     @mock.patch(M_PATH + "_on_supported_kernel_cache")
     @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch(M_PATH + "util.standardize_arch_name")
-    @mock.patch(M_PATH + "system.get_lscpu_arch")
+    @mock.patch(M_PATH + "system.get_dpkg_arch")
     @mock.patch(M_PATH + "system.get_kernel_info")
     @mock.patch(M_PATH + "_on_supported_kernel_cli")
     def test_on_supported_kernel(
         self,
         m_supported_cli,
         m_get_kernel_info,
-        m_get_lscpu_arch,
+        m_get_dpkg_arch,
         m_standardize_arch_name,
         m_get_platform_info,
         m_supported_cache,
