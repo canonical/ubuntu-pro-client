@@ -92,6 +92,9 @@ jobs:
           # in a way that is incompatible with lxd.
           # https://linuxcontainers.org/lxd/docs/master/howto/network_bridge_firewalld/#prevent-issues-with-lxd-and-docker
           sudo iptables -I DOCKER-USER -j ACCEPT
+      - name: Refresh LXD
+        if: matrix.platform == 'lxd' || matrix.platform == 'vm'
+        run: sudo snap refresh --channel latest/stable lxd
       - name: Initialize LXD
         if: matrix.platform == 'lxd' || matrix.platform == 'vm'
         run: sudo lxd init --auto
