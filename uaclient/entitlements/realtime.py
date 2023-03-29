@@ -1,8 +1,8 @@
-from typing import Optional, Tuple  # noqa: F401
+from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import apt, event_logger, messages, system, util
 from uaclient.entitlements import repo
-from uaclient.entitlements.base import IncompatibleService
+from uaclient.entitlements.base import IncompatibleService, UAEntitlement
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
@@ -31,6 +31,13 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
         )
         event.needs_reboot(reboot_required)
         return reboot_required
+
+    def _get_variants(self) -> Dict[str, Type[UAEntitlement]]:
+        return {
+            GenericRealtime.variant_name: GenericRealtime,
+            NvidiaTegraRealtime.variant_name: NvidiaTegraRealtime,
+            IntelIotgRealtime.variant_name: IntelIotgRealtime,
+        }
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
@@ -101,3 +108,41 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                 list(packages),
                 messages.DISABLE_FAILED_TMPL.format(title=self.title),
             )
+
+
+class GenericRealtime(RealtimeKernelEntitlement):
+    variant_name = "generic"
+    title = "Real-time kernel"
+    description = "Generic version of the RT kernel (default)"
+    is_variant = True
+    check_packages_are_installed = True
+
+
+class NvidiaTegraRealtime(RealtimeKernelEntitlement):
+    variant_name = "nvidia-tegra"
+    title = "Real-time Nvidia Tegra Kernel"
+    description = "RT kernel optimized for NVidia Tegra platforms"
+    selector_key = "platform"
+    is_variant = True
+    check_packages_are_installed = True
+
+    @property
+    def messaging(
+        self,
+    ) -> MessagingOperationsDict:
+        return {}
+
+
+class IntelIotgRealtime(RealtimeKernelEntitlement):
+    variant_name = "intel-iotg"
+    title = "Real-time Intel IOTG Kernel"
+    description = "RT kernel optimized for Intel IOTG platform"
+    selector_key = "platform"
+    is_variant = True
+    check_packages_are_installed = True
+
+    @property
+    def messaging(
+        self,
+    ) -> MessagingOperationsDict:
+        return {}
