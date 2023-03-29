@@ -742,6 +742,11 @@ def enable_parser(parser, cfg: config.UAConfig):
         default="cli",
         help=("output enable in the specified format (default: cli)"),
     )
+    parser.add_argument(
+        "--variant",
+        action="store",
+        help=("The name of the variant to use when enabling the service"),
+    )
     return parser
 
 
@@ -1281,6 +1286,7 @@ def action_enable(args, *, cfg, **kwargs):
                 assume_yes=args.assume_yes,
                 allow_beta=args.beta,
                 access_only=args.access_only,
+                variant=getattr(args, "variant", ""),
             )
             ua_status.status(cfg=cfg)  # Update the status cache
 
@@ -1698,7 +1704,7 @@ def action_status(args, *, cfg: config.UAConfig):
         event.info("")
 
     event.set_output_content(status)
-    output = ua_status.format_tabular(status, show_all_hint=not show_all)
+    output = ua_status.format_tabular(status, show_all=show_all)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
     return ret

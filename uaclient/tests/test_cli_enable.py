@@ -31,6 +31,8 @@ Flags:
                        realtime-kernel.
   --beta               allow beta service to be enabled
   --format {cli,json}  output enable in the specified format (default: cli)
+  --variant VARIANT    The name of the variant to use when enabling the
+                       service
 """
 
 
@@ -419,6 +421,7 @@ class TestActionEnable:
         args.assume_yes = assume_yes
         args.beta = False
         args.access_only = False
+        args.variant = ""
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -471,7 +474,7 @@ class TestActionEnable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        def factory_side_effect(cfg, name, not_found_okay=True):
+        def factory_side_effect(cfg, name, variant):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -488,6 +491,7 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = False
+        args_mock.variant = ""
 
         expected_msg = "One moment, checking your subscription first\n"
 
@@ -597,8 +601,9 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
+        args_mock.variant = ""
 
-        def factory_side_effect(cfg, name, not_found_okay=True):
+        def factory_side_effect(cfg, name, variant):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -861,6 +866,7 @@ class TestActionEnable:
         args_mock.assume_yes = False
         args_mock.beta = allow_beta
         args_mock.service = ["testitlement"]
+        args_mock.variant = ""
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",

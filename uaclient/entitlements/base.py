@@ -1,4 +1,5 @@
 import abc
+import copy
 import logging
 import os
 import sys
@@ -60,19 +61,24 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # List of services that depend on this service
     _dependent_services = ()  # type: Tuple[Type[UAEntitlement], ...]
 
-    # List of variants this service supports
-    _variants = ()  # type: Tuple[Type[UAEntitlement], ...]
-
     affordance_check_arch = True
     affordance_check_series = True
     affordance_check_kernel_min_version = True
     affordance_check_kernel_flavor = True
+
+    # Determine if the service is a variant of an existing service
+    is_variant = False
 
     @property
     @abc.abstractmethod
     def name(self) -> str:
         """The lowercase name of this entitlement"""
         pass
+
+    @property
+    def variant_name(self) -> str:
+        """The lowercase name of this entitlement, in case it is a variant"""
+        return ""
 
     @property
     def valid_names(self) -> List[str]:
@@ -95,9 +101,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         pass
 
     @property
+    def selector_key(self) -> str:
+        """Selector key to be used when accessing variants"""
+        return ""
+
+    @property
     def presentation_name(self) -> str:
         """The user-facing name shown for this entitlement"""
-        if self.cfg.machine_token_file.is_present:
+        if self.is_variant:
+            return self.variant_name
+        elif self.cfg.machine_token_file.is_present:
             return (
                 self.entitlement_cfg.get("entitlement", {})
                 .get("affordances", {})
@@ -158,13 +171,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         return self._dependent_services
 
+    def _get_variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        return {}
+
     @property
-    def variants(self) -> Tuple[Type["UAEntitlement"], ...]:
+    def variants(self) -> Dict[str, Type["UAEntitlement"]]:
         """
         Return a list of services that are considered a variant
         of the main service.
         """
-        return self._variants
+        if self.is_variant:
+            return {}
+
+        return self._get_variants()
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
@@ -205,9 +224,44 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return self._valid_service
 
+    def _base_entitlement_cfg(self):
+        return copy.deepcopy(
+            self.cfg.machine_token_file.entitlements.get(self.name, {})
+        )
+
     @property
     def entitlement_cfg(self):
-        return self.cfg.machine_token_file.entitlements.get(self.name, {})
+        entitlement_cfg = self._base_entitlement_cfg()
+
+        if not self.is_variant or not self.selector_key:
+            return entitlement_cfg
+
+        overrides = copy.deepcopy(
+            entitlement_cfg.get("entitlement", {}).get("overrides", [])
+        )
+        # This allow us to use a variant to override the base entitlement
+        # definitions. Note that we are relying on a single selector here
+        # if want to rely on more than one, we need to update how
+        # we check for support
+        for override in overrides:
+            selector_value = override.get("selector", {}).get(
+                self.selector_key
+            )
+            if selector_value == self.variant_name:
+                for key, value in override.items():
+                    if key == "selector":
+                        continue
+                    current = entitlement_cfg.get("entitlement", {}).get(key)
+                    if isinstance(current, dict):
+                        # If the key already exists and is a dict,
+                        # update that dict using the override
+                        current.update(value)
+                    else:
+                        # Otherwise, replace it wholesale
+                        entitlement_cfg[key] = value
+                break
+
+        return entitlement_cfg
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """

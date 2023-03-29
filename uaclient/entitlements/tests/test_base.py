@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.base module."""
+import copy
 import logging
 from typing import Any, Dict, Optional, Tuple
 
@@ -38,9 +39,15 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         dependent_services=None,
         required_services=None,
         blocking_incompatible_services=None,
+        selector_key="",
+        variant_name="",
         **kwargs
     ):
-        super().__init__(cfg, allow_beta=allow_beta, access_only=access_only)
+        super().__init__(
+            cfg,
+            allow_beta=allow_beta,
+            access_only=access_only,
+        )
         self.supports_access_only = supports_access_only
         self._disable = disable
         self._enable = enable
@@ -49,6 +56,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._dependent_services = dependent_services
         self._required_services = required_services
         self._blocking_incompatible_services = blocking_incompatible_services
+        self._selector_key = selector_key
+        self._variant_name = variant_name
 
     def _perform_disable(self, **kwargs):
         self._application_status = (
@@ -72,6 +81,18 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         else:
             return super().blocking_incompatible_services()
 
+    @property
+    def selector_key(self):
+        return self._selector_key
+
+    @property
+    def variant_name(self):
+        return self._variant_name
+
+    @property
+    def is_variant(self):
+        return False if not self._variant_name else True
+
 
 @pytest.fixture
 def concrete_entitlement_factory(FakeConfig):
@@ -93,7 +114,9 @@ def concrete_entitlement_factory(FakeConfig):
         enable: bool = False,
         disable: bool = False,
         dependent_services: Tuple[Any, ...] = None,
-        required_services: Tuple[Any, ...] = None
+        required_services: Tuple[Any, ...] = None,
+        selector_key: str = "",
+        variant_name: str = ""
     ) -> ConcreteTestEntitlement:
         cfg = FakeConfig()
         machineToken = {
@@ -125,6 +148,8 @@ def concrete_entitlement_factory(FakeConfig):
             disable=disable,
             dependent_services=dependent_services,
             required_services=required_services,
+            selector_key=selector_key,
+            variant_name=variant_name,
         )
 
     return factory
@@ -1064,3 +1089,68 @@ class TestUaEntitlementProcessContractDeltas:
             assert 1 == m_enable.call_count
 
         assert entitlement.allow_beta
+
+
+class TestEntitlementCfg:
+    @pytest.mark.parametrize(
+        "variant_name", ((""), ("test-variant"), ("invalid-variant"))
+    )
+    def test_entitlement_cfg_respects_variant(
+        self, variant_name, concrete_entitlement_factory
+    ):
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
+            selector_key="platform",
+            variant_name=variant_name,
+        )
+        base_ent_dict = {
+            "entitlement": {
+                "entitled": True,
+                "obligations": {"enableByDefault": False},
+                "affordances": {
+                    "architectures": [
+                        "amd64",
+                        "ppc64el",
+                    ],
+                    "series": ["xenial", "bionic", "focal"],
+                },
+                "directives": {
+                    "additionalPackages": ["test-package"],
+                    "suites": ["xenial", "bionic", "focal"],
+                },
+                "overrides": [
+                    {
+                        "directives": {
+                            "additionalPackages": ["test-package-variant"]
+                        },
+                        "selector": {
+                            "platform": "test-variant",
+                            "cloud": "gcp",
+                        },
+                    },
+                    {
+                        "directives": {
+                            "additionalPackages": ["test-package-unused"]
+                        },
+                        "selector": {"cloud": "aws", "series": "focal"},
+                    },
+                ],
+                "type": "test",
+            }
+        }
+
+        expected_entitlement = copy.deepcopy(base_ent_dict)
+        if variant_name == "test-variant":
+            expected_entitlement["entitlement"]["directives"][
+                "additionalPackages"
+            ] = ["test-package-variant"]
+
+        with mock.patch.object(
+            entitlement, "_base_entitlement_cfg"
+        ) as m_ent_cfg:
+            m_ent_cfg.return_value = base_ent_dict
+            actual_entitlement = entitlement.entitlement_cfg
+
+        assert expected_entitlement == actual_entitlement

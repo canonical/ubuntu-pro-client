@@ -1300,3 +1300,14 @@ STATUS_NO_SERVICES_AVAILABLE = (
 STATUS_ALL_HINT = (
     "For a list of all Ubuntu Pro services, run 'pro status --all'"
 )
+STATUS_SERVICE_HAS_VARIANTS = " * Service has variants"
+
+STATUS_ALL_HINT_WITH_VARIANTS = """\
+For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
+
+SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
+    "service-disabled-missing-package",
+    """\
+The {service} service is not enable because the {package} package is
+not installed.""",
+)

@@ -509,6 +509,7 @@ class TestStatus:
                 "available": mock.ANY,
                 "blocked_by": [],
                 "warning": None,
+                "variants": {},
             }
             for cls in ENTITLEMENT_CLASSES
         ]
@@ -755,7 +756,56 @@ class TestStatus:
             "esm-apps": "esm-apps details",
         }
 
+        rt_variants = {
+            "intel-iotg": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "RT kernel optimized "
+                "for Intel IOTG "
+                "platform",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "intel-iotg",
+                "status": "n/a",
+                "status_details": "repo details",
+                "variants": {},
+                "warning": None,
+            },
+            "nvidia-tegra": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "RT kernel "
+                "optimized for "
+                "NVidia Tegra "
+                "platforms",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "nvidia-tegra",
+                "status": "n/a",
+                "status_details": "repo details",
+                "variants": {},
+                "warning": None,
+            },
+            "generic": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "Generic version of the RT kernel (default)",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "generic",
+                "status": "n/a",
+                "status_details": "repo details",
+                "variants": {},
+                "warning": None,
+            },
+        }
+
         for cls in ENTITLEMENT_CLASSES:
+            if cls.name == "realtime-kernel":
+                variants = rt_variants
+            else:
+                variants = {}
+
             if cls.name == "livepatch":
                 expected_status = UserFacingStatus.ACTIVE.value
             elif show_all:
@@ -781,6 +831,7 @@ class TestStatus:
                     "available": mock.ANY,
                     "blocked_by": [],
                     "warning": None,
+                    "variants": variants,
                 }
             )
         with mock.patch(
@@ -788,8 +839,7 @@ class TestStatus:
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=show_all)
-
-            assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
+            assert 11 == m_repo_uf_status.call_count
             assert 1 == m_livepatch_uf_status.call_count
 
         expected_calls = [
@@ -928,6 +978,7 @@ class TestAttachedServiceStatus:
         uf_status,
         in_inapplicable_resources,
         expected_status,
+        FakeConfig,
     ):
         ent = mock.MagicMock()
         ent.name = "test_entitlement"
@@ -940,7 +991,9 @@ class TestAttachedServiceStatus:
         unavailable_resources = (
             {ent.name: ""} if in_inapplicable_resources else {}
         )
-        ret = status._attached_service_status(ent, unavailable_resources)
+        ret = status._attached_service_status(
+            ent, unavailable_resources, FakeConfig()
+        )
 
         assert expected_status == ret["status"]
 
@@ -979,9 +1032,10 @@ class TestAttachedServiceStatus:
         tmpdir,
         FakeConfig,
     ):
+        cfg = FakeConfig()
         ent = ConcreteTestEntitlement(
-            cfg=FakeConfig(),
+            cfg=cfg,
             blocking_incompatible_services=blocking_incompatible_services,
         )
-        service_status = status._attached_service_status(ent, [])
+        service_status = status._attached_service_status(ent, [], cfg)
         assert service_status["blocked_by"] == expected_blocked_by
