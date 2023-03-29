@@ -504,8 +504,14 @@ def process_entitlement_delta(
                 orig=orig_access, new=new_access
             )
             raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+
+        variant = (
+            new_access.get("entitlements", {})
+            .get("obligations", {})
+            .get("use_selector", "")
+        )
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=name)
+            ent_cls = entitlement_factory(cfg=cfg, name=name, variant=variant)
         except exceptions.EntitlementNotFoundError as exc:
             logging.debug(
                 'Skipping entitlement deltas for "%s". No such class', name

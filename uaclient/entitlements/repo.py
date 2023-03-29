@@ -31,6 +31,10 @@ class RepoEntitlement(base.UAEntitlement):
     # GH: #1084 call apt in noninteractive mode
     apt_noninteractive = False
 
+    # Check if the requested packages are installed to inform if
+    # the service is enabled or not
+    check_packages_are_installed = False
+
     # Optional repo pin priority in subclass
     @property
     def repo_pin_priority(self) -> Union[int, str, None]:
@@ -41,9 +45,7 @@ class RepoEntitlement(base.UAEntitlement):
         """debs to install on enablement"""
         packages = []
 
-        entitlement = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
-        ).get("entitlement", {})
+        entitlement = self.entitlement_cfg.get("entitlement", {})
 
         if entitlement:
             directives = entitlement.get("directives", {})
@@ -99,9 +101,12 @@ class RepoEntitlement(base.UAEntitlement):
     def application_status(
         self,
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
+        current_status = (
+            ApplicationStatus.DISABLED,
+            messages.SERVICE_NOT_CONFIGURED.format(title=self.title),
         )
+
+        entitlement_cfg = self.entitlement_cfg
         directives = entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
         )
@@ -116,14 +121,22 @@ class RepoEntitlement(base.UAEntitlement):
         )
         match = re.search(r"{}/ubuntu".format(repo_url), policy)
         if match:
-            return (
+            current_status = (
                 ApplicationStatus.ENABLED,
                 messages.SERVICE_IS_ACTIVE.format(title=self.title),
             )
-        return (
-            ApplicationStatus.DISABLED,
-            messages.SERVICE_NOT_CONFIGURED.format(title=self.title),
-        )
+
+        if self.check_packages_are_installed:
+            for package in self.packages:
+                if not apt.is_installed(package):
+                    return (
+                        ApplicationStatus.DISABLED,
+                        messages.SERVICE_DISABLED_MISSING_PACKAGE.format(
+                            service=self.name, package=package
+                        ),
+                    )
+
+        return current_status
 
     def _check_apt_url_is_applied(self, apt_url):
         """Check if apt url delta should be applied.
@@ -302,7 +315,7 @@ class RepoEntitlement(base.UAEntitlement):
             http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
         )
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
-        resource_cfg = self.cfg.machine_token_file.entitlements.get(self.name)
+        resource_cfg = self.entitlement_cfg
         directives = resource_cfg["entitlement"].get("directives", {})
         obligations = resource_cfg["entitlement"].get("obligations", {})
         token = resource_cfg.get("resourceToken")
