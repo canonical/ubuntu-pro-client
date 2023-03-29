@@ -49,7 +49,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     b Create a new entry in the `debian/changelog` file:
 
       * You can do that by running `dch --newversion <version-name>`.
-      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10.1`, with the appropriate pro-client and ubuntu/devel version numbers.
+      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10`, with the appropriate pro-client and ubuntu/devel version numbers.
       * Populate `debian/changelog` with the commits you have cherry-picked.
       * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
         * This will generate a list of commits that could be included in the changelog.
@@ -92,7 +92,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b. Edit the changelog
       * List yourself as the author of this release.
-      * Edit the version number to look like: `27.2~20.04.1~rc1` (`<version>~<ubuntu-release-number>.<revno>~rc<release-candidate-number>`)
+      * Edit the version number to look like: `27.2~20.04~rc1` (`<version>~<ubuntu-release-number>~rc<release-candidate-number>`)
       * Edit the Ubuntu release name. Start with the ubuntu/devel release.
       * `git add debian/changelog && git commit -m "throwaway"` - Do **not** push this commit!
 
@@ -104,8 +104,8 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     e. Repeat 3.b through 3.d for all supported Ubuntu Releases
       * PS: remember to also change the version number on the changelog. For example, suppose
-        the new version is `1.1~20.04.1~rc1`. If you want to test Bionic now, change it to
-        `1.1~18.04.1~rc1`.
+        the new version is `1.1~20.04~rc1`. If you want to test Bionic now, change it to
+        `1.1~18.04~rc1`.
 
     f. For each release, dput to the staging PPA:
       * `dput ppa:ua-client/staging ../out/<package_name>_source.changes`
@@ -144,7 +144,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     e. `git checkout -B upload-<this-version>-kinetic`
       * This creates a new local branch name based on your detached branch.
 
-    f. Make sure the changelog version contains the release version in the name (e.g., `27.1~22.10.1`)
+    f. Make sure the changelog version contains the release version in the name (e.g., `27.1~22.10`)
 
     g. `git push <your_launchpad_user> upload-<this-version>-kinetic`
 
