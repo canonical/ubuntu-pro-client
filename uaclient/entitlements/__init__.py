@@ -29,7 +29,7 @@ ENTITLEMENT_CLASSES = [
 ]  # type: List[Type[UAEntitlement]]
 
 
-def entitlement_factory(cfg: UAConfig, name: str):
+def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
     """Returns a UAEntitlement class based on the provided name.
 
     The return type is Optional[Type[UAEntitlement]].
@@ -42,8 +42,14 @@ def entitlement_factory(cfg: UAConfig, name: str):
         entitlement with the given name is found, then raises this error.
     """
     for entitlement in ENTITLEMENT_CLASSES:
-        if name in entitlement(cfg=cfg).valid_names:
-            return entitlement
+        ent = entitlement(cfg=cfg)
+        if name in ent.valid_names:
+            if not variant:
+                return entitlement
+            elif variant in ent.variants:
+                return ent.variants[variant]
+            else:
+                raise EntitlementNotFoundError(name)
     raise EntitlementNotFoundError(name)
 
 
