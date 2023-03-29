@@ -49,7 +49,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     b Create a new entry in the `debian/changelog` file:
 
       * You can do that by running `dch --newversion <version-name>`.
-      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2~21.10`, with the appropriate pro-client and ubuntu/devel version numbers.
+      * Remember to update the release from `UNRELEASED` to the ubuntu/devel release. Edit the version to look like: `27.2`, with the appropriate pro-client version number.
       * Populate `debian/changelog` with the commits you have cherry-picked.
       * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
         * This will generate a list of commits that could be included in the changelog.
@@ -92,7 +92,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b. Edit the changelog
       * List yourself as the author of this release.
-      * Edit the version number to look like: `27.2~20.04~rc1` (`<version>~<ubuntu-release-number>~rc<release-candidate-number>`)
+      * Edit the version number to look like: `27.2~rc1` (`<version>~rc<release-candidate-number>`)
       * Edit the Ubuntu release name. Start with the ubuntu/devel release.
       * `git add debian/changelog && git commit -m "throwaway"` - Do **not** push this commit!
 
@@ -103,9 +103,10 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * If this succeeds move on. If this fails, debug and fix before continuing.
 
     e. Repeat 3.b through 3.d for all supported Ubuntu Releases
-      * PS: remember to also change the version number on the changelog. For example, suppose
-        the new version is `1.1~20.04~rc1`. If you want to test Bionic now, change it to
-        `1.1~18.04~rc1`.
+      * The version for series other than devel should be in the form `<version>~<ubuntu-release-number>~rc<release-candidate-number>`
+        This means you must add the release number in the changelog. For example, suppose
+        the devel version is `1.1~rc1`. If you want to build for jammy now, change it to
+        `1.1~22.04~rc1`.
 
     f. For each release, dput to the staging PPA:
       * `dput ppa:ua-client/staging ../out/<package_name>_source.changes`
@@ -144,15 +145,13 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     e. `git checkout -B upload-<this-version>-kinetic`
       * This creates a new local branch name based on your detached branch.
 
-    f. Make sure the changelog version contains the release version in the name (e.g., `27.1~22.10`)
+    f. `git push <your_launchpad_user> upload-<this-version>-kinetic`
 
-    g. `git push <your_launchpad_user> upload-<this-version>-kinetic`
-
-    h. On Launchpad, create a merge proposal for this version which targets `ubuntu/devel`
+    g. On Launchpad, create a merge proposal for this version which targets `ubuntu/devel`
       * For an example, see the [27.14.1 merge proposal](https://code.launchpad.net/~renanrodrigo/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/439507).
       * Add 2 review slots for `canonical-server-reporter` and `canonical-server-core-reviewers`.
 
-    i. With the packages published to `ppa:ua-client/staging`, add links to the autopkgtest triggers to the Merge Proposal. The reviewer will have permission to trigger those tests. The links can be obtained by running `ppa tests -r <release> -a <arch1,arch2> ua-client/staging -L`
+    h. With the packages published to `ppa:ua-client/staging`, add links to the autopkgtest triggers to the Merge Proposal. The reviewer will have permission to trigger those tests. The links can be obtained by running `ppa tests -r <release> -a <arch1,arch2> ua-client/staging -L`
       * Make sure to post links to all the architectures built for a given release.
       * The riscv64 autopkgtests are not avaialble and don't need to be included.
       * The `ppa test` command will have two variations of tests: the regular one, and one with `all-proposed=1`; only the regular test need to be there.
@@ -173,6 +172,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * Follow instructions in `II.4.b` if they request any changes.
 
     e. Once the SRU team member gives a pre-SRU approval, create the branches for each stable release. They should be named `upload-<this-version>-<codename>`.
+      * The versions for the stable releases must include `~<release-number>`
       * If you've followed the instructions precisely so far, you can just run `bash tools/create-lp-release-branches.sh`.
 
     f. Ask Server team member sponsor to upload to devel, and then the SRU proposed queue using the stable release branches you just created.
