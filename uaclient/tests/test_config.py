@@ -994,11 +994,9 @@ class TestParseConfig:
     def test_parse_config_uses_defaults_when_no_config_present(
         self, _m_resources, m_exists
     ):
-        cwd = os.getcwd()
         with mock.patch.dict("uaclient.config.os.environ", values={}):
             config, _ = parse_config()
         expected_calls = [
-            mock.call("{}/uaclient.conf".format(cwd)),
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
         ]
         assert expected_calls == m_exists.call_args_list
@@ -1114,7 +1112,7 @@ class TestParseConfig:
         self, m_load_file, m_path_exists
     ):
         m_load_file.return_value = "test: true\nfoo: bar"
-        m_path_exists.side_effect = [False, False, True]
+        m_path_exists.side_effect = [False, True]
 
         user_values = {"UA_FEATURES_TEST": "test.yaml"}
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
@@ -1354,19 +1352,9 @@ class TestGetConfigPath:
         ):
             assert "test" == get_config_path()
 
-    @mock.patch("uaclient.config.os.path.join", return_value="test123")
-    @mock.patch("uaclient.config.os.path.exists", return_value=True)
-    def test_get_config_path_from_local_dir(self, _m_exists, _m_join):
-        with mock.patch.dict("uaclient.config.os.environ", values={}):
-            assert "test123" == get_config_path()
-            assert _m_join.call_count == 1
-            assert _m_exists.call_count == 1
-
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_get_default_config_path(self, _m_exists):
+    def test_get_default_config_path(self):
         with mock.patch.dict("uaclient.config.os.environ", values={}):
             assert DEFAULT_CONFIG_FILE == get_config_path()
-            assert _m_exists.call_count == 1
 
 
 class TestCheckLockInfo:
