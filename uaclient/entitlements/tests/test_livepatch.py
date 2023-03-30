@@ -193,6 +193,7 @@ class TestLivepatchEntitlementCanEnable:
         "supported_kernel_ver",
         (
             system.KernelInfo(
+                uname_machine_arch="",
                 uname_release="4.4.0-00-generic",
                 proc_version_signature_version="",
                 major=4,
@@ -202,6 +203,7 @@ class TestLivepatchEntitlementCanEnable:
                 flavor="generic",
             ),
             system.KernelInfo(
+                uname_machine_arch="",
                 uname_release="5.0.0-00-generic",
                 proc_version_signature_version="",
                 major=5,
@@ -211,6 +213,7 @@ class TestLivepatchEntitlementCanEnable:
                 flavor="generic",
             ),
             system.KernelInfo(
+                uname_machine_arch="",
                 uname_release="4.19.0-00-generic",
                 proc_version_signature_version="",
                 major=4,

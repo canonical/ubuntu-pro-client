@@ -45,6 +45,7 @@ DistroInfo = NamedTuple(
 KernelInfo = NamedTuple(
     "KernelInfo",
     [
+        ("uname_machine_arch", str),
         ("uname_release", str),
         ("proc_version_signature_version", Optional[str]),
         ("major", Optional[int]),
@@ -65,13 +66,17 @@ def get_kernel_info() -> KernelInfo:
     except Exception:
         logging.warning("failed to process /proc/version_signature.")
 
-    uname_release = os.uname().release.strip()
+    uname = os.uname()
+    uname_machine_arch = uname.machine.strip()
+
+    uname_release = uname.release.strip()
     uname_match = re.match(RE_KERNEL_UNAME, uname_release)
     if uname_match is None:
         logging.warning(
             messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
         )
         return KernelInfo(
+            uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
             proc_version_signature_version=proc_version_signature_version,
             major=None,
@@ -82,6 +87,7 @@ def get_kernel_info() -> KernelInfo:
         )
     else:
         return KernelInfo(
+            uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
             proc_version_signature_version=proc_version_signature_version,
             major=int(uname_match.group("major")),
