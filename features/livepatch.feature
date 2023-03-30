@@ -23,7 +23,7 @@ Feature: Livepatch
         Then stdout matches regexp:
         """
         NOTICES
-        The current kernel \(5.4.0-(\d+)-kvm, amd64\) is not supported by livepatch.
+        The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
 
@@ -37,7 +37,7 @@ Feature: Livepatch
         Then stdout does not match regexp:
         """
         NOTICES
-        The current kernel \(5.4.0-(\d+)-kvm, amd64\) is not supported by livepatch.
+        The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
 
