@@ -237,11 +237,11 @@ class LivepatchEntitlement(UAEntitlement):
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         if livepatch.on_supported_kernel() is False:
             kernel_info = system.get_kernel_info()
-            arch = system.get_dpkg_arch()
             return (
                 True,
                 messages.LIVEPATCH_KERNEL_NOT_SUPPORTED.format(
-                    version=kernel_info.uname_release, arch=arch
+                    version=kernel_info.uname_release,
+                    arch=kernel_info.uname_machine_arch,
                 ),
             )
         # if on_supported_kernel returns None we default to no warning

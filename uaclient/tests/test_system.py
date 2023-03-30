@@ -10,12 +10,19 @@ from uaclient import exceptions, messages, system
 
 class TestGetKernelInfo:
     @pytest.mark.parametrize(
-        "uname_release, proc_version_signature_side_effect, expected",
+        [
+            "uname_machine",
+            "uname_release",
+            "proc_version_signature_side_effect",
+            "expected",
+        ],
         (
             (
+                "x86_64",
                 "5.14.0-1024-oem",
                 "Ubuntu 5.14.0-1024.26-oem 5.15.100",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="5.14.0-1024-oem",
                     proc_version_signature_version="5.14.0-1024.26-oem",
                     major=5,
@@ -26,9 +33,26 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "aarch64",
+                "5.14.0-1024-oem",
+                "Ubuntu 5.14.0-1024.26-oem 5.15.100",
+                system.KernelInfo(
+                    uname_machine_arch="aarch64",
+                    uname_release="5.14.0-1024-oem",
+                    proc_version_signature_version="5.14.0-1024.26-oem",
+                    major=5,
+                    minor=14,
+                    patch=0,
+                    abi="1024",
+                    flavor="oem",
+                ),
+            ),
+            (
+                "x86_64",
                 "4.4.0-21-generic",
                 "Ubuntu 4.4.0-21.37-generic 4.15.100",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="4.4.0-21-generic",
                     proc_version_signature_version="4.4.0-21.37-generic",
                     major=4,
@@ -39,9 +63,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "5.4.0-52-generic",
                 "Ubuntu 5.4.0-52.37-generic 5.15.100",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version="5.4.0-52.37-generic",
                     major=5,
@@ -52,9 +78,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "5.4.0-52-generic",
                 "Ubuntu 5.4.0-52.37~20.04-generic 5.15.100",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version="5.4.0-52.37~20.04-generic",
                     major=5,
@@ -65,9 +93,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "5.4.0-52-generic",
                 Exception(),
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version=None,
                     major=5,
@@ -78,9 +108,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "5.4.0-1021-aws-fips",
                 "Ubuntu 5.4.0-1021.21+fips2-aws-fips 5.4.44",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="5.4.0-1021-aws-fips",
                     proc_version_signature_version="5.4.0-1021.21+fips2-aws-fips",  # noqa: E501
                     major=5,
@@ -91,9 +123,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "4.4.0-1017-fips",
                 "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="4.4.0-1017-fips",
                     proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
                     major=4,
@@ -104,9 +138,11 @@ class TestGetKernelInfo:
                 ),
             ),
             (
+                "x86_64",
                 "4.4.0-1017.something.invalid-fips",
                 "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
                 system.KernelInfo(
+                    uname_machine_arch="x86_64",
                     uname_release="4.4.0-1017.something.invalid-fips",
                     proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
                     major=None,
@@ -124,11 +160,14 @@ class TestGetKernelInfo:
         self,
         m_uname,
         m_load_file,
+        uname_machine,
         uname_release,
         proc_version_signature_side_effect,
         expected,
     ):
-        m_uname.return_value = mock.MagicMock(release=uname_release)
+        m_uname.return_value = mock.MagicMock(
+            release=uname_release, machine=uname_machine
+        )
         m_load_file.side_effect = [proc_version_signature_side_effect]
         assert system.get_kernel_info.__wrapped__() == expected
 

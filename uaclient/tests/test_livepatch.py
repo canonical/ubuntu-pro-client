@@ -582,6 +582,7 @@ class TestOnSupportedKernel:
             (
                 None,
                 system.KernelInfo(
+                    uname_machine_arch="",
                     uname_release="",
                     proc_version_signature_version="",
                     flavor=None,
@@ -602,6 +603,7 @@ class TestOnSupportedKernel:
             (
                 None,
                 system.KernelInfo(
+                    uname_machine_arch="",
                     uname_release="",
                     proc_version_signature_version="",
                     flavor="generic",
@@ -622,6 +624,7 @@ class TestOnSupportedKernel:
             (
                 None,
                 system.KernelInfo(
+                    uname_machine_arch="",
                     uname_release="",
                     proc_version_signature_version="",
                     flavor="generic",
@@ -642,6 +645,7 @@ class TestOnSupportedKernel:
             (
                 None,
                 system.KernelInfo(
+                    uname_machine_arch="",
                     uname_release="",
                     proc_version_signature_version="",
                     flavor="generic",
@@ -662,6 +666,7 @@ class TestOnSupportedKernel:
             (
                 None,
                 system.KernelInfo(
+                    uname_machine_arch="",
                     uname_release="",
                     proc_version_signature_version="",
                     flavor="generic",
@@ -684,14 +689,12 @@ class TestOnSupportedKernel:
     @mock.patch(M_PATH + "_on_supported_kernel_cache")
     @mock.patch(M_PATH + "system.get_platform_info")
     @mock.patch(M_PATH + "util.standardize_arch_name")
-    @mock.patch(M_PATH + "system.get_dpkg_arch")
     @mock.patch(M_PATH + "system.get_kernel_info")
     @mock.patch(M_PATH + "_on_supported_kernel_cli")
     def test_on_supported_kernel(
         self,
         m_supported_cli,
         m_get_kernel_info,
-        m_get_dpkg_arch,
         m_standardize_arch_name,
         m_get_platform_info,
         m_supported_cache,

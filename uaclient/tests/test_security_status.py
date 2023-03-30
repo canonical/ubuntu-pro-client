@@ -609,6 +609,7 @@ class TestGetLivepatchFixedCVEs:
         )
 
         m_kernel_info.return_value = KernelInfo(
+            uname_machine_arch="",
             uname_release="",
             proc_version_signature_version=None,
             major=None,
