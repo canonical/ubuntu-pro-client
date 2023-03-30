@@ -640,12 +640,6 @@ def get_config_path() -> str:
     if config_file:
         return config_file
 
-    local_cfg = os.path.join(
-        os.getcwd(), os.path.basename(DEFAULT_CONFIG_FILE)
-    )
-    if os.path.exists(local_cfg):
-        return local_cfg
-
     return DEFAULT_CONFIG_FILE
 
 
