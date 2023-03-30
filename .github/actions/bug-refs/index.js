@@ -31,8 +31,8 @@ async function run() {
         pull_number: context.issue.number,
     });
 
-    const launchpadPresent = false;
-    const githubPresent = false;
+    let launchpadPresent = false;
+    let githubPresent = false;
     commits.data.forEach(commit => {
         const message = commit.commit.message.toLocaleUpperCase();
         if (message.includes("LP: #")) {
