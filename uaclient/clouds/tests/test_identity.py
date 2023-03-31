@@ -71,11 +71,12 @@ class TestGetCloudType:
             ),
         ),
     )
+    @mock.patch("os.path.exists", return_value=True)
     @mock.patch("uaclient.system.load_file")
-    @mock.patch(M_PATH + "system.which", return_value="/usr/bin/cloud-id")
-    @mock.patch(M_PATH + "system.subp", return_value=("test", ""))
+    @mock.patch("uaclient.system.which", return_value="/usr/bin/cloud-id")
+    @mock.patch("uaclient.system.subp", return_value=("test", ""))
     def test_cloud_type_when_using_settings_override(
-        self, m_subp, m_which, m_load_file, settings_overrides
+        self, m_subp, m_which, m_load_file, _m_path_exists, settings_overrides
     ):
         if "azure" in settings_overrides:
             expected_value = "azure"
