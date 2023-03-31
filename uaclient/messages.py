@@ -1039,6 +1039,16 @@ To get more information about the packages, run
     pro security-status --help
 for a list of available options."""
 
+SS_UPDATE_CALL = """\
+ Make sure to run
+    sudo apt-get update
+to get the latest package information from apt."""
+SS_UPDATE_DAYS = (
+    "The system apt information was updated {days} day(s) ago."
+    + SS_UPDATE_CALL
+)
+SS_UPDATE_UNKNOWN = "The system apt cache may be outdated." + SS_UPDATE_CALL
+
 SS_INTERIM_SUPPORT = "Main/Restricted packages receive updates until {date}."
 SS_LTS_SUPPORT = """\
 This machine is receiving security patching for Ubuntu Main/Restricted
