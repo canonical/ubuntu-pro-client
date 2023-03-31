@@ -31,6 +31,14 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   ```
 * You must have Launchpad already properly configured in your system in order to upload packages to the PPAs. Follow [this guide](https://help.launchpad.net/Packaging/PPA/Uploading) to get set up.
 
+* In order to run the `ppa` command, install `ppa-dev-tools` from `bryce`'s PPA:
+  ```bash
+  sudo add-apt-repository ppa:bryce/ppa-dev-tools
+  sudo apt update
+  sudo apt install ppa-dev-tools
+  ```
+  When running `ppa` for the first time, there will be another round of launchpad authorization to be performed.
+
 ## I. Preliminary/staging release to team infrastructure
 1. Create a release PR:
 
@@ -141,8 +149,13 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     g. `git push <your_launchpad_user> upload-<this-version>-kinetic`
 
     h. On Launchpad, create a merge proposal for this version which targets `ubuntu/devel`
-      * For an example, see the [27.9 merge proposal](https://code.launchpad.net/~orndorffgrant/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/422906).
+      * For an example, see the [27.14.1 merge proposal](https://code.launchpad.net/~renanrodrigo/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/439507).
       * Add 2 review slots for `canonical-server-reporter` and `canonical-server-core-reviewers`.
+
+    i. With the packages published to `ppa:ua-client/staging`, add links to the autopkgtest triggers to the Merge Proposal. The reviewer will have permission to trigger those tests. The links can be obtained by running `ppa tests -r <release> -a <arch1,arch2> ua-client/staging -L`
+      * Make sure to post links to all the architectures built for a given release.
+      * The riscv64 autopkgtests are not avaialble and don't need to be included.
+      * The `ppa test` command will have two variations of tests: the regular one, and one with `all-proposed=1`; only the regular test need to be there.
 
 4. Server Team Review and Pre-SRU Review
 
