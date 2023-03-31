@@ -10,7 +10,7 @@ from uaclient.config import UAConfig
 from uaclient.defaults import DEFAULT_DATA_DIR
 from uaclient.log import JsonArrayFormatter
 
-LOG = logging.getLogger("pro.daemon")
+LOG = logging.getLogger(__name__)
 
 AUTO_ATTACH_STATUS_MOTD_FILE = os.path.join(
     DEFAULT_DATA_DIR, "messages", "motd-auto-attach-status"

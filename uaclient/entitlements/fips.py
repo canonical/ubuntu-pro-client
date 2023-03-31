@@ -21,6 +21,7 @@ from uaclient.types import (  # noqa: F401
 )
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 CONDITIONAL_PACKAGES_EVERYWHERE = [
     "strongswan",
@@ -82,7 +83,6 @@ FIPS_CONTAINER_CONDITIONAL_PACKAGES = {
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
-
     repo_pin_priority = 1001
     repo_key_file = "ubuntu-pro-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
@@ -278,7 +278,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
-
             # We are now only removing the notice if there is no reboot
             # required information regarding the fips metapackage we install.
             if not system.should_reboot(set(self.packages)):
@@ -360,7 +359,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):
-
     name = "fips"
     title = "FIPS"
     description = "NIST-certified core packages"
@@ -452,7 +450,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     def _perform_enable(self, silent: bool = False) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
-            logging.warning(
+            LOG.warning(
                 "Could not determine cloud, "
                 "defaulting to generic FIPS package."
             )
@@ -466,7 +464,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
-
     name = "fips-updates"
     title = "FIPS Updates"
     origin = "UbuntuFIPSUpdates"

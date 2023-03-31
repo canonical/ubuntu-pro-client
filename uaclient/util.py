@@ -17,6 +17,7 @@ DROPPED_KEY = object()
 
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 class LogFormatter(logging.Formatter):
@@ -92,13 +93,13 @@ def disable_log_to_console():
     """
     potential_handlers = [
         handler
-        for handler in logging.getLogger().handlers
+        for handler in logging.getLogger("uaclient").handlers
         if handler.name == "ua-console"
     ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end
         # execution
-        logging.debug("disable_log_to_console: no console handler found")
+        LOG.debug("disable_log_to_console: no console handler found")
         yield
         return
 
@@ -138,7 +139,8 @@ def retry(exception, retry_sleeps):
                     if not sleeps:
                         raise e
                     retry_msg = " Retrying %d more times." % len(sleeps)
-                    logging.debug(str(e) + retry_msg)
+                    print(LOG)
+                    LOG.debug(str(e) + retry_msg)
                     time.sleep(sleeps.pop(0))
 
         return decorator
@@ -171,7 +173,7 @@ def get_dict_deltas(
                 + str(new_value)
                 + "'"
             )
-            logging.debug(log)
+            LOG.debug(log)
             deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:

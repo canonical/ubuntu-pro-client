@@ -7,7 +7,7 @@ from uaclient import config, exceptions
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 
-LOG = logging.getLogger("pro.lock")
+LOG = logging.getLogger(__name__)
 
 # Set a module-level callable here so we don't have to reinstantiate
 # UAConfig in order to determine dynamic data_path exception handling of

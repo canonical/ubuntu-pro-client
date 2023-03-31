@@ -31,6 +31,8 @@ from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
 
+LOG = logging.getLogger("uaclient.lib.reboot_cmds")
+
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):
     status_cache = cfg.read_cache("status-cache")
@@ -45,19 +47,19 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
                 # fips was not enabled, don't do anything
                 return
 
-    logging.debug("Attempting to remove Ubuntu Pro FIPS package holds")
+    LOG.debug("Attempting to remove Ubuntu Pro FIPS package holds")
     fips = FIPSEntitlement(cfg)
     try:
         fips.setup_apt_config()  # Removes package holds
-        logging.debug("Successfully removed Ubuntu Pro FIPS package holds")
+        LOG.debug("Successfully removed Ubuntu Pro FIPS package holds")
     except Exception as e:
-        logging.error(e)
-        logging.warning("Could not remove Ubuntu Pro FIPS package holds")
+        LOG.error(e)
+        LOG.warning("Could not remove Ubuntu Pro FIPS package holds")
 
     try:
         fips.install_packages(cleanup_on_failure=False)
     except exceptions.UserFacingError:
-        logging.warning(
+        LOG.warning(
             "Failed to install packages at boot: {}".format(
                 ", ".join(fips.packages)
             )
@@ -69,13 +71,13 @@ def refresh_contract(cfg: config.UAConfig):
     try:
         contract.refresh(cfg)
     except exceptions.UrlError:
-        logging.warning(messages.REFRESH_CONTRACT_FAILURE)
+        LOG.warning(messages.REFRESH_CONTRACT_FAILURE)
         raise
 
 
 def main(cfg: config.UAConfig) -> int:
     if not state_files.reboot_cmd_marker_file.is_present:
-        logging.debug("Skipping reboot_cmds. Marker file not present")
+        LOG.debug("Skipping reboot_cmds. Marker file not present")
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
@@ -85,7 +87,7 @@ def main(cfg: config.UAConfig) -> int:
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
-    logging.debug("Running reboot commands...")
+    LOG.debug("Running reboot commands...")
     try:
         with lock.SpinLock(cfg=cfg, lock_holder="pro-reboot-cmds"):
             fix_pro_pkg_holds(cfg)
@@ -96,21 +98,21 @@ def main(cfg: config.UAConfig) -> int:
             notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
 
     except exceptions.LockHeldError as e:
-        logging.warning("Lock not released. %s", str(e.msg))
+        LOG.warning("Lock not released. %s", str(e.msg))
         notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 1
     except exceptions.UserFacingError as e:
-        logging.error(
+        LOG.error(
             "Error while running commands on reboot: %s, %s", e.msg_code, e.msg
         )
         notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 1
     except Exception as e:
-        logging.error("Failed running commands on reboot. Error: %s", str(e))
+        LOG.error("Failed running commands on reboot. Error: %s", str(e))
         notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 1
 
-    logging.debug("Successfully ran all commands on reboot.")
+    LOG.debug("Successfully ran all commands on reboot.")
     return 0
 
 

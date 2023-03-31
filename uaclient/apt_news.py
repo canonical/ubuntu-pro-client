@@ -25,6 +25,8 @@ from uaclient.timer.update_messaging import (
     get_contract_expiry_status,
 )
 
+LOG = logging.getLogger(__name__)
+
 
 class AptNewsMessageSelectors(DataObject):
     fields = [
@@ -135,16 +137,16 @@ def select_message(
         try:
             msg = AptNewsMessage.from_dict(msg_dict)
         except Exception as e:
-            logging.debug("msg failed parsing: %r", e)
+            LOG.debug("msg failed parsing: %r", e)
             continue
         if not is_message_valid(msg):
-            logging.debug("msg not valid: %r", msg)
+            LOG.debug("msg not valid: %r", msg)
             continue
         if not do_dates_apply(msg.begin, msg.end):
-            logging.debug("msg dates don't apply: %r", msg)
+            LOG.debug("msg dates don't apply: %r", msg)
             continue
         if not do_selectors_apply(cfg, msg.selectors):
-            logging.debug("msg selectors don't apply: %r", msg)
+            LOG.debug("msg selectors don't apply: %r", msg)
             continue
         return msg
     return None
