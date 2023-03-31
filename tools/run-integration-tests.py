@@ -35,7 +35,7 @@ PLATFORM_SERIES_TESTS = {
     "gcppro": ["xenial", "bionic", "focal", "jammy"],
     "gcppro-fips": ["bionic", "focal"],
     "lxd": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
-    "vm": ["xenial", "bionic", "focal", "jammy"],
+    "vm": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
     "upgrade": ["xenial", "bionic", "focal", "jammy", "kinetic"],
 }
 
