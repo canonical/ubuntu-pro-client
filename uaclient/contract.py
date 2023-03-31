@@ -51,10 +51,10 @@ OVERRIDE_SELECTOR_WEIGHTS = {
 }
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 class UAContractClient(serviceclient.UAServiceClient):
-
     cfg_url_base_attr = "contract_url"
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
@@ -147,7 +147,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if response.code != 200:
             msg = response.json_dict.get("message", "")
             if msg:
-                logging.debug(msg)
+                LOG.debug(msg)
                 raise exceptions.InvalidProImage(error_msg=msg)
             raise exceptions.ContractAPIError(
                 API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE,
@@ -251,7 +251,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
             )
         except exceptions.UrlError as e:
-            logging.exception(str(e))
+            LOG.exception(str(e))
             raise exceptions.ConnectivityError()
         if response.code == 401:
             raise exceptions.MagicAttachTokenError()
@@ -277,7 +277,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 method="POST",
             )
         except exceptions.UrlError as e:
-            logging.exception(str(e))
+            LOG.exception(str(e))
             raise exceptions.ConnectivityError()
         if response.code == 503:
             raise exceptions.MagicAttachUnavailable()
@@ -300,7 +300,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 method="DELETE",
             )
         except exceptions.UrlError as e:
-            logging.exception(str(e))
+            LOG.exception(str(e))
             raise exceptions.ConnectivityError()
         if response.code == 400:
             raise exceptions.MagicAttachTokenAlreadyActivated()
@@ -504,7 +504,7 @@ def process_entitlements_delta(
             delta_error = True
             failed_services.append(name)
             with util.disable_log_to_console():
-                logging.error(
+                LOG.error(
                     "Failed to process contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_entitlement)
                 )
@@ -512,7 +512,7 @@ def process_entitlements_delta(
             unexpected_error = True
             failed_services.append(name)
             with util.disable_log_to_console():
-                logging.exception(
+                LOG.exception(
                     "Unexpected error processing contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_entitlement)
                 )
@@ -586,7 +586,7 @@ def process_entitlement_delta(
         try:
             ent_cls = entitlement_factory(cfg=cfg, name=name, variant=variant)
         except exceptions.EntitlementNotFoundError as exc:
-            logging.debug(
+            LOG.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             raise exc

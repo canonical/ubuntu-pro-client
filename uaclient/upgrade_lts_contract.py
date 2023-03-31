@@ -45,6 +45,8 @@ current_codename_to_past_codename = {
     "mantic": "lunar",
 }
 
+LOG = logging.getLogger(__name__)
+
 
 def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     logging.debug("Check whether to upgrade-lts-contract")
@@ -56,7 +58,7 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     if out:
         msg += " Retrying every 10 seconds waiting on released apt lock"
     print(msg)
-    logging.debug(msg)
+    LOG.debug(msg)
 
     current_release = system.get_release_info().series
 
@@ -64,7 +66,7 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     if past_release is None:
         msg = "Could not find past release for: {}".format(current_release)
         print(msg)
-        logging.warning(msg)
+        LOG.warning(msg)
         sys.exit(1)
 
     past_entitlements = UAConfig(
@@ -87,7 +89,7 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
         past_release, current_release
     )
     print(msg)
-    logging.debug(msg)
+    LOG.debug(msg)
 
     contract.process_entitlements_delta(
         cfg=cfg,
@@ -98,7 +100,7 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     )
     msg = "upgrade-lts-contract succeeded after {} retries".format(retry_count)
     print(msg)
-    logging.debug(msg)
+    LOG.debug(msg)
 
 
 def remove_private_esm_apt_cache():

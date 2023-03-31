@@ -87,7 +87,6 @@ def str_cache(func: Callable[..., S]) -> S:
 
 
 class UAConfig:
-
     data_paths = {
         "instance-id": DataPath("instance-id", True),
         "machine-access-cis": DataPath("machine-access-cis.json", True),
@@ -130,8 +129,8 @@ class UAConfig:
                 )
             except Exception as e:
                 with util.disable_log_to_console():
-                    logging.warning("Error loading user config: {}".format(e))
-                    logging.warning("Using default config values")
+                    LOG.warning("Error loading user config: {}".format(e))
+                    LOG.warning("Using default config values")
                 self.user_config = state_files.UserConfigData()
 
         # support old ua_config values in uaclient.conf as user-config.json
@@ -350,13 +349,13 @@ class UAConfig:
             return (int(lock_pid), lock_holder)
         except exceptions.ProcessExecutionError:
             if not util.we_are_currently_root():
-                logging.debug(
+                LOG.debug(
                     "Found stale lock file previously held by %s:%s",
                     lock_pid,
                     lock_holder,
                 )
                 return (int(lock_pid), lock_holder)
-            logging.warning(
+            LOG.warning(
                 "Removing stale lock file previously held by %s:%s",
                 lock_pid,
                 lock_holder,
@@ -400,7 +399,7 @@ class UAConfig:
             if isinstance(features, dict):
                 return features
             else:
-                logging.warning(
+                LOG.warning(
                     "Unexpected uaclient.conf features value."
                     " Expected dict, but found %s",
                     features,
@@ -456,7 +455,7 @@ class UAConfig:
             content = system.load_file(cache_path)
         except Exception:
             if not os.path.exists(cache_path) and not silent:
-                logging.debug("File does not exist: %s", cache_path)
+                LOG.debug("File does not exist: %s", cache_path)
             return None
         try:
             return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
@@ -493,9 +492,7 @@ class UAConfig:
         ):
             value = getattr(self, prop)
             if value is None:
-                logging.debug(
-                    "No config set for {}, default value will be used."
-                )
+                LOG.debug("No config set for {}, default value will be used.")
             elif not isinstance(value, int) or value < 0:
                 error_msg = (
                     "Value for the {} interval must be a positive integer. "
@@ -596,20 +593,20 @@ class UAConfig:
     def warn_about_invalid_keys(self):
         if self.invalid_keys is not None:
             for invalid_key in sorted(self.invalid_keys):
-                logging.warning(
+                LOG.warning(
                     "Ignoring invalid uaclient.conf key: %s", invalid_key
                 )
         if "ua_config" in self.cfg:
             # this one is still technically supported but we want people to
             # migrate so it gets a special warning
-            logging.warning('legacy "ua_config" found in uaclient.conf')
-            logging.warning("Please do the following:")
-            logging.warning(
+            LOG.warning('legacy "ua_config" found in uaclient.conf')
+            LOG.warning("Please do the following:")
+            LOG.warning(
                 "  1. run `pro config set field=value` for each"
                 ' field/value pair present under "ua_config" in'
                 " /etc/ubuntu-advantage/uaclient.conf"
             )
-            logging.warning(
+            LOG.warning(
                 '  2. Delete "ua_config" and all sub-fields in'
                 " /etc/ubuntu-advantage/uaclient.conf"
             )

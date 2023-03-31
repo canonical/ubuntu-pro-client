@@ -26,6 +26,7 @@ LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
 LIVEPATCH_API_V1_KERNELS_SUPPORTED = "/v1/api/kernels/supported"
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -122,7 +123,7 @@ class LivepatchStatus(DataObject):
 
 def status() -> Optional[LivepatchStatusStatus]:
     if not is_livepatch_installed():
-        logging.debug("canonical-livepatch is not installed")
+        LOG.debug("canonical-livepatch is not installed")
         return None
 
     try:
@@ -131,7 +132,7 @@ def status() -> Optional[LivepatchStatusStatus]:
         )
     except exceptions.ProcessExecutionError:
         with util.disable_log_to_console():
-            logging.warning(
+            LOG.warning(
                 "canonical-livepatch returned error when checking status"
             )
         return None
@@ -151,14 +152,14 @@ def status() -> Optional[LivepatchStatusStatus]:
         status_root = LivepatchStatus.from_dict(status_json)
     except IncorrectTypeError:
         with util.disable_log_to_console():
-            logging.warning(
+            LOG.warning(
                 "canonical-livepatch status returned unexpected "
                 "structure: {}".format(out)
             )
         return None
 
     if status_root.status is None or len(status_root.status) < 1:
-        logging.debug("canonical-livepatch has no status")
+        LOG.debug("canonical-livepatch has no status")
         return None
 
     return status_root.status[0]
@@ -181,7 +182,6 @@ def _convert_str_to_livepatch_support_status(
 
 
 class UALivepatchClient(serviceclient.UAServiceClient):
-
     cfg_url_base_attr = "livepatch_url"
 
     def is_kernel_supported(
@@ -210,10 +210,10 @@ class UALivepatchClient(serviceclient.UAServiceClient):
             )
         except Exception as e:
             with util.disable_log_to_console():
-                logging.warning(
+                LOG.warning(
                     "error while checking livepatch supported kernels API"
                 )
-                logging.warning(e)
+                LOG.warning(e)
             return None
 
         if response.code != 200:
@@ -268,7 +268,7 @@ def _on_supported_kernel_cache(
         ):
             if cache_data.supported is None:
                 with util.disable_log_to_console():
-                    logging.warning(
+                    LOG.warning(
                         "livepatch kernel support cache has None value"
                     )
             return (True, cache_data.supported)
@@ -309,9 +309,7 @@ def _on_supported_kernel_api(
 
     if supported is None:
         with util.disable_log_to_console():
-            logging.warning(
-                "livepatch kernel support API response was ambiguous"
-            )
+            LOG.warning("livepatch kernel support API response was ambiguous")
     return supported
 
 
@@ -325,7 +323,7 @@ def on_supported_kernel() -> LivepatchSupport:
     # first check cli
     cli_says = _on_supported_kernel_cli()
     if cli_says is not None:
-        logging.debug("using livepatch cli for support")
+        LOG.debug("using livepatch cli for support")
         return cli_says
 
     # gather required system info to query support
@@ -335,7 +333,7 @@ def on_supported_kernel() -> LivepatchSupport:
         or kernel_info.major is None
         or kernel_info.minor is None
     ):
-        logging.warning(
+        LOG.warning(
             "unable to determine enough kernel information to "
             "check livepatch support"
         )

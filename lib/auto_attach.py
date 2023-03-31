@@ -31,6 +31,9 @@ from uaclient.daemon import (
 )
 from uaclient.files import state_files
 
+root_logger = logging.getLogger("uaclient")
+LOG = logging.getLogger("uaclient.lib.auto_attach")
+
 try:
     import cloudinit.stages as ci_stages  # type: ignore
 except ImportError:
@@ -63,8 +66,8 @@ def check_cloudinit_userdata_for_ua_info():
 
 def main(cfg: UAConfig):
     if check_cloudinit_userdata_for_ua_info():
-        logging.info("cloud-init userdata has ubuntu-advantage key.")
-        logging.info(
+        LOG.info("cloud-init userdata has ubuntu-advantage key.")
+        LOG.info(
             "Skipping auto-attach and deferring to cloud-init "
             "to setup and configure auto-attach"
         )
@@ -76,17 +79,15 @@ def main(cfg: UAConfig):
     try:
         full_auto_attach(FullAutoAttachOptions())
     except AlreadyAttachedError as e:
-        logging.info(e.msg)
+        LOG.info(e.msg)
     except AutoAttachDisabledError:
-        logging.debug(
-            "Skipping auto-attach. Config disable_auto_attach is set."
-        )
+        LOG.debug("Skipping auto-attach. Config disable_auto_attach is set.")
     except EntitlementsNotEnabledError as e:
-        logging.warning(e.msg)
+        LOG.warning(e.msg)
     except Exception as e:
-        logging.error(e)
+        LOG.error(e)
         system.ensure_file_absent(AUTO_ATTACH_STATUS_MOTD_FILE)
-        logging.info("creating flag file to trigger retries")
+        LOG.info("creating flag file to trigger retries")
         system.create_file(retry_auto_attach.FLAG_FILE_PATH)
         failure_reason = (
             retry_auto_attach.full_auto_attach_exception_to_failure_reason(e)
@@ -103,17 +104,18 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
+    root_logger.propagate = False
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
-        logger=logging.getLogger(),
+        logger=root_logger,
     )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         log_file=cfg.log_file,
-        logger=logging.getLogger(),
+        logger=root_logger,
     )
     sys.exit(main(cfg))

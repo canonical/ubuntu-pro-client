@@ -19,10 +19,10 @@ from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 class RepoEntitlement(base.UAEntitlement):
-
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
@@ -202,7 +202,7 @@ class RepoEntitlement(base.UAEntitlement):
             return False
 
         if not self._check_apt_url_is_applied(delta_apt_url):
-            logging.info(
+            LOG.info(
                 "Updating '%s' apt sources list on changed directives.",
                 self.name,
             )
@@ -218,7 +218,7 @@ class RepoEntitlement(base.UAEntitlement):
             self.setup_apt_config()
 
         if delta_packages:
-            logging.info(
+            LOG.info(
                 "Installing packages on changed directives: {}".format(
                     ", ".join(delta_packages)
                 )
@@ -335,7 +335,7 @@ class RepoEntitlement(base.UAEntitlement):
                     token = machine_access.get("resourceToken")
             if not token:
                 token = machine_token
-                logging.warning(
+                LOG.warning(
                     "No resourceToken present in contract for service %s."
                     " Using machine token as credentials",
                     self.title,

@@ -29,7 +29,7 @@ from uaclient.files.state_files import (
     timer_jobs_state_file,
 )
 
-LOG = logging.getLogger("pro.actions")
+LOG = logging.getLogger(__name__)
 
 
 UA_SERVICES = (
@@ -272,7 +272,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
                 # If we fail to load that file for any reason we will
                 # not break the command, we will instead warn the user
                 # about the issue and try to process the other files
-                logging.warning("Failed to load file: %s\n%s", f, str(e))
+                LOG.warning("Failed to load file: %s\n%s", f, str(e))
                 continue
             content = util.redact_sensitive_logs(content)
             if util.we_are_currently_root():
