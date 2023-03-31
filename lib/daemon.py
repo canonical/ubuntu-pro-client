@@ -12,7 +12,8 @@ from uaclient.daemon import (
     setup_logging,
 )
 
-LOG = logging.getLogger("pro")
+LOG = logging.getLogger("uaclient.lib.daemon")
+root_logger = logging.getLogger("uaclient")
 
 
 def main() -> int:
@@ -29,13 +30,13 @@ def main() -> int:
     # The ua-daemon logger should log everything to its file
     # Make sure the ua-daemon logger does not generate double logging
     # by propagating to the root logger
-    LOG.propagate = False
     # The root logger should only log errors to the daemon log file
+    # TODO: is this okay? root_logger("uaclient")
     setup_logging(
         logging.CRITICAL,
         logging.ERROR,
         log_file=cfg.daemon_log_file,
-        logger=logging.getLogger(),
+        logger=root_logger,
     )
 
     LOG.debug("daemon starting")
@@ -63,4 +64,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    root_logger.propagate = False
     sys.exit(main())

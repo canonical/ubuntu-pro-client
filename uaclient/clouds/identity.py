@@ -6,6 +6,8 @@ from typing import Dict, Optional, Tuple, Type  # noqa: F401
 from uaclient import clouds, exceptions, system
 from uaclient.config import apply_config_settings_override
 
+LOG = logging.getLogger(__name__)
+
 CLOUD_TYPE_TO_TITLE = {
     "aws": "AWS",
     "aws-china": "AWS China",
@@ -30,7 +32,7 @@ def get_instance_id() -> Optional[str]:
         return out.strip()
     except exceptions.ProcessExecutionError:
         pass
-    logging.warning("Unable to determine current instance-id")
+    LOG.warning("Unable to determine current instance-id")
     return None
 
 
@@ -43,7 +45,7 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
             out, _err = system.subp(["cloud-id"])
             return (out.strip(), None)
         except exceptions.ProcessExecutionError as exc:
-            logging.debug("error running cloud-id: %s", str(exc))
+            LOG.debug("error running cloud-id: %s", str(exc))
             return (None, NoCloudTypeReason.CLOUD_ID_ERROR)
     # If no cloud-id command, assume not on cloud
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)

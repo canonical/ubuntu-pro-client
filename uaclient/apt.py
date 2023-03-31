@@ -56,6 +56,7 @@ deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
 APT_RETRIES = [1.0, 5.0, 10.0]
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -416,7 +417,7 @@ def add_auth_apt_repo(
             continue  # Only enable suites matching this current series
         maybe_comment = ""
         if "-updates" in suite and not updates_enabled:
-            logging.debug(
+            LOG.debug(
                 'Not enabling apt suite "%s" because "%s-updates" is not'
                 " enabled",
                 suite,
@@ -756,7 +757,7 @@ def update_esm_caches(cfg) -> None:
     # Impossible to write a unittest for this because apt is globally mocked
     # in tests - down the rabbit hole, not worth it
     except apt.cache.FetchFailedException:
-        logging.warning("Failed to fetch the ESM Apt Cache")
+        LOG.warning("Failed to fetch the ESM Apt Cache")
 
 
 def remove_packages(package_names: List[str], error_message: str):

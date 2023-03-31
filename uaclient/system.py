@@ -21,8 +21,9 @@ DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
 CPU_VENDOR_MAP = {"GenuineIntel": "intel"}
+LOG = logging.getLogger(__name__)
 
-# N.B. this relies on the version normalisation we perform in get_platform_info
+# N.B. this relies on the version normalisation we perform in get_release_info
 REGEX_OS_RELEASE_VERSION = (
     r"(?P<release>\d+\.\d+) (LTS\s*)?(\((?P<series>\w+))?.*"
 )
@@ -147,7 +148,7 @@ def get_kernel_info() -> KernelInfo:
         proc_version_signature_full = load_file("/proc/version_signature")
         proc_version_signature_version = proc_version_signature_full.split()[1]
     except Exception:
-        logging.warning("failed to process /proc/version_signature.")
+        LOG.warning("failed to process /proc/version_signature.")
 
     uname = os.uname()
     uname_machine_arch = uname.machine.strip()
@@ -156,9 +157,7 @@ def get_kernel_info() -> KernelInfo:
     uname_release = uname.release.strip()
     uname_match = re.match(RE_KERNEL_UNAME, uname_release)
     if uname_match is None:
-        logging.warning(
-            messages.KERNEL_PARSE_ERROR.format(kernel=uname_release)
-        )
+        LOG.warning(messages.KERNEL_PARSE_ERROR.format(kernel=uname_release))
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
@@ -483,14 +482,14 @@ def is_exe(path: str) -> bool:
 
 def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
-    logging.debug("Reading file: %s", filename)
+    LOG.debug("Reading file: %s", filename)
     with open(filename, "rb") as stream:
         content = stream.read()
     return content.decode("utf-8")
 
 
 def create_file(filename: str, mode: int = 0o644) -> None:
-    logging.debug("Creating file: %s", filename)
+    LOG.debug("Creating file: %s", filename)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     pathlib.Path(filename).touch()
     os.chmod(filename, mode)
@@ -523,7 +522,7 @@ def write_file(
         tmpf = tempfile.NamedTemporaryFile(
             mode="wb", delete=False, dir=os.path.dirname(filename)
         )
-        logging.debug(
+        LOG.debug(
             "Writing file %s atomically via tempfile %s", filename, tmpf.name
         )
         tmpf.write(content.encode("utf-8"))
@@ -614,7 +613,7 @@ def _subp(
             stderr=err.decode("utf-8"),
         )
     if capture:
-        logging.debug(
+        LOG.debug(
             "Ran cmd: %s, rc: %s stderr: %s",
             redacted_cmd,
             proc.returncode,
@@ -667,13 +666,13 @@ def subp(
             break
         except exceptions.ProcessExecutionError as e:
             if capture:
-                logging.debug(str(e))
+                LOG.debug(str(e))
                 msg = "Stderr: {}\nStdout: {}".format(e.stderr, e.stdout)
-                logging.warning(msg)
+                LOG.warning(msg)
             if not retry_sleeps:
                 raise
             retry_msg = " Retrying %d more times." % len(retry_sleeps)
-            logging.debug(str(e) + retry_msg)
+            LOG.debug(str(e) + retry_msg)
             time.sleep(retry_sleeps.pop(0))
     return out, err
 

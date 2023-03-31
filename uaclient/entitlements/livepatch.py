@@ -22,10 +22,10 @@ ERROR_MSG_MAP = {
 }
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 class LivepatchEntitlement(UAEntitlement):
-
     help_doc_url = "https://ubuntu.com/security/livepatch"
     name = "livepatch"
     title = "Livepatch"
@@ -133,12 +133,12 @@ class LivepatchEntitlement(UAEntitlement):
             except exceptions.ProcessExecutionError as e:
                 msg = "Unable to configure Livepatch: " + str(e)
                 event.info(msg)
-                logging.error(msg)
+                LOG.error(msg)
                 return False
         if process_token:
             livepatch_token = entitlement_cfg.get("resourceToken")
             if not livepatch_token:
-                logging.debug(
+                LOG.debug(
                     "No specific resourceToken present. Using machine token as"
                     " %s credentials",
                     self.title,
@@ -146,14 +146,14 @@ class LivepatchEntitlement(UAEntitlement):
                 livepatch_token = self.cfg.machine_token["machineToken"]
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
-                logging.info(
+                LOG.info(
                     "Disabling %s prior to re-attach with new token",
                     self.title,
                 )
                 try:
                     system.subp([livepatch.LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
-                    logging.error(str(e))
+                    LOG.error(str(e))
                     return False
             try:
                 system.subp(
@@ -279,7 +279,7 @@ class LivepatchEntitlement(UAEntitlement):
         )
         process_token = bool(deltas.get("resourceToken", False))
         if any([process_directives, process_token]):
-            logging.info("Updating '%s' on changed directives.", self.name)
+            LOG.info("Updating '%s' on changed directives.", self.name)
             return self.setup_livepatch_config(
                 process_directives=process_directives,
                 process_token=process_token,

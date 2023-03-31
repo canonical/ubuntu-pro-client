@@ -194,7 +194,7 @@ class NoticesManager:
                         notices.append(notice.value.message)
                     except Exception:
                         with util.disable_log_to_console():
-                            logging.warning(
+                            LOG.warning(
                                 "Something went wrong while processing"
                                 " notice: {}.".format(
                                     notice_file_name,

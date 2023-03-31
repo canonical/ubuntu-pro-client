@@ -34,6 +34,7 @@ from uaclient.util import is_config_value_true
 from uaclient.yaml import safe_load
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 class IncompatibleService:
@@ -47,7 +48,6 @@ class IncompatibleService:
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
-
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
@@ -946,7 +946,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 min_kern_major = int(kernel_major)
                 min_kern_minor = int(kernel_minor)
             except ValueError:
-                logging.warning(
+                LOG.warning(
                     "Could not parse minKernelVersion: %s",
                     affordance_min_kernel,
                 )
@@ -1117,12 +1117,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if application_status != ApplicationStatus.DISABLED:
                 if self.can_disable():
                     self.disable()
-                    logging.info(
+                    LOG.info(
                         "Due to contract refresh, '%s' is now disabled.",
                         self.name,
                     )
                 else:
-                    logging.warning(
+                    LOG.warning(
                         "Unable to disable '%s' as recommended during contract"
                         " refresh. Service is still active. See"
                         " `pro status`",
