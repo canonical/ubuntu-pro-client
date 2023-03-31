@@ -70,3 +70,34 @@ Feature: Livepatch
         Examples: ubuntu release
             | release |
             | focal   |
+
+    @series.kinetic
+    @series.lunar
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +no +Current kernel is not supported
+        """
+        When I attach `contract_token` with sudo
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +n/a +Canonical Livepatch service
+        """
+        When I verify that running `pro enable livepatch` `with sudo` exits `1`
+        Then stdout contains substring:
+        """
+        Livepatch is not available for Ubuntu <pretty_name>.
+        """
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +n/a +Canonical Livepatch service
+        """
+        Examples: ubuntu release
+            | release | pretty_name           |
+            | kinetic | 22.10 (Kinetic Kudu)  |
+            | lunar   | 23.04 (Lunar Lobster) |
