@@ -452,7 +452,7 @@ case "$1" in
           migrate_user_config_post
       fi
 
-      if grep -q "ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
+      if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
           echo "Warning: uaclient.conf contains old ua_config field." >&2
           echo "         Please do the following:" >&2
           echo "         1. Run 'pro config set field=value' for each field/value pair" >&2
