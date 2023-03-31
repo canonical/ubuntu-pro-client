@@ -21,6 +21,8 @@ import logging
 from uaclient import system, util
 from uaclient.cli import setup_logging
 
+LOG = logging.getLogger("uaclient.lib.patch_status_json")
+
 
 def patch_status_json_schema_0_1(status_file: str):
     """Patch incompatible status.json file schema to align with version 0.1."""
@@ -28,14 +30,14 @@ def patch_status_json_schema_0_1(status_file: str):
     try:
         status = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
     except ValueError as e:
-        logging.debug(
+        LOG.debug(
             "Unable to patch /var/lib/ubuntu-advantage/status.json: %s", str(e)
         )
         return
     new_status = copy.deepcopy(status)
     if float(status.get("_schema_version", 0)) >= 0.1:
         return  # Already have version 0.1 from daily PPA
-    logging.debug("Patching /var/lib/ubuntu-advantage/status.json schema")
+    LOG.debug("Patching /var/lib/ubuntu-advantage/status.json schema")
     new_status["_schema_version"] = "0.1"
     new_status["account"] = {
         "name": new_status.pop("account", ""),
@@ -55,7 +57,7 @@ def patch_status_json_schema_0_1(status_file: str):
             new_status, cls=util.DatetimeAwareJSONEncoder
         )
     except ValueError as e:
-        logging.debug(
+        LOG.debug(
             "Unable to patch /var/lib/ubuntu-advantage/status.json: {}".format(
                 str(e)
             )

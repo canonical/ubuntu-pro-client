@@ -19,7 +19,7 @@ from uaclient.timer.metering import metering_enabled_resources
 from uaclient.timer.update_contract_info import update_contract_info
 from uaclient.timer.update_messaging import update_motd_messages
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("uaclient.lib.timer")
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
 UPDATE_CONTRACT_INFO_INTERVAL = 86400  # 24 hours
@@ -195,8 +195,6 @@ if __name__ == "__main__":
         log_file=cfg.timer_log_file,
         logger=LOG,
     )
-    # Make sure the ua-timer logger does not generate double logging
-    LOG.propagate = False
     # The root logger should log any error to the timer log file
     setup_logging(logging.CRITICAL, logging.ERROR, log_file=cfg.timer_log_file)
 

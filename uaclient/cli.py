@@ -100,6 +100,8 @@ to get the latest version with new features and bug fixes."""
 )
 
 event = event_logger.get_event_logger()
+root_logger = logging.getLogger("uaclient")
+LOG = logging.getLogger(__name__)
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -1292,7 +1294,7 @@ def action_enable(args, *, cfg, **kwargs):
         contract.refresh(cfg)
     except (exceptions.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
-        logging.debug(messages.REFRESH_CONTRACT_FAILURE, exc_info=True)
+        LOG.debug(messages.REFRESH_CONTRACT_FAILURE, exc_info=True)
         event.warning(warning_msg=messages.REFRESH_CONTRACT_FAILURE)
 
     names = getattr(args, "service", [])
@@ -1580,7 +1582,7 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             with tarfile.open(output_file, "w:gz") as results:
                 results.add(output_dir, arcname="logs/")
         except PermissionError as e:
-            logging.error(e)
+            LOG.error(e)
             return 1
     return 0
 
@@ -1765,7 +1767,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
         cfg.process_config()
     except RuntimeError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc)
+            LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_CONFIG_FAILURE)
     print(messages.REFRESH_CONFIG_SUCCESS)
 
@@ -1776,7 +1778,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
         contract.refresh(cfg)
     except exceptions.UrlError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc)
+            LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_CONTRACT_FAILURE)
     print(messages.REFRESH_CONTRACT_SUCCESS)
 
@@ -1792,7 +1794,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
             apt_news.update_apt_news(cfg)
     except Exception as exc:
         with util.disable_log_to_console():
-            logging.exception(exc)
+            LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_MESSAGES_FAILURE)
     else:
         print(messages.REFRESH_MESSAGES_SUCCESS)
@@ -1873,7 +1875,7 @@ def _warn_about_new_version(cmd_args=None) -> None:
 
     new_version = version.check_for_new_version()
     if new_version:
-        logging.warning(NEW_VERSION_NOTICE.format(version=new_version))
+        LOG.warning(NEW_VERSION_NOTICE.format(version=new_version))
 
 
 def _warn_about_output_redirection(cmd_args) -> None:
@@ -1908,7 +1910,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     console_formatter = util.LogFormatter()
     if logger is None:
         # Then we configure the root logger
-        logger = logging.getLogger()
+        logger = root_logger
     logger.setLevel(log_level)
     logger.addFilter(pro_log.RedactionFilter())
 
@@ -1953,7 +1955,7 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             with util.disable_log_to_console():
-                logging.error("KeyboardInterrupt")
+                LOG.error("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
             lock.clear_lock_file_if_present()
             sys.exit(1)
@@ -1974,7 +1976,7 @@ def main_error_handler(func):
                         )
                     else:
                         msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
-                    logging.exception(msg_tmpl.format(**msg_args))
+                    LOG.exception(msg_tmpl.format(**msg_args))
 
                 msg = messages.CONNECTIVITY_ERROR
                 event.error(error_msg=msg.msg, error_code=msg.name)
@@ -1988,7 +1990,7 @@ def main_error_handler(func):
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
-                logging.error(exc.msg)
+                LOG.error(exc.msg)
 
             event.error(
                 error_msg=exc.msg,
@@ -2006,7 +2008,7 @@ def main_error_handler(func):
             sys.exit(exc.exit_code)
         except Exception as e:
             with util.disable_log_to_console():
-                logging.exception("Unhandled exception, please file a bug")
+                LOG.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
                 info_msg=messages.UNEXPECTED_ERROR.msg, file_type=sys.stderr
@@ -2050,7 +2052,7 @@ def main(sys_argv=None):
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)
 
-    logging.debug("Executed with sys.argv: %r" % sys_argv)
+    LOG.debug("Executed with sys.argv: %r" % sys_argv)
 
     with util.disable_log_to_console():
         cfg.warn_about_invalid_keys()
@@ -2074,4 +2076,5 @@ def main(sys_argv=None):
 
 
 if __name__ == "__main__":
+    root_logger.propagate = False
     sys.exit(main())

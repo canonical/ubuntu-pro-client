@@ -19,9 +19,10 @@ AWS_TOKEN_TTL_SECONDS = "21600"
 AWS_TOKEN_PUT_HEADER = "X-aws-ec2-metadata-token"
 AWS_TOKEN_REQ_HEADER = AWS_TOKEN_PUT_HEADER + "-ttl-seconds"
 
+LOG = logging.getLogger(__name__)
+
 
 class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
-
     _api_token = None
     _ip_address = None
 
@@ -53,7 +54,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
                         endpoint=address, reason=getattr(e, "reason", "")
                     )
                 )
-                logging.debug(msg)
+                LOG.debug(msg)
             else:
                 self._ip_address = address
                 break

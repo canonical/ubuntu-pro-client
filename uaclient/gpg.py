@@ -4,6 +4,8 @@ import shutil
 
 from uaclient import exceptions
 
+LOG = logging.getLogger(__name__)
+
 
 def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:
     """Copy a specific key from source_keyring_dir into destination_keyfile
@@ -15,7 +17,7 @@ def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:
     :raise UserFacingError: Any GPG errors or if specific key does not exist in
         the source_keyring_file.
     """
-    logging.debug("Exporting GPG key %s", source_keyfile)
+    LOG.debug("Exporting GPG key %s", source_keyfile)
     if not os.path.exists(source_keyfile):
         raise exceptions.UserFacingError(
             "GPG key '{}' not found.".format(source_keyfile)

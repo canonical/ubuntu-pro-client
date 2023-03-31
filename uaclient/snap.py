@@ -15,6 +15,7 @@ SNAPD_SOCKET_PATH = "/run/snapd.socket"
 SNAPD_SNAPS_API = "/v2/snaps/{}"
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 SnapPackage = NamedTuple(

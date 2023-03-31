@@ -25,6 +25,7 @@ MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
     "/usr/lib/update-notifier/update-motd-updates-available"
 )
+LOG = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -74,7 +75,7 @@ def get_contract_expiry_status(
 
     # if unknown assume the worst
     if remaining_days is None:
-        logging.warning(
+        LOG.warning(
             "contract effectiveTo date is null - assuming it is expired"
         )
         return ContractExpiryStatus.EXPIRED, -grace_period
@@ -98,7 +99,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
     if not _is_attached(cfg).is_attached:
         return False
 
-    logging.debug("Updating Ubuntu Pro messages for MOTD.")
+    LOG.debug("Updating Ubuntu Pro messages for MOTD.")
     motd_contract_status_msg_path = os.path.join(
         cfg.data_dir, "messages", MOTD_CONTRACT_STATUS_FILE_NAME
     )
@@ -186,4 +187,4 @@ def refresh_motd():
         try:
             system.subp([UPDATE_NOTIFIER_MOTD_SCRIPT, "--force"])
         except Exception as exc:
-            logging.exception(exc)
+            LOG.exception(exc)
