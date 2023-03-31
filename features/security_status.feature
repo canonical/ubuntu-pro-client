@@ -393,6 +393,70 @@ Feature: Security status command behavior
                                [--thirdparty | --unavailable | --esm-infra | --esm-apps]
         argument --unavailable: not allowed with argument --thirdparty
         """
+        When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt cache may be outdated\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2026.
+
+        Enable esm-infra with: pro enable esm-infra
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2026.
+
+        Enable esm-apps with: pro enable esm-apps
+        """
+        When I run `touch -d '-2 days' /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt information was updated 2 day\(s\) ago\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        This machine is NOT receiving security patches because the LTS period has ended
+        and esm-infra is not enabled.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2026.
+
+        Enable esm-infra with: pro enable esm-infra
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2026.
+
+        Enable esm-apps with: pro enable esm-apps
+        """
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -649,6 +713,70 @@ Feature: Security status command behavior
                                [--thirdparty | --unavailable | --esm-infra | --esm-apps]
         argument --unavailable: not allowed with argument --thirdparty
         """
+        When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt cache may be outdated\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+
+        Enable esm-infra with: pro enable esm-infra
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2030.
+
+        Enable esm-apps with: pro enable esm-apps
+        """
+        When I run `touch -d '-2 days' /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ package[s]? from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt information was updated 2 day\(s\) ago\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        This machine is receiving security patching for Ubuntu Main/Restricted
+        repository until 2025.
+        This machine is attached to an Ubuntu Pro subscription.
+
+        Ubuntu Pro with 'esm-infra' enabled provides security updates for
+        Main/Restricted packages until 2030.
+
+        Enable esm-infra with: pro enable esm-infra
+
+        Ubuntu Pro with 'esm-apps' enabled provides security updates for
+        Universe/Multiverse packages until 2030.
+
+        Enable esm-apps with: pro enable esm-apps
+        """
 
     @series.kinetic
     @uses.config.machine_type.lxd.container
@@ -692,6 +820,50 @@ Feature: Security status command behavior
         """
         \d+ packages installed:
          +\d+ packages from Ubuntu Universe/Multiverse repository
+
+        Ubuntu Pro is not available for non-LTS releases\.
+        """
+        When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ packages from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt cache may be outdated\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        Main/Restricted packages receive updates until 7/2023\.
+
+        Ubuntu Pro is not available for non-LTS releases\.
+        """
+        When I run `touch -d '-2 days' /var/lib/apt/periodic/update-success-stamp` with sudo
+        And I run `pro security-status` as non-root
+        Then stdout matches regexp:
+        """
+        \d+ packages installed:
+         +\d+ packages from Ubuntu Main/Restricted repository
+         +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+         +\d+ package[s]? from a third party
+         +\d+ package[s]? no longer available for download
+
+        To get more information about the packages, run
+            pro security-status --help
+        for a list of available options\.
+
+        The system apt information was updated 2 day\(s\) ago\. Make sure to run
+            sudo apt-get update
+        to get the latest package information from apt\.
+
+        Main/Restricted packages receive updates until 7/2023\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """

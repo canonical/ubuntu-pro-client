@@ -1,6 +1,7 @@
 import re
 import textwrap
 from collections import defaultdict
+from datetime import datetime, timezone
 from enum import Enum
 from functools import lru_cache
 from random import choice
@@ -9,7 +10,12 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import livepatch, messages
-from uaclient.apt import PreserveAptCfg, get_apt_cache, get_esm_cache
+from uaclient.apt import (
+    PreserveAptCfg,
+    get_apt_cache,
+    get_apt_cache_datetime,
+    get_esm_cache,
+)
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
@@ -519,6 +525,20 @@ def _print_package_list(
     print(messages.SS_POLICY_HINT.format(package=choice(hint_package_list)))
 
 
+def _print_apt_update_call():
+    last_apt_update = get_apt_cache_datetime()
+    if last_apt_update is None:
+        print(messages.SS_UPDATE_UNKNOWN)
+        print("")
+        return
+
+    now = datetime.now(timezone.utc)
+    time_since_update = now - last_apt_update
+    if time_since_update.days > 0:
+        print(messages.SS_UPDATE_DAYS.format(days=time_since_update.days))
+        print("")
+
+
 def security_status(cfg: UAConfig):
     esm_infra_status = ESMInfraEntitlement(cfg).application_status()[0]
     esm_infra_applicability = ESMInfraEntitlement(cfg).applicability_status()[
@@ -548,6 +568,8 @@ def security_status(cfg: UAConfig):
 
     print(messages.SS_HELP_CALL)
     print("")
+
+    _print_apt_update_call()
 
     if not is_lts:
         if is_supported(series):
