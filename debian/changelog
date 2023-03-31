@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (27.14.3) lunar; urgency=medium
+
+  * livepatch: prevent livepatch from auto-enabling and subsequently failing
+    on interim releases (LP: #2013409)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 31 Mar 2023 10:13:44 -0400
+
 ubuntu-advantage-tools (27.14.2~23.04.1) lunar; urgency=medium
 
   * status:
