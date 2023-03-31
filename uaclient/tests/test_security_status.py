@@ -735,7 +735,7 @@ class TestRebootStatus:
             (
                 "nothing-to-apply",
                 "supported",
-                RebootStatus.REBOOT_REQUIRED,
+                RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED,
                 "4.15.0-187.198-generic",
             ),
             (
