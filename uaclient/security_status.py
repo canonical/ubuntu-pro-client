@@ -451,31 +451,34 @@ def _print_service_support(
             service=service,
             year=str(eol_date_esm.year),
         )
-        if installed_updates:
-            message += messages.SS_SERVICE_ENABLED_COUNTS.format(
-                updates=installed_updates,
-                plural="" if installed_updates == 1 else "s",
-            )
-        print(message)
     else:
         message = messages.SS_SERVICE_ADVERTISE.format(
             service=service,
             repository=repository,
             year=str(eol_date_esm.year),
         )
-        if available_updates:
-            message += messages.SS_SERVICE_ADVERTISE_COUNTS.format(
-                updates=available_updates,
-                plural="s" if available_updates > 1 else "",
-            )
-        else:
-            message += "."
-        print(message)
-        if (
-            is_attached
-            and service_applicability == ApplicabilityStatus.APPLICABLE
-        ):
-            print(messages.SS_SERVICE_COMMAND.format(service=service))
+
+    if installed_updates:
+        message += messages.SS_SERVICE_ENABLED_COUNTS.format(
+            updates=installed_updates,
+            plural="" if installed_updates == 1 else "s",
+        )
+
+    if available_updates:
+        message += messages.SS_SERVICE_ADVERTISE_COUNTS.format(
+            verb="is" if available_updates == 1 else "are",
+            updates=available_updates,
+            plural="s" if available_updates > 1 else "",
+        )
+    print(message)
+
+    if (
+        is_attached
+        and service_status == ApplicationStatus.DISABLED
+        and service_applicability == ApplicabilityStatus.APPLICABLE
+    ):
+        print("")
+        print(messages.SS_SERVICE_COMMAND.format(service=service))
 
     print("")
 
