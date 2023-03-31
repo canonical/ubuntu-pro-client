@@ -1026,9 +1026,9 @@ and esm-infra is not enabled."""
 
 SS_SERVICE_ADVERTISE = """\
 Ubuntu Pro with '{service}' enabled provides security updates for
-{repository} packages until {year}"""
+{repository} packages until {year}."""
 SS_SERVICE_ADVERTISE_COUNTS = (
-    " and has {updates} pending security update{plural}."
+    " There {verb} {updates} pending security update{plural}."
 )
 
 SS_SERVICE_ENABLED = """\
