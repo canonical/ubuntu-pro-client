@@ -1,3 +1,15 @@
+ubuntu-advantage-tools (27.14.3) lunar; urgency=medium
+
+  * d/ubuntu-advantage-tools.postinst:
+    - refine regex used for old ua_config warning (LP: #TODO)
+  * livepatch: prevent livepatch from auto-enabling and subsequently failing
+    on interim releases (LP: #2013409)
+  * config: no longer look for a uaclient.conf in the current working
+    directory (LP: #TODO)
+
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Thu, 30 Mar 2023 08:04:44 -0400
+
 ubuntu-advantage-tools (27.14.2~23.04.1) lunar; urgency=medium
 
   * status:
