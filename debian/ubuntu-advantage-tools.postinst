@@ -443,7 +443,7 @@ case "$1" in
           migrate_user_config_post
       fi
 
-      if grep -q "ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
+      if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
           echo "Warning: uaclient.conf uses old ua_config field. Please remove and use" >&2
           echo "         pro config set to configure any custom settings." >&2
       fi
