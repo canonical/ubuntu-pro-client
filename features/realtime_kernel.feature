@@ -109,6 +109,47 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             Installed: (none)
             """
+        When I set the machine token overlay to the following yaml
+        """
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: realtime-kernel
+                overrides:
+                  - directives:
+                      additionalPackages:
+                        - nvidia-prime
+                    selector:
+                      platform: nvidia-tegra
+                  - directives:
+                      additionalPackages:
+                        - intel-pkg
+                    selector:
+                      platform: intel-iotg
+        """
+        And I run `pro enable realtime-kernel --variant nvidia-tegra` with sudo
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Installing Real-time Nvidia Tegra Kernel packages
+        Real-time Nvidia Tegra Kernel enabled
+        """
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel\* yes +enabled +Ubuntu kernel with PREEMPT_RT patches integrated
+
+         \* This service has options, use pro status --all to see more details.
+        """
+         When I run `pro status --all` as non-root
+         Then stdout matches regexp:
+         """
+         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
+         ├ nvidia-tegra   yes +enabled   +RT kernel optimized for NVidia Tegra platforms
+         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+         """
 
         Examples: ubuntu release
             | release |
