@@ -496,9 +496,9 @@ LOGO=ubuntu-logo
     )
     @mock.patch("uaclient.system.load_file")
     def test_parse_os_release(self, m_load_file, content, expected):
-        """parse_os_release returns a dict of values from /etc/os-release."""
+        """_parse_os_release returns a dict of values from /etc/os-release."""
         m_load_file.return_value = content
-        assert expected == system.parse_os_release.__wrapped__()
+        assert expected == system._parse_os_release.__wrapped__()
         assert m_load_file.call_args_list == [mock.call("/etc/os-release")]
 
 
@@ -561,7 +561,7 @@ class TestGetReleaseInfo:
             ),
         ),
     )
-    @mock.patch("uaclient.system.parse_os_release")
+    @mock.patch("uaclient.system._parse_os_release")
     def test_get_release_info_error(
         self, m_parse_os_release, version, expected_exception
     ):
@@ -654,7 +654,7 @@ class TestGetReleaseInfo:
     )
     @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system.parse_os_release")
+    @mock.patch("uaclient.system._parse_os_release")
     @mock.patch("uaclient.system.get_virt_type")
     def test_get_release_info_with_version(
         self,
