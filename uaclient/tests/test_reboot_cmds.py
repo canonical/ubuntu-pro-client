@@ -99,6 +99,7 @@ class TestFixProPkgHolds:
             "services": [{"name": "fips", "status": fips_status}]
         }
         cfg.write_cache("status-cache", fake_status_cache)
+
         fix_pro_pkg_holds(cfg=cfg)
         if fips_status == "enabled":
             assert [mock.call()] == setup_apt_config.call_args_list
