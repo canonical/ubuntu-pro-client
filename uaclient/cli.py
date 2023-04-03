@@ -1265,6 +1265,14 @@ def action_enable(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
+    variant = getattr(args, "variant", "")
+    access_only = args.access_only
+
+    if variant and access_only:
+        raise exceptions.InvalidOptionCombination(
+            option1="--access-only", option2="--variant"
+        )
+
     event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
@@ -1285,8 +1293,8 @@ def action_enable(args, *, cfg, **kwargs):
                 ent_name,
                 assume_yes=args.assume_yes,
                 allow_beta=args.beta,
-                access_only=args.access_only,
-                variant=getattr(args, "variant", ""),
+                access_only=access_only,
+                variant=variant,
             )
             ua_status.status(cfg=cfg)  # Update the status cache
 
