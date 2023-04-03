@@ -15,7 +15,6 @@ should run at next boot to process any pending/unresovled config operations.
 """
 
 import logging
-import os
 import sys
 
 from uaclient import (
@@ -29,7 +28,7 @@ from uaclient import (
 )
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.files import notices
+from uaclient.files import notices, state_files
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
@@ -84,18 +83,12 @@ def process_remaining_deltas(cfg: config.UAConfig):
 
 
 def process_reboot_operations(cfg: config.UAConfig):
-
-    reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
-
     if not cfg.is_attached:
         logging.debug("Skipping reboot_cmds. Machine is unattached")
-
-        if os.path.exists(reboot_cmd_marker_file):
-            cfg.delete_cache_key("marker-reboot-cmds")
-
+        state_files.reboot_cmd_marker_file.delete()
         return
 
-    if os.path.exists(reboot_cmd_marker_file):
+    if state_files.reboot_cmd_marker_file.is_present:
         logging.debug("Running process contract deltas on reboot ...")
 
         try:
@@ -103,7 +96,7 @@ def process_reboot_operations(cfg: config.UAConfig):
             refresh_contract(cfg)
             process_remaining_deltas(cfg)
 
-            cfg.delete_cache_key("marker-reboot-cmds")
+            state_files.reboot_cmd_marker_file.delete()
             notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
             logging.debug("Successfully ran all commands on reboot.")
         except Exception as e:
