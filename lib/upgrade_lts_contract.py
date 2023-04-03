@@ -24,11 +24,9 @@ import logging
 import sys
 import time
 
+from uaclient import contract, defaults, system
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
-from uaclient.contract import process_entitlements_delta
-from uaclient.defaults import ESM_APT_ROOTDIR
-from uaclient.system import ensure_folder_absent, parse_os_release, subp
 
 version_to_codename = {
     "14.04": "trusty",
@@ -59,14 +57,14 @@ def process_contract_delta_after_apt_lock() -> None:
     if not cfg.is_attached:
         logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
-    out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
+    out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."
     if out:
         msg += " Retrying every 10 seconds waiting on released apt lock"
     print(msg)
     logging.debug(msg)
 
-    current_version = parse_os_release()["VERSION_ID"]
+    current_version = system.parse_os_release()["VERSION_ID"]
     current_release = version_to_codename.get(current_version)
 
     if current_release is None:
@@ -95,7 +93,9 @@ def process_contract_delta_after_apt_lock() -> None:
     while out:
         # Loop until apt hold is released at the end of `do-release-upgrade`
         time.sleep(10)
-        out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
+        out, _err = system.subp(
+            ["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1]
+        )
         retry_count += 1
 
     msg = "upgrade-lts-contract processing contract deltas: {} -> {}".format(
@@ -104,7 +104,7 @@ def process_contract_delta_after_apt_lock() -> None:
     print(msg)
     logging.debug(msg)
 
-    process_entitlements_delta(
+    contract.process_entitlements_delta(
         cfg=cfg,
         past_entitlements=past_entitlements,
         new_entitlements=new_entitlements,
@@ -117,7 +117,7 @@ def process_contract_delta_after_apt_lock() -> None:
 
 
 def remove_private_esm_apt_cache():
-    ensure_folder_absent(ESM_APT_ROOTDIR)
+    system.ensure_folder_absent(defaults.ESM_APT_ROOTDIR)
 
 
 if __name__ == "__main__":
