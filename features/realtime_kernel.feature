@@ -109,6 +109,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             Installed: (none)
             """
+        When I verify that running `pro enable realtime-kernel --access-only --variant nvidia-tegra` `with sudo` exits `1`
+        Then I will see the following on stderr:
+        """
+        Error: Cannot use --access-only together with --variant.
+        """
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:

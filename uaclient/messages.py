@@ -1311,3 +1311,8 @@ SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
 The {service} service is not enable because the {package} package is
 not installed.""",
 )
+
+INVALID_OPTION_COMBINATION = FormattedNamedMessage(
+    "invalid-option-combination",
+    "Error: Cannot use {option1} together with {option2}.",
+)
