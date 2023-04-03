@@ -1,108 +1,18 @@
 #!/usr/bin/env python3
 
 """
-This script should be used after running do-release-upgrade in a machine.
-It will detect any contract deltas between the release before
-do-release-upgrade and the current release. If we find any differences in
-the uaclient contract between those releases, we will apply that difference
-in the upgraded release.
-
-For example, suppose we are on Trusty and we are upgrading to Xenial. We found
-that the apt url for esm services on trusty:
-
-https://esm.ubuntu.com/ubuntu
-
-While on Xenial, the apt url is:
-
-https://esm.ubuntu.com/infra/ubuntu
-
-This script will detect differences like that and update the Xenial system
-to reflect them.
+This script is called after running do-release-upgrade in a machine.
+See uaclient/upgrade_lts_contract.py for more details.
 """
 
 import logging
-import sys
-import time
 
-from uaclient import contract, defaults, system
+from uaclient import upgrade_lts_contract
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 
-# We consider the past release for LTSs to be the last LTS,
-# because we don't have any services available on non-LTS.
-# This makes it safer for us to try to process contract deltas.
-# For example, we had "jammy": "focal" even when Impish was
-# still supported.
-current_codename_to_past_codename = {
-    "xenial": "trusty",
-    "bionic": "xenial",
-    "focal": "bionic",
-    "jammy": "focal",
-    "kinetic": "jammy",
-}
-
-
-def process_contract_delta_after_apt_lock() -> None:
-    logging.debug("Check whether to upgrade-lts-contract")
-    cfg = UAConfig()
-    if not cfg.is_attached:
-        logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
-        return
-    out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
-    msg = "Starting upgrade-lts-contract."
-    if out:
-        msg += " Retrying every 10 seconds waiting on released apt lock"
-    print(msg)
-    logging.debug(msg)
-
-    current_release = system.get_release_info().series
-
-    past_release = current_codename_to_past_codename.get(current_release)
-    if past_release is None:
-        msg = "Could not find past release for: {}".format(current_release)
-        print(msg)
-        logging.warning(msg)
-        sys.exit(1)
-
-    past_entitlements = UAConfig(
-        series=past_release,
-    ).machine_token_file.entitlements
-    new_entitlements = UAConfig(
-        series=current_release,
-    ).machine_token_file.entitlements
-
-    retry_count = 0
-    while out:
-        # Loop until apt hold is released at the end of `do-release-upgrade`
-        time.sleep(10)
-        out, _err = system.subp(
-            ["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1]
-        )
-        retry_count += 1
-
-    msg = "upgrade-lts-contract processing contract deltas: {} -> {}".format(
-        past_release, current_release
-    )
-    print(msg)
-    logging.debug(msg)
-
-    contract.process_entitlements_delta(
-        cfg=cfg,
-        past_entitlements=past_entitlements,
-        new_entitlements=new_entitlements,
-        allow_enable=True,
-        series_overrides=False,
-    )
-    msg = "upgrade-lts-contract succeeded after {} retries".format(retry_count)
-    print(msg)
-    logging.debug(msg)
-
-
-def remove_private_esm_apt_cache():
-    system.ensure_folder_absent(defaults.ESM_APT_ROOTDIR)
-
-
 if __name__ == "__main__":
     setup_logging(logging.INFO, logging.DEBUG)
-    process_contract_delta_after_apt_lock()
-    remove_private_esm_apt_cache()
+    cfg = UAConfig()
+    upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
+    upgrade_lts_contract.remove_private_esm_apt_cache()
