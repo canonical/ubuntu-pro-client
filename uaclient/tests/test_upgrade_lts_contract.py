@@ -33,8 +33,8 @@ class TestUpgradeLTSContract:
         new_callable=mock.PropertyMock,
         return_value=True,
     )
-    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
-    @mock.patch("lib.upgrade_lts_contract.subp")
+    @mock.patch("lib.upgrade_lts_contract.system.parse_os_release")
+    @mock.patch("lib.upgrade_lts_contract.system.subp")
     def test_upgrade_cancel_when_current_version_not_supported(
         self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
     ):
@@ -64,8 +64,8 @@ class TestUpgradeLTSContract:
         new_callable=mock.PropertyMock,
         return_value=True,
     )
-    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
-    @mock.patch("lib.upgrade_lts_contract.subp")
+    @mock.patch("lib.upgrade_lts_contract.system.parse_os_release")
+    @mock.patch("lib.upgrade_lts_contract.system.subp")
     def test_upgrade_cancel_when_past_version_not_supported(
         self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
     ):
@@ -99,9 +99,9 @@ class TestUpgradeLTSContract:
         new_callable=mock.PropertyMock,
         return_value=True,
     )
-    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
-    @mock.patch("lib.upgrade_lts_contract.subp")
-    @mock.patch("lib.upgrade_lts_contract.process_entitlements_delta")
+    @mock.patch("lib.upgrade_lts_contract.system.parse_os_release")
+    @mock.patch("lib.upgrade_lts_contract.system.subp")
+    @mock.patch("lib.upgrade_lts_contract.contract.process_entitlements_delta")
     @mock.patch("lib.upgrade_lts_contract.time.sleep")
     def test_upgrade_contract_when_apt_lock_is_held(
         self,
