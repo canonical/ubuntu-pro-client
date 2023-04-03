@@ -41,7 +41,7 @@ class TestMain:
         ) in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("lib.reboot_cmds.subp")
+    @mock.patch("lib.reboot_cmds.system.subp")
     def test_main_unattached_removes_marker(
         self,
         m_subp,
@@ -55,14 +55,14 @@ class TestMain:
         assert "Skipping reboot_cmds. Machine is unattached" in caplog_text()
         assert 0 == m_subp.call_count
 
-    @mock.patch("lib.reboot_cmds.subp")
+    @mock.patch("lib.reboot_cmds.system.subp")
     def test_main_noops_when_no_marker(self, m_subp, FakeConfig):
         cfg = FakeConfig()
         assert None is cfg.read_cache("marker-reboot-cmds")
         main(cfg=cfg)
         assert 0 == m_subp.call_count
 
-    @mock.patch("lib.reboot_cmds.subp")
+    @mock.patch("lib.reboot_cmds.system.subp")
     def test_main_unattached_removes_marker_file(
         self,
         m_subp,
@@ -115,7 +115,7 @@ class TestFixProPkgHolds:
 class TestRunCommand:
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
     @mock.patch("sys.exit")
-    @mock.patch("lib.reboot_cmds.subp")
+    @mock.patch("lib.reboot_cmds.system.subp")
     def test_run_command_failure(self, m_subp, m_exit, caplog_text):
         cmd = "foobar"
         m_cfg = mock.MagicMock()
