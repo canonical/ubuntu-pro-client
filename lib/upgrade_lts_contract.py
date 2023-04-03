@@ -28,15 +28,6 @@ from uaclient import contract, defaults, system
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 
-version_to_codename = {
-    "14.04": "trusty",
-    "16.04": "xenial",
-    "18.04": "bionic",
-    "20.04": "focal",
-    "22.04": "jammy",
-    "22.10": "kinetic",
-}
-
 # We consider the past release for LTSs to be the last LTS,
 # because we don't have any services available on non-LTS.
 # This makes it safer for us to try to process contract deltas.
@@ -64,16 +55,7 @@ def process_contract_delta_after_apt_lock() -> None:
     print(msg)
     logging.debug(msg)
 
-    current_version = system.parse_os_release()["VERSION_ID"]
-    current_release = version_to_codename.get(current_version)
-
-    if current_release is None:
-        msg = "Unable to get release codename for version: {}".format(
-            current_version
-        )
-        print(msg)
-        logging.warning(msg)
-        sys.exit(1)
+    current_release = system.get_release_info().series
 
     past_release = current_codename_to_past_codename.get(current_release)
     if past_release is None:
