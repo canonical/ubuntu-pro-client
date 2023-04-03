@@ -63,33 +63,31 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
         return
     for service in status_cache.get("services", []):
         if service.get("name") == "fips":
-            service_status = service.get("status")
-            if service_status == "enabled":
-                ent_cls = FIPSEntitlement
-                logging.debug(
-                    "Attempting to remove Ubuntu Pro FIPS package holds"
-                )
-                entitlement = ent_cls(cfg)
-                try:
-                    entitlement.setup_apt_config()  # Removes package holds
-                    logging.debug(
-                        "Successfully removed Ubuntu Pro FIPS package holds"
-                    )
-                except Exception as e:
-                    logging.exception(e)
-                    logging.warning(
-                        "Could not remove Ubuntu PRO FIPS package holds"
-                    )
-                try:
-                    entitlement.install_packages(cleanup_on_failure=False)
-                except exceptions.UserFacingError as e:
-                    logging.error(e.msg)
-                    logging.warning(
-                        "Failed to install packages at boot: {}".format(
-                            ", ".join(entitlement.packages)
-                        )
-                    )
-                    sys.exit(1)
+            if service.get("status") == "enabled":
+                # fips was enabled, fix the holds
+                break
+            else:
+                # fips was not enabled, don't do anything
+                return
+
+    fips = FIPSEntitlement(cfg)
+    logging.debug("Attempting to remove Ubuntu Pro FIPS package holds")
+    try:
+        fips.setup_apt_config()  # Removes package holds
+        logging.debug("Successfully removed Ubuntu Pro FIPS package holds")
+    except Exception as e:
+        logging.error(e)
+        logging.warning("Could not remove Ubuntu Pro FIPS package holds")
+    try:
+        fips.install_packages(cleanup_on_failure=False)
+    except exceptions.UserFacingError as e:
+        logging.error(e.msg)
+        logging.warning(
+            "Failed to install packages at boot: {}".format(
+                ", ".join(fips.packages)
+            )
+        )
+        sys.exit(1)
 
 
 def refresh_contract(cfg: config.UAConfig):
