@@ -852,19 +852,23 @@ class TestStatus:
         )
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
+    @mock.patch(
+        "uaclient.files.state_files.reboot_cmd_marker_file",
+        new_callable=mock.PropertyMock,
+    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_nonroot_user_does_not_use_cache(
         self,
         _m_get_available_resources,
+        m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
     ):
-
+        m_reboot_cmd_marker_file.is_present = True
         cached_status = {"pass": True}
         cfg = FakeConfig()
-        cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
         cfg.write_cache("status-cache", cached_status)
         before = status.status(cfg=cfg)
 

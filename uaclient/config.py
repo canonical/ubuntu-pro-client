@@ -92,7 +92,6 @@ class UAConfig:
         "machine-access-cis": DataPath("machine-access-cis.json", True),
         "lock": DataPath("lock", False),
         "status-cache": DataPath("status.json", False),
-        "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
     }  # type: Dict[str, DataPath]
 
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
