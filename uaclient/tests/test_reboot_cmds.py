@@ -36,29 +36,50 @@ class TestMain:
         ) in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch(
+        "uaclient.files.state_files.reboot_cmd_marker_file",
+        new_callable=mock.PropertyMock,
+    )
     def test_main_unattached_removes_marker(
         self,
+        m_reboot_cmd_marker_file,
         FakeConfig,
         caplog_text,
     ):
         cfg = FakeConfig()
-        cfg.write_cache("marker-reboot-cmds", "samplecontent")
+        m_reboot_cmd_marker_file.is_present = True
         main(cfg=cfg)
-        assert None is cfg.read_cache("marker-reboot-cmds")
+        assert [mock.call()] == m_reboot_cmd_marker_file.delete.call_args_list
         assert "Skipping reboot_cmds. Machine is unattached" in caplog_text()
 
-    def test_main_noops_when_no_marker(self, FakeConfig):
+    @mock.patch(
+        "uaclient.files.state_files.reboot_cmd_marker_file",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
+    def test_main_noops_when_not_attached(
+        self, m_fix_pro_pkg_holds, m_reboot_cmd_marker_file, FakeConfig
+    ):
+        m_reboot_cmd_marker_file.is_present = True
         cfg = FakeConfig()
-        assert None is cfg.read_cache("marker-reboot-cmds")
         main(cfg=cfg)
+        assert [] == m_fix_pro_pkg_holds.call_args_list
 
-    def test_main_unattached_removes_marker_file(
+    @mock.patch(
+        "uaclient.files.state_files.reboot_cmd_marker_file",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
+    def test_main_noops_when_no_marker(
         self,
+        m_fix_pro_pkg_holds,
+        m_reboot_cmd_marker_file,
         FakeConfig,
     ):
+        m_reboot_cmd_marker_file.is_present = False
         cfg = FakeConfig.for_attached_machine()
-        assert None is cfg.read_cache("marker-reboot-cmds")
         main(cfg=cfg)
+        assert [] == m_fix_pro_pkg_holds.call_args_list
 
 
 M_REPO_PATH = "uaclient.entitlements"
