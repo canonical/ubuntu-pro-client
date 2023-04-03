@@ -25,7 +25,7 @@ from uaclient import (
     exceptions,
     lock,
     messages,
-    system,
+    upgrade_lts_contract,
 )
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
@@ -35,26 +35,6 @@ from uaclient.files import notices
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
 SLEEP_ON_LOCK_HELD = 1
 MAX_RETRIES_ON_LOCK_HELD = 7
-
-
-def run_command(cmd, cfg: config.UAConfig):
-    try:
-        out, _ = system.subp(cmd.split(), capture=True)
-        logging.debug("Successfully executed cmd: {}".format(cmd))
-    except exceptions.ProcessExecutionError as exec_error:
-        msg = (
-            "Failed running cmd: {}\n"
-            "Return code: {}\n"
-            "Stderr: {}\n"
-            "Stdout: {}".format(
-                cmd, exec_error.exit_code, exec_error.stderr, exec_error.stdout
-            )
-        )
-
-        cfg.delete_cache_key("marker-reboot-cmds")
-
-        logging.warning(msg)
-        sys.exit(1)
 
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):
@@ -100,8 +80,7 @@ def refresh_contract(cfg: config.UAConfig):
 
 
 def process_remaining_deltas(cfg: config.UAConfig):
-    cmd = "/usr/bin/python3 /usr/lib/ubuntu-advantage/upgrade_lts_contract.py"
-    run_command(cmd=cmd, cfg=cfg)
+    upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
 
 
 def process_reboot_operations(cfg: config.UAConfig):
