@@ -18,12 +18,18 @@ import logging
 import os
 import sys
 
-from uaclient import config, contract, defaults, exceptions, lock, messages
+from uaclient import (
+    config,
+    contract,
+    defaults,
+    exceptions,
+    lock,
+    messages,
+    system,
+)
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices
-from uaclient.files.notices import Notice
-from uaclient.system import subp
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
@@ -33,7 +39,7 @@ MAX_RETRIES_ON_LOCK_HELD = 7
 
 def run_command(cmd, cfg: config.UAConfig):
     try:
-        out, _ = subp(cmd.split(), capture=True)
+        out, _ = system.subp(cmd.split(), capture=True)
         logging.debug("Successfully executed cmd: {}".format(cmd))
     except exceptions.ProcessExecutionError as exec_error:
         msg = (
@@ -121,15 +127,13 @@ def process_reboot_operations(cfg: config.UAConfig):
             process_remaining_deltas(cfg)
 
             cfg.delete_cache_key("marker-reboot-cmds")
-            notices.remove(Notice.REBOOT_SCRIPT_FAILED)
+            notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
             logging.debug("Successfully ran all commands on reboot.")
         except Exception as e:
             msg = "Failed running commands on reboot."
             msg += str(e)
             logging.error(msg)
-            notices.add(
-                Notice.REBOOT_SCRIPT_FAILED,
-            )
+            notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
 
 
 def main(cfg: config.UAConfig):
