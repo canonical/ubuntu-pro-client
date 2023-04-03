@@ -291,6 +291,8 @@ class TestActionEnable:
         args = mock.MagicMock()
         args.service = ["bogus"]
         args.command = "enable"
+        args.access_only = False
+
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
 
@@ -725,6 +727,7 @@ class TestActionEnable:
         args_mock.service = ["ent1"]
         args_mock.assume_yes = False
         args_mock.beta = False
+        args_mock.access_only = False
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -792,6 +795,7 @@ class TestActionEnable:
         args_mock = mock.MagicMock()
         args_mock.service = service
         args_mock.beta = beta
+        args_mock.access_only = False
 
         with pytest.raises(exceptions.UserFacingError) as err:
             fake_stdout = io.StringIO()
@@ -953,3 +957,14 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
+
+    def test_access_only_cannot_be_used_together_with_variant(
+        self, _m_get_available_resources, FakeConfig
+    ):
+        cfg = FakeConfig.for_attached_machine()
+        args_mock = mock.MagicMock()
+        args_mock.access_only = True
+        args_mock.variant = "variant"
+
+        with pytest.raises(exceptions.InvalidOptionCombination):
+            action_enable(args_mock, cfg)

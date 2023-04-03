@@ -477,3 +477,11 @@ class InvalidLockFile(UserFacingError):
     def __init__(self, lock_file_path):
         msg = messages.INVALID_LOCK_FILE.format(lock_file_path=lock_file_path)
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class InvalidOptionCombination(UserFacingError):
+    def __init__(self, option1: str, option2: str):
+        msg = messages.INVALID_OPTION_COMBINATION.format(
+            option1=option1, option2=option2
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
