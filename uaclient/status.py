@@ -1,6 +1,5 @@
 import copy
 import logging
-import os
 import sys
 import textwrap
 from collections import OrderedDict
@@ -25,7 +24,7 @@ from uaclient.entitlements.entitlement_status import (
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.files import notices
+from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 
@@ -341,7 +340,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         status_desc = messages.LOCK_HELD.format(
             pid=lock_pid, lock_holder=lock_holder
         ).msg
-    elif os.path.exists(cfg.data_path("marker-reboot-cmds")):
+    elif state_files.reboot_cmd_marker_file.is_present:
         status_val = userStatus.REBOOTREQUIRED.value
         operation = "configuration changes"
         status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(

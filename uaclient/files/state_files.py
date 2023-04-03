@@ -233,3 +233,6 @@ user_config_file = DataObjectFile(
     DataObjectFileFormat.JSON,
     optional_type_errors_become_null=True,
 )
+
+
+reboot_cmd_marker_file = UAFile("marker-reboot-cmds-required")
