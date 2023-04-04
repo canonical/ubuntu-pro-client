@@ -613,7 +613,7 @@ def list_third_party_packages():
         print("")
         print("Packages:")
         _print_package_list(package_names)
-        print(messages.SS_POLICY_HINT.format(package=choice(package_names)))
+        print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
     else:
         print(messages.SS_NO_THIRD_PARTY)
 
@@ -633,7 +633,7 @@ def list_unavailable_packages():
 
         print("Packages:")
         _print_package_list(package_names)
-        print(messages.SS_POLICY_HINT.format(package=choice(package_names)))
+        print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
 
     else:
         print(messages.SS_NO_UNAVAILABLE)
@@ -661,14 +661,20 @@ def list_esm_infra_packages(cfg):
         0
     ]
 
-    installed_package_names = [package.name for package in infra_packages]
-    available_package_names = [package.name for package in infra_updates]
-    remaining_package_names = [
-        package.name
-        for package in all_infra_packages
-        if package.name not in installed_package_names
-        and package.name not in available_package_names
-    ]
+    installed_package_names = sorted(
+        [package.name for package in infra_packages]
+    )
+    available_package_names = sorted(
+        [package.name for package in infra_updates]
+    )
+    remaining_package_names = sorted(
+        [
+            package.name
+            for package in all_infra_packages
+            if package.name not in installed_package_names
+            and package.name not in available_package_names
+        ]
+    )
 
     _print_package_summary(
         packages_by_origin, show_items="esm-infra", always_show=True
@@ -705,16 +711,19 @@ def list_esm_infra_packages(cfg):
             print(messages.SS_UPDATES_INSTALLED.format(service="esm-infra"))
             _print_package_list(installed_package_names)
 
+        hint_list = available_package_names or installed_package_names
         # Check names because packages may have been already listed
         if remaining_package_names:
-            print(messages.SS_OTHER_PACKAGES.format(service="esm-infra"))
-            _print_package_list(remaining_package_names)
-
             print(
-                messages.SS_POLICY_HINT.format(
-                    package=choice(remaining_package_names)
+                messages.SS_OTHER_PACKAGES.format(
+                    prefix="Further installed" if hint_list else "Installed",
+                    service="esm-infra",
                 )
             )
+            _print_package_list(remaining_package_names)
+
+        if hint_list:
+            print(messages.SS_SHOW_HINT.format(package=choice(hint_list)))
 
 
 def list_esm_apps_packages(cfg):
@@ -738,14 +747,20 @@ def list_esm_apps_packages(cfg):
     esm_apps_status = ESMAppsEntitlement(cfg).application_status()[0]
     esm_apps_applicability = ESMAppsEntitlement(cfg).applicability_status()[0]
 
-    installed_package_names = [package.name for package in apps_packages]
-    available_package_names = [package.name for package in apps_updates]
-    remaining_package_names = [
-        package.name
-        for package in all_apps_packages
-        if package.name not in installed_package_names
-        and package.name not in available_package_names
-    ]
+    installed_package_names = sorted(
+        [package.name for package in apps_packages]
+    )
+    available_package_names = sorted(
+        [package.name for package in apps_updates]
+    )
+    remaining_package_names = sorted(
+        [
+            package.name
+            for package in all_apps_packages
+            if package.name not in installed_package_names
+            and package.name not in available_package_names
+        ]
+    )
 
     _print_package_summary(
         packages_by_origin, show_items="esm-apps", always_show=True
@@ -776,13 +791,17 @@ def list_esm_apps_packages(cfg):
             print(messages.SS_UPDATES_INSTALLED.format(service="esm-apps"))
             _print_package_list(installed_package_names)
 
+        hint_list = available_package_names or installed_package_names
+
         # Check names because packages may have been already listed
         if remaining_package_names:
-            print(messages.SS_OTHER_PACKAGES.format(service="esm-apps"))
-            _print_package_list(remaining_package_names)
-
             print(
-                messages.SS_POLICY_HINT.format(
-                    package=choice(remaining_package_names)
+                messages.SS_OTHER_PACKAGES.format(
+                    prefix="Further installed" if hint_list else "Installed",
+                    service="esm-apps",
                 )
             )
+            _print_package_list(remaining_package_names)
+
+        if hint_list:
+            print(messages.SS_SHOW_HINT.format(package=choice(hint_list)))

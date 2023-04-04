@@ -1092,9 +1092,9 @@ Learn more at {url}
     url=BASE_UA_URL
 )
 
-SS_POLICY_HINT = """\
+SS_SHOW_HINT = """\
 For example, run:
-    apt-cache policy {package}
+    apt-cache show {package}
 to learn more about that package."""
 
 SS_NO_THIRD_PARTY = "You have no packages installed from a third party."
@@ -1107,7 +1107,7 @@ SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
 
 SS_UPDATES_AVAILABLE = "Installed packages with an available {service} update:"
 SS_UPDATES_INSTALLED = "Installed packages with an {service} update applied:"
-SS_OTHER_PACKAGES = "Further installed packages covered by {service}:"
+SS_OTHER_PACKAGES = "{prefix} packages covered by {service}:"
 
 ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
     "entitlement-not-found",
