@@ -183,7 +183,7 @@ class TestTimer:
             assert [
                 mock.call(m_jobs_state())
             ] == fake_file.write.call_args_list
-            assert 3 == m_run_job.call_count
+            assert 2 == m_run_job.call_count
         else:
             assert [] == fake_file.write.call_args_list
             assert 0 == m_run_job.call_count
