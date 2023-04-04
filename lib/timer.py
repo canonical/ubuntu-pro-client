@@ -174,12 +174,6 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     jobs_status_obj.update_messaging = run_job(
         cfg, update_message_job, current_time, jobs_status_obj.update_messaging
     )
-    jobs_status_obj.update_contract_info = run_job(
-        cfg,
-        update_contract_info_job,
-        current_time,
-        jobs_status_obj.update_contract_info,
-    )
     timer_jobs_state_file.write(jobs_status_obj)
 
 
