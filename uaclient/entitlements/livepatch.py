@@ -32,11 +32,13 @@ class LivepatchEntitlement(UAEntitlement):
     name = "livepatch"
     title = "Livepatch"
     description = "Canonical Livepatch service"
-    affordance_check_arch = False
     affordance_check_kernel_min_version = False
     affordance_check_kernel_flavor = False
     # we do want to check series because livepatch errors on non-lts releases
     affordance_check_series = True
+    # we still need to check arch because the livepatch-client is not built
+    # for all arches
+    affordance_check_arch = True
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
