@@ -844,6 +844,10 @@ REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
     "realtime-livepatch-incompatible",
     "Livepatch is not currently supported for the Real-time kernel.",
 )
+REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
+    "realtime-variant-incompatible",
+    "{service} cannot be enable together with {variant}",
+)
 REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     "beta-flag-required",
     "Use `pro enable realtime-kernel --beta` to acknowledge the real-time"

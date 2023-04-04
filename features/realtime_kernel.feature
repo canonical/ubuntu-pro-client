@@ -160,6 +160,16 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
          ├ nvidia-tegra   yes +enabled   +RT kernel optimized for NVidia Tegra platforms
          └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
          """
+        When I verify that running `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp:
+        """
+        Real-time Intel IOTG Kernel cannot be enabled with Real-time Nvidia Tegra Kernel.
+        Disable Real-time Nvidia Tegra Kernel and proceed to enable Real-time Intel IOTG Kernel\? \(y/N\)
+        """
+        And stdout matches regexp:
+        """
+        Cannot enable Real-time Intel IOTG Kernel when Real-time Nvidia Tegra Kernel is enabled.
+        """
 
         Examples: ubuntu release
             | release |
