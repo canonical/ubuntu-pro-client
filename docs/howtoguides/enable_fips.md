@@ -36,5 +36,5 @@ been installed:
 ```
 Installing FIPS packages
 FIPS enabled
-A reboot is required to complete installl
+A reboot is required to complete install.
 ```
