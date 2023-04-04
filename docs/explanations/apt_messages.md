@@ -25,7 +25,7 @@ Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04
 
 ## LTS series with esm-apps service disabled
 
-When you are running `apt upgraded` on a LTS release, like Focal, we advertise
+When you are running `apt upgrade` on a LTS release, like Focal, we advertise
 the `esm-apps` service if packages could be upgraded by enabling the service:
 
 ```
