@@ -492,30 +492,13 @@ def _print_service_support(
 
 
 def _print_package_list(
-    package_list: List[apt.package.Package],
-    reference_list: List[apt.package.Package] = [],
+    package_list: List[str],
 ):
-    package_string = ""
-
-    package_names = [package.name for package in package_list]
-    reference_names = [package.name for package in reference_list]
-
-    for package_name in package_names:
-        if package_name in reference_names:
-            package_string += (
-                "{bold}{package_name}{end_bold}".format(
-                    bold=messages.TxtColor.BOLD,
-                    package_name=package_name,
-                    end_bold=messages.TxtColor.ENDC,
-                )
-                + " "
-            )
-        else:
-            package_string += package_name + " "
+    package_names = " ".join(package_list)
     print(
         "\n".join(
             textwrap.wrap(
-                package_string,
+                package_names,
                 width=80,
                 break_long_words=False,
                 break_on_hyphens=False,
@@ -523,8 +506,6 @@ def _print_package_list(
         )
     )
     print("")
-    hint_package_list = reference_names if reference_names else package_names
-    print(messages.SS_POLICY_HINT.format(package=choice(hint_package_list)))
 
 
 def _print_apt_update_call():
@@ -620,6 +601,7 @@ def security_status(cfg: UAConfig):
 def list_third_party_packages():
     packages_by_origin = get_installed_packages_by_origin()
     third_party_packages = packages_by_origin["third-party"]
+    package_names = [package.name for package in third_party_packages]
 
     _print_package_summary(
         packages_by_origin, show_items="third-party", always_show=True
@@ -630,7 +612,8 @@ def list_third_party_packages():
 
         print("")
         print("Packages:")
-        _print_package_list(third_party_packages)
+        _print_package_list(package_names)
+        print(messages.SS_POLICY_HINT.format(package=choice(package_names)))
     else:
         print(messages.SS_NO_THIRD_PARTY)
 
@@ -638,6 +621,7 @@ def list_third_party_packages():
 def list_unavailable_packages():
     packages_by_origin = get_installed_packages_by_origin()
     unknown_packages = packages_by_origin["unknown"]
+    package_names = [package.name for package in unknown_packages]
 
     _print_package_summary(
         packages_by_origin, show_items="unknown", always_show=True
@@ -648,7 +632,8 @@ def list_unavailable_packages():
         print("")
 
         print("Packages:")
-        _print_package_list(unknown_packages)
+        _print_package_list(package_names)
+        print(messages.SS_POLICY_HINT.format(package=choice(package_names)))
 
     else:
         print(messages.SS_NO_UNAVAILABLE)
@@ -674,6 +659,15 @@ def list_esm_infra_packages(cfg):
     esm_infra_status = ESMInfraEntitlement(cfg).application_status()[0]
     esm_infra_applicability = ESMInfraEntitlement(cfg).applicability_status()[
         0
+    ]
+
+    installed_package_names = [package.name for package in infra_packages]
+    available_package_names = [package.name for package in infra_updates]
+    remaining_package_names = [
+        package.name
+        for package in all_infra_packages
+        if package.name not in installed_package_names
+        and package.name not in available_package_names
     ]
 
     _print_package_summary(
@@ -703,9 +697,24 @@ def list_esm_infra_packages(cfg):
     print("")
 
     if not is_supported(series):
-        print(messages.SS_BOLD_PACKAGES.format(service="esm-infra"))
-        print("Packages:")
-        _print_package_list(all_infra_packages, list(infra_updates))
+        if available_package_names:
+            print(messages.SS_UPDATES_AVAILABLE.format(service="esm-infra"))
+            _print_package_list(available_package_names)
+
+        if installed_package_names:
+            print(messages.SS_UPDATES_INSTALLED.format(service="esm-infra"))
+            _print_package_list(installed_package_names)
+
+        # Check names because packages may have been already listed
+        if remaining_package_names:
+            print(messages.SS_OTHER_PACKAGES.format(service="esm-infra"))
+            _print_package_list(remaining_package_names)
+
+            print(
+                messages.SS_POLICY_HINT.format(
+                    package=choice(remaining_package_names)
+                )
+            )
 
 
 def list_esm_apps_packages(cfg):
@@ -729,6 +738,15 @@ def list_esm_apps_packages(cfg):
     esm_apps_status = ESMAppsEntitlement(cfg).application_status()[0]
     esm_apps_applicability = ESMAppsEntitlement(cfg).applicability_status()[0]
 
+    installed_package_names = [package.name for package in apps_packages]
+    available_package_names = [package.name for package in apps_updates]
+    remaining_package_names = [
+        package.name
+        for package in all_apps_packages
+        if package.name not in installed_package_names
+        and package.name not in available_package_names
+    ]
+
     _print_package_summary(
         packages_by_origin, show_items="esm-apps", always_show=True
     )
@@ -750,6 +768,21 @@ def list_esm_apps_packages(cfg):
     print("")
 
     if all_apps_packages:
-        print(messages.SS_BOLD_PACKAGES.format(service="esm-apps"))
-        print("Packages:")
-        _print_package_list(all_apps_packages, list(apps_updates))
+        if available_package_names:
+            print(messages.SS_UPDATES_AVAILABLE.format(service="esm-apps"))
+            _print_package_list(available_package_names)
+
+        if installed_package_names:
+            print(messages.SS_UPDATES_INSTALLED.format(service="esm-apps"))
+            _print_package_list(installed_package_names)
+
+        # Check names because packages may have been already listed
+        if remaining_package_names:
+            print(messages.SS_OTHER_PACKAGES.format(service="esm-apps"))
+            _print_package_list(remaining_package_names)
+
+            print(
+                messages.SS_POLICY_HINT.format(
+                    package=choice(remaining_package_names)
+                )
+            )

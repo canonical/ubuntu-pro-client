@@ -1104,11 +1104,10 @@ SS_NO_UNAVAILABLE = (
 SS_NO_INTERIM_PRO_SUPPORT = "Ubuntu Pro is not available for non-LTS releases."
 
 SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
-SS_BOLD_PACKAGES = """\
-Package names in {bold}bold{end_bold} currently have an available update
-with '{{service}}' enabled""".format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
+
+SS_UPDATES_AVAILABLE = "Installed packages with an available {service} update:"
+SS_UPDATES_INSTALLED = "Installed packages with an {service} update applied:"
+SS_OTHER_PACKAGES = "Further installed packages covered by {service}:"
 
 ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
     "entitlement-not-found",
