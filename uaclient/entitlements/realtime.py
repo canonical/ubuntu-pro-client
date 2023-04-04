@@ -117,6 +117,23 @@ class GenericRealtime(RealtimeKernelEntitlement):
     is_variant = True
     check_packages_are_installed = True
 
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        return (
+            IncompatibleService(
+                NvidiaTegraRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=NvidiaTegraRealtime.title
+                ),
+            ),
+            IncompatibleService(
+                IntelIotgRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=IntelIotgRealtime.title
+                ),
+            ),
+        )
+
 
 class NvidiaTegraRealtime(RealtimeKernelEntitlement):
     variant_name = "nvidia-tegra"
@@ -132,6 +149,23 @@ class NvidiaTegraRealtime(RealtimeKernelEntitlement):
     ) -> MessagingOperationsDict:
         return {}
 
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        return (
+            IncompatibleService(
+                GenericRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=GenericRealtime.title
+                ),
+            ),
+            IncompatibleService(
+                IntelIotgRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=IntelIotgRealtime.title
+                ),
+            ),
+        )
+
 
 class IntelIotgRealtime(RealtimeKernelEntitlement):
     variant_name = "intel-iotg"
@@ -146,3 +180,20 @@ class IntelIotgRealtime(RealtimeKernelEntitlement):
         self,
     ) -> MessagingOperationsDict:
         return {}
+
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        return (
+            IncompatibleService(
+                NvidiaTegraRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=NvidiaTegraRealtime.title
+                ),
+            ),
+            IncompatibleService(
+                GenericRealtime,
+                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                    service=self.title, variant=GenericRealtime.title
+                ),
+            ),
+        )
