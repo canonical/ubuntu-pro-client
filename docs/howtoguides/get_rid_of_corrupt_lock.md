@@ -2,7 +2,7 @@
 
 Some pro commands (`attach`, `enable`, `detach` and `disable`) will potentially change the
 internal state of your system. Since those commands can run in parallel, we have a lock file
-mechanism to guarantee that only one of these commands can run at the same time. The lock follow
+mechanism to guarantee that only one of these commands can run at the same time. The lock follows
 this pattern:
 
 ```
