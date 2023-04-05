@@ -17,7 +17,7 @@ With regards to Ubuntu Pro, this script is responsible for:
   on the machine.
 
 `update-notifier` always was responsible to add information about potential
-updates to MOTD to raise user awareness, with the existance of pro they are
+updates to MOTD to raise user awareness, with the existence of pro they are
 just more differentiated.
 
 Note that if you run `apt_check.py` directly it might give you rather
@@ -42,7 +42,7 @@ See https://ubuntu.com/esm or run: sudo pro status
 ### Machine is fully attached
 
 Then as the opposite example, here the output users will see in MOTD
-when run on a LTS machine whith `esm-infra` and `esm-apps` services enabled:
+when run on a LTS machine with `esm-infra` and `esm-apps` services enabled:
 
 ```
 Expanded Security Maintenance for Applications is enabled.
@@ -175,7 +175,7 @@ those files via:
 2. That hook will update the information in `/var/lib/update-notifier/updates-available` matching the new package information that was just fetched by using `/usr/lib/update-notifier/apt-check --human-readable`.
 3. At MOTD generation time, the script located at `/etc/update-motd.d/90-updates-available` checks if `/var/lib/update-notifier/updates-available` exists and if it does, inserts the message into the full MOTD.
 
-If you want to disable any message of update-notifier (not just related to pro and esm) about potentially available updates remove `/etc/update-motd.d/90-updates-available`.
+If you want to disable any message of update-notifier (not just related to Ubuntu Pro and ESM) about potentially available updates remove `/etc/update-motd.d/90-updates-available`.
 
 ## Source: MOTD for important contract conditions
 
@@ -187,7 +187,7 @@ If you want to disable any message about important conditions of your attached c
 
 ## Source: MOTD for the ESM announcement
 
-1. pro checked if a system would now have `esm-apps` available to it and if so placed a message in `/var/lib/ubuntu-advantage/messages/motd-esm-announce`.
+1. `pro` checks regularly if a system would have `esm-apps` available to it and if so places a message in `/var/lib/ubuntu-advantage/messages/motd-esm-announce`.
 2. At MOTD generation time, the script located at `/etc/update-motd.d/88-esm-announce` checks if `/var/lib/ubuntu-advantage/messages/motd-esm-announce` exists and if it does, inserts the message into the full MOTD.
 
 If you want to disable the ESM announcement remove `/etc/update-motd.d/88-esm-announce` (or upgrade to 27.14 or later which will remove it for you).
