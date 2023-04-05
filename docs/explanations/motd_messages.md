@@ -16,8 +16,11 @@ With regards to Ubuntu Pro, this script is responsible for:
 * Showing the number of `esm-infra` or `esm-apps` packages that can be upgraded
   on the machine.
 
-If the machine is not yet attached to Ubuntu Pro in any way there will only
-be a hint that there could be more available through ESM.
+### Machine is unattached
+
+On a machine that runs a Ubuntu release for which the `esm-apps` service
+is available, but not yet attached to Ubuntu Pro in any way there will
+only be a hint that there could be more available through ESM.
 
 ```
 Expanded Security Maintenance for Applications is not enabled.
@@ -27,6 +30,8 @@ Expanded Security Maintenance for Applications is not enabled.
 Enable ESM Apps to receive additional future security updates.
 See https://ubuntu.com/esm or run: sudo pro status
 ```
+
+### Machine is fully attached
 
 Then as the opposite example, here the output users will see in MOTD
 when run on a LTS machine whith `esm-infra` and `esm-apps` services enabled:
@@ -41,6 +46,8 @@ Expanded Security Maintenance for Applications is enabled.
 To see these additional updates run: apt list --upgradable
 ```
 
+### Machine is fully attached, but already in ESM
+
 However, if we were running this on a Ubuntu release that has already
 entered ["ESM"](https://ubuntu.com/security/esm), we would instead see
 `esm-infra` being advertised:
@@ -54,6 +61,8 @@ Expanded Security Maintenance Infrastructure is enabled.
 5 of these updates are standard security updates.
 To see these additional updates run: apt list --upgradable
 ```
+
+### Partial service enablement
 
 Now let's consider a scenario where one of these services is not enabled. For
 example, if `esm-apps` was disabled, the output will be:
