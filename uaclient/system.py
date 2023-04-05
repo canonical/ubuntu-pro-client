@@ -20,7 +20,9 @@ ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
-# N.B. this relies on the version normalisation we perform in get_release_info
+CPU_VENDOR_MAP = {"GenuineIntel": "intel"}
+
+# N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = (
     r"(?P<release>\d+\.\d+) (LTS\s*)?(\((?P<series>\w+))?.*"
 )
@@ -64,6 +66,14 @@ ReleaseInfo = NamedTuple(
         ("release", str),
         ("series", str),
         ("pretty_version", str),
+    ],
+)
+CpuInfo = NamedTuple(
+    "CpuInfo",
+    [
+        ("vendor_id", str),
+        ("model", Optional[int]),
+        ("stepping", Optional[int]),
     ],
 )
 
@@ -122,6 +132,30 @@ def get_virt_type() -> str:
         return out.strip()
     except exceptions.ProcessExecutionError:
         return ""
+
+
+@lru_cache(maxsize=None)
+def get_cpu_info() -> CpuInfo:
+    cpu_info_content = load_file("/proc/cpuinfo")
+    cpu_info_values = {}
+    for field in ["vendor_id", "model", "stepping"]:
+        cpu_match = re.search(
+            r"^{}\s*:\s*(?P<info>\w*)".format(field),
+            cpu_info_content,
+            re.MULTILINE,
+        )
+        if cpu_match:
+            value = cpu_match.group("info")
+            cpu_info_values[field] = value
+
+    vendor_id_base = cpu_info_values.get("vendor_id", "")
+    model = cpu_info_values.get("model")
+    stepping = cpu_info_values.get("stepping")
+    return CpuInfo(
+        vendor_id=CPU_VENDOR_MAP.get(vendor_id_base, vendor_id_base),
+        model=int(model) if model else None,
+        stepping=int(stepping) if stepping else None,
+    )
 
 
 @lru_cache(maxsize=None)

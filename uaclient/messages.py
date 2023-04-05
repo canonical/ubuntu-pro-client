@@ -521,6 +521,13 @@ INAPPLICABLE_ARCH = FormattedNamedMessage(
 Supported platforms are: {supported_arches}.""",
 )
 
+INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
+    "inapplicable-vendor-name",
+    """\
+{title} is not available for CPU vendor {vendor}.
+Supported CPU vendors are: {supported_vendors}.""",
+)
+
 NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
     "no-entitlement-affordances-checked", "no entitlement affordances checked"
 )

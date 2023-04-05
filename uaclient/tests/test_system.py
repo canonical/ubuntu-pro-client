@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import textwrap
 import uuid
 
 import mock
@@ -1011,3 +1012,76 @@ class TestGetSystemdJobState:
             cmd="test", exit_code=3, stdout="inactive", stderr=""
         )
         assert False is system.get_systemd_job_state(job_name="test")
+
+
+class TestGetCpuInfo:
+    @pytest.mark.parametrize(
+        "cpuinfo,vendor_id,model,stepping",
+        (
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10
+
+                processor       : 7
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10"""
+                ),
+                "intel",
+                142,
+                10,
+            ),
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                vendor_id       : test
+                cpu family      : 6
+                model           : 148
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 12
+
+                processor       : 7
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10"""
+                ),
+                "test",
+                148,
+                12,
+            ),
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                cpu family      : 6
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+
+                processor       : 7
+                cpu family      : 6
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz"""
+                ),
+                "",
+                None,
+                None,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    def test_get_cpu_vendor(
+        self, m_load_file, cpuinfo, vendor_id, model, stepping
+    ):
+        m_load_file.return_value = cpuinfo
+        assert vendor_id == system.get_cpu_info.__wrapped__().vendor_id
+        assert model == system.get_cpu_info.__wrapped__().model
+        assert stepping == system.get_cpu_info.__wrapped__().stepping
