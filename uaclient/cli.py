@@ -148,6 +148,9 @@ class UAArgumentParser(argparse.ArgumentParser):
             self.description = "\n".join(
                 [self.base_desc] + service_descriptions
             )
+
+            self.description += "\n\n" + messages.PRO_HELP_SERVICE_INFO.msg
+
         super().print_help(file=file)
 
     @staticmethod
