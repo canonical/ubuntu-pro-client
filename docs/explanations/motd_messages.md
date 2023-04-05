@@ -16,6 +16,14 @@ With regards to Ubuntu Pro, this script is responsible for:
 * Showing the number of `esm-infra` or `esm-apps` packages that can be upgraded
   on the machine.
 
+`update-notifier` always was responsible to add information about potential
+updates to MOTD to raise user awareness, with the existance of pro they are
+just more differentiated.
+
+Note that if you run `apt_check.py` directly it might give you rather
+unreadable output as it is meant for program use, you can add `--human-readable`
+to get the same info you see in MOTD.
+
 ### Machine is unattached
 
 On a machine that runs a Ubuntu release for which the `esm-apps` service
