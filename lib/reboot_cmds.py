@@ -30,11 +30,6 @@ from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
 
-# Retry sleep backoff algorithm if lock is held.
-# Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
-SLEEP_ON_LOCK_HELD = 1
-MAX_RETRIES_ON_LOCK_HELD = 7
-
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):
     status_cache = cfg.read_cache("status-cache")
@@ -49,80 +44,73 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
                 # fips was not enabled, don't do anything
                 return
 
-    fips = FIPSEntitlement(cfg)
     logging.debug("Attempting to remove Ubuntu Pro FIPS package holds")
+    fips = FIPSEntitlement(cfg)
     try:
         fips.setup_apt_config()  # Removes package holds
         logging.debug("Successfully removed Ubuntu Pro FIPS package holds")
     except Exception as e:
         logging.error(e)
         logging.warning("Could not remove Ubuntu Pro FIPS package holds")
+
     try:
         fips.install_packages(cleanup_on_failure=False)
-    except exceptions.UserFacingError as e:
-        logging.error(e.msg)
+    except exceptions.UserFacingError:
         logging.warning(
             "Failed to install packages at boot: {}".format(
                 ", ".join(fips.packages)
             )
         )
-        sys.exit(1)
+        raise
 
 
 def refresh_contract(cfg: config.UAConfig):
     try:
         contract.request_updated_contract(cfg)
-    except exceptions.UrlError as exc:
-        logging.exception(exc)
+    except exceptions.UrlError:
         logging.warning(messages.REFRESH_CONTRACT_FAILURE)
-        sys.exit(1)
+        raise
 
 
-def process_remaining_deltas(cfg: config.UAConfig):
-    upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
+def main(cfg: config.UAConfig) -> int:
+    if not state_files.reboot_cmd_marker_file.is_present:
+        logging.debug("Skipping reboot_cmds. Marker file not present")
+        notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+        return 0
 
-
-def process_reboot_operations(cfg: config.UAConfig):
     if not cfg.is_attached:
         logging.debug("Skipping reboot_cmds. Machine is unattached")
         state_files.reboot_cmd_marker_file.delete()
-        return
+        notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+        return 0
 
-    if state_files.reboot_cmd_marker_file.is_present:
-        logging.debug("Running process contract deltas on reboot ...")
-
-        try:
+    logging.debug("Running reboot commands...")
+    try:
+        with lock.SpinLock(cfg=cfg, lock_holder="pro-reboot-cmds"):
             fix_pro_pkg_holds(cfg)
             refresh_contract(cfg)
-            process_remaining_deltas(cfg)
-
+            upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
+            # cleanup state after a succesful run
             state_files.reboot_cmd_marker_file.delete()
             notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
-            logging.debug("Successfully ran all commands on reboot.")
-        except Exception as e:
-            msg = "Failed running commands on reboot."
-            msg += str(e)
-            logging.error(msg)
-            notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
 
-
-def main(cfg: config.UAConfig):
-    """Retry running process_reboot_operations on LockHeldError
-
-    :raises: LockHeldError when lock still held by auto-attach after retries.
-             UserFacingError for all other errors
-    """
-    try:
-        with lock.SpinLock(
-            cfg=cfg,
-            lock_holder="ua-reboot-cmds",
-            sleep_time=SLEEP_ON_LOCK_HELD,
-            max_retries=MAX_RETRIES_ON_LOCK_HELD,
-        ):
-            process_reboot_operations(cfg=cfg)
     except exceptions.LockHeldError as e:
         logging.warning("Lock not released. %s", str(e.msg))
-        sys.exit(1)
+        notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
+        return 1
+    except exceptions.UserFacingError as e:
+        logging.error(
+            "Error while running commands on reboot: %s, %s", e.msg_code, e.msg
+        )
+        notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
+        return 1
+    except Exception as e:
+        logging.error("Failed running commands on reboot. Error: %s", str(e))
+        notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
+        return 1
+
+    logging.debug("Successfully ran all commands on reboot.")
+    return 0
 
 
 if __name__ == "__main__":
@@ -133,4 +121,4 @@ if __name__ == "__main__":
     )
     cfg = config.UAConfig()
     setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
-    main(cfg=cfg)
+    sys.exit(main(cfg=cfg))
