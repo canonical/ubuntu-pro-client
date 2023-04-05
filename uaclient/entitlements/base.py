@@ -119,6 +119,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         else:
             return self.name
 
+    def _get_vendor_id(self) -> Optional[str]:
+        """Fetch vendor information for the service."""
+        return None
+
     @property
     def help_info(self) -> str:
         """Help information for the entitlement"""
@@ -834,6 +838,22 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 and kernel_info.minor < min_kern_minor
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
+
+        affordances_vendor_names = affordances.get("vendor_names", None)
+        vendor_id = self._get_vendor_id()
+        if (
+            affordances_vendor_names is not None
+            and vendor_id
+            and vendor_id not in affordances_vendor_names
+        ):
+            return (
+                ApplicabilityStatus.INAPPLICABLE,
+                messages.INAPPLICABLE_VENDOR_NAME.format(
+                    title=self.title,
+                    vendor=vendor_id,
+                    supported_vendors=", ".join(affordances_vendor_names),
+                ),
+            )
         return ApplicabilityStatus.APPLICABLE, None
 
     def contract_status(self) -> ContractStatus:
