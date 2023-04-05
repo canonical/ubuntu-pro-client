@@ -197,3 +197,6 @@ class IntelIotgRealtime(RealtimeKernelEntitlement):
                 ),
             ),
         )
+
+    def _get_vendor_id(self):
+        return system.get_cpu_info().vendor_id
