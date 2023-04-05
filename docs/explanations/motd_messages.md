@@ -4,7 +4,7 @@ When the Ubuntu Pro Client (`pro`) is installed on the system, it delivers
 custom messages on ["Message of the Day" (MOTD)](https://wiki.debian.org/motd).
 Those messages are generated directly by two different sources.
 
-## Python-scripted MOTD
+## MOTD through update-notifier
 
 The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) delivers a script
 via the `update-notifier-common` package called
@@ -63,7 +63,7 @@ upgraded if that service was enabled. Note that we would deliver the same
 information for `esm-infra` if the service was disabled and the series running
 on the machine is in ESM state.
 
-## MOTD through Ubuntu Pro timer jobs
+## Additional MOTD through Ubuntu Pro timer jobs
 
 One of the timer jobs Ubuntu Pro uses can insert additional messages into MOTD.
 These messages will be always delivered before or after the content created by
