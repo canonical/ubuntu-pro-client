@@ -4,7 +4,7 @@ When the Ubuntu Pro Client (`pro`) is installed on the system, it delivers
 custom messages on ["Message of the Day" (MOTD)](https://wiki.debian.org/motd).
 Those messages are generated directly by two different sources.
 
-## MOTD through update-notifier
+## MOTD notifying about available updates
 
 The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) delivers a script
 via the `update-notifier-common` package called
@@ -93,7 +93,7 @@ upgraded if that service was enabled. Note that we would deliver the same
 information for `esm-infra` if the service was disabled and the series running
 on the machine is in ESM state.
 
-## Additional MOTD through Ubuntu Pro timer jobs
+## MOTD for important contract conditions
 
 One of the timer jobs Ubuntu Pro uses can insert additional messages into MOTD.
 These messages will be always delivered before or after the content created by
@@ -135,7 +135,18 @@ coverage for your applications.
 Your grace period will expire in 9 days.
 ```
 
-### How are these messages updated and inserted into MOTD?
+## How are these messages updated and inserted into MOTD?
+
+Just like there are different aspects to the messages outlined above they
+come from different sources into the MOTD that one sees at login time.
+
+## Source: MOTD notifying about available updates
+
+1. `update-notifier-common` has a hook `/etc/apt/apt.conf.d/99update-notifier` that runs after `apt update`
+2. That hook will update the information in `/var/lib/update-notifier/updates-available` matching the new package information that was just fetched by using `/usr/lib/update-notifier/apt-check --human-readable`
+3. At MOTD generation time, the script located at `/etc/update-motd.d/90-updates-available` checks if `/var/lib/update-notifier/updates-available` exists and if it does, inserts the message into the full MOTD.
+
+## Source: MOTD for important contract conditions
 
 1. The contract status is checked periodically in the background when the machine is attached to an Ubuntu Pro contract.
 2. If one of the above messages applies to the contract that the machine is attached to, then the message is stored in `/var/lib/ubuntu-advantage/messages/motd-contract-status`.
