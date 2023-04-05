@@ -16,8 +16,20 @@ With regards to Ubuntu Pro, this script is responsible for:
 * Showing the number of `esm-infra` or `esm-apps` packages that can be upgraded
   on the machine.
 
-For example, here is the output of the `apt_check.py` script on a LTS machine
-when both of those services are enabled:
+If the machine is not yet attached to Ubuntu Pro in any way there will only
+be a hint that there could be more available through ESM.
+
+```
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+```
+
+Then as the opposite example, here the output users will see in MOTD
+when run on a LTS machine whith `esm-infra` and `esm-apps` services enabled:
 
 ```
 Expanded Security Maintenance for Applications is enabled.
