@@ -29,7 +29,8 @@ Expanded Security Maintenance for Applications is enabled.
 To see these additional updates run: apt list --upgradable
 ```
 
-However, if we were running this on an ESM series, we would instead see
+However, if we were running this on a Ubuntu release that has already
+entered ["ESM"](https://ubuntu.com/security/esm), we would instead see
 `esm-infra` being advertised:
 
 ```
