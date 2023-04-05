@@ -7,8 +7,9 @@ Those messages are generated directly by two different sources.
 ## Python-scripted MOTD
 
 The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) delivers a script
-called `apt_check.py`. With regards to Ubuntu Pro, this script is responsible
-for:
+via the `update-notifier-common` package called
+`/usr/lib/update-notifier/apt_check.py.
+With regards to Ubuntu Pro, this script is responsible for:
   
 * Informing the user about the status of one of the ESM services; `esm-apps` if
   the machine is an LTS series, or `esm-infra` if the series is in ESM mode.
