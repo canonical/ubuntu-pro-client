@@ -1320,3 +1320,8 @@ INVALID_OPTION_COMBINATION = FormattedNamedMessage(
     "invalid-option-combination",
     "Error: Cannot use {option1} together with {option2}.",
 )
+
+PRO_HELP_SERVICE_INFO = NamedMessage(
+    "pro-help-service-info",
+    "Use pro help <service> to get more details about each service",
+)

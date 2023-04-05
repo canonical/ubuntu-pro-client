@@ -170,6 +170,31 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         Cannot enable Real-time Intel IOTG Kernel when Real-time Nvidia Tegra Kernel is enabled.
         """
+        When I run `pro help realtime-kernel` as non-root
+        Then I will see the following on stdout:
+        """
+        Name:
+        realtime-kernel
+
+        Entitled:
+        yes
+
+        Status:
+        enabled
+
+        Help:
+        The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+        It services latency-dependent use cases by providing deterministic response times.
+        The Real-time kernel meets stringent preemption specifications and is suitable for
+        telco applications and dedicated devices in industrial automation and robotics.
+        The Real-time kernel is currently incompatible with FIPS and Livepatch. 
+
+        Variants:
+
+          * generic: Generic version of the RT kernel (default)
+          * nvidia-tegra: RT kernel optimized for NVidia Tegra platforms
+          * intel-iotg: RT kernel optimized for Intel IOTG platform
+        """
 
         Examples: ubuntu release
             | release |

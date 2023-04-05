@@ -131,6 +131,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
             self._help_info = help_dict.get(self.name, {}).get("help", "")
 
+            if self.variants:
+                variant_items = [
+                    "  * {}: {}".format(variant_name, variant_cls.description)
+                    for variant_name, variant_cls in self.variants.items()
+                ]
+
+                variant_text = "\n".join(["\nVariants:\n"] + variant_items)
+                self._help_info += variant_text
+
         return self._help_info
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
