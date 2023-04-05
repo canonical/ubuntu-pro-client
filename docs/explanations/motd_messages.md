@@ -2,7 +2,7 @@
 
 When the Ubuntu Pro Client (`pro`) is installed on the system, it delivers
 custom messages on ["Message of the Day" (MOTD)](https://wiki.debian.org/motd).
-Those messages are generated directly by two different sources.
+Those messages are generated directly by three different sources.
 
 ## MOTD notifying about available updates
 
@@ -135,6 +135,22 @@ coverage for your applications.
 Your grace period will expire in 9 days.
 ```
 
+## MOTD for the ESM announcement
+
+There was also a general announcement info that further helped to raise
+awareness of Pro being available and for free. This was only shown on systems
+covered by `esm-apps`. Furthermore it was meant to be only shown for a limited
+time and therefore removed in 27.14.
+It looked like:
+
+```
+ * Introducing Expanded Security Maintenance for Applications.
+   Receive updates to over 25,000 software packages with your
+   Ubuntu Pro subscription. Free for personal use.
+
+     https://ubuntu.com/pro
+```
+
 ## How are these messages updated and inserted into MOTD?
 
 Just like there are different aspects to the messages outlined above they
@@ -151,3 +167,8 @@ come from different sources into the MOTD that one sees at login time.
 1. The contract status is checked periodically in the background when the machine is attached to an Ubuntu Pro contract.
 2. If one of the above messages applies to the contract that the machine is attached to, then the message is stored in `/var/lib/ubuntu-advantage/messages/motd-contract-status`.
 3. At MOTD generation time, the script located at `/etc/update-motd.d/91-contract-ua-esm-status` checks if `/var/lib/ubuntu-advantage/messages/motd-contract-status` exists and if it does, inserts the message into the full MOTD.
+
+## Source: MOTD for the ESM announcement
+
+1. pro checked if a system would now have `esm-apps` available to it and if so placed a message in `/var/lib/ubuntu-advantage/messages/motd-esm-announce`
+2. At MOTD generation time, the script located at `/etc/update-motd.d/88-esm-announce` checks if `/var/lib/ubuntu-advantage/messages/motd-esm-announce` exists and if it does, inserts the message into the full MOTD.
