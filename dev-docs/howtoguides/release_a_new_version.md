@@ -174,6 +174,10 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     e. Once the SRU team member gives a pre-SRU approval, create the branches for each stable release. They should be named `upload-<this-version>-<codename>`.
       * The versions for the stable releases must include `~<release-number>`
       * If you've followed the instructions precisely so far, you can just run `bash tools/create-lp-release-branches.sh`.
+        - When using the `create-lp-release-branches.sh` script, an important parameter is `SRU_BUG`:
+        - In the vast majority of cases, this should be set to the overall SRU bug written in step II.1.b.
+        - In the case where an existing SRU never got released, and a new patch version was uploaded on top of it to fix a new bug discovered during review, then the bug should still be the overall SRU bug.
+        - If the release is exclusively a bugfix release and the previous version has already been successfully released all the way through the SRU process, then the bug should instead be the specific bugfix number.
 
     f. Ask Server team member sponsor to upload to devel, and then the SRU proposed queue using the stable release branches you just created.
       * Ask them to tag the PR with the appropriate `upload/<version>` tag so git-ubuntu will import rich commit history.
