@@ -154,6 +154,10 @@ def FakeConfig(tmpdir):
         ) -> None:
             if not cfg_overrides.get("data_dir"):
                 cfg_overrides.update({"data_dir": tmpdir.strpath})
+            if not cfg_overrides.get("log_file"):
+                cfg_overrides.update(
+                    {"log_file": tmpdir.join("log_file.log").strpath}
+                )
             super().__init__(
                 cfg_overrides,
                 user_config=UserConfigData(),
