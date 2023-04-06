@@ -4,7 +4,7 @@ When the Ubuntu Pro Client (`pro`) is installed on the system, it delivers
 custom messages on ["Message of the Day" (MOTD)](https://wiki.debian.org/motd).
 Those messages are generated directly by three different sources.
 
-## MOTD notifying about available updates
+## MOTD messages about available updates
 
 The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) delivers a script
 via the `update-notifier-common` package called
@@ -17,18 +17,18 @@ With regards to Ubuntu Pro, this script is responsible for:
   on the machine.
 
 `update-notifier` always was responsible to add information about potential
-updates to MOTD to raise user awareness, with the existence of pro they are
+updates to MOTD to raise user awareness. With the advent of Ubuntu Pro they are
 just more differentiated.
 
 Note that if you run `apt_check.py` directly it might give you rather
-unreadable output as it is meant for program use, you can add `--human-readable`
-to get the same info you see in MOTD.
+unreadable output as it is meant for program use. You can add `--human-readable`
+to see the information as it would be presented in MOTD.
 
 ### Machine is unattached
 
-On a machine that runs a Ubuntu release for which the `esm-apps` service
-is available, but not yet attached to Ubuntu Pro in any way there will
-only be a hint that there could be more available through ESM.
+On a machine that runs an Ubuntu release for which the `esm-apps` service
+is available, but not yet attached to an Ubuntu Pro subscription, there will
+be a message notifying the user that there may be more security updates available through ESM.
 
 ```
 Expanded Security Maintenance for Applications is not enabled.
@@ -41,8 +41,7 @@ See https://ubuntu.com/esm or run: sudo pro status
 
 ### Machine is fully attached
 
-Then as the opposite example, here the output users will see in MOTD
-when run on a LTS machine with `esm-infra` and `esm-apps` services enabled:
+In the opposite situation, if an LTS machine has the `esm-infra` and `esm-apps` services enabled then users will see the following output in MOTD:
 
 ```
 Expanded Security Maintenance for Applications is enabled.
@@ -56,7 +55,7 @@ To see these additional updates run: apt list --upgradable
 
 ### Machine is fully attached, but already in ESM
 
-However, if we were running this on a Ubuntu release that has already
+However, if we were running this on an Ubuntu release that has already
 entered ["ESM"](https://ubuntu.com/security/esm), we would instead see
 `esm-infra` being advertised:
 
@@ -151,16 +150,16 @@ It looked like:
      https://ubuntu.com/pro
 ```
 
-## How are these messages inserted into MOTD and how could I disable them?
+## How are these messages inserted into MOTD and how can I disable them?
 
 Just like there are different aspects to the messages outlined above they
 come from different sources into the MOTD that one sees at login time.
 
 Those messages are considered important to ensure user awareness about
 the free additional security coverage provided by Ubuntu Pro and about
-yet unapplied potential updates in general. Therefore it is not recommended
-to disable them, but if one wants to do that anyway they can be disabled
-selectively via the config files that add them as outlined below.
+not-yet-applied potential updates in general. Therefore it is not recommended
+to disable them, but you can selectively disable them via the config
+files that add them, as outlined below.
 
 Removing those is considered a conffile change to customize a program
 and they will stay removed even on future upgrades or re-installations of the
