@@ -14,7 +14,7 @@ The [update-notifier](https://wiki.ubuntu.com/UpdateNotifier) delivers a script
 via the `update-notifier-common` package called
 `/usr/lib/update-notifier/apt_check.py.
 With regards to Ubuntu Pro, this script is responsible for:
-  
+
 * Informing the user about the status of one of the ESM services; `esm-apps` if
   the machine is an LTS series, or `esm-infra` if the series is in ESM mode.
 * Showing the number of `esm-infra` or `esm-apps` packages that can be upgraded
@@ -87,12 +87,12 @@ example, if `esm-apps` was disabled, the output will be:
 
 ```
 Expanded Security Maintenance for Applications is not enabled.
-  
+
 6 updates can be applied immediately.
 1 of these updates is a ESM Infra security update.
 5 of these updates are standard security updates.
 To see these additional updates run: apt list --upgradable
-  
+
 5 additional security updates can be applied with ESM Apps
 Learn more about enabling ESM Apps for Ubuntu 16.04 at
 https://ubuntu.com/16-04
