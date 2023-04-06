@@ -195,6 +195,53 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
           * nvidia-tegra: RT kernel optimized for NVidia Tegra platforms
           * intel-iotg: RT kernel optimized for Intel IOTG platform
         """
+        When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
+        Then stdout matches regexp:
+            """
+            This will remove the boot order preference for the Real-time kernel and
+            disable updates to the Real-time kernel.
+            
+            This will NOT fully remove the kernel from your system.
+            
+            After this operation is complete you must:
+              - Ensure a different kernel is installed and configured to boot
+              - Reboot into that kernel
+              - Fully remove the realtime kernel packages from your system
+                  - This might look something like `apt remove linux\*realtime`,
+                    but you must ensure this is correct before running it.
+            """
+         When I run `pro status` as non-root
+         Then stdout matches regexp:
+         """
+         realtime-kernel\* +yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+         """
+         When I run `pro status --all` as non-root
+         Then stdout matches regexp:
+         """
+         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
+         ├ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
+         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+         """
+         When I run `pro detach --assume-yes` with sudo
+         And I run `pro status` as non-root
+         Then stdout matches regexp:
+         """
+         realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
+         """
+         When I run `pro status --all` as non-root
+         Then stdout matches regexp:
+         """
+         realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
+         """
+         And stdout does not match regexp:
+         """
+         nvidia-tegra
+         """
+         And stdout does not match regexp:
+         """
+         intel-iotg
+         """
 
         Examples: ubuntu release
             | release |
