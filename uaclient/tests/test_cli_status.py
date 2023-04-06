@@ -632,6 +632,7 @@ class TestActionStatus:
             "config": {
                 "data_dir": mock.ANY,
                 "ua_config": mock.ANY,
+                "log_file": mock.ANY,
             },
             "simulated": False,
             "errors": [],
@@ -756,6 +757,7 @@ class TestActionStatus:
             "config": {
                 "data_dir": mock.ANY,
                 "ua_config": mock.ANY,
+                "log_file": mock.ANY,
             },
             "simulated": False,
             "errors": [],
@@ -923,6 +925,7 @@ class TestActionStatus:
             "config": {
                 "data_dir": mock.ANY,
                 "ua_config": mock.ANY,
+                "log_file": mock.ANY,
             },
             "errors": [],
             "warnings": [],
