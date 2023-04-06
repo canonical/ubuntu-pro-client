@@ -123,7 +123,7 @@ class TestActionCollectLogs:
         assert m_isfile.call_count == 17
         assert m_isfile.call_args_list == [
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
-            mock.call("/var/log/ubuntu-advantage.log"),
+            mock.call(cfg.log_file),
             mock.call("/var/log/ubuntu-advantage-timer.log"),
             mock.call("/var/log/ubuntu-advantage-daemon.log"),
             mock.call("/var/lib/ubuntu-advantage/jobs-status.json"),
