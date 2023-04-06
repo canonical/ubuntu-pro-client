@@ -9,6 +9,7 @@ import mock
 import pytest
 
 from uaclient import cli, exceptions, messages, util
+from uaclient.log import RedactionFilter
 
 
 class TestGetDictDeltas:
@@ -71,7 +72,9 @@ class TestIsServiceUrl:
 
 
 class TestReadurl:
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "caplog_text", [(logging.DEBUG, RedactionFilter)], indirect=True
+    )
     @pytest.mark.parametrize(
         "headers,data,method,url,response,expected_logs",
         (
@@ -264,7 +267,6 @@ class TestDatetimeAwareJSONEncoder:
 
 
 class TestDatetimeAwareJSONDecoder:
-
     # Note that the parameter names are flipped from
     # TestDatetimeAwareJSONEncoder
     @pytest.mark.parametrize("out,input", JSON_TEST_PAIRS)

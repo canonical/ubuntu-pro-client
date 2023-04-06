@@ -85,7 +85,13 @@ def caplog_text(request):
     (It returns a function so that the requester can decide when to examine the
     logs; if it returned caplog.text directly, that would always be empty.)
     """
-    log_level = getattr(request, "param", logging.INFO)
+    cap_params = getattr(request, "param", logging.INFO)
+    log_filter = None
+    if isinstance(cap_params, tuple):
+        log_level = cap_params[0]
+        log_filter = cap_params[1]
+    else:
+        log_level = cap_params
     try:
         try:
             caplog = request.getfixturevalue("caplog")
@@ -94,6 +100,8 @@ def caplog_text(request):
             # deprecated in favour of getfixturevalue
             caplog = request.getfuncargvalue("caplog")
         caplog.set_level(log_level)
+        if log_filter:
+            caplog.handler.addFilter(log_filter())
 
         def _func():
             return caplog.text
@@ -108,6 +116,8 @@ def caplog_text(request):
                 "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"
             )
         )
+        if log_filter:
+            handler.addFilter(log_filter())
         root.addHandler(handler)
 
         def _func():
