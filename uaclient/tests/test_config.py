@@ -175,7 +175,6 @@ class TestNotices:
         removes,
         expected,
     ):
-
         for notice_ in notices_:
             notices.add(*notice_)
         for label in removes:
