@@ -21,7 +21,8 @@ With regards to Ubuntu Pro, this script is responsible for:
   on the machine.
 
 `update-notifier` always was responsible to add information about potential
-updates to MOTD to raise user awareness. With the advent of Ubuntu Pro they are
+`update-notifier` has always added information about potential updates to
+MOTD to raise user awareness. With the advent of Ubuntu Pro they are
 just more differentiated.
 
 Note that if you run `apt_check.py` directly it might give you rather
@@ -32,7 +33,8 @@ to see the information as it would be presented in MOTD.
 
 On a machine that runs an Ubuntu release for which the `esm-apps` service
 is available, but not yet attached to an Ubuntu Pro subscription, there will
-be a message notifying the user that there may be more security updates available through ESM.
+be a message notifying the user that there may be more security updates
+available through ESM Apps.
 
 ```
 Expanded Security Maintenance for Applications is not enabled.
@@ -57,11 +59,16 @@ Expanded Security Maintenance for Applications is enabled.
 To see these additional updates run: apt list --upgradable
 ```
 
-### Machine is fully attached, but already in ESM
+### Machine is fully attached, on an older release
 
-However, if we were running this on an Ubuntu release that has already
-entered ["ESM"](https://ubuntu.com/security/esm), we would instead see
-`esm-infra` being advertised:
+Above you have seen examples of recent (as in "still in their first 5
+years of support") ubuntu releases, where the hint is about ESM Apps
+extending the coverage to the universe repositories.
+
+However, if running on an Ubuntu release that has is already past the initial
+5 years of support and has thereby entered Expanded Security Maintenance
+(["ESM"](https://ubuntu.com/security/esm)), we would instead see
+`esm-infra` (which provides coverage for another 5 years) being shown:
 
 ```
 Expanded Security Maintenance Infrastructure is enabled.
@@ -98,11 +105,11 @@ on the machine is in ESM state.
 
 ## MOTD about important subscription conditions
 
-One of the timer jobs Ubuntu Pro uses can insert additional messages into MOTD.
-These messages will be always delivered before or after the content created by
-the Python script delivered by `update-notifier`. These additional messages are
-generated when `pro` detects that certain conditions on the machine have been
-met. They are:
+One of the [timer jobs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_the_timer_jobs.html)
+Ubuntu Pro uses can insert additional messages into MOTD.
+These messages will be always delivered close to the content created by
+the `update-notifier`. These additional messages are generated when `pro`
+detects that certain conditions on the machine have been met. They are:
 
 ### Subscription expired
 
@@ -140,10 +147,10 @@ Your grace period will expire in 9 days.
 
 ## MOTD about ESM being available
 
-There was also a general announcement info that further helped to raise
-awareness of Pro being available and for free. This was only shown on systems
-covered by `esm-apps`. Furthermore it was meant to be only shown for a limited
-time and therefore removed in 27.14.
+When Ubuntu Pro became generally available, a temporary announcement was made
+through MOTD. This was intended to raise awareness of Pro now being available
+and free for personal use, and was shown on systems that could be covered
+by `esm-apps`.
 It looked like:
 
 ```
@@ -154,23 +161,33 @@ It looked like:
      https://ubuntu.com/pro
 ```
 
+Since this message was intended as a limited-time announcement to coincide
+with the release of Ubuntu Pro into general availability, it was removed in
+27.14.
+
 ## How are these messages inserted into MOTD and how can I disable them?
 
-Just like there are different aspects to the messages outlined above they
-come from different sources into the MOTD that one sees at login time.
+Just as there are different purposes to the messages outlined above,
+there are different sources producing these MOTD elements that one
+sees at login.
 
 Those messages are considered important to ensure user awareness about
 the free additional security coverage provided by Ubuntu Pro and about
-not-yet-applied potential updates in general. Therefore it is not recommended
-to disable them, but you can selectively disable them via the config
-files that add them, as outlined below.
+not-yet-applied potential updates in general. Therefore it is generally not
+recommended to disable them. But still, you can selectively disable them
+by removing the config files that add them, as outlined below.
 
-Removing those is considered a conffile change to customize a program
+Removing those files is considered a conffile change to customize a program
 and they will stay removed even on future upgrades or re-installations of the
-related packages. If you realize that you actually need them back you need
+related packages.
+
+If you realize that you actually need them back you need
 to reinstall the related packages and tell apt/dpkg to offer you to restore
 those files via:
-`sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-advantage-tools update-notifier-common`
+
+```
+sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-advantage-tools update-notifier-common
+```
 
 ## Source: MOTD about available updates
 
