@@ -5,7 +5,7 @@ from features.steps.shell import when_i_run_command
 
 @when("I do a preflight check for `{contract_token}` {user_spec}")
 def when_i_preflight(context, contract_token, user_spec, verify_return=True):
-    token = getattr(context.config, contract_token, "invalid_token")
+    token = getattr(context.pro_config, contract_token, "invalid_token")
     command = "pro status --simulate-with-token {}".format(token)
     if user_spec == "with the all flag":
         command += " --all"

@@ -10,7 +10,7 @@ from features.steps.shell import when_i_run_command
 
 @when("I download the service credentials on the `{machine_name}` machine")
 def download_service_credentials(context, machine_name):
-    token = context.config.contract_token
+    token = context.pro_config.contract_token
     when_i_run_command(
         context,
         "get-resource-tokens {}".format(token),
@@ -112,7 +112,7 @@ def serve_apt_mirror(context, service, port, machine_name):
     "I create the contract config overrides file for `{service_list}` on the `{machine_name}` machine"  # noqa
 )
 def create_contract_overrides(context, service_list, machine_name):
-    token = context.config.contract_token
+    token = context.pro_config.contract_token
     config_override = {token: {}}  # type: Dict[str, Any]
 
     for service in service_list.split(","):

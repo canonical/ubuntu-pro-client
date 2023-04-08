@@ -14,8 +14,8 @@ from features.util import SUT, InstallationSource, build_debs
 def when_i_install_uat(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
     series = context.machines[machine_name].series
-    is_pro = "pro" in context.config.machine_type
-    if context.config.install_from is InstallationSource.ARCHIVE:
+    is_pro = "pro" in context.pro_config.machine_type
+    if context.pro_config.install_from is InstallationSource.ARCHIVE:
         instance.execute("sudo apt update")
         when_i_apt_install(
             context, "ubuntu-advantage-tools", machine_name=machine_name
@@ -24,8 +24,8 @@ def when_i_install_uat(context, machine_name=SUT):
             when_i_apt_install(
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
-    elif context.config.install_from is InstallationSource.PREBUILT:
-        debs_path = context.config.debs_path
+    elif context.pro_config.install_from is InstallationSource.PREBUILT:
+        debs_path = context.pro_config.debs_path
         deb_paths = [
             os.path.join(debs_path, deb_file)
             for deb_file in os.listdir(debs_path)
@@ -39,7 +39,7 @@ def when_i_install_uat(context, machine_name=SUT):
                     context, "/tmp/behave_ua.deb", machine_name=machine_name
                 )
                 instance.execute("sudo rm /tmp/behave_ua.deb")
-    elif context.config.install_from is InstallationSource.LOCAL:
+    elif context.pro_config.install_from is InstallationSource.LOCAL:
         ua_deb_path, pro_deb_path = build_debs(series)
         instance.push_file(ua_deb_path, "/tmp/behave_ua.deb")
         when_i_apt_install(
@@ -52,7 +52,7 @@ def when_i_install_uat(context, machine_name=SUT):
                 context, "/tmp/behave_ua.deb", machine_name=machine_name
             )
             instance.execute("sudo rm /tmp/behave_ua.deb")
-    elif context.config.install_from is InstallationSource.DAILY:
+    elif context.pro_config.install_from is InstallationSource.DAILY:
         instance.execute("sudo add-apt-repository ppa:ua-client/daily")
         instance.execute("sudo apt update")
         when_i_apt_install(
@@ -62,7 +62,7 @@ def when_i_install_uat(context, machine_name=SUT):
             when_i_apt_install(
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
-    elif context.config.install_from is InstallationSource.STAGING:
+    elif context.pro_config.install_from is InstallationSource.STAGING:
         instance.execute("sudo add-apt-repository ppa:ua-client/staging")
         instance.execute("sudo apt update")
         when_i_apt_install(
@@ -72,7 +72,7 @@ def when_i_install_uat(context, machine_name=SUT):
             when_i_apt_install(
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
-    elif context.config.install_from is InstallationSource.STABLE:
+    elif context.pro_config.install_from is InstallationSource.STABLE:
         instance.execute("sudo add-apt-repository ppa:ua-client/stable")
         instance.execute("sudo apt update")
         when_i_apt_install(
@@ -82,7 +82,7 @@ def when_i_install_uat(context, machine_name=SUT):
             when_i_apt_install(
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
-    elif context.config.install_from is InstallationSource.PROPOSED:
+    elif context.pro_config.install_from is InstallationSource.PROPOSED:
         context.text = "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\n".format(  # noqa: E501
             series=series
         )
@@ -127,9 +127,9 @@ def when_i_install_uat(context, machine_name=SUT):
             when_i_apt_install(
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
-    elif context.config.install_from is InstallationSource.CUSTOM:
+    elif context.pro_config.install_from is InstallationSource.CUSTOM:
         instance.execute(
-            "sudo add-apt-repository {}".format(context.config.custom_ppa)
+            "sudo add-apt-repository {}".format(context.pro_config.custom_ppa)
         )
         instance.execute("sudo apt update")
         when_i_apt_install(
@@ -143,7 +143,7 @@ def when_i_install_uat(context, machine_name=SUT):
 
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
-    if context.config.install_from is InstallationSource.LOCAL:
+    if context.pro_config.install_from is InstallationSource.LOCAL:
         deb_paths = build_debs(series)
 
         for deb_path in deb_paths:
@@ -151,17 +151,17 @@ def when_i_have_the_debs_under_test(context, series, dest):
             dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
             context.machines[SUT].instance.push_file(deb_path, dest_path)
     else:
-        if context.config.install_from is InstallationSource.PROPOSED:
+        if context.pro_config.install_from is InstallationSource.PROPOSED:
             ppa_opts = ""
         else:
-            if context.config.install_from is InstallationSource.DAILY:
+            if context.pro_config.install_from is InstallationSource.DAILY:
                 ppa = "ppa:ua-client/daily"
-            elif context.config.install_from is InstallationSource.STAGING:
+            elif context.pro_config.install_from is InstallationSource.STAGING:
                 ppa = "ppa:ua-client/staging"
-            elif context.config.install_from is InstallationSource.STABLE:
+            elif context.pro_config.install_from is InstallationSource.STABLE:
                 ppa = "ppa:ua-client/stable"
-            elif context.config.install_from is InstallationSource.CUSTOM:
-                ppa = context.config.custom_ppa
+            elif context.pro_config.install_from is InstallationSource.CUSTOM:
+                ppa = context.pro_config.custom_ppa
                 if not ppa.startswith("ppa"):
                     # assumes format "http://domain.name/user/ppa/ubuntu"
                     match = re.match(r"https?://[\w.]+/([^/]+/[^/]+)", ppa)
@@ -197,7 +197,7 @@ def when_i_have_the_debs_under_test(context, series, dest):
     "I prepare the local PPAs to upgrade from `{release}` to `{next_release}`"
 )
 def when_i_create_local_ppas(context, release, next_release):
-    if context.config.install_from is not InstallationSource.LOCAL:
+    if context.pro_config.install_from is not InstallationSource.LOCAL:
         return
 
     from features.steps.machines import given_a_machine
@@ -254,7 +254,7 @@ def create_local_ppa(context, release):
 
 @when("I install ubuntu-advantage-pro")
 def when_i_install_pro(context):
-    if context.config.install_from is InstallationSource.LOCAL:
+    if context.pro_config.install_from is InstallationSource.LOCAL:
         deb_paths = build_debs(context.machines[SUT].instance.series)
 
         for deb_path in deb_paths:

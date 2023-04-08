@@ -293,11 +293,11 @@ def process_template_vars(
         args = match.group(1).split()
         function_name = args[0]
         if function_name == "version":
-            if context.config.check_version:
+            if context.pro_config.check_version:
                 processed_template = _replace_and_log(
                     processed_template,
                     match.group(0),
-                    context.config.check_version,
+                    context.pro_config.check_version,
                     logger_fn,
                 )
         elif function_name == "machine-ip":
@@ -312,7 +312,7 @@ def process_template_vars(
             processed_template = _replace_and_log(
                 processed_template,
                 match.group(0),
-                context.config.cloud,
+                context.pro_config.cloud,
                 logger_fn,
             )
         elif function_name == "today":
@@ -331,7 +331,7 @@ def process_template_vars(
             processed_template = _replace_and_log(
                 processed_template,
                 match.group(0),
-                context.config.contract_token_staging,
+                context.pro_config.contract_token_staging,
                 logger_fn,
             )
         elif function_name == "stored_var":
