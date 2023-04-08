@@ -299,6 +299,9 @@ class UAClientBehaveConfig:
                     bool_value = False
                 kwargs[key] = bool_value
 
+        # userdata should override environment variables
+        kwargs.update(config.userdata)
+
         if "install_from" in kwargs:
             kwargs["install_from"] = InstallationSource(kwargs["install_from"])
 
