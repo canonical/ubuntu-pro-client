@@ -97,7 +97,7 @@ def when_i_replace_string_in_file(context, original, filename, new):
 def when_i_replace_string_in_file_with_token(
     context, original, filename, token_name
 ):
-    token = getattr(context.config, token_name)
+    token = getattr(context.pro_config, token_name)
     when_i_replace_string_in_file(context, original, filename, token)
 
 
