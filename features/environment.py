@@ -123,7 +123,7 @@ class UAClientBehaveConfig:
         contract_token: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
-        artifact_dir: Optional[str] = None,
+        artifact_dir: str = "artifacts",
         install_from: InstallationSource = InstallationSource.DAILY,
         custom_ppa: Optional[str] = None,
         debs_path: Optional[str] = None,
@@ -477,12 +477,8 @@ FAILURE_CMDS = {
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
     if step.status == "failed":
-        if context.pro_config.artifact_dir:
-            artifacts_dir = context.pro_config.artifact_dir
-        else:
-            artifacts_dir = "artifacts"
         artifacts_dir = os.path.join(
-            artifacts_dir,
+            context.pro_config.artifact_dir,
             "{}_{}".format(os.path.basename(step.filename), step.line),
         )
         if hasattr(context, "process"):
