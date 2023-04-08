@@ -6,6 +6,7 @@ import random
 import re
 import string
 import sys
+import tarfile
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
 import pycloudlib  # type: ignore  # noqa: F401
@@ -434,57 +435,30 @@ def before_scenario(context: Context, scenario: Scenario):
             )
 
 
-FAILURE_FILES = (
-    "/etc/ubuntu-advantage/uaclient.log",
-    "/var/log/cloud-init.log",
-    "/var/log/ubuntu-advantage.log",
-    "/var/log/ubuntu-advantage-daemon.log",
-    "/var/log/ubuntu-advantage-timer.log",
-    "/var/lib/cloud/instance/user-data.txt",
-    "/var/lib/cloud/instance/vendor-data.txt",
-)
-FAILURE_CMDS = {
-    "ua-version": ["pro", "version"],
-    "cloud-init-analyze": ["cloud-init", "analyze", "show"],
-    "cloud-init.status": ["cloud-init", "status", "--long"],
-    "status.yaml": ["pro", "status", "--all", "--format=yaml"],
-    "journal.log": ["journalctl", "-b", "0"],
-    "systemd-analyze-blame": ["systemd-analyze", "blame"],
-    "systemctl-status": ["systemctl", "status"],
-    "systemctl-status-ua-auto-attach": [
-        "systemctl",
-        "status",
-        "ua-auto-attach.service",
-    ],
-    "systemctl-status-ua-reboot-cmds": [
-        "systemctl",
-        "status",
-        "ua-reboot-cmds.service",
-    ],
-    "systemctl-status-ubuntu-advantage": [
-        "systemctl",
-        "status",
-        "ubuntu-advantage.service",
-    ],
-    "systemctl-status-apt-news": [
-        "systemctl",
-        "status",
-        "apt-news.service",
-    ],
-}
-
-
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
     if step.status == "failed":
-        artifacts_dir = os.path.join(
-            context.pro_config.artifact_dir,
+        logging.warning("STEP FAILED. Collecting logs.")
+        inner_dir = os.path.join(
+            datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S"),
             "{}_{}".format(os.path.basename(step.filename), step.line),
         )
+        new_artifacts_dir = os.path.join(
+            context.pro_config.artifact_dir,
+            inner_dir,
+        )
+        if not os.path.exists(new_artifacts_dir):
+            os.makedirs(new_artifacts_dir)
+
+        latest_link_dir = os.path.join(
+            context.pro_config.artifact_dir, "latest"
+        )
+        if os.path.exists(latest_link_dir):
+            os.unlink(latest_link_dir)
+        os.symlink(inner_dir, latest_link_dir)
+
         if hasattr(context, "process"):
-            if not os.path.exists(artifacts_dir):
-                os.makedirs(artifacts_dir)
-            artifact_file = os.path.join(artifacts_dir, "process.log")
+            artifact_file = os.path.join(new_artifacts_dir, "process.log")
             process = context.process
             with open(artifact_file, "w") as stream:
                 stream.write(
@@ -496,31 +470,24 @@ def after_step(context, step):
                 )
 
         if hasattr(context, "machines") and SUT in context.machines:
-            if not os.path.exists(artifacts_dir):
-                os.makedirs(artifacts_dir)
-            for log_file in FAILURE_FILES:
-                artifact_file = os.path.join(
-                    artifacts_dir, os.path.basename(log_file)
+            try:
+                context.machines[SUT].instance.execute(
+                    ["pro", "collect-logs", "-o", "/tmp/logs.tar.gz"],
+                    use_sudo=True,
                 )
-                logging.info(
-                    "-- pull instance:{} {}".format(log_file, artifact_file)
+                context.machines[SUT].instance.execute(
+                    ["chmod", "666", "/tmp/logs.tar.gz"], use_sudo=True
                 )
-                try:
-                    result = context.machines[SUT].instance.execute(
-                        ["cat", log_file], use_sudo=True
-                    )
-                    content = result.stdout if result.ok else ""
-                except RuntimeError:
-                    content = ""
-                with open(artifact_file, "w") as stream:
-                    stream.write(content)
-            for artifact_file, cmd in FAILURE_CMDS.items():
-                result = context.machines[SUT].instance.execute(
-                    cmd, use_sudo=True
+                dest = os.path.join(new_artifacts_dir, "logs.tar.gz")
+                context.machines[SUT].instance.pull_file(
+                    "/tmp/logs.tar.gz", dest
                 )
-                artifact_file = os.path.join(artifacts_dir, artifact_file)
-                with open(artifact_file, "w") as stream:
-                    stream.write(result.stdout)
+                with tarfile.open(dest) as logs_tarfile:
+                    logs_tarfile.extractall(new_artifacts_dir)
+                logging.warning("Done collecting logs.")
+            except Exception as e:
+                logging.error(str(e))
+                logging.warning("Failed to collect logs")
 
 
 def after_all(context):
