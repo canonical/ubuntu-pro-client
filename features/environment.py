@@ -332,17 +332,17 @@ def before_all(context: Context) -> None:
             print("   - {} = {}".format(key, value))
     context.series_image_name = {}
     context.series_reuse_image = ""
-    context.config = UAClientBehaveConfig.from_environ(context.config)
-    context.config.cloud_manager.manage_ssh_key()
+    context.pro_config = UAClientBehaveConfig.from_environ(context.config)
+    context.pro_config.cloud_manager.manage_ssh_key()
     context.snapshots = {}
     context.machines = {}
 
-    if context.config.reuse_image:
+    if context.pro_config.reuse_image:
         series = lxc_get_property(
-            context.config.reuse_image, property_name="series", image=True
+            context.pro_config.reuse_image, property_name="series", image=True
         )
         machine_type = lxc_get_property(
-            context.config.reuse_image,
+            context.pro_config.reuse_image,
             property_name="machine_type",
             image=True,
         )
@@ -350,26 +350,26 @@ def before_all(context: Context) -> None:
             print("Found machine_type: {vm_type}".format(vm_type=machine_type))
         if series is not None:
             context.series_reuse_image = series
-            context.series_image_name[series] = context.config.reuse_image
+            context.series_image_name[series] = context.pro_config.reuse_image
         else:
             print(" Could not check image series. It will not be used. ")
-            context.config.reuse_image = None
+            context.pro_config.reuse_image = None
 
 
 def _should_skip_tags(context: Context, tags: List) -> str:
     """Return a reason if a feature or scenario should be skipped"""
-    machine_type = getattr(context.config, "machine_type", "")
+    machine_type = getattr(context.pro_config, "machine_type", "")
     machine_types = []
 
     for tag in tags:
         parts = tag.split(".")
-        if parts[0] != "uses":
-            continue  # Only process @uses.* tags for skipping:
-        val = context
-        for idx, attr in enumerate(parts[1:], 1):
+        if parts[0] != "uses" or parts[1] != "config":
+            continue  # Only process @uses.config.* tags for skipping:
+        val = context.pro_config
+        for idx, attr in enumerate(parts[2:], 1):
             val = getattr(val, attr, None)
             if attr == "machine_type":
-                curr_machine_type = ".".join(parts[idx + 1 :])
+                curr_machine_type = ".".join(parts[idx + 2 :])
                 machine_types.append(curr_machine_type)
                 if curr_machine_type == machine_type:
                     return ""
@@ -400,7 +400,7 @@ def before_scenario(context: Context, scenario: Scenario):
         scenario.skip(reason=reason)
         return
 
-    filter_series = context.config.filter_series
+    filter_series = context.pro_config.filter_series
     given_a_series_match = re.match(
         "a `(.*)` machine with ubuntu-advantage-tools installed",
         scenario.steps[0].name,
@@ -477,8 +477,8 @@ FAILURE_CMDS = {
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
     if step.status == "failed":
-        if context.config.artifact_dir:
-            artifacts_dir = context.config.artifact_dir
+        if context.pro_config.artifact_dir:
+            artifacts_dir = context.pro_config.artifact_dir
         else:
             artifacts_dir = "artifacts"
         artifacts_dir = os.path.join(
@@ -528,7 +528,7 @@ def after_step(context, step):
 
 
 def after_all(context):
-    if context.config.image_clean:
+    if context.pro_config.image_clean:
         for key, image in context.series_image_name.items():
             if key == context.series_reuse_image:
                 logging.info(
@@ -536,11 +536,11 @@ def after_all(context):
                     context.series_image_name[key],
                 )
             else:
-                context.config.cloud_api.delete_image(image)
+                context.pro_config.cloud_api.delete_image(image)
 
-    if context.config.destroy_instances:
+    if context.pro_config.destroy_instances:
         try:
-            key_pair = context.config.cloud_manager.api.key_pair
+            key_pair = context.pro_config.cloud_manager.api.key_pair
             os.remove(key_pair.private_key_path)
             os.remove(key_pair.public_key_path)
         except Exception as e:
@@ -550,7 +550,7 @@ def after_all(context):
 
     if "builder" in context.snapshots:
         try:
-            context.config.cloud_manager.api.delete_image(
+            context.pro_config.cloud_manager.api.delete_image(
                 context.snapshots["builder"]
             )
         except RuntimeError as e:

@@ -9,7 +9,7 @@ from features.steps.shell import when_i_run_command
 
 @when("I fix `{issue}` by attaching to a subscription with `{token_type}`")
 def when_i_fix_a_issue_by_attaching(context, issue, token_type):
-    token = getattr(context.config, token_type)
+    token = getattr(context.pro_config, token_type)
 
     if (
         token_type == "contract_token_staging"
@@ -40,7 +40,7 @@ def when_i_fix_a_issue_by_enabling_service(context, issue):
 
 @when("I fix `{issue}` by updating expired token")
 def when_i_fix_a_issue_by_updating_expired_token(context, issue):
-    token = getattr(context.config, "contract_token")
+    token = getattr(context.pro_config, "contract_token")
     when_i_run_command(
         context=context,
         command="pro fix {}".format(issue),

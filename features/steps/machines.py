@@ -40,7 +40,7 @@ def given_a_machine(
 
     inbound_ports = ports.split(",") if ports is not None else None
 
-    is_pro = "pro" in context.config.machine_type
+    is_pro = "pro" in context.pro_config.machine_type
     pro_user_data = (
         "bootcmd:\n"
         """  - "cloud-init-per once disable-auto-attach printf '\\nfeatures: {disable_auto_attach: true}\\n' >> /etc/ubuntu-advantage/uaclient.conf"\n"""  # noqa: E501
@@ -53,10 +53,10 @@ def given_a_machine(
         if user_data is not None:
             user_data_to_use += user_data
 
-    instance = context.config.cloud_manager.launch(
+    instance = context.pro_config.cloud_manager.launch(
         series=series,
         instance_name=instance_name,
-        ephemeral=context.config.ephemeral_instance,
+        ephemeral=context.pro_config.ephemeral_instance,
         image_name=context.snapshots.get(snapshot_name, None),
         inbound_ports=inbound_ports,
         user_data=user_data_to_use,
@@ -69,7 +69,7 @@ def given_a_machine(
     if cleanup:
 
         def cleanup_instance():
-            if not context.config.destroy_instances:
+            if not context.pro_config.destroy_instances:
                 logging.info(
                     "--- Leaving instance running: {}".format(
                         context.machines[machine_name].instance.name
@@ -92,7 +92,7 @@ def given_a_machine(
 @when("I take a snapshot of the machine")
 def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
     inst = context.machines[machine_name].instance
-    snapshot = context.config.cloud_manager.api.snapshot(inst)
+    snapshot = context.pro_config.cloud_manager.api.snapshot(inst)
 
     context.snapshots[machine_name] = snapshot
 
@@ -100,7 +100,7 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
         def cleanup_snapshot() -> None:
             try:
-                context.config.cloud_manager.api.delete_image(
+                context.pro_config.cloud_manager.api.delete_image(
                     context.snapshots[machine_name]
                 )
             except RuntimeError as e:
@@ -115,13 +115,13 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
 def given_a_sut_machine(context, series):
-    if context.config.install_from == InstallationSource.LOCAL:
+    if context.pro_config.install_from == InstallationSource.LOCAL:
         # build right away, this will cache the built debs for later use
         # building early means we catch build errors before investing in
         # launching instances
         build_debs(series)
 
-    if context.config.snapshot_strategy:
+    if context.pro_config.snapshot_strategy:
         if "builder" not in context.snapshots:
             given_a_machine(
                 context, series, machine_name="builder", cleanup=False

@@ -23,7 +23,7 @@ def when_i_attach_staging_token_with_options(
 def when_i_attach_staging_token(
     context, token_type, user_spec, verify_return=True, options=""
 ):
-    token = getattr(context.config, token_type)
+    token = getattr(context.pro_config, token_type)
     if (
         token_type == "contract_token_staging"
         or token_type == "contract_token_staging_expired"
@@ -47,7 +47,9 @@ def when_i_attempt_to_attach_staging_token(context, token_type, user_spec):
     "I verify that running attach `{spec}` with json response exits `{exit_codes}`"  # noqa
 )
 def when_i_verify_attach_with_json_response(context, spec, exit_codes):
-    cmd = "pro attach {} --format json".format(context.config.contract_token)
+    cmd = "pro attach {} --format json".format(
+        context.pro_config.contract_token
+    )
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         context=context, cmd_name=cmd, spec=spec, exit_codes=exit_codes
     )
@@ -59,7 +61,7 @@ def when_i_verify_attach_with_json_response(context, spec, exit_codes):
 def when_i_verify_attach_expired_token_with_json_response(context, spec):
     change_contract_endpoint_to_staging(context, user_spec="with sudo")
     cmd = "pro attach {} --format json".format(
-        context.config.contract_token_staging_expired
+        context.pro_config.contract_token_staging_expired
     )
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         context=context, cmd_name=cmd, spec=spec, exit_codes=ERROR_CODE
