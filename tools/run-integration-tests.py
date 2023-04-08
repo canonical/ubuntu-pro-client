@@ -57,28 +57,36 @@ def build_commands(
                 series_version = SERIES_TO_VERSION[s]
                 env = os.environ.copy()
 
-                # Add check_version variable
-                if check_version:
-                    env["UACLIENT_BEHAVE_CHECK_VERSION"] = "{}~{}.1".format(
-                        check_version, series_version
-                    )
-
-                # choose the appropriate installation source for the deb
-                env["UACLIENT_BEHAVE_INSTALL_FROM"] = install_from
-
                 # Inject tokens from credentials
                 for t in token:
                     envvar = TOKEN_TO_ENVVAR[t]
                     env[envvar] = credentials["token"].get(envvar)
 
                 # Tox command itself
-                command = "tox -e behave-{}-{}".format(
-                    p, series_version
-                ).split()
+                command = [
+                    "tox",
+                    "-e",
+                    "behave-{}-{}".format(p, series_version),
+                    "--",
+                    "-D",
+                    "install_from={}".format(install_from)
+                ]
+
+
+                if check_version:
+                    command.extend(
+                        [
+                            "-D",
+                            "check_version={}~{}".format(
+                                check_version,
+                                series_version,
+                            ),
+                        ]
+                    )
 
                 # Wip
                 if wip:
-                    command.extend(["--", "--tags=wip", "--stop"])
+                    command.extend(["--tags=wip", "--stop"])
 
                 commands.append((command, env))
 
