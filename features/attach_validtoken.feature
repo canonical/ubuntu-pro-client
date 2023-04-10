@@ -380,6 +380,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
         Examples: ubuntu release livepatch status
            | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
+           # removing until we add this feature back in a way that doesn't hammer the server
+           #| xenial  |
+           #| bionic  |
+           #| focal   |

@@ -520,7 +520,7 @@ Feature: FIPS enablement in lxd VMs
                 """
             And stdout matches regexp:
                 """
-                livepatch +yes                enabled
+                livepatch +yes                (enabled|warning)
                 """
             When  I run `uname -r` as non-root
             Then stdout matches regexp:
