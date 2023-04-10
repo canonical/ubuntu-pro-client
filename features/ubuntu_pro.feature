@@ -180,7 +180,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +<livepatch-s> +Canonical Livepatch service
+            livepatch     +yes +<livepatch-s> +<lp-desc>
             """
         Then stdout matches regexp:
             """
@@ -212,10 +212,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         .*CONNECT metadata.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
-           | xenial  | n/a      | disabled | disabled | n/a         | cis        |
-           | bionic  | disabled | disabled | disabled | enabled     | cis        |
-           | focal   | disabled | n/a      | disabled | enabled     | usg        |
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | warning     | Current kernel is not supported | cis        |
+           | bionic  | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | focal   | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
 
     @series.lts
     @uses.config.machine_type.aws.pro
@@ -490,7 +490,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        livepatch     +yes +<livepatch>  +<lp-desc>
         """
         Then stdout matches regexp:
         """
@@ -508,7 +508,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-        livepatch     +yes +<livepatch>  +Canonical Livepatch service
+        livepatch     +yes +<livepatch>  +<lp-desc>
         """
         Then stdout matches regexp:
         """
@@ -584,11 +584,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
-           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | usg        |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
+           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro

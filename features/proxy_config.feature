@@ -582,7 +582,7 @@ Feature: Proxy configuration
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
         {
-          "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+          "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
           "ua_apt_https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
         }
         """
@@ -1133,7 +1133,7 @@ Feature: Proxy configuration
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
         {
-          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
+          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
           "apt_https_proxy": "http://$behave_var{machine-ip proxy}:3128"
         }
         """
@@ -1206,7 +1206,8 @@ Feature: Proxy configuration
         esm-apps     +yes      +enabled      +Expanded Security Maintenance for Applications
         esm-infra     +yes      +enabled      +Expanded Security Maintenance for Infrastructure
         """
-        When I run `pro enable realtime-kernel --beta` `with sudo` and stdin `y`
+        When I run `pro disable livepatch --assume-yes` with sudo
+        When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
         Installing Real-time kernel packages
