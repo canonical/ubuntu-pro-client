@@ -190,7 +190,8 @@ Feature: auto-attach retries periodically on failures
         """
         Active: inactive (dead)
         """
-        When I run `run-parts /etc/update-motd.d/` with sudo
+        # Workaround for livepatch issue LP #2015585
+        Then I verify that running `run-parts /etc/update-motd.d/` `with sudo` exits `0,1`
         Then stdout does not match regexp:
         """
         Failed to automatically attach to Ubuntu Pro services
@@ -345,7 +346,8 @@ Feature: auto-attach retries periodically on failures
         """
         Active: inactive (dead)
         """
-        When I run `run-parts /etc/update-motd.d/` with sudo
+        # Workaround for livepatch issue LP #2015585
+        Then I verify that running `run-parts /etc/update-motd.d/` `with sudo` exits `0,1`
         Then stdout does not match regexp:
         """
         Failed to automatically attach to Ubuntu Pro services
