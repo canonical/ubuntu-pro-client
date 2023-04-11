@@ -20,7 +20,6 @@ With regards to Ubuntu Pro, this script is responsible for:
 * Showing the number of `esm-infra` or `esm-apps` packages that can be upgraded
   on the machine.
 
-`update-notifier` always was responsible to add information about potential
 `update-notifier` has always added information about potential updates to
 MOTD to raise user awareness. With the advent of Ubuntu Pro they are
 just more differentiated.
