@@ -604,7 +604,7 @@ def format_expires(expires: Optional[datetime]) -> str:
     return expires.strftime("%c %Z")
 
 
-def format_tabular(status: Dict[str, Any]) -> str:
+def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
     """Format status dict for tabular output."""
     if not status.get("attached"):
         if status.get("simulated"):
@@ -659,6 +659,9 @@ def format_tabular(status: Dict[str, Any]) -> str:
             for key, value in sorted(status["features"].items()):
                 content.append("{}: {}".format(key, value))
 
+        if show_all_hint:
+            content.extend(["", messages.STATUS_ALL_HINT])
+
         content.extend(["", messages.UNATTACHED.msg])
         if livepatch.on_supported_kernel() is False:
             content.extend(
@@ -705,8 +708,11 @@ def format_tabular(status: Dict[str, Any]) -> str:
         content.append("\nFEATURES")
         for key, value in sorted(status["features"].items()):
             content.append("{}: {}".format(key, value))
+    content.append("")
 
-    content.append("\nEnable services with: pro enable <service>")
+    if show_all_hint:
+        content.append(messages.STATUS_ALL_HINT)
+    content.append("Enable services with: pro enable <service>")
     pairs = []
 
     account_name = status["account"]["name"]

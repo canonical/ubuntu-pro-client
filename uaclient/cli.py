@@ -1688,7 +1688,7 @@ def action_status(args, *, cfg: config.UAConfig):
         event.info("")
 
     event.set_output_content(status)
-    output = ua_status.format_tabular(status)
+    output = ua_status.format_tabular(status, show_all_hint=not show_all)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
     return ret
