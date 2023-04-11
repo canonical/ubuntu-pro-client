@@ -13,6 +13,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         No Ubuntu Pro services are available to this system.
         """
+        And stdout matches regexp:
+        """
+        For a list of all Ubuntu Pro services, run 'pro status --all'
+        """
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
@@ -24,6 +28,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         fips          +yes      +n/a      +NIST-certified core packages
         fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch     +yes      +n/a      +Canonical Livepatch service
+        """
+        And stdout does not match regexp:
+        """
+        For a list of all Ubuntu Pro services, run 'pro status --all'
         """
 
         Examples: ubuntu release
