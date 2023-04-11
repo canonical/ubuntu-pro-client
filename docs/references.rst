@@ -16,3 +16,6 @@ Reference
     Network requirements <references/network_requirements.md>
     Personal Package Archives (PPAs) <references/ppas.md>
     Support matrix <references/support_matrix.md>
+    What is a CVE <references/what_is_a_cve.md>
+    What is a USN <references/what_is_a_usn.md>
+    What are related USNs <references/what_are_related_usns.md>
