@@ -106,8 +106,8 @@ on the machine is in ESM state.
 
 One of the [timer jobs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_the_timer_jobs.html)
 Ubuntu Pro uses can insert additional messages into MOTD.
-These messages will be always delivered close to the content created by
-the `update-notifier`. These additional messages are generated when `pro`
+These messages will be always delivered next to the content created by
+`update-notifier`. These additional messages are generated when `pro`
 detects that certain conditions on the machine have been met. They are:
 
 ### Subscription expired
