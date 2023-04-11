@@ -608,6 +608,9 @@ def format_tabular(status: Dict[str, Any]) -> str:
     """Format status dict for tabular output."""
     if not status.get("attached"):
         if status.get("simulated"):
+            if not status["services"]:
+                return messages.STATUS_NO_SERVICES_AVAILABLE
+
             content = [
                 STATUS_SIMULATED_TMPL.format(
                     name="SERVICE",
@@ -621,25 +624,30 @@ def format_tabular(status: Dict[str, Any]) -> str:
                 content.append(STATUS_SIMULATED_TMPL.format(**service))
             return "\n".join(content)
 
-        content = [
-            STATUS_UNATTACHED_TMPL.format(
-                name="SERVICE",
-                available="AVAILABLE",
-                description="DESCRIPTION",
-            )
-        ]
-        for service in status["services"]:
-            descr_override = service.get("description_override")
-            description = (
-                descr_override if descr_override else service["description"]
-            )
-            content.append(
+        if not status["services"]:
+            content = [messages.STATUS_NO_SERVICES_AVAILABLE]
+        else:
+            content = [
                 STATUS_UNATTACHED_TMPL.format(
-                    name=service["name"],
-                    available=service["available"],
-                    description=description,
+                    name="SERVICE",
+                    available="AVAILABLE",
+                    description="DESCRIPTION",
                 )
-            )
+            ]
+            for service in status["services"]:
+                descr_override = service.get("description_override")
+                description = (
+                    descr_override
+                    if descr_override
+                    else service["description"]
+                )
+                content.append(
+                    STATUS_UNATTACHED_TMPL.format(
+                        name=service["name"],
+                        available=service["available"],
+                        description=description,
+                    )
+                )
 
         notices = status.get("notices")
         if notices:
@@ -659,26 +667,30 @@ def format_tabular(status: Dict[str, Any]) -> str:
         return "\n".join(content)
 
     service_warnings = []
-    content = [STATUS_HEADER]
-    for service_status in status["services"]:
-        entitled = service_status["entitled"]
-        descr_override = service_status.get("description_override")
-        description = (
-            descr_override if descr_override else service_status["description"]
-        )
-        fmt_args = {
-            "name": service_status["name"],
-            "entitled": colorize(entitled),
-            "status": colorize(service_status["status"]),
-            "description": description,
-        }
-        warning = service_status.get("warning", None)
-        if warning is not None:
-            warning_message = warning.get("message", None)
-            if warning_message is not None:
-                service_warnings.append(warning_message)
-        content.append(STATUS_TMPL.format(**fmt_args))
-    tech_support_level = status["contract"]["tech_support_level"]
+    if not status["services"]:
+        content = [messages.STATUS_NO_SERVICES_AVAILABLE]
+    else:
+        content = [STATUS_HEADER]
+        for service_status in status["services"]:
+            entitled = service_status["entitled"]
+            descr_override = service_status.get("description_override")
+            description = (
+                descr_override
+                if descr_override
+                else service_status["description"]
+            )
+            fmt_args = {
+                "name": service_status["name"],
+                "entitled": colorize(entitled),
+                "status": colorize(service_status["status"]),
+                "description": description,
+            }
+            warning = service_status.get("warning", None)
+            if warning is not None:
+                warning_message = warning.get("message", None)
+                if warning_message is not None:
+                    service_warnings.append(warning_message)
+            content.append(STATUS_TMPL.format(**fmt_args))
 
     if status.get("notices") or len(service_warnings) > 0:
         content.append("")
@@ -707,6 +719,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
 
     if status["origin"] != "free":
         pairs.append(("Valid until", format_expires(status["expires"])))
+        tech_support_level = status["contract"]["tech_support_level"]
         pairs.append(("Technical support level", colorize(tech_support_level)))
 
     if pairs:
