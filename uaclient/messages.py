@@ -1288,3 +1288,7 @@ LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE = NamedMessage(
     "livepatch-client-failure",
     "canonical-livepatch status didn't finish successfully",
 )
+
+STATUS_NO_SERVICES_AVAILABLE = (
+    """No Ubuntu Pro services are available to this system."""
+)
