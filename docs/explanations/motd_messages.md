@@ -61,7 +61,7 @@ To see these additional updates run: apt list --upgradable
 ### Machine is fully attached, on an older release
 
 Above you have seen examples of recent (as in "still in their first 5
-years of support") ubuntu releases, where the hint is about ESM Apps
+years of support") Ubuntu releases, where the hint is about ESM Apps
 extending the coverage to the universe repositories.
 
 However, if running on an Ubuntu release that has is already past the initial
