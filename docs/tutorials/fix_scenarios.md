@@ -81,7 +81,9 @@ You should see an output like this:
 ```
 CVE-2020-15180: MariaDB vulnerabilities
 https://ubuntu.com/security/CVE-2020-15180
+
 No affected source packages are installed.
+
 ✔ CVE-2020-15180 does not affect your system.
 ```
 
@@ -110,10 +112,12 @@ You will then see the following output:
 ```
 CVE-2020-25686: Dnsmasq vulnerabilities
 https://ubuntu.com/security/CVE-2020-25686
+
 1 affected package is installed: dnsmasq
 (1/1) dnsmasq:
 A fix is available in Ubuntu standard updates.
 { apt update && apt install --only-upgrade -y dnsmasq }
+
 ✔ CVE-2020-25686 is resolved.
 ```
 
@@ -137,10 +141,12 @@ run the `pro fix` command again, and we should now see the following:
 ```
 CVE-2020-25686: Dnsmasq vulnerabilities
 https://ubuntu.com/security/CVE-2020-25686
+
 1 affected package is installed: dnsmasq
 (1/1) dnsmasq:
 A fix is available in Ubuntu standard updates.
 The update is already installed.
+
 ✔ CVE-2020-25686 is resolved.
 ```
 
@@ -151,30 +157,34 @@ let you know! Before we reproduce this scenario, let us first install a package
 that we know has no fix available by running:
 
 ```console
-$ sudo apt install -y libawl-php
+$ sudo apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript
 ```
 
 Now, we can confirm that there is no fix by running the following command:
 
 ```console
-$ pro fix USN-4539-1
+$ pro fix CVE-2017-9233
 ```
 
 You will see the following output:
 
 ```
-USN-4539-1: AWL vulnerability
-Found CVEs:
-https://ubuntu.com/security/CVE-2020-11728
-1 affected source package is installed: awl
-(1/1) awl:
-Sorry, no fix is available.
-1 package is still affected: awl
-✘ USN-4539-1 is not resolved.
+CVE-2017-9233: Coin3D vulnerability
+  - https://ubuntu.com/security/CVE-2017-9233
+
+3 affected source packages are installed: expat, matanza, swish-e
+(1/3, 2/3) matanza, swish-e:
+Ubuntu security engineers are investigating this issue.
+(3/3) expat:
+A fix is available in Ubuntu standard updates.
+{ apt update && apt install --only-upgrade -y expat }
+
+2 packages are still affected: matanza, swish-e
+✘ CVE-2017-9233 is not resolved.
 ```
 
-As you can see, we are informed by `pro fix` that there is no fix available. In
-the last line, we can also see that the USN is not resolved.
+As you can see, we are informed by `pro fix` that some packages do not have a fix available. In
+the last line, we can also see that the CVE is not resolved.
 
 ## CVE/USN that require an Ubuntu Pro subscription
 
@@ -193,6 +203,8 @@ USN-5079-2: curl vulnerabilities
 Found CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
+
+Fixing requested USN-5079-2
 1 affected package is installed: curl
 (1/1) curl:
 A fix is available in Ubuntu Pro: ESM Infra.
@@ -222,6 +234,7 @@ USN-5079-2: curl vulnerabilities
 Found CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
+
 1 affected package is installed: curl
 (1/1) curl:
 A fix is available in Ubuntu Pro: ESM Infra.
@@ -258,22 +271,40 @@ Enable services with: pro enable <service>
 Technical support level: essential
 { apt update && apt install --only-upgrade -y curl libcurl3-gnutls }
 ✔ USN-5079-2 is resolved.
+
+Found related USNs:
+- USN-5079-1
+
+Fixing related USNs:
+- USN-5079-1
+No affected source packages are installed.
+
+✔ USN-5079-1 does not affect your system.
+
+Summary:
+✔ USN-5079-2 [requested] is resolved.
+✔ USN-5079-1 [related] does not affect your system.
 ```
 
-We can see that that the attach command was successful, which can be verified
+We can see that this command also fixed related USN **USN-5079-1**.
+If you want to learn more about related USNs, refer to [our explanation guide](../explanations/cves_and_usns_explained.md#what-are-related-usns)
+
+Finally, we can see that that the attach command was successful, which can be verified
 by the status output we see when executing the command. Additionally, we can
 observe that the USN is indeed fixed, which you can confirm by running the
 `pro fix` command again:
 
 ```
-N-5079-2: curl vulnerabilities
+USN-5079-2: curl vulnerabilities
 Found CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
+
 1 affected package is installed: curl
 (1/1) curl:
 A fix is available in Ubuntu Pro: ESM Infra.
 The update is already installed.
+
 ✔ USN-5079-2 is resolved.
 ```
 
@@ -308,6 +339,7 @@ prompted):
 ```
 CVE-2021-44731: snapd vulnerabilities
 https://ubuntu.com/security/CVE-2021-44731
+
 1 affected package is installed: snapd
 (1/1) snapd:
 A fix is available in Ubuntu Pro: ESM Infra.
@@ -321,6 +353,7 @@ One moment, checking your subscription first
 Updating package lists
 Ubuntu Pro: ESM Infra enabled
 { apt update && apt install --only-upgrade -y ubuntu-core-launcher snapd }
+
 ✔ CVE-2021-44731 is resolved.
 ```
 
@@ -342,13 +375,15 @@ $ sudo pro fix CVE-2022-0778
 Then you will see the following output:
 
 ```
-VE-2022-0778: OpenSSL vulnerability
+CVE-2022-0778: OpenSSL vulnerability
 https://ubuntu.com/security/CVE-2022-0778
+
 1 affected package is installed: openssl
 (1/1) openssl:
 A fix is available in Ubuntu Pro: ESM Infra.
 { apt update && apt install --only-upgrade -y libssl1.0.0 openssl }
 A reboot is required to complete fix operation.
+
 ✘ CVE-2022-0778 is not resolved.
 ```
 
@@ -358,10 +393,12 @@ indeed fixed:
 ```
 CVE-2022-0778: OpenSSL vulnerability
 https://ubuntu.com/security/CVE-2022-0778
+
 1 affected package is installed: openssl
 (1/1) openssl:
 A fix is available in Ubuntu Pro: ESM Infra.
 The update is already installed.
+
 ✔ CVE-2022-0778 is resolved.
 ```
 
@@ -390,6 +427,7 @@ And you will see the following output:
 ```
 CVE-2017-9233: Expat vulnerability
 https://ubuntu.com/security/CVE-2017-9233
+
 3 affected packages are installed: expat, matanza, swish-e
 (1/3, 2/3) matanza, swish-e:
 Sorry, no fix is available.
@@ -397,6 +435,7 @@ Sorry, no fix is available.
 A fix is available in Ubuntu standard updates.
 { apt update && apt install --only-upgrade -y expat }
 2 packages are still affected: matanza, swish-e
+
 ✘ CVE-2017-9233 is not resolved.
 ```
 
