@@ -61,6 +61,8 @@ Feature: Unattached status
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
+
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
         """
@@ -106,6 +108,8 @@ Feature: Unattached status
         FEATURES
         allow_beta: True
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
+
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
         """ 
@@ -130,6 +134,8 @@ Feature: Unattached status
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
         usg             +yes       +Security compliance and audit tools
+
+        For a list of all Ubuntu Pro services, run 'pro status --all'
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
@@ -173,6 +179,8 @@ Feature: Unattached status
         FEATURES
         allow_beta: True
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
+
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
         """ 
@@ -194,6 +202,8 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
+
+        For a list of all Ubuntu Pro services, run 'pro status --all'
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro
@@ -234,6 +244,8 @@ Feature: Unattached status
 
         FEATURES
         allow_beta: True
+
+        For a list of all Ubuntu Pro services, run 'pro status --all'
 
         This machine is not attached to an Ubuntu Pro subscription.
         See https://ubuntu.com/pro

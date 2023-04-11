@@ -101,6 +101,7 @@ Feature: Attached status
         ros             +yes      +disabled +Security Updates for the Robot Operating System
         ros-updates     +yes      +disabled +All Updates for the Robot Operating System
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
         Enable services with: pro enable <service>
         """
         When I verify root and non-root `pro status --all` calls have the same output
@@ -143,6 +144,7 @@ Feature: Attached status
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
         usg             +yes      +disabled +Security compliance and audit tools
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
         Enable services with: pro enable <service>
         """
         When I verify root and non-root `pro status --all` calls have the same output
@@ -181,6 +183,7 @@ Feature: Attached status
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
 
+        For a list of all Ubuntu Pro services, run 'pro status --all'
         Enable services with: pro enable <service>
         """
         When I verify root and non-root `pro status --all` calls have the same output

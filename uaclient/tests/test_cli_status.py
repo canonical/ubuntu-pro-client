@@ -110,6 +110,8 @@ esm-apps         yes        Expanded Security Maintenance for Applications
 esm-infra        yes        Expanded Security Maintenance for Infrastructure
 livepatch        yes        Canonical Livepatch service
 
+For a list of all Ubuntu Pro services, run 'pro status --all'
+
 This machine is not attached to an Ubuntu Pro subscription.
 See https://ubuntu.com/pro
 """  # noqa: E501
@@ -140,6 +142,7 @@ esm-apps         no        {dash}         Expanded Security Maintenance for Appl
 esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
 livepatch        no        {dash}         Canonical Livepatch service
 {notices}{features}
+For a list of all Ubuntu Pro services, run 'pro status --all'
 Enable services with: pro enable <service>
 
                 Account: test_account
