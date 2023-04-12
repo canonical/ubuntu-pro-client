@@ -139,7 +139,6 @@ class NvidiaTegraRealtime(RealtimeKernelEntitlement):
     variant_name = "nvidia-tegra"
     title = "Real-time Nvidia Tegra Kernel"
     description = "RT kernel optimized for NVidia Tegra platforms"
-    selector_key = "platform"
     is_variant = True
     check_packages_are_installed = True
 
@@ -171,7 +170,6 @@ class IntelIotgRealtime(RealtimeKernelEntitlement):
     variant_name = "intel-iotg"
     title = "Real-time Intel IOTG Kernel"
     description = "RT kernel optimized for Intel IOTG platform"
-    selector_key = "platform"
     is_variant = True
     check_packages_are_installed = True
 
