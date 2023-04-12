@@ -1,8 +1,8 @@
-# Customised Cloud Ubuntu Pro images with FIPS updates
+# How to customise a cloud Ubuntu Pro image with FIPS updates
 
 ## Launch an Ubuntu Pro instance on your cloud
 
-See the following links for up to date information for each supported Cloud:
+See the following links for up to date information for each supported cloud:
 
 * https://ubuntu.com/aws/pro
 * https://ubuntu.com/azure/pro
@@ -10,20 +10,20 @@ See the following links for up to date information for each supported Cloud:
 
 ## Enable FIPS updates
 
-First, we need to wait for the standard Ubuntu Pro services to be set up:
+Wait for the standard Ubuntu Pro services to be set up:
 
 ```bash
 sudo pro status --wait
 ```
 
-We can then use [the `enable` command](../howtoguides/enable_fips.md) to set up
+Use [the `enable` command](../howtoguides/enable_fips.md) to set up
 FIPS updates.
 
 ```bash
 sudo pro enable fips-updates --assume-yes
 ```
 
-Now, we need to reboot the instance:
+Now, reboot the instance:
 
 ```bash
 sudo reboot
@@ -49,12 +49,12 @@ Cloud-specific instructions are here:
 * [Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource)
 * [GCP](https://cloud.google.com/compute/docs/machine-images/create-machine-images)
 
-## Launch your custom image!
+## Launch your custom image
 
-Use your specific Cloud to launch a new instance from your custom image.
+Use your specific cloud to launch a new instance from the custom image.
 
 ````{note}
-For versions prior to 27.11, you will need to re-enable `fips-updates` on each
+For versions of the Ubuntu Pro Client prior to 27.11, you will need to re-enable `fips-updates` on each
 instance launched from the custom image.
 
 This won't require a reboot and is only necessary to ensure the instance gets
@@ -64,7 +64,7 @@ updates to FIPS packages when they become available.
 sudo pro enable fips-updates --assume-yes
 ```
 
-You can easily script this using [cloud-init user data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time:
+This can be scripted using [cloud-init user data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time:
 ```yaml
 #cloud-config
 # Enable fips-updates after pro auto-attach and reboot after cloud-init completes
