@@ -125,12 +125,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       additionalPackages:
                         - nvidia-prime
                     selector:
-                      platform: nvidia-tegra
+                      variant: nvidia-tegra
                   - directives:
                       additionalPackages:
                         - intel-pkg
                     selector:
-                      platform: intel-iotg
+                      variant: intel-iotg
         """
         And I run `pro enable realtime-kernel --variant nvidia-tegra` with sudo
         Then I will see the following on stdout:

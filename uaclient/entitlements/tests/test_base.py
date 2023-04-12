@@ -1126,8 +1126,7 @@ class TestEntitlementCfg:
                             "additionalPackages": ["test-package-variant"]
                         },
                         "selector": {
-                            "platform": "test-variant",
-                            "cloud": "gcp",
+                            "variant": "test-variant",
                         },
                     },
                     {

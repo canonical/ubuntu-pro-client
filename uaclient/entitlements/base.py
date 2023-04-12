@@ -101,11 +101,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         pass
 
     @property
-    def selector_key(self) -> str:
-        """Selector key to be used when accessing variants"""
-        return ""
-
-    @property
     def presentation_name(self) -> str:
         """The user-facing name shown for this entitlement"""
         if self.is_variant:
@@ -246,33 +241,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def entitlement_cfg(self):
         entitlement_cfg = self._base_entitlement_cfg()
 
-        if not self.is_variant or not self.selector_key:
+        if not self.is_variant or not entitlement_cfg:
             return entitlement_cfg
 
-        overrides = copy.deepcopy(
-            entitlement_cfg.get("entitlement", {}).get("overrides", [])
+        contract.apply_contract_overrides(
+            orig_access=entitlement_cfg, variant=self.variant_name
         )
-        # This allow us to use a variant to override the base entitlement
-        # definitions. Note that we are relying on a single selector here
-        # if want to rely on more than one, we need to update how
-        # we check for support
-        for override in overrides:
-            selector_value = override.get("selector", {}).get(
-                self.selector_key
-            )
-            if selector_value == self.variant_name:
-                for key, value in override.items():
-                    if key == "selector":
-                        continue
-                    current = entitlement_cfg.get("entitlement", {}).get(key)
-                    if isinstance(current, dict):
-                        # If the key already exists and is a dict,
-                        # update that dict using the override
-                        current.update(value)
-                    else:
-                        # Otherwise, replace it wholesale
-                        entitlement_cfg[key] = value
-                break
 
         return entitlement_cfg
 

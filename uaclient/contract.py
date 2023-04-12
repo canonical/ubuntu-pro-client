@@ -30,7 +30,12 @@ API_V1_CONTRACT_INFORMATION = "/v1/contract"
 
 API_V1_MAGIC_ATTACH = "/v1/magic-attach"
 
-OVERRIDE_SELECTOR_WEIGHTS = {"series_overrides": 1, "series": 2, "cloud": 3}
+OVERRIDE_SELECTOR_WEIGHTS = {
+    "series_overrides": 1,
+    "series": 2,
+    "cloud": 3,
+    "variant": 4,
+}
 
 event = event_logger.get_event_logger()
 
@@ -694,11 +699,16 @@ def _get_override_weight(
 
 
 def _select_overrides(
-    entitlement: Dict[str, Any], series_name: str, cloud_type: str
+    entitlement: Dict[str, Any],
+    series_name: str,
+    cloud_type: str,
+    variant: Optional[str] = None,
 ) -> Dict[int, Dict[str, Any]]:
     overrides = {}
 
     selector_values = {"series": series_name, "cloud": cloud_type}
+    if variant:
+        selector_values["variant"] = variant
 
     series_overrides = entitlement.pop("series", {}).pop(series_name, {})
     if series_overrides:
@@ -718,7 +728,9 @@ def _select_overrides(
 
 
 def apply_contract_overrides(
-    orig_access: Dict[str, Any], series: Optional[str] = None
+    orig_access: Dict[str, Any],
+    series: Optional[str] = None,
+    variant: Optional[str] = None,
 ) -> None:
     """Apply series-specific overrides to an entitlement dict.
 
@@ -748,7 +760,9 @@ def apply_contract_overrides(
     cloud_type, _ = get_cloud_type()
     orig_entitlement = orig_access.get("entitlement", {})
 
-    overrides = _select_overrides(orig_entitlement, series_name, cloud_type)
+    overrides = _select_overrides(
+        orig_entitlement, series_name, cloud_type, variant
+    )
 
     for _weight, overrides_to_apply in sorted(overrides.items()):
         for key, value in overrides_to_apply.items():
