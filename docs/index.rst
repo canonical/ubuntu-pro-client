@@ -63,9 +63,10 @@ using it!
   
 - **Having trouble?**
   We would like to help! To get help on a specific page in this documentation,
-  simply click on the "Have a question?" link at the top of that page. This
+  simply click on the "Give feedback" link at the top of that page. This
   will open up an issue in GitHub where you can tell us more about the problem
-  you're having and we will do our best to resolve it for you.
+  you're having or suggestion you'd like to make, and we will do our best to
+  resolve it for you.
 
 - **Found a bug?**
   You can `Report bugs on Launchpad`_!
