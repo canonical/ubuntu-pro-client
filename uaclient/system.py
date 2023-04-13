@@ -247,11 +247,13 @@ def is_container(run_path: str = "/run") -> bool:
 
 
 @lru_cache(maxsize=None)
-def parse_os_release(release_file: Optional[str] = None) -> Dict[str, str]:
-    if not release_file:
-        release_file = "/etc/os-release"
+def parse_os_release() -> Dict[str, str]:
+    try:
+        file_contents = load_file("/etc/os-release")
+    except FileNotFoundError:
+        file_contents = load_file("/usr/lib/os-release")
     data = {}
-    for line in load_file(release_file).splitlines():
+    for line in file_contents.splitlines():
         key, value = line.split("=", 1)
         if value:
             data[key] = value.strip().strip('"')
