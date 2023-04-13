@@ -429,8 +429,13 @@ def _subp(
     bytes_args = [
         x if isinstance(x, bytes) else x.encode("utf-8") for x in args
     ]
-    if env:
+
+    # If env is None, subprocess.Popen will use the process environment
+    # variables by default, as stated here:
+    # https://docs.python.org/3.5/library/subprocess.html?highlight=subprocess#popen-constructor
+    if env is not None:
         env.update(os.environ)
+
     if rcs is None:
         rcs = [0]
     redacted_cmd = util.redact_sensitive_logs(" ".join(args))
