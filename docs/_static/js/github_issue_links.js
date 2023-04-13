@@ -2,7 +2,7 @@ window.onload = function() {
     const link = document.createElement("a");
     link.classList.add("muted-link");
     link.classList.add("github-issue-link");
-    link.text = "Have a question?";
+    link.text = "Give feedback";
     link.href = (
         "https://github.com/canonical/ubuntu-pro-client/issues/new?"
         + "title=docs%3A+TYPE+YOUR+QUESTION+HERE"
