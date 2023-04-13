@@ -947,6 +947,39 @@ class TestSubp:
             else:
                 assert log not in logs
 
+    @pytest.mark.parametrize(
+        "env_var",
+        (
+            ({}),
+            ({"config": "foobar"}),
+        ),
+    )
+    @mock.patch("subprocess.Popen")
+    def test_subp_uses_environment_variables(
+        self,
+        m_sub_popen,
+        env_var,
+        _subp,
+    ):
+        mock_process = mock.MagicMock(returncode=0)
+        m_sub_popen.return_value = mock_process
+
+        mock_process.communicate.return_value = (b"", b"")
+        os_environ = {"test": 123}
+
+        with mock.patch("os.environ", os_environ):
+            _subp(["apt", "nothing"], env=env_var)
+
+        expected_var = {**env_var, **os_environ}
+        assert [
+            mock.call(
+                [b"apt", b"nothing"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=expected_var,
+            )
+        ] == m_sub_popen.call_args_list
+
 
 class TestGetSystemdJobState:
     @pytest.mark.parametrize(
