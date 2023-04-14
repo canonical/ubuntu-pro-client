@@ -60,9 +60,9 @@ are considered recommended can, for some subscriptions, be controlled on the
 
 In case you can not control your subscription (depends on the subscription type
 and your users permissions related to it). Or if you do not want to change the
-defaults, but you want to not auto-enable anything while attaching a particular
-machine you can always pass `--no-auto-enable` to attach, but not auto-enable
-any of the services.
+defaults, but you do not want to auto-enable anything while attaching a particular
+machine you can always pass `--no-auto-enable` to `attach`, but not auto-enable
+any services using the following command:
 
 ```
 $ sudo pro attach YOUR_TOKEN --no-auto-enable
