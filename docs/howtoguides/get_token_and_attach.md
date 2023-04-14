@@ -46,3 +46,24 @@ Enable services with: pro enable <service>
 Once the Ubuntu Pro Client is attached to your Ubuntu Pro account, you can use
 it to activate various services, including: access to ESM packages, Livepatch,
 FIPS, and CIS. Some features are specific to certain LTS releases.
+
+## Control of auto-enabled services
+
+Your subscription controls which services are available to you as shown and
+controlled on the [Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard).
+
+Recommended services are auto-enabled when attaching a system. Which services
+are considered recommended can, for some subscriptions, be controlled on the
+[Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard) by toggling those.
+
+![Toggling recommended services in the Pro Dashboard](pro-dashboard-service-toggles.png)
+
+In case you can not control your subscription (depends on the subscription type
+and your users permissions related to it). Or if you do not want to change the
+defaults, but you want to not auto-enable anything while attaching a particular
+machine you can always pass `--no-auto-enable` to attach, but not auto-enable
+any of the services.
+
+```
+$ sudo pro attach YOUR_TOKEN --no-auto-enable
+```
