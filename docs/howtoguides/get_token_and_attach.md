@@ -1,10 +1,21 @@
 # How to get an Ubuntu Pro token and attach to a subscription
 
+## Get an Ubuntu Pro token
+
 Retrieve your Ubuntu Pro token from the
-[Ubuntu Pro portal](https://ubuntu.com/pro/). You will log in with your "Single 
+[Ubuntu Pro portal](https://ubuntu.com/pro/). You will log in with your "Single
 Sign On" credentials, the same credentials you use for https://login.ubuntu.com.
-Note that you can obtain a free personal token, which provides you with access
-to several of the Ubuntu Pro services.
+
+Being logged in you can then go to the
+[Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard) that is associated to
+your user. It will show you all subscriptions currently available to you and
+for each the associated token.
+
+Note that even without buying anything you can always obtain a free personal
+token that way, which provides you with access to several of the Ubuntu Pro
+services.
+
+## Attach to a subscription
 
 Once that token is obtained, to attach your machine to a subscription, just run:
 
