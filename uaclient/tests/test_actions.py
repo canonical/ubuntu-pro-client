@@ -44,7 +44,7 @@ class TestAttachWithToken:
         ],
     )
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch("uaclient.status.status")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "config.UAConfig.write_cache")

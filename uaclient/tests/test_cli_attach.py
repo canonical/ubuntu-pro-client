@@ -238,7 +238,7 @@ class TestActionAttach:
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
         self,
@@ -278,7 +278,7 @@ class TestActionAttach:
 
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
     )
@@ -353,7 +353,7 @@ class TestActionAttach:
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(
         self,
         m_update_apt_and_motd_msgs,
@@ -536,7 +536,7 @@ class TestActionAttach:
     @mock.patch("uaclient.contract.process_entitlement_delta")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     def test_attach_when_one_service_fails_to_enable(
         self,
         _m_update_messages,

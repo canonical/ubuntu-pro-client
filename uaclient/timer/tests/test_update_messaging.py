@@ -9,13 +9,13 @@ from uaclient.api.u.pro.packages.updates.v1 import (
     UpdateSummary,
 )
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.jobs.update_messaging import (
+from uaclient.timer.update_messaging import (
     ContractExpiryStatus,
     get_contract_expiry_status,
     update_motd_messages,
 )
 
-M_PATH = "uaclient.jobs.update_messaging."
+M_PATH = "uaclient.timer.update_messaging."
 
 
 class TestGetContractExpiryStatus:
