@@ -22,7 +22,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         return (ROSEntitlement, ROSUpdatesEntitlement)
 
     def _perform_enable(self, silent: bool = False) -> bool:
-        from uaclient.jobs.update_messaging import update_motd_messages
+        from uaclient.timer.update_messaging import update_motd_messages
 
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
@@ -78,7 +78,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     def disable(
         self, silent=False
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
-        from uaclient.jobs.update_messaging import update_motd_messages
+        from uaclient.timer.update_messaging import update_motd_messages
 
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:
@@ -98,7 +98,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     def disable(
         self, silent=False
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
-        from uaclient.jobs.update_messaging import update_motd_messages
+        from uaclient.timer.update_messaging import update_motd_messages
 
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:

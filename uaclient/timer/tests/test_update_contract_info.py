@@ -4,9 +4,9 @@ import mock
 import pytest
 
 from uaclient.files.notices import Notice
-from uaclient.jobs.update_contract_info import update_contract_info
+from uaclient.timer.update_contract_info import update_contract_info
 
-M_PATH = "uaclient.jobs.update_contract_info."
+M_PATH = "uaclient.timer.update_contract_info."
 
 
 @mock.patch(M_PATH + "contract.is_contract_changed", return_value=False)
