@@ -147,7 +147,7 @@ class TestActionRefresh:
         assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
 
     @mock.patch("uaclient.apt_news.update_apt_news")
-    @mock.patch("uaclient.jobs.update_messaging.exists", return_value=True)
+    @mock.patch("uaclient.timer.update_messaging.exists", return_value=True)
     @mock.patch("logging.exception")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.cli.update_motd_messages")

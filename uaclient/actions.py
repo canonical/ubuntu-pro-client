@@ -46,7 +46,7 @@ def attach_with_token(
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
     """
-    from uaclient.jobs.update_messaging import update_motd_messages
+    from uaclient.timer.update_messaging import update_motd_messages
 
     try:
         contract.request_updated_contract(
