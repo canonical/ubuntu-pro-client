@@ -29,7 +29,7 @@ from uaclient import (
 from uaclient import log as pro_log
 from uaclient import messages, security, security_status
 from uaclient import status as ua_status
-from uaclient import util, version
+from uaclient import timer, util, version
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -1336,6 +1336,7 @@ def action_detach(args, *, cfg) -> int:
     ret = _detach(cfg, assume_yes=args.assume_yes)
     if ret == 0:
         daemon.start()
+        timer.stop()
     event.process_events()
     return ret
 
