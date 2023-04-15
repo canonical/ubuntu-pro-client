@@ -13,7 +13,7 @@ from uaclient import (
     messages,
 )
 from uaclient import status as ua_status
-from uaclient import system, util
+from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.defaults import (
@@ -68,6 +68,7 @@ def attach_with_token(
         cfg.write_cache("instance-id", current_iid)
 
     update_motd_messages(cfg)
+    timer.start()
 
 
 def auto_attach(
