@@ -15,9 +15,9 @@ from uaclient.files.state_files import (
     TimerJobState,
     timer_jobs_state_file,
 )
-from uaclient.jobs.metering import metering_enabled_resources
-from uaclient.jobs.update_contract_info import update_contract_info
-from uaclient.jobs.update_messaging import update_motd_messages
+from uaclient.timer.metering import metering_enabled_resources
+from uaclient.timer.update_contract_info import update_contract_info
+from uaclient.timer.update_messaging import update_motd_messages
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours

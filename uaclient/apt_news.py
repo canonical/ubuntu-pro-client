@@ -19,7 +19,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
-from uaclient.jobs.update_messaging import (
+from uaclient.timer.update_messaging import (
     ContractExpiryStatus,
     get_contract_expiry_status,
 )
