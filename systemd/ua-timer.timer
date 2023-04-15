@@ -1,5 +1,7 @@
 [Unit]
-Description=Ubuntu Advantage Timer for running repeated jobs
+Description=Ubuntu Pro Timer for running repeated jobs
+# Only run if attached
+ConditionPathExists=/var/lib/ubuntu-advantage/private/machine-token.json
 
 [Timer]
 OnUnitActiveSec=6h
