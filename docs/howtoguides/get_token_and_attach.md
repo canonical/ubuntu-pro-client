@@ -49,8 +49,8 @@ FIPS, and CIS. Some features are specific to certain LTS releases.
 
 ## Control of auto-enabled services
 
-Your subscription controls which services are available to you as shown and
-controlled on the [Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard).
+Your subscription controls which services are available to you and which ones
+you can manage via the [Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard).
 
 Recommended services are auto-enabled by default when attaching a system.
 You can choose which of the available services will be automatically
