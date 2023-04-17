@@ -61,11 +61,10 @@ with `pro enable` and `pro disable` after attaching.
 
 ![Toggling recommended services in the Pro Dashboard](pro-dashboard-service-toggles.png)
 
-In case you can not control your subscription (depends on the subscription type
-and your users permissions related to it). Or if you do not want to change the
-defaults, but you do not want to auto-enable anything while attaching a particular
-machine you can always pass `--no-auto-enable` to `attach`, but not auto-enable
-any services using the following command:
+If your subscription does not permit you to change the default
+enabled services via the Dashboard, or if you want to keep the
+defaults but do not want to auto-enable any services while attaching a particular
+machine, you can pass the `--no-auto-enable` flag to `attach` using the following command:
 
 ```
 $ sudo pro attach YOUR_TOKEN --no-auto-enable
