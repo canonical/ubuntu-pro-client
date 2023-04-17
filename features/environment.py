@@ -215,29 +215,24 @@ class UAClientBehaveConfig:
 
         self.clouds = {
             "aws": cloud.EC2(
-                machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             ),
             "azure": cloud.Azure(
-                machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             ),
             "gcp": cloud.GCP(
-                machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             ),
             "lxd-vm": cloud.LXDVirtualMachine(
-                machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
             ),
             "lxd-container": cloud.LXDContainer(
-                machine_type=self.machine_type,
                 cloud_credentials_path=self.cloud_credentials_path,
             ),
         }

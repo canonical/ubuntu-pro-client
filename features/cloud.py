@@ -15,8 +15,6 @@ class Cloud:
 
     :cloud_credentials_path:
         A string containing the path for the pycloudlib cloud credentials file
-    :machine_type:
-        A string representing the type of machine to launch (pro or generic)
     :region:
         The region to create the cloud resources on
     :param tag:
@@ -30,7 +28,6 @@ class Cloud:
 
     def __init__(
         self,
-        machine_type: str,
         cloud_credentials_path: Optional[str],
         tag: Optional[str] = None,
         timestamp_suffix: bool = True,
@@ -39,7 +36,6 @@ class Cloud:
             self.tag = tag
         else:
             self.tag = "uaclient-ci"
-        self.machine_type = machine_type
         self._api = None
         self.key_name = pycloudlib.util.get_timestamped_tag(self.tag)
         self.timestamp_suffix = timestamp_suffix
@@ -65,6 +61,7 @@ class Cloud:
     def _create_instance(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -77,6 +74,8 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -115,6 +114,7 @@ class Cloud:
     def launch(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -127,6 +127,8 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -143,6 +145,7 @@ class Cloud:
         """
         inst = self._create_instance(
             series=series,
+            machine_type=machine_type,
             instance_name=instance_name,
             image_name=image_name,
             user_data=user_data,
@@ -168,11 +171,15 @@ class Cloud:
         """
         return instance.id
 
-    def locate_image_name(self, series: str, daily: bool = True) -> str:
+    def locate_image_name(
+        self, series: str, machine_type: str, daily: bool = True
+    ) -> str:
         """Locate and return the image name to use for vm provision.
 
         :param series:
             The ubuntu release to be used when locating the image name
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
 
         :returns:
             A image name to use when provisioning a virtual machine
@@ -184,9 +191,9 @@ class Cloud:
             )
 
         image_type = ImageType.GENERIC
-        if "pro.fips" in self.machine_type:
+        if "pro.fips" in machine_type:
             image_type = ImageType.PRO_FIPS
-        elif "pro" in self.machine_type:
+        elif "pro" in machine_type:
             image_type = ImageType.PRO
 
         if daily:
@@ -283,6 +290,7 @@ class EC2(Cloud):
     def _create_instance(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -295,6 +303,8 @@ class EC2(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -310,14 +320,16 @@ class EC2(Cloud):
             An AWS cloud provider instance
         """
         if not image_name:
-            if series == "xenial" and "pro" not in self.machine_type:
+            if series == "xenial" and "pro" not in machine_type:
                 logging.debug(
                     "defaulting to non-daily image for awsgeneric-16.04"
                 )
                 daily = False
             else:
                 daily = True
-            image_name = self.locate_image_name(series, daily=daily)
+            image_name = self.locate_image_name(
+                series, machine_type, daily=daily
+            )
 
         logging.info(
             "--- Launching AWS image {}({})".format(image_name, series)
@@ -396,6 +408,7 @@ class Azure(Cloud):
     def _create_instance(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -408,6 +421,8 @@ class Azure(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -423,7 +438,7 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series)
+            image_name = self.locate_image_name(series, machine_type)
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
@@ -450,13 +465,11 @@ class GCP(Cloud):
 
     def __init__(
         self,
-        machine_type: str,
         cloud_credentials_path: Optional[str],
         tag: Optional[str] = None,
         timestamp_suffix: bool = True,
     ) -> None:
         super().__init__(
-            machine_type=machine_type,
             cloud_credentials_path=cloud_credentials_path,
             tag=tag,
             timestamp_suffix=timestamp_suffix,
@@ -514,6 +527,7 @@ class GCP(Cloud):
     def _create_instance(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -526,6 +540,8 @@ class GCP(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -541,7 +557,7 @@ class GCP(Cloud):
             An GCP cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series)
+            image_name = self.locate_image_name(series, machine_type)
 
         logging.info(
             "--- Launching GCP image {}({})".format(image_name, series)
@@ -556,6 +572,7 @@ class _LXD(Cloud):
     def _create_instance(
         self,
         series: str,
+        machine_type: str,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -568,6 +585,8 @@ class _LXD(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
         :param instance_name:
             The name of the instance to be created
         :param image_name:
@@ -583,7 +602,7 @@ class _LXD(Cloud):
             An AWS cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series)
+            image_name = self.locate_image_name(series, machine_type)
 
         image_type = self.name.title().replace("-", " ")
 
@@ -623,11 +642,15 @@ class _LXD(Cloud):
         # instead of the instance id
         return instance.name
 
-    def locate_image_name(self, series: str, daily: bool = True) -> str:
+    def locate_image_name(
+        self, series: str, machine_type: str, daily: bool = True
+    ) -> str:
         """Locate and return the image name to use for vm provision.
 
         :param series:
             The ubuntu release to be used when locating the image name
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
 
         :returns:
             A image name to use when provisioning a virtual machine
