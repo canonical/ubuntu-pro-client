@@ -55,6 +55,7 @@ def given_a_machine(
 
     instance = context.pro_config.default_cloud.launch(
         series=series,
+        machine_type=context.pro_config.machine_type,
         instance_name=instance_name,
         ephemeral=context.pro_config.ephemeral_instance,
         image_name=context.snapshots.get(snapshot_name, None),
