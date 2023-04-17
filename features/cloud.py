@@ -231,7 +231,13 @@ class Cloud:
 
 
 class EC2(Cloud):
-    """Class that represents the EC2 cloud provider."""
+    """
+    Class that represents the EC2 cloud provider.
+
+    For AWS, we need to specify on the pycloudlib config file that
+    the AWS region must be us-east-2. The reason for that is because
+    our image ids were captured using that region.
+    """
 
     name = "aws"
 
@@ -330,7 +336,7 @@ class EC2(Cloud):
 class Azure(Cloud):
     """Class that represents the Azure cloud provider."""
 
-    name = "Azure"
+    name = "azure"
 
     @property
     def pycloudlib_cls(self):

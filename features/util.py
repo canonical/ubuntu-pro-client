@@ -317,7 +317,7 @@ def process_template_vars(
             processed_template = _replace_and_log(
                 processed_template,
                 match.group(0),
-                context.pro_config.cloud,
+                context.pro_config.default_cloud.name,
                 logger_fn,
             )
         elif function_name == "today":

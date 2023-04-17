@@ -106,8 +106,6 @@ class UAClientBehaveConfig:
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
     all_options = boolean_options + str_options
-    cloud_api = None  # type: pycloudlib.cloud.BaseCloud
-    cloud_manager = None  # type: cloud.Cloud
 
     def __init__(
         self,
@@ -215,47 +213,44 @@ class UAClientBehaveConfig:
         )
         timed_job_tag += "-" + random_suffix
 
+        self.clouds = {
+            "aws": cloud.EC2(
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "azure": cloud.Azure(
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "gcp": cloud.GCP(
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "lxd-vm": cloud.LXDVirtualMachine(
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
+            ),
+            "lxd-container": cloud.LXDContainer(
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
+            ),
+        }
         if "aws" in self.machine_type:
-            # For AWS, we need to specify on the pycloudlib config file that
-            # the AWS region must be us-east-2. The reason for that is because
-            # our image ids were captured using that region.
-            self.cloud_manager = cloud.EC2(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "aws"
+            self.default_cloud = self.clouds["aws"]
         elif "azure" in self.machine_type:
-            self.cloud_manager = cloud.Azure(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "azure"
+            self.default_cloud = self.clouds["azure"]
         elif "gcp" in self.machine_type:
-            self.cloud_manager = cloud.GCP(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "gcp"
+            self.default_cloud = self.clouds["gcp"]
         elif "lxd.vm" in self.machine_type:
-            self.cloud_manager = cloud.LXDVirtualMachine(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-            )
-            self.cloud = "lxd.vm"
+            self.default_cloud = self.clouds["lxd-vm"]
         else:
-            self.cloud_manager = cloud.LXDContainer(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-            )
-            self.cloud = "lxd"
-
-        self.cloud_api = self.cloud_manager.api
+            self.default_cloud = self.clouds["lxd-container"]
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
@@ -334,7 +329,7 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
-    context.pro_config.cloud_manager.manage_ssh_key()
+    context.pro_config.default_cloud.manage_ssh_key()
     context.snapshots = {}
     context.machines = {}
 
@@ -499,11 +494,11 @@ def after_all(context):
                     context.series_image_name[key],
                 )
             else:
-                context.pro_config.cloud_api.delete_image(image)
+                context.pro_config.default_cloud.api.delete_image(image)
 
     if context.pro_config.destroy_instances:
         try:
-            key_pair = context.pro_config.cloud_manager.api.key_pair
+            key_pair = context.pro_config.default_cloud.api.key_pair
             os.remove(key_pair.private_key_path)
             os.remove(key_pair.public_key_path)
         except Exception as e:
@@ -513,7 +508,7 @@ def after_all(context):
 
     if "builder" in context.snapshots:
         try:
-            context.pro_config.cloud_manager.api.delete_image(
+            context.pro_config.default_cloud.api.delete_image(
                 context.snapshots["builder"]
             )
         except RuntimeError as e:

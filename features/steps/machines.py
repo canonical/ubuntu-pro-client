@@ -53,7 +53,7 @@ def given_a_machine(
         if user_data is not None:
             user_data_to_use += user_data
 
-    instance = context.pro_config.cloud_manager.launch(
+    instance = context.pro_config.default_cloud.launch(
         series=series,
         instance_name=instance_name,
         ephemeral=context.pro_config.ephemeral_instance,
@@ -92,7 +92,7 @@ def given_a_machine(
 @when("I take a snapshot of the machine")
 def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
     inst = context.machines[machine_name].instance
-    snapshot = context.pro_config.cloud_manager.api.snapshot(inst)
+    snapshot = context.pro_config.default_cloud.api.snapshot(inst)
 
     context.snapshots[machine_name] = snapshot
 
@@ -100,7 +100,7 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
         def cleanup_snapshot() -> None:
             try:
-                context.pro_config.cloud_manager.api.delete_image(
+                context.pro_config.default_cloud.api.delete_image(
                     context.snapshots[machine_name]
                 )
             except RuntimeError as e:
