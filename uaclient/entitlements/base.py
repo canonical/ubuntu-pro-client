@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from uaclient import config, contract, event_logger, messages, system, util
 from uaclient.defaults import DEFAULT_HELP_FILE
@@ -182,6 +182,21 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def _get_variants(self) -> Dict[str, Type["UAEntitlement"]]:
         return {}
 
+    def _get_contract_variants(self) -> Set[str]:
+        """
+        Fetch all available variants defined in the Contract Server response
+        """
+        valid_variants = set()
+        entitlement_cfg = self._base_entitlement_cfg()
+
+        overrides = entitlement_cfg.get("entitlement", {}).get("overrides", [])
+        for override in overrides:
+            variant = override.get("selector", {}).get("variant")
+            if variant:
+                valid_variants.add(variant)
+
+        return valid_variants
+
     @property
     def variants(self) -> Dict[str, Type["UAEntitlement"]]:
         """
@@ -191,7 +206,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if self.is_variant:
             return {}
 
-        return self._get_variants()
+        service_variants = self._get_variants()
+        contract_variants = self._get_contract_variants()
+
+        if "generic" in service_variants:
+            valid_variants = {"generic": service_variants["generic"]}
+        else:
+            valid_variants = {}
+
+        for variant in sorted(contract_variants):
+            if variant in service_variants:
+                valid_variants[variant] = service_variants[variant]
+
+        return valid_variants if len(valid_variants) > 1 else {}
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages

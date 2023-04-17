@@ -50,71 +50,91 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
+        """
+        This command must be run as root (try using sudo).
+        """
         When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
-            """
-            One moment, checking your subscription first
-            The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+        """
+        One moment, checking your subscription first
+        The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
-            .*This will change your kernel. To revert to your original kernel, you will need
-            to make the change manually..*
+        .*This will change your kernel. To revert to your original kernel, you will need
+        to make the change manually..*
 
-            Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
-            Installing Real-time kernel packages
-            Real-time kernel enabled
-            A reboot is required to complete install.
-            """
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
+        Installing Real-time kernel packages
+        Real-time kernel enabled
+        A reboot is required to complete install.
+        """
         When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout does not match regexp:
-            """
-            .*Installed: \(none\)
-            """
+        """
+        .*Installed: \(none\)
+        """
         And stdout matches regexp:
-            """
-            \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
-            """
+        """
+        \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
+        """
         When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
         Then stdout matches regexp
-            """
-            One moment, checking your subscription first
-            Real-time kernel is already enabled.
-            See: sudo pro status
-            """
+        """
+        One moment, checking your subscription first
+        Real-time kernel is already enabled.
+        See: sudo pro status
+        """
         When I reboot the machine
         When I run `uname -r` as non-root
         Then stdout matches regexp:
-            """
-            realtime
-            """
+        """
+        realtime
+        """
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
-            """
-            This will remove the boot order preference for the Real-time kernel and
-            disable updates to the Real-time kernel.
+        """
+        This will remove the boot order preference for the Real-time kernel and
+        disable updates to the Real-time kernel.
 
-            This will NOT fully remove the kernel from your system.
+        This will NOT fully remove the kernel from your system.
 
-            After this operation is complete you must:
-              - Ensure a different kernel is installed and configured to boot
-              - Reboot into that kernel
-              - Fully remove the realtime kernel packages from your system
-                  - This might look something like `apt remove linux\*realtime`,
-                    but you must ensure this is correct before running it.
-            """
+        After this operation is complete you must:
+          - Ensure a different kernel is installed and configured to boot
+          - Reboot into that kernel
+          - Fully remove the realtime kernel packages from your system
+              - This might look something like `apt remove linux\*realtime`,
+                but you must ensure this is correct before running it.
+        """
         When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout contains substring
-            """
-            Installed: (none)
-            """
+        """
+        Installed: (none)
+        """
         When I verify that running `pro enable realtime-kernel --access-only --variant nvidia-tegra` `with sudo` exits `1`
         Then I will see the following on stderr:
         """
         Error: Cannot use --access-only together with --variant.
         """
-        When I set the machine token overlay to the following yaml
+        When I run `pro status` as non-root
+        Then stdout does not match regexp:
+        """
+         \* Service has variants
+        """
+        When I run `pro status --all` as non-root
+        Then stdout does not match regexp:
+        """
+        realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
+        ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
+        """
+        And stdout matches regexp:
+        """
+        realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        """
+        # We need to disable this job before adding the overlay, because we might
+        # write the machine token to disk with the override content
+        When I run `pro config set update_messaging_timer=0` with sudo
+        And I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
           contractInfo:
@@ -152,14 +172,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         For a list of all Ubuntu Pro services and variants, run 'pro status --all'
         """
-         When I run `pro status --all` as non-root
-         Then stdout matches regexp:
-         """
-         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
-         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
-         ├ nvidia-tegra   yes +enabled   +RT kernel optimized for NVidia Tegra platforms
-         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-         """
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
+        ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        └ nvidia-tegra   yes +enabled   +RT kernel optimized for NVidia Tegra platforms
+        """
         When I verify that running `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp:
         """
@@ -192,56 +212,56 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Variants:
 
           * generic: Generic version of the RT kernel (default)
-          * nvidia-tegra: RT kernel optimized for NVidia Tegra platforms
           * intel-iotg: RT kernel optimized for Intel IOTG platform
+          * nvidia-tegra: RT kernel optimized for NVidia Tegra platforms
         """
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
-            """
-            This will remove the boot order preference for the Real-time kernel and
-            disable updates to the Real-time kernel.
-            
-            This will NOT fully remove the kernel from your system.
-            
-            After this operation is complete you must:
-              - Ensure a different kernel is installed and configured to boot
-              - Reboot into that kernel
-              - Fully remove the realtime kernel packages from your system
-                  - This might look something like `apt remove linux\*realtime`,
-                    but you must ensure this is correct before running it.
-            """
-         When I run `pro status` as non-root
-         Then stdout matches regexp:
-         """
-         realtime-kernel\* +yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
-         """
-         When I run `pro status --all` as non-root
-         Then stdout matches regexp:
-         """
-         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
-         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
-         ├ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
-         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-         """
-         When I run `pro detach --assume-yes` with sudo
-         And I run `pro status` as non-root
-         Then stdout matches regexp:
-         """
-         realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
-         """
-         When I run `pro status --all` as non-root
-         Then stdout matches regexp:
-         """
-         realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
-         """
-         And stdout does not match regexp:
-         """
-         nvidia-tegra
-         """
-         And stdout does not match regexp:
-         """
-         intel-iotg
-         """
+        """
+        This will remove the boot order preference for the Real-time kernel and
+        disable updates to the Real-time kernel.
+
+        This will NOT fully remove the kernel from your system.
+
+        After this operation is complete you must:
+          - Ensure a different kernel is installed and configured to boot
+          - Reboot into that kernel
+          - Fully remove the realtime kernel packages from your system
+              - This might look something like `apt remove linux\*realtime`,
+                but you must ensure this is correct before running it.
+        """
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel\* +yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        """
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
+        ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
+        """
+        When I run `pro detach --assume-yes` with sudo
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
+        """
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel +yes +Ubuntu kernel with PREEMPT_RT patches integrated
+        """
+        And stdout does not match regexp:
+        """
+        nvidia-tegra
+        """
+        And stdout does not match regexp:
+        """
+        intel-iotg
+        """
 
         Examples: ubuntu release
             | release |
