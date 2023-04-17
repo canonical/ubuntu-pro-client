@@ -143,12 +143,6 @@ class NvidiaTegraRealtime(RealtimeKernelEntitlement):
     check_packages_are_installed = True
 
     @property
-    def messaging(
-        self,
-    ) -> MessagingOperationsDict:
-        return {}
-
-    @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
         return super().incompatible_services + (
             IncompatibleService(
@@ -172,12 +166,6 @@ class IntelIotgRealtime(RealtimeKernelEntitlement):
     description = "RT kernel optimized for Intel IOTG platform"
     is_variant = True
     check_packages_are_installed = True
-
-    @property
-    def messaging(
-        self,
-    ) -> MessagingOperationsDict:
-        return {}
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
