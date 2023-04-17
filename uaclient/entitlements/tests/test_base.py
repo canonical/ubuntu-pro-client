@@ -39,7 +39,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         dependent_services=None,
         required_services=None,
         blocking_incompatible_services=None,
-        selector_key="",
         variant_name="",
         **kwargs
     ):
@@ -56,7 +55,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._dependent_services = dependent_services
         self._required_services = required_services
         self._blocking_incompatible_services = blocking_incompatible_services
-        self._selector_key = selector_key
         self._variant_name = variant_name
 
     def _perform_disable(self, **kwargs):
@@ -80,10 +78,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
             return self._blocking_incompatible_services
         else:
             return super().blocking_incompatible_services()
-
-    @property
-    def selector_key(self):
-        return self._selector_key
 
     @property
     def variant_name(self):
@@ -115,7 +109,6 @@ def concrete_entitlement_factory(FakeConfig):
         disable: bool = False,
         dependent_services: Tuple[Any, ...] = None,
         required_services: Tuple[Any, ...] = None,
-        selector_key: str = "",
         variant_name: str = ""
     ) -> ConcreteTestEntitlement:
         cfg = FakeConfig()
@@ -148,7 +141,6 @@ def concrete_entitlement_factory(FakeConfig):
             disable=disable,
             dependent_services=dependent_services,
             required_services=required_services,
-            selector_key=selector_key,
             variant_name=variant_name,
         )
 
@@ -1102,7 +1094,6 @@ class TestEntitlementCfg:
             entitled=True,
             applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
             application_status=(ApplicationStatus.DISABLED, ""),
-            selector_key="platform",
             variant_name=variant_name,
         )
         base_ent_dict = {
@@ -1153,3 +1144,86 @@ class TestEntitlementCfg:
             actual_entitlement = entitlement.entitlement_cfg
 
         assert expected_entitlement == actual_entitlement
+
+
+class TestVariant:
+    @pytest.mark.parametrize(
+        "contract_variants",
+        (
+            ([]),
+            (["not-found-variant"]),
+            (["test_variant"]),
+            (["test_variant", "test_variant2"]),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.base.UAEntitlement._get_variants")
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement._get_contract_variants"
+    )
+    def test_variant_property(
+        self,
+        m_get_contract_variants,
+        m_get_variants,
+        contract_variants,
+        concrete_entitlement_factory,
+    ):
+        entitlement = concrete_entitlement_factory()
+        service_variants = {"test_variant": "test", "generic": "generic"}
+        m_get_contract_variants.return_value = contract_variants
+        m_get_variants.return_value = service_variants
+        actual_variants = entitlement.variants
+
+        expected_variants = (
+            {} if "test_variant" not in contract_variants else service_variants
+        )
+        assert expected_variants == actual_variants
+        assert 1 == m_get_contract_variants.call_count
+        assert 1 == m_get_variants.call_count
+
+
+class TestGetContractVariant:
+    @pytest.mark.parametrize(
+        "entitlement_cfg",
+        (
+            ({}),
+            (
+                {
+                    "entitlement": {
+                        "overrides": [
+                            {
+                                "selector": {
+                                    "variant": "test1",
+                                },
+                            },
+                            {
+                                "selector": {
+                                    "variant": "test2",
+                                }
+                            },
+                            {
+                                "selector": {
+                                    "cloud": "cloud",
+                                },
+                            },
+                        ],
+                    }
+                }
+            ),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement._base_entitlement_cfg"
+    )
+    def test_get_contract_variant(
+        self, m_base_ent_cfg, entitlement_cfg, concrete_entitlement_factory
+    ):
+        entitlement = concrete_entitlement_factory()
+        m_base_ent_cfg.return_value = entitlement_cfg
+
+        actual_contract_variants = entitlement._get_contract_variants()
+        expected_contract_variants = (
+            set() if not entitlement_cfg else set(["test1", "test2"])
+        )
+
+        assert expected_contract_variants == actual_contract_variants
+        assert 1 == m_base_ent_cfg.call_count

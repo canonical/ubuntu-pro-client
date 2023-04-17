@@ -622,6 +622,7 @@ class TestStatus:
             os.lstat(cfg.data_path("status-cache")).st_mode
         )
 
+    @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
     @pytest.mark.parametrize(
         "features_override", ((None), ({"allow_beta": False}))
@@ -654,8 +655,10 @@ class TestStatus:
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.contract_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.contract_status")
+    @mock.patch(M_PATH + "base.UAEntitlement._get_contract_variants")
     def test_attached_reports_contract_and_service_status(
         self,
+        m_contract_variants,
         m_repo_contract_status,
         m_repo_uf_status,
         m_esm_contract_status,
@@ -671,6 +674,7 @@ class TestStatus:
         entitlements,
         features_override,
         show_all,
+        variants_in_contract,
         FakeConfig,
     ):
         """When attached, return contract and service user-facing status."""
@@ -802,7 +806,14 @@ class TestStatus:
 
         for cls in ENTITLEMENT_CLASSES:
             if cls.name == "realtime-kernel":
-                variants = rt_variants
+                if variants_in_contract:
+                    m_contract_variants.return_value = set(
+                        ["intel-iotg", "nvidia-tegra"]
+                    )
+                    variants = rt_variants
+                else:
+                    m_contract_variants.return_value = set()
+                    variants = {}
             else:
                 variants = {}
 
@@ -838,8 +849,9 @@ class TestStatus:
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            expected_status_calls = 11 if variants_in_contract else 8
             assert expected == status.status(cfg=cfg, show_all=show_all)
-            assert 11 == m_repo_uf_status.call_count
+            assert expected_status_calls == m_repo_uf_status.call_count
             assert 1 == m_livepatch_uf_status.call_count
 
         expected_calls = [
