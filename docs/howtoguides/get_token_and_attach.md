@@ -3,7 +3,7 @@
 ## Get an Ubuntu Pro token
 
 Retrieve your Ubuntu Pro token from the
-[Ubuntu Pro portal](https://ubuntu.com/pro/). You will log in with your "Single
+[Ubuntu Pro portal](https://ubuntu.com/pro/). Log in with your "Single
 Sign On" credentials, the same credentials you use for https://login.ubuntu.com.
 
 Being logged in you can then go to the
