@@ -119,7 +119,7 @@ class GenericRealtime(RealtimeKernelEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return (
+        return super().incompatible_services + (
             IncompatibleService(
                 NvidiaTegraRealtime,
                 messages.REALTIME_VARIANT_INCOMPATIBLE.format(
@@ -150,7 +150,7 @@ class NvidiaTegraRealtime(RealtimeKernelEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return (
+        return super().incompatible_services + (
             IncompatibleService(
                 GenericRealtime,
                 messages.REALTIME_VARIANT_INCOMPATIBLE.format(
@@ -181,7 +181,7 @@ class IntelIotgRealtime(RealtimeKernelEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return (
+        return super().incompatible_services + (
             IncompatibleService(
                 NvidiaTegraRealtime,
                 messages.REALTIME_VARIANT_INCOMPATIBLE.format(
