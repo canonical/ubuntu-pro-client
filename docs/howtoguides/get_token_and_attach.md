@@ -52,9 +52,12 @@ FIPS, and CIS. Some features are specific to certain LTS releases.
 Your subscription controls which services are available to you as shown and
 controlled on the [Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard).
 
-Recommended services are auto-enabled when attaching a system. Which services
-are considered recommended can, for some subscriptions, be controlled on the
-[Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard) by toggling those.
+Recommended services are auto-enabled by default when attaching a system.
+You can choose which of the available services will be automatically
+enabled or disabled when you attach by toggling them in the
+[Ubuntu Pro Dashboard](https://ubuntu.com/pro/dashboard). 
+Available services can always be enabled or disabled on the command line
+with `pro enable` and `pro disable` after attaching.
 
 ![Toggling recommended services in the Pro Dashboard](pro-dashboard-service-toggles.png)
 
