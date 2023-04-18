@@ -780,7 +780,7 @@ class TestStatus:
                 "blocked_by": [],
                 "description": "RT kernel "
                 "optimized for "
-                "NVidia Tegra "
+                "NVIDIA Tegra "
                 "platforms",
                 "description_override": None,
                 "entitled": "yes",
