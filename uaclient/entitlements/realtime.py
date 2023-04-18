@@ -137,8 +137,8 @@ class GenericRealtime(RealtimeKernelEntitlement):
 
 class NvidiaTegraRealtime(RealtimeKernelEntitlement):
     variant_name = "nvidia-tegra"
-    title = "Real-time Nvidia Tegra Kernel"
-    description = "RT kernel optimized for NVidia Tegra platforms"
+    title = "Real-time NVIDIA Tegra Kernel"
+    description = "RT kernel optimized for NVIDIA Tegra platforms"
     is_variant = True
     check_packages_are_installed = True
 
