@@ -607,7 +607,7 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
     """Format status dict for tabular output."""
     if not status.get("attached"):
         if status.get("simulated"):
-            if not status["services"]:
+            if not status.get("services", None):
                 return messages.STATUS_NO_SERVICES_AVAILABLE
 
             content = [
@@ -619,11 +619,11 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
                     description="DESCRIPTION",
                 )
             ]
-            for service in status["services"]:
+            for service in status.get("services", []):
                 content.append(STATUS_SIMULATED_TMPL.format(**service))
             return "\n".join(content)
 
-        if not status["services"]:
+        if not status.get("services", None):
             content = [messages.STATUS_NO_SERVICES_AVAILABLE]
         else:
             content = [
@@ -633,17 +633,17 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
                     description="DESCRIPTION",
                 )
             ]
-            for service in status["services"]:
+            for service in status.get("services", []):
                 descr_override = service.get("description_override")
                 description = (
                     descr_override
                     if descr_override
-                    else service["description"]
+                    else service.get("description", "")
                 )
                 content.append(
                     STATUS_UNATTACHED_TMPL.format(
-                        name=service["name"],
-                        available=service["available"],
+                        name=service.get("name", ""),
+                        available=service.get("available", ""),
                         description=description,
                     )
                 )
@@ -655,7 +655,7 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
 
         if status.get("features"):
             content.append("\nFEATURES")
-            for key, value in sorted(status["features"].items()):
+            for key, value in sorted(status.get("features", {}).items()):
                 content.append("{}: {}".format(key, value))
 
         if show_all_hint:
@@ -669,22 +669,22 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
         return "\n".join(content)
 
     service_warnings = []
-    if not status["services"]:
+    if not status.get("services", None):
         content = [messages.STATUS_NO_SERVICES_AVAILABLE]
     else:
         content = [STATUS_HEADER]
-        for service_status in status["services"]:
-            entitled = service_status["entitled"]
+        for service_status in status.get("services", []):
+            entitled = service_status.get("entitled", "")
             descr_override = service_status.get("description_override")
             description = (
                 descr_override
                 if descr_override
-                else service_status["description"]
+                else service_status.get("description", "")
             )
             fmt_args = {
-                "name": service_status["name"],
+                "name": service_status.get("name", ""),
                 "entitled": colorize(entitled),
-                "status": colorize(service_status["status"]),
+                "status": colorize(service_status.get("status", "")),
                 "description": description,
             }
             warning = service_status.get("warning", None)
@@ -705,7 +705,7 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
 
     if status.get("features"):
         content.append("\nFEATURES")
-        for key, value in sorted(status["features"].items()):
+        for key, value in sorted(status.get("features", {}).items()):
             content.append("{}: {}".format(key, value))
     content.append("")
 
@@ -714,17 +714,19 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
     content.append("Enable services with: pro enable <service>")
     pairs = []
 
-    account_name = status["account"]["name"]
+    account_name = status.get("account", {}).get("name", "unknown")
     if account_name:
         pairs.append(("Account", account_name))
 
-    contract_name = status["contract"]["name"]
+    contract_name = status.get("contract", {}).get("name", "unknown")
     if contract_name:
         pairs.append(("Subscription", contract_name))
 
-    if status["origin"] != "free":
-        pairs.append(("Valid until", format_expires(status["expires"])))
-        tech_support_level = status["contract"]["tech_support_level"]
+    if status.get("origin", None) != "free":
+        pairs.append(("Valid until", format_expires(status.get("expires"))))
+        tech_support_level = status.get("contract", {}).get(
+            "tech_support_level", "unknown"
+        )
         pairs.append(("Technical support level", colorize(tech_support_level)))
 
     if pairs:
