@@ -125,7 +125,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platforms
         """
         And stdout matches regexp:
         """
@@ -162,8 +162,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         to make the change manually..*
 
         Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
-        Installing Real-time Nvidia Tegra Kernel packages
-        Real-time Nvidia Tegra Kernel enabled
+        Installing Real-time NVIDIA Tegra Kernel packages
+        Real-time NVIDIA Tegra Kernel enabled
         """
         When I run `pro status` as non-root
         Then stdout matches regexp:
@@ -183,17 +183,17 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +enabled   +RT kernel optimized for NVidia Tegra platforms
+        └ nvidia-tegra   yes +enabled   +RT kernel optimized for NVIDIA Tegra platforms
         """
         When I verify that running `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp:
         """
-        Real-time Intel IOTG Kernel cannot be enabled with Real-time Nvidia Tegra Kernel.
-        Disable Real-time Nvidia Tegra Kernel and proceed to enable Real-time Intel IOTG Kernel\? \(y/N\)
+        Real-time Intel IOTG Kernel cannot be enabled with Real-time NVIDIA Tegra Kernel.
+        Disable Real-time NVIDIA Tegra Kernel and proceed to enable Real-time Intel IOTG Kernel\? \(y/N\)
         """
         And stdout matches regexp:
         """
-        Cannot enable Real-time Intel IOTG Kernel when Real-time Nvidia Tegra Kernel is enabled.
+        Cannot enable Real-time Intel IOTG Kernel when Real-time NVIDIA Tegra Kernel is enabled.
         """
         When I run `pro help realtime-kernel` as non-root
         Then I will see the following on stdout:
@@ -218,7 +218,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
           * generic: Generic version of the RT kernel (default)
           * intel-iotg: RT kernel optimized for Intel IOTG platform
-          * nvidia-tegra: RT kernel optimized for NVidia Tegra platforms
+          * nvidia-tegra: RT kernel optimized for NVIDIA Tegra platforms
         """
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
@@ -246,7 +246,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVidia Tegra platforms
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platforms
         """
         When I run `pro detach --assume-yes` with sudo
         And I run `pro status` as non-root
