@@ -145,15 +145,15 @@ class TestActionRefresh:
         assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
 
     @mock.patch("uaclient.apt_news.update_apt_news")
-    @mock.patch("uaclient.timer.update_messaging.exists", return_value=True)
-    @mock.patch("logging.exception")
+    @mock.patch("uaclient.jobs.update_messaging.exists", return_value=True)
+    @mock.patch("uaclient.jobs.update_messaging.LOG.exception")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_refresh_messages_doesnt_fail_if_update_notifier_does(
         self,
         m_update_motd,
         m_subp,
-        logging_error,
+        log_exception,
         _m_path,
         _m_update_apt_news,
         capsys,
@@ -167,8 +167,8 @@ class TestActionRefresh:
         )
 
         assert 0 == ret
-        assert 1 == logging_error.call_count
-        assert [mock.call(subp_exc)] == logging_error.call_args_list
+        assert 1 == log_exception.call_count
+        assert [mock.call(subp_exc)] == log_exception.call_args_list
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
 
     @mock.patch("uaclient.apt_news.update_apt_news")

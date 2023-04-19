@@ -21,7 +21,7 @@ Available Commands:
 """  # noqa
 
 
-@mock.patch("uaclient.cli.logging.error")
+@mock.patch("uaclient.cli.LOG.error")
 @mock.patch("uaclient.cli.setup_logging")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfig:
