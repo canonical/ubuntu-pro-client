@@ -32,10 +32,13 @@ class TestUpdateEsmCaches:
         assert expected_log_args == m_esm_cache_log_err.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
-    def test_log_exception(self, m_update_caches, caplog_text, FakeConfig):
+    def test_log_exception(
+        self, m_update_caches, caplog_text, capsys, FakeConfig
+    ):
         expected_msg = "unexpected exception"
         expected_exception = Exception(expected_msg)
         m_update_caches.side_effect = expected_exception
         main(cfg=FakeConfig())
+        _, err = capsys.readouterr()
 
-        assert expected_msg in caplog_text()
+        assert expected_msg in err

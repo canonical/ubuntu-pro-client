@@ -56,6 +56,7 @@ class TestCheckCloudinitUserdataForUAInfo:
 @mock.patch("lib.auto_attach.system.ensure_file_absent")
 @mock.patch("lib.auto_attach.system.write_file")
 class TestMain:
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(
         "ubuntu_advantage_in_userdata",
         (
