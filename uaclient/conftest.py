@@ -148,7 +148,6 @@ def caplog_text(request):
 def logging_sandbox():
     # Monkeypatch a replacement root logger, so that our changes to logging
     # configuration don't persist outside of the test
-    # root_logger = logging.RootLogger(logging.WARNING)
     root_logger = logging.getLogger("uaclient")
     root_logger.setLevel(logging.WARNING)
 
