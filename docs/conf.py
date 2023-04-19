@@ -38,7 +38,10 @@ extensions = [
 
 templates_path = ["_templates"]
 
-html_extra_path = ["googleaf254801a5285c31.html"]
+html_extra_path = [
+    "googleaf254801a5285c31.html",
+    "sitemap-index.xml"
+]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
