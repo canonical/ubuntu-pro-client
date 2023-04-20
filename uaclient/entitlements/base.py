@@ -197,15 +197,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return valid_variants
 
-    @property
-    def variants(self) -> Dict[str, Type["UAEntitlement"]]:
-        """
-        Return a list of services that are considered a variant
-        of the main service.
-        """
-        if self.is_variant:
-            return {}
-
+    def _get_valid_variants(self) -> Dict[str, Type["UAEntitlement"]]:
         service_variants = self._get_variants()
         contract_variants = self._get_contract_variants()
 
@@ -219,6 +211,30 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 valid_variants[variant] = service_variants[variant]
 
         return valid_variants if len(valid_variants) > 1 else {}
+
+    @property
+    def variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        """
+        Return a list of services that are considered a variant
+        of the main service.
+        """
+        if self.is_variant:
+            return {}
+        return self._get_valid_variants()
+
+    @property
+    def other_variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        """
+        On a variant, return the other variants of the main service.
+        On a non-variant, returns empty.
+        """
+        if not self.is_variant:
+            return {}
+        return {
+            name: cls
+            for name, cls in self._get_valid_variants().items()
+            if name != self.variant_name
+        }
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
