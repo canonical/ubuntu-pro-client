@@ -218,13 +218,17 @@ CloudID get_cloud_id() {
     return ret;
 }
 
-bool is_xenial() {
+enum ESMInfraSeries {NOT_ESM_INFRA, XENIAL, BIONIC};
+
+ESMInfraSeries get_esm_infra_series() {
     std::ifstream os_release_file("/etc/os-release");
-    bool ret = false;
+    ESMInfraSeries ret = NOT_ESM_INFRA;
     if (os_release_file.is_open()) {
         std::string os_release_str((std::istreambuf_iterator<char>(os_release_file)), (std::istreambuf_iterator<char>()));
         if (os_release_str.find("xenial") != os_release_str.npos) {
-            ret = true;
+            ret = XENIAL;
+        } else if (os_release_str.find("bionic") != os_release_str.npos) {
+            ret = BIONIC;
         }
         os_release_file.close();
     }
@@ -238,27 +242,39 @@ struct ESMContext {
 
 ESMContext get_esm_context() {
     CloudID cloud_id = get_cloud_id();
-    bool is_x = is_xenial();
+    ESMInfraSeries esm_infra_series = get_esm_infra_series();
 
     ESMContext ret;
     ret.context = "";
     ret.url = "https://ubuntu.com/pro";
 
-    if (cloud_id != AZURE && is_x) {
-        ret.context = " for 16.04";
-        ret.url = "https://ubuntu.com/16-04";
-    } else if (cloud_id == AZURE && !is_x) {
-        ret.context = " on Azure";
-        ret.url = "https://ubuntu.com/azure/pro";
-    } else if (cloud_id == AZURE && is_x) {
-        ret.context = " for 16.04 on Azure";
-        ret.url = "https://ubuntu.com/16-04/azure";
-    } else if (cloud_id == AWS && !is_x) {
-        ret.context = " on AWS";
-        ret.url = "https://ubuntu.com/aws/pro";
-    } else if (cloud_id == GCE && !is_x) {
-        ret.context = " on GCP";
-        ret.url = "https://ubuntu.com/gcp/pro";
+    if (esm_infra_series == XENIAL) {
+        if (cloud_id == AZURE) {
+            ret.context = " for 16.04 on Azure";
+            ret.url = "https://ubuntu.com/16-04/azure";
+        } else {
+            ret.context = " for 16.04";
+            ret.url = "https://ubuntu.com/16-04";
+        }
+    } else if (esm_infra_series == BIONIC) {
+        if (cloud_id == AZURE) {
+            ret.context = " for 18.04 on Azure";
+            ret.url = "https://ubuntu.com/18-04/azure";
+        } else {
+            ret.context = " for 18.04";
+            ret.url = "https://ubuntu.com/18-04";
+        }
+    } else {
+        if (cloud_id == AZURE) {
+            ret.context = " on Azure";
+            ret.url = "https://ubuntu.com/azure/pro";
+        } else if (cloud_id == AWS) {
+            ret.context = " on AWS";
+            ret.url = "https://ubuntu.com/aws/pro";
+        } else if (cloud_id == GCE) {
+            ret.context = " on GCP";
+            ret.url = "https://ubuntu.com/gcp/pro";
+        }
     }
 
     return ret;
