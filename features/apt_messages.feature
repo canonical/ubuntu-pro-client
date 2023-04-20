@@ -175,7 +175,7 @@ Feature: APT Messages
         Calculating upgrade...
         Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
           <package>
-        Learn more about Ubuntu Pro at https://ubuntu.com/pro
+        <learn_more_msg>
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I run `apt-get upgrade` with sudo
@@ -211,10 +211,10 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded\.
         """
         Examples: ubuntu release
-          | release | package |
-          | bionic  | ansible |
-          | focal   | hello   |
-          | jammy   | hello   |
+          | release | package | learn_more_msg                                                    |
+          | bionic  | ansible | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | jammy   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -613,6 +613,7 @@ Feature: APT Messages
 
     @series.xenial
     @series.bionic
+    @series.focal
     @uses.config.machine_type.aws.generic
     Scenario Outline: AWS URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -620,17 +621,19 @@ Feature: APT Messages
         When I run `apt-get install ansible -y` with sudo
         When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         <msg>
         """
         Examples: ubuntu release
-          | release | msg                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
+          | release | msg                                                               |
+          | xenial  | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04 |
+          | bionic  | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | Learn more about Ubuntu Pro on AWS at https://ubuntu.com/aws/pro  |
 
     @series.xenial
     @series.bionic
+    @series.focal
     @uses.config.machine_type.azure.generic
     Scenario Outline: Azure URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -638,17 +641,19 @@ Feature: APT Messages
         When I run `apt-get install ansible -y` with sudo
         When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         <msg>
         """
         Examples: ubuntu release
-          | release | msg                                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 on Azure at https:\/\/ubuntu\.com\/16-04\/azure |
-          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
+          | release | msg                                                                              |
+          | xenial  | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
+          | bionic  | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
+          | focal   | Learn more about Ubuntu Pro on Azure at https://ubuntu.com/azure/pro             |
 
     @series.xenial
     @series.bionic
+    @series.focal
     @uses.config.machine_type.gcp.generic
     Scenario Outline: GCP URLs
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -656,14 +661,15 @@ Feature: APT Messages
         When I run `apt-get install ansible -y` with sudo
         When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         <msg>
         """
         Examples: ubuntu release
           | release | msg                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
+          | xenial  | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04 |
+          | bionic  | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro  |
 
     @series.kinetic
     @uses.config.machine_type.lxd.container
