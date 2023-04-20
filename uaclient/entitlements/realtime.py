@@ -110,79 +110,45 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
             )
 
 
-class GenericRealtime(RealtimeKernelEntitlement):
+class RealtimeVariant(RealtimeKernelEntitlement):
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        incompatible_variants = tuple(
+            [
+                IncompatibleService(
+                    cls,
+                    messages.REALTIME_VARIANT_INCOMPATIBLE.format(
+                        service=self.title, variant=cls.title
+                    ),
+                )
+                for name, cls in self.other_variants.items()
+            ]
+        )
+        return super().incompatible_services + incompatible_variants
+
+
+class GenericRealtime(RealtimeVariant):
     variant_name = "generic"
     title = "Real-time kernel"
     description = "Generic version of the RT kernel (default)"
     is_variant = True
     check_packages_are_installed = True
 
-    @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return super().incompatible_services + (
-            IncompatibleService(
-                NvidiaTegraRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=NvidiaTegraRealtime.title
-                ),
-            ),
-            IncompatibleService(
-                IntelIotgRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=IntelIotgRealtime.title
-                ),
-            ),
-        )
 
-
-class NvidiaTegraRealtime(RealtimeKernelEntitlement):
+class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"
     title = "Real-time NVIDIA Tegra Kernel"
     description = "RT kernel optimized for NVIDIA Tegra platforms"
     is_variant = True
     check_packages_are_installed = True
 
-    @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return super().incompatible_services + (
-            IncompatibleService(
-                GenericRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=GenericRealtime.title
-                ),
-            ),
-            IncompatibleService(
-                IntelIotgRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=IntelIotgRealtime.title
-                ),
-            ),
-        )
 
-
-class IntelIotgRealtime(RealtimeKernelEntitlement):
+class IntelIotgRealtime(RealtimeVariant):
     variant_name = "intel-iotg"
     title = "Real-time Intel IOTG Kernel"
     description = "RT kernel optimized for Intel IOTG platform"
     is_variant = True
     check_packages_are_installed = True
-
-    @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        return super().incompatible_services + (
-            IncompatibleService(
-                NvidiaTegraRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=NvidiaTegraRealtime.title
-                ),
-            ),
-            IncompatibleService(
-                GenericRealtime,
-                messages.REALTIME_VARIANT_INCOMPATIBLE.format(
-                    service=self.title, variant=GenericRealtime.title
-                ),
-            ),
-        )
 
     def _get_vendor_id(self):
         return system.get_cpu_info().vendor_id

@@ -43,10 +43,12 @@ def when_i_run_command(
     machine_name=SUT,
 ):
     command = process_template_vars(context, command)
-
     prefix = get_command_prefix_for_user_spec(user_spec)
-
     full_cmd = prefix + shlex.split(command)
+
+    if stdin is not None:
+        stdin = stdin.replace("\\n", "\n")
+
     result = context.machines[machine_name].instance.execute(
         full_cmd, stdin=stdin
     )
