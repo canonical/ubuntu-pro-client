@@ -131,10 +131,70 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         """
+
+        # Test one variant
         # We need to disable this job before adding the overlay, because we might
         # write the machine token to disk with the override content
         When I run `pro config set update_messaging_timer=0` with sudo
         And I set the machine token overlay to the following yaml
+        """
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: realtime-kernel
+                overrides:
+                  - directives:
+                      additionalPackages:
+                        - hello
+                    selector:
+                      variant: intel-iotg
+        """
+        When I run `pro enable realtime-kernel --assume-yes` with sudo
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +enabled   +Generic version of the RT kernel \(default\)
+        └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        """
+        When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
+        Then stdout contains substring:
+        """
+        Real-time Intel IOTG Kernel cannot be enabled with Real-time kernel.
+        Disable Real-time kernel and proceed to enable Real-time Intel IOTG Kernel? (y/N)
+        """
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +disabled   +Generic version of the RT kernel \(default\)
+        └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+        """
+        When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\n`
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +enabled   +Generic version of the RT kernel \(default\)
+        └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        """
+        When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic        yes +disabled   +Generic version of the RT kernel \(default\)
+        └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+        """
+        When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        Real-time kernel is already enabled.
+        """
+        When I run `pro disable realtime-kernel --assume-yes` with sudo
+
+        # Test multiple variants
+        When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
           contractInfo:
@@ -148,7 +208,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       variant: nvidia-tegra
                   - directives:
                       additionalPackages:
-                        - intel-pkg
+                        - hello
                     selector:
                       variant: intel-iotg
         """
