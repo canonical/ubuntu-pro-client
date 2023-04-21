@@ -1,6 +1,5 @@
 import copy
 import datetime
-import logging
 import socket
 
 import mock
@@ -704,7 +703,6 @@ class TestGetContractInformation:
 
 
 class TestRequestUpdatedContract:
-
     refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
         contract="cid", machine="mid"
     )
@@ -1368,9 +1366,9 @@ class TestApplyContractOverrides:
 
 @mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
 class TestRequestAutoAttach:
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.contract.logging.debug")
     def test_request_for_invalid_pro_image(
-        self, m_request_url, caplog_text, FakeConfig
+        self, m_logging_debug, m_request_url, FakeConfig
     ):
         cfg = FakeConfig()
         contract = UAContractClient(cfg)
@@ -1399,6 +1397,7 @@ class TestRequestAutoAttach:
         expected_message = INVALID_PRO_IMAGE.format(
             msg=error_response["message"]
         )
+        expected_args = [mock.call(error_response["message"])]
         assert expected_message.msg == exc_error.value.msg
-        assert error_response["message"] in caplog_text()
+        assert expected_args == m_logging_debug.call_args_list
         assert exc_error.value.msg_code == "invalid-pro-image"
