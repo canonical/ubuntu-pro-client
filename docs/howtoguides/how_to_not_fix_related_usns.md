@@ -1,9 +1,9 @@
 # How to not fix related USNs
 
 When running the `pro fix` command for a USN, by default we also try to fix
-any related USNs as well (To better understand the concept of related USNs, please take 
-a look at this [document](../explanations/cves_and_usns_explained.md). To make this clear,
-let's take a look into the following example:
+any related USNs as well. To better understand the concept of related USNs,
+you can refer to our [related USNs guide](../explanations/cves_and_usns_explained.md).
+To make this clear, let's take a look into the following example:
 
 ```
 USN-5573-1: rsync vulnerability
