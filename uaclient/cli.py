@@ -937,6 +937,12 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
 
     @return: True on success, False otherwise
     """
+    # Make sure we have the correct variant of the service
+    # This can affect what packages get uninstalled
+    variant = entitlement.enabled_variant
+    if variant is not None:
+        entitlement = variant
+
     ret, reason = entitlement.disable()
 
     if not ret:
