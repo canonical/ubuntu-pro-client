@@ -10,7 +10,7 @@ access to:
 
 ```{seealso}
 
-You can also refer to our [Proxy Configuration guide](/../howtoguides/configure_proxies.md)
+You can also refer to our [Proxy Configuration guide](../howtoguides/configure_proxies.md)
 to learn how to inform Ubuntu Pro Client of HTTP(S)/APT proxies.
 ```
 

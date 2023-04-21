@@ -9,6 +9,14 @@ h1, h2, h3, h4, h5, h6, .sidebar-tree .current-page>.reference, button, input, o
     font-weight: 400;
 }
 
+.sidebar-tree .toctree-l2.has-children>.reference {
+    font-weight: 300;
+}
+
+li.toctree-l3 {
+    font-weight: 200;
+}
+
 div.page, li.scroll-current>.reference, dl.glossary dt, dl.simple dt, dl:not([class]) dt {
     font-weight: 300;
     line-height: 1.5;
