@@ -18,6 +18,7 @@ from uaclient.testing.fakes import FakeContractClient
 
 def entitlement_cls_mock_factory(can_disable, name=None):
     m_instance = mock.MagicMock()
+    m_instance.enabled_variant = None
     m_instance.can_disable.return_value = (can_disable, None)
     m_instance.disable.return_value = (can_disable, None)
     type(m_instance).dependent_services = mock.PropertyMock(return_value=())

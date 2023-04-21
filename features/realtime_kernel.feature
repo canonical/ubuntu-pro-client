@@ -187,11 +187,16 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
         """
         When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Real-time kernel is already enabled.
         """
         When I run `pro disable realtime-kernel --assume-yes` with sudo
+        When I run `apt-cache policy hello` as non-root
+        Then stdout contains substring:
+        """
+        Installed: (none)
+        """
 
         # Test multiple variants
         When I set the machine token overlay to the following yaml

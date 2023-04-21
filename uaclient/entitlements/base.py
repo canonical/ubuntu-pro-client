@@ -236,6 +236,27 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if name != self.variant_name
         }
 
+    @property
+    def enabled_variant(self) -> Optional["UAEntitlement"]:
+        """
+        On an enabled service class, return the variant that is enabled.
+        Return None if no variants exist or none are enabled (e.g. access-only)
+        """
+        for variant_cls in self.variants.values():
+            if variant_cls.variant_name == "generic":
+                continue
+            variant = variant_cls(
+                cfg=self.cfg,
+                assume_yes=self.assume_yes,
+                allow_beta=self.allow_beta,
+                called_name=self._called_name,
+                access_only=self.access_only,
+            )
+            status, _ = variant.application_status()
+            if status == ApplicationStatus.ENABLED:
+                return variant
+        return None
+
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
