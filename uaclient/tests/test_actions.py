@@ -1,5 +1,4 @@
 import json
-import logging
 
 import mock
 import pytest
@@ -128,7 +127,7 @@ class TestAutoAttach:
 
 @mock.patch("uaclient.actions._write_command_output_to_file")
 class TestCollectLogs:
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("uaclient.actions.logging.warning")
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
@@ -143,8 +142,8 @@ class TestCollectLogs:
         m_load_file,
         m_write_file,
         m_we_are_currently_root,
+        m_log_warning,
         m_write_cmd,
-        caplog_text,
         tmpdir,
     ):
         log_file = tmpdir.join("user-log").strpath
@@ -168,7 +167,9 @@ class TestCollectLogs:
             mock.call("test/user0.log", "test"),
             mock.call("test/b", "test"),
         ] == m_write_file.call_args_list
-        assert "Failed to load file: a\n" in caplog_text()
+        assert [
+            mock.call("Failed to load file: %s\n%s", "a", "test")
+        ] in m_log_warning.call_args_list
 
 
 class TestGetCloudInstance:
