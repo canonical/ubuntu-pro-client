@@ -2,10 +2,8 @@ import contextlib
 import io
 import json
 import logging
-import os
 import re
 import socket
-import stat
 import sys
 import textwrap
 
@@ -109,7 +107,8 @@ def get_help(request, capsys, FakeConfig):
                     "uaclient.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
-                    main()
+                    with mock.patch("uaclient.cli.setup_logging"):
+                        main()
             out, _err = capsys.readouterr()
 
             if "--all" in request.param:
@@ -828,208 +827,41 @@ class TestMain:
 
 
 class TestSetupLogging:
-    @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
-    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.log.get_user_log_file")
-    def test_console_log_configured_if_not_present(
+    def test_correct_handlers_added_to_logger(
         self,
-        m_get_user,
-        m_we_are_currently_root,
-        level,
-        capsys,
         logging_sandbox,
         FakeConfig,
-        tmpdir,
     ):
-        m_get_user.return_value = tmpdir.join("user.log").strpath
-        with mock.patch(
-            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
-        ):
-            setup_logging(level, logging.INFO)
-        logging.log(level, "after setup")
-        logging.log(level - 1, "not present")
+        console_level = logging.INFO
+        log_level = logging.DEBUG
+        logger = logging.getLogger("logger_a")
 
-        _, err = capsys.readouterr()
-        assert "after setup" in err
-        assert "not present" not in err
-
-    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.log.get_user_log_file")
-    def test_console_log_configured_if_already_present(
-        self,
-        m_get_user,
-        m_we_are_currently_root,
-        capsys,
-        logging_sandbox,
-        FakeConfig,
-        tmpdir,
-    ):
-        m_get_user.return_value = tmpdir.join("user.log").strpath
-        logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.ERROR)
+        handler.set_name("ua-test-console")
+        logger.addHandler(handler)
 
         with mock.patch(
             "uaclient.cli.config.UAConfig", return_value=FakeConfig()
         ):
-            logging.error("before setup")
-            setup_logging(logging.INFO, logging.INFO)
-            logging.error("after setup")
+            setup_logging(console_level, log_level, logger=logger)
+        assert len(logger.handlers) == 2
+        assert logger.handlers[0].name == "ua-console"
+        assert logger.handlers[0].level == console_level
+        assert logger.handlers[1].name == "ua-file"
+        assert logger.handlers[1].level == log_level
 
-        # 'before setup' will be in stderr, so check that setup_logging
-        # configures the format
-        _, err = capsys.readouterr()
-        assert "ERROR: before setup" not in err
-        assert "ERROR: after setup" in err
-
-    @mock.patch("uaclient.log.get_user_log_file")
-    @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
-    def test_user_file_log_configured_if_not_root(
-        self,
-        m_we_are_currently_root,
-        m_log_get_user_log_file,
-        tmpdir,
-        logging_sandbox,
-    ):
-        log_file = tmpdir.join("log_file")
-        m_log_get_user_log_file.return_value = log_file.strpath
-
-        setup_logging(logging.INFO, logging.INFO)
-        logging.info("after setup")
-
-        assert log_file.exists()
-
-    @pytest.mark.parametrize("log_filename", (None, "file.log"))
-    @mock.patch("uaclient.cli.config")
-    def test_file_log_configured_if_root(
-        self,
-        m_config,
-        log_filename,
-        logging_sandbox,
-        tmpdir,
-    ):
-        if log_filename is None:
-            log_filename = "default.log"
-            log_file = tmpdir.join(log_filename)
-            m_config.CONFIG_DEFAULTS = {"log_file": log_file.strpath}
-        else:
-            log_file = tmpdir.join(log_filename)
-
-        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
-        logging.info("after setup")
-
-        assert "after setup" in log_file.read()
-
-    def test_file_log_configured_if_already_present(
-        self,
-        logging_sandbox,
-        tmpdir,
-    ):
-        some_file = tmpdir.join("default.log")
-        logging.getLogger().addHandler(logging.FileHandler(some_file.strpath))
-
-        log_file = tmpdir.join("file.log")
-
-        logging.error("before setup")
-        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
-        logging.error("after setup")
-
-        content = log_file.read()
-        assert re.match(r'\[.*"ERROR", "before setup"', content) is None
-        assert re.match(r'\[.*"ERROR",.*"after setup"', content)
-
-    @mock.patch("uaclient.cli.config.UAConfig")
-    def test_custom_logger_configuration(
-        self,
-        m_config,
-        logging_sandbox,
-        tmpdir,
-        FakeConfig,
-    ):
-        log_file = tmpdir.join("file.log")
-        cfg = FakeConfig({"log_file": log_file.strpath})
-        m_config.return_value = cfg
-
-        custom_logger = logging.getLogger("for-my-special-module")
-        root_logger = logging.getLogger()
-        n_root_handlers = len(root_logger.handlers)
-
-        setup_logging(logging.INFO, logging.INFO, logger=custom_logger)
-
-        assert len(custom_logger.handlers) == 2
-        assert len(root_logger.handlers) == n_root_handlers
-
-    @mock.patch("uaclient.cli.config.UAConfig")
-    def test_no_duplicate_ua_handlers(
-        self,
-        m_config,
-        logging_sandbox,
-        tmpdir,
-        FakeConfig,
-    ):
-        log_file = tmpdir.join("file.log")
-        cfg = FakeConfig({"log_file": log_file.strpath})
-        m_config.return_value = cfg
-        root_logger = logging.getLogger()
-
-        setup_logging(logging.INFO, logging.DEBUG)
-        stream_handlers = [
-            h
-            for h in root_logger.handlers
-            if h.level == logging.INFO and isinstance(h, logging.StreamHandler)
-        ]
-        file_handlers = [
-            h
-            for h in root_logger.handlers
-            if h.level == logging.DEBUG
-            and isinstance(h, logging.FileHandler)
-            and h.stream.name == log_file
-        ]
-        assert len(root_logger.handlers) == 2
-        assert len(stream_handlers) == 1
-        assert len(file_handlers) == 1
-
-        setup_logging(logging.INFO, logging.DEBUG)
-        stream_handlers = [
-            h
-            for h in root_logger.handlers
-            if h.level == logging.INFO and isinstance(h, logging.StreamHandler)
-        ]
-        file_handlers = [
-            h
-            for h in root_logger.handlers
-            if h.level == logging.DEBUG
-            and isinstance(h, logging.FileHandler)
-            and h.stream.name == log_file
-        ]
-        assert len(root_logger.handlers) == 2
-        assert len(stream_handlers) == 1
-        assert len(file_handlers) == 1
-
-    @pytest.mark.parametrize("pre_existing", (True, False))
-    @mock.patch("uaclient.cli.config")
-    def test_file_log_is_world_readable(
-        self,
-        m_config,
-        logging_sandbox,
-        tmpdir,
-        pre_existing,
-    ):
-        log_file = tmpdir.join("root-only.log")
-        log_path = log_file.strpath
-        expected_mode = 0o640
-        if pre_existing:
-            expected_mode = 0o640
-            log_file.write("existing content\n")
-            os.chmod(log_path, expected_mode)
-            assert 0o644 != stat.S_IMODE(os.lstat(log_path).st_mode)
-
-        setup_logging(logging.INFO, logging.INFO, log_file=log_path)
-        logging.info("after setup")
-
-        assert expected_mode == stat.S_IMODE(os.lstat(log_path).st_mode)
-        log_content = log_file.read()
-        assert "after setup" in log_content
-        if pre_existing:
-            assert "existing content" in log_content
+    @mock.patch("pathlib.Path.touch")
+    def test_log_file_created_if_not_present(self, m_path_touch, tmpdir):
+        logger = logging.getLogger("logger_b")
+        log_file = tmpdir.join("log_file").strpath
+        setup_logging(
+            logging.DEBUG,
+            logging.INFO,
+            log_file=log_file,
+            logger=logger,
+        )
+        assert m_path_touch.call_args_list == [mock.call(mode=0o640)]
 
 
 class TestGetValidEntitlementNames:

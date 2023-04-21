@@ -5,6 +5,7 @@ import pytest
 
 from lib.esm_cache import main
 from uaclient.exceptions import MissingSeriesOnOSReleaseFile
+from uaclient.messages import MISSING_SERIES_ON_OS_RELEASE
 
 
 @mock.patch("lib.esm_cache.update_esm_caches")
@@ -14,16 +15,21 @@ class TestUpdateEsmCaches:
 
         assert m_update_caches.call_count == 1
 
-    @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
+    @mock.patch("lib.esm_cache.LOG.error")
     def test_log_user_facing_exception(
-        self, m_update_caches, caplog_text, FakeConfig
+        self, m_esm_cache_log_err, m_update_caches, FakeConfig
     ):
         expected_exception = MissingSeriesOnOSReleaseFile(version="version")
         m_update_caches.side_effect = expected_exception
         main(cfg=FakeConfig())
+        expected_log_args = [
+            mock.call(
+                "Error updating the cache: %s",
+                MISSING_SERIES_ON_OS_RELEASE.format(version="version").msg,
+            )
+        ]
 
-        for line in expected_exception.msg.split("\n"):
-            assert line in caplog_text()
+        assert expected_log_args == m_esm_cache_log_err.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
     def test_log_exception(self, m_update_caches, caplog_text, FakeConfig):

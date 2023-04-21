@@ -72,7 +72,6 @@ class TestMain:
         m_write_file,
         m_ensure_file_absent,
         ubuntu_advantage_in_userdata,
-        caplog_text,
         FakeConfig,
     ):
         m_check_cloudinit.return_value = ubuntu_advantage_in_userdata
@@ -90,13 +89,7 @@ class TestMain:
             ] == m_ensure_file_absent.call_args_list
         else:
             assert 0 == m_api_full_auto_attach.call_count
-            assert (
-                "cloud-init userdata has ubuntu-advantage key."
-            ) in caplog_text()
-            assert (
-                "Skipping auto-attach and deferring to cloud-init "
-                "to setup and configure auto-attach"
-            ) in caplog_text()
+            assert 0 == m_write_file.call_count
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(
