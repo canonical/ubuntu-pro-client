@@ -2,7 +2,6 @@ import copy
 import datetime
 import itertools
 import json
-import logging
 import os
 import stat
 
@@ -1135,7 +1134,6 @@ class TestParseConfig:
 
 
 class TestFeatures:
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @pytest.mark.parametrize(
         "cfg_features,expected, warnings",
         (
@@ -1145,7 +1143,7 @@ class TestFeatures:
                 "badstring",
                 {},
                 "Unexpected uaclient.conf features value."
-                " Expected dict, but found badstring",
+                " Expected dict, but found %s",
             ),
             ({"feature1": "value1"}, {"feature1": "value1"}, None),
             (
@@ -1155,14 +1153,22 @@ class TestFeatures:
             ),
         ),
     )
+    @mock.patch("uaclient.config.logging.warning")
     def test_features_are_a_property_of_uaconfig(
-        self, cfg_features, expected, warnings, caplog_text, FakeConfig
+        self,
+        m_log_warning,
+        cfg_features,
+        expected,
+        warnings,
+        FakeConfig,
     ):
         user_cfg = {"features": cfg_features}
         cfg = FakeConfig(cfg_overrides=user_cfg)
         assert expected == cfg.features
         if warnings:
-            assert warnings in caplog_text()
+            assert [
+                mock.call(warnings, cfg_features)
+            ] == m_log_warning.call_args_list
 
 
 class TestMachineTokenOverlay:
