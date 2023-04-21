@@ -214,6 +214,7 @@ class TestLivepatchEntitlementCanEnable:
             ),
         ),
     )
+    @mock.patch("uaclient.system.get_dpkg_arch", return_value="x86_64")
     @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch(
         "uaclient.system.get_release_info",
@@ -223,6 +224,7 @@ class TestLivepatchEntitlementCanEnable:
         self,
         _m_get_release_info,
         m_kernel_info,
+        _m_dpkg_arch,
         _m_is_container,
         _m_livepatch_status,
         _m_fips_status,
