@@ -125,7 +125,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platforms
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platform
         """
         And stdout matches regexp:
         """
@@ -248,7 +248,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +enabled   +RT kernel optimized for NVIDIA Tegra platforms
+        └ nvidia-tegra   yes +enabled   +RT kernel optimized for NVIDIA Tegra platform
         """
         When I verify that running `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp:
@@ -283,7 +283,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
           * generic: Generic version of the RT kernel (default)
           * intel-iotg: RT kernel optimized for Intel IOTG platform
-          * nvidia-tegra: RT kernel optimized for NVIDIA Tegra platforms
+          * nvidia-tegra: RT kernel optimized for NVIDIA Tegra platform
         """
         When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
@@ -311,7 +311,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platforms
+        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platform
         """
         When I run `pro detach --assume-yes` with sudo
         And I run `pro status` as non-root
