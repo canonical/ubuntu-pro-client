@@ -781,7 +781,7 @@ class TestStatus:
                 "description": "RT kernel "
                 "optimized for "
                 "NVIDIA Tegra "
-                "platforms",
+                "platform",
                 "description_override": None,
                 "entitled": "yes",
                 "name": "nvidia-tegra",
