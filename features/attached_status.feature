@@ -182,6 +182,7 @@ Feature: Attached status
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        usg             +yes      +disabled +Security compliance and audit tools
 
         For a list of all Ubuntu Pro services, run 'pro status --all'
         Enable services with: pro enable <service>
@@ -200,7 +201,7 @@ Feature: Attached status
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-        usg             +yes      +n/a      +Security compliance and audit tools
+        usg             +yes      +disabled +Security compliance and audit tools
 
         Enable services with: pro enable <service>
         """
