@@ -2,8 +2,7 @@
 behave
 jsonschema
 PyHamcrest
-# TODO: pycloudlib==1!2.1.1
-pycloudlib @ git+https://github.com/canonical/pycloudlib@07633019920852828f07840fbbfc52ec0f5eaf9c
+pycloudlib==1!2.1.3
 toml==0.10
 
 ipdb
