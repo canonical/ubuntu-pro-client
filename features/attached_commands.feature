@@ -294,7 +294,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
-           | jammy   | yes      | no     | no  | no   | no          | no  | usg        | yes             |
+           | jammy   | yes      | no     | yes | no   | no          | no  | usg        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
