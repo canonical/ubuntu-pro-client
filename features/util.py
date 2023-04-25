@@ -246,6 +246,8 @@ def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
         if proc.returncode == 0:
             sbuild_cmd += ["--chroot", ua_chroot]
 
+    # TODO: disable unit-test during sbuild
+
     logging.info('--- Running "{}"'.format(" ".join(sbuild_cmd)))
     subprocess.run(
         sbuild_cmd,
