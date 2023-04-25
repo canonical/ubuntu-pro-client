@@ -139,8 +139,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         realtime-kernel\* yes +enabled +Ubuntu kernel with PREEMPT_RT patches integrated
+        usg +yes +disabled +Security compliance and audit tools
 
-         \* This service has options, use pro status --all to see more details.
+         \* Service has variants
+        """
+        Then stdout contains substring:
+        """
+        For a list of all Ubuntu Pro services and variants, run 'pro status --all'
         """
          When I run `pro status --all` as non-root
          Then stdout matches regexp:
