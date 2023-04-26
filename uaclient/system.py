@@ -12,7 +12,7 @@ from functools import lru_cache
 from shutil import rmtree
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
-from uaclient import exceptions, messages, util
+from uaclient import defaults, exceptions, messages, util
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -594,3 +594,14 @@ def get_systemd_job_state(job_name: str) -> bool:
         return False
 
     return out.strip() == "active"
+
+
+def get_user_cache_dir() -> str:
+    if util.we_are_currently_root():
+        return defaults.UAC_RUN_PATH
+
+    xdg_cache_home = os.environ.get("XDG_CACHE_HOME")
+    if xdg_cache_home:
+        return xdg_cache_home + "/" + defaults.USER_CACHE_SUBDIR
+
+    return os.path.expanduser("~") + "/.cache/" + defaults.USER_CACHE_SUBDIR

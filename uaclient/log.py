@@ -1,11 +1,10 @@
 import json
 import logging
 import os
-import pathlib
 from collections import OrderedDict
 from typing import Any, Dict, List  # noqa: F401
 
-from uaclient import defaults, util
+from uaclient import defaults, system, util
 
 
 class RedactionFilter(logging.Filter):
@@ -63,16 +62,8 @@ class JsonArrayFormatter(logging.Formatter):
 
 
 def get_user_log_file() -> str:
-    """Gets the correct user log_file storage location
-
-    returns XDG_CACHE_HOME env variable, if it is set,
-    If not set, we return the default path
-    """
-    user_cache = os.environ.get("XDG_CACHE_HOME")
-    log_file = defaults.USER_LOG_FILE_PATH
-    if user_cache:
-        return user_cache + "/" + log_file
-    return pathlib.Path.home().as_posix() + "/.cache/" + log_file
+    """Gets the correct user log_file storage location"""
+    return system.get_user_cache_dir() + "/ubuntu-pro.log"
 
 
 def get_all_user_log_files() -> List[str]:
@@ -87,7 +78,8 @@ def get_all_user_log_files() -> List[str]:
             "/home/"
             + user_directory
             + "/.cache/"
-            + defaults.USER_LOG_FILE_PATH
+            + defaults.USER_CACHE_SUBDIR
+            + "/ubuntu-pro.log"
         )
         if os.path.isfile(user_path):
             log_files.append(user_path)
