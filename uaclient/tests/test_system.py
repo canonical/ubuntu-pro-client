@@ -1085,3 +1085,36 @@ class TestGetCpuInfo:
         assert vendor_id == system.get_cpu_info.__wrapped__().vendor_id
         assert model == system.get_cpu_info.__wrapped__().model
         assert stepping == system.get_cpu_info.__wrapped__().stepping
+
+
+class TestGetUserCacheDir:
+    @pytest.mark.parametrize(
+        [
+            "is_root",
+            "xdg_cache_home",
+            "expanduser_result",
+            "expected",
+        ],
+        (
+            (True, None, None, "/run/ubuntu-advantage/"),
+            (False, None, "/home/user", "/home/user/.cache/ubuntu-pro"),
+            (False, "/something", "/home/user", "/something/ubuntu-pro"),
+        ),
+    )
+    @mock.patch("os.path.expanduser")
+    @mock.patch("os.environ.get")
+    @mock.patch("uaclient.util.we_are_currently_root")
+    def test_get_user_cache_dir(
+        self,
+        m_we_are_currently_root,
+        m_environ_get,
+        m_expanduser,
+        is_root,
+        xdg_cache_home,
+        expanduser_result,
+        expected,
+    ):
+        m_we_are_currently_root.return_value = is_root
+        m_environ_get.return_value = xdg_cache_home
+        m_expanduser.return_value = expanduser_result
+        assert expected == system.get_user_cache_dir()

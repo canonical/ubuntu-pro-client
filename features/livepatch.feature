@@ -5,6 +5,10 @@ Feature: Livepatch
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
+        When I run `pro status` as non-root
+        Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
+        Then I verify that no files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
@@ -14,6 +18,7 @@ Feature: Livepatch
         """
         Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         """
+        Then I verify that files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
         When I attach `contract_token` with sudo
         When I run `pro status` with sudo
         Then stdout matches regexp:
