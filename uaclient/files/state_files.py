@@ -12,7 +12,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
-from uaclient.files.files import UAFile
+from uaclient.files.files import UAFile, UserCacheFile
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
 
@@ -167,11 +167,7 @@ class LivepatchSupportCacheData(DataObject):
 
 livepatch_support_cache = DataObjectFile(
     LivepatchSupportCacheData,
-    UAFile(
-        "livepatch-kernel-support-cache.json",
-        directory=defaults.UAC_TMP_PATH,
-        private=False,
-    ),
+    UserCacheFile("livepatch-kernel-support-cache.json"),
     file_format=DataObjectFileFormat.JSON,
 )
 
