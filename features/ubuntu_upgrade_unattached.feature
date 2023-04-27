@@ -3,7 +3,7 @@ Feature: Upgrade between releases when uaclient is unattached
 
     @slow
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     @upgrade
     Scenario Outline: Unattached upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed

@@ -1,7 +1,7 @@
 Feature: Magic Attach endpoints
 
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Call magic attach endpoints
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo

@@ -2,7 +2,7 @@ Feature: MOTD Messages
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Contract update prevents contract expiration messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -55,7 +55,7 @@ Feature: MOTD Messages
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Contract Expiration Messages
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
