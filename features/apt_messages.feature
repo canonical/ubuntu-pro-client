@@ -614,49 +614,12 @@ Feature: APT Messages
     @series.xenial
     @series.bionic
     @series.focal
+    @uses.config.machine_type.any
     @uses.config.machine_type.aws.generic
-    Scenario Outline: AWS URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
-        When I run `apt-get install ansible -y` with sudo
-        When I run `apt-get update` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout contains substring:
-        """
-        <msg>
-        """
-        Examples: ubuntu release
-          | release | msg                                                               |
-          | xenial  | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04 |
-          | bionic  | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
-          | focal   | Learn more about Ubuntu Pro on AWS at https://ubuntu.com/aws/pro  |
-
-    @series.xenial
-    @series.bionic
-    @series.focal
     @uses.config.machine_type.azure.generic
-    Scenario Outline: Azure URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
-        When I run `apt-get install ansible -y` with sudo
-        When I run `apt-get update` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout contains substring:
-        """
-        <msg>
-        """
-        Examples: ubuntu release
-          | release | msg                                                                              |
-          | xenial  | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
-          | bionic  | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
-          | focal   | Learn more about Ubuntu Pro on Azure at https://ubuntu.com/azure/pro             |
-
-    @series.xenial
-    @series.bionic
-    @series.focal
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: GCP URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Cloud and series-specific URLs
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt-get install ansible -y` with sudo
         When I run `apt-get update` with sudo
@@ -665,11 +628,17 @@ Feature: APT Messages
         """
         <msg>
         """
-        Examples: ubuntu release
-          | release | msg                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04 |
-          | bionic  | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
-          | focal   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro  |
+        Examples: release-per-machine-type
+          | release | machine_type  | msg                                                                              |
+          | xenial  | aws.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
+          | xenial  | azure.generic | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
+          | xenial  | gcp.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
+          | bionic  | aws.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
+          | bionic  | azure.generic | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
+          | bionic  | gcp.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
+          | focal   | aws.generic   | Learn more about Ubuntu Pro on AWS at https://ubuntu.com/aws/pro                 |
+          | focal   | azure.generic | Learn more about Ubuntu Pro on Azure at https://ubuntu.com/azure/pro             |
+          | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
     @series.kinetic
     @uses.config.machine_type.lxd-container
