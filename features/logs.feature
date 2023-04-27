@@ -1,7 +1,7 @@
 Feature: Logs in Json Array Formatter
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: The log file can be successfully parsed as json array
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo

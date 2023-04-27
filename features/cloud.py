@@ -191,7 +191,7 @@ class Cloud:
             )
 
         image_type = ImageType.GENERIC
-        if "pro.fips" in machine_type:
+        if "pro-fips" in machine_type:
             image_type = ImageType.PRO_FIPS
         elif "pro" in machine_type:
             image_type = ImageType.PRO

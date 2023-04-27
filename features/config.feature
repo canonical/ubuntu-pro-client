@@ -3,7 +3,7 @@ Feature: pro config sub-command
     @series.xenial
     @series.jammy
     @series.kinetic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: old ua_config in uaclient.conf is still supported
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro config show` with sudo

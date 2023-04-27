@@ -1,7 +1,7 @@
 Feature: Client behaviour for the API endpoints
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: API invalid endpoint or args
     Given a `<release>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api invalid.endpoint` `with sudo` exits `1`
@@ -25,7 +25,7 @@ Feature: Client behaviour for the API endpoints
            | lunar   |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Basic endpoints
     Given a `<release>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.version.v1` with sudo

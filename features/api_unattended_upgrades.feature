@@ -1,7 +1,7 @@
 Feature: api.u.unattended_upgrades.status.v1
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: v1 unattended upgrades status
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.unattended_upgrades.status.v1` as non-root

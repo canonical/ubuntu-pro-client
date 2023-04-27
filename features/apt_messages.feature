@@ -1,7 +1,7 @@
 Feature: APT Messages
 
     @series.xenial
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -99,7 +99,7 @@ Feature: APT Messages
            | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
     @series.xenial
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -157,7 +157,7 @@ Feature: APT Messages
     @series.bionic
     @series.focal
     @series.jammy
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -217,7 +217,7 @@ Feature: APT Messages
           | jammy   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT News
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -672,7 +672,7 @@ Feature: APT Messages
           | focal   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro  |
 
     @series.kinetic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
