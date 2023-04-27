@@ -392,7 +392,7 @@ def before_scenario(context: Context, scenario: Scenario):
 
     filter_series = context.pro_config.filter_series
     given_a_series_match = re.match(
-        "a `(.*)` machine with ubuntu-advantage-tools installed",
+        "a `([a-z]*)` machine with ubuntu-advantage-tools installed",
         scenario.steps[0].name,
     )
     if filter_series and given_a_series_match:
@@ -403,6 +403,38 @@ def before_scenario(context: Context, scenario: Scenario):
                     "Skipping scenario outline series `{series}`."
                     " Cmdline provided @series tags: {cmdline_series}".format(
                         series=series, cmdline_series=filter_series
+                    )
+                )
+            )
+            return
+
+    if hasattr(scenario, "_row") and scenario._row is not None:
+        row_release = scenario._row.get("release")
+        if (
+            row_release
+            and len(filter_series) > 0
+            and row_release not in filter_series
+        ):
+            scenario.skip(
+                reason=(
+                    "Skipping scenario outline series `{series}`."
+                    " Cmdline provided @series tags: {cmdline_series}".format(
+                        series=row_release, cmdline_series=filter_series
+                    )
+                )
+            )
+            return
+        row_machine_type = scenario._row.get("machine_type")
+        if (
+            row_machine_type
+            and context.pro_config.machine_type != "any"
+            and row_machine_type != context.pro_config.machine_type
+        ):
+            scenario.skip(
+                reason=(
+                    "Skipping scenario outline machine_type `{}`."
+                    " Cmdline provided machine_type: {}".format(
+                        row_machine_type, context.pro_config.machine_type
                     )
                 )
             )
