@@ -324,7 +324,6 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
-    context.pro_config.default_cloud.manage_ssh_key()
     context.snapshots = {}
     context.machines = {}
 
