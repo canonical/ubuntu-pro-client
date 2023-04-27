@@ -36,6 +36,7 @@ def given_a_machine(
         machine_type = context.pro_config.machine_type
 
     cloud = machine_type.split(".")[0]
+    context.pro_config.clouds[cloud].manage_ssh_key()
 
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
     instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(

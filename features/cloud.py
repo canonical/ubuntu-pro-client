@@ -40,6 +40,7 @@ class Cloud:
         self.key_name = pycloudlib.util.get_timestamped_tag(self.tag)
         self.timestamp_suffix = timestamp_suffix
         self.cloud_credentials_path = cloud_credentials_path
+        self._ssh_key_managed = False
 
     @property
     def pycloudlib_cls(self):
@@ -216,6 +217,11 @@ class Cloud:
             Location of the private key path to use. If None, the location
             will be a default location.
         """
+        if self._ssh_key_managed:
+            logging.debug("SSH key already set up")
+            return
+
+        logging.debug("Setting up SSH key")
         if key_name:
             self.key_name = key_name
         cloud_name = self.name.lower().replace("_", "-")
@@ -235,6 +241,7 @@ class Cloud:
         self.api.use_key(
             public_key_path=pub_key_path, private_key_path=priv_key_path
         )
+        self._ssh_key_managed = True
 
 
 class EC2(Cloud):
