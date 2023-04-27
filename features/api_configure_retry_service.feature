@@ -1,7 +1,7 @@
 Feature: api.u.pro.attach.auto.configure_retry_service
 
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: v1 successfully triggers retry service when run during startup
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo

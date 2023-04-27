@@ -1,7 +1,7 @@
 Feature: Ua fix command behaviour
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -33,7 +33,7 @@ Feature: Ua fix command behaviour
            | lunar   |
 
     @series.focal
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -198,7 +198,7 @@ Feature: Ua fix command behaviour
 
     @series.xenial
     @uses.config.contract_token
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -517,7 +517,7 @@ Feature: Ua fix command behaviour
            | xenial  |
 
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -659,7 +659,7 @@ Feature: Ua fix command behaviour
         """
 
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario: Fix command on a machine without security/updates source lists
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo

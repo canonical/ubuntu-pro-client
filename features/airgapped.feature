@@ -2,7 +2,7 @@
 Feature: Performing attach using ua-airgapped
 
     @series.jammy
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # set up the apt mirror configuration

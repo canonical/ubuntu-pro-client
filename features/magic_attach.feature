@@ -1,7 +1,7 @@
 Feature: Magic attach flow related tests
 
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach using the magic attach flow
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo

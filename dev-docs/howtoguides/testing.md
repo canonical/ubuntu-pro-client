@@ -139,13 +139,13 @@ This adds an upfront cost that is amortized across several test scenarios.
 Based on some rough testing in July 2021, these are the situations
 when you should set UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1
 
-> At time of writing, starting a lxd.vm instance from a local snapshot takes
-> longer than starting a fresh lxd.vm instance and installing ua.
+> At time of writing, starting a lxd-vm instance from a local snapshot takes
+> longer than starting a fresh lxd-vm instance and installing ua.
 
 | machine_type  | condition          |
 | ------------- | ------------------ |
-| lxd.container | num_scenarios > 7  |
-| lxd.vm        | never              |
+| lxd-container | num_scenarios > 7  |
+| lxd-vm        | never              |
 | gcp           | num_scenarios > 5  |
 | azure         | num_scenarios > 14 |
 | aws           | num_scenarios > 11 |
