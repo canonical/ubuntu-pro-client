@@ -12,7 +12,7 @@ How to use ``pro`` commands
 ===========================
 
 ``pro attach``
-----------
+--------------
 
 .. toctree::
    :maxdepth: 1
@@ -21,7 +21,7 @@ How to use ``pro`` commands
    Attach with a configuration file <howtoguides/how_to_attach_with_config_file.md>
 
 ``pro collect-logs``
-----------------
+--------------------
 
 .. toctree::
    :maxdepth: 1
@@ -29,7 +29,7 @@ How to use ``pro`` commands
    Collect data logs for bug reporting <howtoguides/how_to_collect_logs.md>
 
 ``pro config``
-----------
+--------------
 
 .. toctree::
    :maxdepth: 2
@@ -37,7 +37,7 @@ How to use ``pro`` commands
    howtoguides/configure_index
 
 ``pro enable``
-----------
+--------------
 
 .. toctree::
    :maxdepth: 2
@@ -45,7 +45,7 @@ How to use ``pro`` commands
    howtoguides/enable_index
 
 ``pro fix``
--------
+-----------
 
 .. toctree::
    :maxdepth: 1
@@ -54,7 +54,7 @@ How to use ``pro`` commands
    Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns.md>
 
 ``pro refresh``
------------
+---------------
 
 .. toctree::
    :maxdepth: 1
@@ -62,7 +62,7 @@ How to use ``pro`` commands
    Update MOTD and APT messages <howtoguides/update_motd_messages.md>
 
 ``pro status``
-----------
+--------------
 
 .. toctree::
    :maxdepth: 1
@@ -70,7 +70,7 @@ How to use ``pro`` commands
    Simulate the `attach` operation <howtoguides/how_to_simulate_attach.md>
 
 ``pro version``
------------
+---------------
 
 .. toctree::
    :maxdepth: 1
@@ -78,7 +78,7 @@ How to use ``pro`` commands
    Check Ubuntu Pro Client version <howtoguides/check_pro_version>
 
 ``pro lock``
------------
+------------
 
 .. toctree::
    :maxdepth: 1
