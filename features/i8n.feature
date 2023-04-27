@@ -1,7 +1,7 @@
 Feature: Pro supports multiple languages
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Pro client's commands run successfully
         Given a `<release>` machine with ubuntu-advantage-tools installed

@@ -4,7 +4,7 @@ Feature: Build docker images with pro services
     @slow
     @docker
     @series.focal
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Build docker images with pro services
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`

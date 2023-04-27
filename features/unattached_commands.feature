@@ -1,7 +1,7 @@
 Feature: Command behaviour when unattached
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # Validate systemd unit/timer syntax
@@ -32,7 +32,7 @@ Feature: Command behaviour when unattached
            | lunar   |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command>` `as non-root` exits `1`
@@ -63,7 +63,7 @@ Feature: Command behaviour when unattached
            | lunar   | refresh |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
@@ -110,7 +110,7 @@ Feature: Command behaviour when unattached
            | lunar    | no              |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
@@ -185,7 +185,7 @@ Feature: Command behaviour when unattached
           | lunar   | disable  |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Check for newer versions of the client in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
@@ -253,7 +253,7 @@ Feature: Command behaviour when unattached
           | lunar   |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -315,7 +315,7 @@ Feature: Command behaviour when unattached
           | lunar   |
 
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
@@ -353,7 +353,7 @@ Feature: Command behaviour when unattached
     @series.jammy
     @series.kinetic
     @series.lunar
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` machine with ubuntu-advantage-tools installed

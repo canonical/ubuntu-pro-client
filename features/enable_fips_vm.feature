@@ -4,7 +4,7 @@ Feature: FIPS enablement in lxd VMs
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -136,7 +136,7 @@ Feature: FIPS enablement in lxd VMs
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -274,7 +274,7 @@ Feature: FIPS enablement in lxd VMs
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -331,7 +331,7 @@ Feature: FIPS enablement in lxd VMs
 
     @slow
     @series.focal
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -395,7 +395,7 @@ Feature: FIPS enablement in lxd VMs
 
     @slow
     @series.focal
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -465,7 +465,7 @@ Feature: FIPS enablement in lxd VMs
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips-updates on fips enabled vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -542,7 +542,7 @@ Feature: FIPS enablement in lxd VMs
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
@@ -566,7 +566,7 @@ Feature: FIPS enablement in lxd VMs
 
     @slow
     @series.focal
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`

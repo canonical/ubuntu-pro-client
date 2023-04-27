@@ -47,7 +47,7 @@ class UAClientBehaveConfig:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
     :param machine_type:
-        The default machine_type to test: lxd.container, lxd.vm, azure.pro,
+        The default machine_type to test: lxd-container, lxd-vm, azure.pro,
             azure.generic, aws.pro or aws.generic
     :param private_key_file:
         Optional path to pre-existing private key file to use when connecting
@@ -115,7 +115,7 @@ class UAClientBehaveConfig:
         destroy_instances: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
-        machine_type: str = "lxd.container",
+        machine_type: str = "lxd-container",
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
         reuse_image: Optional[str] = None,
@@ -242,7 +242,7 @@ class UAClientBehaveConfig:
             self.default_cloud = self.clouds["azure"]
         elif "gcp" in self.machine_type:
             self.default_cloud = self.clouds["gcp"]
-        elif "lxd.vm" in self.machine_type:
+        elif "lxd-vm" in self.machine_type:
             self.default_cloud = self.clouds["lxd-vm"]
         else:
             self.default_cloud = self.clouds["lxd-container"]

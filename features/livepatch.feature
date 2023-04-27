@@ -2,7 +2,7 @@
 Feature: Livepatch
 
     @series.focal
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
@@ -78,7 +78,7 @@ Feature: Livepatch
 
     @series.kinetic
     @series.lunar
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro status --all` with sudo
