@@ -8,111 +8,175 @@ is the command-line tool that will help you manage the services you need.
 
 The Ubuntu Pro Client comes pre-installed on every Ubuntu system. You can run
 ``pro help`` in your terminal window to see a list of the ``pro``
-services and commands available, or get started :doc:`with our hands-on tutorial<tutorials/basic_commands>` to try it out in a virtual environment.
+services and commands available, or get started
+:doc:`with our hands-on tutorial<tutorials/basic_commands>` to try it out in
+a virtual environment.
 
 Which services are for me?
 ==========================
 
-Ubuntu Pro is a broad subscription designed to meet many different needs. You are unlikely to want to use all of these tools and services at the same time, so you are free to select the precise stream of updates and versions you want to apply on any given machine covered by your Pro subscription. 
+Ubuntu Pro is a broad subscription designed to meet many different needs. You
+are unlikely to want to use all of these tools and services at the same time,
+so you are free to select the precise stream of updates and versions you want
+to apply on any given machine covered by your Pro subscription.
 
-To help you navigate the various services offered through Ubuntu Pro, click on the tab that best represents your situation for our suggestions on which services might be of interest to you. For example, Pro includes a set of package versions that are compliant with FIPS regulations. You will only want these versions on machines that *need* to meet FIPS requirements, so you can choose to enable that stream specifically on those machines.
+To help you navigate the various services offered through Ubuntu Pro, click on
+the tab that best represents your situation for our suggestions on which
+services might be of interest to you. For example, Pro includes a set of
+package versions that are compliant with FIPS regulations. You will only want
+these versions on machines that *need* to meet FIPS requirements, so you can
+choose to enable that stream specifically on those machines.
 
 .. tab-set::
 
     .. tab-item:: Commercial or enterprise
 
        * **Expanded Security Maintenance (ESM)**
-             
-         If you're using an Ubuntu LTS -- Desktop or Server -- in a commercial setting and don't want the inconvenience and downtime of upgrading to a newer LTS yet, you can get additional security support through `Expanded Security Maintenance (ESM)`_. We recommend it for everyone using Pro, and it's enabled by default. It includes two services:
-     
-         * ``esm-infra`` provides security updates for packages in the Ubuntu "main" repository (packages from Ubuntu) for five additional years beyond the standard five years of security maintenance of "main" packages.
-     
-         * ``esm-apps`` covers packages in the "universe" repository (which are from Debian and the community) for ten years after the LTS release. 
- 
-         * Whether you need one or both of these depends on your subscription. If you're not sure which services best support the needs of your organisation, contact us for `a security assessment`_.
+
+         If you're using an Ubuntu LTS -- Desktop or Server -- in a commercial
+         setting and don't want the inconvenience and downtime of upgrading to
+         a newer LTS yet, you can get additional security support through
+         `Expanded Security Maintenance (ESM)`_. We recommend it for everyone
+         using Pro, and it's enabled by default. It includes two services:
+
+         * ``esm-infra`` provides security updates for packages in the Ubuntu
+           'main' repository (packages from Ubuntu) for five additional years
+           beyond the standard five years of security maintenance of 'main'
+           packages.
+
+         * ``esm-apps`` covers packages in the 'universe' repository (which
+           are from Debian and the community) for ten years after the LTS
+           release. 
+
+         * Whether you need one or both of these depends on your subscription.
+           If you're not sure which services best support the needs of your
+           organisation, contact us for `a security assessment`_.
 
        * **Livepatch**
 
-         Ubuntu `Livepatch`_ reduces costly unplanned maintenance by patching vulnerabilities while the system runs. It removes the need to immediately reboot the kernel after an upgrade so that you can schedule downtime for when it's convenient. This tooling is available through ``livepatch``.
-         
-         * Find out more about what Livepatch can do for your organisation in the `Livepatch documentation`_, or find out :doc:`how to enable it<howtoguides/enable_livepatch>`.
-         
+         Ubuntu `Livepatch`_ reduces costly unplanned maintenance by patching
+         vulnerabilities while the system runs. It removes the need to
+         immediately reboot the kernel after an upgrade so that you can
+         schedule downtime for when it's convenient. This tooling is available
+         through ``livepatch``.
+
+         * Find out more about what Livepatch can do for your organisation in
+           the `Livepatch documentation`_, or find out
+           :doc:`how to enable it<howtoguides/enable_livepatch>`.
+
        * **Landscape** (coming soon!)
-         
+
          `Landscape`_
-         
+
        Want more information?
 
     .. tab-item:: Certification and hardening
 
        Ubuntu provides security compliance, `certifications, and hardening`_:
-       
+
        * **FIPS 140-2**
-       
+
          * `FIPS 140-2 Certified Modules`_ are available through ``fips``.
-         
-         * Compliant but non-certified patches are available through ``fips-updates``.
-         
-         * For more details about managing FIPS, check out this guide. <-- note we need a guide, which also includes which services are incompatible with fips   
-       
+
+         * Compliant but non-certified patches are available through
+           ``fips-updates``.
+
+         * For more details about managing FIPS, check out this guide. <-- note
+           we need a guide, which also includes which services are
+           incompatible with fips   
+
        * **CIS benchmarking**
-       
-         * Center for Internet Security `(CIS) Benchmark`_ tooling is available with ``cis``, up to (and including) 20.04 LTS.
-         * In the 20.04 LTS we introduced the `Ubuntu Security Guide (USG)`_ tooling through ``usg``, which replaces ``cis`` in releases after 20.04 LTS. 
-         
-         * Find out :doc:`how to manage CIS and USG<howtoguides/enable_cis>` with the Pro Client.
-       
+
+         * Center for Internet Security `(CIS) Benchmark`_ tooling is available
+           with ``cis``, up to (and including) 20.04 LTS.
+         * In the 20.04 LTS we introduced the `Ubuntu Security Guide (USG)`_
+           tooling through ``usg``, which replaces ``cis`` in releases after
+           20.04 LTS. 
+
+         * Find out :doc:`how to manage CIS and USG<howtoguides/enable_cis>`
+           with the Pro Client.
+
        * **Common Criteria**
-       
-         * `Common Criteria EAL2 (CC EAL)`_ certification tooling is available through ``cc-eal``. The Ubuntu 18.04 LTS and 16.04 LTS have both been certified.
-         
-         * Find out :doc:`how to enable CC EAL<howtoguides/enable_cc>` on your LTS.
-       
+
+         * `Common Criteria EAL2 (CC EAL)`_ certification tooling is available
+           through ``cc-eal``. The Ubuntu 18.04 LTS and 16.04 LTS have both
+           been certified.
+
+         * Find out :doc:`how to enable CC EAL<howtoguides/enable_cc>` on
+           your LTS.
+
        Want more information?
 
     .. tab-item:: Personal user on LTS
 
        * **Expanded Security Maintenance (ESM)**
-             
-         If you're using Pro on an LTS machine (Desktop or Server) and don't want to upgrade to a newer LTS yet, you can get additional security support through `Expanded Security Maintenance (ESM)`_. We recommend it for everyone using Pro, and it's enabled by default. It includes two services:
-     
-         * ``esm-infra`` provides security updates for packages in the Ubuntu "main" repository (packages from Ubuntu) for five additional years beyond the standard five years of security maintenance of "main" packages.
-     
-         * ``esm-apps`` covers packages in the "universe" repository (which are from Debian and the community) for ten years after the LTS release. 
- 
-         * Read more :doc:`about esm-apps and esm-infra<explanations/about_esm>`.
+
+         If you're using Pro on an LTS machine (Desktop or Server) and don't
+         want to upgrade to a newer LTS yet, you can get additional security
+         support through `Expanded Security Maintenance (ESM)`_. We recommend
+         it for everyone using Pro, and it's enabled by default. It includes
+         two services:
+
+         * ``esm-infra`` provides security updates for packages in the Ubuntu
+           'main' repository (packages from Ubuntu) for five additional years
+           beyond the standard five years of security maintenance of 'main'
+           packages.
+
+         * ``esm-apps`` covers packages in the 'universe' repository (which
+           are from Debian and the community) for ten years after the LTS
+           release. 
+
+         * Read more
+           :doc:`about ESM-Apps and ESM-Infra<explanations/about_esm>`.
 
        * **Livepatch**
 
-         Ubuntu `Livepatch`_ removes the need to immediately reboot your machine after a patch is applied to the kernel, so you can perform device reboots when it's convenient for you. Although it's lightweight, it may not be suitable on a very small system with limited memory. Check our `list of supported kernels`_ if you're unsure.
+         Ubuntu `Livepatch`_ removes the need to immediately reboot your
+         machine after a patch is applied to the kernel, so you can perform
+         device reboots when it's convenient for you. Although it's
+         lightweight, it may not be suitable on a very small system with
+         limited memory. Check our `list of supported kernels`_ if you're
+         unsure.
 
-         * Find out :doc:`how to enable Livepatch<howtoguides/enable_livepatch>`
+         * Find out
+           :doc:`how to enable Livepatch<howtoguides/enable_livepatch>`
 
        Want more information?
 
     .. tab-item:: Other security services
 
        * **ROS ESM**
-         
-         Our Robot Operating System Expanded Security Maintenance (`ROS ESM`_) service provides security maintenance for ROS LTS releases, starting with ROS Kinetic on Ubuntu 16.04 -- including packages from the Ubuntu 'universe' repository.
-         
-         
-         * ``ros`` provides all of the same security coverage as you get with ESM, plus more than 600 packages for ROS 1 Kinetic and Melodic, and ROS 2 Foxy. 
-          
-         * ``ros-updates`` also gives you access to non-security updates.
-         
-         * Want to know how to enable ROS ESM? Check out `this introductory guide`_ by the ROS team to get started.
-   
-       * **Real-time kernel**
-         
-         The Ubuntu 22.04 LTS brought the new, enterprise-grade `real-time kernel`_, which reduces kernel latencies and ensures predictable performance for time-sensitive task execution. It was designed to deliver stable, ultra-low latency and security for critical telco infrastructure, but has applications across a wide variety of industries.
-         
-         * Find out `more information about real-time Ubuntu`_ and what it can do for your organisation. 
-         
-         * Or see our guide on :doc:`how to enable the real-time kernel<howtoguides/enable_realtime_kernel>`. 
-   
-       Want more information?
 
+         Our Robot Operating System Expanded Security Maintenance (`ROS ESM`_)
+         service provides security maintenance for ROS LTS releases, starting
+         with ROS Kinetic on Ubuntu 16.04 -- including packages from the Ubuntu
+         'universe' repository.
+
+         * ``ros`` provides all of the same security coverage as you get with
+           ESM, plus more than 600 packages for ROS 1 Kinetic and Melodic, and
+           ROS 2 Foxy. 
+
+         * ``ros-updates`` also gives you access to non-security updates.
+
+         * Want to know how to enable ROS ESM? Check out
+           `this introductory guide`_ by the ROS team to get started.
+
+       * **Real-time kernel**
+
+         The Ubuntu 22.04 LTS brought the new, enterprise-grade
+         `real-time kernel`_, which reduces kernel latencies and ensures
+         predictable performance for time-sensitive task execution. It was
+         designed to deliver stable, ultra-low latency and security for
+         critical telco infrastructure, but has applications across a wide
+         variety of industries.
+
+         * Find out `more information about real-time Ubuntu`_ and what it can
+           do for your organisation. 
+
+         * Or see our guide on
+           :doc:`how to enable the real-time kernel<howtoguides/enable_realtime_kernel>`. 
+
+       Want more information?
 
 Explore our documentation
 =========================
