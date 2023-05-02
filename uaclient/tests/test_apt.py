@@ -31,6 +31,7 @@ from uaclient.apt import (
     get_apt_cache_time,
     get_apt_config_values,
     get_installed_packages_names,
+    get_pkg_candidate_version,
     is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
@@ -1250,3 +1251,60 @@ class TestPreserveAptCfg:
         assert 1 == apt_cfg["test"]
         assert [1, 2, 3] == apt_cfg["test1"]
         assert {"foo": "bar"} == apt_cfg["test2"]
+
+
+class TestGetPkgCandidateversion:
+    @pytest.mark.parametrize("check_esm_cache", ((True), (False)))
+    @mock.patch("uaclient.apt.get_apt_cache")
+    @mock.patch("uaclient.apt.get_esm_cache")
+    def test_get_pkg_candidate_version(
+        self,
+        m_esm_cache,
+        m_apt_cache,
+        check_esm_cache,
+        apt_pkg,
+    ):
+        type(apt_pkg).config = mock.PropertyMock(return_value={})
+        m_pkg_ver = mock.MagicMock(version="1.2")
+        m_pkg = mock.MagicMock(candidate=m_pkg_ver)
+        m_apt_cache.return_value = {"pkg1": m_pkg}
+
+        m_esm_pkg_ver = mock.MagicMock(version="1.3~esm1")
+        m_esm_pkg = mock.MagicMock(candidate=m_esm_pkg_ver)
+        m_esm_cache.return_value = {"pkg1": m_esm_pkg}
+
+        actual_value = get_pkg_candidate_version("pkg1", check_esm_cache)
+        if not check_esm_cache:
+            assert "1.2" == actual_value
+        else:
+            assert "1.3~esm1" == actual_value
+
+    @mock.patch("uaclient.apt.get_apt_cache")
+    @mock.patch("uaclient.apt.get_esm_cache")
+    def test_get_pkg_candidate_version_when_esm_cache_fails(
+        self,
+        m_esm_cache,
+        m_apt_cache,
+        apt_pkg,
+    ):
+        type(apt_pkg).config = mock.PropertyMock(return_value={})
+        m_pkg_ver = mock.MagicMock(version="1.2")
+        m_pkg = mock.MagicMock(candidate=m_pkg_ver)
+        m_apt_cache.return_value = {"pkg1": m_pkg}
+        m_esm_cache.return_value = {}
+
+        actual_value = get_pkg_candidate_version("pkg1", check_esm_cache=True)
+        assert "1.2" == actual_value
+
+    @mock.patch("uaclient.apt.get_apt_cache")
+    def test_get_pkg_candidate_version_when_candidate_doesnt_exist(
+        self,
+        m_apt_cache,
+        apt_pkg,
+    ):
+        type(apt_pkg).config = mock.PropertyMock(return_value={})
+        m_pkg = mock.MagicMock(candidate=None)
+        m_apt_cache.return_value = {"pkg1": m_pkg}
+
+        actual_value = get_pkg_candidate_version("pkg1")
+        assert actual_value is None
