@@ -264,7 +264,9 @@ def get_esm_cache():
     return cache
 
 
-def get_pkg_candidate_version(pkg: str) -> Optional[str]:
+def get_pkg_candidate_version(
+    pkg: str, check_esm_cache: bool = False
+) -> Optional[str]:
     with PreserveAptCfg(get_apt_cache) as cache:
         try:
             package = cache[pkg]
@@ -278,6 +280,8 @@ def get_pkg_candidate_version(pkg: str) -> Optional[str]:
 
     if not pkg_candidate:
         return None
+    elif not check_esm_cache:
+        return pkg_candidate
 
     with PreserveAptCfg(get_esm_cache) as esm_cache:
         if esm_cache:

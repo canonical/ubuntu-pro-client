@@ -1173,8 +1173,9 @@ def _handle_released_package_fixes(
 
                 upgrade_pkgs = []
                 for binary_pkg in binary_pkgs:
+                    check_esm_cache = pocket != UBUNTU_STANDARD_UPDATES_POCKET
                     candidate_version = apt.get_pkg_candidate_version(
-                        binary_pkg.binary_pkg
+                        binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
                     )
                     if candidate_version and apt.compare_versions(
                         binary_pkg.fixed_version, candidate_version, "le"
