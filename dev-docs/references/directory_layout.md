@@ -14,7 +14,6 @@ The following describes the intent of Ubuntu Pro Client related directories:
 | uaclient.messages | Module that contains the messages delivered by `pro` to the user |
 | uaclient.security | Module that hold the logic used to run `pro fix` commands |
 | ./apt-hook/ | the C++ apt-hook delivering MOTD and apt command notifications about Ubuntu Pro support services |
-| ./apt-conf.d/ | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM security-related components. If apt proxy settings are configured, an additional apt config file will be placed here to configure the apt proxy. |
 | /etc/ubuntu-advantage/uaclient.conf | Configuration file for the Ubuntu Pro Client.|
 | /var/lib/ubuntu-advantage/private | `root` read-only directory containing Contract API responses, machine-tokens and service credentials |
 | /var/lib/ubuntu-advantage/machine-token.json | `world` readable file containing redacted Contract API responses, machine-tokens and service credentials |
