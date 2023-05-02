@@ -175,17 +175,6 @@ To specifically run non-ubuntu pro tests using canonical cloud-images an
 additional token obtained from https://ubuntu.com/pro needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
 
-By default, the public AMIs for Ubuntu Pro testing used for each Ubuntu
-release are defined in features/aws-ids.yaml. These ami-ids are determined by
-running `./tools/refresh-aws-pro-ids`.
-
-Integration tests will read features/aws-ids.yaml to determine which default
-AMI id to use for each supported Ubuntu release.
-
-To update `features/aws-ids.yaml`, run `./tools/refresh-aws-pro-ids` and put up
-a pull request against this repo to updated that content from the ua-contracts
-marketplace definitions.
-
 * To manually run EC2 integration tests with a specific AMI Id provide the
 following environment variable to launch your specific  AMI instead of building
 a daily ubuntu-advantage-tools image.

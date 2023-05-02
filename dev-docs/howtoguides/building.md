@@ -41,16 +41,3 @@ sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "
 > # this script can be used to update all chroots
 > sudo PATTERN=\* sh /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 > ```
-
-## Setting up an lxc development container
-```shell
-lxc launch ubuntu-daily:xenial dev-x -c user.user-data="$(cat tools/ua-dev-cloud-config.yaml)"
-lxc exec dev-x bash
-```
-
-## Setting up a kvm development environment with multipass
-**Note:** There is a sample procedure documented in tools/multipass.md as well.
-```shell
-multipass launch daily:focal -n dev-f --cloud-init tools/ua-dev-cloud-config.yaml
-multipass connect dev-f
-```
