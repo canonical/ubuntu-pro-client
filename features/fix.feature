@@ -511,6 +511,26 @@ Feature: Ua fix command behaviour
         .*✔.* USN-5378-2 \[related\] does not affect your system.
         .*✔.* USN-5378-3 \[related\] is resolved.
         """
+        When I run `pro detach --assume-yes` with sudo
+        And I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
+        And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
+        And I run `apt-get update` with sudo
+        And I run `apt-get install squid -y` with sudo
+        And I verify that running `pro fix CVE-2020-25097` `as non-root` exits `1`
+        Then stdout matches regexp:
+        """
+        CVE-2020-25097: Squid vulnerabilities
+         - https://ubuntu.com/security/CVE-2020-25097
+
+        1 affected source package is installed: squid3
+        \(1/1\) squid3:
+        A fix is available in Ubuntu standard updates.
+        - Cannot install package squid-common version 3.5.12-1ubuntu7.16
+        - Cannot install package squid version 3.5.12-1ubuntu7.16
+
+        1 package is still affected: squid3
+        .*✘.* CVE-2020-25097 is not resolved
+        """
 
         Examples: ubuntu release details
            | release |

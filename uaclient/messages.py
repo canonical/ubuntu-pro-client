@@ -93,6 +93,10 @@ SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
 )
+SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
+    "security-pkg-still-affected",
+    "{num_pkgs} package{s} {verb} still affected: {pkgs}",
+)
 SECURITY_AFFECTED_PKGS = (
     "{count} affected source package{plural_str} installed"
 )

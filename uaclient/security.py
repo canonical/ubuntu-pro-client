@@ -1235,14 +1235,15 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[UnfixedPackage]) -> str:
     :returns: A string containing the message output for the unfixed
               packages.
     """
-    num_pkgs_unfixed = len(unfixed_pkgs)
+    sorted_pkgs = sorted({pkg.pkg for pkg in unfixed_pkgs})
+    num_pkgs_unfixed = len(sorted_pkgs)
     return textwrap.fill(
-        "{} package{} {} still affected: {}".format(
-            num_pkgs_unfixed,
-            "s" if num_pkgs_unfixed > 1 else "",
-            "are" if num_pkgs_unfixed > 1 else "is",
-            ", ".join(sorted(pkg.pkg for pkg in unfixed_pkgs)),
-        ),
+        messages.SECURITY_PKG_STILL_AFFECTED.format(
+            num_pkgs=num_pkgs_unfixed,
+            s="s" if num_pkgs_unfixed > 1 else "",
+            verb="are" if num_pkgs_unfixed > 1 else "is",
+            pkgs=", ".join(sorted_pkgs),
+        ).msg,
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
     )
