@@ -125,7 +125,7 @@ class UAClientBehaveConfig:
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
         artifact_dir: str = "artifacts",
-        install_from: InstallationSource = InstallationSource.DAILY,
+        install_from: InstallationSource = InstallationSource.LOCAL,
         custom_ppa: Optional[str] = None,
         debs_path: Optional[str] = None,
         userdata_file: Optional[str] = None,
