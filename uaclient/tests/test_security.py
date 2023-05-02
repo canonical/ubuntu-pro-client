@@ -1704,8 +1704,6 @@ A fix is available in Ubuntu standard updates.\n"""
                     dry_run=False,
                 )
         out, err = capsys.readouterr()
-        print(out)
-        print(expected)
         assert expected in out
 
     @pytest.mark.parametrize(
