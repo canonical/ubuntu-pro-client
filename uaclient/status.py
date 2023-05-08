@@ -119,7 +119,9 @@ DEFAULT_STATUS = {
 def _get_blocked_by_services(ent):
     return [
         {
-            "name": service.entitlement.name,
+            "name": service.entitlement.name
+            if not service.entitlement.is_variant
+            else service.entitlement.variant_name,
             "reason_code": service.named_msg.name,
             "reason": service.named_msg.msg,
         }
