@@ -2,7 +2,7 @@
 import mock
 import pytest
 
-from uaclient import entitlements, exceptions
+from uaclient import entitlements, exceptions, messages
 
 
 class TestValidServices:
@@ -51,7 +51,9 @@ class TestValidServices:
 class TestEntitlementFactory:
     def test_entitlement_factory(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
+        m_variant = mock.MagicMock()
         m_cls_1.return_value.valid_names = ["ent1", "othername"]
+        m_cls_1.return_value.variants = {"variant1": m_variant}
 
         m_cls_2 = mock.MagicMock()
         m_cls_2.return_value.valid_names = ["ent2"]
@@ -66,8 +68,22 @@ class TestEntitlementFactory:
             assert m_cls_2 == entitlements.entitlement_factory(
                 cfg=cfg, name="ent2"
             )
+            assert m_variant == entitlements.entitlement_factory(
+                cfg=cfg, name="ent1", variant="variant1"
+            )
         with pytest.raises(exceptions.EntitlementNotFoundError):
             entitlements.entitlement_factory(cfg=cfg, name="nonexistent")
+
+        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+            with pytest.raises(exceptions.EntitlementNotFoundError) as excinfo:
+                entitlements.entitlement_factory(
+                    cfg=cfg, name="ent1", variant="nonexistent"
+                )
+
+        assert (
+            messages.ENTITLEMENT_NOT_FOUND.format(name="nonexistent").msg
+            == excinfo.value.msg
+        )
 
 
 class TestSortEntitlements:
