@@ -313,6 +313,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
         └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platform
         """
+        When I verify that running `pro enable realtime-kernel --variant nonexistent` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        could not find entitlement named "nonexistent"
+        """
         When I run `pro detach --assume-yes` with sudo
         And I run `pro status` as non-root
         Then stdout matches regexp:
