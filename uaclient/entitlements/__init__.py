@@ -49,7 +49,7 @@ def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
             elif variant in ent.variants:
                 return ent.variants[variant]
             else:
-                raise EntitlementNotFoundError(name)
+                raise EntitlementNotFoundError(variant)
     raise EntitlementNotFoundError(name)
 
 
