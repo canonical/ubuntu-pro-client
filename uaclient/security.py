@@ -805,7 +805,7 @@ def fix_security_issue_id(
             usns = client.get_notices(details=issue_id)
         except exceptions.SecurityAPIError as e:
             msg = str(e)
-            if "not found" in msg.lower():
+            if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
@@ -828,7 +828,7 @@ def fix_security_issue_id(
             usns = get_related_usns(usn, client)
         except exceptions.SecurityAPIError as e:
             msg = str(e)
-            if "not found" in msg.lower():
+            if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
