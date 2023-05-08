@@ -201,6 +201,16 @@ Feature: Ua fix command behaviour
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+        """
+        Error: CVE-1800-123456 not found.
+        """
+        When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+        """
+        Error: USN-12345-12 not found.
+        """
         When I run `apt-get update` with sudo
         When I run `apt install -y libawl-php` with sudo
         And I reboot the machine
