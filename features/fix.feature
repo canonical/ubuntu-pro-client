@@ -535,8 +535,8 @@ Feature: Ua fix command behaviour
         1 affected source package is installed: squid3
         \(1/1\) squid3:
         A fix is available in Ubuntu standard updates.
-        - Cannot install package squid-common version 3.5.12-1ubuntu7.16
         - Cannot install package squid version 3.5.12-1ubuntu7.16
+        - Cannot install package squid-common version 3.5.12-1ubuntu7.16
 
         1 package is still affected: squid3
         .*✘.* CVE-2020-25097 is not resolved
