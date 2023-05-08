@@ -853,7 +853,7 @@ REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
 )
 REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
     "realtime-variant-incompatible",
-    "{service} cannot be enable together with {variant}",
+    "{service} cannot be enabled together with {variant}",
 )
 REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     "beta-flag-required",
@@ -1333,7 +1333,7 @@ For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
 SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
     "service-disabled-missing-package",
     """\
-The {service} service is not enable because the {package} package is
+The {service} service is not enabled because the {package} package is
 not installed.""",
 )
 
