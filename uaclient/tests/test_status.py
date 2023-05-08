@@ -772,7 +772,6 @@ class TestStatus:
                 "name": "intel-iotg",
                 "status": "n/a",
                 "status_details": "repo details",
-                "variants": {},
                 "warning": None,
             },
             "nvidia-tegra": {
@@ -787,7 +786,6 @@ class TestStatus:
                 "name": "nvidia-tegra",
                 "status": "n/a",
                 "status_details": "repo details",
-                "variants": {},
                 "warning": None,
             },
             "generic": {
@@ -799,7 +797,6 @@ class TestStatus:
                 "name": "generic",
                 "status": "n/a",
                 "status_details": "repo details",
-                "variants": {},
                 "warning": None,
             },
         }

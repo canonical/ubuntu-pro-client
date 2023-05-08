@@ -168,7 +168,7 @@ def _attached_service_status(
 
     blocked_by = _get_blocked_by_services(ent)
 
-    return {
+    service_status = {
         "name": ent.presentation_name,
         "description": ent.description,
         "entitled": contract_status.value,
@@ -178,8 +178,12 @@ def _attached_service_status(
         "available": available,
         "blocked_by": blocked_by,
         "warning": warning,
-        "variants": variants,
     }
+
+    if not ent.is_variant:
+        service_status["variants"] = variants
+
+    return service_status
 
 
 def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
