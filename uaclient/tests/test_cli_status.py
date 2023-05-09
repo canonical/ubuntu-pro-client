@@ -163,7 +163,6 @@ SERVICES_JSON_ALL = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Expanded Security Maintenance for Infrastructure",
@@ -175,7 +174,6 @@ SERVICES_JSON_ALL = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "NIST-certified core packages",
@@ -187,7 +185,6 @@ SERVICES_JSON_ALL = [
         "available": "no",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": (
@@ -201,7 +198,6 @@ SERVICES_JSON_ALL = [
         "available": "no",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Canonical Livepatch service",
@@ -213,7 +209,6 @@ SERVICES_JSON_ALL = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Ubuntu kernel with PREEMPT_RT patches integrated",
@@ -225,7 +220,6 @@ SERVICES_JSON_ALL = [
         "available": "no",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Security Updates for the Robot Operating System",
@@ -237,7 +231,6 @@ SERVICES_JSON_ALL = [
         "available": "no",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "All Updates for the Robot Operating System",
@@ -249,7 +242,6 @@ SERVICES_JSON_ALL = [
         "available": "no",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
 ]
 
@@ -264,7 +256,6 @@ SERVICES_JSON = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Expanded Security Maintenance for Infrastructure",
@@ -276,7 +267,6 @@ SERVICES_JSON = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
     {
         "description": "Canonical Livepatch service",
@@ -288,7 +278,6 @@ SERVICES_JSON = [
         "available": "yes",
         "blocked_by": [],
         "warning": None,
-        "variants": {},
     },
 ]
 
