@@ -1,4 +1,3 @@
-import logging
 from importlib import import_module
 from typing import Callable, List
 
@@ -40,7 +39,6 @@ def call_api(
     endpoint_path: str, options: List[str], cfg: UAConfig
 ) -> APIResponse:
     # setup null handler for all API endpoints
-    logging.getLogger("uaclient").addHandler(logging.NullHandler())
 
     if endpoint_path not in VALID_ENDPOINTS:
         return error_out(

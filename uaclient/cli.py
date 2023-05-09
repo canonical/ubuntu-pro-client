@@ -100,7 +100,7 @@ to get the latest version with new features and bug fixes."""
 )
 
 event = event_logger.get_event_logger()
-root_logger = logging.getLogger("uaclient")
+uaclient_logger = logging.getLogger("uaclient")
 LOG = logging.getLogger(__name__)
 
 
@@ -1910,7 +1910,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     console_formatter = util.LogFormatter()
     if logger is None:
         # Then we configure the root logger
-        logger = root_logger
+        logger = uaclient_logger
     logger.setLevel(log_level)
     logger.addFilter(pro_log.RedactionFilter())
 
@@ -2076,5 +2076,4 @@ def main(sys_argv=None):
 
 
 if __name__ == "__main__":
-    root_logger.propagate = False
     sys.exit(main())

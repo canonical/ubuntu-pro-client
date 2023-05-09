@@ -8,7 +8,7 @@ from uaclient.apt_news import update_apt_news
 from uaclient.config import UAConfig
 from uaclient.daemon import setup_logging
 
-root_logger = logging.getLogger("uaclient")
+uaclient_logger = logging.getLogger("uaclient")
 
 
 def main(cfg: UAConfig):
@@ -24,18 +24,17 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
-    root_logger.propagate = False
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
-        logger=root_logger,
+        logger=uaclient_logger,
     )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         log_file=cfg.log_file,
-        logger=root_logger,
+        logger=uaclient_logger,
     )
     main(cfg)

@@ -31,7 +31,7 @@ from uaclient.daemon import (
 )
 from uaclient.files import state_files
 
-root_logger = logging.getLogger("uaclient")
+uaclient_logger = logging.getLogger("uaclient")
 LOG = logging.getLogger("uaclient.lib.auto_attach")
 
 try:
@@ -104,18 +104,17 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
-    root_logger.propagate = False
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
-        logger=root_logger,
+        logger=uaclient_logger,
     )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,
         log_file=cfg.log_file,
-        logger=root_logger,
+        logger=uaclient_logger,
     )
     sys.exit(main(cfg))
