@@ -13,7 +13,7 @@ from uaclient.daemon import (
 )
 
 LOG = logging.getLogger("uaclient.lib.daemon")
-root_logger = logging.getLogger("uaclient")
+uaclient_logger = logging.getLogger("uaclient")
 
 
 def main() -> int:
@@ -36,7 +36,7 @@ def main() -> int:
         logging.CRITICAL,
         logging.ERROR,
         log_file=cfg.daemon_log_file,
-        logger=root_logger,
+        logger=uaclient_logger,
     )
 
     LOG.debug("daemon starting")
@@ -64,5 +64,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    root_logger.propagate = False
     sys.exit(main())

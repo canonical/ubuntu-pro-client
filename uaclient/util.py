@@ -139,7 +139,6 @@ def retry(exception, retry_sleeps):
                     if not sleeps:
                         raise e
                     retry_msg = " Retrying %d more times." % len(sleeps)
-                    print(LOG)
                     LOG.debug(str(e) + retry_msg)
                     time.sleep(sleeps.pop(0))
 
