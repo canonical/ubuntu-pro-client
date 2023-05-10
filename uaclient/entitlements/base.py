@@ -114,9 +114,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         else:
             return self.name
 
-    def _get_vendor_id(self) -> Optional[str]:
-        """Fetch vendor information for the service."""
-        return None
+    def verify_platform_checks(
+        self, platform_check: Dict[str, Any]
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
+        """Verify specific platform checks for a service.
+
+        This should only be used if the service requires custom platform checks
+        to check if it is available or not in the machine.
+        """
+        return True, None
 
     @property
     def help_info(self) -> str:
@@ -877,21 +883,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
 
-        affordances_vendor_names = affordances.get("vendor_names", None)
-        vendor_id = self._get_vendor_id()
-        if (
-            affordances_vendor_names is not None
-            and vendor_id
-            and vendor_id not in affordances_vendor_names
-        ):
-            return (
-                ApplicabilityStatus.INAPPLICABLE,
-                messages.INAPPLICABLE_VENDOR_NAME.format(
-                    title=self.title,
-                    vendor=vendor_id,
-                    supported_vendors=", ".join(affordances_vendor_names),
-                ),
-            )
+        affordances_platform_check = affordances.get("platformChecks", {})
+        ret, reason = self.verify_platform_checks(affordances_platform_check)
+
+        if not ret:
+            return (ApplicabilityStatus.INAPPLICABLE, reason)
         return ApplicabilityStatus.APPLICABLE, None
 
     def contract_status(self) -> ContractStatus:

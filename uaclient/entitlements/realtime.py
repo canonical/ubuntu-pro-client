@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, Type  # noqa: F401
+from typing import Any, Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import apt, event_logger, messages, system, util
 from uaclient.entitlements import repo
@@ -150,5 +150,16 @@ class IntelIotgRealtime(RealtimeVariant):
     is_variant = True
     check_packages_are_installed = True
 
-    def _get_vendor_id(self):
-        return system.get_cpu_info().vendor_id
+    def verify_platform_checks(
+        self, platform_checks: Dict[str, Any]
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
+        vendor_id = system.get_cpu_info().vendor_id
+        cpu_vendor_ids = platform_checks.get("cpu_vendor_ids", [])
+        if vendor_id in cpu_vendor_ids:
+            return True, None
+        else:
+            return False, messages.INAPPLICABLE_VENDOR_NAME.format(
+                title=self.title,
+                vendor=vendor_id,
+                supported_vendors=",".join(cpu_vendor_ids),
+            )
