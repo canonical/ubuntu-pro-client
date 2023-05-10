@@ -145,9 +145,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                 overrides:
                   - directives:
                       additionalPackages:
-                        - hello
+                        - ubuntu-intel-iot-realtime
                     selector:
                       variant: intel-iotg
+                    affordances:
+                      platformChecks: {"cpu_vendor_ids": ["intel"]}
         """
         When I run `pro enable realtime-kernel --assume-yes` with sudo
         When I run `pro status --all` as non-root
@@ -213,9 +215,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       variant: nvidia-tegra
                   - directives:
                       additionalPackages:
-                        - hello
+                        - ubuntu-intel-iot-realtime
                     selector:
                       variant: intel-iotg
+                    affordances:
+                      platformChecks: {"cpu_vendor_ids": ["intel"]}
         """
         When I run `pro enable realtime-kernel --variant nvidia-tegra` `with sudo` and stdin `y`
         Then stdout matches regexp:
