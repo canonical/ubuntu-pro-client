@@ -48,12 +48,14 @@ class TestIntelIOTGVariannt:
             m_entitlement_cfg.return_value = {
                 "entitlement": {
                     "affordances": {
-                        "vendor_names": ["intel"],
+                        "platformChecks": {
+                            "cpu_vendor_ids": ["intel"],
+                        }
                     }
                 }
             }
-            actual_status, actual_msg = ent.applicability_status()
+            actual_ret = ent.applicability_status()
             assert (
                 expected_status,
                 expected_msg,
-            ) == ent.applicability_status()
+            ) == actual_ret
