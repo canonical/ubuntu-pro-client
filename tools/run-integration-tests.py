@@ -32,7 +32,7 @@ PLATFORM_SERIES_TESTS = {
     "awspro": ["xenial", "bionic", "focal", "jammy"],
     "awspro-fips": ["xenial", "bionic", "focal"],
     "docker": ["focal"],
-    "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "kinetic"],
+    "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "lunar"],
     "gcppro": ["xenial", "bionic", "focal", "jammy"],
     "gcppro-fips": ["bionic", "focal"],
     "lxd": [

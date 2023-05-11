@@ -42,6 +42,8 @@ current_codename_to_past_codename = {
     "focal": "bionic",
     "jammy": "focal",
     "kinetic": "jammy",
+    "lunar": "kinetic",
+    "mantic": "lunar",
 }
 
 

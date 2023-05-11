@@ -1,8 +1,9 @@
 Feature: pro config sub-command
 
+    # earliest, latest lts[, latest stable]
     @series.xenial
     @series.jammy
-    @series.kinetic
+    @series.lunar
     @uses.config.machine_type.lxd-container
     Scenario Outline: old ua_config in uaclient.conf is still supported
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -52,4 +53,4 @@ Feature: pro config sub-command
             | release |
             | xenial  |
             | jammy   |
-            | kinetic |
+            | lunar   |
