@@ -65,7 +65,7 @@ jobs:
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['bionic', 'focal', 'jammy', 'kinetic']
+        release: ['bionic', 'focal', 'jammy', 'kinetic', 'lunar']
         platform: ['lxd']
         host_os: ['ubuntu-22.04']
         include:

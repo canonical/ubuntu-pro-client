@@ -71,8 +71,9 @@ tox -e behave-lxd-20.04 features/unattached_commands.feature:28
 ```
 
 As can be seen, this will run behave tests only for release 20.04 (Focal Fossa). We are currently
-supporting 5 distinct releases:
+supporting 6 distinct releases:
 
+* 23.04 (Lunar Lobster)
 * 21.10 (Kinetic Kudu)
 * 22.04 (Jammy Jellyfish)
 * 20.04 (Focal Fossa)

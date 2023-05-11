@@ -277,7 +277,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   |
             | jammy   |
 
-    @series.kinetic
+    @series.lunar
     @uses.config.contract_token
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.gcp.generic
@@ -299,7 +299,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Examples: version
             | release |
-            | kinetic |
+            | lunar   |
 
     @series.all
     @uses.config.contract_token
@@ -332,6 +332,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   |
             | jammy   |
             | kinetic |
+            | lunar   |
 
     @series.lts
     @uses.config.machine_type.aws.pro
