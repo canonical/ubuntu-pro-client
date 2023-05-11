@@ -17,6 +17,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | jammy   |
             | kinetic |
             | lunar   |
+            | mantic  |
 
     @series.lts
     @uses.config.contract_token

@@ -15,6 +15,7 @@ Feature: Pro Install and Uninstall related tests
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.lts
     @uses.config.contract_token

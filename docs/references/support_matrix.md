@@ -16,4 +16,5 @@ Here is a list of platforms and releases that `ubuntu-advantage-tools` supports.
 | Focal          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | 20.3            | Active SRU of all features |
 | Jammy          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | 27.7            | Active SRU of all features |
 | Kinetic        | amd64, arm64, armhf, ppc64el, riscv64, s390x       | 27.11.2         | Active SRU of all features |
-| Lunar          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | TBD             | Active SRU of all features |
+| Lunar          | amd64, arm64, armhf, ppc64el, riscv64, s390x       | 27.14.4         | Active SRU of all features |
+| Mantic         | amd64, arm64, armhf, ppc64el, riscv64, s390x       | TBD             | Active SRU of all features |

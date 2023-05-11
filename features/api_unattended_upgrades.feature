@@ -205,3 +205,4 @@ Feature: api.u.unattended_upgrades.status.v1
            | jammy   | "Unattended-Upgrade::DevRelease": "auto"  |
            | kinetic | "Unattended-Upgrade::DevRelease": "auto"  |
            | lunar   | "Unattended-Upgrade::DevRelease": "auto"  |
+           | mantic  | "Unattended-Upgrade::DevRelease": "auto"  |

@@ -41,6 +41,7 @@ Feature: Pro is expected version
             | jammy   |
             | kinetic |
             | lunar   |
+            | mantic  |
 
     @series.all
     @uses.config.check_version
@@ -74,3 +75,4 @@ Feature: Pro is expected version
             | jammy   |
             | kinetic |
             | lunar   |
+            | mantic  |
