@@ -611,6 +611,7 @@ Feature: APT Messages
           | focal   |
           | jammy   |
           | kinetic |
+          | lunar   |
 
     @series.xenial
     @series.bionic
@@ -642,6 +643,7 @@ Feature: APT Messages
           | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
     @series.kinetic
+    @series.lunar
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -690,3 +692,4 @@ Feature: APT Messages
         Examples: ubuntu release
           | release |
           | kinetic |
+          | lunar   |
