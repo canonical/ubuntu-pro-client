@@ -31,6 +31,7 @@ Feature: Ua fix command behaviour
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.focal
     @uses.config.machine_type.lxd-container

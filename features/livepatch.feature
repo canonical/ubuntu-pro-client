@@ -143,6 +143,7 @@ Feature: Livepatch
 
     @series.kinetic
     @series.lunar
+    @series.mantic
     @uses.config.machine_type.any
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
@@ -169,6 +170,7 @@ Feature: Livepatch
         livepatch +yes +n/a +Canonical Livepatch service
         """
         Examples: ubuntu release
-            | release | machine_type | pretty_name           |
-            | kinetic | lxd-vm       | 22.10 (Kinetic Kudu)  |
-            | lunar   | lxd-vm       | 23.04 (Lunar Lobster) |
+            | release | machine_type | pretty_name             |
+            | kinetic | lxd-vm       | 22.10 (Kinetic Kudu)    |
+            | lunar   | lxd-vm       | 23.04 (Lunar Lobster)   |
+            | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |

@@ -49,6 +49,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | jammy   |
           | kinetic |
           | lunar   |
+          | mantic  |
 
     @series.lts
     @uses.config.machine_type.lxd-container

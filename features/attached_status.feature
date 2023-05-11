@@ -40,6 +40,7 @@ Feature: Attached status
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.xenial
     @uses.config.machine_type.lxd-container

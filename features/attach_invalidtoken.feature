@@ -30,6 +30,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -58,3 +59,4 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
