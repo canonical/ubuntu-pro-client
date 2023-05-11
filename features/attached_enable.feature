@@ -52,6 +52,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @series.jammy
     @series.kinetic
     @series.lunar
+    @series.mantic
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -73,6 +74,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | jammy   | 22.04 LTS  | Jammy Jellyfish  |
             | kinetic | 22.10      | Kinetic Kudu     |
             | lunar   | 23.04      | Lunar Lobster    |
+            | mantic  | 23.10      | Mantic Minotaur  |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -326,6 +328,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.lts
     @uses.config.machine_type.lxd-container

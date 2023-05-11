@@ -40,6 +40,7 @@ Feature: Unattached status
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.xenial
     @series.bionic

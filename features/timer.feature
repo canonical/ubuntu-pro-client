@@ -1,9 +1,10 @@
 @uses.config.contract_token
 Feature: Timer for regular background jobs while attached
 
+    # earlies, latest lts, devel
     @series.xenial
     @series.jammy
-    @series.lunar
+    @series.mantic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Timer is stopped when detached, started when attached
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -17,4 +18,4 @@ Feature: Timer for regular background jobs while attached
             | release |
             | xenial  |
             | jammy   |
-            | lunar   |
+            | mantic  |
