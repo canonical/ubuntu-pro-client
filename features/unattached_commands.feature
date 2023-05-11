@@ -30,6 +30,7 @@ Feature: Command behaviour when unattached
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -61,6 +62,8 @@ Feature: Command behaviour when unattached
            | jammy   | refresh |
            | lunar   | detach  |
            | lunar   | refresh |
+           | mantic  | detach  |
+           | mantic  | refresh |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -108,6 +111,7 @@ Feature: Command behaviour when unattached
            | jammy    | yes             |
            | kinetic  | no              |
            | lunar    | no              |
+           | mantic   | no              |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -183,6 +187,8 @@ Feature: Command behaviour when unattached
           | jammy   | disable  |
           | lunar   | enable   |
           | lunar   | disable  |
+          | mantic  | enable   |
+          | mantic  | disable  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -267,6 +273,7 @@ Feature: Command behaviour when unattached
           | jammy   |
           | kinetic |
           | lunar   |
+          | mantic  |
 
     @series.xenial
     @series.bionic
@@ -388,6 +395,7 @@ Feature: Command behaviour when unattached
           | jammy   |
           # | kinetic | There is a very weird error on Kinetic, irrelevant to this test
           | lunar   |
+          | mantic  |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -428,6 +436,7 @@ Feature: Command behaviour when unattached
     @series.jammy
     @series.kinetic
     @series.lunar
+    @series.mantic
     @uses.config.machine_type.lxd-container
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
@@ -497,8 +506,9 @@ Feature: Command behaviour when unattached
           | release | python_version | suffix                  |
           | jammy   | python3.10     |                         |
           | kinetic | python3.10     |                         |
-          # Lunar has a BIG error message explaining why this is a clear user error...
+          # Lunar+ has a BIG error message explaining why this is a clear user error...
           | lunar   | python3.11     | --break-system-packages |
+          | mantic  | python3.11     | --break-system-packages |
 
 
     @series.all
@@ -594,3 +604,4 @@ Feature: Command behaviour when unattached
           | jammy   |
           | kinetic |
           | lunar   |
+          | mantic  |

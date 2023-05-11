@@ -15,6 +15,7 @@ SERIES_TO_VERSION = {
     "jammy": "22.04",
     "kinetic": "22.10",
     "lunar": "23.04",
+    "mantic": "23.10",
 }
 
 TOKEN_TO_ENVVAR = {
@@ -34,9 +35,9 @@ PLATFORM_SERIES_TESTS = {
     "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "kinetic"],
     "gcppro": ["xenial", "bionic", "focal", "jammy"],
     "gcppro-fips": ["bionic", "focal"],
-    "lxd": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
-    "vm": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
-    "upgrade": ["xenial", "bionic", "focal", "jammy", "kinetic"],
+    "lxd": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar", "mantic"],
+    "vm": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar", "mantic"],
+    "upgrade": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
 }
 
 

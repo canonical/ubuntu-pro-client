@@ -126,3 +126,4 @@ Feature: Pro supports multiple languages
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |

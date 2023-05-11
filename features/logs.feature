@@ -28,6 +28,7 @@ Feature: Logs in Json Array Formatter
           | kinetic |
           | jammy   |
           | lunar   |
+          | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -60,6 +61,7 @@ Feature: Logs in Json Array Formatter
           | kinetic |
           | jammy   |
           | lunar   |
+          | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -87,3 +89,4 @@ Feature: Logs in Json Array Formatter
           | kinetic |
           | jammy   |
           | lunar   |
+          | mantic  |

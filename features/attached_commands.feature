@@ -58,6 +58,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -84,6 +85,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -326,6 +328,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -349,6 +352,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -418,6 +422,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.xenial
     @series.bionic
@@ -508,7 +513,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             A reboot is required to complete install.
             """
 
-    @series.all
+    @series.xenial
+    @series.bionic
+    @series.kinetic
+    @series.lunar
+    @series.mantic
     @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -613,6 +622,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | enabled      |
            | kinetic | n/a          |
            | lunar   | n/a          |
+           | mantic  | n/a          |
 
     @series.jammy
     @series.focal
@@ -834,6 +844,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   |
            | kinetic |
            | lunar   |
+           | mantic  |
 
     @series.lts
     @uses.config.machine_type.lxd-container
