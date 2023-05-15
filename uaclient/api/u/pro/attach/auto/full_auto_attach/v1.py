@@ -4,6 +4,7 @@ from uaclient import actions, event_logger, lock, messages, util
 from uaclient.api import exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.entitlements import order_entitlements_for_enabling
@@ -91,7 +92,7 @@ def _full_auto_attach_in_lock(
 ) -> FullAutoAttachResult:
     event.set_event_mode(mode)
 
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         raise exceptions.AlreadyAttachedError(
             cfg.machine_token_file.account.get("name", "")
         )

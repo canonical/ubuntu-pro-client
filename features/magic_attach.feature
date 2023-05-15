@@ -47,11 +47,7 @@ Feature: Magic attach flow related tests
 
         Attaching the machine...
         """
-        When I run `pro status --format yaml` with sudo
-        Then stdout matches regexp:
-        """
-        attached: true
-        """
+        And the machine is attached
 
         Examples: ubuntu release
             | release |

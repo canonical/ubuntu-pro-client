@@ -28,6 +28,7 @@ import sys
 import time
 
 from uaclient import contract, defaults, system
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 
 # We consider the past release for LTSs to be the last LTS,
@@ -46,7 +47,7 @@ current_codename_to_past_codename = {
 
 def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     logging.debug("Check whether to upgrade-lts-contract")
-    if not cfg.is_attached:
+    if not _is_attached(cfg).is_attached:
         logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
     out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])

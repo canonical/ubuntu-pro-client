@@ -26,6 +26,7 @@ from uaclient import (
     messages,
     upgrade_lts_contract,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
@@ -78,7 +79,7 @@ def main(cfg: config.UAConfig) -> int:
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
-    if not cfg.is_attached:
+    if not _is_attached(cfg).is_attached:
         logging.debug("Skipping reboot_cmds. Machine is unattached")
         state_files.reboot_cmd_marker_file.delete()
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)

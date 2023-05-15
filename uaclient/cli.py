@@ -47,6 +47,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
@@ -248,7 +249,7 @@ def assert_attached(msg_function=None):
     def wrapper(f):
         @wraps(f)
         def new_f(args, cfg, **kwargs):
-            if not cfg.is_attached:
+            if not _is_attached(cfg).is_attached:
                 if msg_function:
                     command = getattr(args, "command", "")
                     service_names = getattr(args, "service", "")
@@ -271,7 +272,7 @@ def assert_not_attached(f):
 
     @wraps(f)
     def new_f(args, cfg):
-        if cfg.is_attached:
+        if _is_attached(cfg).is_attached:
             raise exceptions.AlreadyAttachedError(
                 cfg.machine_token_file.account.get("name", "")
             )
