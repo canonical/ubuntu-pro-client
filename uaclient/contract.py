@@ -12,9 +12,9 @@ from uaclient import (
     system,
     util,
 )
+from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
-from uaclient.entitlements.entitlement_status import UserFacingStatus
 
 API_V1_ADD_CONTRACT_MACHINE = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
@@ -372,25 +372,18 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def _get_activity_info(self, machine_id: Optional[str] = None):
         """Return a dict of activity info data for contract requests"""
-        from uaclient.entitlements import ENTITLEMENT_CLASSES
-
         if not machine_id:
             machine_id = system.get_machine_id(self.cfg)
 
         # If the activityID is null we should provide the endpoint
         # with the instance machine id as the activityID
         activity_id = self.cfg.machine_token_file.activity_id or machine_id
-
-        enabled_services = [
-            ent(self.cfg).name
-            for ent in ENTITLEMENT_CLASSES
-            if ent(self.cfg).user_facing_status()[0] == UserFacingStatus.ACTIVE
-        ]
+        enabled_services = _enabled_services(self.cfg).enabled_services or []
 
         return {
             "activityID": activity_id,
             "activityToken": self.cfg.machine_token_file.activity_token,
-            "resources": enabled_services,
+            "resources": [service.name for service in enabled_services],
         }
 
 

@@ -76,6 +76,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
         """
+        When I run `pro api u.pro.status.enabled_services.v1` as non-root
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": false, "variant_name": null}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
         When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
         Then stdout matches regexp
         """
@@ -152,12 +157,17 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       platformChecks: {"cpu_vendor_ids": ["intel"]}
         """
         When I run `pro enable realtime-kernel --assume-yes` with sudo
-        When I run `pro status --all` as non-root
+        And I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic        yes +enabled   +Generic version of the RT kernel \(default\)
         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+        """
+        When I run `pro api u.pro.status.enabled_services.v1` as non-root
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "generic"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
         Then stdout contains substring:
@@ -172,8 +182,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ├ generic        yes +disabled   +Generic version of the RT kernel \(default\)
         └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
         """
+        When I run `pro api u.pro.status.enabled_services.v1` as non-root
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "intel-iotg"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
         When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\n`
-        When I run `pro status --all` as non-root
+        And I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -181,7 +196,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
         """
         When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
-        When I run `pro status --all` as non-root
+        And I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
         realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -352,7 +367,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Enable Real-time kernel service access-only
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
-        When I run `pro enable realtime-kernel --beta --access-only` with sudo
+        When I run `pro enable realtime-kernel --access-only` with sudo
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
