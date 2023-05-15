@@ -1,4 +1,6 @@
-from behave import when
+import json
+
+from behave import then, when
 
 from features.steps.contract import change_contract_endpoint_to_staging
 from features.steps.shell import (
@@ -66,3 +68,15 @@ def when_i_verify_attach_expired_token_with_json_response(context, spec):
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         context=context, cmd_name=cmd, spec=spec, exit_codes=ERROR_CODE
     )
+
+
+@then("the machine is attached")
+def then_the_machine_is_attached(context):
+    when_i_run_command(
+        context,
+        command="pro api u.pro.status.is_attached.v1",
+        user_spec="as non-root",
+    )
+
+    is_attached_resp = json.loads(context.process.stdout.strip())
+    assert is_attached_resp["data"]["attributes"]["is_attached"]

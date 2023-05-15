@@ -336,11 +336,8 @@ Feature: auto-attach retries periodically on failures
         features: {}
         """
         When I wait `60` seconds
-        When I run `ua status --wait --format yaml` with sudo
-        Then stdout contains substring
-        """
-        attached: true
-        """
+        And I run `pro status --wait` with sudo
+        Then the machine is attached
         When I verify that running `systemctl status ubuntu-advantage.service` `as non-root` exits `3`
         Then stdout contains substring
         """
