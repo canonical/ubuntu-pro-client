@@ -91,10 +91,12 @@ def disable_log_to_console():
     (Note that the @contextmanager decorator also allows this function to be
     used as a decorator.)
     """
+    uaclient_logger = logging.getLogger("uaclient")
+    log_handlers = uaclient_logger.handlers
+    if not log_handlers and uaclient_logger.parent:
+        log_handlers = uaclient_logger.parent.handlers
     potential_handlers = [
-        handler
-        for handler in logging.getLogger("uaclient").handlers
-        if handler.name == "ua-console"
+        handler for handler in log_handlers if handler.name == "ua-console"
     ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end

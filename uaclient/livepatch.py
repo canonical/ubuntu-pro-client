@@ -351,7 +351,7 @@ def on_supported_kernel() -> LivepatchSupport:
         lp_api_kernel_ver, kernel_info.flavor, arch, codename
     )
     if is_cache_valid:
-        logging.debug("using livepatch support cache")
+        LOG.debug("using livepatch support cache")
         if cache_says is None:
             return LivepatchSupport.UNKNOWN
         if cache_says:
@@ -360,7 +360,7 @@ def on_supported_kernel() -> LivepatchSupport:
             return LivepatchSupport.UNSUPPORTED
 
     # finally check api
-    logging.debug("using livepatch support api")
+    LOG.debug("using livepatch support api")
     api_says = _on_supported_kernel_api(
         lp_api_kernel_ver,
         kernel_info.flavor,
