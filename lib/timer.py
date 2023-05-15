@@ -183,7 +183,6 @@ if __name__ == "__main__":
         logging.CRITICAL,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["timer_log_file"],
-        logger=LOG,
     )
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
@@ -193,7 +192,6 @@ if __name__ == "__main__":
         logging.CRITICAL,
         logging.DEBUG,
         log_file=cfg.timer_log_file,
-        logger=LOG,
     )
     # The root logger should log any error to the timer log file
     setup_logging(logging.CRITICAL, logging.ERROR, log_file=cfg.timer_log_file)
