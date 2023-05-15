@@ -222,72 +222,77 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I run `pro api u.pro.status.enabled_services.v1` as non-root
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "esm-apps", "variant_enabled": false, "variant_name": null}, {"name": "esm-infra", "variant_enabled": false, "variant_name": null}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
         Then I verify that running `pro detach` `as non-root` exits `1`
         And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
+        """
+        This command must be run as root \(try using sudo\).
+        """
         When I run `pro detach --assume-yes` with sudo
         Then I will see the following on stdout:
-            """
-            Detach will disable the following services:
-                esm-apps
-                esm-infra
-            Updating package lists
-            Updating package lists
-            This machine is now detached.
-            """
+        """
+        Detach will disable the following services:
+            esm-apps
+            esm-infra
+        Updating package lists
+        Updating package lists
+        This machine is now detached.
+        """
        When I run `pro status --all` as non-root
        Then stdout matches regexp:
-          """
-          SERVICE       +AVAILABLE  DESCRIPTION
-          cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-          """
+       """
+       SERVICE       +AVAILABLE  DESCRIPTION
+       cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
+       """
        Then stdout matches regexp:
-          """
-          esm-apps      +<esm-apps> +Expanded Security Maintenance for Applications
-          esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
-          fips          +<fips>     +NIST-certified core packages
-          fips-updates  +<fips>     +NIST-certified core packages with priority security updates
-          livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
-          realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
-          ros           +<ros>      +Security Updates for the Robot Operating System
-          ros-updates   +<ros>      +All Updates for the Robot Operating System
-          """
+       """
+       esm-apps      +<esm-apps> +Expanded Security Maintenance for Applications
+       esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
+       fips          +<fips>     +NIST-certified core packages
+       fips-updates  +<fips>     +NIST-certified core packages with priority security updates
+       livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
+       realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
+       ros           +<ros>      +Security Updates for the Robot Operating System
+       ros-updates   +<ros>      +All Updates for the Robot Operating System
+       """
        Then stdout matches regexp:
-          """
-          <cis_or_usg>           +<cis>      +Security compliance and audit tools
-          """
+       """
+       <cis_or_usg>           +<cis>      +Security compliance and audit tools
+       """
        And stdout matches regexp:
-          """
-          This machine is not attached to an Ubuntu Pro subscription.
-          """
+       """
+       This machine is not attached to an Ubuntu Pro subscription.
+       """
        And I verify that running `apt update` `with sudo` exits `0`
        When I attach `contract_token` with sudo
        Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
-           """
-           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+       """
+       {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
        Then I verify that running `pro enable foobar --format json` `with sudo` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
-           """
-           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-           """
+       """
+       {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+       """
        Then I verify that running `pro detach --format json --assume-yes` `as non-root` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
-           """
-           {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-           """
+       """
+       {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+       """
        When I run `pro detach --format json --assume-yes` with sudo
        Then stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
-           """
-           {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
-           """
+       """
+       {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+       """
 
        Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
