@@ -49,9 +49,9 @@ LOG = logging.getLogger(__name__)
 
 
 def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
-    logging.debug("Check whether to upgrade-lts-contract")
+    LOG.debug("Check whether to upgrade-lts-contract")
     if not _is_attached(cfg).is_attached:
-        logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
+        LOG.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
     out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."

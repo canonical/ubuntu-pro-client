@@ -1896,6 +1896,7 @@ def _warn_about_output_redirection(cmd_args) -> None:
 def setup_logging(console_level, log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file
 
+    It configures the pro client logger.
     If run as non_root and cfg.log_file is provided, it is replaced
     with another non-root log file.
     """
@@ -1905,24 +1906,23 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     # if we are running as non-root, change log file
     if not util.we_are_currently_root():
         log_file = pro_log.get_user_log_file()
+
     if isinstance(log_level, str):
         log_level = log_level.upper()
+
     console_formatter = util.LogFormatter()
-    if logger is None:
-        # Then we configure the root logger
-        logger = uaclient_logger
-    logger.setLevel(log_level)
-    logger.addFilter(pro_log.RedactionFilter())
+    uaclient_logger.setLevel(log_level)
+    uaclient_logger.addFilter(pro_log.RedactionFilter())
 
     # Clear all handlers, so they are replaced for this logger
-    logger.handlers = []
+    uaclient_logger.handlers = []
 
     # Setup console logging
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setFormatter(console_formatter)
     console_handler.setLevel(console_level)
     console_handler.set_name("ua-console")  # Used to disable console logging
-    logger.addHandler(console_handler)
+    uaclient_logger.addHandler(console_handler)
 
     log_file_path = pathlib.Path(log_file)
 
@@ -1935,7 +1935,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
     file_handler.set_name("ua-file")
-    logger.addHandler(file_handler)
+    uaclient_logger.addHandler(file_handler)
 
 
 def set_event_mode(cmd_args):
@@ -2062,9 +2062,7 @@ def main(sys_argv=None):
         for k, v in sorted(util.get_pro_environment().items())
     ]
     if pro_environment:
-        logging.debug(
-            "Executed with environment variables: %r" % pro_environment
-        )
+        LOG.debug("Executed with environment variables: %r" % pro_environment)
 
     _warn_about_output_redirection(args)
 
