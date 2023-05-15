@@ -82,7 +82,7 @@ def main(cfg: config.UAConfig) -> int:
         return 0
 
     if not _is_attached(cfg).is_attached:
-        logging.debug("Skipping reboot_cmds. Machine is unattached")
+        LOG.debug("Skipping reboot_cmds. Machine is unattached")
         state_files.reboot_cmd_marker_file.delete()
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
