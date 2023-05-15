@@ -8,6 +8,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
 from uaclient.files import notices, state_files
@@ -89,7 +90,7 @@ def cleanup(cfg: UAConfig):
 
 def retry_auto_attach(cfg: UAConfig) -> None:
     # in case we got started while already attached somehow
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         return
 
     # pick up where we left off
@@ -145,7 +146,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
 
         time.sleep(interval)
 
-        if cfg.is_attached:
+        if _is_attached(cfg).is_attached:
             # We attached while sleeping - hooray!
             break
 
@@ -171,7 +172,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
 
     cleanup(cfg)
 
-    if not cfg.is_attached:
+    if not _is_attached(cfg).is_attached:
         # Total failure!!
         state_files.retry_auto_attach_state_file.write(
             state_files.RetryAutoAttachState(

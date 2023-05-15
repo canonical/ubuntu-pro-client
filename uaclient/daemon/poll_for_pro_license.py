@@ -2,6 +2,7 @@ import logging
 import time
 
 from uaclient import actions, exceptions, lock, system, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.clouds import AutoAttachCloudInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
@@ -32,7 +33,7 @@ def poll_for_pro_license(cfg: UAConfig):
     ):
         LOG.debug("Configured to not auto attach, shutting down")
         return
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         LOG.debug("Already attached, shutting down")
         return
     if not system.is_current_series_lts():
@@ -87,7 +88,7 @@ def poll_for_pro_license(cfg: UAConfig):
             time.sleep(cfg.polling_error_retry_delay)
             continue
         else:
-            if cfg.is_attached:
+            if _is_attached(cfg).is_attached:
                 # This could have changed during the long poll or sleep
                 LOG.debug("Already attached, shutting down")
                 return

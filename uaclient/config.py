@@ -392,11 +392,6 @@ class UAConfig:
         )
 
     @property
-    def is_attached(self):
-        """Report whether this machine configuration is attached to UA."""
-        return bool(self.machine_token)  # machine_token is removed on detach
-
-    @property
     def features(self):
         """Return a dictionary of any features provided in uaclient.conf."""
         features = self.cfg.get("features")

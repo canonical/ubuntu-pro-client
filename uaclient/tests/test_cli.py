@@ -203,9 +203,7 @@ class TestCLIParser:
         ),
     )
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch("uaclient.status._is_attached")
     def test_help_command_when_unnatached(
         self, m_attached, m_available_resources, out_format, expected_return
     ):
@@ -225,7 +223,7 @@ class TestCLIParser:
         m_entitlement_obj = m_entitlement_cls.return_value
         type(m_entitlement_obj).help_info = m_ent_help_info
 
-        m_attached.return_value = False
+        m_attached.return_value = mock.MagicMock(is_attached=False)
 
         m_available_resources.return_value = [
             {"name": "test", "available": True}
@@ -259,9 +257,7 @@ class TestCLIParser:
     )
     @pytest.mark.parametrize("is_beta", (True, False))
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch("uaclient.status._is_attached")
     def test_help_command_when_attached(
         self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
     ):
@@ -291,7 +287,7 @@ class TestCLIParser:
         m_ent_desc = mock.PropertyMock(return_value="description")
         type(m_entitlement_obj).description = m_ent_desc
 
-        m_attached.return_value = True
+        m_attached.return_value = mock.MagicMock(is_attached=True)
         m_available_resources.return_value = [
             {"name": "test", "available": True}
         ]

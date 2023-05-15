@@ -42,11 +42,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -433,11 +429,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
@@ -671,11 +663,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -1058,11 +1046,7 @@ Feature: Proxy configuration
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
-        When I run `pro status --format yaml` with sudo
-        Then stdout matches regexp:
-        """
-        attached: true
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo

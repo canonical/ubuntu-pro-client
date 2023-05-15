@@ -43,6 +43,11 @@ Feature: Client behaviour for the API endpoints
     """
     {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": false}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
     """
+    When I run `ua api u.pro.status.is_attached.v1` with sudo
+    Then stdout matches regexp:
+    """
+    {"_schema_version": "v1", "data": {"attributes": {"is_attached": false}, "meta": {"environment_vars": \[\]}, "type": "IsAttached"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+    """
 
     Examples: ubuntu release
            | release |
