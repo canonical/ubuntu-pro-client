@@ -91,10 +91,7 @@ class TestFixProPkgHolds:
 @mock.patch("lib.reboot_cmds.refresh_contract")
 @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
 @mock.patch("uaclient.lock.SpinLock")
-@mock.patch(
-    "uaclient.config.UAConfig.is_attached",
-    new_callable=mock.PropertyMock,
-)
+@mock.patch("lib.reboot_cmds._is_attached")
 @mock.patch(
     "uaclient.files.state_files.reboot_cmd_marker_file",
     new_callable=mock.PropertyMock,
@@ -132,7 +129,7 @@ class TestMain:
         expected_ret,
         FakeConfig,
     ):
-        m_is_attached.return_value = is_attached
+        m_is_attached.return_value = mock.MagicMock(is_attached=is_attached)
         m_reboot_cmd_marker_file.is_present = marker_file_present
         assert expected_ret == main(FakeConfig())
 
@@ -188,7 +185,7 @@ class TestMain:
         expected_ret,
         FakeConfig,
     ):
-        m_is_attached.return_value = True
+        m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_reboot_cmd_marker_file.is_present = True
         m_fix_pro_pkg_holds.side_effect = error
         assert expected_ret == main(FakeConfig())

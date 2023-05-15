@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from uaclient import config, contract, event_logger, messages, system, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -892,7 +893,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def contract_status(self) -> ContractStatus:
         """Return whether the user is entitled to the entitlement or not"""
-        if not self.cfg.is_attached:
+        if not _is_attached(self.cfg).is_attached:
             return ContractStatus.UNENTITLED
         entitlement_cfg = self.entitlement_cfg
         if entitlement_cfg and entitlement_cfg["entitlement"].get("entitled"):

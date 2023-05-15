@@ -13,11 +13,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
         log_file: /var/log/ubuntu-advantage.log
         """
         When I run `pro auto-attach` with sudo
-        And I run `pro status --format yaml` with sudo
-        Then stdout matches regexp:
-        """
-        attached: true
-        """
+        Then the machine is attached
         When I run `apt install -y jq` with sudo
         When I save the `activityInfo.activityToken` value from the contract
         When I save the `activityInfo.activityID` value from the contract
@@ -37,11 +33,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
         When I launch a `<release>` machine named `clone` from the snapshot of `system-under-test`
         # The clone will run auto-attach on boot
         When I run `pro status --wait` `with sudo` on the `clone` machine
-        When I run `pro status --format yaml` `with sudo` on the `clone` machine
-        Then stdout matches regexp:
-        """
-        attached: true
-        """
+        Then the machine is attached
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` `with sudo` on the `clone` machine
         Then I verify that `activityInfo.activityToken` value has been updated on the contract on the `clone` machine
         Then I verify that `activityInfo.activityID` value has been updated on the contract on the `clone` machine

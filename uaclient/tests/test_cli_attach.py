@@ -8,6 +8,7 @@ import mock
 import pytest
 
 from uaclient import event_logger, messages, status, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -269,7 +270,7 @@ class TestActionAttach:
             main_error_handler(action_attach)(args, cfg)
 
         assert 1 == excinfo.value.code
-        assert cfg.is_attached
+        assert _is_attached(cfg).is_attached
         # Assert updated status cache is written to disk
         assert orig_unattached_status != cfg.read_cache(
             "status-cache"

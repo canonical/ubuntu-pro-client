@@ -8,14 +8,11 @@ from uaclient.upgrade_lts_contract import process_contract_delta_after_apt_lock
 
 @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
 class TestUpgradeLTSContract:
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached",
-        new_callable=mock.PropertyMock,
-        return_value=False,
-    )
+    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
     def test_unattached_noops(
         self, m_is_attached, capsys, caplog_text, FakeConfig
     ):
+        m_is_attached.return_value = mock.MagicMock(is_attached=False)
         expected_logs = [
             "Check whether to upgrade-lts-contract",
             "Skipping upgrade-lts-contract. Machine is unattached",
@@ -30,11 +27,7 @@ class TestUpgradeLTSContract:
         for log in expected_logs:
             assert log in debug_logs
 
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached",
-        new_callable=mock.PropertyMock,
-        return_value=True,
-    )
+    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
     @mock.patch("uaclient.upgrade_lts_contract.system.get_release_info")
     @mock.patch("uaclient.upgrade_lts_contract.system.subp")
     def test_upgrade_cancel_when_past_version_not_supported(
@@ -46,6 +39,7 @@ class TestUpgradeLTSContract:
         caplog_text,
         FakeConfig,
     ):
+        m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_get_release_info.return_value = mock.MagicMock(series="groovy")
         m_subp.return_value = ("", "")
 
@@ -67,11 +61,7 @@ class TestUpgradeLTSContract:
         for log in expected_msgs + expected_logs:
             assert log in debug_logs
 
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached",
-        new_callable=mock.PropertyMock,
-        return_value=True,
-    )
+    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
     @mock.patch("uaclient.upgrade_lts_contract.system.get_release_info")
     @mock.patch("uaclient.upgrade_lts_contract.system.subp")
     @mock.patch(
@@ -89,6 +79,7 @@ class TestUpgradeLTSContract:
         caplog_text,
         FakeConfig,
     ):
+        m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_get_release_info.return_value = mock.MagicMock(series="focal")
 
         m_subp.side_effect = [

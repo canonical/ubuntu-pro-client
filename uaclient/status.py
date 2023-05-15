@@ -14,6 +14,7 @@ from uaclient import (
     util,
     version,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
@@ -396,7 +397,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
 
     Write the status-cache when called by root.
     """
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         response = _attached_status(cfg)
     else:
         response = _unattached_status(cfg)
@@ -819,7 +820,7 @@ def help(cfg, name):
             "No help available for '{}'".format(name)
         )
 
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         service_status = _attached_service_status(help_ent, {}, cfg)
         status_msg = service_status["status"]
 

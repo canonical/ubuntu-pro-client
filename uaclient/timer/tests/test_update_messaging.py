@@ -337,9 +337,7 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "update_contract_expiry")
     @mock.patch(M_PATH + "get_contract_expiry_status")
-    @mock.patch(
-        M_PATH + "UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,
         m_is_attached,
@@ -366,7 +364,7 @@ class TestUpdateMotdMessages:
         write_file_calls,
         FakeConfig,
     ):
-        m_is_attached.return_value = attached
+        m_is_attached.return_value = mock.MagicMock(is_attached=attached)
         m_get_contract_expiry_status.side_effect = contract_expiry_statuses
         m_is_current_series_active_esm.return_value = (
             is_current_series_active_esm
