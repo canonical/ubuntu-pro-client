@@ -110,6 +110,8 @@ The currently available endpoints are:
 - [u.pro.security.status.reboot_required.v1](#uprosecuritystatusreboot_requiredv1)
 - [u.pro.packages.summary.v1](#upropackagessummaryv1)
 - [u.pro.packages.updates.v1](#upropackagesupdatesv1)
+- [u.pro.status.is_attached.v1](#uprostatusis_attachedv1)
+- [u.pro.status.enabled_services.v1](#uprostatusenabled_servicesv1)
 - [u.security.package_manifest.v1](#usecuritypackage_manifestv1)
 - [u.unattended_upgrades.status.v1](#uunattended_upgradesstatusv1)
 
@@ -774,6 +776,86 @@ pro api u.pro.packages.updates.v1
         },
     ]
 }
+```
+
+## u.pro.status.is_attached.v1
+
+Introduced in Ubuntu Pro Client Version: `28~`
+
+Shows if the machine is attached to a Pro subscription.
+
+### Args
+
+This endpoint takes no arguments.
+
+### Python API interaction
+
+#### Calling from Python code
+
+```python
+from uaclient.api.u.pro.status.is_attached.v1 import is_attached
+
+result = is_attached()
+```
+
+#### Expected return object:
+
+`uaclient.api.u.pro.status.is_attached.v1.IsAttachedResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|`is_attached`|*bool*|If the machine is attached to a Pro subscription|
+
+### CLI interaction
+
+#### Calling from the CLI:
+
+```bash
+pro api u.pro.status.is_attached.v1
+```
+
+## u.pro.status.enabled_services.v1
+
+Introduced in Ubuntu Pro Client Version: `28~`
+
+Shows the Pro services that are enabled in the machine.
+
+### Args
+
+This endpoint takes no arguments.
+
+### Python API interaction
+
+#### Calling from Python code
+
+```python
+from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
+
+result = enabled_services()
+```
+
+#### Expected return object:
+
+`uaclient.api.u.pro.status.enabled_services.v1.EnabledServicesResult`
+
+|Field Name|Type|Description|
+|-|-|-|
+|`enabled_services`|*List[EnabledService]*|A list of EnabledServices objects|
+
+`uaclient.api.u.pro.status.enabled_services.v1.EnabledService`
+
+|Field Name|Type|Description|
+|-|-|-|
+|`name`           |*str*           |name of the service                         |
+|`variant_enabled`|*bool*          |If a variant of the service is enabled      |
+|`variant_name`   |*Optional[str]* |name of the variant, if a variant is enabled|
+
+### CLI interaction
+
+#### Calling from the CLI:
+
+```bash
+pro api u.pro.status.enabled_services.v1
 ```
 
 ## u.security.package_manifest.v1
