@@ -690,6 +690,7 @@ class TestHandleUnicodeCharacters:
             (messages.OKGREEN_CHECK + " test", "test"),
             (messages.FAIL_X + " fail", "fail"),
             ("\u2014 blah", "- blah"),
+            ("\xfcblah", "blah"),
         ),
     )
     def test_handle_unicode_characters(
