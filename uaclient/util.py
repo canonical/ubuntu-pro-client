@@ -543,6 +543,9 @@ def handle_unicode_characters(message: str) -> str:
         message = message.replace(messages.OKGREEN_CHECK + " ", "")
         message = message.replace(messages.FAIL_X + " ", "")
 
+        # Now we remove any remaining unicode characters from the string
+        message = message.encode("ascii", "ignore").decode()
+
     return message
 
 
