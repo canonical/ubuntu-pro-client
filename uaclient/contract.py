@@ -16,7 +16,7 @@ from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.entitlements.entitlement_status import UserFacingStatus
 
-API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
+API_V1_ADD_CONTRACT_MACHINE = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
@@ -25,7 +25,9 @@ API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
 API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
-API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
+API_V1_UPDATE_ACTIVITY_TOKEN = (
+    "/v1/contracts/{contract}/machine-activity/{machine}"
+)
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
 
 API_V1_MAGIC_ATTACH = "/v1/magic-attach"
@@ -46,7 +48,7 @@ class UAContractClient(serviceclient.UAServiceClient):
     api_error_cls = exceptions.ContractAPIError
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
-    def request_contract_machine_attach(self, contract_token, machine_id=None):
+    def add_contract_machine(self, contract_token, machine_id=None):
         """Requests machine attach to the provided machine_id.
 
         @param contract_token: Token string providing authentication to
@@ -60,7 +62,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
         data = self._get_platform_data(machine_id)
         machine_token, _headers = self.request_url(
-            API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
+            API_V1_ADD_CONTRACT_MACHINE, data=data, headers=headers
         )
         self.cfg.machine_token_file.write(machine_token)
 
@@ -79,9 +81,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_response
 
-    def request_contract_information(
-        self, contract_token: str
-    ) -> Dict[str, Any]:
+    def get_contract_using_token(self, contract_token: str) -> Dict[str, Any]:
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
         response_data, _response_headers = self.request_url(
@@ -90,7 +90,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         return response_data
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
-    def request_auto_attach_contract_token(
+    def get_contract_token_for_cloud_instance(
         self, *, instance: clouds.AutoAttachCloudInstance
     ):
         """Requests contract token for auto-attach images for Pro clouds.
@@ -147,20 +147,20 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_access
 
-    def request_machine_token_update(
+    def update_contract_machine(
         self,
         machine_token: str,
         contract_id: str,
         machine_id: Optional[str] = None,
     ) -> Dict:
         """Update existing machine-token for an attached machine."""
-        return self._request_machine_token_update(
+        return self._update_contract_machine(
             machine_token=machine_token,
             contract_id=contract_id,
             machine_id=machine_id,
         )
 
-    def report_machine_activity(self):
+    def update_activity_token(self):
         """Report current activity token and enabled services.
 
         This will report to the contracts backend all the current
@@ -171,7 +171,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_id = system.get_machine_id(self.cfg)
 
         request_data = self._get_activity_info(machine_id)
-        url = API_V1_MACHINE_ACTIVITY.format(
+        url = API_V1_UPDATE_ACTIVITY_TOKEN.format(
             contract=contract_id, machine=machine_id
         )
         headers = self.headers()
@@ -265,7 +265,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             logging.exception(str(e))
             raise exceptions.ConnectivityError()
 
-    def get_updated_contract_info(
+    def get_contract_machine(
         self,
         machine_token: str,
         contract_id: str,
@@ -299,7 +299,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             response["expires"] = headers["expires"]
         return response
 
-    def _request_machine_token_update(
+    def _update_contract_machine(
         self,
         machine_token: str,
         contract_id: str,
@@ -598,9 +598,7 @@ def request_updated_contract(
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
         try:
-            contract_client.request_contract_machine_attach(
-                contract_token=contract_token
-            )
+            contract_client.add_contract_machine(contract_token=contract_token)
         except exceptions.UrlError as e:
             if isinstance(e, exceptions.ContractAPIError):
                 if hasattr(e, "code"):
@@ -620,7 +618,7 @@ def request_updated_contract(
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
-        resp = contract_client.request_machine_token_update(
+        resp = contract_client.update_contract_machine(
             machine_token=machine_token, contract_id=contract_id
         )
         contract_client.update_files_after_machine_token_update(resp)
@@ -643,7 +641,7 @@ def get_available_resources(cfg: UAConfig) -> List[Dict]:
 def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     """Query contract information for a specific token"""
     client = UAContractClient(cfg)
-    return client.request_contract_information(token)
+    return client.get_contract_using_token(token)
 
 
 def is_contract_changed(cfg: UAConfig) -> bool:
@@ -659,9 +657,7 @@ def is_contract_changed(cfg: UAConfig) -> bool:
         return False
 
     contract_client = UAContractClient(cfg)
-    resp = contract_client.get_updated_contract_info(
-        machine_token, contract_id
-    )
+    resp = contract_client.get_contract_machine(machine_token, contract_id)
     resp_expiry = (
         resp.get("machineTokenInfo", {})
         .get("contractInfo", {})
