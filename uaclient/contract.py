@@ -16,21 +16,28 @@ from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 
+# Here we describe every endpoint from the ua-contracts
+# service that is used by this client implementation.
 API_V1_ADD_CONTRACT_MACHINE = "/v1/context/machines/token"
-API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
+API_V1_GET_CONTRACT_MACHINE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
-API_V1_RESOURCES = "/v1/resources"
-API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
+API_V1_UPDATE_CONTRACT_MACHINE = (
+    "/v1/contracts/{contract}/context/machines/{machine}"
+)
+API_V1_AVAILABLE_RESOURCES = "/v1/resources"
+API_V1_GET_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
-API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
+API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE = "/v1/clouds/{cloud_type}/token"
 API_V1_UPDATE_ACTIVITY_TOKEN = (
     "/v1/contracts/{contract}/machine-activity/{machine}"
 )
-API_V1_CONTRACT_INFORMATION = "/v1/contract"
+API_V1_GET_CONTRACT_USING_TOKEN = "/v1/contract"
 
-API_V1_MAGIC_ATTACH = "/v1/magic-attach"
+API_V1_GET_MAGIC_ATTACH_TOKEN_INFO = "/v1/magic-attach"
+API_V1_NEW_MAGIC_ATTACH = "/v1/magic-attach"
+API_V1_REVOKE_MAGIC_ATTACH = "/v1/magic-attach"
 
 OVERRIDE_SELECTOR_WEIGHTS = {
     "series_overrides": 1,
@@ -74,10 +81,11 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         return machine_token
 
-    def request_resources(self) -> Dict[str, Any]:
+    def available_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
         resource_response, headers = self.request_url(
-            API_V1_RESOURCES, query_params=self._get_platform_basic_info()
+            API_V1_AVAILABLE_RESOURCES,
+            query_params=self._get_platform_basic_info(),
         )
         return resource_response
 
@@ -85,7 +93,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
         response_data, _response_headers = self.request_url(
-            API_V1_CONTRACT_INFORMATION, headers=headers
+            API_V1_GET_CONTRACT_USING_TOKEN, headers=headers
         )
         return response_data
 
@@ -101,7 +109,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         try:
             response, _headers = self.request_url(
-                API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(
+                API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
                     cloud_type=instance.cloud_type
                 ),
                 data=instance.identity_doc,
@@ -116,7 +124,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache("contract-token", response)
         return response
 
-    def request_resource_machine_access(
+    def get_resource_machine_access(
         self,
         machine_token: str,
         resource: str,
@@ -136,7 +144,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_id = system.get_machine_id(self.cfg)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+        url = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id
         )
         resource_access, headers = self.request_url(url, headers=headers)
@@ -206,7 +214,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         try:
             response, _ = self.request_url(
-                API_V1_MAGIC_ATTACH, headers=headers
+                API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
             )
         except exceptions.ContractAPIError as e:
             if hasattr(e, "code"):
@@ -227,7 +235,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         try:
             response, _ = self.request_url(
-                API_V1_MAGIC_ATTACH,
+                API_V1_NEW_MAGIC_ATTACH,
                 headers=headers,
                 method="POST",
             )
@@ -248,7 +256,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         try:
             self.request_url(
-                API_V1_MAGIC_ATTACH,
+                API_V1_REVOKE_MAGIC_ATTACH,
                 headers=headers,
                 method="DELETE",
             )
@@ -285,7 +293,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             )
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+        url = API_V1_GET_CONTRACT_MACHINE.format(
             contract=contract_id,
             machine=machine_id,
         )
@@ -319,7 +327,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         data = self._get_platform_data(machine_id)
         data["activityInfo"] = self._get_activity_info()
-        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+        url = API_V1_UPDATE_CONTRACT_MACHINE.format(
             contract=contract_id, machine=data["machineId"]
         )
         response, headers = self.request_url(
@@ -627,7 +635,7 @@ def request_updated_contract(
 def get_available_resources(cfg: UAConfig) -> List[Dict]:
     """Query available resources from the contract server for this machine."""
     client = UAContractClient(cfg)
-    resources = client.request_resources()
+    resources = client.available_resources()
     return resources.get("resources", [])
 
 

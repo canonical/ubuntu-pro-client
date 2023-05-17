@@ -326,7 +326,7 @@ class RepoEntitlement(base.UAEntitlement):
                 # resource access for tokens. We want to refresh this every
                 # enable call because it is not refreshed by `pro refresh`.
                 client = contract.UAContractClient(self.cfg)
-                machine_access = client.request_resource_machine_access(
+                machine_access = client.get_resource_machine_access(
                     machine_token, self.name
                 )
                 if machine_access:
