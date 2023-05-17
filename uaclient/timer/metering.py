@@ -17,6 +17,6 @@ def metering_enabled_resources(cfg: config.UAConfig) -> bool:
         return False
 
     contract = UAContractClient(cfg)
-    contract.report_machine_activity()
+    contract.update_activity_token()
 
     return True

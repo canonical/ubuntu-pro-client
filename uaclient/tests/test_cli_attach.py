@@ -279,9 +279,7 @@ class TestActionAttach:
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
-    @mock.patch(
-        M_PATH + "contract.UAContractClient.request_contract_machine_attach"
-    )
+    @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     @mock.patch("uaclient.actions.status", return_value=("", 0))
     @mock.patch("uaclient.status.format_tabular")
     def test_happy_path_with_token_arg(
