@@ -83,12 +83,12 @@ class TestAutoAttach:
     @mock.patch(M_PATH + "attach_with_token")
     @mock.patch(
         M_PATH
-        + "contract.UAContractClient.request_auto_attach_contract_token",
+        + "contract.UAContractClient.get_contract_token_for_cloud_instance",
         return_value={"contractToken": "token"},
     )
     def test_happy_path_on_auto_attach(
         self,
-        m_request_auto_attach_contract_token,
+        _m_get_contract_token_for_cloud_instances,
         m_attach_with_token,
         FakeConfig,
     ):
@@ -101,13 +101,14 @@ class TestAutoAttach:
         ] == m_attach_with_token.call_args_list
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
+        M_PATH
+        + "contract.UAContractClient.get_contract_token_for_cloud_instance"  # noqa
     )
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     def test_raise_unexpected_errors(
         self,
         _m_get_instance_id,
-        m_request_auto_attach_contract_token,
+        m_get_contract_token_for_cloud_instances,
         FakeConfig,
     ):
         """Any unexpected errors will be raised."""
@@ -119,7 +120,7 @@ class TestAutoAttach:
             ),
             error_response={"message": "something unexpected"},
         )
-        m_request_auto_attach_contract_token.side_effect = unexpected_error
+        m_get_contract_token_for_cloud_instances.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
             auto_attach(cfg, fake_instance_factory())
