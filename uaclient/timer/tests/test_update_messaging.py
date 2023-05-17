@@ -50,21 +50,21 @@ class TestGetContractExpiryStatus:
         (("2040-05-08T19:02:26Z", False), ("2042-05-08T19:02:26Z", True)),
     )
     @mock.patch("uaclient.files.MachineTokenFile.write")
-    @mock.patch(M_PATH + "contract.UAContractClient.get_updated_contract_info")
+    @mock.patch(M_PATH + "contract.UAContractClient.get_contract_machine")
     def test_update_contract_expiry(
         self,
-        get_updated_contract_info,
-        machine_token_write,
+        m_get_contract_machine,
+        m_machine_token_write,
         expiry,
         is_updated,
     ):
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {"contractInfo": {"effectiveTo": expiry}}
         }
         if is_updated:
-            1 == machine_token_write.call_count
+            1 == m_machine_token_write.call_count
         else:
-            0 == machine_token_write.call_count
+            0 == m_machine_token_write.call_count
 
 
 class TestUpdateMotdMessages:

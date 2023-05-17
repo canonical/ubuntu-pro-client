@@ -8,7 +8,7 @@ import pytest
 
 from uaclient import exceptions, messages, util
 from uaclient.contract import (
-    API_V1_CONTEXT_MACHINE_TOKEN,
+    API_V1_ADD_CONTRACT_MACHINE,
     API_V1_CONTRACT_INFORMATION,
     API_V1_RESOURCES,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
@@ -53,7 +53,7 @@ class TestUAContractClient:
     @mock.patch("uaclient.contract.system.get_dpkg_arch")
     @mock.patch("uaclient.contract.system.get_kernel_info")
     @mock.patch("uaclient.contract.system.get_release_info")
-    def test__request_machine_token_update(
+    def test_update_contract_machine(
         self,
         m_get_release_info,
         m_get_kernel_info,
@@ -105,7 +105,7 @@ class TestUAContractClient:
                 "user_facing_status",
                 new=entitlement_user_facing_status,
             ):
-                client._request_machine_token_update(**kwargs)
+                client._update_contract_machine(**kwargs)
 
         assert machine_token != cfg.machine_token_file.machine_token
         client.update_files_after_machine_token_update(machine_token)
@@ -158,7 +158,7 @@ class TestUAContractClient:
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.system.get_release_info")
     @mock.patch.object(UAContractClient, "_get_platform_data")
-    def test_get_updated_contract_info(
+    def test_get_contract_machine(
         self,
         m_platform_data,
         get_release_info,
@@ -195,7 +195,7 @@ class TestUAContractClient:
         }
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
-        resp = client.get_updated_contract_info(**kwargs)
+        resp = client.get_contract_machine(**kwargs)
         assert resp == machine_token
 
     def test_request_resource_machine_access(
@@ -221,7 +221,7 @@ class TestUAContractClient:
             mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
-    def test_request_contract_information(
+    def test_get_contract_using_token(
         self, _m_machine_id, m_request_url, FakeConfig
     ):
         m_request_url.return_value = ("response", {})
@@ -237,7 +237,7 @@ class TestUAContractClient:
             }
         }
 
-        assert "response" == client.request_contract_information("some_token")
+        assert "response" == client.get_contract_using_token("some_token")
         assert [
             mock.call("/v1/contract", **params)
         ] == m_request_url.call_args_list
@@ -246,7 +246,7 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "enabled_services", (([]), (["esm-apps", "livepatch"]))
     )
-    def test_report_machine_activity(
+    def test_update_activity_token(
         self,
         get_machine_id,
         request_url,
@@ -284,7 +284,7 @@ class TestUAContractClient:
                 with mock.patch(
                     "uaclient.config.files.MachineTokenFile.write"
                 ) as m_write_file:
-                    client.report_machine_activity()
+                    client.update_activity_token()
 
         expected_write_calls = 1
         assert expected_write_calls == m_write_file.call_count
@@ -312,7 +312,7 @@ class TestUAContractClient:
         "machine_id_response", (("contract-machine-id"), None)
     )
     @mock.patch.object(UAContractClient, "_get_platform_data")
-    def test__request_contract_machine_attach(
+    def test_add_contract_machine(
         self,
         m_platform_data,
         get_machine_id,
@@ -348,7 +348,7 @@ class TestUAContractClient:
 
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        client.request_contract_machine_attach(
+        client.add_contract_machine(
             contract_token=contract_token, machine_id=machine_id_param
         )
 
@@ -754,7 +754,7 @@ class TestRequestUpdatedContract:
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
             fake_client._responses = {
-                API_V1_CONTEXT_MACHINE_TOKEN: exceptions.ContractAPIError(
+                API_V1_ADD_CONTRACT_MACHINE: exceptions.ContractAPIError(
                     exceptions.UrlError(
                         "Server error",
                         code=error_code,
@@ -1011,11 +1011,11 @@ class TestRequestUpdatedContract:
         assert process_calls == process_entitlement_delta.call_args_list
 
 
-@mock.patch("uaclient.contract.UAContractClient.get_updated_contract_info")
+@mock.patch("uaclient.contract.UAContractClient.get_contract_machine")
 class TestContractChanged:
     @pytest.mark.parametrize("has_contract_expired", (False, True))
     def test_contract_change_with_expiry(
-        self, get_updated_contract_info, has_contract_expired, FakeConfig
+        self, m_get_contract_machine, has_contract_expired, FakeConfig
     ):
         if has_contract_expired:
             expiry_date = util.parse_rfc3339_date("2041-05-08T19:02:26Z")
@@ -1023,7 +1023,7 @@ class TestContractChanged:
         else:
             expiry_date = util.parse_rfc3339_date("2040-05-08T19:02:26Z")
             ret_val = False
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {
                 "contractInfo": {
                     "effectiveTo": expiry_date,
@@ -1035,7 +1035,7 @@ class TestContractChanged:
 
     @pytest.mark.parametrize("has_contract_changed", (False, True))
     def test_contract_change_with_entitlements(
-        self, get_updated_contract_info, has_contract_changed, FakeConfig
+        self, m_get_contract_machine, has_contract_changed, FakeConfig
     ):
         if has_contract_changed:
             resourceEntitlements = [{"type": "token1", "entitled": True}]
@@ -1043,7 +1043,7 @@ class TestContractChanged:
         else:
             resourceTokens = []
             resourceEntitlements = []
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {
                 "machineId": "test_machine_id",
                 "resourceTokens": resourceTokens,
@@ -1329,7 +1329,7 @@ class TestRequestAutoAttach:
         )
 
         with pytest.raises(exceptions.InvalidProImage) as exc_error:
-            contract.request_auto_attach_contract_token(
+            contract.get_contract_token_for_cloud_instance(
                 instance=mock.MagicMock()
             )
 

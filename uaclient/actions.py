@@ -88,7 +88,7 @@ def auto_attach(
         auto-attach support.
     """
     contract_client = contract.UAContractClient(cfg)
-    tokenResponse = contract_client.request_auto_attach_contract_token(
+    tokenResponse = contract_client.get_contract_token_for_cloud_instance(
         instance=cloud
     )
 

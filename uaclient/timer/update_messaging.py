@@ -44,9 +44,7 @@ def update_contract_expiry(cfg: UAConfig):
         .get("id", None)
     )
     contract_client = contract.UAContractClient(cfg)
-    resp = contract_client.get_updated_contract_info(
-        machine_token, contract_id
-    )
+    resp = contract_client.get_contract_machine(machine_token, contract_id)
     resp_expiry = (
         resp.get("machineTokenInfo", {})
         .get("contractInfo", {})
