@@ -765,14 +765,14 @@ class TestSetupAptConfig:
 
     @pytest.mark.parametrize("enable_by_default", (True, False))
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_CONTRACT_PATH + "request_resource_machine_access")
+    @mock.patch(M_CONTRACT_PATH + "get_resource_machine_access")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
     def test_setup_apt_config_request_machine_access_when_no_resource_token(
         self,
         run_apt_command,
         add_auth_apt_repo,
-        request_resource_machine_access,
+        _m_get_resource_machine_access,
         _setup_apt_proxy,
         enable_by_default,
         entitlement_factory,
@@ -795,12 +795,12 @@ class TestSetupAptConfig:
         )
         if enable_by_default:
             assert expected_msg in caplog_text()
-            assert 0 == request_resource_machine_access.call_count
+            assert 0 == _m_get_resource_machine_access.call_count
         else:
             assert expected_msg not in caplog_text()
             assert [
                 mock.call("blah", "repotest")
-            ] == request_resource_machine_access.call_args_list
+            ] == _m_get_resource_machine_access.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("os.path.exists", return_value=False)
