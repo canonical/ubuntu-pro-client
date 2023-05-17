@@ -1,7 +1,4 @@
-from uaclient.contract import (
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
-    UAContractClient,
-)
+from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
 
 
 class FakeContractClient(UAContractClient):
@@ -9,7 +6,7 @@ class FakeContractClient(UAContractClient):
     _requests = []
     _responses = {}
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+    refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
         contract="cid", machine="mid"
     )
 

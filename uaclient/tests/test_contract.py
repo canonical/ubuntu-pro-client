@@ -9,10 +9,10 @@ import pytest
 from uaclient import exceptions, messages, util
 from uaclient.contract import (
     API_V1_ADD_CONTRACT_MACHINE,
-    API_V1_CONTRACT_INFORMATION,
-    API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
-    API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
+    API_V1_AVAILABLE_RESOURCES,
+    API_V1_GET_CONTRACT_MACHINE,
+    API_V1_GET_CONTRACT_USING_TOKEN,
+    API_V1_GET_RESOURCE_MACHINE_ACCESS,
     UAContractClient,
     _get_override_weight,
     apply_contract_overrides,
@@ -198,7 +198,7 @@ class TestUAContractClient:
         resp = client.get_contract_machine(**kwargs)
         assert resp == machine_token
 
-    def test_request_resource_machine_access(
+    def test_get_resource_machine_access(
         self, get_machine_id, request_url, FakeConfig
     ):
         """GET from resource-machine-access route to "enable" a service"""
@@ -207,7 +207,7 @@ class TestUAContractClient:
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "resource": "cis"}
-        assert "response" == client.request_resource_machine_access(**kwargs)
+        assert "response" == client.get_resource_machine_access(**kwargs)
         assert "response" == cfg.read_cache("machine-access-cis")
         params = {
             "headers": {
@@ -592,9 +592,9 @@ class TestProcessEntitlementDeltas:
 
 
 class TestGetAvailableResources:
-    @mock.patch.object(UAContractClient, "request_resources")
-    def test_request_resources_error_on_network_disconnected(
-        self, m_request_resources, FakeConfig
+    @mock.patch.object(UAContractClient, "available_resources")
+    def test_available_resources_error_on_network_disconnected(
+        self, m_available_resources, FakeConfig
     ):
         """Raise error get_available_resources can't contact backend"""
         cfg = FakeConfig()
@@ -602,18 +602,20 @@ class TestGetAvailableResources:
         urlerror = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
-        m_request_resources.side_effect = urlerror
+        m_available_resources.side_effect = urlerror
 
         with pytest.raises(exceptions.UrlError) as exc:
             get_available_resources(cfg)
         assert urlerror == exc.value
 
     @mock.patch(M_PATH + "UAContractClient")
-    def test_request_resources_from_contract_server(self, client, FakeConfig):
-        """Call UAContractClient.request_resources to get updated resources."""
+    def test_available_resources_from_contract_server(
+        self, client, FakeConfig
+    ):
+        """Call get_available_resources to get updated resources."""
         cfg = FakeConfig()
 
-        url = API_V1_RESOURCES
+        url = API_V1_AVAILABLE_RESOURCES
 
         new_resources = [{"name": "new_resource", "available": False}]
 
@@ -633,7 +635,7 @@ class TestGetContractInformation:
     ):
         cfg = FakeConfig()
 
-        url = API_V1_CONTRACT_INFORMATION
+        url = API_V1_GET_CONTRACT_USING_TOKEN
 
         information = {"contract": "some_contract_data"}
 
@@ -649,13 +651,13 @@ class TestGetContractInformation:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+    refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
         contract="cid", machine="mid"
     )
-    access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+    access_route_ent1 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
         resource="ent1", machine="mid"
     )
-    access_route_ent2 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+    access_route_ent2 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
         resource="ent2", machine="mid"
     )
 
