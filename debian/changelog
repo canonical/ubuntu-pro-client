@@ -135,7 +135,7 @@ ubuntu-advantage-tools (27.13.4~23.04.1) lunar; urgency=medium
       in the machine-token.json file (LP: #2006351)
   * esm_cache
     - do not fail if we cannot extract information from
-      /etc/os-release file LP: #2006508)
+      /etc/os-release file (LP: #2006508)
   * security-status:
     -  consider packages without a candidate as 'unknown' (LP: #2006049)
   * status:
