@@ -428,6 +428,7 @@ ubuntu-advantage-tools (27.7~22.04.1) jammy; urgency=medium
     - refactor to catch exception from entitlement_factory
     - no longer always set log file to only root readable
     - when creating log file for the first time, make world readable
+    - adapt postinst for new messages module
   * New upstream release 27.7 (LP: #1964028)
     - attach: --attach-config option for customizing auto-enabled services
       and supplying token via a file
