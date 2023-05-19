@@ -2,9 +2,10 @@
 Feature: Livepatch
 
     @series.focal
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
         When I run `pro status` as non-root
         Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
@@ -73,8 +74,8 @@ Feature: Livepatch
         Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         """
         Examples: ubuntu release
-            | release |
-            | focal   |
+            | release | machine_type |
+            | focal   | lxd-vm       |
 
     @series.focal
     @uses.config.machine_type.any
@@ -128,9 +129,10 @@ Feature: Livepatch
 
     @series.kinetic
     @series.lunar
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
@@ -153,6 +155,6 @@ Feature: Livepatch
         livepatch +yes +n/a +Canonical Livepatch service
         """
         Examples: ubuntu release
-            | release | pretty_name           |
-            | kinetic | 22.10 (Kinetic Kudu)  |
-            | lunar   | 23.04 (Lunar Lobster) |
+            | release | machine_type | pretty_name           |
+            | kinetic | lxd-vm       | 22.10 (Kinetic Kudu)  |
+            | lunar   | lxd-vm       | 23.04 (Lunar Lobster) |
