@@ -10,6 +10,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import livepatch, messages
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import (
     PreserveAptCfg,
     get_apt_cache,
@@ -21,8 +22,8 @@ from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
+    ContractStatus,
 )
-from uaclient.status import status
 from uaclient.system import (
     REBOOT_PKGS_FILE_PATH,
     get_distro_info,
@@ -192,21 +193,32 @@ def filter_security_updates(
 
 def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
     """Returns the Pro information based on the config object."""
+    is_attached = _is_attached(cfg).is_attached
     ua_info = {
-        "attached": False,
+        "attached": is_attached,
         "enabled_services": [],
         "entitled_services": [],
     }  # type: Dict[str, Any]
 
-    status_dict = status(cfg=cfg, show_all=True)
-    if status_dict["attached"]:
-        ua_info["attached"] = True
-        for service in status_dict["services"]:
-            if service["name"] in ESM_SERVICES:
-                if service["entitled"] == "yes":
-                    ua_info["entitled_services"].append(service["name"])
-                if service["status"] == "enabled":
-                    ua_info["enabled_services"].append(service["name"])
+    if is_attached:
+        infra_entitlement = ESMInfraEntitlement(cfg)
+        apps_entitlement = ESMAppsEntitlement(cfg)
+
+        if apps_entitlement.contract_status() == ContractStatus.ENTITLED:
+            ua_info["entitled_services"].append("esm-apps")
+        if (
+            apps_entitlement.application_status()[0]
+            == ApplicationStatus.ENABLED
+        ):
+            ua_info["enabled_services"].append("esm-apps")
+
+        if infra_entitlement.contract_status() == ContractStatus.ENTITLED:
+            ua_info["entitled_services"].append("esm-infra")
+        if (
+            infra_entitlement.application_status()[0]
+            == ApplicationStatus.ENABLED
+        ):
+            ua_info["enabled_services"].append("esm-infra")
 
     return ua_info
 
