@@ -1865,6 +1865,21 @@ def _warn_about_new_version(cmd_args=None) -> None:
         logging.warning(NEW_VERSION_NOTICE.format(version=new_version))
 
 
+def _warn_about_output_redirection(cmd_args) -> None:
+    """Warn users that the user readable output may change."""
+    if (
+        cmd_args.command in ("status", "security-status")
+        and not sys.stdout.isatty()
+    ):
+        if hasattr(cmd_args, "format") and cmd_args.format in ("json", "yaml"):
+            return
+        logging.warning(
+            messages.WARNING_HUMAN_READABLE_OUTPUT.format(
+                command=cmd_args.command
+            )
+        )
+
+
 def setup_logging(console_level, log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file
 
@@ -2037,6 +2052,9 @@ def main(sys_argv=None):
         logging.debug(
             "Executed with environment variables: %r" % pro_environment
         )
+
+    _warn_about_output_redirection(args)
+
     return_value = args.action(args, cfg=cfg)
 
     _warn_about_new_version(args)
