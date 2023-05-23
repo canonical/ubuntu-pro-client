@@ -4,8 +4,9 @@ Feature: Livepatch
     @series.focal
     @uses.config.machine_type.any
     @uses.config.machine_type.lxd-vm
-    Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
+    Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I change config key `livepatch_url` to use value `<livepatch_url>`
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
         When I run `pro status` as non-root
         Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
@@ -15,11 +16,34 @@ Feature: Livepatch
         """
         livepatch +yes +Current kernel is not supported
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         """
         Then I verify that files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
+        When I run `apt-get install linux-generic -y` with sudo
+        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
+        When I run `update-grub` with sudo
+        When I reboot the machine
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        livepatch +yes +Canonical Livepatch service
+        """
+        Then stdout does not contain substring:
+        """
+        Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+        """
+        Examples: ubuntu release
+            | release | machine_type | livepatch_url                           |
+            | focal   | lxd-vm       | https://livepatch.canonical.com         |
+            | focal   | lxd-vm       | https://livepatch.staging.canonical.com |
+
+    @series.focal
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -62,16 +86,6 @@ Feature: Livepatch
         Then stdout matches regexp:
         """
         livepatch +yes +enabled +Canonical Livepatch service
-        """
-        When I run `pro detach --assume-yes` with sudo
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +Canonical Livepatch service
-        """
-        Then stdout does not match regexp:
-        """
-        Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         """
         Examples: ubuntu release
             | release | machine_type |
