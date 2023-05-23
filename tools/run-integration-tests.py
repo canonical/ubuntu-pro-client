@@ -69,9 +69,8 @@ def build_commands(
                     "behave-{}-{}".format(p, series_version),
                     "--",
                     "-D",
-                    "install_from={}".format(install_from)
+                    "install_from={}".format(install_from),
                 ]
-
 
                 if check_version:
                     command.extend(
