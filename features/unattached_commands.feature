@@ -252,7 +252,8 @@ Feature: Command behaviour when unattached
           | kinetic |
           | lunar   |
 
-    @series.all
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
@@ -309,6 +310,64 @@ Feature: Command behaviour when unattached
           | release |
           # | xenial  | Can't rely on Xenial because of bash sorting things weirdly
           | bionic  |
+
+    @series.focal
+    @series.jammy
+    @series.lunar
+    @uses.config.machine_type.lxd-container
+    # Side effect: this verifies that `ua` still works as a command
+    Scenario Outline: Verify autocomplete options
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I prepare the autocomplete test
+        And I press tab twice to autocomplete the `ua` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `pro` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `ua enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `pro enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `ua disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `pro disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+
+        Examples: ubuntu release
+          | release |
           | focal   |
           | jammy   |
           # | kinetic | There is a very weird error on Kinetic, irrelevant to this test
