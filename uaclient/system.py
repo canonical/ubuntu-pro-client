@@ -50,6 +50,7 @@ KernelInfo = NamedTuple(
     [
         ("uname_machine_arch", str),
         ("uname_release", str),
+        ("build_date", Optional[datetime.datetime]),
         ("proc_version_signature_version", Optional[str]),
         ("major", Optional[int]),
         ("minor", Optional[int]),
@@ -78,6 +79,59 @@ CpuInfo = NamedTuple(
 )
 
 
+RE_KERNEL_EXTRACT_BUILD_DATE = r"(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*"
+
+
+def _get_kernel_changelog_timestamp(
+    uname: os.uname_result,
+) -> Optional[datetime.datetime]:
+    if is_container():
+        with util.disable_log_to_console():
+            logging.warning(
+                "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
+            )
+        return None
+
+    with util.disable_log_to_console():
+        logging.warning("Falling back to using timestamp of kernel changelog")
+
+    try:
+        stat_result = os.stat(
+            "/usr/share/doc/linux-image-{}/changelog.Debian.gz".format(
+                uname.release
+            )
+        )
+        return datetime.datetime.fromtimestamp(
+            stat_result.st_mtime, datetime.timezone.utc
+        )
+    except Exception:
+        with util.disable_log_to_console():
+            logging.warning("Unable to stat kernel changelog")
+        return None
+
+
+def _get_kernel_build_date(
+    uname: os.uname_result,
+) -> Optional[datetime.datetime]:
+    date_match = re.search(RE_KERNEL_EXTRACT_BUILD_DATE, uname.version)
+    if date_match is None:
+        with util.disable_log_to_console():
+            logging.warning("Unable to find build date in uname version")
+        return _get_kernel_changelog_timestamp(uname)
+    date_str = date_match.group(0)
+    try:
+        dt = datetime.datetime.strptime(date_str, "%a %b %d %H:%M:%S %Z %Y")
+    except ValueError:
+        with util.disable_log_to_console():
+            logging.warning("Unable to parse build date from uname version")
+        return _get_kernel_changelog_timestamp(uname)
+    if dt.tzinfo is None:
+        # Give it a default timezone if it didn't get one from strptime
+        # The Livepatch API requires a timezone
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
+
+
 @lru_cache(maxsize=None)
 def get_kernel_info() -> KernelInfo:
     proc_version_signature_version = None
@@ -89,6 +143,7 @@ def get_kernel_info() -> KernelInfo:
 
     uname = os.uname()
     uname_machine_arch = uname.machine.strip()
+    build_date = _get_kernel_build_date(uname)
 
     uname_release = uname.release.strip()
     uname_match = re.match(RE_KERNEL_UNAME, uname_release)
@@ -99,6 +154,7 @@ def get_kernel_info() -> KernelInfo:
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
+            build_date=build_date,
             proc_version_signature_version=proc_version_signature_version,
             major=None,
             minor=None,
@@ -110,6 +166,7 @@ def get_kernel_info() -> KernelInfo:
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
+            build_date=build_date,
             proc_version_signature_version=proc_version_signature_version,
             major=int(uname_match.group("major")),
             minor=int(uname_match.group("minor")),

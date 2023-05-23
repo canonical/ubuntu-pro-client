@@ -69,6 +69,7 @@ class TestCISEntitlementEnable:
             uname_machine_arch="x86_64",
             uname_release="4.15.0-00-generic",
             proc_version_signature_version=None,
+            build_date=None,
             major=None,
             minor=None,
             patch=None,
