@@ -27,7 +27,7 @@ Necessary endpoints:
 - `esm.ubuntu.com:443`
 
 ## Livepatch
-`livepatch` requires a `snap` packaged client, so `snap`-related endpoints are necessary. The Livepatch client itself also requires network access to download the patches from the Livepatch server.
+`livepatch` requires a `snap`-packaged client, so `snap`-related endpoints are necessary. The Livepatch client itself also requires network access to download the patches from the Livepatch server.
 ```{seealso}
 The [snap documentation page](https://snapcraft.io/docs/network-requirements) may have more up-to-date information on snap-related network requirements.
 ```
