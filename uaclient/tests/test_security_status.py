@@ -628,6 +628,7 @@ class TestGetLivepatchFixedCVEs:
             uname_machine_arch="",
             uname_release="",
             proc_version_signature_version=None,
+            build_date=None,
             major=None,
             minor=None,
             patch=None,
