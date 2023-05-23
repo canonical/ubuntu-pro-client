@@ -779,6 +779,53 @@ class TestMain:
             == str(err)
         )
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "cli_args,is_tty,should_warn",
+        (
+            (["pro", "status"], True, False),
+            (["pro", "status"], False, True),
+            (["pro", "status", "--format", "tabular"], True, False),
+            (["pro", "status", "--format", "tabular"], False, True),
+            (["pro", "status", "--format", "json"], True, False),
+            (["pro", "status", "--format", "json"], False, False),
+            (["pro", "security-status"], True, False),
+            (["pro", "security-status"], False, True),
+            (["pro", "security-status", "--format", "json"], True, False),
+            (["pro", "security-status", "--format", "json"], False, False),
+        ),
+    )
+    @mock.patch("uaclient.cli.action_status")
+    @mock.patch("uaclient.cli.action_security_status")
+    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("sys.stdout.isatty")
+    def test_status_human_readable_warning(
+        self,
+        m_tty,
+        _m_setup_logging,
+        _m_action_security_status,
+        _m_action_status,
+        caplog_text,
+        cli_args,
+        is_tty,
+        should_warn,
+        FakeConfig,
+    ):
+        check_text = "WARNING: this output is intended to be human readable"
+        m_tty.return_value = is_tty
+        with mock.patch("sys.argv", cli_args):
+            with mock.patch(
+                "uaclient.config.UAConfig",
+                return_value=FakeConfig(),
+            ):
+                main()
+
+        logs = caplog_text()
+        if should_warn:
+            assert check_text in logs
+        else:
+            assert check_text not in logs
+
 
 class TestSetupLogging:
     @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
