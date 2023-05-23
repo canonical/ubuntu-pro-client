@@ -1,6 +1,6 @@
 # Ubuntu Pro Client network requirements
 
-The Ubuntu Pro Client and Ubuntu Pro services need to make network requests to certain services to function correctly.
+The Ubuntu Pro Client (`pro`) and Ubuntu Pro services need to make network requests to certain services to function correctly.
 
 ```{seealso}
 You can also refer to our [Proxy Configuration guide](../howtoguides/configure_proxies.md)
