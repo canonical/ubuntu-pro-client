@@ -207,6 +207,7 @@ class TestUALivepatchClient:
             "flavor",
             "arch",
             "codename",
+            "build_date",
             "expected_request_calls",
         ],
         [
@@ -215,6 +216,9 @@ class TestUALivepatchClient:
                 "generic",
                 "amd64",
                 "xenial",
+                datetime.datetime(
+                    2020, 1, 1, 1, 1, 1, tzinfo=datetime.timezone.utc
+                ),
                 [
                     mock.call(
                         "/v1/api/kernels/supported",
@@ -224,6 +228,7 @@ class TestUALivepatchClient:
                             "flavour": "generic",
                             "architecture": "amd64",
                             "codename": "xenial",
+                            "build-date": "2020-01-01T01:01:01+00:00",
                         },
                     )
                 ],
@@ -233,6 +238,7 @@ class TestUALivepatchClient:
                 "kvm",
                 "arm64",
                 "kinetic",
+                None,
                 [
                     mock.call(
                         "/v1/api/kernels/supported",
@@ -242,6 +248,7 @@ class TestUALivepatchClient:
                             "flavour": "kvm",
                             "architecture": "arm64",
                             "codename": "kinetic",
+                            "build-date": "unknown",
                         },
                     )
                 ],
@@ -256,11 +263,14 @@ class TestUALivepatchClient:
         flavor,
         arch,
         codename,
+        build_date,
         expected_request_calls,
     ):
         m_request_url.return_value = ("mock", "mock")
         lp_client = UALivepatchClient()
-        lp_client.is_kernel_supported(version, flavor, arch, codename)
+        lp_client.is_kernel_supported(
+            version, flavor, arch, codename, build_date
+        )
         assert m_request_url.call_args_list == expected_request_calls
 
     @pytest.mark.parametrize(
@@ -269,13 +279,27 @@ class TestUALivepatchClient:
             "expected",
         ],
         [
-            ([({"Supported": True}, None)], True),
-            ([({"Supported": False}, None)], False),
-            ([({}, None)], False),
+            ([({"Supported": True}, None)], LivepatchSupport.SUPPORTED),
+            ([({"Supported": False}, None)], LivepatchSupport.UNSUPPORTED),
+            ([({}, None)], LivepatchSupport.UNSUPPORTED),
             ([([], None)], None),
             ([("string", None)], None),
             (exceptions.UrlError(mock.MagicMock()), None),
             (Exception(), None),
+            ([({"Supported": "supported"}, None)], LivepatchSupport.SUPPORTED),
+            (
+                [({"Supported": "unsupported"}, None)],
+                LivepatchSupport.UNSUPPORTED,
+            ),
+            ([({"Supported": "unknown"}, None)], LivepatchSupport.UNKNOWN),
+            (
+                [({"Supported": "kernel-end-of-life"}, None)],
+                LivepatchSupport.KERNEL_EOL,
+            ),
+            (
+                [({"Supported": "kernel-upgrade-required"}, None)],
+                LivepatchSupport.KERNEL_UPGRADE_REQUIRED,
+            ),
         ],
     )
     def test_is_kernel_supported_interprets_api_response(
@@ -287,7 +311,7 @@ class TestUALivepatchClient:
     ):
         m_request_url.side_effect = request_side_effect
         lp_client = UALivepatchClient()
-        assert lp_client.is_kernel_supported("", "", "", "") == expected
+        assert lp_client.is_kernel_supported("", "", "", "", None) == expected
 
 
 class TestOnSupportedKernel:
@@ -489,8 +513,8 @@ class TestOnSupportedKernel:
         ],
         [
             (
-                ("5.14-14", "generic", "amd64", "focal"),
-                True,
+                ("5.14-14", "generic", "amd64", "focal", None),
+                LivepatchSupport.SUPPORTED,
                 [
                     mock.call(
                         LivepatchSupportCacheData(
@@ -503,11 +527,11 @@ class TestOnSupportedKernel:
                         )
                     )
                 ],
-                True,
+                LivepatchSupport.SUPPORTED,
             ),
             (
-                ("5.14-14", "kvm", "arm64", "focal"),
-                False,
+                ("5.14-14", "kvm", "arm64", "focal", None),
+                LivepatchSupport.UNSUPPORTED,
                 [
                     mock.call(
                         LivepatchSupportCacheData(
@@ -520,10 +544,10 @@ class TestOnSupportedKernel:
                         )
                     )
                 ],
-                False,
+                LivepatchSupport.UNSUPPORTED,
             ),
             (
-                ("4.14-14", "kvm", "arm64", "xenial"),
+                ("4.14-14", "kvm", "arm64", "xenial", None),
                 None,
                 [
                     mock.call(
@@ -538,6 +562,23 @@ class TestOnSupportedKernel:
                     )
                 ],
                 None,
+            ),
+            (
+                ("4.14-14", "kvm", "arm64", "xenial", None),
+                LivepatchSupport.UNKNOWN,
+                [
+                    mock.call(
+                        LivepatchSupportCacheData(
+                            version="4.14-14",
+                            flavor="kvm",
+                            arch="arm64",
+                            codename="xenial",
+                            supported=None,
+                            cached_at=mock.ANY,
+                        )
+                    )
+                ],
+                LivepatchSupport.UNKNOWN,
             ),
         ],
     )
@@ -734,9 +775,9 @@ class TestOnSupportedKernel:
                 "amd64",
                 mock.MagicMock(series="xenial"),
                 (False, None),
-                True,
+                LivepatchSupport.SUPPORTED,
                 [mock.call("5.6", "generic", "amd64", "xenial")],
-                [mock.call("5.6", "generic", "amd64", "xenial")],
+                [mock.call("5.6", "generic", "amd64", "xenial", None)],
                 LivepatchSupport.SUPPORTED,
             ),
         ],
