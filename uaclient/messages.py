@@ -1359,3 +1359,9 @@ PRO_HELP_SERVICE_INFO = NamedMessage(
     "pro-help-service-info",
     "Use pro help <service> to get more details about each service",
 )
+
+WARNING_HUMAN_READABLE_OUTPUT = """\
+WARNING: this output is intended to be human readable, and subject to change.
+In scripts, prefer using machine readable data from the `pro api` command,
+or use `pro {command} --format json`.
+"""
