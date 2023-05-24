@@ -42,7 +42,11 @@ def main() -> int:
 
     notify("READY=1")
 
-    if os.path.exists("/run/cloud-init/cloud-id-gce") and not os.path.exists(
+    is_correct_cloud = any(
+        os.path.exists("/run/cloud-init/cloud-id-{}".format(cloud))
+        for cloud in ("gce", "azure")
+    )
+    if is_correct_cloud and not os.path.exists(
         retry_auto_attach.FLAG_FILE_PATH
     ):
         LOG.info("mode: poll for pro license")
