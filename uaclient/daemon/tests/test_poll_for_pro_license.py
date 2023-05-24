@@ -158,7 +158,7 @@ class TestPollForProLicense:
                 None,
                 None,
                 None,
-                [mock.call("Not on gcp, shutting down")],
+                [mock.call("Not on supported cloud platform, shutting down")],
                 [],
                 [],
             ),
