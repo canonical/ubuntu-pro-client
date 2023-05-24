@@ -208,6 +208,73 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   |
             | jammy   |
 
+    @series.all
+    @uses.config.contract_token
+    @uses.config.machine_type.azure.generic
+    Scenario Outline: daemon should run when appropriate on azure generic lts and non-lts
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # verify its enabled, but stops itself when not configured to poll
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout matches regexp:
+        """
+        Configured to not poll for pro license, shutting down
+        """
+        Then stdout matches regexp:
+        """
+        daemon ending
+        """
+        When I run `systemctl is-enabled ubuntu-advantage.service` with sudo
+        Then stdout matches regexp:
+        """
+        enabled
+        """
+        Then I verify that running `systemctl is-failed ubuntu-advantage.service` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        inactive
+        """
+
+        # verify it stays on when configured to do so
+        When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+        """
+        { "poll_for_pro_license": true }
+        """
+
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout matches regexp:
+        """
+        Cancelling polling
+        """
+        Then stdout matches regexp:
+        """
+        daemon ending
+        """
+        When I run `systemctl is-enabled ubuntu-advantage.service` with sudo
+        Then stdout matches regexp:
+        """
+        enabled
+        """
+        Then I verify that running `systemctl is-failed ubuntu-advantage.service` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        inactive
+        """
+        Examples: version
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |
+            | jammy   |
+            | lunar   |
+
     @series.kinetic
     @uses.config.contract_token
     @uses.config.machine_type.gcp.generic
@@ -236,8 +303,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     @uses.config.machine_type.lxd-container
     @uses.config.machine_type.lxd-vm
     @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    Scenario Outline: daemon does not start when not on gcpgeneric
+    Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
@@ -266,8 +332,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lts
     @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
-    Scenario Outline: daemon does not start when not on gcpgeneric
+    Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -301,7 +366,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lts
     @uses.config.machine_type.gcp.pro
-    Scenario Outline: daemon does not start when not on gcpgeneric
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """

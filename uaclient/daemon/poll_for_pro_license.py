@@ -4,6 +4,7 @@ import time
 from uaclient import actions, exceptions, lock, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.clouds import AutoAttachCloudInstance
+from uaclient.clouds.azure import UAAutoAttachAzureInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
@@ -46,8 +47,15 @@ def poll_for_pro_license(cfg: UAConfig):
         LOG.debug("Not on cloud, shutting down")
         return
 
-    if not isinstance(cloud, UAAutoAttachGCPInstance):
-        LOG.debug("Not on gcp, shutting down")
+    is_supported_cloud = any(
+        isinstance(cloud, cloud_instance)
+        for cloud_instance in (
+            UAAutoAttachGCPInstance,
+            UAAutoAttachAzureInstance,
+        )
+    )
+    if not is_supported_cloud:
+        LOG.debug("Not on supported cloud platform, shutting down")
         return
 
     if not cloud.should_poll_for_pro_license():

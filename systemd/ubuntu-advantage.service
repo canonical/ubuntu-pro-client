@@ -16,10 +16,11 @@ After=network.target network-online.target systemd-networkd.service ua-auto-atta
 ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json
 
 # This service has two modes:
-# 1. GCP detect pro mode - only on GCP
+# 1. Detect possible in-place upgrade to pro - on GCP and Azure
 # 2. auto-attach retry mode - only if ua-auto-attach.service fails
 # The following conditions correspond to those two modes.
 ConditionPathExists=|/run/cloud-init/cloud-id-gce
+ConditionPathExists=|/run/cloud-init/cloud-id-azure
 ConditionPathExists=|/run/ubuntu-advantage/flags/auto-attach-failed
 
 [Service]
