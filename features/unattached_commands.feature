@@ -192,8 +192,12 @@ Feature: Command behaviour when unattached
         When I reboot the machine
         Then I verify that no files exist matching `/run/ubuntu-advantage/candidate-version`
         When I run `pro status` with sudo
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
         # We forge a candidate to see results
@@ -211,8 +215,12 @@ Feature: Command behaviour when unattached
         to get the latest version with new features and bug fixes.
         """
         When I run `pro status --format json` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         When I run `pro config show` as non-root
         Then stderr matches regexp:
@@ -233,14 +241,22 @@ Feature: Command behaviour when unattached
         \"code\": \"new-version-available\"
         """
         When I run `pro api u.pro.version.v1` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         When I run `apt-get update` with sudo
         # apt-get update will bring a new candidate, which is the current installed version
         And I run `pro status` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
 
         Examples: ubuntu release
