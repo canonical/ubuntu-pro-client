@@ -20,16 +20,16 @@ are unlikely to want to use all of these tools and services at the same time,
 so you are free to select the precise stream of updates and versions you want
 to apply on any given machine covered by your Pro subscription.
 
-To help you navigate the various services offered through Ubuntu Pro, click on
-the tab that best represents your situation for our suggestions on which
-services might be of interest to you. For example, Pro includes a set of
-package versions that are compliant with FIPS regulations. You will only want
-these versions on machines that *need* to meet FIPS requirements, so you can
-choose to enable that stream specifically on those machines.
+To help you navigate the services offered through Ubuntu Pro, click on the tab
+that best describes your needs for our suggestions on which services might be
+of interest to you. For example, Pro includes a set of package versions that
+are compliant with FIPS regulations. You will only want these versions on
+machines that *need* to meet FIPS requirements, so you can choose to enable
+that stream specifically on those machines.
 
 .. tab-set::
 
-    .. tab-item:: Commercial or enterprise
+    .. tab-item:: Commercial
 
        * **Expanded Security Maintenance (ESM)**
 
@@ -58,21 +58,17 @@ choose to enable that stream specifically on those machines.
          vulnerabilities while the system runs. It removes the need to
          immediately reboot the kernel after an upgrade so that you can
          schedule downtime for when it's convenient. This tooling is available
-         through ``livepatch``.
+         through ``livepatch`` and is one of the services we enable by default.
 
          * Find out more about what Livepatch can do for your organisation in
            the `Livepatch documentation`_, or find out
            :doc:`how to enable it<howtoguides/enable_livepatch>`.
 
-       * **Landscape** (coming soon!)
-
-         `Landscape`_
-
        Want more information?
 
-    .. tab-item:: Certification and hardening
+    .. tab-item:: Security certification
 
-       Ubuntu provides security compliance, `certifications, and hardening`_:
+       Ubuntu provides security `compliance, certifications, and hardening`_:
 
        * **FIPS 140-2**
 
@@ -83,15 +79,16 @@ choose to enable that stream specifically on those machines.
 
          * For more details about managing FIPS, check out this guide. <-- note
            we need a guide, which also includes which services are
-           incompatible with fips   
+           incompatible with fips
 
        * **CIS benchmarking**
 
-         * Center for Internet Security `(CIS) Benchmark`_ tooling is available
-           with ``cis``, up to (and including) 20.04 LTS.
          * In the 20.04 LTS we introduced the `Ubuntu Security Guide (USG)`_
            tooling through ``usg``, which replaces ``cis`` in releases after
-           20.04 LTS. 
+           20.04 LTS.
+
+         * Center for Internet Security `(CIS) Benchmark`_ tooling is available
+           with ``cis``, up to (and including) 20.04 LTS.
 
          * Find out :doc:`how to manage CIS and USG<howtoguides/enable_cis>`
            with the Pro Client.
@@ -107,15 +104,14 @@ choose to enable that stream specifically on those machines.
 
        Want more information?
 
-    .. tab-item:: Personal user on LTS
+    .. tab-item:: Personal user
 
        * **Expanded Security Maintenance (ESM)**
 
-         If you're using Pro on an LTS machine (Desktop or Server) and don't
-         want to upgrade to a newer LTS yet, you can get additional security
-         support through `Expanded Security Maintenance (ESM)`_. We recommend
-         it for everyone using Pro, and it's enabled by default. It includes
-         two services:
+         If you're using Pro on an LTS machine (Desktop or Server) you can get
+         additional security support through
+         `Expanded Security Maintenance (ESM)`_. We recommend it for everyone
+         using Pro, and it's enabled by default. It includes two services:
 
          * ``esm-infra`` provides security updates for packages in the Ubuntu
            'main' repository (packages from Ubuntu) for five additional years
@@ -143,7 +139,7 @@ choose to enable that stream specifically on those machines.
 
        Want more information?
 
-    .. tab-item:: Other security services
+    .. tab-item:: Specialty services
 
        * **ROS ESM**
 
@@ -152,9 +148,8 @@ choose to enable that stream specifically on those machines.
          with ROS Kinetic on Ubuntu 16.04 -- including packages from the Ubuntu
          'universe' repository.
 
-         * ``ros`` provides all of the same security coverage as you get with
-           ESM, plus more than 600 packages for ROS 1 Kinetic and Melodic, and
-           ROS 2 Foxy. 
+         * ``ros`` provides security updates to the 600+ packages for ROS 1
+           Kinetic and Melodic, and ROS 2 Foxy. 
 
          * ``ros-updates`` also gives you access to non-security updates.
 
@@ -272,7 +267,7 @@ constructive feedback.
 .. LINKS:
 .. _Ubuntu Pro: https://ubuntu.com/pro
 .. _Common Criteria EAL2 (CC EAL): https://ubuntu.com/security/cc
-.. _certifications, and hardening: https://ubuntu.com/security/certifications
+.. _compliance, certifications, and hardening: https://ubuntu.com/security/certifications
 .. _(CIS) Benchmark: https://ubuntu.com/security/cis
 .. _Ubuntu Security Guide (USG): https://ubuntu.com/security/certifications/docs/usg
 .. _Expanded Security Maintenance (ESM): https://ubuntu.com/security/esm

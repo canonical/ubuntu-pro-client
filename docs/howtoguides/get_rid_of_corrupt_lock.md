@@ -11,7 +11,7 @@ PROCESS_PID:LOCK_HOLDER_NAME
 
 Where:
 
-*PROCESS_PID*: The PID of the process that is running the pro command
+*PROCESS_PID*: The PID of the process that is running the `pro` command
 *LOCK_HOLDER_NAME*: The name of the command that is using the lock (i.e. `pro disable`)
 
 If the lock file doesn't follow that pattern, we say that it is corrupted. That might happen if we

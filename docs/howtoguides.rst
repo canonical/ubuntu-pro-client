@@ -77,8 +77,8 @@ How to use ``pro`` commands
 
    Check Ubuntu Pro Client version <howtoguides/check_pro_version>
 
-``pro lock``
-------------
+Corrupted lock files
+====================
 
 .. toctree::
    :maxdepth: 1
