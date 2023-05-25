@@ -34,7 +34,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 2
    
-   howtoguides/configure_index
+   Configure... <howtoguides/configure_index>
 
 ``pro enable``
 --------------
@@ -42,7 +42,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 2
       
-   howtoguides/enable_index
+   Enable... <howtoguides/enable_index>
 
 ``pro fix``
 -----------
