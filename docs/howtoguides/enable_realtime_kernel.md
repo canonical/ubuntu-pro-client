@@ -62,3 +62,9 @@ $ sudo apt install ubuntu-realtime
 ```
 
 You'll need to reboot after installing to boot into the Real-time kernel.
+
+## Notes
+- Real-Time Kernel is not compatible with Livepatch. If you wish to use the
+  Real-Time Kernel but Livepatch is enabled, you will
+  [need to disable Livepatch](https://ubuntu.com/security/livepatch/docs/livepatch/how-to/disable)
+  first.

@@ -10,7 +10,7 @@ using the Ubuntu Pro Client (`pro`).
 
 After you have attached your subscription and installed the
 `ubuntu-advantage-tools` package, you can check if `esm-apps` and `esm-infra`
-are installed by running the following command:
+are enabled by running the following command:
 
 ```bash
 pro status
@@ -77,8 +77,8 @@ Or the following command to disable ESM-Apps:
 sudo pro disable esm-apps
 ```
 
+## Notes
 
-```{seealso}
-For more information about ESM-Apps and ESM-Infra, see
+- For more information about ESM-Apps and ESM-Infra, see
 [our explanatory guide](../explanations/about_esm).
-```
+

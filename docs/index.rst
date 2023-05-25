@@ -56,13 +56,13 @@ that stream specifically on those machines.
 
          Ubuntu `Livepatch`_ reduces costly unplanned maintenance by patching
          vulnerabilities while the system runs. It removes the need to
-         immediately reboot the kernel after an upgrade so that you can
-         schedule downtime for when it's convenient. This tooling is available
-         through ``livepatch`` and is one of the services we enable by default.
+         immediately reboot after a kernel upgrade so that you can schedule
+         downtime when it's convenient. This tooling is available through
+         ``livepatch`` and is one of the services we enable by default.
 
          * Find out more about what Livepatch can do for your organisation in
-           the `Livepatch documentation`_, or find out
-           :doc:`how to enable it<howtoguides/enable_livepatch>`.
+           the `Livepatch documentation`_, or learn
+           :doc:`how to enable it<howtoguides/enable_livepatch>` with ``pro``.
 
        Want more information?
 
@@ -77,20 +77,20 @@ that stream specifically on those machines.
          * Compliant but non-certified patches are available through
            ``fips-updates``.
 
-         * For more details about managing FIPS, check out this guide. <-- note
-           we need a guide, which also includes which services are
-           incompatible with fips
+         * Find out more :doc:`about managing FIPS<howtoguides/enable_fips>`.
 
-       * **CIS benchmarking**
+       * **Ubuntu Security Guide (USG)**
 
-         * In the 20.04 LTS we introduced the `Ubuntu Security Guide (USG)`_
-           tooling through ``usg``, which replaces ``cis`` in releases after
-           20.04 LTS.
+         * In the 20.04 LTS we introduced the `Ubuntu Security Guide`_, which
+           provides security tooling through ``usg``. It bundles together
+           multiple key components, such as CIS benchmarking and DISA-STIG.
 
-         * Center for Internet Security `(CIS) Benchmark`_ tooling is available
-           with ``cis``, up to (and including) 20.04 LTS.
+         * Before USG, Center for Internet Security `(CIS) Benchmark`_ tooling
+           was available as a separate service through ``cis``. This can be
+           used up to (and including) 20.04 LTS, but on all later LTS releases
+           this functionality is provided through ``usg``.
 
-         * Find out :doc:`how to manage CIS and USG<howtoguides/enable_cis>`
+         * Find out :doc:`how to manage USG (and CIS)<howtoguides/enable_cis>`
            with the Pro Client.
 
        * **Common Criteria**
@@ -135,7 +135,7 @@ that stream specifically on those machines.
          unsure.
 
          * Find out
-           :doc:`how to enable Livepatch<howtoguides/enable_livepatch>`
+           :doc:`how to enable Livepatch<howtoguides/enable_livepatch>`.
 
        Want more information?
 
@@ -269,7 +269,7 @@ constructive feedback.
 .. _Common Criteria EAL2 (CC EAL): https://ubuntu.com/security/cc
 .. _compliance, certifications, and hardening: https://ubuntu.com/security/certifications
 .. _(CIS) Benchmark: https://ubuntu.com/security/cis
-.. _Ubuntu Security Guide (USG): https://ubuntu.com/security/certifications/docs/usg
+.. _Ubuntu Security Guide: https://ubuntu.com/security/certifications/docs/usg
 .. _Expanded Security Maintenance (ESM): https://ubuntu.com/security/esm
 .. _a security assessment: https://ubuntu.com/contact-us/form?product=pro
 .. _ROS ESM: https://ubuntu.com/robotics/ros-esm
