@@ -531,6 +531,16 @@ class TestActionAttach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @pytest.mark.parametrize(
+        "expected_exception,expected_msg",
+        (
+            (
+                UserFacingError("error"),
+                messages.ATTACH_FAILURE_DEFAULT_SERVICES,
+            ),
+            (Exception("error"), messages.UNEXPECTED_ERROR),
+        ),
+    )
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
     @mock.patch("uaclient.contract.apply_contract_overrides")
@@ -543,6 +553,8 @@ class TestActionAttach:
         _m_apply_contract_overrides,
         m_process_entitlement_delta,
         m_enable_order,
+        expected_exception,
+        expected_msg,
         FakeConfig,
         event,
     ):
@@ -552,7 +564,7 @@ class TestActionAttach:
         m_enable_order.return_value = ["test1", "test2"]
         m_process_entitlement_delta.side_effect = [
             ({"test": 123}, True),
-            UserFacingError("error"),
+            expected_exception,
         ]
         m_request_url.return_value = (
             {
@@ -596,12 +608,20 @@ class TestActionAttach:
                 ):
                     main_error_handler(action_attach)(args, cfg)
 
-        expected_msg = messages.ATTACH_FAILURE_DEFAULT_SERVICES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "services": [
+                            {
+                                "code": expected_msg.name,
+                                "name": "test2",
+                                "title": expected_msg.msg,
+                            }
+                        ]
+                    },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
                     "service": None,

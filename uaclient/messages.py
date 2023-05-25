@@ -478,7 +478,7 @@ ALREADY_ENABLED = FormattedNamedMessage(
 )
 
 ENABLED_FAILED = FormattedNamedMessage(
-    "enable-failes", "Could not enable {title}."
+    "enable-failed", "Could not enable {title}."
 )
 
 UNENTITLED = FormattedNamedMessage(
