@@ -1,5 +1,5 @@
 import textwrap
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib import error
 
 from uaclient import messages
@@ -335,6 +335,45 @@ class EntitlementNotFoundError(UserFacingError):
     def __init__(self, entitlement_name: str):
         msg = messages.ENTITLEMENT_NOT_FOUND.format(name=entitlement_name)
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class EntitlementsNotEnabledError(UserFacingError):
+
+    exit_code = 4
+
+    def __init__(
+        self,
+        failed_services: List[Tuple[str, messages.NamedMessage]],
+        msg: messages.NamedMessage = messages.ENTITLEMENTS_NOT_ENABLED_ERROR,
+    ):
+        info_dicts = [
+            {"name": f[0], "code": f[1].name, "title": f[1].msg}
+            for f in failed_services
+        ]
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+            additional_info={"services": info_dicts},
+        )
+
+
+class AttachFailureDefaultServices(EntitlementsNotEnabledError):
+    def __init__(
+        self, failed_services: List[Tuple[str, messages.NamedMessage]]
+    ):
+        super().__init__(
+            failed_services=failed_services,
+            msg=messages.ATTACH_FAILURE_DEFAULT_SERVICES,
+        )
+
+
+class AttachFailureUnknownError(EntitlementsNotEnabledError):
+    def __init__(
+        self, failed_services: List[Tuple[str, messages.NamedMessage]]
+    ):
+        super().__init__(
+            failed_services=failed_services, msg=messages.UNEXPECTED_ERROR
+        )
 
 
 class UrlError(IOError):
