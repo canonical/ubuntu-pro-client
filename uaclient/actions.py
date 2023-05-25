@@ -64,6 +64,7 @@ def attach_with_token(
         # Persist updated status in the event of partial attach
         ua_status.status(cfg=cfg)
         update_motd_messages(cfg)
+        # raise this exception in case we cannot enable all services
         raise exc
 
     current_iid = identity.get_instance_id()

@@ -423,12 +423,14 @@ def process_entitlements_delta(
 
     # We need to sort our entitlements because some of them
     # depend on other service to be enable first.
+    failed_services = []  # type: List[str]
     for name in entitlements_enable_order(cfg):
         try:
             new_entitlement = new_entitlements[name]
         except KeyError:
             continue
 
+        failed_services = []
         try:
             deltas, service_enabled = process_entitlement_delta(
                 cfg=cfg,
@@ -439,7 +441,7 @@ def process_entitlements_delta(
             )
         except exceptions.UserFacingError:
             delta_error = True
-            event.service_failed(name)
+            failed_services.append(name)
             with util.disable_log_to_console():
                 logging.error(
                     "Failed to process contract delta for {name}:"
@@ -447,7 +449,7 @@ def process_entitlements_delta(
                 )
         except Exception:
             unexpected_error = True
-            event.service_failed(name)
+            failed_services.append(name)
             with util.disable_log_to_console():
                 logging.exception(
                     "Unexpected error processing contract delta for {name}:"
@@ -458,15 +460,19 @@ def process_entitlements_delta(
             # them, then we will mark that service as successfully enabled
             if service_enabled and deltas:
                 event.service_processed(name)
+    event.services_failed(failed_services)
     if unexpected_error:
-        raise exceptions.UserFacingError(
-            msg=messages.UNEXPECTED_ERROR.msg,
-            msg_code=messages.UNEXPECTED_ERROR.name,
+        raise exceptions.AttachFailureUnknownError(
+            failed_services=[
+                (name, messages.UNEXPECTED_ERROR) for name in failed_services
+            ]
         )
     elif delta_error:
-        raise exceptions.UserFacingError(
-            msg=messages.ATTACH_FAILURE_DEFAULT_SERVICES.msg,
-            msg_code=messages.ATTACH_FAILURE_DEFAULT_SERVICES.name,
+        raise exceptions.AttachFailureDefaultServices(
+            failed_services=[
+                (name, messages.ATTACH_FAILURE_DEFAULT_SERVICES)
+                for name in failed_services
+            ]
         )
 
 

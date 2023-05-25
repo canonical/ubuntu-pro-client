@@ -3,7 +3,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, exceptions
+from uaclient import event_logger, exceptions, messages
 from uaclient.api import exceptions as api_exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -79,6 +79,16 @@ class TestActionAutoAttach:
         ] == m_full_auto_attach.call_args_list
         assert [mock.call(cfg)] == m_post_cli_attach.call_args_list
 
+    @pytest.mark.parametrize(
+        "api_side_effect,expected_err,expected_ret",
+        (
+            (
+                exceptions.UrlError(cause="does-not-matter"),
+                messages.ATTACH_FAILURE.msg,
+                1,
+            ),
+        ),
+    )
     @mock.patch(M_PATH + "event")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
@@ -87,33 +97,44 @@ class TestActionAutoAttach:
         m_full_auto_attach,
         m_post_cli_attach,
         m_event,
+        api_side_effect,
+        expected_err,
+        expected_ret,
         FakeConfig,
     ):
-        m_full_auto_attach.side_effect = exceptions.UrlError(
-            cause="does-not-matter"
-        )
+        m_full_auto_attach.side_effect = (api_side_effect,)
         cfg = FakeConfig()
 
-        assert 1 == action_auto_attach(mock.MagicMock(), cfg=cfg)
+        assert expected_ret == action_auto_attach(mock.MagicMock(), cfg=cfg)
 
-        assert [
-            mock.call("Failed to attach machine. See https://ubuntu.com/pro")
-        ] == m_event.info.call_args_list
+        assert [mock.call(expected_err)] == m_event.info.call_args_list
         assert [] == m_post_cli_attach.call_args_list
 
     @pytest.mark.parametrize(
-        "api_side_effect, expected_err",
+        "api_side_effect,expected_err,expected_ret",
         [
-            (exceptions.UserFacingError("foo"), "foo\n"),
+            (exceptions.UserFacingError("foo"), "foo\n", 1),
             (
                 exceptions.AlreadyAttachedError("foo"),
                 "This machine is already attached to 'foo'\n"
                 "To use a different subscription first run: sudo pro"
                 " detach.\n",
+                2,
             ),
             (
                 api_exceptions.AutoAttachDisabledError,
                 "features.disable_auto_attach set in config\n",
+                1,
+            ),
+            (
+                exceptions.EntitlementsNotEnabledError(
+                    failed_services=[
+                        ("esm-infra", messages.NamedMessage("test", "test")),
+                        ("livepatch", messages.NamedMessage("test", "test")),
+                    ]
+                ),
+                messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg + "\n",
+                4,
             ),
         ],
     )
@@ -127,15 +148,15 @@ class TestActionAutoAttach:
         m_logging,
         api_side_effect,
         expected_err,
+        expected_ret,
         capsys,
         FakeConfig,
     ):
         m_full_auto_attach.side_effect = api_side_effect
         cfg = FakeConfig()
-        with pytest.raises(SystemExit):
-            assert 1 == main_error_handler(action_auto_attach)(
-                mock.MagicMock(), cfg=cfg
-            )
+        with pytest.raises(SystemExit) as excinfo:
+            main_error_handler(action_auto_attach)(mock.MagicMock(), cfg=cfg)
+        assert expected_ret == excinfo.value.code
         _out, err = capsys.readouterr()
         assert expected_err == err
         assert [] == m_post_cli_attach.call_args_list

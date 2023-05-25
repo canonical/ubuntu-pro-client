@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 from uaclient import messages
 from uaclient.api.errors import APIError
 from uaclient.exceptions import (
@@ -7,6 +5,7 @@ from uaclient.exceptions import (
     ConnectivityError,
     ContractAPIError,
     EntitlementNotFoundError,
+    EntitlementsNotEnabledError,
     InvalidProImage,
     LockHeldError,
     NonAutoAttachImageError,
@@ -24,22 +23,8 @@ __all__ = [
     "NonAutoAttachImageError",
     "UrlError",
     "UserFacingError",
+    "EntitlementsNotEnabledError",
 ]
-
-
-class EntitlementsNotEnabledError(UserFacingError):
-    def __init__(
-        self, failed_services: List[Tuple[str, messages.NamedMessage]]
-    ):
-        info_dicts = [
-            {"name": f[0], "code": f[1].name, "title": f[1].msg}
-            for f in failed_services
-        ]
-        super().__init__(
-            messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
-            messages.ENTITLEMENTS_NOT_ENABLED_ERROR.name,
-            additional_info={"services": info_dicts},
-        )
 
 
 class AutoAttachDisabledError(UserFacingError):
