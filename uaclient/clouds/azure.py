@@ -63,7 +63,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
         url = IMDS_URLS.get("compute", "")
         try:
             data, headers = util.readurl(url, headers={"Metadata": "true"})
-        except HTTPError as e:
+        except (HTTPError, OSError) as e:
             LOG.error(e)
             raise exceptions.CancelProLicensePolling()
 
