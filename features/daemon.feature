@@ -208,10 +208,10 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   |
             | jammy   |
 
-    @series.all
+    @series.lts
     @uses.config.contract_token
     @uses.config.machine_type.azure.generic
-    Scenario Outline: daemon should run when appropriate on azure generic lts and non-lts
+    Scenario Outline: daemon should run when appropriate on azure generic lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
@@ -275,12 +275,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | bionic  |
             | focal   |
             | jammy   |
-            | lunar   |
 
     @series.kinetic
     @uses.config.contract_token
+    @uses.config.machine_type.azure.generic
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: daemon does not start on gcp generic non lts
+    Scenario Outline: daemon does not start on gcp,azure generic non lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I wait `1` seconds
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
