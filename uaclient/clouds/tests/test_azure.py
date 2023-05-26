@@ -132,6 +132,8 @@ class TestUAAutoAttachAzureInstance:
     @pytest.mark.parametrize(
         "metadata_response, expected_result",
         (
+            (({}, {}), False),
+            (({"licenseType": None}, {}), False),
             (({"licenseType": ""}, {}), False),
             (({"licenseType": "RHEL_BYOS"}, {}), False),
             (({"licenseType": "SLES_BYOS"}, {}), False),
