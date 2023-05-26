@@ -243,7 +243,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         { "poll_for_pro_license": true }
         """
-
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # give it time to get past the initial request
+        When I wait `5` seconds
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
         Then stdout matches regexp:
         """
