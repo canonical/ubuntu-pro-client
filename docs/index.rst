@@ -150,7 +150,8 @@ that stream specifically on those machines.
          'universe' repository.
 
          * ``ros`` provides security updates to the 600+ packages for ROS 1
-           Kinetic and Melodic, and ROS 2 Foxy. 
+           Kinetic and Melodic, and ROS 2 Foxy -- in addition to the security
+           coverage already provided by ESM. 
 
          * ``ros-updates`` also gives you access to non-security updates.
 
