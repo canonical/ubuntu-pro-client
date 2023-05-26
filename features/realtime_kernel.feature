@@ -47,7 +47,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Real-time kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo and options `--no-auto-enable`
+        When I attach `contract_token_staging` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
         """
@@ -74,12 +74,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.staging.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
         """
         When I run `pro api u.pro.status.enabled_services.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": false, "variant_name": null}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "generic"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
         Then stdout matches regexp
@@ -119,44 +119,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         Error: Cannot use --access-only together with --variant.
         """
-        When I run `pro status` as non-root
-        Then stdout does not match regexp:
-        """
-         \* Service has variants
-        """
-        When I run `pro status --all` as non-root
-        Then stdout does not match regexp:
-        """
-        realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
-        ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
-        ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
-        └ nvidia-tegra   yes +disabled   +RT kernel optimized for NVIDIA Tegra platform
-        """
-        And stdout matches regexp:
-        """
-        realtime-kernel  yes +disabled   +Ubuntu kernel with PREEMPT_RT patches integrated
-        """
 
         # Test one variant
         # We need to disable this job before adding the overlay, because we might
         # write the machine token to disk with the override content
         When I run `pro config set update_messaging_timer=0` with sudo
-        And I set the machine token overlay to the following yaml
-        """
-        machineTokenInfo:
-          contractInfo:
-            resourceEntitlements:
-              - type: realtime-kernel
-                overrides:
-                  - directives:
-                      additionalPackages:
-                        - ubuntu-intel-iot-realtime
-                    selector:
-                      variant: intel-iotg
-                    affordances:
-                      platformChecks: {"cpu_vendor_ids": ["intel"]}
-        """
-        When I run `pro enable realtime-kernel --assume-yes` with sudo
+        And I run `pro enable realtime-kernel --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
@@ -175,6 +143,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Real-time Intel IOTG Kernel cannot be enabled with Real-time kernel.
         Disable Real-time kernel and proceed to enable Real-time Intel IOTG Kernel? (y/N)
         """
+        When I run `apt-cache policy ubuntu-intel-iot-realtime` as non-root
+        Then stdout does not match regexp:
+        """
+        Installed: \(none\)
+        """
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
@@ -186,6 +159,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "intel-iotg"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+        When I reboot the machine
+        And I run `uname -r` as non-root
+        Then stdout matches regexp:
+        """
+        intel
         """
         When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\n`
         And I run `pro status --all` as non-root
@@ -209,7 +188,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Real-time kernel is already enabled.
         """
         When I run `pro disable realtime-kernel --assume-yes` with sudo
-        When I run `apt-cache policy hello` as non-root
+        When I run `apt-cache policy ubuntu-intel-iot-realtime` as non-root
         Then stdout contains substring:
         """
         Installed: (none)
@@ -228,13 +207,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                         - nvidia-prime
                     selector:
                       variant: nvidia-tegra
-                  - directives:
-                      additionalPackages:
-                        - ubuntu-intel-iot-realtime
-                    selector:
-                      variant: intel-iotg
-                    affordances:
-                      platformChecks: {"cpu_vendor_ids": ["intel"]}
         """
         When I run `pro enable realtime-kernel --variant nvidia-tegra` `with sudo` and stdin `y`
         Then stdout matches regexp:
