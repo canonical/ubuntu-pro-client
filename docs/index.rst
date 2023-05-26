@@ -33,11 +33,12 @@ that stream specifically on those machines.
 
        * **Expanded Security Maintenance (ESM)**
 
-         If you're using an Ubuntu LTS -- Desktop or Server -- in a commercial
-         setting and don't want the inconvenience and downtime of upgrading to
-         a newer LTS yet, you can get additional security support through
-         `Expanded Security Maintenance (ESM)`_. We recommend it for everyone
-         using Pro, and it's enabled by default. It includes two services:
+         If you're using any Ubuntu LTS -- Desktop or Server -- in a commercial
+         setting and you rely on 'Universe' packages, or if you're on an older
+         LTS and don't want to upgrade yet, you can get additional security
+         support through `Expanded Security Maintenance (ESM)`_. We recommend
+         it for everyone using Pro, and it's enabled by default. It includes
+         two services:
 
          * ``esm-infra`` provides security updates for packages in the Ubuntu
            'main' repository (packages from Ubuntu) for five additional years

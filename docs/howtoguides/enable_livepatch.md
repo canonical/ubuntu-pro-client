@@ -5,9 +5,19 @@ automatically enabled after you attach the Ubuntu Pro subscription. However,
 you can choose to disable it initially via the dashboard, and then enable it
 at a later time from the command line using the Ubuntu Pro Client (`pro`). 
 
-## Check the status of the Livepatch service
+## Make sure `pro` is up-to-date
 
-After you have attached your subscription and installed the
+All systems come with `pro` pre-installed through the `ubuntu-advantage-tools`
+package. To make sure that you're running the latest version of `pro`, run the
+following commands:
+
+```console
+sudo apt update && sudo apt install ubuntu-advantage-tools
+```
+
+## Check the status of the services
+
+After you have attached your subscription and updated the
 `ubuntu-advantage-tools` package, you can check if Livepatch is enabled by
 running the following command:
 
@@ -43,8 +53,9 @@ Canonical livepatch enabled.
 ```
 
 ## Check Livepatch status after installation
-To check the status of the Livepatch client once it has been installed use the
-following command:
+
+If you're interested in the detailed status of the Livepatch client once it has
+been installed, use the following command:
 
 ```console
 $ sudo canonical-livepatch status
@@ -73,16 +84,27 @@ this explanation of
 ## How to disable Livepatch
 
 Enabling Livepatch installs the Livepatch client as snap package, and there are
-a few possible ways to disable it. To stop the service, follow this short guide
-on [how to disable the client](https://ubuntu.com/security/livepatch/docs/livepatch/how-to/disable)
-from the Livepatch documentation.
+a few possible ways to disable it. The simplest is to use `pro`:
+
+```console
+pro disable livepatch
+```
+
+If you also want to remove the Livepatch client from your machine, you can
+then use the following command:
+
+```console
+snap remove canonical-livepatch
+```
+
+For other options, you can also refer to [the Livepatch documentation](https://ubuntu.com/security/livepatch/docs/livepatch/how-to/disable).
 
 ## Notes
 
-- For more information about the Livepatch client, refer to the 
-  [official Livepatch client documentation](https://ubuntu.com/security/livepatch/docs).
+- For more information about the Livepatch client and how to use it, refer to
+  the [official Livepatch client documentation](https://ubuntu.com/security/livepatch/docs).
 
 - Livepatch is not compatible with FIPS-certified kernels or with the
   Real-Time Kernel, and should not be enabled if you wish to use those services.
-  If Livepatch is enabled and you try to enable those other services, you will
-  need to disable Livepatch first.
+  If Livepatch is enabled and you try to enable those other services, `pro` will
+  notify you and offer to disable Livepatch first.

@@ -2,13 +2,23 @@
 
 For Ubuntu LTS releases, ESM for Infrastructure (`esm-infra`) and ESM for
 Applications (`esm-apps`) are automatically enabled after you attach the
-Ubuntu Pro Client susbscription to your account. However, if you chose to
+Ubuntu Pro Client subscription to your account. However, if you chose to
 disable them initially, you can enable them at any time from the command line
 using the Ubuntu Pro Client (`pro`).
 
+## Make sure `pro` is up-to-date
+
+All systems come with `pro` pre-installed through the `ubuntu-advantage-tools`
+package. To make sure that you're running the latest version of `pro`, run the
+following commands:
+
+```console
+sudo apt update && sudo apt install ubuntu-advantage-tools
+```
+
 ## Check the status of the services
 
-After you have attached your subscription and installed the
+After you have attached your subscription and updated the
 `ubuntu-advantage-tools` package, you can check if `esm-apps` and `esm-infra`
 are enabled by running the following command:
 
@@ -47,9 +57,9 @@ When you enable the ESM-Infra and/or ESM-Apps repositories, especially on
 Ubuntu 14.04 and 16.04, you may see a number of package updates available that
 were not available previously.
 
-Even if your system indicated that it was up to date before installing
-`ubuntu-advantage-tools`, make sure to check for new package updates after
-you enable `esm-infra` or `esm-apps`:
+Even if your system indicated that it was up to date before enabling
+`esm-infra` or `esm-apps`, make sure to check for new package updates after
+you enable them:
 
 ```bash
 sudo apt upgrade
