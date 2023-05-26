@@ -579,6 +579,7 @@ def depth_first_merge_overlay_dict(base_dict, overlay_dict):
         merge_id_key_map = {
             "availableResources": "name",
             "resourceEntitlements": "type",
+            "overrides": "selector",
         }
         values_to_append = []
         id_key = merge_id_key_map.get(key)
