@@ -1,7 +1,200 @@
 # What does `security-status` do?
 
-The `security-status` command is used to get an overview of the packages
-installed on your machine.
+The `security-status` command provides an overview of all the packages
+installed on your machine, and the security coverage that applies to those
+packages.
+
+The output of the `security-status` command varies, depending on the configuration of the machine you run it on. In this article, we'll take a look at the different outputs of `security-status` and the situations in which you might see them.
+
+## Command output
+
+If you run the `pro security-status` command, the first blocks of information
+you see look like:
+
+```
+2871 packages installed:
+     2337 packages from Ubuntu Main/Restricted repository
+     504 packages from Ubuntu Universe/Multiverse repository
+     8 packages from third parties
+     22 packages no longer available for download
+
+To get more information about the packages, run
+    pro security-status --help
+for a list of available options.
+```
+
+Those are counts for the `apt` packages installed in the system, sorted
+between the packages in main, universe, third party packages, and packages
+that are no longer available. You will also see a hint to run
+`pro security-status --help` to get more information.
+
+### `apt update` hint
+
+To get accurate package information, the `apt` caches must be up to date. If
+your cache was not updated recently, you may see a message in the output with
+a hint to update.
+
+```
+The system apt cache may be outdated. Make sure to run
+    sudo apt-get update
+to get the latest package information from apt.
+```
+
+### LTS coverage
+
+If `esm-infra` is disabled in your system, main/restricted packages will be
+covered during the LTS period - this information is presented right after the
+hints. A covered system will present this message:
+
+```
+This machine is receiving security patching for Ubuntu Main/Restricted
+repository until <year>.
+```
+
+On a system where the LTS period ended, you'll see:
+
+```
+This machine is NOT receiving security patches because the LTS period has ended
+and esm-infra is not enabled.
+```
+
+### Ubuntu Pro coverage
+
+An Ubuntu Pro subscription provides more security coverage than a standard LTS.
+The next blocks of information are related to Ubuntu Pro itself:
+
+```
+This machine is attached to an Ubuntu Pro subscription.
+
+Main/Restricted packages are receiving security updates from
+Ubuntu Pro with 'esm-infra' enabled until 2032.
+
+Universe/Multiverse packages are receiving security updates from
+Ubuntu Pro with 'esm-apps' enabled until 2032. You have received 21 security
+updates.
+```
+
+This system is already attached to Pro! It is a Jammy machine, which has
+installed some updates from `esm-apps`. Running the same command on a Xenial
+system without Pro enabled, the output looks like:
+
+```
+This machine is NOT attached to an Ubuntu Pro subscription.
+
+Ubuntu Pro with 'esm-infra' enabled provides security updates for
+Main/Restricted packages until 2026. There are 170 pending security updates.
+
+Ubuntu Pro with 'esm-apps' enabled provides security updates for
+Universe/Multiverse packages until 2026. There is 1 pending security update.
+
+Try Ubuntu Pro with a free personal subscription on up to 5 machines.
+Learn more at https://ubuntu.com/pro
+```
+
+There are lots of `esm-infra` updates for this machine, and even an `esm-apps`
+update. The hint in the end of the output has a link to the main Pro website,
+so the user can learn more about Pro and get their subscription.
+
+### Interim releases
+
+If you are running an interim release, the output is slightly different because
+there are no Ubuntu Pro services available. You will still see the package
+counts and support period though - your main/restricted packages are supported
+for 9 months from the release date.
+
+```
+613 packages installed:
+    601 packages from Ubuntu Main/Restricted repository
+    12 packages from Ubuntu Universe/Multiverse repository
+
+To get more information about the packages, run
+    pro security-status --help
+for a list of available options.
+
+Main/Restricted packages receive updates until 1/2024.
+
+Ubuntu Pro is not available for non-LTS releases.
+```
+
+### Optional flags for specific package sets
+
+Some flags can be passed to `security-status` to get information about coverage
+of specific package sets. As an example, let's look at the output of
+`pro security-status --esm-infra`:
+
+```
+442 packages installed:
+    441 packages from Ubuntu Main/Restricted repository
+
+Main/Restricted packages are receiving security updates from
+Ubuntu Pro with 'esm-infra' enabled until 2026. You have received 3 security
+updates. There are 160 pending security updates.
+
+Run 'pro help esm-infra' to learn more
+
+Installed packages with an available esm-infra update:
+( ... list of packages ... )
+
+Installed packages with an esm-infra update applied:
+( ... list of packages ... )
+
+Further installed packages covered by esm-infra:
+( ... list of packages ... )
+
+For example, run:
+    apt-cache show tcpdump
+to learn more about that package.
+```
+
+Besides the support information of main/restricted (which Ubuntu Pro with
+`esm-infra` extends) there are lists of:
+- packages which have some updated version available in esm-infra repositories
+- packages which have an installed version from the esm-infra repositories
+- packages which are covered by esm-infra
+
+You will see a similar output when running `pro security-status --esm-apps`,
+but with information regarding universe/multiverse packages.
+
+You can also get a list of the third-party packages installed in the system:
+
+```
+$ pro security-status --thirdparty
+2871 packages installed:
+     8 packages from third parties
+
+Packages from third parties are not provided by the official Ubuntu
+archive, for example packages from Personal Package Archives in Launchpad.
+
+Packages:
+( ... list of packages ... )
+
+For example, run:
+    apt-cache show <package_name>
+to learn more about that package.
+```
+
+And also a list of unavailable packages (which no longer have any installation
+source):
+
+```
+$ pro security-status --unavailable
+2871 packages installed:
+     22 packages no longer available for download
+
+Packages that are not available for download may be left over from a
+previous release of Ubuntu, may have been installed directly from a
+.deb file, or are from a source which has been disabled.
+
+Packages:
+( ... list of packages ... )
+
+
+For example, run:
+    apt-cache show <package_name>
+to learn more about that package.
+```
+
+## Machine-readable output
 
 If you run the `pro security-status --format yaml` command on your machine, you
 should expect to see an output that follows this structure:
@@ -41,10 +234,10 @@ livepatch:
       Patched: true
 ```
 
-Let's understand what each key means in the output of the `pro security-status`
-command:
+Let's understand what each key means in the output of the
+`pro security-status --format yaml` command:
 
-## `summary`
+### `summary`
 
 This provides a summary of the system related to Ubuntu Pro and the different
 package sources in the system:
@@ -102,7 +295,7 @@ package sources in the system:
   * **`entitled_services`**: A list of services that are entitled on your
     Ubuntu Pro subscription. If unattached, this will always be an empty list.
 
-## `packages`
+### `packages`
 
 This provides a list of security updates for packages installed on the system.
 Every entry on the list will follow this structure:
@@ -123,7 +316,7 @@ Every entry on the list will follow this structure:
 * **`download_size`**: The number of bytes that would be downloaded in order to
   install the update.
 
-## `livepatch`
+### `livepatch`
 
 This displays Livepatch-related information. Currently, the only information
 presented is **`fixed_cves`**. This represents a list of CVEs that were fixed
