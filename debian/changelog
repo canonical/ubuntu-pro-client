@@ -1,10 +1,19 @@
-ubuntu-advantage-tools (27.15) mantic; urgency=medium
+ubuntu-advantage-tools (28) mantic; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
     - more specific regex for ua_config warning
   * New upstream release 27.15 (LP: #2017949)
+    - api:
+      + new endpoint: u.pro.status.is_attached.v1
+      + new endpoint: u.pro.status.enabled_services.v1
     - apport: collect default log files if present for bug reports
     - apt messaging: add bionic-specific urls
+    - auto-attach:
+      + check for new Azure UBUNTU_PRO license on-boot of non-pro instances
+      + exit 4 if attach succeeds but service enablement fails
+    - cli:
+      + avoid unnecessary network calls during autocomplete (GH: #2556)
+      + warn users to not rely on human-readable output in scripts
     - config: no longer load uaclient.conf from current working directory
     - fix:
       + add support for --no-related flag
@@ -17,8 +26,11 @@ ubuntu-advantage-tools (27.15) mantic; urgency=medium
       + fall back to /usr/lib/os-release for release info
       + start logging to default log file until config is loaded
       + remove small timeout from contract checking request
-    - livepatch: use uname.machine for kernel arch when checking support
-      (GH: #2517)
+      + avoid crashes when processing unicode text (LP: #2019729)
+    - livepatch:
+      + use uname.machine for kernel arch when checking support
+        (GH: #2517)
+      + display tailored warning messages for granular support statuses
     - realtime-kernel: add support for intel-iotg variant
     - reboot-required: new criteria for "yes-kernel-livepatches-applied"
       livepatch status must be either "applied" or "nothing-to-apply" and
@@ -28,6 +40,7 @@ ubuntu-advantage-tools (27.15) mantic; urgency=medium
       + include hint to run apt-get update for up-to-date info (GH: #2443)
       + improve visibility of installed and available updates (GH: #2442)
       + change package info message hint to recommend apt-cache show
+      + avoids unnecessary network calls (LP: #2015286, GH: #2536)
     - systemd: update service unit for reboot_cmds to not run if not attached
     - status:
       + add hint for pro status --all
