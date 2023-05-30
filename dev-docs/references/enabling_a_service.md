@@ -17,5 +17,5 @@ The Ubuntu Pro Client is simple in that it relies on the machine token on the at
 machine to describe whether a service is applicable for an environment and what
 configuration is required to properly enable that service.
 
-Any interactions with the Contract server API are defined as UAContractClient
+Any interactions with the Contract Server API are defined as UAContractClient
 class methods in [uaclient/contract.py](../../uaclient/contract.py).

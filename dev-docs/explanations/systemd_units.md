@@ -6,8 +6,8 @@
 There are three methods by which a cloud instance may auto-attach to become Ubuntu Pro.
 
 1. On boot auto-attach for known Pro cloud instances.
-2. Upgrade-in-place for non-Pro instances that get modified via the Cloud platform to entitle them to become Ubuntu Pro (only on GCP for now)
-3. Retry auto-attach in case of failures
+2. Upgrade-in-place for non-Pro instances that get modified via the Cloud platform to entitle them to become Ubuntu Pro (only on Azure and GCP for now).
+3. Retry auto-attach in case of failures.
 
 (1) is handled by a systemd unit (`ua-auto-attach.service`) delivered by a separate package called `ubuntu-advantage-pro`. This package is only installed on Ubuntu Pro Cloud images. In this way, an instance launched from an Ubuntu Pro Cloud image knows that it needs to auto-attach.
 
@@ -22,8 +22,8 @@ graph TD;
     is_pro{Is -pro installed?}
     auto_outcome{Success?}
     is_attached{Attached?}
-    should_run_daemon{on GCP? or retry flag set?}
-    is_gcp{GCP?}
+    should_run_daemon{on Azure? or GCP? or retry flag set?}
+    is_gcp{Azure or GCP?}
     is_retry{retry flag set?}
     is_gcp_pro{Pro license detected?}
     daemon_attach_outcome{Success?}
@@ -33,11 +33,11 @@ graph TD;
     auto_attach[/Try to Attach/]
     trigger_retry[/Create Retry Flag File/]
     trigger_retry2[/Create Retry Flag File/]
-    poll_gcp[/Poll for GCP Pro license/]
+    poll_gcp[/Poll for cloud Pro license/]
     daemon_attach[/Try to Attach/]
     daemon_attach2[/Try to Attach/]
     wait[/Wait a while/]
-    
+
     %%%% systemd units
     auto(ua-auto-attach.service)
     daemon(ubuntu-advantage.service)
