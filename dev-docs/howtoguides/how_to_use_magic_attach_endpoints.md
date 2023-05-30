@@ -28,7 +28,7 @@ It is expected for you to see the following json response:
   "_schema_version": "v1",
   "data": {
     "meta": {
-       "environment_vars": []}
+       "environment_vars": []
     },
     "attributes": {
       "expires": "EXPIRE_DATE",
