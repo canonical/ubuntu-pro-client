@@ -5,8 +5,8 @@ Ubuntu Pro Client performs:
 
 | Term     | Meaning |
 | -------- | -------- |
-| Ubuntu Pro Client | The python command line client represented in this ubuntu-advantage-client repository. It is installed on each Ubuntu machine and is the entry-point to enable any Ubuntu Pro commercial service on an Ubuntu machine. |
-| Contract Server | The backend service exposing a REST API to which Ubuntu Pro Client authenticates in order to obtain contract and commercial service information and manage which support services are active on a machine.|
+| Ubuntu Pro Client | The python command line client represented in this ubuntu-pro-client repository. It is installed on each Ubuntu machine and is the entry-point to enable any Ubuntu Pro commercial service on an Ubuntu machine |
+| Contract Server | The backend service exposing a REST API to which Ubuntu Pro Client authenticates in order to obtain contract and commercial service information and manage which support services are active on a machine |
 | Entitlement/Service | An Ubuntu Pro commercial support service such as FIPS, ESM, Livepatch, CIS-Audit to which a contract may be entitled |
 | Affordance | Service-specific list of applicable architectures and Ubuntu series on which a service can run |
 | Directives | Service-specific configuration values which are applied to a service when enabling that service |

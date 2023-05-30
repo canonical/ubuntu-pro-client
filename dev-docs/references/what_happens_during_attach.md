@@ -1,7 +1,7 @@
 ### What happens during attach
 After running the command `pro attach TOKEN`, Ubuntu Pro Client will perform the following steps:
 
-* read the config from /etc/ubuntu-advantage/uaclient.conf to obtain
+* Read the config from /etc/ubuntu-advantage/uaclient.conf to obtain
   the contract\_url (default: https://contracts.canonical.com)
 * POSTs to the Contract Server API @
   <contract_url>/api/v1/context/machines/token providing the \<contractToken\>
