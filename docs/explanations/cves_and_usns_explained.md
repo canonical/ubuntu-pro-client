@@ -33,7 +33,27 @@ A USN is composed of different CVEs. If the same CVE appears on multiple USNs, w
 In the following image, we can see a visual representation of that concept, where USN-789 and USN-321
 are related USNs because both are affected by CVE-2:
 
-![Related USN example](../images/usn-related.png)
+```{mermaid}
+graph TD;
+    %% nodes
+    usn1[USN-123]
+    usn2[USN-456]
+    usn3[USN-789]
+    usn4[USN-321]
+    usn5[USN-654]
+    cve1((CVE-1))
+    cve2((CVE-2))
+    cve3((CVE-3))
+
+    %% arrows
+    usn1-->cve1
+    usn1-->cve2
+    usn1-->cve3
+    cve1-->usn2
+    cve2-->usn3
+    cve2-->usn4
+    cve3-->usn5
+```
 
 
 A real example can be seen in [USN-5573-1](https://ubuntu.com/security/notices/USN-5573-1).
