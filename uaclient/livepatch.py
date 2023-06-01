@@ -141,9 +141,9 @@ def status() -> Optional[LivepatchStatusStatus]:
     except json.JSONDecodeError:
         with util.disable_log_to_console():
             logging.warning(
-                "canonical-livepatch status returned invalid json: {}".format(
-                    out
-                )
+                messages.JSON_PARSER_ERROR.format(
+                    source="canonical-livepatch status", out=out
+                ).msg
             )
         return None
 
