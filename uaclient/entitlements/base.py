@@ -6,7 +6,17 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from uaclient import config, contract, event_logger, messages, system, util
+from uaclient import (
+    config,
+    contract,
+    event_logger,
+    http,
+    exceptions,
+    messages,
+    snap,
+    system,
+    util,
+)
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
@@ -445,6 +455,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not util.handle_message_operations(msg_ops):
             return False, None
 
+        # TODO: Move all logic from RepoEntitlement that
+        # handles the additionalPackages and APT directives
+        # to the base class. The additionalSnaps handling
+        # is a step on that direction
+        if not self.handle_additional_snaps():
+            return False, None
+
         ret = self._perform_enable(silent=silent)
         if not ret:
             return False, None
@@ -454,6 +471,59 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False, None
 
         return True, None
+
+    def handle_additional_snaps(self) -> bool:
+        """ "install snaps necessary to enable a service."""
+        additional_snaps = (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("additionalSnaps")
+        )
+
+        # If we don't have the directive, there is nothing
+        # to process here
+        if additional_snaps is None:
+            return True
+
+        if not system.which(snap.SNAP_CMD):
+            event.info("Installing snapd")
+            snap.install_snapd()
+
+        elif not snap.is_installed():
+            raise exceptions.SnapdNotProperlyInstalledError(
+                snap_cmd=snap.SNAP_CMD, service=self.title
+            )
+
+        snap.run_snapd_wait_cmd()
+
+        http_proxy = http.validate_proxy(
+            "http", self.cfg.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
+        )
+        https_proxy = http.validate_proxy(
+            "https", self.cfg.https_proxy, http.PROXY_VALIDATION_SNAP_HTTPS_URL
+        )
+        snap.configure_snap_proxy(
+            http_proxy=http_proxy,
+            https_proxy=https_proxy,
+            retry_sleeps=snap.SNAP_INSTALL_RETRIES,
+        )
+
+        for snap_pkg in additional_snaps:
+            # The name field should always be delivered by the contract side
+            snap_name = snap_pkg["name"]
+            try:
+                snap.get_snap_info(snap_name)
+            except exceptions.SnapNotInstalledError:
+                classic_confinement_support = snap_pkg.get(
+                    "classic_confinement_support", False
+                )
+
+                snap.install_snap(
+                    snap_name,
+                    classic_confinement_support=classic_confinement_support,
+                )
+
+        return True
 
     @abc.abstractmethod
     def _perform_enable(self, silent: bool = False) -> bool:

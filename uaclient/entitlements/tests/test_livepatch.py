@@ -785,7 +785,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.entitlements.livepatch.apt.run_apt_update_command")
+    @mock.patch("uaclient.snap.apt.run_apt_update_command")
     @mock.patch("uaclient.system.which")
     @mock.patch("uaclient.system.subp")
     def test_enable_raise_exception_when_snapd_cant_be_installed(
@@ -821,7 +821,7 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
-    @mock.patch("uaclient.entitlements.livepatch.apt.run_apt_update_command")
+    @mock.patch("uaclient.snap.apt.run_apt_update_command")
     @mock.patch("uaclient.system.which")
     @mock.patch("uaclient.system.subp")
     def test_enable_raise_exception_for_unexpected_error_on_snapd_wait(
