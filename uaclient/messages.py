@@ -776,9 +776,9 @@ LIVEPATCH_NOT_ENABLED = NamedMessage(
     "livepatch-not-enabled", "canonical-livepatch snap is not installed."
 )
 
-LIVEPATCH_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
+SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
     "livepatch-error-install-on-container",
-    "Cannot install Livepatch on a container.",
+    "Cannot install {title} on a container.",
 )
 
 LIVEPATCH_ERROR_WHEN_FIPS_ENABLED = NamedMessage(
@@ -1349,4 +1349,27 @@ CLOUD_METADATA_ERROR = FormattedNamedMessage(
 
 EXTERNAL_API_ERROR = FormattedNamedMessage(
     "external-api-error", "Error connecting to {url}: {code} {body}"
+)
+
+JSON_PARSER_ERROR = FormattedNamedMessage(
+    "json-parser-error", "{source} returned invalid json: {out}"
+)
+
+SNAP_NOT_INSTALLED_ERROR = FormattedNamedMessage(
+    "snap-not-installed-error", "snap {snap} is not installed or doesn't exist"
+)
+
+UNEXPECTED_SNAPD_API_ERROR = FormattedNamedMessage(
+    "unexpected-snapd-api-error", "Unexpected SNAPD API error\n{error}"
+)
+
+SNAPD_CONNECTION_REFUSED = NamedMessage(
+    "snapd-connection-refused", "Could not reach the SNAPD API"
+)
+
+SNAP_REVISION_NOT_SUPPORTED = FormattedNamedMessage(
+    "snap-revision-not-supported",
+    """\
+The installed version of {snap} is not supported.
+Upgrading it to the latest available version.""",
 )

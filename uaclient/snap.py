@@ -1,16 +1,32 @@
+import http.client
+import json
 import logging
 import re
-from typing import List, Optional
+import socket
+from typing import List, NamedTuple, Optional
 
-from uaclient import apt, event_logger, exceptions, messages, system
+from uaclient import apt, event_logger, exceptions, messages, system, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 HTTP_PROXY_OPTION = "proxy.http"
 HTTPS_PROXY_OPTION = "proxy.https"
-SNAP_CHANNEL_SHORTEN_VALUE = "…"
+SNAPD_SOCKET_PATH = "/run/snapd.socket"
+SNAPD_SNAPS_API = "/v2/snaps/{}"
 
 event = event_logger.get_event_logger()
+
+
+SnapPackage = NamedTuple(
+    "SnapPackage",
+    [
+        ("name", str),
+        ("version", str),
+        ("revision", str),
+        ("channel", str),
+        ("publisher", str),
+    ],
+)
 
 
 def is_installed() -> bool:
@@ -97,26 +113,6 @@ def get_config_option_value(key: str) -> Optional[str]:
         return None
 
 
-def get_snap_package_info_tracking(package: str) -> Optional[str]:
-    out, _ = system.subp(
-        ["snap", "info", package, "--color", "never", "--unicode", "never"]
-    )
-    match = re.search(r"tracking:\s+(?P<tracking>.*)", out)
-    if match:
-        return match.group("tracking")
-    return None
-
-
-class SnapPackage:
-    def __init__(self, name, version, rev, tracking, publisher, notes):
-        self.name = name
-        self.version = version
-        self.rev = rev
-        self.tracking = tracking
-        self.publisher = publisher
-        self.notes = notes
-
-
 def get_installed_snaps() -> List[SnapPackage]:
     out, _ = system.subp(
         ["snap", "list", "--color", "never", "--unicode", "never"]
@@ -125,11 +121,100 @@ def get_installed_snaps() -> List[SnapPackage]:
     apps = apps[1:]
     snaps = []
     for line in apps:
-        pkg = line.split()
-        snap = SnapPackage(*pkg)
-        if snap.tracking.endswith(SNAP_CHANNEL_SHORTEN_VALUE):
-            channel = get_snap_package_info_tracking(snap.name)
-            snap.tracking = channel if channel else snap.tracking
-        snaps.append(snap)
+        snap = line.split()[0]
+        snaps.append(get_snap_info(snap))
 
     return snaps
+
+
+def install_snapd():
+    event.info(messages.APT_UPDATING_LISTS)
+    try:
+        apt.run_apt_update_command()
+    except exceptions.UserFacingError as e:
+        logging.debug(
+            "Trying to install snapd." " Ignoring apt-get update failure: %s",
+            str(e),
+        )
+    try:
+        system.subp(
+            ["apt-get", "install", "--assume-yes", "snapd"],
+            retry_sleeps=apt.APT_RETRIES,
+        )
+    except exceptions.ProcessExecutionError:
+        raise exceptions.CannotInstallSnapdError()
+
+
+def run_snapd_wait_cmd():
+    try:
+        system.subp([SNAP_CMD, "wait", "system", "seed.loaded"], capture=True)
+    except exceptions.ProcessExecutionError as e:
+        if re.search(r"unknown command .*wait", str(e).lower()):
+            logging.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+        else:
+            raise
+
+
+def install_snap(snap: str, channel: Optional[str] = None):
+    cmd = [SNAP_CMD, "install", snap]
+
+    if channel:
+        cmd += ["--channel", channel]
+
+    system.subp(
+        cmd,
+        capture=True,
+        retry_sleeps=SNAP_INSTALL_RETRIES,
+    )
+
+
+def get_snap_info(snap: str) -> SnapPackage:
+    snap_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    snap_sock.connect(SNAPD_SOCKET_PATH)
+
+    conn = http.client.HTTPConnection("localhost")
+    conn.sock = snap_sock
+    url = SNAPD_SNAPS_API.format(snap)
+
+    try:
+        conn.request("GET", SNAPD_SNAPS_API.format(snap))
+        response = conn.getresponse()
+        out = response.read().decode("utf-8")
+
+        try:
+            data = json.loads(out)
+        except json.JSONDecodeError:
+            with util.disable_log_to_console():
+                logging.warning(
+                    messages.JSON_PARSER_ERROR.format(
+                        source="SNAPD API {}".format(url),
+                        out=out,
+                    ).msg
+                )
+            raise exceptions.SnapdInvalidJson(url=url, out=out)
+
+        # This means that the snap doesn't exist or is not installed
+        if response.status != 200:
+            if (
+                response.status == 404
+                and data.get("result", {}).get("kind") == "snap-not-found"
+            ):
+                raise exceptions.SnapNotInstalledError(snap)
+            else:
+                error_msg = data.get("result", {}).get("message")
+                raise exceptions.UnexpectedSnapdAPIError(error_msg)
+
+    except ConnectionRefusedError:
+        raise exceptions.SnapdAPIConnectionRefused()
+    finally:
+        conn.close()
+        snap_sock.close()
+
+    snap_info = data.get("result", {})
+    return SnapPackage(
+        name=snap_info.get("name", ""),
+        version=snap_info.get("version", ""),
+        revision=snap_info.get("revision", ""),
+        channel=snap_info.get("channel", ""),
+        publisher=snap_info.get("publisher", {}).get("username", ""),
+    )
