@@ -104,6 +104,7 @@ html_css_files = [
     "css/logo.css",
     "css/github_issue_links.css",
     "css/custom.css",
+    "css/mermaid.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
