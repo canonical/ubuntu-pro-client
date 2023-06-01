@@ -7,7 +7,7 @@ https://ubuntu.com/realtime-kernel
 
 ## Enable and auto-install
 
-To `enable` Real-Time Kernel through Ubuntu Advantage, please run:
+To `enable` Real-time kernel through the Ubuntu Pro Client, please run:
 
 ```console
 $ sudo pro enable realtime-kernel
@@ -62,3 +62,9 @@ $ sudo apt install ubuntu-realtime
 ```
 
 You'll need to reboot after installing to boot into the Real-time kernel.
+
+## Notes
+
+- Real-Time Kernel is not compatible with Livepatch. If you wish to use the
+  Real-Time Kernel but Livepatch is enabled, `pro` will warn you and offer to
+  disable Livepatch first.
