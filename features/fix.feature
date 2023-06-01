@@ -1,11 +1,12 @@
 Feature: Ua fix command behaviour
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt remove ca-certificates -y` with sudo
+        When I run `rm -f /etc/ssl/certs/ca-certificates.crt` with sudo
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
         Then stderr matches regexp:
             """
@@ -32,7 +33,7 @@ Feature: Ua fix command behaviour
            | lunar   |
 
     @series.focal
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -197,9 +198,19 @@ Feature: Ua fix command behaviour
 
     @series.xenial
     @uses.config.contract_token
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+        """
+        Error: CVE-1800-123456 not found.
+        """
+        When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+        """
+        Error: USN-12345-12 not found.
+        """
         When I run `apt-get update` with sudo
         When I run `apt install -y libawl-php` with sudo
         And I reboot the machine
@@ -510,13 +521,33 @@ Feature: Ua fix command behaviour
         .*✔.* USN-5378-2 \[related\] does not affect your system.
         .*✔.* USN-5378-3 \[related\] is resolved.
         """
+        When I run `pro detach --assume-yes` with sudo
+        And I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
+        And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
+        And I run `apt-get update` with sudo
+        And I run `apt-get install squid -y` with sudo
+        And I verify that running `pro fix CVE-2020-25097` `as non-root` exits `1`
+        Then stdout matches regexp:
+        """
+        CVE-2020-25097: Squid vulnerabilities
+         - https://ubuntu.com/security/CVE-2020-25097
+
+        1 affected source package is installed: squid3
+        \(1/1\) squid3:
+        A fix is available in Ubuntu standard updates.
+        - Cannot install package squid version 3.5.12-1ubuntu7.16
+        - Cannot install package squid-common version 3.5.12-1ubuntu7.16
+
+        1 package is still affected: squid3
+        .*✘.* CVE-2020-25097 is not resolved
+        """
 
         Examples: ubuntu release details
            | release |
            | xenial  |
 
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -658,7 +689,7 @@ Feature: Ua fix command behaviour
         """
 
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario: Fix command on a machine without security/updates source lists
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo

@@ -1,7 +1,7 @@
 Feature: APT Messages
 
     @series.xenial
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -99,7 +99,7 @@ Feature: APT Messages
            | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
     @series.xenial
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -157,7 +157,7 @@ Feature: APT Messages
     @series.bionic
     @series.focal
     @series.jammy
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -175,7 +175,7 @@ Feature: APT Messages
         Calculating upgrade...
         Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
           <package>
-        Learn more about Ubuntu Pro at https://ubuntu.com/pro
+        <learn_more_msg>
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I run `apt-get upgrade` with sudo
@@ -211,13 +211,13 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded\.
         """
         Examples: ubuntu release
-          | release | package |
-          | bionic  | ansible |
-          | focal   | hello   |
-          | jammy   | hello   |
+          | release | package | learn_more_msg                                                    |
+          | bionic  | ansible | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | jammy   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT News
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -613,60 +613,35 @@ Feature: APT Messages
 
     @series.xenial
     @series.bionic
+    @series.focal
+    @uses.config.machine_type.any
     @uses.config.machine_type.aws.generic
-    Scenario Outline: AWS URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
-        When I run `apt-get install ansible -y` with sudo
-        When I run `apt-get update` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        <msg>
-        """
-        Examples: ubuntu release
-          | release | msg                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on AWS at https:\/\/ubuntu\.com\/aws\/pro  |
-
-    @series.xenial
-    @series.bionic
     @uses.config.machine_type.azure.generic
-    Scenario Outline: Azure URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
-        When I run `apt-get install ansible -y` with sudo
-        When I run `apt-get update` with sudo
-        When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
-        """
-        <msg>
-        """
-        Examples: ubuntu release
-          | release | msg                                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 on Azure at https:\/\/ubuntu\.com\/16-04\/azure |
-          | bionic  | Learn more about Ubuntu Pro on Azure at https:\/\/ubuntu\.com\/azure\/pro              |
-
-    @series.xenial
-    @series.bionic
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: GCP URLs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Cloud and series-specific URLs
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt-get install ansible -y` with sudo
         When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         <msg>
         """
-        Examples: ubuntu release
-          | release | msg                                                                    |
-          | xenial  | Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04 |
-          | bionic  | Learn more about Ubuntu Pro on GCP at https:\/\/ubuntu\.com\/gcp\/pro  |
+        Examples: release-per-machine-type
+          | release | machine_type  | msg                                                                              |
+          | xenial  | aws.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
+          | xenial  | azure.generic | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
+          | xenial  | gcp.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
+          | bionic  | aws.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
+          | bionic  | azure.generic | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
+          | bionic  | gcp.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
+          | focal   | aws.generic   | Learn more about Ubuntu Pro on AWS at https://ubuntu.com/aws/pro                 |
+          | focal   | azure.generic | Learn more about Ubuntu Pro on Azure at https://ubuntu.com/azure/pro             |
+          | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
     @series.kinetic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo

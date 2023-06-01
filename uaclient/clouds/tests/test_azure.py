@@ -5,8 +5,8 @@ from urllib.error import HTTPError
 import mock
 import pytest
 
+from uaclient import exceptions
 from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
-from uaclient.exceptions import InPlaceUpgradeNotSupportedError
 
 M_PATH = "uaclient.clouds.azure."
 
@@ -124,13 +124,32 @@ class TestUAAutoAttachAzureInstance:
         instance = UAAutoAttachAzureInstance()
         assert viable is instance.is_viable
 
-    def test_unsupported_should_poll_for_pro_license(self):
-        """Unsupported"""
+    def test_should_poll_for_license(self):
         instance = UAAutoAttachAzureInstance()
-        assert not instance.should_poll_for_pro_license()
+        result = instance.should_poll_for_pro_license()
+        assert result
 
-    def test_unsupported_is_pro_license_present(self):
-        """Unsupported"""
+    @pytest.mark.parametrize(
+        "metadata_response, expected_result",
+        (
+            (({}, {}), False),
+            (({"licenseType": None}, {}), False),
+            (({"licenseType": ""}, {}), False),
+            (({"licenseType": "RHEL_BYOS"}, {}), False),
+            (({"licenseType": "SLES_BYOS"}, {}), False),
+            (({"licenseType": "UBUNTU_PRO"}, {}), True),
+        ),
+    )
+    @mock.patch(M_PATH + "util.readurl")
+    def test_is_licence_present(
+        self, m_readurl, metadata_response, expected_result
+    ):
         instance = UAAutoAttachAzureInstance()
-        with pytest.raises(InPlaceUpgradeNotSupportedError):
-            instance.is_pro_license_present(wait_for_change=False)
+        m_readurl.return_value = metadata_response
+        result = instance.is_pro_license_present(wait_for_change=False)
+        assert expected_result == result
+
+    def test_is_licence_present_wait_for_change_raises_exception(self):
+        instance = UAAutoAttachAzureInstance()
+        with pytest.raises(exceptions.CancelProLicensePolling):
+            instance.is_pro_license_present(wait_for_change=True)

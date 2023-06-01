@@ -44,7 +44,7 @@ class TestAttachWithToken:
         ],
     )
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch("uaclient.status.status")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "config.UAConfig.write_cache")
@@ -83,12 +83,12 @@ class TestAutoAttach:
     @mock.patch(M_PATH + "attach_with_token")
     @mock.patch(
         M_PATH
-        + "contract.UAContractClient.request_auto_attach_contract_token",
+        + "contract.UAContractClient.get_contract_token_for_cloud_instance",
         return_value={"contractToken": "token"},
     )
     def test_happy_path_on_auto_attach(
         self,
-        m_request_auto_attach_contract_token,
+        _m_get_contract_token_for_cloud_instances,
         m_attach_with_token,
         FakeConfig,
     ):
@@ -101,13 +101,14 @@ class TestAutoAttach:
         ] == m_attach_with_token.call_args_list
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
+        M_PATH
+        + "contract.UAContractClient.get_contract_token_for_cloud_instance"  # noqa
     )
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     def test_raise_unexpected_errors(
         self,
         _m_get_instance_id,
-        m_request_auto_attach_contract_token,
+        m_get_contract_token_for_cloud_instances,
         FakeConfig,
     ):
         """Any unexpected errors will be raised."""
@@ -119,7 +120,7 @@ class TestAutoAttach:
             ),
             error_response={"message": "something unexpected"},
         )
-        m_request_auto_attach_contract_token.side_effect = unexpected_error
+        m_get_contract_token_for_cloud_instances.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
             auto_attach(cfg, fake_instance_factory())
@@ -135,8 +136,10 @@ class TestCollectLogs:
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.actions._get_state_files")
     @mock.patch("glob.glob")
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_collect_logs_invalid_file(
         self,
+        m_get_user,
         m_glob,
         m_get_state_files,
         m_load_file,
@@ -144,18 +147,29 @@ class TestCollectLogs:
         m_we_are_currently_root,
         m_write_cmd,
         caplog_text,
+        tmpdir,
     ):
+        log_file = tmpdir.join("user-log").strpath
+        m_get_user.return_value = log_file
         m_get_state_files.return_value = ["a", "b"]
-        m_load_file.side_effect = [UnicodeError("test"), "test"]
+        m_load_file.side_effect = ["test", UnicodeError("test"), "test"]
         m_glob.return_value = []
 
         with mock.patch("os.path.isfile", return_value=True):
             collect_logs(cfg=mock.MagicMock(), output_dir="test")
 
-        assert 2 == m_load_file.call_count
-        assert [mock.call("a"), mock.call("b")] == m_load_file.call_args_list
-        assert 1 == m_write_file.call_count
-        assert [mock.call("test/b", "test")] == m_write_file.call_args_list
+        assert 3 == m_load_file.call_count
+        assert [
+            mock.call(log_file),
+            mock.call("a"),
+            mock.call("b"),
+        ] == m_load_file.call_args_list
+        assert 2 == m_write_file.call_count
+        print(m_write_file.call_args_list)
+        assert [
+            mock.call("test/user0.log", "test"),
+            mock.call("test/b", "test"),
+        ] == m_write_file.call_args_list
         assert "Failed to load file: a\n" in caplog_text()
 
 

@@ -48,8 +48,7 @@ AVAILABLE_RESOURCES = [
     {"name": "ros"},
 ]
 
-ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
-    """
+SERVICES_WRAPPED_HELP = """\
 Client to manage Ubuntu Pro services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
@@ -69,28 +68,8 @@ Client to manage Ubuntu Pro services on a machine.
    (https://ubuntu.com/robotics/ros-esm)
  - ros: Security Updates for the Robot Operating System
    (https://ubuntu.com/robotics/ros-esm)
-"""
-)
 
-SERVICES_WRAPPED_HELP = textwrap.dedent(
-    """
-Client to manage Ubuntu Pro services on a machine.
- - cc-eal: Common Criteria EAL2 Provisioning Packages
-   (https://ubuntu.com/cc-eal)
- - cis: Security compliance and audit tools
-   (https://ubuntu.com/security/certifications/docs/usg)
- - esm-apps: Expanded Security Maintenance for Applications
-   (https://ubuntu.com/security/esm)
- - esm-infra: Expanded Security Maintenance for Infrastructure
-   (https://ubuntu.com/security/esm)
- - fips-updates: NIST-certified core packages with priority security updates
-   (https://ubuntu.com/security/certifications#fips)
- - fips: NIST-certified core packages
-   (https://ubuntu.com/security/certifications#fips)
- - livepatch: Canonical Livepatch service
-   (https://ubuntu.com/security/livepatch)
-"""
-)
+Use pro help <service> to get more details about each service"""
 
 
 @pytest.fixture(params=["direct", "--help", "pro help", "pro help --all"])
@@ -147,10 +126,17 @@ class TestCLIParser:
     maxDiff = None
 
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("uaclient.log.get_user_log_file")
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.cli.contract")
     def test_help_descr_and_url_is_wrapped_at_eighty_chars(
-        self, m_contract, m_entitlements, m_we_are_currently_root, get_help
+        self,
+        m_contract,
+        m_entitlements,
+        m_get_user_log_file,
+        m_we_are_currently_root,
+        get_help,
+        tmpdir,
     ):
         """Help lines are wrapped at 80 chars"""
 
@@ -160,7 +146,12 @@ class TestCLIParser:
             help_doc_url=BIG_URL,
             is_beta=False,
         )
-
+        m_get_user_log_file.return_value = tmpdir.join("user.log").strpath
+        default_get_user_log_file = tmpdir.join("default.log").strpath
+        defaults_ret = {
+            "log_level": "debug",
+            "log_file": default_get_user_log_file,
+        }
         m_entitlements.entitlement_factory.return_value = mocked_ent
         m_contract.get_available_resources.return_value = [{"name": "test"}]
 
@@ -168,21 +159,36 @@ class TestCLIParser:
             " - test: " + " ".join(["123456789"] * 7),
             "   next line ({url})".format(url=BIG_URL),
         ]
-        out, _ = get_help()
+        with mock.patch.dict(
+            "uaclient.cli.defaults.CONFIG_DEFAULTS", defaults_ret
+        ):
+            out, _ = get_help()
         assert "\n".join(lines) in out
 
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("uaclient.log.get_user_log_file")
     @mock.patch("uaclient.cli.contract")
     def test_help_sourced_dynamically_from_each_entitlement(
-        self, m_contract, m_we_are_currently_root, get_help
+        self,
+        m_contract,
+        m_get_user_log_file,
+        m_we_are_currently_root,
+        get_help,
+        tmpdir,
     ):
         """Help output is sourced from entitlement name and description."""
         m_contract.get_available_resources.return_value = AVAILABLE_RESOURCES
-        out, type_request = get_help()
-        if type_request == "base":
+        m_get_user_log_file.return_value = tmpdir.join("user.log").strpath
+        default_get_user_log_file = tmpdir.join("default.log").strpath
+        defaults_ret = {
+            "log_level": "debug",
+            "log_file": default_get_user_log_file,
+        }
+        with mock.patch.dict(
+            "uaclient.cli.defaults.CONFIG_DEFAULTS", defaults_ret
+        ):
+            out, type_request = get_help()
             assert SERVICES_WRAPPED_HELP in out
-        else:
-            assert ALL_SERVICES_WRAPPED_HELP in out
 
     @pytest.mark.parametrize(
         "out_format, expected_return",
@@ -197,9 +203,7 @@ class TestCLIParser:
         ),
     )
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch("uaclient.status._is_attached")
     def test_help_command_when_unnatached(
         self, m_attached, m_available_resources, out_format, expected_return
     ):
@@ -219,7 +223,7 @@ class TestCLIParser:
         m_entitlement_obj = m_entitlement_cls.return_value
         type(m_entitlement_obj).help_info = m_ent_help_info
 
-        m_attached.return_value = False
+        m_attached.return_value = mock.MagicMock(is_attached=False)
 
         m_available_resources.return_value = [
             {"name": "test", "available": True}
@@ -253,9 +257,7 @@ class TestCLIParser:
     )
     @pytest.mark.parametrize("is_beta", (True, False))
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch("uaclient.status._is_attached")
     def test_help_command_when_attached(
         self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
     ):
@@ -285,7 +287,7 @@ class TestCLIParser:
         m_ent_desc = mock.PropertyMock(return_value="description")
         type(m_entitlement_obj).description = m_ent_desc
 
-        m_attached.return_value = True
+        m_attached.return_value = mock.MagicMock(is_attached=True)
         m_available_resources.return_value = [
             {"name": "test", "available": True}
         ]
@@ -746,12 +748,12 @@ class TestMain:
                 logging.INFO,
                 defaults.CONFIG_DEFAULTS["log_level"],
                 defaults.CONFIG_DEFAULTS["log_file"],
-            )
+            ),
         ]
 
         if not config_error:
             expected_setup_logging_calls.append(
-                mock.call(mock.ANY, mock.ANY, log_file),
+                mock.call(mock.ANY, mock.ANY, cfg.log_file),
             )
 
         assert expected_setup_logging_calls == m_setup_logging.call_args_list
@@ -777,14 +779,73 @@ class TestMain:
             == str(err)
         )
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "cli_args,is_tty,should_warn",
+        (
+            (["pro", "status"], True, False),
+            (["pro", "status"], False, True),
+            (["pro", "status", "--format", "tabular"], True, False),
+            (["pro", "status", "--format", "tabular"], False, True),
+            (["pro", "status", "--format", "json"], True, False),
+            (["pro", "status", "--format", "json"], False, False),
+            (["pro", "security-status"], True, False),
+            (["pro", "security-status"], False, True),
+            (["pro", "security-status", "--format", "json"], True, False),
+            (["pro", "security-status", "--format", "json"], False, False),
+        ),
+    )
+    @mock.patch("uaclient.cli.action_status")
+    @mock.patch("uaclient.cli.action_security_status")
+    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("sys.stdout.isatty")
+    def test_status_human_readable_warning(
+        self,
+        m_tty,
+        _m_setup_logging,
+        _m_action_security_status,
+        _m_action_status,
+        caplog_text,
+        cli_args,
+        is_tty,
+        should_warn,
+        FakeConfig,
+    ):
+        check_text = "WARNING: this output is intended to be human readable"
+        m_tty.return_value = is_tty
+        with mock.patch("sys.argv", cli_args):
+            with mock.patch(
+                "uaclient.config.UAConfig",
+                return_value=FakeConfig(),
+            ):
+                main()
+
+        logs = caplog_text()
+        if should_warn:
+            assert check_text in logs
+        else:
+            assert check_text not in logs
+
 
 class TestSetupLogging:
     @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_console_log_configured_if_not_present(
-        self, m_we_are_currently_root, level, capsys, logging_sandbox
+        self,
+        m_get_user,
+        m_we_are_currently_root,
+        level,
+        capsys,
+        logging_sandbox,
+        FakeConfig,
+        tmpdir,
     ):
-        setup_logging(level, logging.INFO)
+        m_get_user.return_value = tmpdir.join("user.log").strpath
+        with mock.patch(
+            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
+        ):
+            setup_logging(level, logging.INFO)
         logging.log(level, "after setup")
         logging.log(level - 1, "not present")
 
@@ -793,14 +854,25 @@ class TestSetupLogging:
         assert "not present" not in err
 
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
+    @mock.patch("uaclient.log.get_user_log_file")
     def test_console_log_configured_if_already_present(
-        self, m_we_are_currently_root, capsys, logging_sandbox
+        self,
+        m_get_user,
+        m_we_are_currently_root,
+        capsys,
+        logging_sandbox,
+        FakeConfig,
+        tmpdir,
     ):
+        m_get_user.return_value = tmpdir.join("user.log").strpath
         logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
-        logging.error("before setup")
-        setup_logging(logging.INFO, logging.INFO)
-        logging.error("after setup")
+        with mock.patch(
+            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
+        ):
+            logging.error("before setup")
+            setup_logging(logging.INFO, logging.INFO)
+            logging.error("after setup")
 
         # 'before setup' will be in stderr, so check that setup_logging
         # configures the format
@@ -808,16 +880,22 @@ class TestSetupLogging:
         assert "ERROR: before setup" not in err
         assert "ERROR: after setup" in err
 
+    @mock.patch("uaclient.log.get_user_log_file")
     @mock.patch("uaclient.cli.util.we_are_currently_root", return_value=False)
-    def test_file_log_not_configured_if_not_root(
-        self, m_we_are_currently_root, tmpdir, logging_sandbox
+    def test_user_file_log_configured_if_not_root(
+        self,
+        m_we_are_currently_root,
+        m_log_get_user_log_file,
+        tmpdir,
+        logging_sandbox,
     ):
         log_file = tmpdir.join("log_file")
+        m_log_get_user_log_file.return_value = log_file.strpath
 
-        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
+        setup_logging(logging.INFO, logging.INFO)
         logging.info("after setup")
 
-        assert not log_file.exists()
+        assert log_file.exists()
 
     @pytest.mark.parametrize("log_filename", (None, "file.log"))
     @mock.patch("uaclient.cli.config")
@@ -937,7 +1015,7 @@ class TestSetupLogging:
     ):
         log_file = tmpdir.join("root-only.log")
         log_path = log_file.strpath
-        expected_mode = 0o644
+        expected_mode = 0o640
         if pre_existing:
             expected_mode = 0o640
             log_file.write("existing content\n")

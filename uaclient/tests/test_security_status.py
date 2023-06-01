@@ -5,6 +5,10 @@ import mock
 import pytest
 
 from uaclient import livepatch
+from uaclient.entitlements.entitlement_status import (
+    ApplicationStatus,
+    ContractStatus,
+)
 from uaclient.security_status import (
     RebootStatus,
     UpdateStatus,
@@ -137,40 +141,50 @@ class TestSecurityStatus:
         assert get_update_status(service_name, ua_info) == expected_result
 
     @pytest.mark.parametrize("is_attached", (True, False))
-    @mock.patch("uaclient.security_status.status")
-    def test_get_ua_info(self, m_status, is_attached, FakeConfig):
-        if is_attached:
-            cfg = FakeConfig().for_attached_machine()
-        else:
-            cfg = FakeConfig()
+    @mock.patch(M_PATH + "_is_attached")
+    @mock.patch(M_PATH + "ESMInfraEntitlement")
+    @mock.patch(M_PATH + "ESMAppsEntitlement")
+    def test_get_ua_info(
+        self, m_apps, m_infra, m_attached, is_attached, FakeConfig
+    ):
+        m_attached.return_value = mock.MagicMock(is_attached=is_attached)
 
-        m_status.return_value = {
-            "attached": is_attached,
-            "services": [
-                {"name": "esm-infra", "entitled": "yes", "status": "enabled"},
-                {"name": "esm-apps", "entitled": "yes", "status": "disabled"},
-                {
-                    "name": "non-esm-service",
-                    "entitled": "yes",
-                    "status": "enabled",
-                },
-            ],
-        }
+        m_infra.return_value = mock.MagicMock(
+            contract_status=mock.MagicMock(
+                return_value=ContractStatus.ENTITLED
+            ),
+            application_status=mock.MagicMock(
+                return_value=(ApplicationStatus.ENABLED, 0)
+            ),
+        )
+        m_apps.return_value = mock.MagicMock(
+            contract_status=mock.MagicMock(
+                return_value=ContractStatus.ENTITLED
+            ),
+            application_status=mock.MagicMock(
+                return_value=(ApplicationStatus.DISABLED, 0)
+            ),
+        )
 
+        cfg = FakeConfig()
         result = get_ua_info(cfg)
 
         if is_attached:
             assert result == {
                 "attached": True,
                 "enabled_services": ["esm-infra"],
-                "entitled_services": ["esm-infra", "esm-apps"],
+                "entitled_services": ["esm-apps", "esm-infra"],
             }
+            assert m_infra.call_args_list == [mock.call(cfg)]
+            assert m_apps.call_args_list == [mock.call(cfg)]
         else:
             assert result == {
                 "attached": False,
                 "enabled_services": [],
                 "entitled_services": [],
             }
+            assert m_infra.call_args_list == []
+            assert m_apps.call_args_list == []
 
     @pytest.mark.parametrize(
         "installed_version,other_versions,expected_output",
@@ -519,7 +533,9 @@ class TestSecurityStatus:
 
     @mock.patch(M_PATH + "get_reboot_status")
     @mock.patch(M_PATH + "get_livepatch_fixed_cves", return_value=[])
-    @mock.patch(M_PATH + "status", return_value={"attached": False})
+    @mock.patch(
+        M_PATH + "_is_attached", return_value=mock.MagicMock(is_attached=False)
+    )
     @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
     @mock.patch(M_PATH + "filter_security_updates")
     @mock.patch(M_PATH + "get_apt_cache")
@@ -612,6 +628,7 @@ class TestGetLivepatchFixedCVEs:
             uname_machine_arch="",
             uname_release="",
             proc_version_signature_version=None,
+            build_date=None,
             major=None,
             minor=None,
             patch=None,

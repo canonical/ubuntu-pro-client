@@ -1,7 +1,7 @@
 Feature: Client behaviour for the API endpoints
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: API invalid endpoint or args
     Given a `<release>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api invalid.endpoint` `with sudo` exits `1`
@@ -25,7 +25,7 @@ Feature: Client behaviour for the API endpoints
            | lunar   |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Basic endpoints
     Given a `<release>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.version.v1` with sudo
@@ -42,6 +42,16 @@ Feature: Client behaviour for the API endpoints
     Then stdout matches regexp:
     """
     {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": false}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+    """
+    When I run `ua api u.pro.status.is_attached.v1` with sudo
+    Then stdout matches regexp:
+    """
+    {"_schema_version": "v1", "data": {"attributes": {"is_attached": false}, "meta": {"environment_vars": \[\]}, "type": "IsAttached"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+    """
+    When I run `ua api u.pro.status.enabled_services.v1` with sudo
+    Then stdout matches regexp:
+    """
+    {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
     """
 
     Examples: ubuntu release

@@ -29,7 +29,7 @@ from uaclient import (
 from uaclient import log as pro_log
 from uaclient import messages, security, security_status
 from uaclient import status as ua_status
-from uaclient import util, version
+from uaclient import timer, util, version
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -47,6 +47,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
@@ -63,8 +64,8 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
-from uaclient.jobs.update_messaging import refresh_motd, update_motd_messages
 from uaclient.log import JsonArrayFormatter
+from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
 NAME = "pro"
@@ -148,6 +149,9 @@ class UAArgumentParser(argparse.ArgumentParser):
             self.description = "\n".join(
                 [self.base_desc] + service_descriptions
             )
+
+            self.description += "\n\n" + messages.PRO_HELP_SERVICE_INFO.msg
+
         super().print_help(file=file)
 
     @staticmethod
@@ -245,7 +249,7 @@ def assert_attached(msg_function=None):
     def wrapper(f):
         @wraps(f)
         def new_f(args, cfg, **kwargs):
-            if not cfg.is_attached:
+            if not _is_attached(cfg).is_attached:
                 if msg_function:
                     command = getattr(args, "command", "")
                     service_names = getattr(args, "service", "")
@@ -268,7 +272,7 @@ def assert_not_attached(f):
 
     @wraps(f)
     def new_f(args, cfg):
-        if cfg.is_attached:
+        if _is_attached(cfg).is_attached:
             raise exceptions.AlreadyAttachedError(
                 cfg.machine_token_file.account.get("name", "")
             )
@@ -742,6 +746,11 @@ def enable_parser(parser, cfg: config.UAConfig):
         default="cli",
         help=("output enable in the specified format (default: cli)"),
     )
+    parser.add_argument(
+        "--variant",
+        action="store",
+        help=("The name of the variant to use when enabling the service"),
+    )
     return parser
 
 
@@ -929,6 +938,12 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
 
     @return: True on success, False otherwise
     """
+    # Make sure we have the correct variant of the service
+    # This can affect what packages get uninstalled
+    variant = entitlement.enabled_variant
+    if variant is not None:
+        entitlement = variant
+
     ret, reason = entitlement.disable()
 
     if not ret:
@@ -1260,6 +1275,14 @@ def action_enable(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
+    variant = getattr(args, "variant", "")
+    access_only = args.access_only
+
+    if variant and access_only:
+        raise exceptions.InvalidOptionCombination(
+            option1="--access-only", option2="--variant"
+        )
+
     event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
@@ -1280,7 +1303,8 @@ def action_enable(args, *, cfg, **kwargs):
                 ent_name,
                 assume_yes=args.assume_yes,
                 allow_beta=args.beta,
-                access_only=args.access_only,
+                access_only=access_only,
+                variant=variant,
             )
             ua_status.status(cfg=cfg)  # Update the status cache
 
@@ -1336,6 +1360,7 @@ def action_detach(args, *, cfg) -> int:
     ret = _detach(cfg, assume_yes=args.assume_yes)
     if ret == 0:
         daemon.start()
+        timer.stop()
     event.process_events()
     return ret
 
@@ -1697,7 +1722,7 @@ def action_status(args, *, cfg: config.UAConfig):
         event.info("")
 
     event.set_output_content(status)
-    output = ua_status.format_tabular(status, show_all_hint=not show_all)
+    output = ua_status.format_tabular(status, show_all=show_all)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
     return ret
@@ -1840,11 +1865,33 @@ def _warn_about_new_version(cmd_args=None) -> None:
         logging.warning(NEW_VERSION_NOTICE.format(version=new_version))
 
 
+def _warn_about_output_redirection(cmd_args) -> None:
+    """Warn users that the user readable output may change."""
+    if (
+        cmd_args.command in ("status", "security-status")
+        and not sys.stdout.isatty()
+    ):
+        if hasattr(cmd_args, "format") and cmd_args.format in ("json", "yaml"):
+            return
+        logging.warning(
+            messages.WARNING_HUMAN_READABLE_OUTPUT.format(
+                command=cmd_args.command
+            )
+        )
+
+
 def setup_logging(console_level, log_level, log_file=None, logger=None):
-    """Setup console logging and debug logging to log_file"""
+    """Setup console logging and debug logging to log_file
+
+    If run as non_root and cfg.log_file is provided, it is replaced
+    with another non-root log file.
+    """
     if log_file is None:
         cfg = config.UAConfig()
         log_file = cfg.log_file
+    # if we are running as non-root, change log file
+    if not util.we_are_currently_root():
+        log_file = pro_log.get_user_log_file()
     if isinstance(log_level, str):
         log_level = log_level.upper()
     console_formatter = util.LogFormatter()
@@ -1864,20 +1911,18 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     console_handler.set_name("ua-console")  # Used to disable console logging
     logger.addHandler(console_handler)
 
+    log_file_path = pathlib.Path(log_file)
+
+    if not log_file_path.exists():
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file_path.touch(mode=0o640)
     # Setup file logging
-    if util.we_are_currently_root():
-        # Setup readable-by-root-only debug file logging if running as root
-        log_file_path = pathlib.Path(log_file)
 
-        if not log_file_path.exists():
-            log_file_path.touch()
-            log_file_path.chmod(0o644)
-
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(JsonArrayFormatter())
-        file_handler.setLevel(log_level)
-        file_handler.set_name("ua-file")
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(JsonArrayFormatter())
+    file_handler.setLevel(log_level)
+    file_handler.set_name("ua-file")
+    logger.addHandler(file_handler)
 
 
 def set_event_mode(cmd_args):
@@ -2007,6 +2052,9 @@ def main(sys_argv=None):
         logging.debug(
             "Executed with environment variables: %r" % pro_environment
         )
+
+    _warn_about_output_redirection(args)
+
     return_value = args.action(args, cfg=cfg)
 
     _warn_about_new_version(args)

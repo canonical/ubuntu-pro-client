@@ -10,10 +10,11 @@ from uaclient import (
     entitlements,
     exceptions,
     livepatch,
-    messages,
 )
+from uaclient import log as pro_log
+from uaclient import messages
 from uaclient import status as ua_status
-from uaclient import system, util
+from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.defaults import (
@@ -35,6 +36,8 @@ UA_SERVICES = (
     "ubuntu-advantage.service",
 )
 
+USER_LOG_COLLECTED_LIMIT = 10
+
 
 def attach_with_token(
     cfg: config.UAConfig, token: str, allow_enable: bool
@@ -46,7 +49,7 @@ def attach_with_token(
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
     """
-    from uaclient.jobs.update_messaging import update_motd_messages
+    from uaclient.timer.update_messaging import update_motd_messages
 
     try:
         contract.request_updated_contract(
@@ -61,6 +64,7 @@ def attach_with_token(
         # Persist updated status in the event of partial attach
         ua_status.status(cfg=cfg)
         update_motd_messages(cfg)
+        # raise this exception in case we cannot enable all services
         raise exc
 
     current_iid = identity.get_instance_id()
@@ -68,6 +72,7 @@ def attach_with_token(
         cfg.write_cache("instance-id", current_iid)
 
     update_motd_messages(cfg)
+    timer.start()
 
 
 def auto_attach(
@@ -84,7 +89,7 @@ def auto_attach(
         auto-attach support.
     """
     contract_client = contract.UAContractClient(cfg)
-    tokenResponse = contract_client.request_auto_attach_contract_token(
+    tokenResponse = contract_client.get_contract_token_for_cloud_instance(
         instance=cloud
     )
 
@@ -99,7 +104,8 @@ def enable_entitlement_by_name(
     *,
     assume_yes: bool = False,
     allow_beta: bool = False,
-    access_only: bool = False
+    access_only: bool = False,
+    variant: str = ""
 ):
     """
     Constructs an entitlement based on the name provided. Passes kwargs onto
@@ -107,7 +113,9 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(cfg=cfg, name=name)
+    ent_cls = entitlements.entitlement_factory(
+        cfg=cfg, name=name, variant=variant
+    )
     entitlement = ent_cls(
         cfg,
         assume_yes=assume_yes,
@@ -209,6 +217,23 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
         )
 
     state_files = _get_state_files(cfg)
+    user_log_files = (
+        pro_log.get_all_user_log_files()[:USER_LOG_COLLECTED_LIMIT]
+        if util.we_are_currently_root()
+        else [pro_log.get_user_log_file()]
+    )
+    # save log file in compressed file
+    for log_file_idx, log_file in enumerate(user_log_files):
+        try:
+            content = util.redact_sensitive_logs(system.load_file(log_file))
+            system.write_file(
+                os.path.join(output_dir, "user{}.log".format(log_file_idx)),
+                content,
+            )
+        except Exception as e:
+            logging.warning(
+                "Failed to collect user log file: %s\n%s", log_file, str(e)
+            )
 
     # also get default logrotated log files
     for f in state_files + glob.glob(DEFAULT_LOG_PREFIX + "*"):
@@ -225,6 +250,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             if util.we_are_currently_root():
                 # if root, overwrite the original with redacted content
                 system.write_file(f, content)
+
             system.write_file(
                 os.path.join(output_dir, os.path.basename(f)), content
             )

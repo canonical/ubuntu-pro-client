@@ -2,7 +2,7 @@
 Feature: Attached status
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -42,7 +42,7 @@ Feature: Attached status
            | lunar   |
 
     @series.xenial
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Non-root status can see in-progress operations
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -83,7 +83,7 @@ Feature: Attached status
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -129,7 +129,7 @@ Feature: Attached status
            | bionic  |
 
     @series.focal
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -171,7 +171,7 @@ Feature: Attached status
            | focal   |
 
     @series.jammy
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in the latest LTS ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -182,6 +182,7 @@ Feature: Attached status
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        usg             +yes      +disabled +Security compliance and audit tools
 
         For a list of all Ubuntu Pro services, run 'pro status --all'
         Enable services with: pro enable <service>
@@ -200,7 +201,7 @@ Feature: Attached status
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-        usg             +yes      +n/a      +Security compliance and audit tools
+        usg             +yes      +disabled +Security compliance and audit tools
 
         Enable services with: pro enable <service>
         """

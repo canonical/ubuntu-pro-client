@@ -7,7 +7,6 @@ any of our dependencies installed.
 
 UAC_ETC_PATH = "/etc/ubuntu-advantage/"
 UAC_RUN_PATH = "/run/ubuntu-advantage/"
-UAC_TMP_PATH = "/tmp/ubuntu-advantage/"
 DEFAULT_DATA_DIR = "/var/lib/ubuntu-advantage"
 MACHINE_TOKEN_FILE = "machine-token.json"
 PRIVATE_SUBDIR = "/private"
@@ -69,3 +68,4 @@ ROOT_READABLE_MODE = 0o600
 WORLD_READABLE_MODE = 0o644
 NOTICES_PERMANENT_DIRECTORY = DEFAULT_DATA_DIR + "/notices/"
 NOTICES_TEMPORARY_DIRECTORY = UAC_RUN_PATH + "notices/"
+USER_CACHE_SUBDIR = "ubuntu-pro"

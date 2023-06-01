@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import re
+import stat
 import subprocess
 import tempfile
 import time
@@ -11,7 +12,7 @@ from functools import lru_cache
 from shutil import rmtree
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
-from uaclient import exceptions, messages, util
+from uaclient import defaults, exceptions, messages, util
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -19,7 +20,9 @@ ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
-# N.B. this relies on the version normalisation we perform in get_release_info
+CPU_VENDOR_MAP = {"GenuineIntel": "intel"}
+
+# N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = (
     r"(?P<release>\d+\.\d+) (LTS\s*)?(\((?P<series>\w+))?.*"
 )
@@ -47,6 +50,7 @@ KernelInfo = NamedTuple(
     [
         ("uname_machine_arch", str),
         ("uname_release", str),
+        ("build_date", Optional[datetime.datetime]),
         ("proc_version_signature_version", Optional[str]),
         ("major", Optional[int]),
         ("minor", Optional[int]),
@@ -65,6 +69,67 @@ ReleaseInfo = NamedTuple(
         ("pretty_version", str),
     ],
 )
+CpuInfo = NamedTuple(
+    "CpuInfo",
+    [
+        ("vendor_id", str),
+        ("model", Optional[int]),
+        ("stepping", Optional[int]),
+    ],
+)
+
+
+RE_KERNEL_EXTRACT_BUILD_DATE = r"(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*"
+
+
+def _get_kernel_changelog_timestamp(
+    uname: os.uname_result,
+) -> Optional[datetime.datetime]:
+    if is_container():
+        with util.disable_log_to_console():
+            logging.warning(
+                "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
+            )
+        return None
+
+    with util.disable_log_to_console():
+        logging.warning("Falling back to using timestamp of kernel changelog")
+
+    try:
+        stat_result = os.stat(
+            "/usr/share/doc/linux-image-{}/changelog.Debian.gz".format(
+                uname.release
+            )
+        )
+        return datetime.datetime.fromtimestamp(
+            stat_result.st_mtime, datetime.timezone.utc
+        )
+    except Exception:
+        with util.disable_log_to_console():
+            logging.warning("Unable to stat kernel changelog")
+        return None
+
+
+def _get_kernel_build_date(
+    uname: os.uname_result,
+) -> Optional[datetime.datetime]:
+    date_match = re.search(RE_KERNEL_EXTRACT_BUILD_DATE, uname.version)
+    if date_match is None:
+        with util.disable_log_to_console():
+            logging.warning("Unable to find build date in uname version")
+        return _get_kernel_changelog_timestamp(uname)
+    date_str = date_match.group(0)
+    try:
+        dt = datetime.datetime.strptime(date_str, "%a %b %d %H:%M:%S %Z %Y")
+    except ValueError:
+        with util.disable_log_to_console():
+            logging.warning("Unable to parse build date from uname version")
+        return _get_kernel_changelog_timestamp(uname)
+    if dt.tzinfo is None:
+        # Give it a default timezone if it didn't get one from strptime
+        # The Livepatch API requires a timezone
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
 
 
 @lru_cache(maxsize=None)
@@ -78,6 +143,7 @@ def get_kernel_info() -> KernelInfo:
 
     uname = os.uname()
     uname_machine_arch = uname.machine.strip()
+    build_date = _get_kernel_build_date(uname)
 
     uname_release = uname.release.strip()
     uname_match = re.match(RE_KERNEL_UNAME, uname_release)
@@ -88,6 +154,7 @@ def get_kernel_info() -> KernelInfo:
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
+            build_date=build_date,
             proc_version_signature_version=proc_version_signature_version,
             major=None,
             minor=None,
@@ -99,6 +166,7 @@ def get_kernel_info() -> KernelInfo:
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
+            build_date=build_date,
             proc_version_signature_version=proc_version_signature_version,
             major=int(uname_match.group("major")),
             minor=int(uname_match.group("minor")),
@@ -121,6 +189,30 @@ def get_virt_type() -> str:
         return out.strip()
     except exceptions.ProcessExecutionError:
         return ""
+
+
+@lru_cache(maxsize=None)
+def get_cpu_info() -> CpuInfo:
+    cpu_info_content = load_file("/proc/cpuinfo")
+    cpu_info_values = {}
+    for field in ["vendor_id", "model", "stepping"]:
+        cpu_match = re.search(
+            r"^{}\s*:\s*(?P<info>\w*)".format(field),
+            cpu_info_content,
+            re.MULTILINE,
+        )
+        if cpu_match:
+            value = cpu_match.group("info")
+            cpu_info_values[field] = value
+
+    vendor_id_base = cpu_info_values.get("vendor_id", "")
+    model = cpu_info_values.get("model")
+    stepping = cpu_info_values.get("stepping")
+    return CpuInfo(
+        vendor_id=CPU_VENDOR_MAP.get(vendor_id_base, vendor_id_base),
+        model=int(model) if model else None,
+        stepping=int(stepping) if stepping else None,
+    )
 
 
 @lru_cache(maxsize=None)
@@ -370,14 +462,28 @@ def create_file(filename: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
-def write_file(filename: str, content: str, mode: int = 0o644) -> None:
+def write_file(
+    filename: str, content: str, mode: Optional[int] = None
+) -> None:
     """Write content to the provided filename encoding it if necessary.
+
+    We preserve the file ownership and permissions if the file is present
+    and no mode argument is provided.
 
     @param filename: The full path of the file to write.
     @param content: The content to write to the file.
     @param mode: The filesystem mode to set on the file.
     """
     tmpf = None
+    is_file_present = os.path.isfile(filename)
+    if is_file_present:
+        file_stat = pathlib.Path(filename).stat()
+        f_mode = stat.S_IMODE(file_stat.st_mode)
+        if mode is None:
+            mode = f_mode
+
+    elif mode is None:
+        mode = 0o644
     try:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         tmpf = tempfile.NamedTemporaryFile(
@@ -390,6 +496,8 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         tmpf.flush()
         tmpf.close()
         os.chmod(tmpf.name, mode)
+        if is_file_present:
+            os.chown(tmpf.name, file_stat.st_uid, file_stat.st_gid)
         os.rename(tmpf.name, filename)
     except Exception as e:
         if tmpf is not None:
@@ -543,3 +651,14 @@ def get_systemd_job_state(job_name: str) -> bool:
         return False
 
     return out.strip() == "active"
+
+
+def get_user_cache_dir() -> str:
+    if util.we_are_currently_root():
+        return defaults.UAC_RUN_PATH
+
+    xdg_cache_home = os.environ.get("XDG_CACHE_HOME")
+    if xdg_cache_home:
+        return xdg_cache_home + "/" + defaults.USER_CACHE_SUBDIR
+
+    return os.path.expanduser("~") + "/.cache/" + defaults.USER_CACHE_SUBDIR

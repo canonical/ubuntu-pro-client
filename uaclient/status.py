@@ -14,6 +14,7 @@ from uaclient import (
     util,
     version,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
@@ -80,6 +81,9 @@ STATUS_HEADER = "SERVICE          ENTITLED  STATUS    DESCRIPTION"
 # columns. Colorizing has an opening and closing set of unprintable characters
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <17}{entitled: <19}{status: <19}{description}"
+VARIANT_STATUS_TMPL = (
+    "{marker} {name: <15}{entitled: <19}{status: <19}{description}"
+)
 
 DEFAULT_STATUS = {
     "_doc": "Content provided in json response is currently considered"
@@ -116,7 +120,9 @@ DEFAULT_STATUS = {
 def _get_blocked_by_services(ent):
     return [
         {
-            "name": service.entitlement.name,
+            "name": service.entitlement.name
+            if not service.entitlement.is_variant
+            else service.entitlement.variant_name,
             "reason_code": service.named_msg.name,
             "reason": service.named_msg.msg,
         }
@@ -124,12 +130,15 @@ def _get_blocked_by_services(ent):
     ]
 
 
-def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
+def _attached_service_status(
+    ent, inapplicable_resources, cfg
+) -> Dict[str, Any]:
     warning = None
     status_details = ""
     description_override = ent.status_description_override()
     contract_status = ent.contract_status()
     available = "no" if ent.name in inapplicable_resources else "yes"
+    variants = {}
 
     if contract_status == ContractStatus.UNENTITLED:
         ent_status = UserFacingStatus.UNAVAILABLE
@@ -150,9 +159,19 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
             if ent_status == UserFacingStatus.INAPPLICABLE:
                 available = "no"
 
+            if ent.variants:
+                variants = {
+                    variant_name: _attached_service_status(
+                        variant_cls(cfg=cfg),
+                        inapplicable_resources,
+                        cfg,
+                    )
+                    for variant_name, variant_cls in ent.variants.items()
+                }
+
     blocked_by = _get_blocked_by_services(ent)
 
-    return {
+    service_status = {
         "name": ent.presentation_name,
         "description": ent.description,
         "entitled": contract_status.value,
@@ -163,6 +182,11 @@ def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
         "blocked_by": blocked_by,
         "warning": warning,
     }
+
+    if not ent.is_variant:
+        service_status["variants"] = variants
+
+    return service_status
 
 
 def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
@@ -223,7 +247,7 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
             continue
         ent = ent_cls(cfg)
         response["services"].append(
-            _attached_service_status(ent, inapplicable_resources)
+            _attached_service_status(ent, inapplicable_resources, cfg)
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
@@ -265,7 +289,8 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
         # that takes into account local information.
         if (
             ent_cls.name == "livepatch"
-            and livepatch.on_supported_kernel() is False
+            and livepatch.on_supported_kernel()
+            == livepatch.LivepatchSupport.UNSUPPORTED
         ):
             lp = ent_cls(cfg)
             descr_override = lp.status_description_override()
@@ -373,7 +398,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
 
     Write the status-cache when called by root.
     """
-    if cfg.is_attached:
+    if _is_attached(cfg).is_attached:
         response = _attached_status(cfg)
     else:
         response = _unattached_status(cfg)
@@ -603,7 +628,7 @@ def format_expires(expires: Optional[datetime]) -> str:
     return expires.strftime("%c %Z")
 
 
-def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
+def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
     """Format status dict for tabular output."""
     if not status.get("attached"):
         if status.get("simulated"):
@@ -621,6 +646,7 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
             ]
             for service in status.get("services", []):
                 content.append(STATUS_SIMULATED_TMPL.format(**service))
+
             return "\n".join(content)
 
         if not status.get("services", None):
@@ -658,17 +684,21 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
             for key, value in sorted(status.get("features", {}).items()):
                 content.append("{}: {}".format(key, value))
 
-        if show_all_hint:
+        if not show_all:
             content.extend(["", messages.STATUS_ALL_HINT])
 
         content.extend(["", messages.UNATTACHED.msg])
-        if livepatch.on_supported_kernel() is False:
+        if (
+            livepatch.on_supported_kernel()
+            == livepatch.LivepatchSupport.UNSUPPORTED
+        ):
             content.extend(
                 ["", messages.LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED]
             )
         return "\n".join(content)
 
     service_warnings = []
+    has_variants = False
     if not status.get("services", None):
         content = [messages.STATUS_NO_SERVICES_AVAILABLE]
     else:
@@ -692,7 +722,28 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
                 warning_message = warning.get("message", None)
                 if warning_message is not None:
                     service_warnings.append(warning_message)
+            variants = service_status.get("variants")
+            if variants and not show_all:
+                has_variants = True
+                fmt_args["name"] = "{}*".format(fmt_args["name"])
+
             content.append(STATUS_TMPL.format(**fmt_args))
+            if variants and show_all:
+                for idx, (_, variant) in enumerate(variants.items()):
+                    marker = "├" if idx != len(variants) - 1 else "└"
+                    content.append(
+                        VARIANT_STATUS_TMPL.format(
+                            marker=marker,
+                            name=variant.get("name"),
+                            entitled=colorize(variant.get("entitled", "")),
+                            status=colorize(variant.get("status", "")),
+                            description=variant.get("description", ""),
+                        )
+                    )
+
+    if has_variants:
+        content.append("")
+        content.append(messages.STATUS_SERVICE_HAS_VARIANTS)
 
     if status.get("notices") or len(service_warnings) > 0:
         content.append("")
@@ -709,8 +760,12 @@ def format_tabular(status: Dict[str, Any], show_all_hint: bool = False) -> str:
             content.append("{}: {}".format(key, value))
     content.append("")
 
-    if show_all_hint:
-        content.append(messages.STATUS_ALL_HINT)
+    if not show_all:
+        if has_variants:
+            content.append(messages.STATUS_ALL_HINT_WITH_VARIANTS)
+        else:
+            content.append(messages.STATUS_ALL_HINT)
+
     content.append("Enable services with: pro enable <service>")
     pairs = []
 
@@ -769,8 +824,8 @@ def help(cfg, name):
             "No help available for '{}'".format(name)
         )
 
-    if cfg.is_attached:
-        service_status = _attached_service_status(help_ent, {})
+    if _is_attached(cfg).is_attached:
+        service_status = _attached_service_status(help_ent, {}, cfg)
         status_msg = service_status["status"]
 
         response_dict["entitled"] = service_status["entitled"]

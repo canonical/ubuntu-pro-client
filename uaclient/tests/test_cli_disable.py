@@ -107,6 +107,7 @@ class TestDisable:
             m_entitlement_cls = mock.Mock()
 
             m_entitlement = m_entitlement_cls.return_value
+            m_entitlement.enabled_variant = None
             m_entitlement.disable.return_value = (disable_return, fail)
 
             entitlements_obj.append(m_entitlement)
@@ -201,6 +202,7 @@ class TestDisable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj.enabled_variant = None
         m_ent1_obj.disable.return_value = (
             False,
             CanDisableFailure(
@@ -212,6 +214,7 @@ class TestDisable:
 
         m_ent2_cls = mock.Mock()
         m_ent2_obj = m_ent2_cls.return_value
+        m_ent2_obj.enabled_variant = None
         m_ent2_obj.disable.return_value = (
             False,
             CanDisableFailure(
@@ -223,6 +226,7 @@ class TestDisable:
 
         m_ent3_cls = mock.Mock()
         m_ent3_obj = m_ent3_cls.return_value
+        m_ent3_obj.enabled_variant = None
         m_ent3_obj.disable.return_value = (True, None)
         type(m_ent3_obj).name = mock.PropertyMock(return_value="ent3")
 

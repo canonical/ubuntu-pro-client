@@ -16,6 +16,7 @@ from uaclient import contract, defaults, messages, system
 from uaclient.api.u.pro.packages.updates.v1 import (
     _updates as api_u_pro_packages_updates_v1,
 )
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -44,9 +45,7 @@ def update_contract_expiry(cfg: UAConfig):
         .get("id", None)
     )
     contract_client = contract.UAContractClient(cfg)
-    resp = contract_client.get_updated_contract_info(
-        machine_token, contract_id
-    )
+    resp = contract_client.get_contract_machine(machine_token, contract_id)
     resp_expiry = (
         resp.get("machineTokenInfo", {})
         .get("contractInfo", {})
@@ -66,7 +65,7 @@ def get_contract_expiry_status(
     cfg: UAConfig,
 ) -> Tuple[ContractExpiryStatus, int]:
     """Return a tuple [ContractExpiryStatus, num_days]"""
-    if not cfg.is_attached:
+    if not _is_attached(cfg).is_attached:
         return ContractExpiryStatus.NONE, 0
 
     grace_period = defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
@@ -96,7 +95,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
 
     :param cfg: UAConfig instance for this environment.
     """
-    if not cfg.is_attached:
+    if not _is_attached(cfg).is_attached:
         return False
 
     logging.debug("Updating Ubuntu Pro messages for MOTD.")

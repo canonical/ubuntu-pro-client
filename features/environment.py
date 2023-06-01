@@ -47,7 +47,7 @@ class UAClientBehaveConfig:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
     :param machine_type:
-        The default machine_type to test: lxd.container, lxd.vm, azure.pro,
+        The default machine_type to test: lxd-container, lxd-vm, azure.pro,
             azure.generic, aws.pro or aws.generic
     :param private_key_file:
         Optional path to pre-existing private key file to use when connecting
@@ -106,8 +106,6 @@ class UAClientBehaveConfig:
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
     all_options = boolean_options + str_options
-    cloud_api = None  # type: pycloudlib.cloud.BaseCloud
-    cloud_manager = None  # type: cloud.Cloud
 
     def __init__(
         self,
@@ -117,7 +115,7 @@ class UAClientBehaveConfig:
         destroy_instances: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
-        machine_type: str = "lxd.container",
+        machine_type: str = "lxd-container",
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
         reuse_image: Optional[str] = None,
@@ -125,7 +123,7 @@ class UAClientBehaveConfig:
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
         artifact_dir: str = "artifacts",
-        install_from: InstallationSource = InstallationSource.DAILY,
+        install_from: InstallationSource = InstallationSource.LOCAL,
         custom_ppa: Optional[str] = None,
         debs_path: Optional[str] = None,
         userdata_file: Optional[str] = None,
@@ -215,47 +213,39 @@ class UAClientBehaveConfig:
         )
         timed_job_tag += "-" + random_suffix
 
+        self.clouds = {
+            "aws": cloud.EC2(
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "azure": cloud.Azure(
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "gcp": cloud.GCP(
+                cloud_credentials_path=self.cloud_credentials_path,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+            ),
+            "lxd-vm": cloud.LXDVirtualMachine(
+                cloud_credentials_path=self.cloud_credentials_path,
+            ),
+            "lxd-container": cloud.LXDContainer(
+                cloud_credentials_path=self.cloud_credentials_path,
+            ),
+        }
         if "aws" in self.machine_type:
-            # For AWS, we need to specify on the pycloudlib config file that
-            # the AWS region must be us-east-2. The reason for that is because
-            # our image ids were captured using that region.
-            self.cloud_manager = cloud.EC2(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "aws"
+            self.default_cloud = self.clouds["aws"]
         elif "azure" in self.machine_type:
-            self.cloud_manager = cloud.Azure(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "azure"
+            self.default_cloud = self.clouds["azure"]
         elif "gcp" in self.machine_type:
-            self.cloud_manager = cloud.GCP(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            )
-            self.cloud = "gcp"
-        elif "lxd.vm" in self.machine_type:
-            self.cloud_manager = cloud.LXDVirtualMachine(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-            )
-            self.cloud = "lxd.vm"
+            self.default_cloud = self.clouds["gcp"]
+        elif "lxd-vm" in self.machine_type:
+            self.default_cloud = self.clouds["lxd-vm"]
         else:
-            self.cloud_manager = cloud.LXDContainer(
-                machine_type=self.machine_type,
-                cloud_credentials_path=self.cloud_credentials_path,
-            )
-            self.cloud = "lxd"
-
-        self.cloud_api = self.cloud_manager.api
+            self.default_cloud = self.clouds["lxd-container"]
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
@@ -334,7 +324,6 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
-    context.pro_config.cloud_manager.manage_ssh_key()
     context.snapshots = {}
     context.machines = {}
 
@@ -403,7 +392,7 @@ def before_scenario(context: Context, scenario: Scenario):
 
     filter_series = context.pro_config.filter_series
     given_a_series_match = re.match(
-        "a `(.*)` machine with ubuntu-advantage-tools installed",
+        "a `([a-z]*)` machine with ubuntu-advantage-tools installed",
         scenario.steps[0].name,
     )
     if filter_series and given_a_series_match:
@@ -414,6 +403,38 @@ def before_scenario(context: Context, scenario: Scenario):
                     "Skipping scenario outline series `{series}`."
                     " Cmdline provided @series tags: {cmdline_series}".format(
                         series=series, cmdline_series=filter_series
+                    )
+                )
+            )
+            return
+
+    if hasattr(scenario, "_row") and scenario._row is not None:
+        row_release = scenario._row.get("release")
+        if (
+            row_release
+            and len(filter_series) > 0
+            and row_release not in filter_series
+        ):
+            scenario.skip(
+                reason=(
+                    "Skipping scenario outline series `{series}`."
+                    " Cmdline provided @series tags: {cmdline_series}".format(
+                        series=row_release, cmdline_series=filter_series
+                    )
+                )
+            )
+            return
+        row_machine_type = scenario._row.get("machine_type")
+        if (
+            row_machine_type
+            and context.pro_config.machine_type != "any"
+            and row_machine_type != context.pro_config.machine_type
+        ):
+            scenario.skip(
+                reason=(
+                    "Skipping scenario outline machine_type `{}`."
+                    " Cmdline provided machine_type: {}".format(
+                        row_machine_type, context.pro_config.machine_type
                     )
                 )
             )
@@ -499,11 +520,11 @@ def after_all(context):
                     context.series_image_name[key],
                 )
             else:
-                context.pro_config.cloud_api.delete_image(image)
+                context.pro_config.default_cloud.api.delete_image(image)
 
     if context.pro_config.destroy_instances:
         try:
-            key_pair = context.pro_config.cloud_manager.api.key_pair
+            key_pair = context.pro_config.default_cloud.api.key_pair
             os.remove(key_pair.private_key_path)
             os.remove(key_pair.public_key_path)
         except Exception as e:
@@ -513,7 +534,7 @@ def after_all(context):
 
     if "builder" in context.snapshots:
         try:
-            context.pro_config.cloud_manager.api.delete_image(
+            context.pro_config.default_cloud.api.delete_image(
                 context.snapshots["builder"]
             )
         except RuntimeError as e:

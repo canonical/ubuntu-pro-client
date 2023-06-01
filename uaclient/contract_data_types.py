@@ -91,6 +91,18 @@ class AccountInfo(DataObject):
         self.externalAccountIDs = externalAccountIDs
 
 
+class PlatformChecks(DataObject):
+    fields = [
+        Field("cpu_vendor_ids", data_list(StringDataValue), False),
+    ]
+
+    def __init__(
+        self,
+        cpu_vendor_ids: Optional[List[str]],
+    ):
+        self.cpu_vendor_ids = cpu_vendor_ids
+
+
 class Affordances(DataObject):
     fields = [
         Field("architectures", data_list(StringDataValue), False),
@@ -100,6 +112,7 @@ class Affordances(DataObject):
         Field("minKernelVersion", StringDataValue, False),
         Field("tier", StringDataValue, False),
         Field("supportLevel", StringDataValue, False),
+        Field("platformChecks", PlatformChecks, False),
     ]
 
     def __init__(
@@ -111,6 +124,7 @@ class Affordances(DataObject):
         minKernelVersion: Optional[str],
         tier: Optional[str],
         supportLevel: Optional[str],
+        platformChecks: Optional[PlatformChecks],
     ):
         self.architectures = architectures
         self.presentedAs = presentedAs
@@ -119,6 +133,7 @@ class Affordances(DataObject):
         self.minKernelVersion = minKernelVersion
         self.tier = tier
         self.supportLevel = supportLevel
+        self.platformChecks = platformChecks
 
 
 class Obligations(DataObject):
@@ -176,15 +191,18 @@ class OverrideSelector(DataObject):
     fields = [
         Field("series", StringDataValue, False),
         Field("cloud", StringDataValue, False),
+        Field("variant", StringDataValue, False),
     ]
 
     def __init__(
         self,
         series: Optional[str],
         cloud: Optional[str],
+        variant: Optional[str],
     ):
         self.series = series
         self.cloud = cloud
+        self.variant = variant
 
 
 class Override(DataObject):

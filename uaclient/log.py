@@ -1,9 +1,10 @@
 import json
 import logging
+import os
 from collections import OrderedDict
-from typing import Any, Dict  # noqa: F401
+from typing import Any, Dict, List  # noqa: F401
 
-from uaclient import util
+from uaclient import defaults, system, util
 
 
 class RedactionFilter(logging.Filter):
@@ -58,3 +59,28 @@ class JsonArrayFormatter(logging.Formatter):
 
         local_log_record["extra"] = extra_message_dict
         return json.dumps(list(local_log_record.values()))
+
+
+def get_user_log_file() -> str:
+    """Gets the correct user log_file storage location"""
+    return system.get_user_cache_dir() + "/ubuntu-pro.log"
+
+
+def get_all_user_log_files() -> List[str]:
+    """Gets all the log files for the users in the system
+
+    Returns a list of all user log files in their home directories.
+    """
+    user_directories = os.listdir("/home")
+    log_files = []
+    for user_directory in user_directories:
+        user_path = (
+            "/home/"
+            + user_directory
+            + "/.cache/"
+            + defaults.USER_CACHE_SUBDIR
+            + "/ubuntu-pro.log"
+        )
+        if os.path.isfile(user_path):
+            log_files.append(user_path)
+    return log_files

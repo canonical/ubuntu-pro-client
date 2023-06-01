@@ -5,7 +5,7 @@ import pytest
 
 from uaclient import apt_news, messages
 from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient.jobs.update_messaging import ContractExpiryStatus
+from uaclient.timer.update_messaging import ContractExpiryStatus
 
 M_PATH = "uaclient.apt_news."
 

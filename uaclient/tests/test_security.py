@@ -1704,8 +1704,6 @@ A fix is available in Ubuntu standard updates.\n"""
                     dry_run=False,
                 )
         out, err = capsys.readouterr()
-        print(out)
-        print(expected)
         assert expected in out
 
     @pytest.mark.parametrize(
@@ -2517,12 +2515,13 @@ class TestFixSecurityIssueId:
         ):
             assert exp_ret == fix_security_issue_id(FakeConfig(), issue_id)
 
+    @pytest.mark.parametrize("error_code", ((404), (400)))
     @pytest.mark.parametrize(
         "issue_id", (("CVE-1800-123456"), ("USN-12345-12"))
     )
     @mock.patch("uaclient.security.query_installed_source_pkg_versions")
     def test_error_msg_when_issue_id_is_not_found(
-        self, _m_query_versions, issue_id, FakeConfig
+        self, _m_query_versions, issue_id, error_code, FakeConfig
     ):
         expected_message = "Error: {} not found.".format(issue_id)
         if "CVE" in issue_id:
@@ -2534,9 +2533,9 @@ class TestFixSecurityIssueId:
 
         with mock.patch.object(exceptions.UrlError, "__str__") as m_str:
             with mock.patch.object(UASecurityClient, mock_func) as m_func:
-                m_str.return_value = "NOT FOUND"
+                m_str.return_value = "TEST"
                 msg = "{} with id 'ID' does not exist".format(issue_type)
-                error_mock = mock.Mock()
+                error_mock = mock.MagicMock(code=error_code)
                 type(error_mock).url = mock.PropertyMock(return_value="URL")
 
                 m_func.side_effect = exceptions.SecurityAPIError(
@@ -2545,6 +2544,11 @@ class TestFixSecurityIssueId:
 
                 with pytest.raises(exceptions.UserFacingError) as exc:
                     fix_security_issue_id(FakeConfig(), issue_id)
+
+        if error_code == 404:
+            expected_message = "Error: {} not found.".format(issue_id)
+        else:
+            expected_message = "TEST: [URL] " + msg
 
         assert expected_message == exc.value.msg
 

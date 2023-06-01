@@ -3,7 +3,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -42,11 +42,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -163,7 +159,7 @@ Feature: Proxy configuration
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -259,7 +255,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -356,7 +352,7 @@ Feature: Proxy configuration
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -407,7 +403,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -433,11 +429,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
@@ -552,7 +544,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -582,7 +574,7 @@ Feature: Proxy configuration
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
         {
-          "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+          "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
           "ua_apt_https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
         }
         """
@@ -627,7 +619,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured globally
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -671,11 +663,7 @@ Feature: Proxy configuration
         .*CONNECT contracts.canonical.com.*
         """
         When I run `pro status` with sudo
-        # Just to verify that the machine is attached
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes      +disabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -792,7 +780,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -892,7 +880,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Get warning when configuring global or uaclient proxy
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -1045,7 +1033,7 @@ Feature: Proxy configuration
 
     @slow
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: apt_http(s)_proxy still works
         Given a `<release>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -1058,11 +1046,7 @@ Feature: Proxy configuration
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
-        When I run `pro status --format yaml` with sudo
-        Then stdout matches regexp:
-        """
-        attached: true
-        """
+        Then the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -1133,7 +1117,7 @@ Feature: Proxy configuration
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
         {
-          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
+          "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
           "apt_https_proxy": "http://$behave_var{machine-ip proxy}:3128"
         }
         """
@@ -1185,7 +1169,7 @@ Feature: Proxy configuration
 
     @slow
     @series.jammy
-    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.lxd-vm
     Scenario: Enable realtime kernel through proxy on a machine with no internet
         Given a `jammy` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
@@ -1206,7 +1190,8 @@ Feature: Proxy configuration
         esm-apps     +yes      +enabled      +Expanded Security Maintenance for Applications
         esm-infra     +yes      +enabled      +Expanded Security Maintenance for Infrastructure
         """
-        When I run `pro enable realtime-kernel --beta` `with sudo` and stdin `y`
+        When I run `pro disable livepatch --assume-yes` with sudo
+        When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
         Installing Real-time kernel packages

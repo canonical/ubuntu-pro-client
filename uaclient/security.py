@@ -805,7 +805,7 @@ def fix_security_issue_id(
             usns = client.get_notices(details=issue_id)
         except exceptions.SecurityAPIError as e:
             msg = str(e)
-            if "not found" in msg.lower():
+            if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
@@ -828,7 +828,7 @@ def fix_security_issue_id(
             usns = get_related_usns(usn, client)
         except exceptions.SecurityAPIError as e:
             msg = str(e)
-            if "not found" in msg.lower():
+            if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
@@ -1172,9 +1172,10 @@ def _handle_released_package_fixes(
                         all_already_installed = False
 
                 upgrade_pkgs = []
-                for binary_pkg in binary_pkgs:
+                for binary_pkg in sorted(binary_pkgs):
+                    check_esm_cache = pocket != UBUNTU_STANDARD_UPDATES_POCKET
                     candidate_version = apt.get_pkg_candidate_version(
-                        binary_pkg.binary_pkg
+                        binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
                     )
                     if candidate_version and apt.compare_versions(
                         binary_pkg.fixed_version, candidate_version, "le"
@@ -1234,14 +1235,15 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[UnfixedPackage]) -> str:
     :returns: A string containing the message output for the unfixed
               packages.
     """
-    num_pkgs_unfixed = len(unfixed_pkgs)
+    sorted_pkgs = sorted({pkg.pkg for pkg in unfixed_pkgs})
+    num_pkgs_unfixed = len(sorted_pkgs)
     return textwrap.fill(
-        "{} package{} {} still affected: {}".format(
-            num_pkgs_unfixed,
-            "s" if num_pkgs_unfixed > 1 else "",
-            "are" if num_pkgs_unfixed > 1 else "is",
-            ", ".join(sorted(pkg.pkg for pkg in unfixed_pkgs)),
-        ),
+        messages.SECURITY_PKG_STILL_AFFECTED.format(
+            num_pkgs=num_pkgs_unfixed,
+            s="s" if num_pkgs_unfixed > 1 else "",
+            verb="are" if num_pkgs_unfixed > 1 else "is",
+            pkgs=", ".join(sorted_pkgs),
+        ).msg,
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
     )

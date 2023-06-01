@@ -8,11 +8,11 @@ import pytest
 
 from uaclient import exceptions, messages, util
 from uaclient.contract import (
-    API_V1_CONTEXT_MACHINE_TOKEN,
-    API_V1_CONTRACT_INFORMATION,
-    API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
-    API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
+    API_V1_ADD_CONTRACT_MACHINE,
+    API_V1_AVAILABLE_RESOURCES,
+    API_V1_GET_CONTRACT_MACHINE,
+    API_V1_GET_CONTRACT_USING_TOKEN,
+    API_V1_GET_RESOURCE_MACHINE_ACCESS,
     UAContractClient,
     _get_override_weight,
     apply_contract_overrides,
@@ -53,7 +53,7 @@ class TestUAContractClient:
     @mock.patch("uaclient.contract.system.get_dpkg_arch")
     @mock.patch("uaclient.contract.system.get_kernel_info")
     @mock.patch("uaclient.contract.system.get_release_info")
-    def test__request_machine_token_update(
+    def test_update_contract_machine(
         self,
         m_get_release_info,
         m_get_kernel_info,
@@ -105,7 +105,7 @@ class TestUAContractClient:
                 "user_facing_status",
                 new=entitlement_user_facing_status,
             ):
-                client._request_machine_token_update(**kwargs)
+                client._update_contract_machine(**kwargs)
 
         assert machine_token != cfg.machine_token_file.machine_token
         client.update_files_after_machine_token_update(machine_token)
@@ -158,7 +158,7 @@ class TestUAContractClient:
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.system.get_release_info")
     @mock.patch.object(UAContractClient, "_get_platform_data")
-    def test_get_updated_contract_info(
+    def test_get_contract_machine(
         self,
         m_platform_data,
         get_release_info,
@@ -195,10 +195,10 @@ class TestUAContractClient:
         }
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
-        resp = client.get_updated_contract_info(**kwargs)
+        resp = client.get_contract_machine(**kwargs)
         assert resp == machine_token
 
-    def test_request_resource_machine_access(
+    def test_get_resource_machine_access(
         self, get_machine_id, request_url, FakeConfig
     ):
         """GET from resource-machine-access route to "enable" a service"""
@@ -207,7 +207,7 @@ class TestUAContractClient:
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "resource": "cis"}
-        assert "response" == client.request_resource_machine_access(**kwargs)
+        assert "response" == client.get_resource_machine_access(**kwargs)
         assert "response" == cfg.read_cache("machine-access-cis")
         params = {
             "headers": {
@@ -221,7 +221,7 @@ class TestUAContractClient:
             mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
-    def test_request_contract_information(
+    def test_get_contract_using_token(
         self, _m_machine_id, m_request_url, FakeConfig
     ):
         m_request_url.return_value = ("response", {})
@@ -237,7 +237,7 @@ class TestUAContractClient:
             }
         }
 
-        assert "response" == client.request_contract_information("some_token")
+        assert "response" == client.get_contract_using_token("some_token")
         assert [
             mock.call("/v1/contract", **params)
         ] == m_request_url.call_args_list
@@ -246,7 +246,7 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "enabled_services", (([]), (["esm-apps", "livepatch"]))
     )
-    def test_report_machine_activity(
+    def test_update_activity_token(
         self,
         get_machine_id,
         request_url,
@@ -284,7 +284,7 @@ class TestUAContractClient:
                 with mock.patch(
                     "uaclient.config.files.MachineTokenFile.write"
                 ) as m_write_file:
-                    client.report_machine_activity()
+                    client.update_activity_token()
 
         expected_write_calls = 1
         assert expected_write_calls == m_write_file.call_count
@@ -312,7 +312,7 @@ class TestUAContractClient:
         "machine_id_response", (("contract-machine-id"), None)
     )
     @mock.patch.object(UAContractClient, "_get_platform_data")
-    def test__request_contract_machine_attach(
+    def test_add_contract_machine(
         self,
         m_platform_data,
         get_machine_id,
@@ -348,7 +348,7 @@ class TestUAContractClient:
 
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        client.request_contract_machine_attach(
+        client.add_contract_machine(
             contract_token=contract_token, machine_id=machine_id_param
         )
 
@@ -592,9 +592,9 @@ class TestProcessEntitlementDeltas:
 
 
 class TestGetAvailableResources:
-    @mock.patch.object(UAContractClient, "request_resources")
-    def test_request_resources_error_on_network_disconnected(
-        self, m_request_resources, FakeConfig
+    @mock.patch.object(UAContractClient, "available_resources")
+    def test_available_resources_error_on_network_disconnected(
+        self, m_available_resources, FakeConfig
     ):
         """Raise error get_available_resources can't contact backend"""
         cfg = FakeConfig()
@@ -602,18 +602,20 @@ class TestGetAvailableResources:
         urlerror = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
-        m_request_resources.side_effect = urlerror
+        m_available_resources.side_effect = urlerror
 
         with pytest.raises(exceptions.UrlError) as exc:
             get_available_resources(cfg)
         assert urlerror == exc.value
 
     @mock.patch(M_PATH + "UAContractClient")
-    def test_request_resources_from_contract_server(self, client, FakeConfig):
-        """Call UAContractClient.request_resources to get updated resources."""
+    def test_available_resources_from_contract_server(
+        self, client, FakeConfig
+    ):
+        """Call get_available_resources to get updated resources."""
         cfg = FakeConfig()
 
-        url = API_V1_RESOURCES
+        url = API_V1_AVAILABLE_RESOURCES
 
         new_resources = [{"name": "new_resource", "available": False}]
 
@@ -633,7 +635,7 @@ class TestGetContractInformation:
     ):
         cfg = FakeConfig()
 
-        url = API_V1_CONTRACT_INFORMATION
+        url = API_V1_GET_CONTRACT_USING_TOKEN
 
         information = {"contract": "some_contract_data"}
 
@@ -649,13 +651,13 @@ class TestGetContractInformation:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+    refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
         contract="cid", machine="mid"
     )
-    access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+    access_route_ent1 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
         resource="ent1", machine="mid"
     )
-    access_route_ent2 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+    access_route_ent2 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
         resource="ent2", machine="mid"
     )
 
@@ -754,7 +756,7 @@ class TestRequestUpdatedContract:
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
             fake_client._responses = {
-                API_V1_CONTEXT_MACHINE_TOKEN: exceptions.ContractAPIError(
+                API_V1_ADD_CONTRACT_MACHINE: exceptions.ContractAPIError(
                     exceptions.UrlError(
                         "Server error",
                         code=error_code,
@@ -1011,11 +1013,11 @@ class TestRequestUpdatedContract:
         assert process_calls == process_entitlement_delta.call_args_list
 
 
-@mock.patch("uaclient.contract.UAContractClient.get_updated_contract_info")
+@mock.patch("uaclient.contract.UAContractClient.get_contract_machine")
 class TestContractChanged:
     @pytest.mark.parametrize("has_contract_expired", (False, True))
     def test_contract_change_with_expiry(
-        self, get_updated_contract_info, has_contract_expired, FakeConfig
+        self, m_get_contract_machine, has_contract_expired, FakeConfig
     ):
         if has_contract_expired:
             expiry_date = util.parse_rfc3339_date("2041-05-08T19:02:26Z")
@@ -1023,7 +1025,7 @@ class TestContractChanged:
         else:
             expiry_date = util.parse_rfc3339_date("2040-05-08T19:02:26Z")
             ret_val = False
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {
                 "contractInfo": {
                     "effectiveTo": expiry_date,
@@ -1035,7 +1037,7 @@ class TestContractChanged:
 
     @pytest.mark.parametrize("has_contract_changed", (False, True))
     def test_contract_change_with_entitlements(
-        self, get_updated_contract_info, has_contract_changed, FakeConfig
+        self, m_get_contract_machine, has_contract_changed, FakeConfig
     ):
         if has_contract_changed:
             resourceEntitlements = [{"type": "token1", "entitled": True}]
@@ -1043,7 +1045,7 @@ class TestContractChanged:
         else:
             resourceTokens = []
             resourceEntitlements = []
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {
                 "machineId": "test_machine_id",
                 "resourceTokens": resourceTokens,
@@ -1118,6 +1120,21 @@ class TestApplyContractOverrides:
             }
         }
         if include_overrides:
+            overrides = [
+                {
+                    "selector": {"series": "dontMatch"},
+                    "affordances": {
+                        "some_affordance": ["ubuntuX-series-overriden"]
+                    },
+                },
+                {
+                    "selector": {"cloud": "dontMatch"},
+                    "affordances": {
+                        "some_affordance": ["ubuntuX-cloud-overriden"]
+                    },
+                },
+            ]
+
             orig_access["entitlement"].update(
                 {
                     "series": {
@@ -1127,22 +1144,10 @@ class TestApplyContractOverrides:
                             }
                         }
                     },
-                    "overrides": [
-                        {
-                            "selector": {"series": "dontMatch"},
-                            "affordances": {
-                                "some_affordance": ["ubuntuX-series-overriden"]
-                            },
-                        },
-                        {
-                            "selector": {"cloud": "dontMatch"},
-                            "affordances": {
-                                "some_affordance": ["ubuntuX-cloud-overriden"]
-                            },
-                        },
-                    ],
+                    "overrides": overrides,
                 }
             )
+            expected["entitlement"]["overrides"] = overrides
 
         apply_contract_overrides(orig_access)
         assert expected == orig_access
@@ -1196,6 +1201,24 @@ class TestApplyContractOverrides:
         expected_value,
     ):
         """Apply the expected overrides to orig_access dict when called."""
+        overrides = [
+            {
+                "selector": {"series": series_selector},
+                "affordances": {"some_affordance": ["series_overriden"]},
+            },
+            {
+                "selector": {"cloud": cloud_selector},
+                "affordances": {"some_affordance": ["cloud_overriden"]},
+            },
+            {
+                "selector": {
+                    "series": series_selector,
+                    "cloud": series_cloud_selector,
+                },
+                "affordances": {"some_affordance": ["both_overriden"]},
+            },
+        ]
+
         orig_access = {
             "entitlement": {
                 "affordances": {"some_affordance": ["original_affordance"]},
@@ -1206,33 +1229,14 @@ class TestApplyContractOverrides:
                         }
                     }
                 },
-                "overrides": [
-                    {
-                        "selector": {"series": series_selector},
-                        "affordances": {
-                            "some_affordance": ["series_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {"cloud": cloud_selector},
-                        "affordances": {
-                            "some_affordance": ["cloud_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {
-                            "series": series_selector,
-                            "cloud": series_cloud_selector,
-                        },
-                        "affordances": {"some_affordance": ["both_overriden"]},
-                    },
-                ],
+                "overrides": overrides,
             }
         }
 
         expected = {
             "entitlement": {
-                "affordances": {"some_affordance": [expected_value]}
+                "affordances": {"some_affordance": [expected_value]},
+                "overrides": overrides,
             }
         }
 
@@ -1251,6 +1255,24 @@ class TestApplyContractOverrides:
         self, _m_cloud_type, _m_release_info
     ):
         """Apply different overrides from different matching selectors."""
+        overrides = [
+            {
+                "selector": {"series": "ubuntuX"},
+                "affordances": {"some_affordance": ["series_overriden"]},
+            },
+            {
+                "selector": {"cloud": "cloudX"},
+                "directives": {"some_directive": ["cloud_overriden"]},
+            },
+            {
+                "selector": {"series": "ubuntuX", "cloud": "cloudX"},
+                "obligations": {
+                    "new_obligation": True,
+                    "some_obligation": True,
+                },
+            },
+        ]
+
         orig_access = {
             "entitlement": {
                 "affordances": {"some_affordance": ["original_affordance"]},
@@ -1263,25 +1285,7 @@ class TestApplyContractOverrides:
                         }
                     }
                 },
-                "overrides": [
-                    {
-                        "selector": {"series": "ubuntuX"},
-                        "affordances": {
-                            "some_affordance": ["series_overriden"]
-                        },
-                    },
-                    {
-                        "selector": {"cloud": "cloudX"},
-                        "directives": {"some_directive": ["cloud_overriden"]},
-                    },
-                    {
-                        "selector": {"series": "ubuntuX", "cloud": "cloudX"},
-                        "obligations": {
-                            "new_obligation": True,
-                            "some_obligation": True,
-                        },
-                    },
-                ],
+                "overrides": overrides,
             }
         }
 
@@ -1296,6 +1300,7 @@ class TestApplyContractOverrides:
                     "new_obligation": True,
                     "some_obligation": True,
                 },
+                "overrides": overrides,
             }
         }
 
@@ -1326,7 +1331,7 @@ class TestRequestAutoAttach:
         )
 
         with pytest.raises(exceptions.InvalidProImage) as exc_error:
-            contract.request_auto_attach_contract_token(
+            contract.get_contract_token_for_cloud_instance(
                 instance=mock.MagicMock()
             )
 

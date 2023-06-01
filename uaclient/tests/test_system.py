@@ -1,5 +1,8 @@
+import datetime
 import logging
+import os
 import subprocess
+import textwrap
 import uuid
 
 import mock
@@ -14,6 +17,7 @@ class TestGetKernelInfo:
             "uname_machine",
             "uname_release",
             "proc_version_signature_side_effect",
+            "build_date",
             "expected",
         ],
         (
@@ -21,10 +25,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "5.14.0-1024-oem",
                 "Ubuntu 5.14.0-1024.26-oem 5.15.100",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="5.14.0-1024-oem",
                     proc_version_signature_version="5.14.0-1024.26-oem",
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=14,
                     patch=0,
@@ -36,10 +42,12 @@ class TestGetKernelInfo:
                 "aarch64",
                 "5.14.0-1024-oem",
                 "Ubuntu 5.14.0-1024.26-oem 5.15.100",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="aarch64",
                     uname_release="5.14.0-1024-oem",
                     proc_version_signature_version="5.14.0-1024.26-oem",
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=14,
                     patch=0,
@@ -51,10 +59,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "4.4.0-21-generic",
                 "Ubuntu 4.4.0-21.37-generic 4.15.100",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="4.4.0-21-generic",
                     proc_version_signature_version="4.4.0-21.37-generic",
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=4,
                     minor=4,
                     patch=0,
@@ -66,10 +76,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "5.4.0-52-generic",
                 "Ubuntu 5.4.0-52.37-generic 5.15.100",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version="5.4.0-52.37-generic",
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=4,
                     patch=0,
@@ -81,10 +93,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "5.4.0-52-generic",
                 "Ubuntu 5.4.0-52.37~20.04-generic 5.15.100",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version="5.4.0-52.37~20.04-generic",
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=4,
                     patch=0,
@@ -96,10 +110,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "5.4.0-52-generic",
                 Exception(),
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="5.4.0-52-generic",
                     proc_version_signature_version=None,
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=4,
                     patch=0,
@@ -111,10 +127,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "5.4.0-1021-aws-fips",
                 "Ubuntu 5.4.0-1021.21+fips2-aws-fips 5.4.44",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="5.4.0-1021-aws-fips",
                     proc_version_signature_version="5.4.0-1021.21+fips2-aws-fips",  # noqa: E501
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=5,
                     minor=4,
                     patch=0,
@@ -126,10 +144,12 @@ class TestGetKernelInfo:
                 "x86_64",
                 "4.4.0-1017-fips",
                 "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="4.4.0-1017-fips",
                     proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
                     major=4,
                     minor=4,
                     patch=0,
@@ -141,10 +161,29 @@ class TestGetKernelInfo:
                 "x86_64",
                 "4.4.0-1017.something.invalid-fips",
                 "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
+                datetime.datetime(2023, 4, 6, 7, 48, 48),
                 system.KernelInfo(
                     uname_machine_arch="x86_64",
                     uname_release="4.4.0-1017.something.invalid-fips",
                     proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
+                    build_date=datetime.datetime(2023, 4, 6, 7, 48, 48),
+                    major=None,
+                    minor=None,
+                    patch=None,
+                    abi=None,
+                    flavor=None,
+                ),
+            ),
+            (
+                "x86_64",
+                "4.4.0-1017.something.invalid-fips",
+                "Ubuntu 4.4.0-1017.22~recert1-fips 4.4.185",
+                None,
+                system.KernelInfo(
+                    uname_machine_arch="x86_64",
+                    uname_release="4.4.0-1017.something.invalid-fips",
+                    proc_version_signature_version="4.4.0-1017.22~recert1-fips",  # noqa: E501
+                    build_date=None,
                     major=None,
                     minor=None,
                     patch=None,
@@ -154,22 +193,138 @@ class TestGetKernelInfo:
             ),
         ),
     )
+    @mock.patch("uaclient.system._get_kernel_build_date")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.system.os.uname")
     def test_get_kernel_info(
         self,
         m_uname,
         m_load_file,
+        m_get_kernel_build_date,
         uname_machine,
         uname_release,
         proc_version_signature_side_effect,
+        build_date,
         expected,
     ):
         m_uname.return_value = mock.MagicMock(
             release=uname_release, machine=uname_machine
         )
         m_load_file.side_effect = [proc_version_signature_side_effect]
+        m_get_kernel_build_date.return_value = build_date
         assert system.get_kernel_info.__wrapped__() == expected
+
+    @pytest.mark.parametrize(
+        [
+            "uname_result",
+            "changelog_timestamp",
+            "expected",
+        ],
+        [
+            (
+                os.uname_result(
+                    [
+                        "",
+                        "",
+                        "",
+                        "#20-Ubuntu SMP PREEMPT_DYNAMIC Thu Apr  6 07:48:48 UTC 2023",  # noqa: E501
+                        "",
+                    ]
+                ),
+                mock.sentinel.changelog_timestamp,
+                datetime.datetime(
+                    2023, 4, 6, 7, 48, 48, tzinfo=datetime.timezone.utc
+                ),
+            ),
+            (
+                os.uname_result(
+                    [
+                        "",
+                        "",
+                        "",
+                        "#33~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Mon Jan 30 17:03:34 UTC 2",  # noqa: E501
+                        "",
+                    ]
+                ),
+                mock.sentinel.changelog_timestamp,
+                mock.sentinel.changelog_timestamp,
+            ),
+            (
+                os.uname_result(["", "", "", "corrupted", ""]),
+                mock.sentinel.changelog_timestamp,
+                mock.sentinel.changelog_timestamp,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.system._get_kernel_changelog_timestamp")
+    def test_get_kernel_build_date(
+        self,
+        m_get_kernel_changelog_timestamp,
+        uname_result,
+        changelog_timestamp,
+        expected,
+    ):
+        m_get_kernel_changelog_timestamp.return_value = changelog_timestamp
+        assert expected == system._get_kernel_build_date(uname_result)
+
+    @pytest.mark.parametrize(
+        [
+            "uname_result",
+            "is_container",
+            "stat_result",
+            "expected_stat_call_args",
+            "expected",
+        ],
+        [
+            (
+                None,
+                True,
+                None,
+                [],
+                None,
+            ),
+            (
+                os.uname_result(["", "", "version-here", "", ""]),
+                False,
+                Exception(),
+                [
+                    mock.call(
+                        "/usr/share/doc/linux-image-version-here/changelog.Debian.gz"  # noqa: E501
+                    )
+                ],
+                None,
+            ),
+            (
+                os.uname_result(["", "", "version-here", "", ""]),
+                False,
+                [os.stat_result([0, 0, 0, 0, 0, 0, 0, 0, 1680762951, 0])],
+                [
+                    mock.call(
+                        "/usr/share/doc/linux-image-version-here/changelog.Debian.gz"  # noqa: E501
+                    )
+                ],
+                datetime.datetime(
+                    2023, 4, 6, 6, 35, 51, tzinfo=datetime.timezone.utc
+                ),
+            ),
+        ],
+    )
+    @mock.patch("os.stat")
+    @mock.patch("uaclient.system.is_container")
+    def test_get_kernel_changelog_timestamp(
+        self,
+        m_is_container,
+        m_os_stat,
+        uname_result,
+        is_container,
+        stat_result,
+        expected_stat_call_args,
+        expected,
+    ):
+        m_is_container.return_value = is_container
+        m_os_stat.side_effect = stat_result
+        assert expected == system._get_kernel_changelog_timestamp(uname_result)
+        assert expected_stat_call_args == m_os_stat.call_args_list
 
 
 class TestGetDpkgArch:
@@ -1011,3 +1166,109 @@ class TestGetSystemdJobState:
             cmd="test", exit_code=3, stdout="inactive", stderr=""
         )
         assert False is system.get_systemd_job_state(job_name="test")
+
+
+class TestGetCpuInfo:
+    @pytest.mark.parametrize(
+        "cpuinfo,vendor_id,model,stepping",
+        (
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10
+
+                processor       : 7
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10"""
+                ),
+                "intel",
+                142,
+                10,
+            ),
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                vendor_id       : test
+                cpu family      : 6
+                model           : 148
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 12
+
+                processor       : 7
+                vendor_id       : GenuineIntel
+                cpu family      : 6
+                model           : 142
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+                stepping        : 10"""
+                ),
+                "test",
+                148,
+                12,
+            ),
+            (
+                textwrap.dedent(
+                    """
+                processor       : 6
+                cpu family      : 6
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+
+                processor       : 7
+                cpu family      : 6
+                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz"""
+                ),
+                "",
+                None,
+                None,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    def test_get_cpu_vendor(
+        self, m_load_file, cpuinfo, vendor_id, model, stepping
+    ):
+        m_load_file.return_value = cpuinfo
+        assert vendor_id == system.get_cpu_info.__wrapped__().vendor_id
+        assert model == system.get_cpu_info.__wrapped__().model
+        assert stepping == system.get_cpu_info.__wrapped__().stepping
+
+
+class TestGetUserCacheDir:
+    @pytest.mark.parametrize(
+        [
+            "is_root",
+            "xdg_cache_home",
+            "expanduser_result",
+            "expected",
+        ],
+        (
+            (True, None, None, "/run/ubuntu-advantage/"),
+            (False, None, "/home/user", "/home/user/.cache/ubuntu-pro"),
+            (False, "/something", "/home/user", "/something/ubuntu-pro"),
+        ),
+    )
+    @mock.patch("os.path.expanduser")
+    @mock.patch("os.environ.get")
+    @mock.patch("uaclient.util.we_are_currently_root")
+    def test_get_user_cache_dir(
+        self,
+        m_we_are_currently_root,
+        m_environ_get,
+        m_expanduser,
+        is_root,
+        xdg_cache_home,
+        expanduser_result,
+        expected,
+    ):
+        m_we_are_currently_root.return_value = is_root
+        m_environ_get.return_value = xdg_cache_home
+        m_expanduser.return_value = expanduser_result
+        assert expected == system.get_user_cache_dir()

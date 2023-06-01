@@ -31,6 +31,8 @@ Flags:
                        realtime-kernel.
   --beta               allow beta service to be enabled
   --format {cli,json}  output enable in the specified format (default: cli)
+  --variant VARIANT    The name of the variant to use when enabling the
+                       service
 """
 
 
@@ -66,6 +68,7 @@ class TestActionEnable:
         capsys,
         event,
         FakeConfig,
+        tmpdir,
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         args = mock.MagicMock()
@@ -73,6 +76,12 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(args, cfg=cfg)
+
+        default_get_user_log_file = tmpdir.join("default.log").strpath
+        defaults_ret = {
+            "log_level": "debug",
+            "log_file": default_get_user_log_file,
+        }
 
         with pytest.raises(SystemExit):
             with mock.patch(
@@ -90,7 +99,15 @@ class TestActionEnable:
                     "uaclient.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
-                    main()
+                    with mock.patch(
+                        "uaclient.log.get_user_log_file",
+                        return_value=tmpdir.join("user.log").strpath,
+                    ):
+                        with mock.patch.dict(
+                            "uaclient.cli.defaults.CONFIG_DEFAULTS",
+                            defaults_ret,
+                        ):
+                            main()
 
         expected_message = messages.NONROOT_USER
         expected = {
@@ -274,6 +291,8 @@ class TestActionEnable:
         args = mock.MagicMock()
         args.service = ["bogus"]
         args.command = "enable"
+        args.access_only = False
+
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
 
@@ -404,6 +423,7 @@ class TestActionEnable:
         args.assume_yes = assume_yes
         args.beta = False
         args.access_only = False
+        args.variant = ""
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -456,7 +476,7 @@ class TestActionEnable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        def factory_side_effect(cfg, name, not_found_okay=True):
+        def factory_side_effect(cfg, name, variant):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -473,6 +493,7 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = False
+        args_mock.variant = ""
 
         expected_msg = "One moment, checking your subscription first\n"
 
@@ -582,8 +603,9 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
+        args_mock.variant = ""
 
-        def factory_side_effect(cfg, name, not_found_okay=True):
+        def factory_side_effect(cfg, name, variant):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -705,6 +727,7 @@ class TestActionEnable:
         args_mock.service = ["ent1"]
         args_mock.assume_yes = False
         args_mock.beta = False
+        args_mock.access_only = False
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -772,6 +795,7 @@ class TestActionEnable:
         args_mock = mock.MagicMock()
         args_mock.service = service
         args_mock.beta = beta
+        args_mock.access_only = False
 
         with pytest.raises(exceptions.UserFacingError) as err:
             fake_stdout = io.StringIO()
@@ -846,6 +870,7 @@ class TestActionEnable:
         args_mock.assume_yes = False
         args_mock.beta = allow_beta
         args_mock.service = ["testitlement"]
+        args_mock.variant = ""
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -932,3 +957,14 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
+
+    def test_access_only_cannot_be_used_together_with_variant(
+        self, _m_get_available_resources, FakeConfig
+    ):
+        cfg = FakeConfig.for_attached_machine()
+        args_mock = mock.MagicMock()
+        args_mock.access_only = True
+        args_mock.variant = "variant"
+
+        with pytest.raises(exceptions.InvalidOptionCombination):
+            action_enable(args_mock, cfg)

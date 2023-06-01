@@ -56,6 +56,13 @@ def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
     # not processed
     status.setdefault("services", [])
 
+    # We are redacting every variant information from the status output
+    # because we still are not sure on the best way to represent this
+    # information on the status machine readable output
+    for service in status.get("services", []):
+        if "variants" in service:
+            service.pop("variants")
+
     return status
 
 

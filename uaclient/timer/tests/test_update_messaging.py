@@ -9,13 +9,13 @@ from uaclient.api.u.pro.packages.updates.v1 import (
     UpdateSummary,
 )
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.jobs.update_messaging import (
+from uaclient.timer.update_messaging import (
     ContractExpiryStatus,
     get_contract_expiry_status,
     update_motd_messages,
 )
 
-M_PATH = "uaclient.jobs.update_messaging."
+M_PATH = "uaclient.timer.update_messaging."
 
 
 class TestGetContractExpiryStatus:
@@ -50,21 +50,21 @@ class TestGetContractExpiryStatus:
         (("2040-05-08T19:02:26Z", False), ("2042-05-08T19:02:26Z", True)),
     )
     @mock.patch("uaclient.files.MachineTokenFile.write")
-    @mock.patch(M_PATH + "contract.UAContractClient.get_updated_contract_info")
+    @mock.patch(M_PATH + "contract.UAContractClient.get_contract_machine")
     def test_update_contract_expiry(
         self,
-        get_updated_contract_info,
-        machine_token_write,
+        m_get_contract_machine,
+        m_machine_token_write,
         expiry,
         is_updated,
     ):
-        get_updated_contract_info.return_value = {
+        m_get_contract_machine.return_value = {
             "machineTokenInfo": {"contractInfo": {"effectiveTo": expiry}}
         }
         if is_updated:
-            1 == machine_token_write.call_count
+            1 == m_machine_token_write.call_count
         else:
-            0 == machine_token_write.call_count
+            0 == m_machine_token_write.call_count
 
 
 class TestUpdateMotdMessages:
@@ -337,9 +337,7 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "update_contract_expiry")
     @mock.patch(M_PATH + "get_contract_expiry_status")
-    @mock.patch(
-        M_PATH + "UAConfig.is_attached", new_callable=mock.PropertyMock
-    )
+    @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,
         m_is_attached,
@@ -366,7 +364,7 @@ class TestUpdateMotdMessages:
         write_file_calls,
         FakeConfig,
     ):
-        m_is_attached.return_value = attached
+        m_is_attached.return_value = mock.MagicMock(is_attached=attached)
         m_get_contract_expiry_status.side_effect = contract_expiry_statuses
         m_is_current_series_active_esm.return_value = (
             is_current_series_active_esm

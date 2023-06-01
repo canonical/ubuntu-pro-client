@@ -25,12 +25,19 @@ MachinesDict = Dict[str, MachineTuple]
 def given_a_machine(
     context,
     series,
+    machine_type=None,
     machine_name=SUT,
     snapshot_name=None,
     user_data=None,
     ports=None,
     cleanup=True,
 ):
+    if machine_type is None:
+        machine_type = context.pro_config.machine_type
+
+    cloud = machine_type.split(".")[0]
+    context.pro_config.clouds[cloud].manage_ssh_key()
+
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
     instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
         series=series,
@@ -40,7 +47,7 @@ def given_a_machine(
 
     inbound_ports = ports.split(",") if ports is not None else None
 
-    is_pro = "pro" in context.pro_config.machine_type
+    is_pro = "pro" in machine_type
     pro_user_data = (
         "bootcmd:\n"
         """  - "cloud-init-per once disable-auto-attach printf '\\nfeatures: {disable_auto_attach: true}\\n' >> /etc/ubuntu-advantage/uaclient.conf"\n"""  # noqa: E501
@@ -53,8 +60,9 @@ def given_a_machine(
         if user_data is not None:
             user_data_to_use += user_data
 
-    instance = context.pro_config.cloud_manager.launch(
+    instance = context.pro_config.clouds[cloud].launch(
         series=series,
+        machine_type=machine_type,
         instance_name=instance_name,
         ephemeral=context.pro_config.ephemeral_instance,
         image_name=context.snapshots.get(snapshot_name, None),
@@ -90,9 +98,15 @@ def given_a_machine(
 
 
 @when("I take a snapshot of the machine")
-def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
+def when_i_take_a_snapshot(
+    context, machine_type=None, machine_name=SUT, cleanup=True
+):
+    if machine_type is None:
+        machine_type = context.pro_config.machine_type
+
+    cloud = machine_type.split(".")[0]
     inst = context.machines[machine_name].instance
-    snapshot = context.pro_config.cloud_manager.api.snapshot(inst)
+    snapshot = context.pro_config.clouds[cloud].api.snapshot(inst)
 
     context.snapshots[machine_name] = snapshot
 
@@ -100,7 +114,7 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
         def cleanup_snapshot() -> None:
             try:
-                context.pro_config.cloud_manager.api.delete_image(
+                context.pro_config.clouds[cloud].api.delete_image(
                     context.snapshots[machine_name]
                 )
             except RuntimeError as e:
@@ -114,7 +128,10 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
-def given_a_sut_machine(context, series):
+@given(
+    "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed"  # noqa: E501
+)
+def given_a_sut_machine(context, series, machine_type=None):
     if context.pro_config.install_from == InstallationSource.LOCAL:
         # build right away, this will cache the built debs for later use
         # building early means we catch build errors before investing in
@@ -124,16 +141,23 @@ def given_a_sut_machine(context, series):
     if context.pro_config.snapshot_strategy:
         if "builder" not in context.snapshots:
             given_a_machine(
-                context, series, machine_name="builder", cleanup=False
+                context,
+                series,
+                machine_type=machine_type,
+                machine_name="builder",
+                cleanup=False,
             )
             when_i_install_uat(context, machine_name="builder")
             when_i_take_a_snapshot(
-                context, machine_name="builder", cleanup=False
+                context,
+                machine_type=machine_type,
+                machine_name="builder",
+                cleanup=False,
             )
             context.machines["builder"].instance.delete(wait=False)
         given_a_machine(context, series, snapshot_name="builder")
     else:
-        given_a_machine(context, series)
+        given_a_machine(context, series, machine_type=machine_type)
         when_i_install_uat(context)
 
     logging.info(

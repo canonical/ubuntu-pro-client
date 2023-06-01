@@ -246,9 +246,14 @@ def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
         if proc.returncode == 0:
             sbuild_cmd += ["--chroot", ua_chroot]
 
+    # disable unit-test during sbuild
+    env = os.environ.copy()
+    env["DEB_BUILD_OPTIONS"] = env.get("DEB_BUILD_OPTIONS", "") + " nocheck"
+
     logging.info('--- Running "{}"'.format(" ".join(sbuild_cmd)))
     subprocess.run(
         sbuild_cmd,
+        env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=True,
@@ -312,7 +317,7 @@ def process_template_vars(
             processed_template = _replace_and_log(
                 processed_template,
                 match.group(0),
-                context.pro_config.cloud,
+                context.pro_config.default_cloud.name,
                 logger_fn,
             )
         elif function_name == "today":

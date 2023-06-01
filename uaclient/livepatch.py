@@ -1,4 +1,5 @@
 import datetime
+import enum
 import json
 import logging
 import re
@@ -31,6 +32,15 @@ LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
 LIVEPATCH_API_V1_KERNELS_SUPPORTED = "/v1/api/kernels/supported"
 
 event = event_logger.get_event_logger()
+
+
+@enum.unique
+class LivepatchSupport(enum.Enum):
+    SUPPORTED = object()
+    KERNEL_UPGRADE_REQUIRED = object()
+    KERNEL_EOL = object()
+    UNSUPPORTED = object()
+    UNKNOWN = object()
 
 
 class LivepatchPatchFixStatus(DataObject):
@@ -160,24 +170,43 @@ def status() -> Optional[LivepatchStatusStatus]:
     return status_root.status[0]
 
 
+def _convert_str_to_livepatch_support_status(
+    status_str: Optional[str],
+) -> Optional[LivepatchSupport]:
+    if status_str == "supported":
+        return LivepatchSupport.SUPPORTED
+    if status_str == "kernel-upgrade-required":
+        return LivepatchSupport.KERNEL_UPGRADE_REQUIRED
+    if status_str == "kernel-end-of-life":
+        return LivepatchSupport.KERNEL_EOL
+    if status_str == "unsupported":
+        return LivepatchSupport.UNSUPPORTED
+    if status_str == "unknown":
+        return LivepatchSupport.UNKNOWN
+    return None
+
+
 class UALivepatchClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = "livepatch_url"
     api_error_cls = exceptions.UrlError
 
     def is_kernel_supported(
-        self, version: str, flavor: str, arch: str, codename: str
-    ) -> Optional[bool]:
-        """
-        :returns: True if supported
-                  False if unsupported
-                  None if API returns error or ambiguous response
-        """
+        self,
+        version: str,
+        flavor: str,
+        arch: str,
+        codename: str,
+        build_date: Optional[datetime.datetime],
+    ) -> Optional[LivepatchSupport]:
         query_params = {
             "kernel-version": version,
             "flavour": flavor,
             "architecture": arch,
             "codename": codename,
+            "build-date": build_date.isoformat()
+            if build_date is not None
+            else "unknown",
         }
         headers = self.headers()
         try:
@@ -200,18 +229,21 @@ class UALivepatchClient(serviceclient.UAServiceClient):
             )
             return None
 
-        return bool(result.get("Supported", False))
+        api_supported_val = result.get("Supported")
+        if api_supported_val is None or isinstance(api_supported_val, bool):
+            # old version, True means supported, None means unsupported
+            if api_supported_val:
+                return LivepatchSupport.SUPPORTED
+            return LivepatchSupport.UNSUPPORTED
+        # new version, value is a string
+        return _convert_str_to_livepatch_support_status(api_supported_val)
 
 
-def _on_supported_kernel_cli() -> Optional[bool]:
+def _on_supported_kernel_cli() -> Optional[LivepatchSupport]:
     lp_status = status()
     if lp_status is None:
         return None
-    if lp_status.supported == "supported":
-        return True
-    if lp_status.supported == "unsupported":
-        return False
-    return None
+    return _convert_str_to_livepatch_support_status(lp_status.supported)
 
 
 def _on_supported_kernel_cache(
@@ -249,23 +281,33 @@ def _on_supported_kernel_cache(
 
 
 def _on_supported_kernel_api(
-    version: str, flavor: str, arch: str, codename: str
-) -> Optional[bool]:
+    version: str,
+    flavor: str,
+    arch: str,
+    codename: str,
+    build_date: Optional[datetime.datetime],
+) -> Optional[LivepatchSupport]:
     supported = UALivepatchClient().is_kernel_supported(
         version=version,
         flavor=flavor,
         arch=arch,
         codename=codename,
+        build_date=build_date,
     )
 
-    # cache response before returning
+    # cache response as a bool/None before returning
+    cache_supported = None
+    if supported == LivepatchSupport.SUPPORTED:
+        cache_supported = True
+    elif supported == LivepatchSupport.UNSUPPORTED:
+        cache_supported = False
     state_files.livepatch_support_cache.write(
         state_files.LivepatchSupportCacheData(
             version=version,
             flavor=flavor,
             arch=arch,
             codename=codename,
-            supported=supported,
+            supported=cache_supported,
             cached_at=datetime.datetime.now(datetime.timezone.utc),
         )
     )
@@ -279,7 +321,7 @@ def _on_supported_kernel_api(
 
 
 @lru_cache(maxsize=None)
-def on_supported_kernel() -> Optional[bool]:
+def on_supported_kernel() -> LivepatchSupport:
     """
     Checks CLI, local cache, and API in that order for kernel support
     If all checks fail to return an authoritative answer, we return None
@@ -302,7 +344,7 @@ def on_supported_kernel() -> Optional[bool]:
             "unable to determine enough kernel information to "
             "check livepatch support"
         )
-        return None
+        return LivepatchSupport.UNKNOWN
 
     arch = util.standardize_arch_name(kernel_info.uname_machine_arch)
     codename = system.get_release_info().series
@@ -317,13 +359,25 @@ def on_supported_kernel() -> Optional[bool]:
     )
     if is_cache_valid:
         logging.debug("using livepatch support cache")
-        return cache_says
+        if cache_says is None:
+            return LivepatchSupport.UNKNOWN
+        if cache_says:
+            return LivepatchSupport.SUPPORTED
+        if not cache_says:
+            return LivepatchSupport.UNSUPPORTED
 
     # finally check api
     logging.debug("using livepatch support api")
-    return _on_supported_kernel_api(
-        lp_api_kernel_ver, kernel_info.flavor, arch, codename
+    api_says = _on_supported_kernel_api(
+        lp_api_kernel_ver,
+        kernel_info.flavor,
+        arch,
+        codename,
+        kernel_info.build_date,
     )
+    if api_says is None:
+        return LivepatchSupport.UNKNOWN
+    return api_says
 
 
 def unconfigure_livepatch_proxy(

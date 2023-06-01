@@ -1,5 +1,5 @@
 import textwrap
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib import error
 
 from uaclient import messages
@@ -337,6 +337,45 @@ class EntitlementNotFoundError(UserFacingError):
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
+class EntitlementsNotEnabledError(UserFacingError):
+
+    exit_code = 4
+
+    def __init__(
+        self,
+        failed_services: List[Tuple[str, messages.NamedMessage]],
+        msg: messages.NamedMessage = messages.ENTITLEMENTS_NOT_ENABLED_ERROR,
+    ):
+        info_dicts = [
+            {"name": f[0], "code": f[1].name, "title": f[1].msg}
+            for f in failed_services
+        ]
+        super().__init__(
+            msg=msg.msg,
+            msg_code=msg.name,
+            additional_info={"services": info_dicts},
+        )
+
+
+class AttachFailureDefaultServices(EntitlementsNotEnabledError):
+    def __init__(
+        self, failed_services: List[Tuple[str, messages.NamedMessage]]
+    ):
+        super().__init__(
+            failed_services=failed_services,
+            msg=messages.ATTACH_FAILURE_DEFAULT_SERVICES,
+        )
+
+
+class AttachFailureUnknownError(EntitlementsNotEnabledError):
+    def __init__(
+        self, failed_services: List[Tuple[str, messages.NamedMessage]]
+    ):
+        super().__init__(
+            failed_services=failed_services, msg=messages.UNEXPECTED_ERROR
+        )
+
+
 class UrlError(IOError):
     def __init__(
         self,
@@ -476,4 +515,12 @@ class MissingSeriesOnOSReleaseFile(UserFacingError):
 class InvalidLockFile(UserFacingError):
     def __init__(self, lock_file_path):
         msg = messages.INVALID_LOCK_FILE.format(lock_file_path=lock_file_path)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class InvalidOptionCombination(UserFacingError):
+    def __init__(self, option1: str, option2: str):
+        msg = messages.INVALID_OPTION_COMBINATION.format(
+            option1=option1, option2=option2
+        )
         super().__init__(msg=msg.msg, msg_code=msg.name)

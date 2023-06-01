@@ -264,39 +264,42 @@ def get_esm_cache():
     return cache
 
 
-def get_pkg_candidate_version(pkg: str) -> Optional[str]:
-    cache = get_apt_cache()
+def get_pkg_candidate_version(
+    pkg: str, check_esm_cache: bool = False
+) -> Optional[str]:
+    with PreserveAptCfg(get_apt_cache) as cache:
+        try:
+            package = cache[pkg]
+        except Exception:
+            return None
 
-    try:
-        package = cache[pkg]
-    except Exception:
-        return None
+        if not package.candidate:
+            return None
 
-    if not package.candidate:
-        return None
-
-    pkg_candidate = getattr(package.candidate, "version")
+        pkg_candidate = getattr(package.candidate, "version")
 
     if not pkg_candidate:
         return None
+    elif not check_esm_cache:
+        return pkg_candidate
 
-    esm_cache = get_esm_cache()
-    if esm_cache:
-        try:
-            esm_package = esm_cache[pkg]
-        except Exception:
-            return pkg_candidate
+    with PreserveAptCfg(get_esm_cache) as esm_cache:
+        if esm_cache:
+            try:
+                esm_package = esm_cache[pkg]
+            except Exception:
+                return pkg_candidate
 
-        if not esm_package.candidate:
-            return pkg_candidate
+            if not esm_package.candidate:
+                return pkg_candidate
 
-        esm_pkg_candidate = getattr(esm_package.candidate, "version")
+            esm_pkg_candidate = getattr(esm_package.candidate, "version")
 
-        if not esm_pkg_candidate:
-            return pkg_candidate
+            if not esm_pkg_candidate:
+                return pkg_candidate
 
-        if compare_versions(esm_pkg_candidate, pkg_candidate, "ge"):
-            return esm_pkg_candidate
+            if compare_versions(esm_pkg_candidate, pkg_candidate, "ge"):
+                return esm_pkg_candidate
 
     return pkg_candidate
 

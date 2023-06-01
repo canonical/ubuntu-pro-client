@@ -93,6 +93,10 @@ SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
 )
+SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
+    "security-pkg-still-affected",
+    "{num_pkgs} package{s} {verb} still affected: {pkgs}",
+)
 SECURITY_AFFECTED_PKGS = (
     "{count} affected source package{plural_str} installed"
 )
@@ -474,7 +478,7 @@ ALREADY_ENABLED = FormattedNamedMessage(
 )
 
 ENABLED_FAILED = FormattedNamedMessage(
-    "enable-failes", "Could not enable {title}."
+    "enable-failed", "Could not enable {title}."
 )
 
 UNENTITLED = FormattedNamedMessage(
@@ -515,6 +519,13 @@ INAPPLICABLE_ARCH = FormattedNamedMessage(
     """\
 {title} is not available for platform {arch}.
 Supported platforms are: {supported_arches}.""",
+)
+
+INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
+    "inapplicable-vendor-name",
+    """\
+{title} is not available for CPU vendor {vendor}.
+Supported CPU vendors are: {supported_vendors}.""",
 )
 
 NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
@@ -839,6 +850,10 @@ REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
 REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
     "realtime-livepatch-incompatible",
     "Livepatch is not currently supported for the Real-time kernel.",
+)
+REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
+    "realtime-variant-incompatible",
+    "{service} cannot be enabled together with {variant}",
 )
 REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
     "beta-flag-required",
@@ -1187,6 +1202,19 @@ INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "Value provided was not found in {enum_class}'s allowed: value: {values}",
 )
 
+LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
+    name="livepatch-kernel-upgrade-required",
+    msg="""\
+The running kernel has reached the end of its active livepatch window.
+Please upgrade the kernel with apt and reboot for continued livepatch support.""",  # noqa: E501
+)
+LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
+    name="livepatch-kernel-eol",
+    msg="""\
+The current kernel ({version}, {arch}) has reached the end of its livepatch support.
+Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""",  # noqa: E501
+)
 LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
     name="livepatch-kernel-not-supported",
     msg="""\
@@ -1296,3 +1324,30 @@ STATUS_NO_SERVICES_AVAILABLE = (
 STATUS_ALL_HINT = (
     "For a list of all Ubuntu Pro services, run 'pro status --all'"
 )
+STATUS_SERVICE_HAS_VARIANTS = " * Service has variants"
+
+STATUS_ALL_HINT_WITH_VARIANTS = """\
+For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
+
+SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
+    "service-disabled-missing-package",
+    """\
+The {service} service is not enabled because the {package} package is
+not installed.""",
+)
+
+INVALID_OPTION_COMBINATION = FormattedNamedMessage(
+    "invalid-option-combination",
+    "Error: Cannot use {option1} together with {option2}.",
+)
+
+PRO_HELP_SERVICE_INFO = NamedMessage(
+    "pro-help-service-info",
+    "Use pro help <service> to get more details about each service",
+)
+
+WARNING_HUMAN_READABLE_OUTPUT = """\
+WARNING: this output is intended to be human readable, and subject to change.
+In scripts, prefer using machine readable data from the `pro api` command,
+or use `pro {command} --format json`.
+"""

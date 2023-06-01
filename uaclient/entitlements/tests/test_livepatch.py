@@ -186,6 +186,7 @@ class TestLivepatchEntitlementCanEnable:
                 uname_machine_arch="",
                 uname_release="4.4.0-00-generic",
                 proc_version_signature_version="",
+                build_date=None,
                 major=4,
                 minor=4,
                 patch=0,
@@ -196,6 +197,7 @@ class TestLivepatchEntitlementCanEnable:
                 uname_machine_arch="",
                 uname_release="5.0.0-00-generic",
                 proc_version_signature_version="",
+                build_date=None,
                 major=5,
                 minor=0,
                 patch=0,
@@ -206,6 +208,7 @@ class TestLivepatchEntitlementCanEnable:
                 uname_machine_arch="",
                 uname_release="4.19.0-00-generic",
                 proc_version_signature_version="",
+                build_date=None,
                 major=4,
                 minor=19,
                 patch=0,
@@ -214,6 +217,7 @@ class TestLivepatchEntitlementCanEnable:
             ),
         ),
     )
+    @mock.patch("uaclient.system.get_dpkg_arch", return_value="x86_64")
     @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch(
         "uaclient.system.get_release_info",
@@ -223,6 +227,7 @@ class TestLivepatchEntitlementCanEnable:
         self,
         _m_get_release_info,
         m_kernel_info,
+        _m_dpkg_arch,
         _m_is_container,
         _m_livepatch_status,
         _m_fips_status,

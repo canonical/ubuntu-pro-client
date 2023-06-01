@@ -1,11 +1,13 @@
 import abc
+import copy
 import logging
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from uaclient import config, contract, event_logger, messages, system, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -65,11 +67,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     affordance_check_kernel_min_version = True
     affordance_check_kernel_flavor = True
 
+    # Determine if the service is a variant of an existing service
+    is_variant = False
+
     @property
     @abc.abstractmethod
     def name(self) -> str:
         """The lowercase name of this entitlement"""
         pass
+
+    @property
+    def variant_name(self) -> str:
+        """The lowercase name of this entitlement, in case it is a variant"""
+        return ""
 
     @property
     def valid_names(self) -> List[str]:
@@ -94,15 +104,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     @property
     def presentation_name(self) -> str:
         """The user-facing name shown for this entitlement"""
-        if self.cfg.machine_token_file.is_present:
+        if self.is_variant:
+            return self.variant_name
+        elif self.cfg.machine_token_file.is_present:
             return (
-                self.cfg.machine_token_file.entitlements.get(self.name, {})
-                .get("entitlement", {})
+                self.entitlement_cfg.get("entitlement", {})
                 .get("affordances", {})
                 .get("presentedAs", self.name)
             )
         else:
             return self.name
+
+    def verify_platform_checks(
+        self, platform_check: Dict[str, Any]
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
+        """Verify specific platform checks for a service.
+
+        This should only be used if the service requires custom platform checks
+        to check if it is available or not in the machine.
+        """
+        return True, None
 
     @property
     def help_info(self) -> str:
@@ -115,6 +136,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     help_dict = safe_load(f)
 
             self._help_info = help_dict.get(self.name, {}).get("help", "")
+
+            if self.variants:
+                variant_items = [
+                    "  * {}: {}".format(variant_name, variant_cls.description)
+                    for variant_name, variant_cls in self.variants.items()
+                ]
+
+                variant_text = "\n".join(["\nVariants:\n"] + variant_items)
+                self._help_info += variant_text
 
         return self._help_info
 
@@ -156,6 +186,84 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         return self._dependent_services
 
+    def _get_variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        return {}
+
+    def _get_contract_variants(self) -> Set[str]:
+        """
+        Fetch all available variants defined in the Contract Server response
+        """
+        valid_variants = set()
+        entitlement_cfg = self._base_entitlement_cfg()
+
+        overrides = entitlement_cfg.get("entitlement", {}).get("overrides", [])
+        for override in overrides:
+            variant = override.get("selector", {}).get("variant")
+            if variant:
+                valid_variants.add(variant)
+
+        return valid_variants
+
+    def _get_valid_variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        service_variants = self._get_variants()
+        contract_variants = self._get_contract_variants()
+
+        if "generic" in service_variants:
+            valid_variants = {"generic": service_variants["generic"]}
+        else:
+            valid_variants = {}
+
+        for variant in sorted(contract_variants):
+            if variant in service_variants:
+                valid_variants[variant] = service_variants[variant]
+
+        return valid_variants if len(valid_variants) > 1 else {}
+
+    @property
+    def variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        """
+        Return a list of services that are considered a variant
+        of the main service.
+        """
+        if self.is_variant:
+            return {}
+        return self._get_valid_variants()
+
+    @property
+    def other_variants(self) -> Dict[str, Type["UAEntitlement"]]:
+        """
+        On a variant, return the other variants of the main service.
+        On a non-variant, returns empty.
+        """
+        if not self.is_variant:
+            return {}
+        return {
+            name: cls
+            for name, cls in self._get_valid_variants().items()
+            if name != self.variant_name
+        }
+
+    @property
+    def enabled_variant(self) -> Optional["UAEntitlement"]:
+        """
+        On an enabled service class, return the variant that is enabled.
+        Return None if no variants exist or none are enabled (e.g. access-only)
+        """
+        for variant_cls in self.variants.values():
+            if variant_cls.variant_name == "generic":
+                continue
+            variant = variant_cls(
+                cfg=self.cfg,
+                assume_yes=self.assume_yes,
+                allow_beta=self.allow_beta,
+                called_name=self._called_name,
+                access_only=self.access_only,
+            )
+            status, _ = variant.application_status()
+            if status == ApplicationStatus.ENABLED:
+                return variant
+        return None
+
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
@@ -194,6 +302,24 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
         return self._valid_service
+
+    def _base_entitlement_cfg(self):
+        return copy.deepcopy(
+            self.cfg.machine_token_file.entitlements.get(self.name, {})
+        )
+
+    @property
+    def entitlement_cfg(self):
+        entitlement_cfg = self._base_entitlement_cfg()
+
+        if not self.is_variant or not entitlement_cfg:
+            return entitlement_cfg
+
+        contract.apply_contract_overrides(
+            orig_access=entitlement_cfg, variant=self.variant_name
+        )
+
+        return entitlement_cfg
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
@@ -674,9 +800,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             platform passes all defined affordances, INAPPLICABLE if it doesn't
             meet all of the provided constraints.
         """
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
+        entitlement_cfg = self.entitlement_cfg
         if not entitlement_cfg:
             return (
                 ApplicabilityStatus.APPLICABLE,
@@ -759,15 +883,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 and kernel_info.minor < min_kern_minor
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
+
+        affordances_platform_check = affordances.get("platformChecks", {})
+        ret, reason = self.verify_platform_checks(affordances_platform_check)
+
+        if not ret:
+            return (ApplicabilityStatus.INAPPLICABLE, reason)
         return ApplicabilityStatus.APPLICABLE, None
 
     def contract_status(self) -> ContractStatus:
         """Return whether the user is entitled to the entitlement or not"""
-        if not self.cfg.is_attached:
+        if not _is_attached(self.cfg).is_attached:
             return ContractStatus.UNENTITLED
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
-        )
+        entitlement_cfg = self.entitlement_cfg
         if entitlement_cfg and entitlement_cfg["entitlement"].get("entitled"):
             return ContractStatus.ENTITLED
         return ContractStatus.UNENTITLED
@@ -779,9 +907,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
             return UserFacingStatus.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
+        entitlement_cfg = self.entitlement_cfg
         if not entitlement_cfg:
             return (
                 UserFacingStatus.UNAVAILABLE,
@@ -836,11 +962,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""
-        entitlement_contract = self.cfg.machine_token_file.entitlements.get(
-            self.name, {}
-        )
         # TODO(No expiry per resource in MVP yet)
-        expire_str = entitlement_contract.get("expires")
+        expire_str = self.entitlement_cfg.get("expires")
         if not expire_str:
             return False
         expiry = datetime.strptime(expire_str, "%Y-%m-%dT%H:%M:%S.%fZ")

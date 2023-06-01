@@ -1,7 +1,7 @@
 Feature: Command behaviour when unattached
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # Validate systemd unit/timer syntax
@@ -32,7 +32,7 @@ Feature: Command behaviour when unattached
            | lunar   |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command>` `as non-root` exits `1`
@@ -63,7 +63,7 @@ Feature: Command behaviour when unattached
            | lunar   | refresh |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
@@ -110,7 +110,7 @@ Feature: Command behaviour when unattached
            | lunar    | no              |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
@@ -185,15 +185,19 @@ Feature: Command behaviour when unattached
           | lunar   | disable  |
 
     @series.all
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Check for newer versions of the client in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
         When I reboot the machine
         Then I verify that no files exist matching `/run/ubuntu-advantage/candidate-version`
         When I run `pro status` with sudo
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
         # We forge a candidate to see results
@@ -211,8 +215,12 @@ Feature: Command behaviour when unattached
         to get the latest version with new features and bug fixes.
         """
         When I run `pro status --format json` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         When I run `pro config show` as non-root
         Then stderr matches regexp:
@@ -233,14 +241,22 @@ Feature: Command behaviour when unattached
         \"code\": \"new-version-available\"
         """
         When I run `pro api u.pro.version.v1` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
         When I run `apt-get update` with sudo
         # apt-get update will bring a new candidate, which is the current installed version
         And I run `pro status` as non-root
-        Then I will see the following on stderr
+        Then stderr does not match regexp:
         """
+        .*\[info\].* A new version is available: 99.9.9
+        Please run:
+            sudo apt-get install ubuntu-advantage-tools
+        to get the latest version with new features and bug fixes.
         """
 
         Examples: ubuntu release
@@ -252,8 +268,9 @@ Feature: Command behaviour when unattached
           | kinetic |
           | lunar   |
 
-    @series.all
-    @uses.config.machine_type.lxd.container
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -309,13 +326,71 @@ Feature: Command behaviour when unattached
           | release |
           # | xenial  | Can't rely on Xenial because of bash sorting things weirdly
           | bionic  |
+
+    @series.focal
+    @series.jammy
+    @series.lunar
+    @uses.config.machine_type.lxd-container
+    # Side effect: this verifies that `ua` still works as a command
+    Scenario Outline: Verify autocomplete options
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I prepare the autocomplete test
+        And I press tab twice to autocomplete the `ua` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `pro` command
+        Then stdout matches regexp:
+        """
+        --debug    +auto-attach   +enable   +status\r
+        --help     +collect-logs  +fix      +system\r
+        --version  +config        +help     +version\r
+        api        +detach        +refresh  +\r
+        attach     +disable       +security-status
+        """
+        When I press tab twice to autocomplete the `ua enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `pro enable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `ua disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+        When I press tab twice to autocomplete the `pro disable` command
+        Then stdout matches regexp:
+        """
+        cc-eal  +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros +\r
+        esm-infra +livepatch +ros-updates +\r
+        """
+
+        Examples: ubuntu release
+          | release |
           | focal   |
           | jammy   |
           # | kinetic | There is a very weird error on Kinetic, irrelevant to this test
           | lunar   |
 
     @series.lts
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
@@ -353,7 +428,7 @@ Feature: Command behaviour when unattached
     @series.jammy
     @series.kinetic
     @series.lunar
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd-container
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -424,3 +499,98 @@ Feature: Command behaviour when unattached
           | kinetic | python3.10     |                         |
           # Lunar has a BIG error message explaining why this is a clear user error...
           | lunar   | python3.11     | --break-system-packages |
+
+
+    @series.all
+    @uses.config.machine_type.lxd-container
+    Scenario Outline: Warn users not to redirect/pipe human readable output
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run shell command `pro version | cat` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run shell command `pro version > version_out` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run shell command `pro status | cat` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status | cat` with sudo
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status > status_out` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status > status_out` with sudo
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status --format tabular | cat` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status --format tabular > status_out` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro status --format json`.
+        """
+        When I run shell command `pro status --format json | cat` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run shell command `pro status --format json > status_out` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run shell command `pro security-status | cat` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro security-status --format json`.
+        """
+        When I run shell command `pro security-status > status_out` as non-root
+        Then I will see the following on stderr
+        """
+        WARNING: this output is intended to be human readable, and subject to change.
+        In scripts, prefer using machine readable data from the `pro api` command,
+        or use `pro security-status --format json`.
+        """
+        When I run shell command `pro security-status --format json | cat` as non-root
+        Then I will see the following on stderr
+        """
+        """
+        When I run shell command `pro security-status --format json > status_out` as non-root
+        Then I will see the following on stderr
+        """
+        """
+
+        Examples: ubuntu release
+          | release |
+          | xenial  |
+          | bionic  |
+          | focal   |
+          | jammy   |
+          | kinetic |
+          | lunar   |

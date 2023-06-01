@@ -1,9 +1,12 @@
+import logging
 import os
 from typing import Any, Dict
 from urllib.error import HTTPError
 
 from uaclient import exceptions, system, util
 from uaclient.clouds import AutoAttachCloudInstance
+
+LOG = logging.getLogger("pro.clouds.azure")
 
 IMDS_BASE_URL = "http://169.254.169.254/metadata/"
 
@@ -16,10 +19,10 @@ IMDS_URLS = {
 DMI_CHASSIS_ASSET_TAG = "/sys/class/dmi/id/chassis_asset_tag"
 AZURE_OVF_ENV_FILE = "/var/lib/cloud/seed/azure/ovf-env.xml"
 AZURE_CHASSIS_ASSET_TAG = "7783-7084-3265-9085-8269-3286-77"
+AZURE_PRO_LICENSE_TYPE = "UBUNTU_PRO"
 
 
 class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
-
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
@@ -50,8 +53,18 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
         return os.path.exists(AZURE_OVF_ENV_FILE)
 
     def should_poll_for_pro_license(self) -> bool:
-        """Unsupported"""
-        return False
+        # Azure will make sure it is on all supported versions
+        return True
 
     def is_pro_license_present(self, *, wait_for_change: bool) -> bool:
-        raise exceptions.InPlaceUpgradeNotSupportedError()
+        if wait_for_change:
+            raise exceptions.CancelProLicensePolling()
+
+        url = IMDS_URLS.get("compute", "")
+        try:
+            data, headers = util.readurl(url, headers={"Metadata": "true"})
+        except (HTTPError, OSError) as e:
+            LOG.error(e)
+            raise exceptions.CancelProLicensePolling()
+
+        return data.get("licenseType") == AZURE_PRO_LICENSE_TYPE

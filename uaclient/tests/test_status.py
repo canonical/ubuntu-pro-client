@@ -509,6 +509,7 @@ class TestStatus:
                 "available": mock.ANY,
                 "blocked_by": [],
                 "warning": None,
+                "variants": {},
             }
             for cls in ENTITLEMENT_CLASSES
         ]
@@ -621,6 +622,7 @@ class TestStatus:
             os.lstat(cfg.data_path("status-cache")).st_mode
         )
 
+    @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
     @pytest.mark.parametrize(
         "features_override", ((None), ({"allow_beta": False}))
@@ -653,8 +655,10 @@ class TestStatus:
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.contract_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.contract_status")
+    @mock.patch(M_PATH + "base.UAEntitlement._get_contract_variants")
     def test_attached_reports_contract_and_service_status(
         self,
+        m_contract_variants,
         m_repo_contract_status,
         m_repo_uf_status,
         m_esm_contract_status,
@@ -670,6 +674,7 @@ class TestStatus:
         entitlements,
         features_override,
         show_all,
+        variants_in_contract,
         FakeConfig,
     ):
         """When attached, return contract and service user-facing status."""
@@ -755,7 +760,60 @@ class TestStatus:
             "esm-apps": "esm-apps details",
         }
 
+        rt_variants = {
+            "intel-iotg": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "RT kernel optimized "
+                "for Intel IOTG "
+                "platform",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "intel-iotg",
+                "status": "n/a",
+                "status_details": "repo details",
+                "warning": None,
+            },
+            "nvidia-tegra": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "RT kernel "
+                "optimized for "
+                "NVIDIA Tegra "
+                "platform",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "nvidia-tegra",
+                "status": "n/a",
+                "status_details": "repo details",
+                "warning": None,
+            },
+            "generic": {
+                "available": mock.ANY,
+                "blocked_by": [],
+                "description": "Generic version of the RT kernel (default)",
+                "description_override": None,
+                "entitled": "yes",
+                "name": "generic",
+                "status": "n/a",
+                "status_details": "repo details",
+                "warning": None,
+            },
+        }
+
         for cls in ENTITLEMENT_CLASSES:
+            if cls.name == "realtime-kernel":
+                if variants_in_contract:
+                    m_contract_variants.return_value = set(
+                        ["intel-iotg", "nvidia-tegra"]
+                    )
+                    variants = rt_variants
+                else:
+                    m_contract_variants.return_value = set()
+                    variants = {}
+            else:
+                variants = {}
+
             if cls.name == "livepatch":
                 expected_status = UserFacingStatus.ACTIVE.value
             elif show_all:
@@ -781,15 +839,16 @@ class TestStatus:
                     "available": mock.ANY,
                     "blocked_by": [],
                     "warning": None,
+                    "variants": variants,
                 }
             )
         with mock.patch(
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            expected_status_calls = 11 if variants_in_contract else 8
             assert expected == status.status(cfg=cfg, show_all=show_all)
-
-            assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
+            assert expected_status_calls == m_repo_uf_status.call_count
             assert 1 == m_livepatch_uf_status.call_count
 
         expected_calls = [
@@ -928,6 +987,7 @@ class TestAttachedServiceStatus:
         uf_status,
         in_inapplicable_resources,
         expected_status,
+        FakeConfig,
     ):
         ent = mock.MagicMock()
         ent.name = "test_entitlement"
@@ -940,7 +1000,9 @@ class TestAttachedServiceStatus:
         unavailable_resources = (
             {ent.name: ""} if in_inapplicable_resources else {}
         )
-        ret = status._attached_service_status(ent, unavailable_resources)
+        ret = status._attached_service_status(
+            ent, unavailable_resources, FakeConfig()
+        )
 
         assert expected_status == ret["status"]
 
@@ -979,9 +1041,10 @@ class TestAttachedServiceStatus:
         tmpdir,
         FakeConfig,
     ):
+        cfg = FakeConfig()
         ent = ConcreteTestEntitlement(
-            cfg=FakeConfig(),
+            cfg=cfg,
             blocking_incompatible_services=blocking_incompatible_services,
         )
-        service_status = status._attached_service_status(ent, [])
+        service_status = status._attached_service_status(ent, [], cfg)
         assert service_status["blocked_by"] == expected_blocked_by

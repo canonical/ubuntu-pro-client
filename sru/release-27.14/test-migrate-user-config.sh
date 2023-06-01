@@ -1,10 +1,6 @@
 #!/bin/bash
 set -e
 
-# TODO remove TESTING sections for -proposed verification
-# TESTING:
-local_deb=$1
-
 function install_old_version {
     name=$1
     series=$2
@@ -24,17 +20,6 @@ function install_old_version {
 function upgrade_to_proposed {
     name=$1
     verify=$2
-
-    # TESTING:
-    echo -e "\n-------------------------------------------"
-    echo "** upgrading to 27.14 from local - VERIFY $verify"
-    echo "-------------------------------------------"
-    lxc file push $local_deb $name/tmp/uanew.deb
-    lxc exec $name -- dpkg -i /tmp/uanew.deb
-    lxc exec $name -- apt-cache policy ubuntu-advantage-tools
-    echo "-------------------------------------------"
-    return
-    # END TESTING
 
     echo -e "\n-------------------------------------------"
     echo "** upgrading to 27.14 from proposed - VERIFY $verify"
@@ -127,7 +112,7 @@ function test_apt_news_false_upgrade {
     upgrade_to_proposed $name "NO CONFFILE PROMPT"
 
     echo -e "\n-------------------------------------------"
-    echo "** Backup file is gone after successful migration"
+    echo "** Backup file is kept after successful migration"
     echo "-------------------------------------------"
     lxc exec $name -- ls -la /etc/ubuntu-advantage/
     echo "-------------------------------------------"
@@ -198,7 +183,7 @@ function test_uaclient_conf_changes_upgrade {
     upgrade_to_proposed $name "NO CONFFILE PROMPT"
 
     echo -e "\n-------------------------------------------"
-    echo "** Backup file is gone after successful migration"
+    echo "** Backup file is kept after successful migration"
     echo "-------------------------------------------"
     lxc exec $name -- ls -la /etc/ubuntu-advantage/
     echo "-------------------------------------------"
@@ -275,14 +260,47 @@ function test_migration_failure {
     echo "###########################################"
 }
 
-# xenial
-test_normal_upgrade                 xenial 27.11.3~16.04.1
-test_normal_upgrade                 xenial 27.13.1~16.04.1
-test_apt_news_false_upgrade         xenial 27.11.3~16.04.1
-test_apt_news_false_upgrade         xenial 27.13.1~16.04.1
-test_uaclient_conf_changes_upgrade  xenial 27.11.3~16.04.1
-test_uaclient_conf_changes_upgrade  xenial 27.13.1~16.04.1
-test_migration_failure              xenial 27.11.3~16.04.1
-test_migration_failure              xenial 27.13.1~16.04.1
+test_normal_upgrade                 xenial 27.12~16.04.1
+test_normal_upgrade                 xenial 27.13.6~16.04.1
+test_apt_news_false_upgrade         xenial 27.12~16.04.1
+test_apt_news_false_upgrade         xenial 27.13.6~16.04.1
+test_uaclient_conf_changes_upgrade  xenial 27.12~16.04.1
+test_uaclient_conf_changes_upgrade  xenial 27.13.6~16.04.1
+test_migration_failure              xenial 27.12~16.04.1
+test_migration_failure              xenial 27.13.6~16.04.1
 
-# TODO: repeat for each release
+test_normal_upgrade                 bionic 27.12~18.04.1
+test_normal_upgrade                 bionic 27.13.6~18.04.1
+test_apt_news_false_upgrade         bionic 27.12~18.04.1
+test_apt_news_false_upgrade         bionic 27.13.6~18.04.1
+test_uaclient_conf_changes_upgrade  bionic 27.12~18.04.1
+test_uaclient_conf_changes_upgrade  bionic 27.13.6~18.04.1
+test_migration_failure              bionic 27.12~18.04.1
+test_migration_failure              bionic 27.13.6~18.04.1
+
+test_normal_upgrade                 focal 27.12~20.04.1
+test_normal_upgrade                 focal 27.13.6~20.04.1
+test_apt_news_false_upgrade         focal 27.12~20.04.1
+test_apt_news_false_upgrade         focal 27.13.6~20.04.1
+test_uaclient_conf_changes_upgrade  focal 27.12~20.04.1
+test_uaclient_conf_changes_upgrade  focal 27.13.6~20.04.1
+test_migration_failure              focal 27.12~20.04.1
+test_migration_failure              focal 27.13.6~20.04.1
+
+test_normal_upgrade                 jammy 27.12~22.04.1
+test_normal_upgrade                 jammy 27.13.6~22.04.1
+test_apt_news_false_upgrade         jammy 27.12~22.04.1
+test_apt_news_false_upgrade         jammy 27.13.6~22.04.1
+test_uaclient_conf_changes_upgrade  jammy 27.12~22.04.1
+test_uaclient_conf_changes_upgrade  jammy 27.13.6~22.04.1
+test_migration_failure              jammy 27.12~22.04.1
+test_migration_failure              jammy 27.13.6~22.04.1
+
+test_normal_upgrade                 kinetic 27.12~22.10.1
+test_normal_upgrade                 kinetic 27.13.6~22.10.1
+test_apt_news_false_upgrade         kinetic 27.12~22.10.1
+test_apt_news_false_upgrade         kinetic 27.13.6~22.10.1
+test_uaclient_conf_changes_upgrade  kinetic 27.12~22.10.1
+test_uaclient_conf_changes_upgrade  kinetic 27.13.6~22.10.1
+test_migration_failure              kinetic 27.12~22.10.1
+test_migration_failure              kinetic 27.13.6~22.10.1

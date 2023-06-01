@@ -8,6 +8,7 @@ import mock
 import pytest
 
 from uaclient import event_logger, messages, status, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -238,7 +239,7 @@ class TestActionAttach:
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
         self,
@@ -269,7 +270,7 @@ class TestActionAttach:
             main_error_handler(action_attach)(args, cfg)
 
         assert 1 == excinfo.value.code
-        assert cfg.is_attached
+        assert _is_attached(cfg).is_attached
         # Assert updated status cache is written to disk
         assert orig_unattached_status != cfg.read_cache(
             "status-cache"
@@ -278,10 +279,8 @@ class TestActionAttach:
 
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
-    @mock.patch(
-        M_PATH + "contract.UAContractClient.request_contract_machine_attach"
-    )
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     @mock.patch("uaclient.actions.status", return_value=("", 0))
     @mock.patch("uaclient.status.format_tabular")
     def test_happy_path_with_token_arg(
@@ -353,7 +352,7 @@ class TestActionAttach:
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(
         self,
         m_update_apt_and_motd_msgs,
@@ -532,11 +531,21 @@ class TestActionAttach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @pytest.mark.parametrize(
+        "expected_exception,expected_msg",
+        (
+            (
+                UserFacingError("error"),
+                messages.ATTACH_FAILURE_DEFAULT_SERVICES,
+            ),
+            (Exception("error"), messages.UNEXPECTED_ERROR),
+        ),
+    )
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
-    @mock.patch("uaclient.jobs.update_messaging.update_motd_messages")
+    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     def test_attach_when_one_service_fails_to_enable(
         self,
         _m_update_messages,
@@ -544,6 +553,8 @@ class TestActionAttach:
         _m_apply_contract_overrides,
         m_process_entitlement_delta,
         m_enable_order,
+        expected_exception,
+        expected_msg,
         FakeConfig,
         event,
     ):
@@ -553,7 +564,7 @@ class TestActionAttach:
         m_enable_order.return_value = ["test1", "test2"]
         m_process_entitlement_delta.side_effect = [
             ({"test": 123}, True),
-            UserFacingError("error"),
+            expected_exception,
         ]
         m_request_url.return_value = (
             {
@@ -597,12 +608,20 @@ class TestActionAttach:
                 ):
                     main_error_handler(action_attach)(args, cfg)
 
-        expected_msg = messages.ATTACH_FAILURE_DEFAULT_SERVICES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "services": [
+                            {
+                                "code": expected_msg.name,
+                                "name": "test2",
+                                "title": expected_msg.msg,
+                            }
+                        ]
+                    },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
                     "service": None,

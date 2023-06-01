@@ -59,6 +59,13 @@ class UAFile:
         system.ensure_file_absent(self.path)
 
 
+class UserCacheFile(UAFile):
+    def __init__(self, name: str):
+        super().__init__(
+            name, directory=system.get_user_cache_dir(), private=False
+        )
+
+
 class MachineTokenFile:
     def __init__(
         self,

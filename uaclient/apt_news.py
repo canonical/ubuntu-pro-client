@@ -8,6 +8,7 @@ from typing import List, Optional
 import apt_pkg
 
 from uaclient import defaults, messages, system, util
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -19,7 +20,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
-from uaclient.jobs.update_messaging import (
+from uaclient.timer.update_messaging import (
     ContractExpiryStatus,
     get_contract_expiry_status,
 )
@@ -92,7 +93,7 @@ def do_selectors_apply(
             return False
 
     if selectors.pro is not None:
-        if selectors.pro != cfg.is_attached:
+        if selectors.pro != _is_attached(cfg).is_attached:
             return False
 
     return True

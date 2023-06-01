@@ -35,7 +35,7 @@ PLATFORM_SERIES_TESTS = {
     "gcppro": ["xenial", "bionic", "focal", "jammy"],
     "gcppro-fips": ["bionic", "focal"],
     "lxd": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
-    "vm": ["xenial", "bionic", "focal", "jammy"],
+    "vm": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
     "upgrade": ["xenial", "bionic", "focal", "jammy", "kinetic"],
 }
 
@@ -69,9 +69,8 @@ def build_commands(
                     "behave-{}-{}".format(p, series_version),
                     "--",
                     "-D",
-                    "install_from={}".format(install_from)
+                    "install_from={}".format(install_from),
                 ]
-
 
                 if check_version:
                     command.extend(

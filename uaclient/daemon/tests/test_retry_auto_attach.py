@@ -115,9 +115,13 @@ class TestRetryAutoAttach:
         FakeConfig,
     ):
         with mock.patch(
-            "uaclient.config.UAConfig.is_attached",
+            "uaclient.daemon.retry_auto_attach._is_attached",
             new_callable=mock.PropertyMock,
-            side_effect=[False, True, True],
+            side_effect=[
+                mock.MagicMock(is_attached=False),
+                mock.MagicMock(is_attached=True),
+                mock.MagicMock(is_attached=True),
+            ],
         ):
             cfg = FakeConfig()
             retry_auto_attach(cfg)
@@ -670,9 +674,12 @@ class TestRetryAutoAttach:
             interval_index=18, failure_reason=None
         )
         with mock.patch(
-            "uaclient.config.UAConfig.is_attached",
+            "uaclient.daemon.retry_auto_attach._is_attached",
             new_callable=mock.PropertyMock,
-            side_effect=[False, is_attached_at_end],
+            side_effect=[
+                mock.MagicMock(is_attached=False),
+                mock.MagicMock(is_attached=is_attached_at_end),
+            ],
         ):
             cfg = FakeConfig()
             retry_auto_attach(cfg)
