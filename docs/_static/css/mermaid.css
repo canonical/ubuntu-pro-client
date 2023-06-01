@@ -1,0 +1,33 @@
+.mermaid {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.5rem;
+}
+
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon,
+.mermaid .node path
+{
+    fill: var(--color-background-item) !important;
+    stroke: var(--color-background-border) !important;
+}
+
+.mermaid .label text,
+.mermaid span,
+.mermaid p
+{
+    color: var(--color-content-foreground) !important;
+}
+
+.mermaid .flowchart-link
+{
+    stroke: var(--color-content-foreground) !important;
+}
+
+.mermaid .marker
+{
+    fill: var(--color-content-foreground) !important;
+    stroke: var(--color-content-foreground) !important;
+}
