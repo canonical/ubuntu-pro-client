@@ -35,10 +35,10 @@ def _package_manifest(cfg: UAConfig) -> PackageManifestResult:
 
     pkgs = snap.get_installed_snaps()
     for pkg in pkgs:
-        manifest += "snap:{name}\t{tracking}\t{rev}\n".format(
+        manifest += "snap:{name}\t{channel}\t{revision}\n".format(
             name=pkg.name,
-            tracking=pkg.tracking,
-            rev=pkg.rev,
+            channel=pkg.channel,
+            revision=pkg.revision,
         )
 
     return PackageManifestResult(manifest_data=manifest)

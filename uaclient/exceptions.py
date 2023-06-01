@@ -488,3 +488,32 @@ class CloudMetadataError(UserFacingError):
     def __init__(self, code: int, body: str) -> None:
         msg = messages.CLOUD_METADATA_ERROR.format(code=code, body=body)
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class SnapNotInstalledError(UserFacingError):
+    def __init__(self, snap: str):
+        msg = messages.SNAP_NOT_INSTALLED_ERROR.format(snap=snap)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class UnexpectedSnapdAPIError(UserFacingError):
+    def __init__(self, error: Optional[str]):
+        msg = messages.UNEXPECTED_SNAPD_API_ERROR.format(
+            error=error if error else ""
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class SnapdAPIConnectionRefused(UserFacingError):
+    def __init__(self):
+        msg = messages.SNAPD_CONNECTION_REFUSED
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class SnapdInvalidJson(UserFacingError):
+    def __init__(self, url: str, out: str):
+        msg = messages.JSON_PARSER_ERROR.format(
+            source="SNAPD API {}".format(url),
+            out=out,
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)

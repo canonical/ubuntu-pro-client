@@ -1,9 +1,7 @@
 import logging
-import re
 from typing import Any, Dict, Optional, Tuple
 
 from uaclient import (
-    apt,
     event_logger,
     exceptions,
     http,
@@ -68,7 +66,9 @@ class LivepatchEntitlement(UAEntitlement):
 
         return (
             (
-                messages.LIVEPATCH_ERROR_INSTALL_ON_CONTAINER,
+                messages.SERVICE_ERROR_INSTALL_ON_CONTAINER.format(
+                    title=self.title
+                ),
                 lambda: system.is_container(),
                 False,
             ),
@@ -86,37 +86,14 @@ class LivepatchEntitlement(UAEntitlement):
         """
         if not system.which(snap.SNAP_CMD):
             event.info("Installing snapd")
-            event.info(messages.APT_UPDATING_LISTS)
-            try:
-                apt.run_apt_update_command()
-            except exceptions.UserFacingError as e:
-                logging.debug(
-                    "Trying to install snapd."
-                    " Ignoring apt-get update failure: %s",
-                    str(e),
-                )
-            try:
-                system.subp(
-                    ["apt-get", "install", "--assume-yes", "snapd"],
-                    retry_sleeps=apt.APT_RETRIES,
-                )
-            except exceptions.ProcessExecutionError:
-                raise exceptions.CannotInstallSnapdError()
+            snap.install_snapd()
 
         elif not snap.is_installed():
             raise exceptions.SnapdNotProperlyInstalledError(
                 snap_cmd=snap.SNAP_CMD, service=self.title
             )
 
-        try:
-            system.subp(
-                [snap.SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
-            )
-        except exceptions.ProcessExecutionError as e:
-            if re.search(r"unknown command .*wait", str(e).lower()):
-                logging.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
-            else:
-                raise
+        snap.run_snapd_wait_cmd()
 
         http_proxy = http.validate_proxy(
             "http", self.cfg.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
@@ -129,15 +106,10 @@ class LivepatchEntitlement(UAEntitlement):
             https_proxy=https_proxy,
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
-
         if not livepatch.is_livepatch_installed():
             event.info("Installing canonical-livepatch snap")
             try:
-                system.subp(
-                    [snap.SNAP_CMD, "install", "canonical-livepatch"],
-                    capture=True,
-                    retry_sleeps=snap.SNAP_INSTALL_RETRIES,
-                )
+                snap.install_snap("canonical-livepatch")
             except exceptions.ProcessExecutionError as e:
                 raise exceptions.ErrorInstallingLivepatch(error_msg=str(e))
 
