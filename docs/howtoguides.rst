@@ -11,92 +11,84 @@ understand and adapt the steps to fit your specific requirements.
 How to use ``pro`` commands
 ===========================
 
-``attach``
-----------
+``pro attach``
+--------------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Get an Ubuntu Pro token and attach to a subscription <howtoguides/get_token_and_attach.md>
-    Attach with a configuration file <howtoguides/how_to_attach_with_config_file.md>
+   Get an Ubuntu Pro token and attach to a subscription <howtoguides/get_token_and_attach.md>
+   Attach with a configuration file <howtoguides/how_to_attach_with_config_file.md>
 
-``collect-logs``
-----------------
+``pro collect-logs``
+--------------------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
+   
+   Collect data logs for bug reporting <howtoguides/how_to_collect_logs.md>
 
-    Collect data logs for bug reporting <howtoguides/how_to_collect_logs.md>
+``pro config``
+--------------
 
-``config``
-----------
+.. toctree::
+   :maxdepth: 2
+   
+   Configure... <howtoguides/configure_index>
 
-..  toctree::
-    :maxdepth: 1
+``pro enable``
+--------------
 
-    Disable or re-enable APT News <howtoguides/disable_enable_apt_news.md>
-    Configure a proxy <howtoguides/configure_proxies.md>
-    Configure a timer job <howtoguides/configuring_timer_jobs.md>
+.. toctree::
+   :maxdepth: 2
+      
+   Enable... <howtoguides/enable_index>
 
-``enable``
-----------
-
-..  toctree::
-    :maxdepth: 1
-
-    Enable Pro Services in a Dockerfile <howtoguides/enable_in_dockerfile.md>
-    Enable CC EAL <howtoguides/enable_cc.md>
-    Enable CIS <howtoguides/enable_cis.md>
-    Enable Expanded Security Maintenance for Infrastructure <howtoguides/enable_esm_infra.md>
-    Enable FIPS <howtoguides/enable_fips.md>
-    Enable Livepatch <howtoguides/enable_livepatch.md>
-    Enable Real-Time Kernel <howtoguides/enable_realtime_kernel.md>
-
-``fix``
--------
-
-..  toctree::
-    :maxdepth: 1
-
-    Run `fix` in "dry run" mode <howtoguides/how_to_run_fix_in_dry_run_mode.md>
-    Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns.md>
-
-``refresh``
+``pro fix``
 -----------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Update MOTD and APT messages <howtoguides/update_motd_messages.md>
+   Run `fix` in "dry run" mode <howtoguides/how_to_run_fix_in_dry_run_mode.md>
+   Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns.md>
 
-``status``
-----------
+``pro refresh``
+---------------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Simulate the `attach` operation <howtoguides/how_to_simulate_attach.md>
+   Update MOTD and APT messages <howtoguides/update_motd_messages.md>
 
-``version``
------------
+``pro status``
+--------------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Check Ubuntu Pro Client version <howtoguides/check_pro_version>
+   Simulate the `attach` operation <howtoguides/how_to_simulate_attach.md>
 
-``lock``
------------
+``pro version``
+---------------
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock.md>
+   Check Ubuntu Pro Client version <howtoguides/check_pro_version>
+
+Corrupted lock files
+====================
+
+.. toctree::
+   :maxdepth: 1
+
+   Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock.md>
     
 Create a ``pro`` Golden Image
 =============================
 
-..  toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image.md>
+   Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image.md>
