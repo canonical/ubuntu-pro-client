@@ -89,6 +89,7 @@ def repo_state_hash(
         "tools",
         "docs",
         "dev-docs",
+        "keyrings",
     )
 ):
     """
