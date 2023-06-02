@@ -8,6 +8,9 @@ ubuntu-advantage-tools (28) mantic; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
     - more specific regex for ua_config warning
+  * d/source/lintian-overrides
+    - adjust missing-build-dependency-for-dh-addon systemd override to work
+      for the different but related error message on jammy onwards
   * New upstream release 28 (LP: #2017949)
     - api:
       + new endpoint: u.pro.status.is_attached.v1
