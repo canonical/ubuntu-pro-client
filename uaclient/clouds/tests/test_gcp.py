@@ -24,7 +24,7 @@ class TestUAAutoAttachGCPInstance:
         instance = UAAutoAttachGCPInstance()
         assert "gcp" == instance.cloud_type
 
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_from_gcp_url(self, readurl):
         """Return attested signature and compute info as GCP identity doc"""
         readurl.return_value = "attestedWOOT!===", {"header": "stuff"}
@@ -39,7 +39,7 @@ class TestUAAutoAttachGCPInstance:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("fail_count,exception", ((3, False), (4, True)))
     @mock.patch(M_PATH + "util.time.sleep")
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_retry_backoff_on_failed_identity_doc(
         self, readurl, sleep, fail_count, exception, caplog_text
     ):
@@ -289,7 +289,7 @@ class TestUAAutoAttachGCPInstance:
         ),
     )
     @mock.patch(M_PATH + "system.get_release_info")
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_is_license_present(
         self,
         m_readurl,

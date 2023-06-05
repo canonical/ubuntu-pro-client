@@ -5,7 +5,7 @@ import os
 from typing import Any, Dict, List, Optional  # noqa: F401
 from urllib.error import HTTPError
 
-from uaclient import exceptions, messages, system, util
+from uaclient import exceptions, http, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger("pro.clouds.gcp")
@@ -46,7 +46,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     def identity_doc(self) -> Dict[str, Any]:
         try:
             headers = {"Metadata-Flavor": "Google"}
-            url_response, _headers = util.readurl(
+            url_response, _headers = http.readurl(
                 TOKEN_URL, headers=headers, timeout=1
             )
         except HTTPError as e:
@@ -120,7 +120,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
                 url += LAST_ETAG.format(etag=self.etag)
 
         try:
-            licenses, headers = util.readurl(
+            licenses, headers = http.readurl(
                 url, headers={"Metadata-Flavor": "Google"}
             )
         except HTTPError as e:

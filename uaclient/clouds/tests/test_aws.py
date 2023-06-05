@@ -26,7 +26,7 @@ class TestUAAutoAttachAWSInstance:
         instance = UAAutoAttachAWSInstance()
         assert "aws" == instance.cloud_type
 
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test__get_imds_v2_token_headers_none_on_404(self, readurl):
         """A 404 on private AWS regions indicates lack IMDSv2 support."""
         readurl.side_effect = HTTPError(
@@ -41,7 +41,7 @@ class TestUAAutoAttachAWSInstance:
         instance._get_imds_v2_token_headers(ip_address=IMDS_IPV4_ADDRESS)
         assert 1 == readurl.call_count
 
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test__get_imds_v2_token_headers_caches_response(self, readurl):
         """Return API token headers for IMDSv2 access. Response is cached."""
         instance = UAAutoAttachAWSInstance()
@@ -64,7 +64,7 @@ class TestUAAutoAttachAWSInstance:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("fail_count,exception", ((3, False), (4, True)))
     @mock.patch(M_PATH + "util.time.sleep")
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_retry_backoff_on__get_imds_v2_token_headers_caches_response(
         self, readurl, sleep, fail_count, exception, caplog_text
     ):
@@ -107,7 +107,7 @@ class TestUAAutoAttachAWSInstance:
         for log in expected_logs:
             assert log in logs
 
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_from_aws_url_pkcs7(self, readurl):
         """Return pkcs7 content from IMDS as AWS' identity doc"""
         readurl.return_value = "pkcs7WOOT!==", {"header": "stuff"}
@@ -130,7 +130,7 @@ class TestUAAutoAttachAWSInstance:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("fail_count,exception", ((3, False),))
     @mock.patch(M_PATH + "util.time.sleep")
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_retry_backoff_on_failed_identity_doc(
         self, readurl, sleep, fail_count, exception, caplog_text
     ):
@@ -213,7 +213,7 @@ class TestUAAutoAttachAWSInstance:
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_default_to_ipv6_if_ipv4_fail(
         self, readurl, caplog_text
     ):
@@ -259,7 +259,7 @@ class TestUAAutoAttachAWSInstance:
         assert expected_log in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_logs_error_if_both_ipv4_and_ipv6_fails(
         self, readurl, caplog_text
     ):

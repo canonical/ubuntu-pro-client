@@ -6,15 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import (
-    apt,
-    exceptions,
-    livepatch,
-    messages,
-    serviceclient,
-    system,
-    util,
-)
+from uaclient import apt, exceptions, livepatch, messages, system, util
 from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
 from uaclient.api.u.pro.attach.magic.revoke.v1 import (
     MagicAttachRevokeOptions,
@@ -38,6 +30,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.files import notices
 from uaclient.files.notices import Notice
+from uaclient.http import serviceclient
 from uaclient.status import colorize_commands
 
 CVE_OR_USN_REGEX = (

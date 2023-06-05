@@ -372,7 +372,7 @@ class TestLivepatchProcessContractDeltas:
 
 
 @mock.patch(M_PATH + "snap.is_installed")
-@mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
+@mock.patch("uaclient.http.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:

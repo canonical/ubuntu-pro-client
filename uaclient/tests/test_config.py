@@ -9,7 +9,7 @@ import stat
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, util
+from uaclient import apt, exceptions, http, messages
 from uaclient.config import (
     PRIVATE_SUBDIR,
     UA_CONFIGURABLE_KEYS,
@@ -826,7 +826,7 @@ class TestProcessConfig:
             ),
         ],
     )
-    @mock.patch("uaclient.util.validate_proxy")
+    @mock.patch("uaclient.http.validate_proxy")
     @mock.patch("uaclient.livepatch.get_config_option_value")
     @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
     @mock.patch(
@@ -909,20 +909,20 @@ class TestProcessConfig:
 
             assert [
                 mock.call(
-                    "http", global_http, util.PROXY_VALIDATION_APT_HTTP_URL
+                    "http", global_http, http.PROXY_VALIDATION_APT_HTTP_URL
                 ),
                 mock.call(
-                    "https", global_https, util.PROXY_VALIDATION_APT_HTTPS_URL
+                    "https", global_https, http.PROXY_VALIDATION_APT_HTTPS_URL
                 ),
-                mock.call("http", ua_http, util.PROXY_VALIDATION_APT_HTTP_URL),
+                mock.call("http", ua_http, http.PROXY_VALIDATION_APT_HTTP_URL),
                 mock.call(
-                    "https", ua_https, util.PROXY_VALIDATION_APT_HTTPS_URL
-                ),
-                mock.call(
-                    "http", http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+                    "https", ua_https, http.PROXY_VALIDATION_APT_HTTPS_URL
                 ),
                 mock.call(
-                    "https", https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+                    "http", http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
+                ),
+                mock.call(
+                    "https", https_proxy, http.PROXY_VALIDATION_SNAP_HTTPS_URL
                 ),
             ] == m_validate_proxy.call_args_list
 

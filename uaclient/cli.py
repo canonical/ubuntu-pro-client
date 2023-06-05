@@ -24,6 +24,7 @@ from uaclient import (
     entitlements,
     event_logger,
     exceptions,
+    http,
     lock,
 )
 from uaclient import log as pro_log
@@ -1049,10 +1050,10 @@ def action_config_set(args, *, cfg, **kwargs):
     if set_key in ("http_proxy", "https_proxy"):
         protocol_type = set_key.split("_")[0]
         if protocol_type == "http":
-            validate_url = util.PROXY_VALIDATION_SNAP_HTTP_URL
+            validate_url = http.PROXY_VALIDATION_SNAP_HTTP_URL
         else:
-            validate_url = util.PROXY_VALIDATION_SNAP_HTTPS_URL
-        util.validate_proxy(protocol_type, set_value, validate_url)
+            validate_url = http.PROXY_VALIDATION_SNAP_HTTPS_URL
+        http.validate_proxy(protocol_type, set_value, validate_url)
 
         kwargs = {set_key: set_value}
         configure_snap_proxy(**kwargs)
@@ -1064,10 +1065,10 @@ def action_config_set(args, *, cfg, **kwargs):
     elif set_key in cfg.ua_scoped_proxy_options:
         protocol_type = set_key.split("_")[2]
         if protocol_type == "http":
-            validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
+            validate_url = http.PROXY_VALIDATION_APT_HTTP_URL
         else:
-            validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
-        util.validate_proxy(protocol_type, set_value, validate_url)
+            validate_url = http.PROXY_VALIDATION_APT_HTTPS_URL
+        http.validate_proxy(protocol_type, set_value, validate_url)
         unset_current = bool(
             cfg.global_apt_http_proxy or cfg.global_apt_https_proxy
         )
@@ -1090,9 +1091,9 @@ def action_config_set(args, *, cfg, **kwargs):
 
         protocol_type = "https" if "https" in set_key else "http"
         if protocol_type == "http":
-            validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
+            validate_url = http.PROXY_VALIDATION_APT_HTTP_URL
         else:
-            validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
+            validate_url = http.PROXY_VALIDATION_APT_HTTPS_URL
 
         if set_key in cfg.deprecated_global_scoped_proxy_options:
             print(
@@ -1102,7 +1103,7 @@ def action_config_set(args, *, cfg, **kwargs):
             )
             set_key = "global_" + set_key
 
-        util.validate_proxy(protocol_type, set_value, validate_url)
+        http.validate_proxy(protocol_type, set_value, validate_url)
 
         unset_current = bool(cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy)
 
@@ -2033,7 +2034,7 @@ def main(sys_argv=None):
 
     http_proxy = cfg.http_proxy
     https_proxy = cfg.https_proxy
-    util.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
+    http.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
 
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
