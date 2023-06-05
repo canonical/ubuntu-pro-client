@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Type
 from urllib import error
 from urllib.parse import urlencode
 
-from uaclient import config, exceptions, system, util, version
+from uaclient import config, exceptions, http, system, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
@@ -70,7 +70,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             url += "?" + urlencode(filtered_params)
         timeout_to_use = timeout if timeout is not None else self.url_timeout
         try:
-            response, headers = util.readurl(
+            response, headers = http.readurl(
                 url=url,
                 data=data,
                 headers=headers,

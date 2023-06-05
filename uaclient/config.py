@@ -11,6 +11,7 @@ from uaclient import (
     event_logger,
     exceptions,
     files,
+    http,
     messages,
     snap,
     system,
@@ -510,29 +511,29 @@ class UAConfig:
                 messages.ERROR_PROXY_CONFIGURATION
             )
 
-        util.validate_proxy(
+        http.validate_proxy(
             "http",
             self.global_apt_http_proxy,
-            util.PROXY_VALIDATION_APT_HTTP_URL,
+            http.PROXY_VALIDATION_APT_HTTP_URL,
         )
-        util.validate_proxy(
+        http.validate_proxy(
             "https",
             self.global_apt_https_proxy,
-            util.PROXY_VALIDATION_APT_HTTPS_URL,
+            http.PROXY_VALIDATION_APT_HTTPS_URL,
         )
-        util.validate_proxy(
-            "http", self.ua_apt_http_proxy, util.PROXY_VALIDATION_APT_HTTP_URL
+        http.validate_proxy(
+            "http", self.ua_apt_http_proxy, http.PROXY_VALIDATION_APT_HTTP_URL
         )
-        util.validate_proxy(
+        http.validate_proxy(
             "https",
             self.ua_apt_https_proxy,
-            util.PROXY_VALIDATION_APT_HTTPS_URL,
+            http.PROXY_VALIDATION_APT_HTTPS_URL,
         )
-        util.validate_proxy(
-            "http", self.http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+        http.validate_proxy(
+            "http", self.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
         )
-        util.validate_proxy(
-            "https", self.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+        http.validate_proxy(
+            "https", self.https_proxy, http.PROXY_VALIDATION_SNAP_HTTPS_URL
         )
 
         if self.global_apt_http_proxy or self.global_apt_https_proxy:
@@ -676,7 +677,7 @@ def parse_config(config_path=None):
     if "data_dir" in cfg:
         cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
     for key in ("contract_url", "security_url"):
-        if not util.is_service_url(cfg[key]):
+        if not http.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
                 "Invalid url in config. {}: {}".format(key, cfg[key])
             )
