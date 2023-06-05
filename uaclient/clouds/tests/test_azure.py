@@ -17,7 +17,7 @@ class TestUAAutoAttachAzureInstance:
         instance = UAAutoAttachAzureInstance()
         assert "azure" == instance.cloud_type
 
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_from_azure_url_pkcs7(self, readurl):
         """Return attested signature and compute info as Azure identity doc"""
 
@@ -45,7 +45,7 @@ class TestUAAutoAttachAzureInstance:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("fail_count,exception", ((3, False), (4, True)))
     @mock.patch(M_PATH + "util.time.sleep")
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_retry_backoff_on_failed_identity_doc(
         self, readurl, sleep, fail_count, exception, caplog_text
     ):
@@ -140,7 +140,7 @@ class TestUAAutoAttachAzureInstance:
             (({"licenseType": "UBUNTU_PRO"}, {}), True),
         ),
     )
-    @mock.patch(M_PATH + "util.readurl")
+    @mock.patch(M_PATH + "http.readurl")
     def test_is_licence_present(
         self, m_readurl, metadata_response, expected_result
     ):

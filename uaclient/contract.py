@@ -3,18 +3,11 @@ import logging
 import socket
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import (
-    clouds,
-    event_logger,
-    exceptions,
-    messages,
-    serviceclient,
-    system,
-    util,
-)
+from uaclient import clouds, event_logger, exceptions, messages, system, util
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
+from uaclient.http import serviceclient
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.

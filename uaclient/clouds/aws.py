@@ -2,7 +2,7 @@ import logging
 from typing import Any, Dict
 from urllib.error import HTTPError
 
-from uaclient import exceptions, system, util
+from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
@@ -28,7 +28,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
 
     def _get_imds_url_response(self):
         headers = self._request_imds_v2_token_headers()
-        return util.readurl(
+        return http.readurl(
             IMDS_URL.format(self._ip_address), headers=headers, timeout=1
         )
 
@@ -71,7 +71,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         elif self._api_token:
             return {AWS_TOKEN_PUT_HEADER: self._api_token}
         try:
-            response, _headers = util.readurl(
+            response, _headers = http.readurl(
                 IMDS_V2_TOKEN_URL.format(ip_address),
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},

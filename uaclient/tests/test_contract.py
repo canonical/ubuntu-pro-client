@@ -42,7 +42,7 @@ M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 
 
-@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+@mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
 @mock.patch("uaclient.contract.system.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
@@ -1308,7 +1308,7 @@ class TestApplyContractOverrides:
         assert orig_access == expected
 
 
-@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+@mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
 class TestRequestAutoAttach:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     def test_request_for_invalid_pro_image(

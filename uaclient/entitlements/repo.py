@@ -10,6 +10,7 @@ from uaclient import (
     contract,
     event_logger,
     exceptions,
+    http,
     messages,
     system,
     util,
@@ -287,27 +288,27 @@ class RepoEntitlement(base.UAEntitlement):
         https_proxy = None  # type: Optional[str]
         scope = None  # type: Optional[apt.AptProxyScope]
         if self.cfg.global_apt_http_proxy or self.cfg.global_apt_https_proxy:
-            http_proxy = util.validate_proxy(
+            http_proxy = http.validate_proxy(
                 "http",
                 self.cfg.global_apt_http_proxy,
-                util.PROXY_VALIDATION_APT_HTTP_URL,
+                http.PROXY_VALIDATION_APT_HTTP_URL,
             )
-            https_proxy = util.validate_proxy(
+            https_proxy = http.validate_proxy(
                 "https",
                 self.cfg.global_apt_https_proxy,
-                util.PROXY_VALIDATION_APT_HTTPS_URL,
+                http.PROXY_VALIDATION_APT_HTTPS_URL,
             )
             scope = apt.AptProxyScope.GLOBAL
         elif self.cfg.ua_apt_http_proxy or self.cfg.ua_apt_https_proxy:
-            http_proxy = util.validate_proxy(
+            http_proxy = http.validate_proxy(
                 "http",
                 self.cfg.ua_apt_http_proxy,
-                util.PROXY_VALIDATION_APT_HTTP_URL,
+                http.PROXY_VALIDATION_APT_HTTP_URL,
             )
-            https_proxy = util.validate_proxy(
+            https_proxy = http.validate_proxy(
                 "https",
                 self.cfg.ua_apt_https_proxy,
-                util.PROXY_VALIDATION_APT_HTTPS_URL,
+                http.PROXY_VALIDATION_APT_HTTPS_URL,
             )
             scope = apt.AptProxyScope.UACLIENT
 

@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import apt, messages, util
+from uaclient import apt, http, messages
 from uaclient.cli import action_config_set, configure_apt_proxy, main
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError, UserFacingError
@@ -107,7 +107,7 @@ class TestActionConfigSet:
     @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
     @mock.patch("uaclient.snap.configure_snap_proxy")
-    @mock.patch("uaclient.util.validate_proxy")
+    @mock.patch("uaclient.http.validate_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
         self,
         validate_proxy,
@@ -140,9 +140,9 @@ class TestActionConfigSet:
         action_config_set(args, cfg=cfg)
         kwargs = {key: value}
         if key == "http_proxy":
-            url = util.PROXY_VALIDATION_SNAP_HTTP_URL
+            url = http.PROXY_VALIDATION_SNAP_HTTP_URL
         else:
-            url = util.PROXY_VALIDATION_SNAP_HTTPS_URL
+            url = http.PROXY_VALIDATION_SNAP_HTTPS_URL
         assert [
             mock.call(key.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
@@ -172,7 +172,7 @@ class TestActionConfigSet:
         ),
     )
     @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.util.validate_proxy")
+    @mock.patch("uaclient.http.validate_proxy")
     def test_set_apt_http_proxy_and_apt_https_proxy_prints_warning(
         self,
         validate_proxy,
@@ -205,9 +205,9 @@ class TestActionConfigSet:
 
         proxy_type = key.replace("apt_", "")
         if proxy_type == "http_proxy":
-            url = util.PROXY_VALIDATION_APT_HTTP_URL
+            url = http.PROXY_VALIDATION_APT_HTTP_URL
         else:
-            url = util.PROXY_VALIDATION_APT_HTTPS_URL
+            url = http.PROXY_VALIDATION_APT_HTTPS_URL
         assert [
             mock.call(proxy_type.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
@@ -278,7 +278,7 @@ class TestActionConfigSet:
         ),
     )
     @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.util.validate_proxy")
+    @mock.patch("uaclient.http.validate_proxy")
     def test_set_global_apt_http_and_global_apt_https_proxy(
         self,
         validate_proxy,
@@ -317,9 +317,9 @@ class TestActionConfigSet:
 
         proxy_type = key.replace("global_apt_", "")
         if proxy_type == "http_proxy":
-            url = util.PROXY_VALIDATION_APT_HTTP_URL
+            url = http.PROXY_VALIDATION_APT_HTTP_URL
         else:
-            url = util.PROXY_VALIDATION_APT_HTTPS_URL
+            url = http.PROXY_VALIDATION_APT_HTTPS_URL
         assert [
             mock.call(proxy_type.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
@@ -388,7 +388,7 @@ class TestActionConfigSet:
         ),
     )
     @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.util.validate_proxy")
+    @mock.patch("uaclient.http.validate_proxy")
     def test_set_ua_apt_http_and_ua_apt_https_proxy(
         self,
         validate_proxy,
@@ -427,9 +427,9 @@ class TestActionConfigSet:
 
         proxy_type = key.replace("ua_apt_", "")
         if proxy_type == "http_proxy":
-            url = util.PROXY_VALIDATION_APT_HTTP_URL
+            url = http.PROXY_VALIDATION_APT_HTTP_URL
         else:
-            url = util.PROXY_VALIDATION_APT_HTTPS_URL
+            url = http.PROXY_VALIDATION_APT_HTTPS_URL
         assert [
             mock.call(proxy_type.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
