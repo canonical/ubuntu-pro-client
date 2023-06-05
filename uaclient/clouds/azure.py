@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict
 from urllib.error import HTTPError
 
-from uaclient import exceptions, system, util
+from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger("pro.clouds.azure")
@@ -30,7 +30,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
     def identity_doc(self) -> Dict[str, Any]:
         responses = {}
         for key, url in sorted(IMDS_URLS.items()):
-            url_response, _headers = util.readurl(
+            url_response, _headers = http.readurl(
                 url, headers={"Metadata": "true"}, timeout=1
             )
             if key == "pkcs7":
@@ -62,7 +62,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
 
         url = IMDS_URLS.get("compute", "")
         try:
-            data, headers = util.readurl(url, headers={"Metadata": "true"})
+            data, headers = http.readurl(url, headers={"Metadata": "true"})
         except (HTTPError, OSError) as e:
             LOG.error(e)
             raise exceptions.CancelProLicensePolling()

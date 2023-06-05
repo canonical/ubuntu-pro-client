@@ -6,11 +6,11 @@ from uaclient import (
     apt,
     event_logger,
     exceptions,
+    http,
     livepatch,
     messages,
     snap,
     system,
-    util,
 )
 from uaclient.entitlements.base import IncompatibleService, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -118,11 +118,11 @@ class LivepatchEntitlement(UAEntitlement):
             else:
                 raise
 
-        http_proxy = util.validate_proxy(
-            "http", self.cfg.http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+        http_proxy = http.validate_proxy(
+            "http", self.cfg.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
         )
-        https_proxy = util.validate_proxy(
-            "https", self.cfg.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+        https_proxy = http.validate_proxy(
+            "https", self.cfg.https_proxy, http.PROXY_VALIDATION_SNAP_HTTPS_URL
         )
         snap.configure_snap_proxy(
             http_proxy=http_proxy,

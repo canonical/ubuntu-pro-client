@@ -6,14 +6,7 @@ import re
 from functools import lru_cache
 from typing import List, Optional, Tuple
 
-from uaclient import (
-    event_logger,
-    exceptions,
-    messages,
-    serviceclient,
-    system,
-    util,
-)
+from uaclient import event_logger, exceptions, messages, system, util
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -23,6 +16,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
+from uaclient.http import serviceclient
 
 HTTP_PROXY_OPTION = "http-proxy"
 HTTPS_PROXY_OPTION = "https-proxy"

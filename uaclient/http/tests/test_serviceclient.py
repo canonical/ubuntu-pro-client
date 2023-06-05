@@ -7,7 +7,7 @@ import mock
 import pytest
 
 from uaclient import exceptions
-from uaclient.serviceclient import UAServiceClient
+from uaclient.http.serviceclient import UAServiceClient
 
 
 class OurServiceClientException(Exception):
@@ -41,7 +41,7 @@ class TestRequestUrl:
             ),
         ),
     )
-    @mock.patch("uaclient.serviceclient.util.readurl")
+    @mock.patch("uaclient.http.readurl")
     def test_httperror_handling(
         self, m_readurl, fp, expected_exception, expected_attrs, FakeConfig
     ):
@@ -55,7 +55,7 @@ class TestRequestUrl:
         for attr, expected_value in expected_attrs.items():
             assert expected_value == getattr(excinfo.value, attr)
 
-    @mock.patch("uaclient.serviceclient.util.readurl")
+    @mock.patch("uaclient.http.readurl")
     def test_urlerror_handling(self, m_readurl, FakeConfig):
         m_readurl.side_effect = URLError(None)
 
@@ -70,7 +70,7 @@ class TestRequestUrl:
     @pytest.mark.parametrize(
         "m_kwargs", ({"a": 1, "b": "2", "c": "try me"}, {})
     )
-    @mock.patch("uaclient.serviceclient.util.readurl")
+    @mock.patch("uaclient.http.readurl")
     def test_url_query_params_append_querystring(
         self, m_readurl, m_kwargs, FakeConfig
     ):
