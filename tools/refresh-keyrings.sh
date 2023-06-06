@@ -40,7 +40,7 @@ generate_keyrings() {
             "$EAL_KEY_ID")
                 service_name="cc-eal";;
             "$ESM_INFRA_KEY_ID")
-                service_name="esm-infra-trusty";;
+                service_name="esm-infra";;
             "$ESM_APPS_KEY_ID")
                 service_name="esm-apps";;
             "$FIPS_KEY_ID")
@@ -55,7 +55,7 @@ generate_keyrings() {
                 echo "Unhandled key id provided: " $key
                 exit 1;
         esac
-        keyring_file="$KEYRING_DIR/ubuntu-advantage-$service_name.gpg"
+        keyring_file="$KEYRING_DIR/ubuntu-pro-$service_name.gpg"
         if [ -e "$keyring_file" ]; then
             mv "$keyring_file" "$keyring_file.old"
         fi
