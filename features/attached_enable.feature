@@ -191,11 +191,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                                       |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
-           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
+           | release | valid_services                                                                                                    |
+           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -215,7 +215,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'foobar'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates.
+        <msg>
         """
         And I verify that running `pro enable blah foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -225,7 +225,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'blah, foobar'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates.
+        <msg>
         """
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -248,60 +248,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | infra-pkg | esm-infra-url                       |
-           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
-           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
-
-    @series.focal
-    @uses.config.machine_type.lxd-container
-    Scenario: Attached enable of a service in a ubuntu machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `pro enable foobar` `as non-root` exits `1`
-        And I will see the following on stderr:
-        """
-        This command must be run as root (try using sudo).
-        """
-        And I verify that running `pro enable foobar` `with sudo` exits `1`
-        And I will see the following on stdout:
-        """
-        One moment, checking your subscription first
-        """
-        And stderr matches regexp:
-        """
-        Cannot enable unknown service 'foobar'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg.
-        """
-        And I verify that running `pro enable blah foobar` `with sudo` exits `1`
-        And I will see the following on stdout:
-        """
-        One moment, checking your subscription first
-        """
-        And stderr matches regexp:
-        """
-        Cannot enable unknown service 'blah, foobar'.
-        Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg.
-        """
-        And I verify that running `pro enable esm-infra` `with sudo` exits `1`
-        Then I will see the following on stdout:
-        """
-        One moment, checking your subscription first
-        Ubuntu Pro: ESM Infra is already enabled.
-        See: sudo pro status
-        """
-        When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
-        """
-        https://esm.ubuntu.com/infra/ubuntu focal-infra-updates/main amd64 Packages
-        """
-        And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y hello` with sudo, retrying exit [100]
-        And I run `apt-cache policy hello` as non-root
-        Then stdout matches regexp:
-        """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu focal-infra-security/main amd64 Packages
-        \s*500 https://esm.ubuntu.com/infra/ubuntu focal-infra-updates/main amd64 Packages
-        """
+           | release | infra-pkg | esm-infra-url                       | msg                                                                                                                   |
+           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -541,7 +491,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'usg'.
-        Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel.
+        Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel.
         """
 
         Examples: cis service

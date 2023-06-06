@@ -110,6 +110,7 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +.*
         cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
         cis             +yes      +disabled +Security compliance and audit tools
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
@@ -153,6 +154,7 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +.*
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
@@ -193,6 +195,7 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +.*
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure

@@ -28,6 +28,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -100,6 +101,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -172,6 +174,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -233,6 +236,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
@@ -251,6 +255,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
@@ -358,6 +363,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
@@ -376,6 +382,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE      +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
@@ -482,6 +489,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
@@ -500,6 +508,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
         Then stdout matches regexp:
