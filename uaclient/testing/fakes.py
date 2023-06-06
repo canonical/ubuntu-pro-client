@@ -1,3 +1,4 @@
+from uaclient import http
 from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
 
 
@@ -28,9 +29,15 @@ class FakeContractClient(UAContractClient):
         self._requests.append(request)
         # Return a response if we have one or empty
         response = self._responses.get(path)
-        if isinstance(response, Exception):
-            raise response
-        return response, {"header1": ""}
+        if isinstance(response, http.HTTPResponse):
+            return response
+        return http.HTTPResponse(
+            code=200,
+            headers={"header1": ""},
+            body="",
+            json_dict=response,
+            json_list=[],
+        )
 
 
 class FakeFile:

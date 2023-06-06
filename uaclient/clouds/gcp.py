@@ -3,7 +3,6 @@ import json
 import logging
 import os
 from typing import Any, Dict, List, Optional  # noqa: F401
-from urllib.error import HTTPError
 
 from uaclient import exceptions, http, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
@@ -44,34 +43,23 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     @property  # type: ignore
     @util.retry(exceptions.GCPProAccountError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
-        try:
-            headers = {"Metadata-Flavor": "Google"}
-            url_response, _headers = http.readurl(
-                TOKEN_URL, headers=headers, timeout=1
+        response = http.readurl(
+            TOKEN_URL, headers={"Metadata-Flavor": "Google"}, timeout=1
+        )
+        if response.code == 200:
+            return {"identityToken": response.body}
+
+        error_desc = response.json_dict.get("error_description")
+        msg = error_desc if error_desc else response.body
+        msg_code = None
+        if error_desc and "service account" in error_desc.lower():
+            msg = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.msg.format(
+                error_msg=msg
             )
-        except HTTPError as e:
-            body = getattr(e, "body", None)
-            error_desc = None
-            if body:
-                try:
-                    error_details = json.loads(
-                        body, cls=util.DatetimeAwareJSONDecoder
-                    )
-                except ValueError:
-                    error_details = None
-                if error_details:
-                    error_desc = error_details.get("error_description", None)
-            msg = error_desc if error_desc else e.reason
-            msg_code = None
-            if error_desc and "service account" in error_desc.lower():
-                msg = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.msg.format(
-                    error_msg=msg
-                )
-                msg_code = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.name
-            raise exceptions.GCPProAccountError(
-                msg=msg, msg_code=msg_code, code=getattr(e, "code", 0)
-            )
-        return {"identityToken": url_response}
+            msg_code = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.name
+        raise exceptions.GCPProAccountError(
+            msg=msg, msg_code=msg_code, code=response.code
+        )
 
     @property
     def cloud_type(self) -> str:
@@ -119,18 +107,15 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
             if self.etag:
                 url += LAST_ETAG.format(etag=self.etag)
 
-        try:
-            licenses, headers = http.readurl(
-                url, headers={"Metadata-Flavor": "Google"}
-            )
-        except HTTPError as e:
-            LOG.error(e)
-            if e.code == 400:
-                raise exceptions.CancelProLicensePolling()
-            else:
-                raise exceptions.DelayProLicensePolling()
-        license_ids = [license["id"] for license in licenses]
-        self.etag = headers.get("ETag", None)
+        response = http.readurl(url, headers={"Metadata-Flavor": "Google"})
+        if response.code == 200:
+            license_ids = [license["id"] for license in response.json_list]
+            self.etag = response.headers.get("etag")
+            series = system.get_release_info().series
+            return GCP_LICENSES.get(series) in license_ids
 
-        series = system.get_release_info().series
-        return GCP_LICENSES.get(series) in license_ids
+        LOG.error(response.body)
+        if response.code == 400:
+            raise exceptions.CancelProLicensePolling()
+        else:
+            raise exceptions.DelayProLicensePolling()

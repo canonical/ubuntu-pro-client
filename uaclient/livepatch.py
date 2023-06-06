@@ -183,7 +183,6 @@ def _convert_str_to_livepatch_support_status(
 class UALivepatchClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = "livepatch_url"
-    api_error_cls = exceptions.UrlError
 
     def is_kernel_supported(
         self,
@@ -204,7 +203,7 @@ class UALivepatchClient(serviceclient.UAServiceClient):
         }
         headers = self.headers()
         try:
-            result, _headers = self.request_url(
+            response = self.request_url(
                 LIVEPATCH_API_V1_KERNELS_SUPPORTED,
                 query_params=query_params,
                 headers=headers,
@@ -217,13 +216,15 @@ class UALivepatchClient(serviceclient.UAServiceClient):
                 logging.warning(e)
             return None
 
-        if not isinstance(result, dict):
-            logging.warning(
-                "livepatch api returned something that isn't a dict"
-            )
+        if response.code != 200:
+            with util.disable_log_to_console():
+                logging.warning(
+                    "livepatch supported kernels API was unsuccessful"
+                )
+                logging.warning(response.body)
             return None
 
-        api_supported_val = result.get("Supported")
+        api_supported_val = response.json_dict.get("Supported")
         if api_supported_val is None or isinstance(api_supported_val, bool):
             # old version, True means supported, None means unsupported
             if api_supported_val:

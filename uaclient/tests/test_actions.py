@@ -1,3 +1,4 @@
+import json
 import logging
 
 import mock
@@ -35,7 +36,7 @@ class TestAttachWithToken:
         " expect_status_call",
         [
             (None, None, False),
-            (exceptions.UrlError("cause"), exceptions.UrlError, True),
+            (exceptions.UrlError("cause", "url"), exceptions.UrlError, True),
             (
                 exceptions.UserFacingError("test"),
                 exceptions.UserFacingError,
@@ -115,10 +116,7 @@ class TestAutoAttach:
         cfg = FakeConfig()
 
         unexpected_error = ContractAPIError(
-            exceptions.UrlError(
-                "Server error", code=500, url="http://me", headers={}
-            ),
-            error_response={"message": "something unexpected"},
+            "http://me", 500, json.dumps({"message": "something unexpected"})
         )
         m_get_contract_token_for_cloud_instances.side_effect = unexpected_error
 

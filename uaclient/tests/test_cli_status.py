@@ -960,7 +960,7 @@ class TestActionStatus:
     ):
         """Raise UrlError on connectivity issues"""
         m_get_avail_resources.side_effect = exceptions.UrlError(
-            socket.gaierror(-2, "Name or service not known")
+            socket.gaierror(-2, "Name or service not known"), "url"
         )
 
         cfg = FakeConfig()
@@ -1023,14 +1023,15 @@ class TestActionStatus:
         "exception_to_throw,exception_type,exception_message",
         (
             (
-                exceptions.UrlError("Not found", 404),
+                exceptions.UrlError("Not found", "url"),
                 exceptions.UrlError,
                 "Not found",
             ),
             (
                 exceptions.ContractAPIError(
-                    exceptions.UrlError("Unauthorized", 401),
-                    {"message": "unauthorized"},
+                    "url",
+                    401,
+                    json.dumps({"message": "unauthorized"}),
                 ),
                 exceptions.UserFacingError,
                 "Invalid token. See https://ubuntu.com/pro",

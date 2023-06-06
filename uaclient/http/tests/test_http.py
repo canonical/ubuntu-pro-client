@@ -158,30 +158,242 @@ class TestConfigureWebProxy:
             assert expected_environ == http.os.environ
 
 
-class TestReadurl:
-    @pytest.mark.parametrize("timeout", (None, 1))
-    def test_simple_call_with_url_and_timeout_works(self, timeout):
-        with mock.patch("uaclient.http.request.urlopen") as m_urlopen:
-            if timeout:
-                http.readurl("http://some_url", timeout=timeout)
-            else:
-                http.readurl("http://some_url")
-        assert [
-            mock.call(mock.ANY, timeout=timeout)
-        ] == m_urlopen.call_args_list
+def dict_eq(self, other):
+    return self.__dict__ == other.__dict__
 
-    def test_call_with_timeout(self):
-        with mock.patch("uaclient.http.request.urlopen") as m_urlopen:
-            http.readurl("http://some_url")
-        assert 1 == m_urlopen.call_count
 
-    @pytest.mark.parametrize(
-        "data", [b"{}", b"not a dict", b'{"caveat_id": "dict"}']
+def dict_repr(self):
+    return (
+        "{\n  "
+        + "\n  ".join(
+            [
+                "{}: {}".format(repr(k), repr(v))
+                for k, v in self.__dict__.items()
+            ]
+        )
+        + "\n}"
     )
-    def test_data_passed_through_unchanged(self, data):
-        with mock.patch("uaclient.http.request.urlopen") as m_urlopen:
-            http.readurl("http://some_url", data=data)
 
-        assert 1 == m_urlopen.call_count
-        req = m_urlopen.call_args[0][0]  # the first positional argument
-        assert data == req.data
+
+@mock.patch.object(urllib.request.Request, "__eq__", dict_eq)
+@mock.patch.object(urllib.request.Request, "__repr__", dict_repr)
+class TestReadurl:
+    @pytest.mark.parametrize(
+        [
+            "url",
+            "data",
+            "headers",
+            "method",
+            "timeout",
+            "expected_urllib_calls",
+            "urllib_return_value",
+            "expected_response",
+        ],
+        [
+            # simplest GET
+            (
+                "http://example.com",
+                None,
+                {},
+                None,
+                None,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=None,
+                            headers={},
+                            method=None,
+                        ),
+                        timeout=None,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+            ),
+            # passes through timeout, headers, method
+            (
+                "http://example.com",
+                None,
+                {"req": "header"},
+                "PUT",
+                1,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=None,
+                            headers={"req": "header"},
+                            method="PUT",
+                        ),
+                        timeout=1,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+            ),
+            # implicit POST with data
+            (
+                "http://example.com",
+                b"data",
+                {},
+                None,
+                None,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=b"data",
+                            headers={},
+                            method="POST",
+                        ),
+                        timeout=None,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+            ),
+            # override method with data
+            (
+                "http://example.com",
+                b"data",
+                {},
+                "PATCH",
+                None,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=b"data",
+                            headers={},
+                            method="PATCH",
+                        ),
+                        timeout=None,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"something": "here"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+            ),
+            # response json dict parsed
+            (
+                "http://example.com",
+                None,
+                {},
+                None,
+                None,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=None,
+                            headers={},
+                            method=None,
+                        ),
+                        timeout=None,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='{"hello": "hello"}',
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='{"hello": "hello"}',
+                    json_dict={"hello": "hello"},
+                    json_list=[],
+                ),
+            ),
+            # response json list parsed
+            (
+                "http://example.com",
+                None,
+                {},
+                None,
+                None,
+                [
+                    mock.call(
+                        urllib.request.Request(
+                            "http://example.com",
+                            data=None,
+                            headers={},
+                            method=None,
+                        ),
+                        timeout=None,
+                    )
+                ],
+                http.UnparsedHTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='["hello"]',
+                ),
+                http.HTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='["hello"]',
+                    json_dict={},
+                    json_list=["hello"],
+                ),
+            ),
+        ],
+    )
+    @mock.patch("uaclient.http._readurl_urllib")
+    def test_readurl(
+        self,
+        m_readurl_urllib,
+        url,
+        data,
+        headers,
+        method,
+        timeout,
+        expected_urllib_calls,
+        urllib_return_value,
+        expected_response,
+    ):
+        # urllib.request.Request.__eq__ == _RequestPatch.__eq__
+        m_readurl_urllib.return_value = urllib_return_value
+        assert expected_response == http.readurl(
+            url, data, headers, method, timeout
+        )
+        assert expected_urllib_calls == m_readurl_urllib.call_args_list

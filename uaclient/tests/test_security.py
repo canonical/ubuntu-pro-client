@@ -1,12 +1,13 @@
 import copy
 import datetime
+import json
 import textwrap
 from collections import defaultdict
 
 import mock
 import pytest
 
-from uaclient import exceptions, livepatch
+from uaclient import exceptions, http, livepatch
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -715,7 +716,13 @@ class TestUASecurityClient:
             for key in SAMPLE_GET_CVES_QUERY_PARAMS:
                 if key not in m_kwargs:
                     m_kwargs[key] = None
-            request_url.return_value = (["body1", "body2"], "headers")
+            request_url.return_value = http.HTTPResponse(
+                code=200,
+                headers={},
+                body="",
+                json_dict={},
+                json_list=["body1", "body2"],
+            )
             [cve1, cve2] = client.get_cves(**m_kwargs)
             assert isinstance(cve1, CVE)
             assert isinstance(cve2, CVE)
@@ -765,14 +772,17 @@ class TestUASecurityClient:
             for key in SAMPLE_GET_NOTICES_QUERY_PARAMS:
                 if key not in m_kwargs:
                     m_kwargs[key] = None
-            request_url.return_value = (
-                {
+            request_url.return_value = http.HTTPResponse(
+                code=200,
+                headers={},
+                body="",
+                json_dict={
                     "notices": [
                         {"id": "2", "cves_ids": ["cve"]},
                         {"id": "1", "cves_ids": ["cve"]},
                     ]
                 },
-                "headers",
+                json_list=[],
             )
             [usn1, usn2] = client.get_notices(**m_kwargs)
             assert isinstance(usn1, USN)
@@ -790,14 +800,17 @@ class TestUASecurityClient:
         """Test if details are used to filter the returned USNs."""
         cfg = FakeConfig()
         client = UASecurityClient(cfg)
-        request_url.return_value = (
-            {
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={
                 "notices": [
                     {"id": "2", "cves_ids": ["cve1"]},
                     {"id": "1", "cves_ids": ["cve12"]},
                 ]
             },
-            "headers",
+            json_list=[],
         )
         usns = client.get_notices(details=details)
 
@@ -836,10 +849,16 @@ class TestUASecurityClient:
             ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
-            request_url.return_value = ("body", "headers")
+            request_url.return_value = http.HTTPResponse(
+                code=200,
+                headers={},
+                body="",
+                json_dict={"body": "body"},
+                json_list=[],
+            )
             cve = client.get_cve(**m_kwargs)
             assert isinstance(cve, CVE)
-            assert "body" == cve.response
+            assert {"body": "body"} == cve.response
             assert [
                 mock.call(API_V1_CVE_TMPL.format(cve=m_kwargs["cve_id"]))
             ] == request_url.call_args_list
@@ -876,8 +895,14 @@ class TestUASecurityClient:
             ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
-            request_url.return_value = ("body", "headers")
-            assert "body" == client.get_notice(**m_kwargs).response
+            request_url.return_value = http.HTTPResponse(
+                code=200,
+                headers={},
+                body="",
+                json_dict={"body": "body"},
+                json_list=[],
+            )
+            assert {"body": "body"} == client.get_notice(**m_kwargs).response
             assert [
                 mock.call(
                     API_V1_NOTICE_TMPL.format(notice=m_kwargs["notice_id"])
@@ -2531,24 +2556,22 @@ class TestFixSecurityIssueId:
             mock_func = "get_notice"
             issue_type = "USN"
 
-        with mock.patch.object(exceptions.UrlError, "__str__") as m_str:
-            with mock.patch.object(UASecurityClient, mock_func) as m_func:
-                m_str.return_value = "TEST"
-                msg = "{} with id 'ID' does not exist".format(issue_type)
-                error_mock = mock.MagicMock(code=error_code)
-                type(error_mock).url = mock.PropertyMock(return_value="URL")
+        with mock.patch.object(UASecurityClient, mock_func) as m_func:
+            msg = "{} with id 'ID' does not exist".format(issue_type)
 
-                m_func.side_effect = exceptions.SecurityAPIError(
-                    e=error_mock, error_response={"message": msg}
-                )
+            m_func.side_effect = exceptions.SecurityAPIError(
+                url="URL", code=error_code, body=json.dumps({"message": msg})
+            )
 
-                with pytest.raises(exceptions.UserFacingError) as exc:
-                    fix_security_issue_id(FakeConfig(), issue_id)
+            with pytest.raises(exceptions.UserFacingError) as exc:
+                fix_security_issue_id(FakeConfig(), issue_id)
 
         if error_code == 404:
             expected_message = "Error: {} not found.".format(issue_id)
         else:
-            expected_message = "TEST: [URL] " + msg
+            expected_message = (
+                str(error_code) + ": [URL], " + json.dumps({"message": msg})
+            )
 
         assert expected_message == exc.value.msg
 

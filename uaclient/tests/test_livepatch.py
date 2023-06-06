@@ -4,7 +4,7 @@ import json
 import mock
 import pytest
 
-from uaclient import exceptions, messages, system
+from uaclient import exceptions, http, messages, system
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.files.state_files import LivepatchSupportCacheData
 from uaclient.livepatch import (
@@ -266,7 +266,6 @@ class TestUALivepatchClient:
         build_date,
         expected_request_calls,
     ):
-        m_request_url.return_value = ("mock", "mock")
         lp_client = UALivepatchClient()
         lp_client.is_kernel_supported(
             version, flavor, arch, codename, build_date
@@ -279,25 +278,102 @@ class TestUALivepatchClient:
             "expected",
         ],
         [
-            ([({"Supported": True}, None)], LivepatchSupport.SUPPORTED),
-            ([({"Supported": False}, None)], LivepatchSupport.UNSUPPORTED),
-            ([({}, None)], LivepatchSupport.UNSUPPORTED),
-            ([([], None)], None),
-            ([("string", None)], None),
-            (exceptions.UrlError(mock.MagicMock()), None),
-            (Exception(), None),
-            ([({"Supported": "supported"}, None)], LivepatchSupport.SUPPORTED),
             (
-                [({"Supported": "unsupported"}, None)],
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": True},
+                        json_list=[],
+                    )
+                ],
+                LivepatchSupport.SUPPORTED,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": False},
+                        json_list=[],
+                    )
+                ],
                 LivepatchSupport.UNSUPPORTED,
             ),
-            ([({"Supported": "unknown"}, None)], LivepatchSupport.UNKNOWN),
             (
-                [({"Supported": "kernel-end-of-life"}, None)],
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="string",
+                        json_dict={},
+                        json_list=[],
+                    )
+                ],
+                LivepatchSupport.UNSUPPORTED,
+            ),
+            (exceptions.UrlError(mock.MagicMock(), "url"), None),
+            (Exception(), None),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": "supported"},
+                        json_list=[],
+                    )
+                ],
+                LivepatchSupport.SUPPORTED,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": "unsupported"},
+                        json_list=[],
+                    )
+                ],
+                LivepatchSupport.UNSUPPORTED,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": "unknown"},
+                        json_list=[],
+                    )
+                ],
+                LivepatchSupport.UNKNOWN,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": "kernel-end-of-life"},
+                        json_list=[],
+                    )
+                ],
                 LivepatchSupport.KERNEL_EOL,
             ),
             (
-                [({"Supported": "kernel-upgrade-required"}, None)],
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_dict={"Supported": "kernel-upgrade-required"},
+                        json_list=[],
+                    )
+                ],
                 LivepatchSupport.KERNEL_UPGRADE_REQUIRED,
             ),
         ],

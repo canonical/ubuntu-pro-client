@@ -1,11 +1,9 @@
 import logging
-from io import BytesIO
-from urllib.error import HTTPError
 
 import mock
 import pytest
 
-from uaclient import exceptions
+from uaclient import exceptions, http
 from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
 
 M_PATH = "uaclient.clouds.azure."
@@ -23,9 +21,21 @@ class TestUAAutoAttachAzureInstance:
 
         def fake_readurl(url, headers, timeout):
             if "attested/document" in url:
-                return {"signature": "attestedWOOT!==="}, {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="",
+                    json_dict={"signature": "attestedWOOT!==="},
+                    json_list=[],
+                )
             elif "instance/compute" in url:
-                return {"computekey": "computeval"}, {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="",
+                    json_dict={"computekey": "computeval"},
+                    json_list=[],
+                )
             else:
                 raise AssertionError("Unexpected URL provided %s" % url)
 
@@ -53,25 +63,36 @@ class TestUAAutoAttachAzureInstance:
 
         def fake_someurlerrors(url, headers, timeout):
             if readurl.call_count <= fail_count:
-                raise HTTPError(
-                    "http://me",
-                    700 + readurl.call_count,
-                    "funky error msg",
-                    None,
-                    BytesIO(),
+                return http.HTTPResponse(
+                    code=700 + readurl.call_count,
+                    headers={},
+                    body="funky error msg",
+                    json_dict={},
+                    json_list=[],
                 )
             if "attested" in url:
-                return {"signature": "attestedWOOT!==="}, {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="",
+                    json_dict={"signature": "attestedWOOT!==="},
+                    json_list=[],
+                )
             elif "compute" in url:
-                return {"computekey": "computeval"}, {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="",
+                    json_dict={"computekey": "computeval"},
+                    json_list=[],
+                )
             raise AssertionError("Unexpected url requested {}".format(url))
 
         readurl.side_effect = fake_someurlerrors
         instance = UAAutoAttachAzureInstance()
         if exception:
-            with pytest.raises(HTTPError) as excinfo:
+            with pytest.raises(exceptions.CloudMetadataError):
                 instance.identity_doc
-            assert 704 == excinfo.value.code
         else:
             assert {
                 "pkcs7": "attestedWOOT!===",
@@ -81,9 +102,9 @@ class TestUAAutoAttachAzureInstance:
         expected_sleep_calls = [mock.call(1), mock.call(1), mock.call(1)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
-            "HTTP Error 701: funky error msg Retrying 3 more times.",
-            "HTTP Error 702: funky error msg Retrying 2 more times.",
-            "HTTP Error 703: funky error msg Retrying 1 more times.",
+            "(701, 'funky error msg') Retrying 3 more times.",
+            "(702, 'funky error msg') Retrying 2 more times.",
+            "(703, 'funky error msg') Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:
@@ -132,20 +153,26 @@ class TestUAAutoAttachAzureInstance:
     @pytest.mark.parametrize(
         "metadata_response, expected_result",
         (
-            (({}, {}), False),
-            (({"licenseType": None}, {}), False),
-            (({"licenseType": ""}, {}), False),
-            (({"licenseType": "RHEL_BYOS"}, {}), False),
-            (({"licenseType": "SLES_BYOS"}, {}), False),
-            (({"licenseType": "UBUNTU_PRO"}, {}), True),
+            ({}, False),
+            ({"licenseType": None}, False),
+            ({"licenseType": ""}, False),
+            ({"licenseType": "RHEL_BYOS"}, False),
+            ({"licenseType": "SLES_BYOS"}, False),
+            ({"licenseType": "UBUNTU_PRO"}, True),
         ),
     )
     @mock.patch(M_PATH + "http.readurl")
-    def test_is_licence_present(
+    def test_is_license_present(
         self, m_readurl, metadata_response, expected_result
     ):
         instance = UAAutoAttachAzureInstance()
-        m_readurl.return_value = metadata_response
+        m_readurl.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict=metadata_response,
+            json_list=[],
+        )
         result = instance.is_pro_license_present(wait_for_change=False)
         assert expected_result == result
 
