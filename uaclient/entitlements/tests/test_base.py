@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import messages, system, util
+from uaclient import exceptions, messages, system, util
 from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -1227,3 +1227,77 @@ class TestGetContractVariant:
 
         assert expected_contract_variants == actual_contract_variants
         assert 1 == m_base_ent_cfg.call_count
+
+
+class TestHandleAdditionalSnaps:
+    @pytest.mark.parametrize(
+        "entitlement_cfg",
+        (
+            ({}),
+            (
+                {
+                    "entitlement": {
+                        "directives": {
+                            "requiredSnaps": [
+                                {"name": "test1"},
+                                {
+                                    "name": "test2",
+                                    "classic_confinement_support": True,
+                                },
+                                {"name": "test3"},
+                            ]
+                        },
+                    }
+                }
+            ),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement._base_entitlement_cfg"
+    )
+    @mock.patch("uaclient.system.which", return_value=True)
+    @mock.patch("uaclient.snap.is_snapd_installed", return_value=True)
+    @mock.patch("uaclient.snap.run_snapd_wait_cmd")
+    @mock.patch("uaclient.snap.get_snap_info")
+    @mock.patch("uaclient.snap.install_snap")
+    @mock.patch("uaclient.http.validate_proxy")
+    @mock.patch("uaclient.snap.configure_snap_proxy")
+    def test_get_contract_variant(
+        self,
+        m_configure_snap_proxy,
+        m_validate_proxy,
+        m_install_snap,
+        m_get_snap_info,
+        m_run_snapd_wait_cmd,
+        m_is_snapd_installed,
+        m_which,
+        m_base_ent_cfg,
+        entitlement_cfg,
+        concrete_entitlement_factory,
+    ):
+        entitlement = concrete_entitlement_factory()
+        m_base_ent_cfg.return_value = entitlement_cfg
+        m_get_snap_info.side_effect = [
+            exceptions.SnapNotInstalledError("snap"),
+            exceptions.SnapNotInstalledError("snap"),
+            mock.MagicMock,
+        ]
+
+        assert entitlement.handle_required_snaps()
+
+        if not entitlement_cfg:
+            assert 0 == m_which.call_count
+            assert 0 == m_is_snapd_installed.call_count
+            assert 0 == m_run_snapd_wait_cmd.call_count
+            assert 0 == m_validate_proxy.call_count
+            assert 0 == m_configure_snap_proxy.call_count
+        else:
+            assert 1 == m_which.call_count
+            assert 1 == m_is_snapd_installed.call_count
+            assert 1 == m_run_snapd_wait_cmd.call_count
+            assert 2 == m_validate_proxy.call_count
+            assert 1 == m_configure_snap_proxy.call_count
+            assert [
+                mock.call("test1", classic_confinement_support=False),
+                mock.call("test2", classic_confinement_support=True),
+            ] == m_install_snap.call_args_list

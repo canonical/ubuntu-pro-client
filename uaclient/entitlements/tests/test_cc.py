@@ -163,7 +163,7 @@ class TestCommonCriteriaEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cc-eal.list",
-                "http://CC",
+                "http://CC/ubuntu",
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,

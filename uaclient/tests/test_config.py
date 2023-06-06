@@ -649,7 +649,7 @@ class TestDeleteCache:
 
 class TestProcessConfig:
     @pytest.mark.parametrize(
-        "http_proxy, https_proxy, snap_is_installed, snap_http_val, "
+        "http_proxy, https_proxy, snap_is_snapd_installed, snap_http_val, "
         "snap_https_val, livepatch_enabled, livepatch_http_val, "
         "livepatch_https_val, snap_livepatch_msg, "
         "global_https, global_http, ua_https, ua_http, apt_https, apt_http",
@@ -834,14 +834,14 @@ class TestProcessConfig:
     )
     @mock.patch("uaclient.snap.get_config_option_value")
     @mock.patch("uaclient.snap.configure_snap_proxy")
-    @mock.patch("uaclient.snap.is_installed")
+    @mock.patch("uaclient.snap.is_snapd_installed")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.config.state_files.user_config_file.write")
     def test_process_config(
         self,
         m_write,
         m_apt_configure_proxy,
-        m_snap_is_installed,
+        m_snap_is_snapd_installed,
         m_snap_configure_proxy,
         m_snap_get_config_option,
         m_livepatch_status,
@@ -850,7 +850,7 @@ class TestProcessConfig:
         m_validate_proxy,
         http_proxy,
         https_proxy,
-        snap_is_installed,
+        snap_is_snapd_installed,
         snap_http_val,
         snap_https_val,
         livepatch_enabled,
@@ -867,7 +867,7 @@ class TestProcessConfig:
         tmpdir,
         FakeConfig,
     ):
-        m_snap_is_installed.return_value = snap_is_installed
+        m_snap_is_snapd_installed.return_value = snap_is_snapd_installed
         m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
         m_livepatch_status.return_value = (
             (ApplicationStatus.ENABLED, None)
@@ -939,7 +939,7 @@ class TestProcessConfig:
             else:
                 assert [] == m_apt_configure_proxy.call_args_list
 
-            if snap_is_installed:
+            if snap_is_snapd_installed:
                 assert [
                     mock.call(http_proxy, https_proxy)
                 ] == m_snap_configure_proxy.call_args_list

@@ -92,7 +92,7 @@ class TestActionCollectLogs:
             tmpdir.join("user1-log").strpath,
             tmpdir.join("user2-log").strpath,
         ]
-        is_file_calls = 17
+        is_file_calls = 18
         user_log_files = [mock.call(m_get_user())]
         if util_we_are_currently_root():
             user_log_files = [
@@ -155,6 +155,7 @@ class TestActionCollectLogs:
             mock.call("/var/log/ubuntu-advantage-daemon.log"),
             mock.call("/var/lib/ubuntu-advantage/jobs-status.json"),
             mock.call("/etc/cloud/build.info"),
+            mock.call("/etc/apt/sources.list.d/ubuntu-anbox-cloud.list"),
             mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list"),
             mock.call("/etc/apt/sources.list.d/ubuntu-cis.list"),
             mock.call("/etc/apt/sources.list.d/ubuntu-esm-apps.list"),

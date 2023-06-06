@@ -39,8 +39,9 @@ Disable an Ubuntu Pro service.
 
 Arguments:
   service              the name(s) of the Ubuntu Pro services to disable. One
-                       of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
-                       updates, livepatch, realtime-kernel, ros, ros-updates
+                       of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
+                       fips, fips-updates, livepatch, realtime-kernel, ros,
+                       ros-updates
 
 Flags:
   -h, --help           show this help message and exit
@@ -65,7 +66,6 @@ class TestDisable:
                 ):
                     main()
         out, _err = capsys.readouterr()
-        print(out)
         assert HELP_OUTPUT == out
 
     @pytest.mark.parametrize("service", [["testitlement"], ["ent1", "ent2"]])

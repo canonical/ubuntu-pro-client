@@ -29,7 +29,7 @@ SnapPackage = NamedTuple(
 )
 
 
-def is_installed() -> bool:
+def is_snapd_installed() -> bool:
     """Returns whether or not snap is installed"""
     return "snapd" in apt.get_installed_packages_names()
 
@@ -155,11 +155,11 @@ def run_snapd_wait_cmd():
             raise
 
 
-def install_snap(snap: str, channel: Optional[str] = None):
+def install_snap(snap: str, classic_confinement_support: bool = False):
     cmd = [SNAP_CMD, "install", snap]
 
-    if channel:
-        cmd += ["--channel", channel]
+    if classic_confinement_support:
+        cmd += ["--classic"]
 
     system.subp(
         cmd,

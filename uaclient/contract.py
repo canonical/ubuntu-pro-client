@@ -154,6 +154,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token: str,
         resource: str,
         machine_id: Optional[str] = None,
+        save_file: bool = True,
     ) -> Dict[str, Any]:
         """Requests machine access context for a given resource
 
@@ -162,6 +163,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         @param resource: Entitlement name.
         @param machine_id: Optional unique system machine id. When absent,
             contents of /etc/machine-id will be used.
+        @save_file: If the machine access should be saved on the user machine
 
         @return: Dict of the JSON response containing entitlement accessInfo.
         """
@@ -181,9 +183,10 @@ class UAContractClient(serviceclient.UAServiceClient):
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
-        self.cfg.write_cache(
-            "machine-access-{}".format(resource), response.json_dict
-        )
+        if save_file:
+            self.cfg.write_cache(
+                "machine-access-{}".format(resource), response.json_dict
+            )
         return response.json_dict
 
     def update_contract_machine(

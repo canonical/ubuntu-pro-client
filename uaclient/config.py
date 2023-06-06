@@ -550,7 +550,7 @@ class UAConfig:
             )
 
         services_with_proxies = []
-        if snap.is_installed():
+        if snap.is_snapd_installed():
             snap.configure_snap_proxy(self.http_proxy, self.https_proxy)
             if (
                 not self.http_proxy

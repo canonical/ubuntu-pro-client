@@ -336,7 +336,7 @@ class TestFIPSEntitlementEnable:
                 "/etc/apt/sources.list.d/ubuntu-{}.list".format(
                     entitlement.name
                 ),
-                repo_url,
+                "{}/ubuntu".format(repo_url),
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
