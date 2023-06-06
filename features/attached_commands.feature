@@ -137,15 +137,13 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                      |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
-           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
+           | release | valid_services                                                                                                    |
+           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
 
-    @series.xenial
-    @series.bionic
-    @series.jammy
+    @series.lts
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -179,45 +177,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release | msg                                                                                                      |
-           | xenial  | Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | bionic  | Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
-           | jammy   | Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
-
-    @series.focal
-    @uses.config.machine_type.lxd-container
-    Scenario: Attached disable of a service in a ubuntu machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `pro disable foobar` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        And I verify that running `pro disable foobar` `with sudo` exits `1`
-        And stderr matches regexp:
-            """
-            Cannot disable unknown service 'foobar'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
-            ros, ros-updates, usg.
-            """
-        And I verify that running `pro disable esm-infra` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        When I run `pro disable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-
+           | release | msg                                                                                                                   |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -248,6 +212,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        Then stdout matches regexp:
        """
        SERVICE       +AVAILABLE  DESCRIPTION
+       anbox-cloud   +<anbox>    .*
        cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
        """
        Then stdout matches regexp:
@@ -297,11 +262,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        """
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
-           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
-           | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
-           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
-           | jammy   | yes      | no     | yes | no   | no          | no  | usg        | yes             |
+           | release | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
+           | xenial  | no    | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | bionic  | yes   | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | focal   | yes   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
+           | jammy   | yes   | yes      | no     | yes | no   | no          | no  | usg        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -385,6 +350,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +.*
         cc-eal        +no
         """
         And stdout matches regexp:
@@ -398,6 +364,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +.*
         cc-eal        +no
         """
         And stdout matches regexp:
@@ -424,94 +391,52 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | lunar   |
            | mantic  |
 
-    @series.xenial
-    @series.bionic
+    @series.lts
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
         And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\)
-            """
+        """
+        This command must be run as root \(try using sudo\)
+        """
         And I verify that running `pro disable esm-infra livepatch foobar` `with sudo` exits `1`
         And I will see the following on stdout:
-            """
-            Updating package lists
-            Livepatch is not currently enabled
-            See: sudo pro status
-            """
+        """
+        Updating package lists
+        Livepatch is not currently enabled
+        See: sudo pro status
+        """
         And stderr matches regexp:
-            """
-            Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,
-            realtime-kernel, ros, ros-updates.
-            """
+        """
+        Cannot disable unknown service 'foobar'.
+        <msg>
+        """
         When I run `pro status` with sudo
         Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
-            """
+        """
+        esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
+        """
         When I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
         And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
-            """
-            Updating package lists
-            Ubuntu Pro: ESM Infra enabled
-            """
+        """
+        Updating package lists
+        Ubuntu Pro: ESM Infra enabled
+        """
         And stdout does not match regexp:
-            """
-            A reboot is required to complete install.
-            """
+        """
+        A reboot is required to complete install.
+        """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | jammy   |
-
-    @series.focal
-    @uses.config.machine_type.lxd-container
-    Scenario: Attached disable of different services in a ubuntu machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\)
-            """
-        And I verify that running `pro disable esm-infra livepatch foobar` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            Updating package lists
-            Livepatch is not currently enabled
-            See: sudo pro status
-            """
-        And stderr matches regexp:
-            """
-            Cannot disable unknown service 'foobar'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
-            ros, ros-updates, usg.
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
-            """
-        When I run `touch /var/run/reboot-required` with sudo
-        And I run `touch /var/run/reboot-required.pkgs` with sudo
-        And I run `pro enable esm-infra` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Ubuntu Pro: ESM Infra enabled
-            """
-        And stdout does not match regexp:
-            """
-            A reboot is required to complete install.
-            """
+           | release | msg                                                                                                                   |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
 
     @series.xenial
     @series.bionic
@@ -556,6 +481,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -575,6 +501,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -594,6 +521,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
@@ -664,6 +592,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Expanded Security Maintenance for Applications
@@ -689,6 +618,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Expanded Security Maintenance for Applications
@@ -714,6 +644,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Pro services on a machine.
+         - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - esm-apps: Expanded Security Maintenance for Applications
