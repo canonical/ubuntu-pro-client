@@ -1,11 +1,9 @@
 import logging
-from io import BytesIO
-from urllib.error import HTTPError
 
 import mock
 import pytest
 
-from uaclient import system
+from uaclient import http, system
 from uaclient.clouds.gcp import (
     LAST_ETAG,
     LICENSES_URL,
@@ -27,7 +25,13 @@ class TestUAAutoAttachGCPInstance:
     @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_from_gcp_url(self, readurl):
         """Return attested signature and compute info as GCP identity doc"""
-        readurl.return_value = "attestedWOOT!===", {"header": "stuff"}
+        readurl.return_value = http.HTTPResponse(
+            code=200,
+            headers={"header": "stuff"},
+            body="attestedWOOT!===",
+            json_dict={},
+            json_list=[],
+        )
         instance = UAAutoAttachGCPInstance()
         assert {"identityToken": "attestedWOOT!==="} == instance.identity_doc
         assert [
@@ -47,15 +51,20 @@ class TestUAAutoAttachGCPInstance:
 
         def fake_someurlerrors(url, headers, timeout):
             if readurl.call_count <= fail_count:
-                raise HTTPError(
-                    "http://me",
-                    700 + readurl.call_count,
-                    "funky error msg",
-                    None,
-                    BytesIO(),
+                return http.HTTPResponse(
+                    code=700 + readurl.call_count,
+                    headers={},
+                    body="funky error msg",
+                    json_dict={},
+                    json_list=[],
                 )
-
-            return "attestedWOOT!===", {"header": "stuff"}
+            return http.HTTPResponse(
+                code=200,
+                headers={"header": "stuff"},
+                body="attestedWOOT!===",
+                json_dict={},
+                json_list=[],
+            )
 
         readurl.side_effect = fake_someurlerrors
 
@@ -117,13 +126,22 @@ class TestUAAutoAttachGCPInstance:
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize(
-        "existing_etag, wait_for_change, metadata_response, platform_info,"
-        " expected_etag, expected_result, expected_readurl",
+        [
+            "existing_etag",
+            "wait_for_change",
+            "metadata_response",
+            "metadata_headers",
+            "platform_info",
+            "expected_etag",
+            "expected_result",
+            "expected_readurl",
+        ],
         (
             (
                 None,
                 False,
-                ([], {}),
+                [],
+                {},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -141,7 +159,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "8045211386737108299"}], {}),
+                [{"id": "8045211386737108299"}],
+                {},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -159,7 +178,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "8045211386737108299"}], {}),
+                [{"id": "8045211386737108299"}],
+                {},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -177,7 +197,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "6022427724719891830"}], {}),
+                [{"id": "6022427724719891830"}],
+                {},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -195,7 +216,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "599959289349842382"}], {}),
+                [{"id": "599959289349842382"}],
+                {},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -213,7 +235,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                [{"id": "8045211386737108299"}],
+                {"etag": "test-etag"},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -231,7 +254,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 False,
-                ([{"id": "wrong"}], {"ETag": "test-etag"}),
+                [{"id": "wrong"}],
+                {"etag": "test-etag"},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -249,7 +273,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 None,
                 True,
-                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                [{"id": "8045211386737108299"}],
+                {"etag": "test-etag"},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -268,7 +293,8 @@ class TestUAAutoAttachGCPInstance:
             (
                 "existing-etag",
                 True,
-                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                [{"id": "8045211386737108299"}],
+                {"etag": "test-etag"},
                 system.ReleaseInfo(
                     distribution="",
                     release="",
@@ -297,6 +323,7 @@ class TestUAAutoAttachGCPInstance:
         existing_etag,
         wait_for_change,
         metadata_response,
+        metadata_headers,
         platform_info,
         expected_etag,
         expected_result,
@@ -304,7 +331,13 @@ class TestUAAutoAttachGCPInstance:
     ):
         instance = UAAutoAttachGCPInstance()
         instance.etag = existing_etag
-        m_readurl.return_value = metadata_response
+        m_readurl.return_value = http.HTTPResponse(
+            code=200,
+            headers=metadata_headers,
+            body="",
+            json_dict={},
+            json_list=metadata_response,
+        )
         m_get_release_info.return_value = platform_info
 
         result = instance.is_pro_license_present(

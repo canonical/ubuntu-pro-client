@@ -1,6 +1,5 @@
 import textwrap
 from typing import Any, Dict, List, Optional, Tuple
-from urllib import error
 
 from uaclient import messages
 from uaclient.defaults import PRINT_WRAP_WIDTH
@@ -379,20 +378,14 @@ class AttachFailureUnknownError(EntitlementsNotEnabledError):
 class UrlError(IOError):
     def __init__(
         self,
-        cause: error.URLError,
-        code: Optional[int] = None,
-        headers: Optional[Dict[str, str]] = None,
-        url: Optional[str] = None,
+        cause: Exception,
+        url: str,
     ):
         if getattr(cause, "reason", None):
-            cause_error = str(cause.reason)
+            cause_error = str(getattr(cause, "reason"))
         else:
             cause_error = str(cause)
         super().__init__(cause_error)
-        self.code = code
-        self.headers = headers
-        if self.headers is None:
-            self.headers = {}
         self.url = url
 
 
@@ -419,59 +412,24 @@ class ProcessExecutionError(IOError):
         )
 
 
-class ContractAPIError(UrlError):
-    def __init__(self, e, error_response):
-        super().__init__(e, e.code, e.headers, e.url)
-
-        if error_response is None:
-            error_response = {}
-
-        self.api_error = error_response
-
-    def __contains__(self, error_code):
-        if error_code == self.api_error.get("code"):
-            return True
-        if self.api_error.get("message", "").startswith(error_code):
-            return True
-
-        return False
-
-    def __get__(self, error_code, default=None):
-        if self.api_error.get("code") == error_code:
-            return self.api_error.get("message")
-        return default
+class ExternalAPIError(UserFacingError):
+    def __init__(self, url: str, code: int, body: str):
+        self.url = url
+        self.code = code
+        self.body = body
+        msg = messages.EXTERNAL_API_ERROR.format(url=url, code=code, body=body)
+        super().__init__(msg.msg, msg.name)
 
     def __str__(self):
-        prefix = super().__str__()
-        return (
-            prefix
-            + ": ["
-            + str(self.url)
-            + "]"
-            + ", "
-            + self.api_error.get("message", "")
-        )
+        return "{}: [{}], {}".format(self.code, self.url, self.body)
 
 
-class SecurityAPIError(UrlError):
-    def __init__(self, e, error_response):
-        super().__init__(e, e.code, e.headers, e.url)
-        self.message = error_response.get("message", "")
+class ContractAPIError(ExternalAPIError):
+    pass
 
-    def __contains__(self, error_code):
-        return bool(error_code in self.message)
 
-    def __get__(self, error_str, default=None):
-        if error_str in self.message:
-            return self.message
-        return default
-
-    def __str__(self):
-        prefix = super().__str__()
-        details = [self.message]
-        if details:
-            return prefix + ": [" + str(self.url) + "] " + ", ".join(details)
-        return prefix + ": [" + str(self.url) + "]"
+class SecurityAPIError(ExternalAPIError):
+    pass
 
 
 class InPlaceUpgradeNotSupportedError(Exception):
@@ -523,4 +481,10 @@ class InvalidOptionCombination(UserFacingError):
         msg = messages.INVALID_OPTION_COMBINATION.format(
             option1=option1, option2=option2
         )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class CloudMetadataError(UserFacingError):
+    def __init__(self, code: int, body: str) -> None:
+        msg = messages.CLOUD_METADATA_ERROR.format(code=code, body=body)
         super().__init__(msg=msg.msg, msg_code=msg.name)

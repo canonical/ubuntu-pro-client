@@ -3,7 +3,15 @@ import logging
 import socket
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import clouds, event_logger, exceptions, messages, system, util
+from uaclient import (
+    clouds,
+    event_logger,
+    exceptions,
+    http,
+    messages,
+    system,
+    util,
+)
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
@@ -45,7 +53,6 @@ event = event_logger.get_event_logger()
 class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = "contract_url"
-    api_error_cls = exceptions.ContractAPIError
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def add_contract_machine(self, contract_token, machine_id=None):
@@ -61,34 +68,56 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
         data = self._get_platform_data(machine_id)
-        machine_token, _headers = self.request_url(
+        response = self.request_url(
             API_V1_ADD_CONTRACT_MACHINE, data=data, headers=headers
         )
-        self.cfg.machine_token_file.write(machine_token)
+        if response.code == 401:
+            raise exceptions.AttachInvalidTokenError()
+        elif response.code == 403:
+            msg = _create_attach_forbidden_message(response)
+            raise exceptions.UserFacingError(
+                msg=msg.msg,
+                msg_code=msg.name,
+                additional_info=msg.additional_info,
+            )
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_ADD_CONTRACT_MACHINE, response.code, response.body
+            )
+
+        self.cfg.machine_token_file.write(response.json_dict)
 
         system.get_machine_id.cache_clear()
-        machine_id = machine_token.get("machineTokenInfo", {}).get(
+        machine_id = response.json_dict.get("machineTokenInfo", {}).get(
             "machineId", data.get("machineId")
         )
         self.cfg.write_cache("machine-id", machine_id)
 
-        return machine_token
+        return response.json_dict
 
     def available_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
-        resource_response, headers = self.request_url(
+        response = self.request_url(
             API_V1_AVAILABLE_RESOURCES,
             query_params=self._get_platform_basic_info(),
         )
-        return resource_response
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_AVAILABLE_RESOURCES, response.code, response.body
+            )
+        return response.json_dict
 
     def get_contract_using_token(self, contract_token: str) -> Dict[str, Any]:
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
-        response_data, _response_headers = self.request_url(
+        response = self.request_url(
             API_V1_GET_CONTRACT_USING_TOKEN, headers=headers
         )
-        return response_data
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_GET_CONTRACT_USING_TOKEN, response.code, response.body
+            )
+        return response.json_dict
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def get_contract_token_for_cloud_instance(
@@ -100,22 +129,25 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the contract-token.
         """
-        try:
-            response, _headers = self.request_url(
-                API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
-                    cloud_type=instance.cloud_type
-                ),
-                data=instance.identity_doc,
-            )
-        except exceptions.ContractAPIError as e:
-            msg = e.api_error.get("message", "")
+        response = self.request_url(
+            API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
+                cloud_type=instance.cloud_type
+            ),
+            data=instance.identity_doc,
+        )
+        if response.code != 200:
+            msg = response.json_dict.get("message", "")
             if msg:
                 logging.debug(msg)
                 raise exceptions.InvalidProImage(error_msg=msg)
-            raise e
+            raise exceptions.ContractAPIError(
+                API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE,
+                response.code,
+                response.body,
+            )
 
-        self.cfg.write_cache("contract-token", response)
-        return response
+        self.cfg.write_cache("contract-token", response.json_dict)
+        return response.json_dict
 
     def get_resource_machine_access(
         self,
@@ -140,13 +172,19 @@ class UAContractClient(serviceclient.UAServiceClient):
         url = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id
         )
-        resource_access, headers = self.request_url(url, headers=headers)
-        if headers.get("expires"):
-            resource_access["expires"] = headers["expires"]
+        response = self.request_url(url, headers=headers)
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_GET_RESOURCE_MACHINE_ACCESS,
+                response.code,
+                response.body,
+            )
+        if response.headers.get("expires"):
+            response.json_dict["expires"] = response.headers["expires"]
         self.cfg.write_cache(
-            "machine-access-{}".format(resource), resource_access
+            "machine-access-{}".format(resource), response.json_dict
         )
-        return resource_access
+        return response.json_dict
 
     def update_contract_machine(
         self,
@@ -178,13 +216,17 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
 
-        response, _ = self.request_url(url, headers=headers, data=request_data)
+        response = self.request_url(url, headers=headers, data=request_data)
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                url, response.code, response.body
+            )
 
         # We will update the `machine-token.json` based on the response
         # provided by the server. We expect the response to be
         # a full `activityInfo` object which belongs at the root of
         # `machine-token.json`
-        if response:
+        if response.json_dict:
 
             machine_token = self.cfg.machine_token
             # The activity information received as a response here
@@ -193,7 +235,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             # we reach the contract for attach and refresh requests.
             # Because of that, we will store the response directly on
             # the activityInfo key
-            machine_token["activityInfo"] = response
+            machine_token["activityInfo"] = response.json_dict
             self.cfg.machine_token_file.write(machine_token)
 
     def get_magic_attach_token_info(self, magic_token: str) -> Dict[str, Any]:
@@ -206,41 +248,46 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
 
         try:
-            response, _ = self.request_url(
+            response = self.request_url(
                 API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
             )
-        except exceptions.ContractAPIError as e:
-            if hasattr(e, "code"):
-                if e.code == 401:
-                    raise exceptions.MagicAttachTokenError()
-                elif e.code == 503:
-                    raise exceptions.MagicAttachUnavailable()
-            raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
             raise exceptions.ConnectivityError()
+        if response.code == 401:
+            raise exceptions.MagicAttachTokenError()
+        if response.code == 503:
+            raise exceptions.MagicAttachUnavailable()
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_GET_MAGIC_ATTACH_TOKEN_INFO,
+                response.code,
+                response.body,
+            )
 
-        return response
+        return response.json_dict
 
     def new_magic_attach_token(self) -> Dict[str, Any]:
         """Create a magic attach token for the user."""
         headers = self.headers()
 
         try:
-            response, _ = self.request_url(
+            response = self.request_url(
                 API_V1_NEW_MAGIC_ATTACH,
                 headers=headers,
                 method="POST",
             )
-        except exceptions.ContractAPIError as e:
-            if e.code == 503:
-                raise exceptions.MagicAttachUnavailable()
-            raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
             raise exceptions.ConnectivityError()
+        if response.code == 503:
+            raise exceptions.MagicAttachUnavailable()
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_NEW_MAGIC_ATTACH, response.code, response.body
+            )
 
-        return response
+        return response.json_dict
 
     def revoke_magic_attach_token(self, magic_token: str):
         """Revoke a magic attach token for the user."""
@@ -248,23 +295,24 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
 
         try:
-            self.request_url(
+            response = self.request_url(
                 API_V1_REVOKE_MAGIC_ATTACH,
                 headers=headers,
                 method="DELETE",
             )
-        except exceptions.ContractAPIError as e:
-            if hasattr(e, "code"):
-                if e.code == 400:
-                    raise exceptions.MagicAttachTokenAlreadyActivated()
-                elif e.code == 401:
-                    raise exceptions.MagicAttachTokenError()
-                elif e.code == 503:
-                    raise exceptions.MagicAttachUnavailable()
-            raise e
         except exceptions.UrlError as e:
             logging.exception(str(e))
             raise exceptions.ConnectivityError()
+        if response.code == 400:
+            raise exceptions.MagicAttachTokenAlreadyActivated()
+        if response.code == 401:
+            raise exceptions.MagicAttachTokenError()
+        if response.code == 503:
+            raise exceptions.MagicAttachUnavailable()
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                API_V1_REVOKE_MAGIC_ATTACH, response.code, response.body
+            )
 
     def get_contract_machine(
         self,
@@ -290,15 +338,19 @@ class UAContractClient(serviceclient.UAServiceClient):
             contract=contract_id,
             machine=machine_id,
         )
-        response, headers = self.request_url(
+        response = self.request_url(
             url,
             method="GET",
             headers=headers,
             query_params=self._get_platform_basic_info(),
         )
-        if headers.get("expires"):
-            response["expires"] = headers["expires"]
-        return response
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                url, response.code, response.body
+            )
+        if response.headers.get("expires"):
+            response.json_dict["expires"] = response.headers["expires"]
+        return response.json_dict
 
     def _update_contract_machine(
         self,
@@ -323,15 +375,19 @@ class UAContractClient(serviceclient.UAServiceClient):
         url = API_V1_UPDATE_CONTRACT_MACHINE.format(
             contract=contract_id, machine=data["machineId"]
         )
-        response, headers = self.request_url(
+        response = self.request_url(
             url, headers=headers, method="POST", data=data
         )
-        if headers.get("expires"):
-            response["expires"] = headers["expires"]
-        machine_id = response.get("machineTokenInfo", {}).get(
+        if response.code != 200:
+            raise exceptions.ContractAPIError(
+                url, response.code, response.body
+            )
+        if response.headers.get("expires"):
+            response.json_dict["expires"] = response.headers["expires"]
+        machine_id = response.json_dict.get("machineTokenInfo", {}).get(
             "machineId", data.get("machineId")
         )
-        return response
+        return response.json_dict
 
     def update_files_after_machine_token_update(
         self, response: Dict[str, Any]
@@ -531,11 +587,11 @@ def process_entitlement_delta(
 
 
 def _create_attach_forbidden_message(
-    e: exceptions.ContractAPIError,
+    response: http.HTTPResponse,
 ) -> messages.NamedMessage:
     msg = messages.ATTACH_EXPIRED_TOKEN
-    if hasattr(e, "api_error") and "info" in e.api_error:
-        info = e.api_error["info"]
+    info = response.json_dict.get("info")
+    if info:
         contract_id = info["contractId"]
         reason = info["reason"]
         reason_msg = None
@@ -588,7 +644,7 @@ def request_updated_contract(
 
     :raise UserFacingError: on failure to update contract or error processing
         contract deltas
-    :raise UrlError: On failure to contact the server
+    :raise ConnectivityError: On failure to contact the server
     """
     orig_token = cfg.machine_token
     orig_entitlements = cfg.machine_token_file.entitlements
@@ -600,18 +656,6 @@ def request_updated_contract(
         try:
             contract_client.add_contract_machine(contract_token=contract_token)
         except exceptions.UrlError as e:
-            if isinstance(e, exceptions.ContractAPIError):
-                if hasattr(e, "code"):
-                    if e.code == 401:
-                        raise exceptions.AttachInvalidTokenError()
-                    elif e.code == 403:
-                        msg = _create_attach_forbidden_message(e)
-                        raise exceptions.UserFacingError(
-                            msg=msg.msg,
-                            msg_code=msg.name,
-                            additional_info=msg.additional_info,
-                        )
-                raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))
             raise exceptions.ConnectivityError()

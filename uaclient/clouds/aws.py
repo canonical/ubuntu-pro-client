@@ -1,6 +1,5 @@
 import logging
 from typing import Any, Dict
-from urllib.error import HTTPError
 
 from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
@@ -28,24 +27,25 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
 
     def _get_imds_url_response(self):
         headers = self._request_imds_v2_token_headers()
-        return http.readurl(
+        response = http.readurl(
             IMDS_URL.format(self._ip_address), headers=headers, timeout=1
         )
+        if response.code == 200:
+            return response.body
+        else:
+            raise exceptions.CloudMetadataError(response.code, response.body)
 
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[0.5, 1, 1])
+    @util.retry(exceptions.CloudMetadataError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
-        response, _headers = self._get_imds_url_response()
-        return {"pkcs7": response}
+        return {"pkcs7": self._get_imds_url_response()}
 
     def _request_imds_v2_token_headers(self):
         for address in IMDS_IP_ADDRESS:
             try:
                 headers = self._get_imds_v2_token_headers(ip_address=address)
-            except HTTPError as e:
-                raise e
             except Exception as e:
                 msg = (
                     "Could not reach AWS IMDS at http://{endpoint}:"
@@ -64,28 +64,27 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
             )
         return headers
 
-    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    @util.retry(exceptions.CloudMetadataError, retry_sleeps=[1, 2, 5])
     def _get_imds_v2_token_headers(self, ip_address):
         if self._api_token == "IMDSv1":
             return None
         elif self._api_token:
             return {AWS_TOKEN_PUT_HEADER: self._api_token}
-        try:
-            response, _headers = http.readurl(
-                IMDS_V2_TOKEN_URL.format(ip_address),
-                method="PUT",
-                headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
-                timeout=1,
-            )
-        except HTTPError as e:
-            if e.code == 404:
-                self._api_token = "IMDSv1"
-                return None
-            else:
-                raise
 
-        self._api_token = response
-        return {AWS_TOKEN_PUT_HEADER: self._api_token}
+        response = http.readurl(
+            IMDS_V2_TOKEN_URL.format(ip_address),
+            method="PUT",
+            headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+            timeout=1,
+        )
+        if response.code == 200:
+            self._api_token = response.body
+            return {AWS_TOKEN_PUT_HEADER: self._api_token}
+        if response.code == 404:
+            self._api_token = "IMDSv1"
+            return None
+
+        raise exceptions.CloudMetadataError(response.code, response.body)
 
     @property
     def cloud_type(self) -> str:

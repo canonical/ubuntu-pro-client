@@ -7,7 +7,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, messages, status, util
+from uaclient import event_logger, http, messages, status, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
@@ -230,10 +230,10 @@ class TestActionAttach:
         assert expected == json.loads(capsys.readouterr()[0])
 
     @pytest.mark.parametrize(
-        "error_class, error_str",
+        "error_class, error_args",
         (
-            (UrlError, "Forbidden"),
-            (UserFacingError, "Unable to attach default services"),
+            (UrlError, ("cause", "url")),
+            (UserFacingError, ("Unable to attach default services",)),
         ),
     )
     @mock.patch("uaclient.system.should_reboot", return_value=False)
@@ -249,7 +249,7 @@ class TestActionAttach:
         _m_remove_notice,
         _m_should_reboot,
         error_class,
-        error_str,
+        error_args,
         FakeConfig,
         event,
     ):
@@ -263,7 +263,7 @@ class TestActionAttach:
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):
             cfg.machine_token_file.write(ENTITLED_MACHINE_TOKEN)
-            raise error_class(error_str)
+            raise error_class(*error_args)
 
         request_updated_contract.side_effect = fake_request_updated_contract
         with pytest.raises(SystemExit) as excinfo:
@@ -566,8 +566,11 @@ class TestActionAttach:
             ({"test": 123}, True),
             expected_exception,
         ]
-        m_request_url.return_value = (
-            {
+        m_request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={
                 "machineToken": "not-null",
                 "machineTokenInfo": {
                     "machineId": "machine-id",
@@ -595,7 +598,7 @@ class TestActionAttach:
                     },
                 },
             },
-            None,
+            json_list=[],
         )
 
         fake_stdout = io.StringIO()
