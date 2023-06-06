@@ -1182,7 +1182,6 @@ RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
 RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
 RETRY_ERROR_DETAIL_URL_ERROR_CODE = "a {code} while reaching {url}"
 RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
-RETRY_ERROR_DETAIL_URL_ERROR_GENERIC = "a network error"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
 INCORRECT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
@@ -1351,3 +1350,12 @@ WARNING: this output is intended to be human readable, and subject to change.
 In scripts, prefer using machine readable data from the `pro api` command,
 or use `pro {command} --format json`.
 """
+
+CLOUD_METADATA_ERROR = FormattedNamedMessage(
+    "cloud-metadata-error",
+    "An error occurred while talking the the cloud metadata service: {code} - {body}",  # noqa: E501
+)
+
+EXTERNAL_API_ERROR = FormattedNamedMessage(
+    "external-api-error", "Error connecting to {url}: {code} {body}"
+)

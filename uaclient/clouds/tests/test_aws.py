@@ -1,12 +1,10 @@
 import logging
 import re
-from io import BytesIO
-from urllib.error import HTTPError
 
 import mock
 import pytest
 
-from uaclient import exceptions
+from uaclient import exceptions, http
 from uaclient.clouds.aws import (
     AWS_TOKEN_PUT_HEADER,
     AWS_TOKEN_REQ_HEADER,
@@ -29,8 +27,12 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "http.readurl")
     def test__get_imds_v2_token_headers_none_on_404(self, readurl):
         """A 404 on private AWS regions indicates lack IMDSv2 support."""
-        readurl.side_effect = HTTPError(
-            "http://me", 404, "No IMDSv2 support", None, BytesIO()
+        readurl.return_value = http.HTTPResponse(
+            code=404,
+            headers={},
+            body="",
+            json_dict={},
+            json_list=[],
         )
         instance = UAAutoAttachAWSInstance()
         assert None is instance._get_imds_v2_token_headers(
@@ -46,7 +48,13 @@ class TestUAAutoAttachAWSInstance:
         """Return API token headers for IMDSv2 access. Response is cached."""
         instance = UAAutoAttachAWSInstance()
         url = "http://169.254.169.254/latest/api/token"
-        readurl.return_value = "somebase64token==", {"header": "stuff"}
+        readurl.return_value = http.HTTPResponse(
+            code=200,
+            headers={"header": "stuff"},
+            body="somebase64token==",
+            json_dict={},
+            json_list=[],
+        )
         assert {
             AWS_TOKEN_PUT_HEADER: "somebase64token=="
         } == instance._get_imds_v2_token_headers(ip_address=IMDS_IPV4_ADDRESS)
@@ -72,23 +80,28 @@ class TestUAAutoAttachAWSInstance:
 
         def fake_someurlerrors(url, method=None, headers=None, timeout=1):
             if readurl.call_count <= fail_count:
-                raise HTTPError(
-                    "http://me",
-                    700 + readurl.call_count,
-                    "funky error msg",
-                    None,
-                    BytesIO(),
+                return http.HTTPResponse(
+                    code=700 + readurl.call_count,
+                    headers={},
+                    body="funky error msg",
+                    json_dict={},
+                    json_list=[],
                 )
-            return "base64token==", {"header": "stuff"}
+            return http.HTTPResponse(
+                code=200,
+                headers={"header": "stuff"},
+                body="base64token==",
+                json_dict={},
+                json_list=[],
+            )
 
         readurl.side_effect = fake_someurlerrors
         instance = UAAutoAttachAWSInstance()
         if exception:
-            with pytest.raises(HTTPError) as excinfo:
+            with pytest.raises(exceptions.CloudMetadataError):
                 instance._get_imds_v2_token_headers(
                     ip_address=IMDS_IPV4_ADDRESS
                 )
-            assert 704 == excinfo.value.code
         else:
             assert {
                 AWS_TOKEN_PUT_HEADER: "base64token=="
@@ -99,9 +112,9 @@ class TestUAAutoAttachAWSInstance:
         expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
-            "HTTP Error 701: funky error msg Retrying 3 more times.",
-            "HTTP Error 702: funky error msg Retrying 2 more times.",
-            "HTTP Error 703: funky error msg Retrying 1 more times.",
+            "(701, 'funky error msg') Retrying 3 more times.",
+            "(702, 'funky error msg') Retrying 2 more times.",
+            "(703, 'funky error msg') Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:
@@ -110,7 +123,13 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "http.readurl")
     def test_identity_doc_from_aws_url_pkcs7(self, readurl):
         """Return pkcs7 content from IMDS as AWS' identity doc"""
-        readurl.return_value = "pkcs7WOOT!==", {"header": "stuff"}
+        readurl.return_value = http.HTTPResponse(
+            code=200,
+            headers={"header": "stuff"},
+            body="pkcs7WOOT!==",
+            json_dict={},
+            json_list=[],
+        )
         instance = UAAutoAttachAWSInstance()
         assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
@@ -139,21 +158,33 @@ class TestUAAutoAttachAWSInstance:
         def fake_someurlerrors(url, method=None, headers=None, timeout=1):
             # due to _get_imds_v2_token_headers
             if "latest/api/token" in url:
-                return "base64token==", {"header": "stuff"}
-            if readurl.call_count <= fail_count + 1:
-                raise HTTPError(
-                    "http://me",
-                    700 + readurl.call_count,
-                    "funky error msg",
-                    None,
-                    BytesIO(),
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="base64token==",
+                    json_dict={},
+                    json_list=[],
                 )
-            return "pkcs7WOOT!==", {"header": "stuff"}
+            if readurl.call_count <= fail_count + 1:
+                return http.HTTPResponse(
+                    code=700 + readurl.call_count,
+                    headers={},
+                    body="funky error msg",
+                    json_dict={},
+                    json_list=[],
+                )
+            return http.HTTPResponse(
+                code=200,
+                headers={"header": "stuff"},
+                body="pkcs7WOOT!==",
+                json_dict={},
+                json_list=[],
+            )
 
         readurl.side_effect = fake_someurlerrors
         instance = UAAutoAttachAWSInstance()
         if exception:
-            with pytest.raises(HTTPError) as excinfo:
+            with pytest.raises(exceptions.CloudMetadataError) as excinfo:
                 instance.identity_doc
             assert 705 == excinfo.value.code
         else:
@@ -162,9 +193,9 @@ class TestUAAutoAttachAWSInstance:
         expected_sleep_calls = [mock.call(0.5), mock.call(1), mock.call(1)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
-            "HTTP Error 702: funky error msg Retrying 3 more times.",
-            "HTTP Error 703: funky error msg Retrying 2 more times.",
-            "HTTP Error 704: funky error msg Retrying 1 more times.",
+            "(702, 'funky error msg') Retrying 3 more times.",
+            "(703, 'funky error msg') Retrying 2 more times.",
+            "(704, 'funky error msg') Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:
@@ -226,10 +257,22 @@ class TestUAAutoAttachAWSInstance:
                 raise Exception("IPv4 exception")
 
             if url == IMDS_V2_TOKEN_URL.format(ipv6_address):
-                return "base64token==", {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="base64token==",
+                    json_dict={},
+                    json_list=[],
+                )
 
             if url == IMDS_URL.format(ipv6_address):
-                return "pkcs7WOOT!==", {"header": "stuff"}
+                return http.HTTPResponse(
+                    code=200,
+                    headers={"header": "stuff"},
+                    body="pkcs7WOOT!==",
+                    json_dict={},
+                    json_list=[],
+                )
 
         readurl.side_effect = fake_someurlerrors
         assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc

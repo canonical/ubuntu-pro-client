@@ -2,8 +2,7 @@ import json
 import logging
 import os
 import socket
-from http.client import HTTPMessage
-from typing import Any, Dict, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional
 from urllib import error, request
 from urllib.parse import urlparse
 
@@ -14,6 +13,25 @@ PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
 PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
 PROXY_VALIDATION_SNAP_HTTPS_URL = "https://api.snapcraft.io"
+
+UnparsedHTTPResponse = NamedTuple(
+    "UnparsedHTTPResponse",
+    [
+        ("code", int),
+        ("headers", Dict[str, str]),
+        ("body", str),
+    ],
+)
+HTTPResponse = NamedTuple(
+    "HTTPResponse",
+    [
+        ("code", int),
+        ("headers", Dict[str, str]),
+        ("body", str),
+        ("json_dict", Dict[str, Any]),
+        ("json_list", List[Any]),
+    ],
+)
 
 
 def is_service_url(url: str) -> bool:
@@ -99,6 +117,28 @@ def configure_web_proxy(
         request.install_opener(opener)
 
 
+def _readurl_urllib(
+    req: request.Request, timeout: Optional[int] = None
+) -> UnparsedHTTPResponse:
+    try:
+        resp = request.urlopen(req, timeout=timeout)
+    except error.HTTPError as e:
+        resp = e
+    except error.URLError as e:
+        raise exceptions.UrlError(e, url=req.full_url)
+
+    body = resp.read().decode("utf-8")
+
+    # convert EmailMessage header object to dict with lowercase keys
+    headers = {k.lower(): v for k, v, in resp.headers.items()}
+
+    return UnparsedHTTPResponse(
+        code=resp.code,
+        headers=headers,
+        body=body,
+    )
+
+
 def readurl(
     url: str,
     data: Optional[bytes] = None,
@@ -106,10 +146,11 @@ def readurl(
     method: Optional[str] = None,
     timeout: Optional[int] = None,
     log_response_body: bool = True,
-) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
+) -> HTTPResponse:
     if data and not method:
         method = "POST"
     req = request.Request(url, data=data, headers=headers, method=method)
+
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
     )
@@ -121,17 +162,18 @@ def readurl(
             data.decode("utf-8") if data else None,
         )
     )
-    http_error_found = False
-    try:
-        resp = request.urlopen(req, timeout=timeout)
-        http_error_found = False
-    except error.HTTPError as e:
-        resp = e
-        http_error_found = True
-    setattr(resp, "body", resp.read().decode("utf-8"))
-    content = resp.body
-    if "application/json" in str(resp.headers.get("Content-type", "")):
-        content = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
+
+    resp = _readurl_urllib(req, timeout=timeout)
+
+    json_dict = {}
+    json_list = []
+    if "application/json" in resp.headers.get("content-type", ""):
+        json_body = json.loads(resp.body, cls=util.DatetimeAwareJSONDecoder)
+        if isinstance(json_body, dict):
+            json_dict = json_body
+        elif isinstance(json_body, list):
+            json_list = json_body
+
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
     )
@@ -140,9 +182,18 @@ def readurl(
     )
     if log_response_body:
         # Due to implicit logging redaction, large responses might take longer
-        debug_msg += ", data: {}".format(content)
-
+        body_to_log = resp.body  # type: Any
+        if json_dict:
+            body_to_log = json_dict
+        elif json_list:
+            body_to_log = json_list
+        debug_msg += ", data: {}".format(body_to_log)
     logging.debug(debug_msg)
-    if http_error_found:
-        raise resp
-    return content, resp.headers
+
+    return HTTPResponse(
+        code=resp.code,
+        headers=resp.headers,
+        body=resp.body,
+        json_dict=json_dict,
+        json_list=json_list,
+    )

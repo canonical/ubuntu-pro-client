@@ -34,9 +34,7 @@ class TestFullAutoAttachToFailureReason:
                 "the pro lock was held by pid 123",
             ),
             (
-                exceptions.ContractAPIError(
-                    exceptions.UrlError(error.URLError("urlerror")), "response"
-                ),
+                exceptions.ContractAPIError("url", 123, "response"),
                 'an error from Canonical servers: "response"',
             ),
             (
@@ -44,18 +42,8 @@ class TestFullAutoAttachToFailureReason:
                 "a connectivity error",
             ),
             (
-                exceptions.UrlError(
-                    error.URLError("urlerror"), 123, url="url"
-                ),
-                'a 123 while reaching url: "urlerror"',
-            ),
-            (
-                exceptions.UrlError(error.URLError("urlerror"), url="url"),
+                exceptions.UrlError(error.URLError("urlerror"), "url"),
                 'an error while reaching url: "urlerror"',
-            ),
-            (
-                exceptions.UrlError(error.URLError("urlerror")),
-                'a network error: "urlerror"',
             ),
             (exceptions.UserFacingError("msg"), '"msg"'),
             (Exception("hello"), "hello"),

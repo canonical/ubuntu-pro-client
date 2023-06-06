@@ -1,26 +1,14 @@
 import json
-from io import BytesIO
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 
 import mock
 import pytest
 
-from uaclient import exceptions
+from uaclient import http
 from uaclient.http.serviceclient import UAServiceClient
 
 
-class OurServiceClientException(Exception):
-    def __init__(self, exc, details):
-        self.exc = exc
-        self.details = details
-
-
 class OurServiceClient(UAServiceClient):
-    @property
-    def api_error_cls(self):
-        return OurServiceClientException
-
     @property
     def cfg_url_base_attr(self):
         return "contract_url"
@@ -29,43 +17,6 @@ class OurServiceClient(UAServiceClient):
 class TestRequestUrl:
 
     # TODO: Non error-path tests
-
-    @pytest.mark.parametrize(
-        "fp,expected_exception,expected_attrs",
-        (
-            (BytesIO(), exceptions.UrlError, {"code": 619}),
-            (
-                BytesIO(b'{"a": "b"}'),
-                OurServiceClientException,
-                {"details": {"a": "b"}},
-            ),
-        ),
-    )
-    @mock.patch("uaclient.http.readurl")
-    def test_httperror_handling(
-        self, m_readurl, fp, expected_exception, expected_attrs, FakeConfig
-    ):
-        m_readurl.side_effect = HTTPError(None, 619, None, None, fp)
-        cfg = FakeConfig()
-        cfg.cfg["contract_url"] = "http://example.com"
-        client = OurServiceClient(cfg=cfg)
-        with pytest.raises(expected_exception) as excinfo:
-            client.request_url("/")
-
-        for attr, expected_value in expected_attrs.items():
-            assert expected_value == getattr(excinfo.value, attr)
-
-    @mock.patch("uaclient.http.readurl")
-    def test_urlerror_handling(self, m_readurl, FakeConfig):
-        m_readurl.side_effect = URLError(None)
-
-        cfg = FakeConfig()
-        cfg.cfg["contract_url"] = "http://example.com"
-        client = OurServiceClient(cfg=cfg)
-        with pytest.raises(exceptions.UrlError) as excinfo:
-            client.request_url("/")
-
-        assert excinfo.value.code is None
 
     @pytest.mark.parametrize(
         "m_kwargs", ({"a": 1, "b": "2", "c": "try me"}, {})
@@ -138,31 +89,29 @@ class Test_GetFakeResponses:
         "url,overlay,responses",
         (
             # When URL has no fakes
-            ("http://a", {}, [(None, {})]),
+            ("http://a", {}, []),
             # When URL has 1 fake, repeat that response for all calls
             (
                 "http://a",
                 URL_FAKES,
-                [(URL_FAKES["http://a"][0]["response"], {})] * 2,
+                [URL_FAKES["http://a"][0]] * 2,
             ),
             # When URL has >1 fake, pop through that list and repeat last item
             (
                 "http://multiresp",
                 URL_FAKES,
-                [(URL_FAKES["http://multiresp"][0]["response"], {})]
+                [URL_FAKES["http://multiresp"][0]]
                 + [
-                    (
-                        URL_FAKES["http://multiresp"][1]["response"],
-                        URL_FAKES["http://multiresp"][1]["headers"],
-                    )
+                    URL_FAKES["http://multiresp"][1],
+                    URL_FAKES["http://multiresp"][1],
                 ]
                 * 2,
             ),
-            # When URL fake is code != 200 raise URLError
+            # When URL fake is code != 200, return that code
             (
                 "http://anerror",
                 URL_FAKES,
-                [(URLError(URL_FAKES["http://anerror"][0]["response"]), {})],
+                [URL_FAKES["http://anerror"][0]],
             ),
         ),
     )
@@ -176,11 +125,15 @@ class Test_GetFakeResponses:
             {"serviceclient_url_responses": overlay_path.strpath}
         )
         client = OurServiceClient(cfg=cfg)
-        for response, headers in responses:
-            if isinstance(response, Exception):
-                with pytest.raises(exceptions.UrlError) as excinfo:
-                    client._get_fake_responses(url)
-                assert 404 == excinfo.value.code
-                assert "nothing to see" == str(excinfo.value)
-            else:
-                assert (response, headers) == client._get_fake_responses(url)
+        for response in responses:
+            assert http.HTTPResponse(
+                code=response["code"],
+                headers=response.get("headers", {}),
+                body=str(response["response"]),
+                json_dict=response["response"]
+                if isinstance(response["response"], dict)
+                else {},
+                json_list=response["response"]
+                if isinstance(response["response"], list)
+                else [],
+            ) == client._get_fake_responses(url)

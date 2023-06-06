@@ -48,27 +48,13 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
     elif isinstance(e, api_exceptions.LockHeldError):
         return messages.RETRY_ERROR_DETAIL_LOCK_HELD.format(pid=e.pid)
     elif isinstance(e, api_exceptions.ContractAPIError):
-        return messages.RETRY_ERROR_DETAIL_CONTRACT_API_ERROR.format(
-            e.api_error
-        )
+        return messages.RETRY_ERROR_DETAIL_CONTRACT_API_ERROR.format(e.body)
     elif isinstance(e, api_exceptions.ConnectivityError):
         return messages.RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR
     elif isinstance(e, api_exceptions.UrlError):
-        if e.url:
-            if e.code:
-                failure_reason = (
-                    messages.RETRY_ERROR_DETAIL_URL_ERROR_CODE.format(
-                        code=e.code, url=e.url
-                    )
-                )
-            else:
-                failure_reason = (
-                    messages.RETRY_ERROR_DETAIL_URL_ERROR_URL.format(url=e.url)
-                )
-        else:
-            failure_reason = messages.RETRY_ERROR_DETAIL_URL_ERROR_GENERIC
-        failure_reason += ': "{}"'.format(str(e))
-        return failure_reason
+        return messages.RETRY_ERROR_DETAIL_URL_ERROR_URL.format(
+            url=e.url
+        ) + ': "{}"'.format(str(e))
     elif isinstance(e, api_exceptions.UserFacingError):
         return '"{}"'.format(e.msg)
     else:
