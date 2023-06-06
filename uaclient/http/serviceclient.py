@@ -1,12 +1,11 @@
 import abc
 import json
 import os
-from posixpath import join as urljoin
-from typing import Any, Dict, Optional, Tuple, Type
-from urllib import error
+import posixpath
+from typing import Any, Dict, Optional  # noqa: F401
 from urllib.parse import urlencode
 
-from uaclient import config, exceptions, http, system, util, version
+from uaclient import config, http, system, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
@@ -15,12 +14,6 @@ class UAServiceClient(metaclass=abc.ABCMeta):
     # Cached serviceclient_url_responses if provided in uaclient.conf
     # via features: {serviceclient_url_responses: /some/file.json}
     _response_overlay = None  # type: Dict[str, Any]
-
-    @property
-    @abc.abstractmethod
-    def api_error_cls(self) -> Type[Exception]:
-        """Set in subclasses to the type of API error raised"""
-        pass
 
     @property
     @abc.abstractmethod
@@ -50,7 +43,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         query_params=None,
         log_response_body: bool = True,
         timeout: Optional[int] = None,
-    ):
+    ) -> http.HTTPResponse:
         path = path.lstrip("/")
         if not headers:
             headers = self.headers()
@@ -58,10 +51,12 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             data = json.dumps(data, cls=util.DatetimeAwareJSONEncoder).encode(
                 "utf-8"
             )
-        url = urljoin(getattr(self.cfg, self.cfg_url_base_attr), path)
-        fake_response, fake_headers = self._get_fake_responses(url)
+        url = posixpath.join(getattr(self.cfg, self.cfg_url_base_attr), path)
+
+        fake_response = self._get_fake_responses(url)
         if fake_response:
-            return fake_response, fake_headers  # URL faked by uaclient.conf
+            return fake_response  # URL faked by uaclient.conf
+
         if query_params:
             # filter out None values
             filtered_params = {
@@ -69,34 +64,15 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             }
             url += "?" + urlencode(filtered_params)
         timeout_to_use = timeout if timeout is not None else self.url_timeout
-        try:
-            response, headers = http.readurl(
-                url=url,
-                data=data,
-                headers=headers,
-                method=method,
-                timeout=timeout_to_use,
-                log_response_body=log_response_body,
-            )
-        except error.URLError as e:
-            body = None
-            if hasattr(e, "body"):
-                body = e.body  # type: ignore
-            elif hasattr(e, "read"):
-                body = e.read().decode("utf-8")  # type: ignore
-            if body:
-                try:
-                    error_details = json.loads(
-                        body, cls=util.DatetimeAwareJSONDecoder
-                    )
-                except ValueError:
-                    error_details = None
-                if error_details:
-                    raise self.api_error_cls(e, error_details)
-            raise exceptions.UrlError(
-                e, code=getattr(e, "code", None), headers=headers, url=url
-            )
-        return response, headers
+
+        return http.readurl(
+            url=url,
+            data=data,
+            headers=headers,
+            method=method,
+            timeout=timeout_to_use,
+            log_response_body=log_response_body,
+        )
 
     def _get_response_overlay(self, url: str):
         """Return a list of fake response dicts for a given URL.
@@ -132,42 +108,31 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             )
         return self._response_overlay.get(url, [])
 
-    def _get_fake_responses(
-        self, url: str
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, str]]]:
-        """Return response and headers if faked for this URL in uaclient.conf.
-
-        :return: A tuple of response and header dicts if the URL has an overlay
-            response defined. Return (None, {}) otherwise.
-
-        :raises exceptions.URLError: When faked response "code" is != 200.
-            URLError reason will be "response" value and any optional
-            "headers" provided.
-        """
+    def _get_fake_responses(self, url: str) -> Optional[http.HTTPResponse]:
+        """Return response if faked for this URL in uaclient.conf."""
         responses = self._get_response_overlay(url)
         if not responses:
-            return None, {}
+            return None
+
         if len(responses) == 1:
-            # When only one respose is defined, repeat it for all calls
+            # When only one response is defined, repeat it for all calls
             response = responses[0]
         else:
             # When multiple responses defined pop the first one off the list.
             response = responses.pop(0)
-        if response["code"] == 200:
-            return response["response"], response.get("headers", {})
-        # Must be an error
-        e = error.URLError(response["response"])
-        url_exception = exceptions.UrlError(
-            e,
+
+        json_dict = {}
+        json_list = []
+        resp = response["response"]
+        if isinstance(resp, dict):
+            json_dict = resp
+        elif isinstance(resp, list):
+            json_list = resp
+
+        return http.HTTPResponse(
             code=response["code"],
             headers=response.get("headers", {}),
-            url=url,
+            body=str(response["response"]),
+            json_dict=json_dict,
+            json_list=json_list,
         )
-
-        if response.get("type") == "contract":
-            raise exceptions.ContractAPIError(
-                url_exception,
-                error_response=response["response"],
-            )
-        else:
-            raise url_exception

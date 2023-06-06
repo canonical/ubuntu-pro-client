@@ -1,7 +1,6 @@
 import logging
 import os
 from typing import Any, Dict
-from urllib.error import HTTPError
 
 from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
@@ -26,17 +25,21 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[1, 1, 1])
+    @util.retry(exceptions.CloudMetadataError, retry_sleeps=[1, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         responses = {}
         for key, url in sorted(IMDS_URLS.items()):
-            url_response, _headers = http.readurl(
+            response = http.readurl(
                 url, headers={"Metadata": "true"}, timeout=1
             )
+            if response.code != 200:
+                raise exceptions.CloudMetadataError(
+                    response.code, response.body
+                )
             if key == "pkcs7":
-                responses[key] = url_response["signature"]
+                responses[key] = response.json_dict["signature"]
             else:
-                responses[key] = url_response
+                responses[key] = response.json_dict
         return responses
 
     @property
@@ -62,9 +65,13 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
 
         url = IMDS_URLS.get("compute", "")
         try:
-            data, headers = http.readurl(url, headers={"Metadata": "true"})
-        except (HTTPError, OSError) as e:
+            response = http.readurl(url, headers={"Metadata": "true"})
+        except OSError as e:
             LOG.error(e)
             raise exceptions.CancelProLicensePolling()
 
-        return data.get("licenseType") == AZURE_PRO_LICENSE_TYPE
+        if response.code != 200:
+            LOG.error(response.body)
+            raise exceptions.CancelProLicensePolling()
+
+        return response.json_dict.get("licenseType") == AZURE_PRO_LICENSE_TYPE

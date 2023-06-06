@@ -1,12 +1,12 @@
 import copy
-import json
+import datetime
 import logging
 import socket
 
 import mock
 import pytest
 
-from uaclient import exceptions, messages, util
+from uaclient import exceptions, http, messages, util
 from uaclient.contract import (
     API_V1_ADD_CONTRACT_MACHINE,
     API_V1_AVAILABLE_RESOURCES,
@@ -86,7 +86,13 @@ class TestUAContractClient:
                 "machineId"
             ] = machine_id_response
 
-        m_request_url.return_value = (machine_token, {})
+        m_request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict=machine_token,
+            json_list=[],
+        )
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
@@ -187,7 +193,13 @@ class TestUAContractClient:
             machine_token["machineTokenInfo"][
                 "machineId"
             ] = machine_id_response
-        request_url.return_value = (machine_token, {})
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict=machine_token,
+            json_list=[],
+        )
         kwargs = {
             "machine_token": "mToken",
             "contract_id": "cId",
@@ -203,12 +215,20 @@ class TestUAContractClient:
     ):
         """GET from resource-machine-access route to "enable" a service"""
         get_machine_id.return_value = "machineId"
-        request_url.return_value = ("response", {})
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={"test": "response"},
+            json_list=[],
+        )
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "resource": "cis"}
-        assert "response" == client.get_resource_machine_access(**kwargs)
-        assert "response" == cfg.read_cache("machine-access-cis")
+        assert {"test": "response"} == client.get_resource_machine_access(
+            **kwargs
+        )
+        assert {"test": "response"} == cfg.read_cache("machine-access-cis")
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -224,7 +244,13 @@ class TestUAContractClient:
     def test_get_contract_using_token(
         self, _m_machine_id, m_request_url, FakeConfig
     ):
-        m_request_url.return_value = ("response", {})
+        m_request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={"test": "response"},
+            json_list=[],
+        )
 
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
@@ -237,7 +263,9 @@ class TestUAContractClient:
             }
         }
 
-        assert "response" == client.get_contract_using_token("some_token")
+        assert {"test": "response"} == client.get_contract_using_token(
+            "some_token"
+        )
         assert [
             mock.call("/v1/contract", **params)
         ] == m_request_url.call_args_list
@@ -257,13 +285,16 @@ class TestUAContractClient:
         """POST machine activity report to the server."""
         machine_id = "machineId"
         get_machine_id.return_value = machine_id
-        request_url.return_value = (
-            {
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={
                 "activityToken": "test-token",
                 "activityID": "test-id",
                 "activityPingInterval": 5,
             },
-            None,
+            json_list=[],
         )
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
@@ -333,7 +364,13 @@ class TestUAContractClient:
                 "machineId"
             ] = machine_id_response
 
-        request_url.return_value = (machine_token, {})
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict=machine_token,
+            json_list=[],
+        )
         contract_token = "mToken"
 
         params = {
@@ -381,23 +418,34 @@ class TestUAContractClient:
                 "userCode": "1234",
             },
         )
-        request_url.return_value = (magic_attach_token_resp, None)
+        request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict=magic_attach_token_resp,
+            json_list=[],
+        )
 
         assert client.new_magic_attach_token() == magic_attach_token_resp
 
     @pytest.mark.parametrize(
-        "raised_exception,expected_exception,message",
+        "request_side_effect,expected_exception,message",
         (
             (
-                exceptions.UrlError("test"),
+                exceptions.UrlError("cause", "url"),
                 exceptions.ConnectivityError,
                 messages.CONNECTIVITY_ERROR,
             ),
             (
-                exceptions.ContractAPIError(
-                    exceptions.UrlError("test", code=503),
-                    error_response={},
-                ),
+                [
+                    http.HTTPResponse(
+                        code=503,
+                        headers={},
+                        body="",
+                        json_dict={},
+                        json_list=[],
+                    )
+                ],
                 exceptions.MagicAttachUnavailable,
                 messages.MAGIC_ATTACH_UNAVAILABLE,
             ),
@@ -408,13 +456,13 @@ class TestUAContractClient:
         get_machine_id,
         request_url,
         FakeConfig,
-        raised_exception,
+        request_side_effect,
         expected_exception,
         message,
     ):
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        request_url.side_effect = raised_exception
+        request_url.side_effect = request_side_effect
 
         with pytest.raises(expected_exception) as exc_error:
             client.new_magic_attach_token()
@@ -440,9 +488,12 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.ContractAPIError(
-            exceptions.UrlError("test", error_code),
-            error_response={},
+        request_url.return_value = http.HTTPResponse(
+            code=error_code,
+            headers={},
+            body="",
+            json_dict={},
+            json_list=[],
         )
 
         with pytest.raises(expected_exception):
@@ -457,7 +508,7 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.UrlError("test")
+        request_url.side_effect = exceptions.UrlError("cause", "url")
 
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.get_magic_attach_token_info(magic_token=magic_token)
@@ -484,9 +535,12 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.ContractAPIError(
-            exceptions.UrlError("test", error_code),
-            error_response={},
+        request_url.return_value = http.HTTPResponse(
+            code=error_code,
+            headers={},
+            body="",
+            json_dict={},
+            json_list=[],
         )
 
         with pytest.raises(expected_exception):
@@ -501,7 +555,7 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.UrlError("test")
+        request_url.side_effect = exceptions.UrlError("cause", "url")
 
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.revoke_magic_attach_token(magic_token=magic_token)
@@ -600,7 +654,7 @@ class TestGetAvailableResources:
         cfg = FakeConfig()
 
         urlerror = exceptions.UrlError(
-            socket.gaierror(-2, "Name or service not known")
+            socket.gaierror(-2, "Name or service not known"), "url"
         )
         m_available_resources.side_effect = urlerror
 
@@ -683,8 +737,8 @@ class TestRequestUpdatedContract:
     @pytest.mark.parametrize(
         "error_code, error_msg, error_response",
         (
-            (401, ATTACH_INVALID_TOKEN, '{"message": "unauthorized"}'),
-            (403, ATTACH_EXPIRED_TOKEN, "{}"),
+            (401, ATTACH_INVALID_TOKEN, {"message": "unauthorized"}),
+            (403, ATTACH_EXPIRED_TOKEN, {}),
             (
                 403,
                 ATTACH_FORBIDDEN.format(
@@ -692,16 +746,18 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id", date="May 07, 2021"
                     ).msg
                 ),
-                """{
-                "code": "forbidden",
-                "info": {
-                    "contractId": "contract-id",
-                    "reason": "no-longer-effective",
-                    "time": "2021-05-07T09:46:37.791Z"
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "no-longer-effective",
+                        "time": datetime.datetime(
+                            2021, 5, 7, 9, 46, 37, tzinfo=datetime.timezone.utc
+                        ),
+                    },
+                    "message": 'contract "contract-id" is no longer effective',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
                 },
-                "message": "contract \\"contract-id\\" is no longer effective",
-                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
-                }""",
             ),
             (
                 403,
@@ -710,16 +766,18 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id", date="May 07, 2021"
                     ).msg
                 ),
-                """{
-                "code": "forbidden",
-                "info": {
-                    "contractId": "contract-id",
-                    "reason": "not-effective-yet",
-                    "time": "2021-05-07T09:46:37.791Z"
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "not-effective-yet",
+                        "time": datetime.datetime(
+                            2021, 5, 7, 9, 46, 37, tzinfo=datetime.timezone.utc
+                        ),
+                    },
+                    "message": 'contract "contract-id" is not effective yet',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
                 },
-                "message": "contract \\"contract-id\\" is not effective yet",
-                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
-                }""",
             ),
             (
                 403,
@@ -728,15 +786,15 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id"
                     ).msg
                 ),
-                """{
-                "code": "forbidden",
-                "info": {
-                    "contractId": "contract-id",
-                    "reason": "never-effective"
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "never-effective",
+                    },
+                    "message": 'contract "contract-id" is was never effective',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
                 },
-                "message": "contract \\"contract-id\\" is was never effective",
-                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
-            }""",
             ),
         ),
     )
@@ -756,16 +814,12 @@ class TestRequestUpdatedContract:
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
             fake_client._responses = {
-                API_V1_ADD_CONTRACT_MACHINE: exceptions.ContractAPIError(
-                    exceptions.UrlError(
-                        "Server error",
-                        code=error_code,
-                        url="http://me",
-                        headers={},
-                    ),
-                    error_response=json.loads(
-                        error_response, cls=util.DatetimeAwareJSONDecoder
-                    ),
+                API_V1_ADD_CONTRACT_MACHINE: http.HTTPResponse(
+                    code=error_code,
+                    headers={},
+                    body="",
+                    json_dict=error_response,
+                    json_list=[],
                 )
             }
             return fake_client
@@ -787,8 +841,12 @@ class TestRequestUpdatedContract:
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
             fake_client._responses = {
-                self.refresh_route: exceptions.UserFacingError(
-                    "Machine token refresh fail"
+                self.refresh_route: http.HTTPResponse(
+                    code=500,
+                    headers={},
+                    body="Machine token refresh fail",
+                    json_dict={},
+                    json_list=[],
                 )
             }
             return fake_client
@@ -798,7 +856,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
 
-        assert "Machine token refresh fail" == str(exc.value)
+        assert "Machine token refresh fail" in str(exc.value)
 
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.system.get_machine_id", return_value="mid")
@@ -1325,9 +1383,12 @@ class TestRequestAutoAttach:
                 'publisher "canonical", sku "pro-sku"'
             ),
         }
-        m_request_url.side_effect = exceptions.ContractAPIError(
-            exceptions.UrlError("test", 400),
-            error_response=error_response,
+        m_request_url.return_value = http.HTTPResponse(
+            code=400,
+            headers={},
+            body="",
+            json_dict=error_response,
+            json_list=[],
         )
 
         with pytest.raises(exceptions.InvalidProImage) as exc_error:

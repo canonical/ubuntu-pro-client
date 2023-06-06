@@ -118,7 +118,6 @@ class UASecurityClient(serviceclient.UAServiceClient):
 
     url_timeout = 20
     cfg_url_base_attr = "security_url"
-    api_error_cls = exceptions.SecurityAPIError
 
     def _get_query_params(
         self, query_params: Dict[str, Any]
@@ -175,20 +174,27 @@ class UASecurityClient(serviceclient.UAServiceClient):
             "version": version,
             "status": status,
         }
-        cves_response, _headers = self.request_url(
-            API_V1_CVES, query_params=query_params
-        )
-        return [CVE(client=self, response=cve_md) for cve_md in cves_response]
+        response = self.request_url(API_V1_CVES, query_params=query_params)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                API_V1_CVES, response.code, response.body
+            )
+        return [
+            CVE(client=self, response=cve_md) for cve_md in response.json_list
+        ]
 
     def get_cve(self, cve_id: str) -> "CVE":
         """Query to match single-CVE.
 
         @return: CVE instance for JSON response from the Security API.
         """
-        cve_response, _headers = self.request_url(
-            API_V1_CVE_TMPL.format(cve=cve_id)
-        )
-        return CVE(client=self, response=cve_response)
+        url = API_V1_CVE_TMPL.format(cve=cve_id)
+        response = self.request_url(url)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url, response.code, response.body
+            )
+        return CVE(client=self, response=response.json_dict)
 
     def get_notices(
         self,
@@ -209,13 +215,15 @@ class UASecurityClient(serviceclient.UAServiceClient):
             "offset": offset,
             "order": order,
         }
-        usns_response, _headers = self.request_url(
-            API_V1_NOTICES, query_params=query_params
-        )
+        response = self.request_url(API_V1_NOTICES, query_params=query_params)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                API_V1_NOTICES, response.code, response.body
+            )
         return sorted(
             [
                 USN(client=self, response=usn_md)
-                for usn_md in usns_response.get("notices", [])
+                for usn_md in response.json_dict.get("notices", [])
                 if details is None or details in usn_md.get("cves_ids", [])
             ],
             key=lambda x: x.id,
@@ -226,10 +234,13 @@ class UASecurityClient(serviceclient.UAServiceClient):
 
         @return: USN instance representing the JSON response.
         """
-        notice_response, _headers = self.request_url(
-            API_V1_NOTICE_TMPL.format(notice=notice_id)
-        )
-        return USN(client=self, response=notice_response)
+        url = API_V1_NOTICE_TMPL.format(notice=notice_id)
+        response = self.request_url(url)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url, response.code, response.body
+            )
+        return USN(client=self, response=response.json_dict)
 
 
 # Model for Security API responses
