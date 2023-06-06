@@ -22,6 +22,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         Then stdout matches regexp:
         """
         SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        anbox-cloud   +yes      +n/a      +.*
         cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         cis           +yes      +n/a      +Security compliance and audit tools
         esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
