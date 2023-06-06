@@ -167,7 +167,7 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://user:pwd@fakerepo/pool/",
                 expected_path,
             ],
             timeout=60,
@@ -239,7 +239,7 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://user:pwd@fakerepo/pool/",
                 expected_path,
             ],
             timeout=60,
@@ -282,7 +282,7 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://user:pwd@fakerepo/pool/",
                 expected_path,
             ],
             timeout=APT_HELPER_TIMEOUT,
@@ -324,8 +324,8 @@ class TestAddAuthAptRepo:
         )
 
         expected_content = (
-            "deb http://fakerepo/ubuntu xenial main\n"
-            "# deb-src http://fakerepo/ubuntu xenial main\n"
+            "deb http://fakerepo xenial main\n"
+            "# deb-src http://fakerepo xenial main\n"
         )
         assert expected_content == system.load_file(repo_file)
         src_keyfile = os.path.join(KEYRINGS_DIR, "keyring")
@@ -357,7 +357,7 @@ class TestAddAuthAptRepo:
         # apt policy with xenial-updates enabled
         stdout = dedent(
             """\
-            500 http://archive.ubuntu.com/ubuntu/ xenial-updates/main amd64 \
+            500 http://archive.ubuntu.com/ xenial-updates/main amd64 \
                         Packages
                 release v=16.04,o=Ubuntu,a=xenial-updates,n=xenial,l=Ubuntu\
                         ,c=main"""
@@ -374,10 +374,10 @@ class TestAddAuthAptRepo:
 
         expected_content = dedent(
             """\
-            deb http://fakerepo/ubuntu xenial-one main
-            # deb-src http://fakerepo/ubuntu xenial-one main
-            deb http://fakerepo/ubuntu xenial-updates main
-            # deb-src http://fakerepo/ubuntu xenial-updates main
+            deb http://fakerepo xenial-one main
+            # deb-src http://fakerepo xenial-one main
+            deb http://fakerepo xenial-updates main
+            # deb-src http://fakerepo xenial-updates main
         """
         )
         assert expected_content == system.load_file(repo_file)
@@ -420,10 +420,10 @@ class TestAddAuthAptRepo:
 
         expected_content = dedent(
             """\
-            deb http://fakerepo/ubuntu xenial-one main
-            # deb-src http://fakerepo/ubuntu xenial-one main
-            # deb http://fakerepo/ubuntu xenial-updates main
-            # deb-src http://fakerepo/ubuntu xenial-updates main
+            deb http://fakerepo xenial-one main
+            # deb-src http://fakerepo xenial-one main
+            # deb http://fakerepo xenial-updates main
+            # deb-src http://fakerepo xenial-updates main
         """
         )
         assert expected_content == system.load_file(repo_file)

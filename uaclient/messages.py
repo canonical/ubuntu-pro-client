@@ -777,7 +777,7 @@ LIVEPATCH_NOT_ENABLED = NamedMessage(
 )
 
 SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
-    "livepatch-error-install-on-container",
+    "service-error-install-on-container",
     "Cannot install {title} on a container.",
 )
 
@@ -1372,4 +1372,15 @@ SNAP_REVISION_NOT_SUPPORTED = FormattedNamedMessage(
     """\
 The installed version of {snap} is not supported.
 Upgrading it to the latest available version.""",
+)
+
+ANBOX_RUN_INIT_CMD = NamedMessage(
+    "anbox-run-init-cmd",
+    """\
+Please run:
+
+$ sudo anbox-cloud-appliance init
+
+To finish setting up the anbox-cloud service.
+""",
 )

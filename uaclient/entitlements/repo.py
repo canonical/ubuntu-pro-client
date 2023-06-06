@@ -25,6 +25,7 @@ class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
+    repo_url_tmpl = "{}/ubuntu"
 
     # The repo Origin value for setting pinning
     origin = None  # type: Optional[str]
@@ -120,7 +121,7 @@ class RepoEntitlement(base.UAEntitlement):
         policy = apt.get_apt_cache_policy(
             error_msg=messages.APT_POLICY_FAILED.msg
         )
-        match = re.search(r"{}/ubuntu".format(repo_url), policy)
+        match = re.search(self.repo_url_tmpl.format(repo_url), policy)
         if match:
             current_status = (
                 ApplicationStatus.ENABLED,
@@ -391,7 +392,11 @@ class RepoEntitlement(base.UAEntitlement):
                 self.remove_apt_config()
                 raise
         apt.add_auth_apt_repo(
-            repo_filename, repo_url, token, repo_suites, self.repo_key_file
+            repo_filename,
+            self.repo_url_tmpl.format(repo_url),
+            token,
+            repo_suites,
+            self.repo_key_file,
         )
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.

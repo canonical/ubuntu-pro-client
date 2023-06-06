@@ -846,7 +846,7 @@ class TestStatus:
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
-            expected_status_calls = 11 if variants_in_contract else 8
+            expected_status_calls = 12 if variants_in_contract else 9
             assert expected == status.status(cfg=cfg, show_all=show_all)
             assert expected_status_calls == m_repo_uf_status.call_count
             assert 1 == m_livepatch_uf_status.call_count

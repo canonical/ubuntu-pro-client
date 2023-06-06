@@ -371,7 +371,7 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
-@mock.patch(M_PATH + "snap.is_installed")
+@mock.patch(M_PATH + "snap.is_snapd_installed")
 @mock.patch("uaclient.http.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
@@ -440,7 +440,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         capsys,
         caplog_text,
         event,
@@ -450,7 +450,7 @@ class TestLivepatchEntitlementEnable:
         """Install snapd and canonical-livepatch snap when not on system."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
-        m_is_installed.return_value = False
+        m_is_snapd_installed.return_value = False
 
         def fake_run_apt_update():
             if apt_update_success:
@@ -508,7 +508,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         capsys,
         event,
         entitlement,
@@ -516,7 +516,7 @@ class TestLivepatchEntitlementEnable:
         """Install canonical-livepatch snap when not present on the system."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
-        m_is_installed.return_value = True
+        m_is_snapd_installed.return_value = True
 
         assert entitlement.enable()
         assert (
@@ -557,13 +557,13 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         capsys,
         entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
         m_app_status.return_value = ApplicationStatus.ENABLED, "enabled"
-        m_is_installed.return_value = False
+        m_is_snapd_installed.return_value = False
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             entitlement.enable()
@@ -598,7 +598,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         capsys,
         event,
         entitlement,
@@ -606,7 +606,7 @@ class TestLivepatchEntitlementEnable:
         """Do not attempt to install livepatch snap when it is present."""
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
-        m_is_installed.return_value = True
+        m_is_snapd_installed.return_value = True
 
         assert entitlement.enable()
         subp_calls = [
@@ -654,13 +654,13 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         capsys,
         entitlement,
     ):
         """Do not attempt to disable livepatch snap when it is inactive."""
         m_app_status.return_value = ApplicationStatus.DISABLED, "nope"
-        m_is_installed.return_value = True
+        m_is_snapd_installed.return_value = True
 
         assert entitlement.enable()
         subp_no_livepatch_disable = [
@@ -698,7 +698,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        _m_is_installed,
+        _m_is_snapd_installed,
         cls_name,
         cls_title,
         entitlement,
@@ -734,14 +734,14 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         entitlement,
         capsys,
         caplog_text,
         event,
     ):
         m_which.side_effect = ["/path/to/exe", None]
-        m_is_installed.return_value = True
+        m_is_snapd_installed.return_value = True
 
         stderr_msg = (
             "error: Unknown command `wait'. Please specify one command of: "
@@ -796,7 +796,7 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        _m_is_installed,
+        _m_is_snapd_installed,
         entitlement,
     ):
         m_which.side_effect = [False, True]
@@ -832,11 +832,11 @@ class TestLivepatchEntitlementEnable:
         m_livepatch_proxy,
         m_snap_proxy,
         m_validate_proxy,
-        m_is_installed,
+        m_is_snapd_installed,
         entitlement,
     ):
         m_which.side_effect = [None, "/path/to/exe"]
-        m_is_installed.return_value = True
+        m_is_snapd_installed.return_value = True
         stderr_msg = "test error"
 
         # No side effect when trying to install snapd,

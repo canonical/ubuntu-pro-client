@@ -88,7 +88,7 @@ class TestCISEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cis.list",
-                "http://CIS",
+                "http://CIS/ubuntu",
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
