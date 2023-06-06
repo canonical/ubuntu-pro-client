@@ -523,7 +523,7 @@ class TestRepoEnable:
         add_apt_calls = [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-repotest.list",
-                "http://REPOTEST",
+                "http://REPOTEST/ubuntu",
                 "repotest-token",
                 ["xenial"],
                 entitlement.repo_key_file,

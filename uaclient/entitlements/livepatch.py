@@ -88,7 +88,7 @@ class LivepatchEntitlement(UAEntitlement):
             event.info("Installing snapd")
             snap.install_snapd()
 
-        elif not snap.is_installed():
+        elif not snap.is_snapd_installed():
             raise exceptions.SnapdNotProperlyInstalledError(
                 snap_cmd=snap.SNAP_CMD, service=self.title
             )

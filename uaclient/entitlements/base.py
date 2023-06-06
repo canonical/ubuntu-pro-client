@@ -10,8 +10,8 @@ from uaclient import (
     config,
     contract,
     event_logger,
-    http,
     exceptions,
+    http,
     messages,
     snap,
     system,
@@ -459,8 +459,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         # handles the additionalPackages and APT directives
         # to the base class. The additionalSnaps handling
         # is a step on that direction
-        if not self.handle_additional_snaps():
-            return False, None
+        if not self.access_only:
+            if not self.handle_required_snaps():
+                return False, None
 
         ret = self._perform_enable(silent=silent)
         if not ret:
@@ -472,24 +473,23 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True, None
 
-    def handle_additional_snaps(self) -> bool:
+    def handle_required_snaps(self) -> bool:
         """ "install snaps necessary to enable a service."""
-        additional_snaps = (
+        required_snaps = (
             self.entitlement_cfg.get("entitlement", {})
             .get("directives", {})
-            .get("additionalSnaps")
+            .get("requiredSnaps")
         )
 
         # If we don't have the directive, there is nothing
         # to process here
-        if additional_snaps is None:
+        if required_snaps is None:
             return True
 
         if not system.which(snap.SNAP_CMD):
             event.info("Installing snapd")
             snap.install_snapd()
-
-        elif not snap.is_installed():
+        elif not snap.is_snapd_installed():
             raise exceptions.SnapdNotProperlyInstalledError(
                 snap_cmd=snap.SNAP_CMD, service=self.title
             )
@@ -508,7 +508,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
 
-        for snap_pkg in additional_snaps:
+        for snap_pkg in required_snaps:
             # The name field should always be delivered by the contract side
             snap_name = snap_pkg["name"]
             try:

@@ -88,7 +88,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                 [
                     "/usr/lib/apt/apt-helper",
                     "download-file",
-                    "{}://{}:{}@{}/ubuntu/pool/".format(
+                    "{}://{}:{}@{}/pool/".format(
                         protocol, username, password, repo_path
                     ),
                     os.path.join(tmpd, "apt-helper-output"),
@@ -424,8 +424,8 @@ def add_auth_apt_repo(
             )
             maybe_comment = "# "
         content += (
-            "{maybe_comment}deb {url}/ubuntu {suite} main\n"
-            "# deb-src {url}/ubuntu {suite} main\n".format(
+            "{maybe_comment}deb {url} {suite} main\n"
+            "# deb-src {url} {suite} main\n".format(
                 maybe_comment=maybe_comment, url=repo_url, suite=suite
             )
         )

@@ -5,6 +5,7 @@ from typing import Dict, List, Type  # noqa: F401
 from uaclient import messages
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
+from uaclient.entitlements.anbox import AnboxEntitlement
 from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
@@ -16,6 +17,7 @@ from uaclient.exceptions import EntitlementNotFoundError
 from uaclient.util import is_config_value_true
 
 ENTITLEMENT_CLASSES = [
+    AnboxEntitlement,
     CommonCriteriaEntitlement,
     CISEntitlement,
     ESMAppsEntitlement,

@@ -233,3 +233,35 @@ user_config_file = DataObjectFile(
 
 
 reboot_cmd_marker_file = UAFile("marker-reboot-cmds-required")
+
+
+class AnboxCloudData(DataObject):
+    fields = [
+        Field("anbox_images_url", StringDataValue),
+        Field("anbox_images_resource_token", StringDataValue),
+        Field("anbox_cloud_apt_token", StringDataValue),
+        Field("anbox_cloud_apt_url", StringDataValue),
+    ]
+
+    def __init__(
+        self,
+        anbox_images_url: str,
+        anbox_images_resource_token: str,
+        anbox_cloud_apt_token: str,
+        anbox_cloud_apt_url: str,
+    ):
+        self.anbox_images_url = anbox_images_url
+        self.anbox_images_resource_token = anbox_images_resource_token
+        self.anbox_cloud_apt_token = anbox_cloud_apt_token
+        self.anbox_cloud_apt_url = anbox_cloud_apt_url
+
+
+anbox_cloud_credentials_file = DataObjectFile(
+    AnboxCloudData,
+    UAFile(
+        "anbox-cloud-credentials",
+        defaults.DEFAULT_PRIVATE_DATA_DIR,
+        private=True,
+    ),
+    DataObjectFileFormat.JSON,
+)
