@@ -73,7 +73,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     name = "esm-apps"
     title = "Ubuntu Pro: ESM Apps"
     description = "Expanded Security Maintenance for Applications"
-    repo_key_file = "ubuntu-advantage-esm-apps.gpg"
+    repo_key_file = "ubuntu-pro-esm-apps.gpg"
 
     def disable(
         self, silent=False
@@ -93,7 +93,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESM"
     title = "Ubuntu Pro: ESM Infra"
     description = "Expanded Security Maintenance for Infrastructure"
-    repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    repo_key_file = "ubuntu-pro-esm-infra.gpg"
 
     def disable(
         self, silent=False

@@ -16,8 +16,11 @@ fi
 
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 
-ESM_INFRA_KEY_TRUSTY="ubuntu-advantage-esm-infra-trusty.gpg"
-ESM_APPS_KEY="ubuntu-advantage-esm-apps.gpg"
+# ubuntu-advantage-* GPG keys renamed to ubuntu-pro-* in version 29
+OLD_ESM_INFRA_KEY_TRUSTY="ubuntu-advantage-esm-infra-trusty.gpg"
+OLD_ESM_APPS_KEY="ubuntu-advantage-esm-apps.gpg"
+ESM_INFRA_KEY="ubuntu-pro-esm-infra.gpg"
+ESM_APPS_KEY="ubuntu-pro-esm-apps.gpg"
 
 APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
@@ -132,7 +135,8 @@ if status:
 esm_infra_cleanup() {
     if ! check_service_is_enabled esm-infra; then
         rm -f "$APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg"  # Remove previous esm keys
-        rm -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY"
+        rm -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_INFRA_KEY_TRUSTY"
+        rm -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY"
         rm -f "$ESM_INFRA_APT_SOURCE_FILE"
         rm -f "$ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY"
         rm -f "$ESM_APT_PREF_FILE_TRUSTY" "$ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY"
@@ -143,6 +147,7 @@ esm_infra_cleanup() {
 
 esm_apps_cleanup() {
     if ! check_service_is_enabled esm-apps; then
+        rm -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_APPS_KEY"
         rm -f "$APT_TRUSTED_KEY_DIR/$ESM_APPS_KEY"
         rm -f "$ESM_APPS_APT_SOURCE_FILE"
         rm -f "$ESM_APPS_APT_PREF_FILE"
@@ -359,6 +364,37 @@ migrate_user_config_post() {
     fi
 }
 
+rename_gpg_keys() {
+    # esm-infra
+    if [ -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_INFRA_KEY_TRUSTY" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/$OLD_ESM_INFRA_KEY_TRUSTY" "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY"
+    fi
+    # esm-apps
+    if [ -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_APPS_KEY" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/$OLD_ESM_APPS_KEY" "$APT_TRUSTED_KEY_DIR/$ESM_APPS_KEY"
+    fi
+    # cc-eal
+    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cc-eal.gpg" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cc-eal.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-cc-eal.gpg"
+    fi
+    # cis (and usg)
+    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cis.gpg" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cis.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-cis.gpg"
+    fi
+    # fips (+updates)
+    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-fips.gpg" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-fips.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-fips.gpg"
+    fi
+    # ros (+updates)
+    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-ros.gpg" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-ros.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-ros.gpg"
+    fi
+    # realtime-kernel
+    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-realtime-kernel.gpg" ]; then
+        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-realtime-kernel.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-realtime-kernel.gpg"
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -450,6 +486,11 @@ case "$1" in
           cleanup_old_motd_files
           migrate_old_notices
           migrate_user_config_post
+      fi
+
+      # Rename the gpg keys to -pro-
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "29~"; then
+          rename_gpg_keys
       fi
 
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then

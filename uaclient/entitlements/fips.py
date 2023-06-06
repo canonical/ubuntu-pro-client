@@ -83,7 +83,7 @@ FIPS_CONTAINER_CONDITIONAL_PACKAGES = {
 class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
-    repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
+    repo_key_file = "ubuntu-pro-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
 
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS

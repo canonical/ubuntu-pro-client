@@ -15,7 +15,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     name = "cc-eal"
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
-    repo_key_file = "ubuntu-advantage-cc-eal.gpg"
+    repo_key_file = "ubuntu-pro-cc-eal.gpg"
     apt_noninteractive = True
     supports_access_only = True
 
