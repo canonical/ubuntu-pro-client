@@ -20,7 +20,7 @@ remove_logs(){
 }
 
 remove_gpg_files(){
-    rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-*.gpg
+    rm -f /etc/apt/trusted.gpg.d/ubuntu-pro-*.gpg
 }
 
 case "$1" in

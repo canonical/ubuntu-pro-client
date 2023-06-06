@@ -43,10 +43,10 @@ class TestExportGPGKey:
     def test_export_single_key_from_keyring_dir(self, home_dir, tmpdir, _subp):
         """Only a single key is exported from a multi-key source keyring."""
         source_key1 = tmpdir.join(
-            "ubuntu-advantage-esm-{}.gpg".format(data.GPG_KEY1_ID)
+            "ubuntu-pro-esm-{}.gpg".format(data.GPG_KEY1_ID)
         )
         source_key2 = tmpdir.join(
-            "ubuntu-advantage-cc-eal-{}.gpg".format(data.GPG_KEY2_ID)
+            "ubuntu-pro-cc-eal-{}.gpg".format(data.GPG_KEY2_ID)
         )
         destination_keyfile = tmpdir.join("destination_key").strpath
         # Create keyring with both ESM and CC-EAL2 keys
