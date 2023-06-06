@@ -296,3 +296,10 @@ class MachineTokenFile:
                 .get("id")
             )
         return None
+
+    @property
+    def resource_tokens(self):
+        if self.machine_token:
+            return self.machine_token.get("resourceTokens", [])
+
+        return None
