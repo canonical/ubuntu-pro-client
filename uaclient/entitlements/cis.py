@@ -12,7 +12,7 @@ class CISEntitlement(repo.RepoEntitlement):
     help_doc_url = USG_DOCS_URL
     name = "cis"
     description = "Security compliance and audit tools"
-    repo_key_file = "ubuntu-advantage-cis.gpg"
+    repo_key_file = "ubuntu-pro-cis.gpg"
     apt_noninteractive = True
     supports_access_only = True
 

@@ -6,7 +6,7 @@ from uaclient.entitlements.base import UAEntitlement
 
 class ROSCommonEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/robotics/ros-esm"
-    repo_key_file = "ubuntu-advantage-ros.gpg"
+    repo_key_file = "ubuntu-pro-ros.gpg"
 
 
 class ROSEntitlement(ROSCommonEntitlement):

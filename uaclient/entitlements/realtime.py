@@ -19,7 +19,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     title = "Real-time kernel"
     description = "Ubuntu kernel with PREEMPT_RT patches integrated"
     help_doc_url = REALTIME_KERNEL_DOCS_URL
-    repo_key_file = "ubuntu-advantage-realtime-kernel.gpg"
+    repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True
     supports_access_only = True
 

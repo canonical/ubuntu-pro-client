@@ -110,7 +110,7 @@ class TestFIPSEntitlementDefaults:
 
     def test_default_repo_key_file(self, entitlement):
         """GPG keyring file is the same for both FIPS and FIPS with Updates"""
-        assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
+        assert entitlement.repo_key_file == "ubuntu-pro-fips.gpg"
 
     def test_default_repo_pinning(self, entitlement):
         """FIPS and FIPS with Updates repositories are pinned."""
