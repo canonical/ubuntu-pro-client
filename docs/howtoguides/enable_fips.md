@@ -24,6 +24,12 @@ this operation makes changes to underlying SSL-related libraries and requires a
 reboot into the FIPS-certified kernel.
 ```
 
+```{important}
+Once you enable FIPS, enabling some Pro services will not be possible.
+For a better view of which services are incompatible with FIPS, please
+look at the [services incompatibility matrix](../references/incompatibility_matrix.md)
+```
+
 To enable FIPS, run:
 
 ```console
@@ -38,3 +44,4 @@ Installing FIPS packages
 FIPS enabled
 A reboot is required to complete install.
 ```
+
