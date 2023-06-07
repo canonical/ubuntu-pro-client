@@ -35,6 +35,12 @@ realtime-kernel  yes       disabled  Ubuntu kernel with PREEMPT_RT patches integ
 
 ## How to enable Livepatch
 
+```{important}
+Once you enable Livepatch, enabling some Pro services will not be possible until
+Livepatch is disabled. For a better view of which services are incompatible with
+Livepatch, please look at the [services incompatibility matrix](../references/incompatibility_matrix.md)
+```
+
 If Livepatch is disabled and you want to enable it, run the following command:
 
 ```console
