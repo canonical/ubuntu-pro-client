@@ -16,3 +16,4 @@ Reference
     Network requirements <references/network_requirements.md>
     Personal Package Archives (PPAs) <references/ppas.md>
     Support matrix <references/support_matrix.md>
+    Incompatibility matrix <references/incompatibility_matrix.md>
