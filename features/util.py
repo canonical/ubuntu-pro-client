@@ -219,14 +219,13 @@ def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
         shutil.rmtree(SBUILD_DIR)
     os.makedirs(SBUILD_DIR)
 
-    curr_dir = os.getcwd()
-    os.chdir(SBUILD_DIR)
-
     sbuild_cmd = [
         "sbuild",
         "--no-run-lintian",
         "--resolve-alternatives",
         "--no-clean-source",
+        "--build-dir",
+        SBUILD_DIR,
         "--arch",
         "amd64",
         "-d",
@@ -259,7 +258,6 @@ def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
         check=True,
     )
     logging.info("--- Successfully ran sbuild")
-    os.chdir(curr_dir)
 
     for f in os.listdir(SBUILD_DIR):
         if f.endswith(".deb"):
