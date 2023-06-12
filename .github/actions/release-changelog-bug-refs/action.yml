@@ -1,0 +1,9 @@
+name: 'Ensure Release Changelog has Bug References'
+description: "Block releases if bug references in commits aren't in the proposed changelog entry"
+inputs:
+  repo-token:
+    description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
+runs:
+  using: 'node16'
+  main: 'index.js'
