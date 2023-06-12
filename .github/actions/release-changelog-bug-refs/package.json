@@ -1,0 +1,10 @@
+{
+  "name": "release-changelog-bug-refs",
+  "version": "1.0.0",
+  "description": "Block releases if bug references in commits aren't in the proposed changelog entry",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  }
+}
