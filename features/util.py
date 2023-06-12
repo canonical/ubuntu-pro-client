@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from enum import Enum
 from typing import Callable, Iterable, List, Optional
@@ -148,7 +149,11 @@ def repo_state_hash(
     return hashlib.md5(output_to_hash).hexdigest()
 
 
-def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
+def build_debs(
+    series: str,
+    chroot: Optional[str] = None,
+    sbuild_output_to_terminal: bool = False,
+) -> List[str]:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
@@ -250,11 +255,14 @@ def build_debs(series: str, chroot: Optional[str] = None) -> List[str]:
     env["DEB_BUILD_OPTIONS"] = env.get("DEB_BUILD_OPTIONS", "") + " nocheck"
 
     logging.info('--- Running "{}"'.format(" ".join(sbuild_cmd)))
+    sbuild_out = subprocess.DEVNULL  # type: Optional[int]
+    if sbuild_output_to_terminal:
+        sbuild_out = sys.stderr.fileno()
     subprocess.run(
         sbuild_cmd,
         env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=sbuild_out,
+        stderr=sbuild_out,
         check=True,
     )
     logging.info("--- Successfully ran sbuild")
