@@ -79,6 +79,7 @@ class UAClientBehaveConfig:
         "destroy_instances",
         "ephemeral_instance",
         "snapshot_strategy",
+        "sbuild_output_to_terminal",
     ]
     str_options = [
         "cloud_credentials_path",
@@ -115,6 +116,7 @@ class UAClientBehaveConfig:
         destroy_instances: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
+        sbuild_output_to_terminal: bool = False,
         machine_type: str = "lxd-container",
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
@@ -135,6 +137,7 @@ class UAClientBehaveConfig:
         self.cloud_credentials_path = cloud_credentials_path
         self.ephemeral_instance = ephemeral_instance
         self.snapshot_strategy = snapshot_strategy
+        self.sbuild_output_to_terminal = sbuild_output_to_terminal
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
