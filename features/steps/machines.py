@@ -136,7 +136,10 @@ def given_a_sut_machine(context, series, machine_type=None):
         # build right away, this will cache the built debs for later use
         # building early means we catch build errors before investing in
         # launching instances
-        build_debs(series)
+        build_debs(
+            series,
+            sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
+        )
 
     if context.pro_config.snapshot_strategy:
         if "builder" not in context.snapshots:
