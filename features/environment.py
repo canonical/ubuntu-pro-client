@@ -524,9 +524,11 @@ def after_all(context):
 
     if context.pro_config.destroy_instances:
         try:
-            key_pair = context.pro_config.default_cloud.api.key_pair
-            os.remove(key_pair.private_key_path)
-            os.remove(key_pair.public_key_path)
+            if context.pro_config.default_cloud._ssh_key_managed:
+                key_pair = context.pro_config.default_cloud.api.key_pair
+                os.remove(key_pair.private_key_path)
+                os.remove(key_pair.public_key_path)
+
         except Exception as e:
             logging.error(
                 "Failed to delete instance ssh keys:\n{}".format(str(e))
