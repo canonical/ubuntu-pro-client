@@ -40,7 +40,10 @@ def when_i_install_uat(context, machine_name=SUT):
                 )
                 instance.execute("sudo rm /tmp/behave_ua.deb")
     elif context.pro_config.install_from is InstallationSource.LOCAL:
-        ua_deb_path, pro_deb_path = build_debs(series)
+        ua_deb_path, pro_deb_path = build_debs(
+            series,
+            sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
+        )
         instance.push_file(ua_deb_path, "/tmp/behave_ua.deb")
         when_i_apt_install(
             context, "/tmp/behave_ua.deb", machine_name=machine_name
@@ -144,7 +147,10 @@ def when_i_install_uat(context, machine_name=SUT):
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
     if context.pro_config.install_from is InstallationSource.LOCAL:
-        deb_paths = build_debs(series)
+        deb_paths = build_debs(
+            series,
+            sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
+        )
 
         for deb_path in deb_paths:
             tools_or_pro = "tools" if "tools" in deb_path else "pro"
@@ -234,7 +240,10 @@ def create_local_ppa(context, release):
         "with sudo",
         machine_name="ppa",
     )
-    debs = build_debs(release)
+    debs = build_debs(
+        release,
+        sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,
+    )
     for deb in debs:
         deb_destination = "/tmp/" + deb.split("/")[-1]
         context.machines["ppa"].instance.push_file(deb, deb_destination)
@@ -256,7 +265,10 @@ def create_local_ppa(context, release):
 def when_i_install_pro(context, machine_name=SUT):
     if context.pro_config.install_from is InstallationSource.LOCAL:
         series = context.machines[machine_name].series
-        deb_paths = build_debs(series)
+        deb_paths = build_debs(
+            series,
+            sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
+        )
 
         for deb_path in deb_paths:
             if "pro" in deb_path:
