@@ -16,3 +16,4 @@ window.onLabelClick = function() {
         left: document.documentElement.scrollLeft,
         behavior: "instant",
     });
+}
