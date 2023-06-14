@@ -27,7 +27,7 @@ reboot into the FIPS-certified kernel.
 ```{important}
 Once you enable FIPS, enabling some Pro services will not be possible.
 For a better view of which services are incompatible with FIPS, please
-look at the [services incompatibility matrix](../references/incompatibility_matrix.md)
+look at the [services compatibility matrix](../references/compatibility_matrix.md)
 ```
 
 To enable FIPS, run:
