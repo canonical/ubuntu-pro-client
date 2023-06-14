@@ -9,8 +9,8 @@ https://ubuntu.com/realtime-kernel
 
 ```{important}
 Once you enable Real-time kernel, enabling some Pro services will not be possible.
-For a better view of which services are incompatible with
-Real-time kernel, please look at the [services incompatibility matrix](../references/incompatibility_matrix.md)
+For a better view of which services are compatible with
+Real-time kernel, please look at the [services compatibility matrix](../references/compatibility_matrix.md)
 ```
 
 To `enable` Real-time kernel through the Ubuntu Pro Client, please run:
