@@ -206,8 +206,6 @@ This endpoint shows the installed Pro Client version.
               "installed_version":"<version>"
            }
 
-.. _uproattachmagicinitiatev1:
-
 u.pro.attach.magic.initiate.v1
 ==============================
 
@@ -283,8 +281,6 @@ confirm the operation and the Token used to proceed.
               "expires": "<yyyy-MM-dd>T<HH:mm:ss>.<TZ>",
               "expires_in": 600
            }
-
-.. _uproattachmagicwaitv1:
 
 u.pro.attach.magic.wait.v1
 ==========================
@@ -373,8 +369,6 @@ Magic Attach.
                "contract_token": "<attach_token>",
            }
 
-.. _uproattachmagicrevokev1:
-
 u.pro.attach.magic.revoke.v1
 ============================
 
@@ -433,8 +427,6 @@ This endpoint revokes a Magic Attach Token.
 
            {}
 
-.. _uproattachautoshould_auto_attachv1:
-
 u.pro.attach.auto.should_auto_attach.v1
 =======================================
 
@@ -492,8 +484,6 @@ This endpoint checks if a given system should run auto-attach on boot.
            {
                "should_auto_attach": false
            }
-
-.. _uproattachautofull_auto_attachv1:
 
 u.pro.attach.auto.full_auto_attach.v1
 =====================================
@@ -562,8 +552,6 @@ This endpoint runs the whole auto-attach process on the system.
         This endpoint currently has no CLI support. Only the Python-based
         version is available.
 
-.. _uproattachautoconfigure_retry_servicev1:
-
 u.pro.attach.auto.configure_retry_service.v1
 ============================================
 
@@ -623,8 +611,6 @@ like ``systemctl start ubuntu-advantage.service``.
 
         - This endpoint currently has no CLI support. Only the Python-based
           version is available.
-
-.. _uprosecuritystatuslivepatch_cvesv1:
 
 u.pro.security.status.livepatch_cves.v1
 =======================================
@@ -708,8 +694,6 @@ This endpoint lists Livepatch patches for the currently-running kernel.
              ], 
          }
 
-.. _uprosecuritystatusreboot_requiredv1:
-
 u.pro.security.status.reboot_required.v1
 ========================================
 
@@ -775,8 +759,6 @@ are:
            {
                "reboot_required": "yes|no|yes-kernel-livepatches-applied"
            }
-
-.. _upropackagessummaryv1:
 
 u.pro.packages.summary.v1
 =========================
@@ -882,8 +864,6 @@ by origin.
                    "num_unknown_packages": 9,
                },
            }
-
-.. _upropackagesupdatesv1:
 
 u.pro.packages.updates.v1
 =========================
@@ -1014,8 +994,6 @@ where they can be obtained.
                ]
            }
 
-.. _uprostatusis_attachedv1:
-
 u.pro.status.is_attached.v1
 ===========================
 
@@ -1061,8 +1039,6 @@ This endpoint shows if the machine is attached to a Pro subscription.
         .. code-block:: bash
 
            pro api u.pro.status.is_attached.v1
-
-.. _uprostatusenabled_servicesv1:
 
 u.pro.status.enabled_services.v1
 ================================
@@ -1128,8 +1104,6 @@ This endpoint shows the Pro services that are enabled on the machine.
 
            pro api u.pro.status.enabled_services.v1
 
-.. _usecuritypackage_manifestv1:
-
 u.security.package_manifest.v1
 ==============================
 
@@ -1188,8 +1162,6 @@ formatted as a manifest file (i.e., ``package_name\tversion``).
            {
                "package_manifest":"package1\t1.0\npackage2\t2.3\n"
            }
-
-.. _uunattended_upgradesstatusv1:
 
 u.unattended_upgrades.status.v1
 ===============================
