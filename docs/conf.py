@@ -108,4 +108,5 @@ html_css_files = [
 ]
 html_js_files = [
     "js/github_issue_links.js",
+    "js/synced_tab_links.js",
 ]
