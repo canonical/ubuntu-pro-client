@@ -153,4 +153,4 @@ Feature: MOTD Messages
         Examples: ubuntu release
            | release | service   |
            | xenial  | esm-infra |
-           | bionic  | esm-apps  |
+           | bionic  | esm-infra |
