@@ -132,23 +132,21 @@ Available endpoints
 
 The currently available endpoints are:
 
-- :ref:`u.pro.version.v1<uproversionv1>`
-- :ref:`u.pro.attach.magic.initiate.v1<uproattachmagicinitiatev1>`
-- :ref:`u.pro.attach.magic.wait.v1<uproattachmagicwaitv1>`
-- :ref:`u.pro.attach.magic.revoke.v1<uproattachmagicrevokev1>`
-- :ref:`u.pro.attach.auto.should_auto_attach.v1<uproattachautoshould_auto_attachv1>`
-- :ref:`u.pro.attach.auto.full_auto_attach.v1<uproattachautofull_auto_attachv1>`
-- :ref:`u.pro.attach.auto.configure_retry_service.v1<uproattachautoconfigure_retry_servicev1>`
-- :ref:`u.pro.security.status.livepatch_cves.v1<uprosecuritystatuslivepatch_cvesv1>`
-- :ref:`u.pro.security.status.reboot_required.v1<uprosecuritystatusreboot_requiredv1>`
-- :ref:`u.pro.packages.summary.v1<upropackagessummaryv1>`
-- :ref:`u.pro.packages.updates.v1<upropackagesupdatesv1>`
-- :ref:`u.pro.status.is_attached.v1<uprostatusis_attachedv1>`
-- :ref:`u.pro.status.enabled_services.v1<uprostatusenabled_servicesv1>`
-- :ref:`u.security.package_manifest.v1<usecuritypackage_manifestv1>`
-- :ref:`u.unattended_upgrades.status.v1<uunattended_upgradesstatusv1>`
-
-.. _uproversionv1:
+- `u.pro.version.v1`_
+- `u.pro.attach.magic.initiate.v1`_
+- `u.pro.attach.magic.wait.v1`_
+- `u.pro.attach.magic.revoke.v1`_
+- `u.pro.attach.auto.should_auto_attach.v1`_
+- `u.pro.attach.auto.full_auto_attach.v1`_
+- `u.pro.attach.auto.configure_retry_service.v1`_
+- `u.pro.security.status.livepatch_cves.v1`_
+- `u.pro.security.status.reboot_required.v1`_
+- `u.pro.packages.summary.v1`_
+- `u.pro.packages.updates.v1`_
+- `u.pro.status.is_attached.v1`_
+- `u.pro.status.enabled_services.v1`_
+- `u.security.package_manifest.v1`_
+- `u.unattended_upgrades.status.v1`_
 
 u.pro.version.v1
 ================
