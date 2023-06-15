@@ -201,5 +201,5 @@ sudo pro status --format=json | jq '.services[] | select(.name == "esm-infra").s
 That command will print one of the `status` values defined above.
 
 ```{attention}
-In an future version of Ubuntu Pro Client, there will be an [API](../references/api.md) function to access this information. For now, though, `pro status --format=json` is the recommended machine-readable interface to this data.
+In an future version of Ubuntu Pro Client, there will be an [API](../references/api.rst) function to access this information. For now, though, `pro status --format=json` is the recommended machine-readable interface to this data.
 ```
