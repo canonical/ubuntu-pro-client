@@ -98,6 +98,7 @@ Feature: APT Messages
            | release | standard-pkg                                                          | infra-pkg                                            | apps-pkg     |
            | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
+    @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-infra on upgrade
@@ -116,7 +117,7 @@ Feature: APT Messages
         Calculating upgrade...
         The following security updates require Ubuntu Pro with 'esm-infra' enabled:
           ([-+.\w\s]*)
-        Learn more about Ubuntu Pro for 16\.04 at https:\/\/ubuntu\.com\/16-04
+        Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         When I run `apt-get upgrade` with sudo
@@ -151,10 +152,10 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
-          | release |
-          | xenial  |
+          | release | version |
+          | xenial  | 16      |
+          | bionic  | 18      |
 
-    @series.bionic
     @series.focal
     @series.jammy
     @uses.config.machine_type.lxd-container
