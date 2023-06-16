@@ -365,7 +365,7 @@ class TestFIPSEntitlementEnable:
                 + patched_packages,
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={"DEBIAN_FRONTEND": "noninteractive"},
+                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
             )
         )
 
@@ -383,7 +383,7 @@ class TestFIPSEntitlementEnable:
                     ],
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
-                    env={"DEBIAN_FRONTEND": "noninteractive"},
+                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
                 )
             )
 
@@ -392,13 +392,13 @@ class TestFIPSEntitlementEnable:
                 ["apt-mark", "showholds"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={},
+                override_env_vars=None,
             ),
             mock.call(
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={},
+                override_env_vars=None,
             ),
         ]
         subp_calls += install_cmd
@@ -851,7 +851,7 @@ class TestFIPSEntitlementRemovePackages:
             ],
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
-            env={"DEBIAN_FRONTEND": "noninteractive"},
+            override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
         )
         if "ubuntu-fips" in installed_pkgs:
             assert [remove_cmd] == m_subp.call_args_list
@@ -1121,7 +1121,7 @@ class TestFipsEntitlementInstallPackages:
                         '-o Dpkg::Options::="--force-confold"',
                     ],
                     error_msg="Could not enable {}.".format(entitlement.title),
-                    env={"DEBIAN_FRONTEND": "noninteractive"},
+                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
                 )
             )
 

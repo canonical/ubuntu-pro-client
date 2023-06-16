@@ -254,14 +254,14 @@ class RepoEntitlement(base.UAEntitlement):
             event.info("Installing {title} packages".format(title=self.title))
 
         if self.apt_noninteractive:
-            env = {"DEBIAN_FRONTEND": "noninteractive"}
+            override_env_vars = {"DEBIAN_FRONTEND": "noninteractive"}
             apt_options = [
                 "--allow-downgrades",
                 '-o Dpkg::Options::="--force-confdef"',
                 '-o Dpkg::Options::="--force-confold"',
             ]
         else:
-            env = {}
+            override_env_vars = None
             apt_options = []
 
         try:
@@ -270,7 +270,7 @@ class RepoEntitlement(base.UAEntitlement):
                 packages=package_list,
                 apt_options=apt_options,
                 error_msg=msg.msg,
-                env=env,
+                override_env_vars=override_env_vars,
             )
         except exceptions.UserFacingError:
             if cleanup_on_failure:

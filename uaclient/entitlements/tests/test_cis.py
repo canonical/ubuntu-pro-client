@@ -106,7 +106,7 @@ class TestCISEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={},
+                override_env_vars=None,
             ),
             mock.call(
                 [
@@ -120,7 +120,7 @@ class TestCISEntitlementEnable:
                 + entitlement.packages,
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={"DEBIAN_FRONTEND": "noninteractive"},
+                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
             ),
         ]
 
