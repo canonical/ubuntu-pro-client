@@ -11,7 +11,7 @@ class FakeContractClient(UAContractClient):
         contract="cid", machine="mid"
     )
 
-    def __init___(self, cfg, responses=None):
+    def __init__(self, cfg, responses=None):
         super().__init__(cfg)
         if responses:
             self._responses = responses

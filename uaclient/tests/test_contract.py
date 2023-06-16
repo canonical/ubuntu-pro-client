@@ -5,7 +5,8 @@ import socket
 import mock
 import pytest
 
-from uaclient import exceptions, http, messages, util
+from uaclient import exceptions, http, messages, system, util
+from uaclient.api.u.pro.status.is_attached.v1 import IsAttachedResult
 from uaclient.contract import (
     API_V1_AVAILABLE_RESOURCES,
     API_V1_GET_CONTRACT_USING_TOKEN,
@@ -19,8 +20,7 @@ from uaclient.contract import (
     process_entitlement_delta,
     refresh,
 )
-from uaclient.entitlements.base import UAEntitlement
-from uaclient.status import UserFacingStatus
+from uaclient.files.state_files import AttachmentData
 from uaclient.testing import helpers
 from uaclient.testing.fakes import FakeContractClient
 from uaclient.version import get_version
@@ -34,12 +34,15 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 class TestUAContractClient:
     @pytest.mark.parametrize(
         [
+            "machine_id",
             "request_url_side_effect",
+            "expected_machine_id",
             "expected_raises",
             "expected_result",
         ],
         [
             (
+                None,
                 [
                     http.HTTPResponse(
                         code=200,
@@ -49,10 +52,27 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                "get_machine_id",
                 helpers.does_not_raise(),
                 {"test": "value"},
             ),
             (
+                "arg_machine_id",
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                "arg_machine_id",
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                None,
                 [
                     http.HTTPResponse(
                         code=400,
@@ -62,10 +82,12 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                "get_machine_id",
                 pytest.raises(exceptions.ContractAPIError),
                 None,
             ),
             (
+                None,
                 [
                     http.HTTPResponse(
                         code=200,
@@ -75,37 +97,35 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                "get_machine_id",
                 helpers.does_not_raise(),
                 {"test": "value", "expires": "date"},
             ),
         ],
     )
     @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
-    @mock.patch("uaclient.contract.UAContractClient._get_platform_data")
     @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_update_contract_machine(
         self,
         m_headers,
-        m_get_platform_data,
         m_get_activity_info,
-        _m_get_machine_id,
+        m_get_machine_id,
         m_request_url,
+        machine_id,
         request_url_side_effect,
+        expected_machine_id,
         expected_raises,
         expected_result,
     ):
         m_headers.return_value = {"header": "headerval"}
-        m_get_platform_data.return_value = {
-            "platform": "data",
-            "machineId": "something",
-        }
         m_get_activity_info.return_value = mock.sentinel.activity_info
         m_request_url.side_effect = request_url_side_effect
+        m_get_machine_id.return_value = "get_machine_id"
 
         client = UAContractClient(mock.MagicMock())
         with expected_raises:
             result = client.update_contract_machine(
-                "mToken", "cId", mock.sentinel.machine_id
+                "mToken", "cId", machine_id
             )
 
         if expected_result:
@@ -113,22 +133,18 @@ class TestUAContractClient:
 
         assert [
             mock.call(
-                "/v1/contracts/cId/context/machines/something",
+                "/v1/contracts/cId/context/machines/" + expected_machine_id,
                 headers={
                     "header": "headerval",
                     "Authorization": "Bearer mToken",
                 },
                 method="POST",
                 data={
-                    "platform": "data",
-                    "machineId": "something",
+                    "machineId": expected_machine_id,
                     "activityInfo": mock.sentinel.activity_info,
                 },
             )
         ] == m_request_url.call_args_list
-        assert [
-            mock.call(mock.sentinel.machine_id)
-        ] == m_get_platform_data.call_args_list
 
     @pytest.mark.parametrize("machine_id_param", (("attach-machine-id")))
     @pytest.mark.parametrize(
@@ -140,10 +156,10 @@ class TestUAContractClient:
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.system.get_release_info")
-    @mock.patch.object(UAContractClient, "_get_platform_data")
+    @mock.patch.object(UAContractClient, "_get_activity_info")
     def test_get_contract_machine(
         self,
-        m_platform_data,
+        m_activity_info,
         get_release_info,
         get_machine_id,
         request_url,
@@ -158,34 +174,51 @@ class TestUAContractClient:
             machine_id = "machine-id" if not machine_id else machine_id
             return {"machineId": machine_id}
 
-        m_platform_data.side_effect = fake_platform_data
-        get_release_info.return_value = mock.MagicMock(
-            kernel="kernel",
-            series="series",
-        )
+        m_activity_info.return_value = {
+            "architecture": "a",
+            "series": "b",
+            "kernel": "c",
+            "virt": "d",
+            "distribution": "e",
+            "other": "f",
+        }
 
         get_machine_id.return_value = "machineId"
-        machine_token = {"machineTokenInfo": {}}
+        expected_machine_token = {"machineTokenInfo": {}}
         if machine_id_response:
-            machine_token["machineTokenInfo"][
+            expected_machine_token["machineTokenInfo"][
                 "machineId"
             ] = machine_id_response
         request_url.return_value = http.HTTPResponse(
             code=200,
             headers={},
             body="",
-            json_dict=machine_token,
+            json_dict=expected_machine_token,
             json_list=[],
         )
-        kwargs = {
-            "machine_token": "mToken",
-            "contract_id": "cId",
-            "machine_id": machine_id_param,
-        }
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
-        resp = client.get_contract_machine(**kwargs)
-        assert resp == machine_token
+
+        assert expected_machine_token == client.get_contract_machine(
+            machine_token="mToken",
+            contract_id="cId",
+            machine_id=machine_id_param,
+        )
+        assert [
+            mock.call(
+                "/v1/contracts/cId/context/machines/{}".format(
+                    machine_id_param if machine_id_param else "machineId"
+                ),
+                method="GET",
+                headers=mock.ANY,
+                query_params={
+                    "architecture": "a",
+                    "series": "b",
+                    "kernel": "c",
+                    "virt": "d",
+                },
+            )
+        ] == request_url.call_args_list
 
     def test_get_resource_machine_access(
         self, get_machine_id, request_url, FakeConfig
@@ -247,21 +280,18 @@ class TestUAContractClient:
             mock.call("/v1/contract", **params)
         ] == m_request_url.call_args_list
 
-    @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @pytest.mark.parametrize(
-        "enabled_services", (([]), (["esm-apps", "livepatch"]))
-    )
+    @mock.patch.object(UAContractClient, "_get_activity_info")
     def test_update_activity_token(
         self,
+        m_get_activity_info,
         get_machine_id,
         request_url,
-        activity_id,
-        enabled_services,
         FakeConfig,
     ):
         """POST machine activity report to the server."""
         machine_id = "machineId"
         get_machine_id.return_value = machine_id
+        m_get_activity_info.return_value = {"test": "test"}
         request_url.return_value = http.HTTPResponse(
             code=200,
             headers={},
@@ -276,28 +306,14 @@ class TestUAContractClient:
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
 
-        def entitlement_user_facing_status(self):
-            if self.name in enabled_services:
-                return (UserFacingStatus.ACTIVE, "")
-            return (UserFacingStatus.INACTIVE, "")
-
-        with mock.patch.object(
-            type(cfg.machine_token_file), "activity_id", activity_id
-        ):
-            with mock.patch.object(
-                UAEntitlement,
-                "user_facing_status",
-                new=entitlement_user_facing_status,
-            ):
-                with mock.patch(
-                    "uaclient.config.files.MachineTokenFile.write"
-                ) as m_write_file:
-                    client.update_activity_token()
+        with mock.patch(
+            "uaclient.config.files.MachineTokenFile.write"
+        ) as m_write_file:
+            client.update_activity_token()
 
         expected_write_calls = 1
         assert expected_write_calls == m_write_file.call_count
 
-        expected_activity_id = activity_id if activity_id else machine_id
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -305,11 +321,7 @@ class TestUAContractClient:
                 "content-type": "application/json",
                 "Authorization": "Bearer not-null",
             },
-            "data": {
-                "activityToken": None,
-                "activityID": expected_activity_id,
-                "resources": enabled_services,
-            },
+            "data": {"test": "test"},
         }
         assert [
             mock.call("/v1/contracts/cid/machine-activity/machineId", **params)
@@ -317,13 +329,16 @@ class TestUAContractClient:
 
     @pytest.mark.parametrize(
         [
+            "machine_id",
             "request_url_side_effect",
+            "expected_machine_id",
             "expected_create_attach_forbidden_message_call_args",
             "expected_raises",
             "expected_result",
         ],
         [
             (
+                None,
                 [
                     http.HTTPResponse(
                         code=200,
@@ -333,11 +348,29 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                mock.sentinel.get_machine_id,
                 [],
                 helpers.does_not_raise(),
                 {"test": "value"},
             ),
             (
+                mock.sentinel.arg_machine_id,
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                mock.sentinel.arg_machine_id,
+                [],
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                None,
                 [
                     http.HTTPResponse(
                         code=401,
@@ -347,11 +380,13 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                mock.sentinel.get_machine_id,
                 [],
                 pytest.raises(exceptions.AttachInvalidTokenError),
                 None,
             ),
             (
+                None,
                 [
                     http.HTTPResponse(
                         code=403,
@@ -361,11 +396,13 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                mock.sentinel.get_machine_id,
                 [mock.call(mock.ANY)],
                 pytest.raises(exceptions.UserFacingError),
                 None,
             ),
             (
+                None,
                 [
                     http.HTTPResponse(
                         code=400,
@@ -375,6 +412,7 @@ class TestUAContractClient:
                         json_dict={"test": "value"},
                     )
                 ],
+                mock.sentinel.get_machine_id,
                 [],
                 pytest.raises(exceptions.ContractAPIError),
                 None,
@@ -382,30 +420,37 @@ class TestUAContractClient:
         ],
     )
     @mock.patch("uaclient.contract._create_attach_forbidden_message")
-    @mock.patch("uaclient.contract.UAContractClient._get_platform_data")
+    @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
     @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_add_contract_machine(
         self,
         m_headers,
-        m_get_platform_data,
+        m_get_activity_info,
         m_create_attach_forbidden_message,
-        _m_get_machine_id,
+        m_get_machine_id,
         m_request_url,
+        machine_id,
         request_url_side_effect,
+        expected_machine_id,
         expected_create_attach_forbidden_message_call_args,
         expected_raises,
         expected_result,
     ):
         m_headers.return_value = {"header": "headerval"}
-        m_get_platform_data.return_value = {
-            "platform": "data",
+        m_get_activity_info.return_value = {
+            "activity": "info",
         }
         m_request_url.side_effect = request_url_side_effect
+        m_get_machine_id.return_value = mock.sentinel.get_machine_id
 
         client = UAContractClient(mock.MagicMock())
         with expected_raises:
             result = client.add_contract_machine(
-                "cToken", mock.sentinel.machine_id
+                "cToken",
+                attachment_dt=datetime.datetime(
+                    2000, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc
+                ),
+                machine_id=machine_id,
             )
 
         if expected_result:
@@ -419,13 +464,14 @@ class TestUAContractClient:
                     "Authorization": "Bearer cToken",
                 },
                 data={
-                    "platform": "data",
+                    "machineId": expected_machine_id,
+                    "activityInfo": {
+                        "activity": "info",
+                        "lastAttachment": "2000-01-02T03:04:05+00:00",
+                    },
                 },
             )
         ] == m_request_url.call_args_list
-        assert [
-            mock.call(mock.sentinel.machine_id)
-        ] == m_get_platform_data.call_args_list
         assert (
             expected_create_attach_forbidden_message_call_args
             == m_create_attach_forbidden_message.call_args_list
@@ -591,6 +637,217 @@ class TestUAContractClient:
 
         assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
         assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+
+    @pytest.mark.parametrize(
+        [
+            "release_info",
+            "kernel_info",
+            "dpkg_arch",
+            "is_desktop",
+            "virt_type",
+            "version",
+            "is_attached",
+            "enabled_services",
+            "attachment_data",
+            "activity_id",
+            "machine_id",
+            "activity_token",
+            "expected",
+        ],
+        [
+            (
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="",
+                    series="jammy",
+                    pretty_version="",
+                ),
+                system.KernelInfo(
+                    uname_machine_arch="",
+                    uname_release="kernel",
+                    build_date=None,
+                    proc_version_signature_version=None,
+                    major=None,
+                    minor=None,
+                    patch=None,
+                    abi=None,
+                    flavor=None,
+                ),
+                "amd64",
+                True,
+                "lxc",
+                "8001",
+                IsAttachedResult(is_attached=False),
+                None,
+                None,
+                None,
+                None,
+                None,
+                {
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel",
+                    "series": "jammy",
+                    "architecture": "amd64",
+                    "desktop": True,
+                    "virt": "lxc",
+                    "clientVersion": "8001",
+                },
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="",
+                    series="jammy",
+                    pretty_version="",
+                ),
+                system.KernelInfo(
+                    uname_machine_arch="",
+                    uname_release="kernel",
+                    build_date=None,
+                    proc_version_signature_version=None,
+                    major=None,
+                    minor=None,
+                    patch=None,
+                    abi=None,
+                    flavor=None,
+                ),
+                "amd64",
+                True,
+                "lxc",
+                "8001",
+                IsAttachedResult(is_attached=True),
+                mock.MagicMock(
+                    enabled_services=[helpers.mock_with_name_attr(name="one")]
+                ),
+                AttachmentData(
+                    attached_at=datetime.datetime(
+                        2000, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc
+                    )
+                ),
+                "activity_id",
+                "machine_id",
+                "activity_token",
+                {
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel",
+                    "series": "jammy",
+                    "architecture": "amd64",
+                    "desktop": True,
+                    "virt": "lxc",
+                    "clientVersion": "8001",
+                    "activityID": "activity_id",
+                    "activityToken": "activity_token",
+                    "resources": ["one"],
+                    "lastAttachment": "2000-01-02T03:04:05+00:00",
+                },
+            ),
+            (
+                system.ReleaseInfo(
+                    distribution="Ubuntu",
+                    release="",
+                    series="jammy",
+                    pretty_version="",
+                ),
+                system.KernelInfo(
+                    uname_machine_arch="",
+                    uname_release="kernel",
+                    build_date=None,
+                    proc_version_signature_version=None,
+                    major=None,
+                    minor=None,
+                    patch=None,
+                    abi=None,
+                    flavor=None,
+                ),
+                "amd64",
+                True,
+                "lxc",
+                "8001",
+                IsAttachedResult(is_attached=True),
+                mock.MagicMock(
+                    enabled_services=[helpers.mock_with_name_attr(name="one")]
+                ),
+                AttachmentData(
+                    attached_at=datetime.datetime(
+                        2000, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc
+                    )
+                ),
+                None,
+                "machine_id",
+                "activity_token",
+                {
+                    "distribution": "Ubuntu",
+                    "kernel": "kernel",
+                    "series": "jammy",
+                    "architecture": "amd64",
+                    "desktop": True,
+                    "virt": "lxc",
+                    "clientVersion": "8001",
+                    "activityID": "machine_id",
+                    "activityToken": "activity_token",
+                    "resources": ["one"],
+                    "lastAttachment": "2000-01-02T03:04:05+00:00",
+                },
+            ),
+        ],
+    )
+    @mock.patch("uaclient.contract.attachment_data_file.read")
+    @mock.patch("uaclient.contract._enabled_services")
+    @mock.patch("uaclient.contract._is_attached")
+    @mock.patch("uaclient.contract.version.get_version")
+    @mock.patch("uaclient.contract.system.get_virt_type")
+    @mock.patch("uaclient.contract.system.is_desktop")
+    @mock.patch("uaclient.contract.system.get_dpkg_arch")
+    @mock.patch("uaclient.contract.system.get_kernel_info")
+    @mock.patch("uaclient.contract.system.get_release_info")
+    def test_get_activity_info(
+        self,
+        m_get_release_info,
+        m_get_kernel_info,
+        m_get_dpkg_arch,
+        m_is_desktop,
+        m_get_virt_type,
+        m_get_version,
+        m_is_attached,
+        m_enabled_services,
+        m_attachment_data_file_read,
+        m_get_machine_id,
+        _m_request_url,
+        release_info,
+        kernel_info,
+        dpkg_arch,
+        is_desktop,
+        virt_type,
+        version,
+        is_attached,
+        enabled_services,
+        attachment_data,
+        activity_id,
+        machine_id,
+        activity_token,
+        expected,
+        FakeConfig,
+    ):
+        m_get_release_info.return_value = release_info
+        m_get_kernel_info.return_value = kernel_info
+        m_get_dpkg_arch.return_value = dpkg_arch
+        m_is_desktop.return_value = is_desktop
+        m_get_virt_type.return_value = virt_type
+        m_get_version.return_value = version
+        m_is_attached.return_value = is_attached
+        m_enabled_services.return_value = enabled_services
+        m_attachment_data_file_read.return_value = attachment_data
+        m_get_machine_id.return_value = machine_id
+        cfg = FakeConfig.for_attached_machine(
+            machine_token={
+                "activityInfo": {
+                    "activityID": activity_id,
+                    "activityToken": activity_token,
+                }
+            }
+        )
+        client = UAContractClient(cfg)
+        assert expected == client._get_activity_info()
 
 
 class TestProcessEntitlementDeltas:
