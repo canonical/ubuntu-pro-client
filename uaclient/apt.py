@@ -169,21 +169,24 @@ def _parse_apt_update_for_invalid_apt_config(
 def run_apt_command(
     cmd: List[str],
     error_msg: Optional[str] = None,
-    env: Optional[Dict[str, str]] = {},
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
 
     :param cmd: List containing the apt command to run, passed to subp.
     :param error_msg: The string to raise as UserFacingError when all retries
        are exhausted in failure.
-    :param env: Optional dictionary of environment variables to pass to subp.
+    :param override_env_vars: Passed directly as subp's override_env_vars arg
 
     :return: stdout from successful run of the apt command.
     :raise UserFacingError: on issues running apt-cache policy.
     """
     try:
         out, _err = system.subp(
-            cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
+            cmd,
+            capture=True,
+            retry_sleeps=APT_RETRIES,
+            override_env_vars=override_env_vars,
         )
     except exceptions.ProcessExecutionError as e:
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
@@ -208,10 +211,12 @@ def run_apt_command(
 @lru_cache(maxsize=None)
 def get_apt_cache_policy(
     error_msg: Optional[str] = None,
-    env: Optional[Dict[str, str]] = {},
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> str:
     return run_apt_command(
-        cmd=["apt-cache", "policy"], error_msg=error_msg, env=env
+        cmd=["apt-cache", "policy"],
+        error_msg=error_msg,
+        override_env_vars=override_env_vars,
     )
 
 
@@ -307,16 +312,22 @@ def get_pkg_candidate_version(
 def get_apt_cache_policy_for_package(
     package: str,
     error_msg: Optional[str] = None,
-    env: Optional[Dict[str, str]] = {},
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> str:
     return run_apt_command(
-        cmd=["apt-cache", "policy", package], error_msg=error_msg, env=env
+        cmd=["apt-cache", "policy", package],
+        error_msg=error_msg,
+        override_env_vars=override_env_vars,
     )
 
 
-def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
+def run_apt_update_command(
+    override_env_vars: Optional[Dict[str, str]] = None
+) -> str:
     try:
-        out = run_apt_command(cmd=["apt-get", "update"], env=env)
+        out = run_apt_command(
+            cmd=["apt-get", "update"], override_env_vars=override_env_vars
+        )
     except exceptions.APTProcessConflictError:
         raise exceptions.APTUpdateProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
@@ -339,7 +350,7 @@ def run_apt_install_command(
     packages: List[str],
     apt_options: Optional[List[str]] = None,
     error_msg: Optional[str] = None,
-    env: Optional[Dict[str, str]] = {},
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> str:
     if apt_options is None:
         apt_options = []
@@ -350,7 +361,7 @@ def run_apt_install_command(
             + apt_options
             + packages,
             error_msg=error_msg,
-            env=env,
+            override_env_vars=override_env_vars,
         )
     except exceptions.APTProcessConflictError:
         raise exceptions.APTInstallProcessConflictError(header_msg=error_msg)
@@ -759,7 +770,7 @@ def remove_packages(package_names: List[str], error_message: str):
         ]
         + list(package_names),
         error_message,
-        env={"DEBIAN_FRONTEND": "noninteractive"},
+        override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
     )
 
 

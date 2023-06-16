@@ -1683,7 +1683,7 @@ def upgrade_packages_and_attach(
             apt.run_apt_command(
                 cmd=["apt-get", "install", "--only-upgrade", "-y"]
                 + upgrade_pkgs,
-                env={"DEBIAN_FRONTEND": "noninteractive"},
+                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
             )
         except Exception as e:
             msg = getattr(e, "msg", str(e))
