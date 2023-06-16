@@ -253,7 +253,7 @@ class TestActionAttach:
         args = mock.MagicMock(token=token, attach_config=None)
         cfg = FakeConfig()
 
-        def fake_contract_attach(contract_token):
+        def fake_contract_attach(contract_token, attachment_dt):
             cfg.machine_token_file.write(BASIC_MACHINE_TOKEN)
             return BASIC_MACHINE_TOKEN
 
@@ -264,7 +264,9 @@ class TestActionAttach:
         assert 0 == ret
         assert 1 == m_status.call_count
         assert 1 == m_format_tabular.call_count
-        expected_calls = [mock.call(contract_token=token)]
+        expected_calls = [
+            mock.call(contract_token=token, attachment_dt=mock.ANY)
+        ]
         assert expected_calls == contract_machine_attach.call_args_list
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 

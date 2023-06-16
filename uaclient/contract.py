@@ -11,10 +11,13 @@ from uaclient import (
     messages,
     system,
     util,
+    version,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
+from uaclient.files.state_files import attachment_data_file
 from uaclient.http import serviceclient
 
 # Here we describe every endpoint from the ua-contracts
@@ -55,7 +58,9 @@ class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = "contract_url"
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
-    def add_contract_machine(self, contract_token, machine_id=None):
+    def add_contract_machine(
+        self, contract_token, attachment_dt, machine_id=None
+    ):
         """Requests machine attach to the provided machine_id.
 
         @param contract_token: Token string providing authentication to
@@ -65,9 +70,14 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the machine-token.
         """
+        if not machine_id:
+            machine_id = system.get_machine_id(self.cfg)
+
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
-        data = self._get_platform_data(machine_id)
+        activity_info = self._get_activity_info()
+        activity_info["lastAttachment"] = attachment_dt.isoformat()
+        data = {"machineId": machine_id, "activityInfo": activity_info}
         response = self.request_url(
             API_V1_ADD_CONTRACT_MACHINE, data=data, headers=headers
         )
@@ -89,9 +99,15 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def available_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
+        activity_info = self._get_activity_info()
         response = self.request_url(
             API_V1_AVAILABLE_RESOURCES,
-            query_params=self._get_platform_basic_info(),
+            query_params={
+                "architecture": activity_info["architecture"],
+                "series": activity_info["series"],
+                "kernel": activity_info["kernel"],
+                "virt": activity_info["virt"],
+            },
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
@@ -191,7 +207,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token = self.cfg.machine_token.get("machineToken")
         machine_id = system.get_machine_id(self.cfg)
 
-        request_data = self._get_activity_info(machine_id)
+        request_data = self._get_activity_info()
         url = API_V1_UPDATE_ACTIVITY_TOKEN.format(
             contract=contract_id, machine=machine_id
         )
@@ -311,20 +327,25 @@ class UAContractClient(serviceclient.UAServiceClient):
             contents of /etc/machine-id will be used.
         """
         if not machine_id:
-            machine_id = self._get_platform_data(machine_id).get(
-                "machineId", None
-            )
+            machine_id = system.get_machine_id(self.cfg)
+
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_GET_CONTRACT_MACHINE.format(
             contract=contract_id,
             machine=machine_id,
         )
+        activity_info = self._get_activity_info()
         response = self.request_url(
             url,
             method="GET",
             headers=headers,
-            query_params=self._get_platform_basic_info(),
+            query_params={
+                "architecture": activity_info["architecture"],
+                "series": activity_info["series"],
+                "kernel": activity_info["kernel"],
+                "virt": activity_info["virt"],
+            },
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
@@ -350,12 +371,17 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing refreshed machine-token
         """
+        if not machine_id:
+            machine_id = system.get_machine_id(self.cfg)
+
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        data = self._get_platform_data(machine_id)
-        data["activityInfo"] = self._get_activity_info()
+        data = {
+            "machineId": machine_id,
+            "activityInfo": self._get_activity_info(),
+        }
         url = API_V1_UPDATE_CONTRACT_MACHINE.format(
-            contract=contract_id, machine=data["machineId"]
+            contract=contract_id, machine=machine_id
         )
         response = self.request_url(
             url, headers=headers, method="POST", data=data
@@ -368,47 +394,36 @@ class UAContractClient(serviceclient.UAServiceClient):
             response.json_dict["expires"] = response.headers["expires"]
         return response.json_dict
 
-    def _get_platform_data(self, machine_id):
-        """Return a dict of platform-related data for contract requests"""
-        if not machine_id:
-            machine_id = system.get_machine_id(self.cfg)
-        return {
-            "machineId": machine_id,
-            "architecture": system.get_dpkg_arch(),
-            "os": {
-                "type": "Linux",
-                "distribution": system.get_release_info().distribution,
-                "release": system.get_release_info().release,
-                "series": system.get_release_info().series,
-                "version": system.get_release_info().pretty_version,
-                "kernel": system.get_kernel_info().uname_release,
-                "virt": system.get_virt_type(),
-            },
-        }
-
-    def _get_platform_basic_info(self):
-        """Return a dict of platform basic info for some contract requests"""
-        return {
-            "architecture": system.get_dpkg_arch(),
-            "series": system.get_release_info().series,
-            "kernel": system.get_kernel_info().uname_release,
-            "virt": system.get_virt_type(),
-        }
-
-    def _get_activity_info(self, machine_id: Optional[str] = None):
+    def _get_activity_info(self):
         """Return a dict of activity info data for contract requests"""
-        if not machine_id:
-            machine_id = system.get_machine_id(self.cfg)
+        machine_info = {
+            "distribution": system.get_release_info().distribution,
+            "kernel": system.get_kernel_info().uname_release,
+            "series": system.get_release_info().series,
+            "architecture": system.get_dpkg_arch(),
+            "desktop": system.is_desktop(),
+            "virt": system.get_virt_type(),
+            "clientVersion": version.get_version(),
+        }
 
-        # If the activityID is null we should provide the endpoint
-        # with the instance machine id as the activityID
-        activity_id = self.cfg.machine_token_file.activity_id or machine_id
-        enabled_services = _enabled_services(self.cfg).enabled_services or []
+        if _is_attached(self.cfg).is_attached:
+            enabled_services = _enabled_services(self.cfg).enabled_services
+            attachment_data = attachment_data_file.read()
+            activity_info = {
+                "activityID": self.cfg.machine_token_file.activity_id
+                or system.get_machine_id(self.cfg),
+                "activityToken": self.cfg.machine_token_file.activity_token,
+                "resources": [service.name for service in enabled_services],
+                "lastAttachment": attachment_data.attached_at.isoformat()
+                if attachment_data
+                else "",
+            }
+        else:
+            activity_info = {}
 
         return {
-            "activityID": activity_id,
-            "activityToken": self.cfg.machine_token_file.activity_token,
-            "resources": [service.name for service in enabled_services],
+            **activity_info,
+            **machine_info,
         }
 
 
