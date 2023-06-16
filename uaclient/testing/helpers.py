@@ -1,3 +1,5 @@
+import mock
+
 try:  # Drop try-except after xenial EOL
     from contextlib import AbstractContextManager
 except ImportError:
@@ -31,3 +33,9 @@ class does_not_raise(AbstractContextManager):
 
     def __exit__(self, *args, **kwargs):
         pass
+
+
+def mock_with_name_attr(*args, name, mock_name=None, **kwargs):
+    m = mock.MagicMock(*args, name=mock_name, **kwargs)
+    m.name = name
+    return m

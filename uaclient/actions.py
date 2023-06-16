@@ -61,7 +61,7 @@ def attach_with_token(
 
     try:
         new_machine_token = contract_client.add_contract_machine(
-            contract_token=token
+            contract_token=token, attachment_dt=attached_at
         )
     except exceptions.UrlError as e:
         with util.disable_log_to_console():
