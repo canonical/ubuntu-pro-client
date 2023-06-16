@@ -1103,37 +1103,47 @@ class TestSubp:
                 assert log not in logs
 
     @pytest.mark.parametrize(
-        "env_var",
+        [
+            "override_env_vars",
+            "os_environ",
+            "expected_env_arg",
+        ],
         (
-            ({}),
-            ({"config": "foobar"}),
+            (None, {}, None),
+            (None, {"test": "val"}, None),
+            ({}, {"test": "val"}, None),
+            ({"set": "new"}, {"test": "val"}, {"test": "val", "set": "new"}),
+            (
+                {"set": "new", "test": "newval"},
+                {"test": "val"},
+                {"test": "newval", "set": "new"},
+            ),
         ),
     )
     @mock.patch("subprocess.Popen")
     def test_subp_uses_environment_variables(
         self,
-        m_sub_popen,
-        env_var,
+        m_popen,
+        override_env_vars,
+        os_environ,
+        expected_env_arg,
         _subp,
     ):
         mock_process = mock.MagicMock(returncode=0)
-        m_sub_popen.return_value = mock_process
-
         mock_process.communicate.return_value = (b"", b"")
-        os_environ = {"test": 123}
+        m_popen.return_value = mock_process
 
         with mock.patch("os.environ", os_environ):
-            _subp(["apt", "nothing"], env=env_var)
+            _subp(["apt", "nothing"], override_env_vars=override_env_vars)
 
-        expected_var = {**env_var, **os_environ}
         assert [
             mock.call(
                 [b"apt", b"nothing"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env=expected_var,
+                env=expected_env_arg,
             )
-        ] == m_sub_popen.call_args_list
+        ] == m_popen.call_args_list
 
 
 class TestGetSystemdJobState:

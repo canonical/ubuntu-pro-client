@@ -466,7 +466,7 @@ class TestRepoEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={},
+                override_env_vars=None,
             )
         ]
 
@@ -491,7 +491,7 @@ class TestRepoEnable:
                         ],
                         capture=True,
                         retry_sleeps=apt.APT_RETRIES,
-                        env={},
+                        override_env_vars=None,
                     )
                 )
                 expected_output = (

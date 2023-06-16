@@ -192,7 +192,7 @@ class TestCommonCriteriaEntitlementEnable:
                     ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
-                    env={},
+                    override_env_vars=None,
                 )
             )
         else:
@@ -204,7 +204,7 @@ class TestCommonCriteriaEntitlementEnable:
                     ["apt-get", "update"],
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
-                    env={},
+                    override_env_vars=None,
                 ),
                 mock.call(
                     [
@@ -218,7 +218,7 @@ class TestCommonCriteriaEntitlementEnable:
                     + entitlement.packages,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
-                    env={"DEBIAN_FRONTEND": "noninteractive"},
+                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
                 ),
             ]
         )

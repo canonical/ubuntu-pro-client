@@ -517,7 +517,7 @@ def _subp(
     rcs: Optional[List[int]] = None,
     capture: bool = False,
     timeout: Optional[float] = None,
-    env: Optional[Dict[str, str]] = None,
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -527,7 +527,11 @@ def _subp(
     @param capture: Boolean set True to log the command and response.
     @param timeout: Optional float indicating number of seconds to wait for
         subp to return.
-    @param env: Optional dictionary of environment variable to pass to Popen.
+    @param override_env_vars: Optional dictionary of environment variables.
+        If None, the current os.environ is used for the subprocess.
+        If defined, these env vars get merged with the current process'
+        os.environ for the subprocess, overriding any values that already
+        existed in os.environ.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -541,15 +545,19 @@ def _subp(
     # If env is None, subprocess.Popen will use the process environment
     # variables by default, as stated here:
     # https://docs.python.org/3.5/library/subprocess.html?highlight=subprocess#popen-constructor
-    if env is not None:
-        env.update(os.environ)
+    merged_env = None
+    if override_env_vars:
+        merged_env = {**os.environ, **override_env_vars}
 
     if rcs is None:
         rcs = [0]
     redacted_cmd = util.redact_sensitive_logs(" ".join(args))
     try:
         proc = subprocess.Popen(
-            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+            bytes_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=merged_env,
         )
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
@@ -585,7 +593,7 @@ def subp(
     capture: bool = False,
     timeout: Optional[float] = None,
     retry_sleeps: Optional[List[float]] = None,
-    env: Optional[Dict[str, str]] = None,
+    override_env_vars: Optional[Dict[str, str]] = None,
 ) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -599,8 +607,11 @@ def subp(
         retries. Specifying a list of [0.5, 1] instructs subp to retry twice
         on failure; sleeping half a second before the first retry and 1 second
         before the next retry.
-     @param env: Optional dictionary of environment variables to provide to
-        subp.
+     @param override_env_vars: Optional dictionary of environment variables.
+        If None, the current os.environ is used for the subprocess.
+        If defined, these env vars get merged with the current process'
+        os.environ for the subprocess, overriding any values that already
+        existed in os.environ.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -610,7 +621,13 @@ def subp(
     retry_sleeps = retry_sleeps.copy() if retry_sleeps is not None else None
     while True:
         try:
-            out, err = _subp(args, rcs, capture, timeout, env=env)
+            out, err = _subp(
+                args,
+                rcs,
+                capture,
+                timeout,
+                override_env_vars=override_env_vars,
+            )
             break
         except exceptions.ProcessExecutionError as e:
             if capture:
