@@ -1,5 +1,15 @@
+# This unit is delivered by the ubuntu-advantage-pro package and should
+# only be installed on Ubuntu Pro images for use in public clouds that
+# support them (AWS, Azure, GCP).
+# On boot, if the instance has not already successfully attached to Ubuntu
+# Pro services, it will attempt to "auto attach" by querying the cloud's
+# attested metadata and sending it to https://contracts.canonical.com.
+# If Canonical servers successfully verify that the metadata says this
+# instance is entitled to Ubuntu Pro, then it allows the attachment
+# process to continue and Ubuntu Pro services get enabled.
+
 [Unit]
-Description=Ubuntu Advantage auto attach
+Description=Ubuntu Pro auto attach
 Before=cloud-config.service
 After=cloud-config.target
 
