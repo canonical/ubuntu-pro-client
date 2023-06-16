@@ -1,3 +1,10 @@
+# On machines that are currently attached to Ubuntu Pro services, sometimes an action
+# is required immediately after the next reboot.
+# In those situations, a marker file is created that activates this service on the next boot.
+# Circumstances that could cause this include:
+#   - Upgrading from one LTS to the next LTS: to account for service availability changes between releases
+#   - Pro FIPS images with outstanding apt hold on FIPS packages: to clear the holds
+
 [Unit]
 Description=Ubuntu Pro reboot cmds
 ConditionPathExists=/var/lib/ubuntu-advantage/marker-reboot-cmds-required

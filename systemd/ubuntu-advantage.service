@@ -1,5 +1,5 @@
-# This service runs on GCP to enable auto-attaching to Ubuntu Advantage
-# services when an Ubuntu Pro license is added to a GCP machine.
+# This service runs on GCP and Azure to enable auto-attaching to Ubuntu Pro
+# services when an Ubuntu Pro license is added to a machine.
 # It also serves as the retry service if an auto-attach fails and will
 # retry for up to one month after the failed attempt.
 # If you are uninterested in Ubuntu Pro services, then you can safely

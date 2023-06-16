@@ -1,5 +1,12 @@
+# On machines that are currently attached to Ubuntu Pro services, some tasks need to run
+# periodically in the background to maintain the state of the Ubuntu Pro services.
+# These include:
+#  - Periodically ping https://contracts.canonical.com for metering and to check the contract expiration
+#  - If this contract is about to expire, add notification messages to MOTD
+# Triggered by ua-timer.timer
+
 [Unit]
-Description=Ubuntu Advantage Timer for running repeated jobs
+Description=Ubuntu Pro Timer for running repeated jobs
 After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
 
 [Service]

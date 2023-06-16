@@ -1,3 +1,5 @@
+# See ua-timer.service for a description of why this exists.
+
 [Unit]
 Description=Ubuntu Pro Timer for running repeated jobs
 # Only run if attached
