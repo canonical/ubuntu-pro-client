@@ -57,12 +57,8 @@ class TestPackageInstalledV1:
     ):
         m_sys_subp.return_value = "", ""
         apt_pkgs = [
-            apt.InstalledAptPackages(
-                name="one", arch="all", version="4:1.0.2"
-            ),
-            apt.InstalledAptPackages(
-                name="two", arch="amd64", version="0.1.1"
-            ),
+            apt.InstalledAptPackage(name="one", arch="all", version="4:1.0.2"),
+            apt.InstalledAptPackage(name="two", arch="amd64", version="0.1.1"),
         ]
         m_installed_apt_pkgs.return_value = apt_pkgs
         result = _package_manifest(FakeConfig())
@@ -72,12 +68,8 @@ class TestPackageInstalledV1:
         self, m_installed_apt_pkgs, m_sys_subp, m_get_snap_info, FakeConfig
     ):
         apt_pkgs = [
-            apt.InstalledAptPackages(
-                name="one", arch="all", version="4:1.0.2"
-            ),
-            apt.InstalledAptPackages(
-                name="two", arch="amd64", version="0.1.1"
-            ),
+            apt.InstalledAptPackage(name="one", arch="all", version="4:1.0.2"),
+            apt.InstalledAptPackage(name="two", arch="amd64", version="0.1.1"),
         ]
         m_sys_subp.return_value = (
             "Name  Version Rev Tracking Publisher Notes\n"
