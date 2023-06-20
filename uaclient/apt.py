@@ -64,8 +64,8 @@ class AptProxyScope(enum.Enum):
     UACLIENT = object()
 
 
-InstalledAptPackages = NamedTuple(
-    "InstalledAptPackages", [("name", str), ("version", str), ("arch", str)]
+InstalledAptPackage = NamedTuple(
+    "InstalledAptPackage", [("name", str), ("version", str), ("arch", str)]
 )
 
 
@@ -602,11 +602,11 @@ def is_installed(pkg: str) -> bool:
     return pkg in get_installed_packages_names()
 
 
-def get_installed_packages() -> List[InstalledAptPackages]:
+def get_installed_packages() -> List[InstalledAptPackage]:
     out, _ = system.subp(["apt", "list", "--installed"])
     package_list = out.splitlines()[1:]
     return [
-        InstalledAptPackages(
+        InstalledAptPackage(
             name=entry.split("/")[0],
             version=entry.split(" ")[1],
             arch=entry.split(" ")[2],
