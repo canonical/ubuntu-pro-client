@@ -401,12 +401,16 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch(
+        "uaclient.cli.contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.valid_services")
     def test_assume_yes_passed_to_service_init(
         self,
         m_valid_services,
         _m_get_available_resources,
+        _m_update_activity_token,
         m_refresh,
         assume_yes,
         FakeConfig,
@@ -704,10 +708,14 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch(
+        "uaclient.cli.contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
+        _m_update_activity_token,
         _m_refresh,
         event,
         FakeConfig,
@@ -849,12 +857,16 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
+    @mock.patch(
+        "uaclient.cli.contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_enabled(
         self,
         m_status,
         _m_get_available_resources,
+        m_update_activity_token,
         _m_refresh,
         allow_beta,
         event,
@@ -898,6 +910,7 @@ class TestActionEnable:
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert expected_ret == ret
         assert 1 == m_status.call_count
+        assert 1 == m_update_activity_token.call_count
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",

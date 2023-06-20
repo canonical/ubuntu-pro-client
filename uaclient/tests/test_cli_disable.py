@@ -73,6 +73,9 @@ class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
+    @mock.patch(
+        "uaclient.cli.contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.cli.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements.valid_services")
     @mock.patch("uaclient.status.status")
@@ -81,6 +84,7 @@ class TestDisable:
         m_status,
         m_valid_services,
         m_entitlement_factory,
+        m_update_activity_token,
         disable_return,
         return_code,
         assume_yes,
@@ -144,6 +148,7 @@ class TestDisable:
 
         assert return_code == ret
         assert len(entitlements_cls) == m_status.call_count
+        assert 1 == m_update_activity_token.call_count
 
         cfg = FakeConfig.for_attached_machine()
         args_mock.assume_yes = True
