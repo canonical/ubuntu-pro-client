@@ -196,7 +196,19 @@ def get_virt_type() -> str:
         out, _ = subp(["systemd-detect-virt"])
         return out.strip()
     except exceptions.ProcessExecutionError:
-        return ""
+        # The main known place where that will fail is in a docker/podman
+        # container that doesn't have it installed. So we look for hints
+        # of that situation to report it accurately.
+        try:
+            proc_1_cgroup = load_file("/proc/1/cgroup")
+            if "docker" in proc_1_cgroup or "buildkit" in proc_1_cgroup:
+                return "docker"
+            elif "buildah" in proc_1_cgroup:
+                return "podman"
+            else:
+                return ""
+        except Exception:
+            return ""
 
 
 @lru_cache(maxsize=None)
