@@ -194,7 +194,7 @@ Feature: Command behaviour when unattached
         When I run `pro status` with sudo
         Then stderr does not match regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
@@ -204,12 +204,12 @@ Feature: Command behaviour when unattached
         When I delete the file `/run/ubuntu-advantage/candidate-version`
         And I create the file `/run/ubuntu-advantage/candidate-version` with the following
         """
-        99.9.9
+        2:99.9.9
         """
         And I run `pro status` as non-root
         Then stderr matches regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
@@ -217,7 +217,7 @@ Feature: Command behaviour when unattached
         When I run `pro status --format json` as non-root
         Then stderr does not match regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
@@ -225,7 +225,7 @@ Feature: Command behaviour when unattached
         When I run `pro config show` as non-root
         Then stderr matches regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
@@ -243,7 +243,7 @@ Feature: Command behaviour when unattached
         When I run `pro api u.pro.version.v1` as non-root
         Then stderr does not match regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
@@ -253,7 +253,7 @@ Feature: Command behaviour when unattached
         And I run `pro status` as non-root
         Then stderr does not match regexp:
         """
-        .*\[info\].* A new version is available: 99.9.9
+        .*\[info\].* A new version is available: 2:99.9.9
         Please run:
             sudo apt-get install ubuntu-advantage-tools
         to get the latest version with new features and bug fixes.
