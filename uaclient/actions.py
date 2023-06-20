@@ -91,6 +91,7 @@ def attach_with_token(
         attachment_data_file.write(AttachmentData(attached_at=attached_at))
         ua_status.status(cfg=cfg)
         update_motd_messages(cfg)
+        contract_client.update_activity_token()
         raise exc
 
     current_iid = identity.get_instance_id()
