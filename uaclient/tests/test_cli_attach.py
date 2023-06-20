@@ -227,6 +227,9 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
@@ -243,6 +246,7 @@ class TestActionAttach:
         _m_remove_notice,
         _m_should_reboot,
         _m_attachment_data_file_write,
+        m_update_activity_token,
         FakeConfig,
         event,
     ):
@@ -269,6 +273,7 @@ class TestActionAttach:
         ]
         assert expected_calls == contract_machine_attach.call_args_list
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
+        assert 1 == m_update_activity_token.call_count
 
         # We need to do that since all config objects in this
         # test will share the same data dir. Since this will
@@ -303,6 +308,9 @@ class TestActionAttach:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("auto_enable", (True, False))
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
@@ -319,6 +327,7 @@ class TestActionAttach:
         _m_remove_notice,
         _m_should_reboot,
         _m_attachment_data_file_write,
+        _m_update_activity_token,
         auto_enable,
         FakeConfig,
     ):
@@ -345,12 +354,16 @@ class TestActionAttach:
             action_attach(args, cfg=cfg)
         assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg
 
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
     def test_token_from_attach_config(
         self,
         m_attach_with_token,
         _m_post_cli_attach,
+        m_update_activity_token,
         FakeConfig,
     ):
         args = mock.MagicMock(
@@ -362,6 +375,7 @@ class TestActionAttach:
         assert [
             mock.call(mock.ANY, token="faketoken", allow_enable=True)
         ] == m_attach_with_token.call_args_list
+        assert 1 == m_update_activity_token.call_count
 
     def test_attach_config_invalid_config(
         self,
@@ -420,6 +434,9 @@ class TestActionAttach:
 
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
+    @mock.patch(
         M_PATH + "actions.enable_entitlement_by_name",
         return_value=(True, None),
     )
@@ -438,6 +455,7 @@ class TestActionAttach:
         m_handle_unicode,
         m_attach_with_token,
         m_enable,
+        m_update_activity_token,
         auto_enable,
         FakeConfig,
         event,
@@ -464,6 +482,7 @@ class TestActionAttach:
             ] == m_enable.call_args_list
         else:
             assert [] == m_enable.call_args_list
+        assert 1 == m_update_activity_token.call_count
 
         args.attach_config = FakeFile(
             safe_dump({"token": "faketoken", "enable_services": ["cis"]})
