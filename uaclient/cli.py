@@ -1263,6 +1263,9 @@ def action_disable(args, *, cfg, **kwargs):
             service_msg=service_msg,
         )
 
+    contract_client = contract.UAContractClient(cfg)
+    contract_client.update_activity_token()
+
     event.process_events()
     return 0 if ret else 1
 
@@ -1344,6 +1347,9 @@ def action_enable(args, *, cfg, **kwargs):
         )
         event.services_failed(entitlements_not_found)
         raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+
+    contract_client = contract.UAContractClient(cfg)
+    contract_client.update_activity_token()
 
     event.process_events()
     return 0 if ret else 1
