@@ -161,6 +161,9 @@ class TestEnableServicesByName:
 @mock.patch("uaclient.files.notices.remove")
 class TestFullAutoAttachV1:
     @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
+    @mock.patch(
         "uaclient.actions.enable_entitlement_by_name",
     )
     @mock.patch("uaclient.actions.get_cloud_instance")
@@ -170,6 +173,7 @@ class TestFullAutoAttachV1:
         _auto_attach,
         _get_cloud_instance,
         m_enable_ent_by_name,
+        _m_update_activity_token,
         _notice_remove,
         _notice_add,
         FakeConfig,
@@ -193,6 +197,9 @@ class TestFullAutoAttachV1:
         assert 5 == m_enable_ent_by_name.call_count
 
     @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
+    @mock.patch(
         "uaclient.actions.enable_entitlement_by_name",
         return_value=(False, None),
     )
@@ -203,6 +210,7 @@ class TestFullAutoAttachV1:
         _auto_attach,
         _get_cloud_instance,
         enable_ent_by_name,
+        _m_update_activity_token,
         _notice_remove,
         _notice_add,
         FakeConfig,
@@ -242,6 +250,7 @@ class TestFullAutoAttachV1:
             "enable_services_by_name_side_effect",
             "expected_enable_services_by_name_call_args",
             "raise_expectation",
+            "expect_activity_call",
             "expected_error_message",
             "expected_ret",
         ],
@@ -255,6 +264,7 @@ class TestFullAutoAttachV1:
                 [],
                 [],
                 pytest.raises(exceptions.AlreadyAttachedError),
+                False,
                 messages.ALREADY_ATTACHED.format(
                     account_name="test_account"
                 ).msg,
@@ -269,6 +279,7 @@ class TestFullAutoAttachV1:
                 [],
                 [],
                 pytest.raises(exceptions.AutoAttachDisabledError),
+                False,
                 messages.AUTO_ATTACH_DISABLED_ERROR.msg,
                 None,
             ),
@@ -281,6 +292,7 @@ class TestFullAutoAttachV1:
                 [],
                 [],
                 does_not_raise(),
+                True,
                 None,
                 FullAutoAttachResult(),
             ),
@@ -293,6 +305,7 @@ class TestFullAutoAttachV1:
                 [[]],
                 [mock.call(mock.ANY, ["cis"], allow_beta=False)],
                 does_not_raise(),
+                True,
                 None,
                 FullAutoAttachResult(),
             ),
@@ -305,6 +318,7 @@ class TestFullAutoAttachV1:
                 [[]],
                 [mock.call(mock.ANY, ["cis"], allow_beta=True)],
                 does_not_raise(),
+                True,
                 None,
                 FullAutoAttachResult(),
             ),
@@ -320,6 +334,7 @@ class TestFullAutoAttachV1:
                     mock.call(mock.ANY, ["cis"], allow_beta=True),
                 ],
                 does_not_raise(),
+                True,
                 None,
                 FullAutoAttachResult(),
             ),
@@ -338,10 +353,14 @@ class TestFullAutoAttachV1:
                     mock.call(mock.ANY, ["cis"], allow_beta=True),
                 ],
                 pytest.raises(exceptions.EntitlementsNotEnabledError),
+                True,
                 messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
                 None,
             ),
         ],
+    )
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
     )
     @mock.patch(M_PATH + "_enable_services_by_name")
     @mock.patch(M_PATH + "actions.auto_attach")
@@ -353,6 +372,7 @@ class TestFullAutoAttachV1:
         m_get_cloud_instance,
         m_auto_attach,
         m_enable_services_by_name,
+        m_update_activity_token,
         _notice_remove,
         _notice_add,
         options,
@@ -362,6 +382,7 @@ class TestFullAutoAttachV1:
         enable_services_by_name_side_effect,
         expected_enable_services_by_name_call_args,
         raise_expectation,
+        expect_activity_call,
         expected_error_message,
         expected_ret,
         mode,
@@ -386,3 +407,7 @@ class TestFullAutoAttachV1:
             assert e.value.msg == expected_error_message
         if expected_ret is not None:
             assert ret == expected_ret
+        if expect_activity_call:
+            assert 1 == m_update_activity_token.call_count
+        else:
+            assert 0 == m_update_activity_token.call_count

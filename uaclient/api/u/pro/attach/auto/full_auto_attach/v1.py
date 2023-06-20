@@ -1,6 +1,6 @@
 from typing import List, Optional, Tuple
 
-from uaclient import actions, event_logger, lock, messages, util
+from uaclient import actions, contract, event_logger, lock, messages, util
 from uaclient.api import exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
@@ -117,6 +117,9 @@ def _full_auto_attach_in_lock(
         failed += _enable_services_by_name(
             cfg, options.enable_beta, allow_beta=True
         )
+
+    contract_client = contract.UAContractClient(cfg)
+    contract_client.update_activity_token()
 
     if len(failed) > 0:
         raise exceptions.EntitlementsNotEnabledError(failed)

@@ -69,6 +69,19 @@ def util_we_are_currently_root():
         yield original
 
 
+@pytest.yield_fixture(scope="session", autouse=True)
+def urllib_request_urlopen():
+    """
+    A fixture that mocks urlopen for all tests.
+    This prevents us from accidentally making requests in unit tests
+    """
+    from urllib.request import urlopen
+
+    original = urlopen
+    with mock.patch("urllib.request.urlopen"):
+        yield original
+
+
 @pytest.fixture
 def caplog_text(request):
     """
