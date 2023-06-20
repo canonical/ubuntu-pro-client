@@ -227,6 +227,7 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
@@ -241,6 +242,7 @@ class TestActionAttach:
         m_update_apt_and_motd_msgs,
         _m_remove_notice,
         _m_should_reboot,
+        _m_attachment_data_file_write,
         FakeConfig,
         event,
     ):
@@ -299,6 +301,7 @@ class TestActionAttach:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("auto_enable", (True, False))
+    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
@@ -313,6 +316,7 @@ class TestActionAttach:
         _m_get_available_resources,
         _m_remove_notice,
         _m_should_reboot,
+        _m_attachment_data_file_write,
         auto_enable,
         FakeConfig,
     ):
@@ -491,6 +495,7 @@ class TestActionAttach:
             (Exception("error"), messages.UNEXPECTED_ERROR),
         ),
     )
+    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
     @mock.patch("uaclient.contract.apply_contract_overrides")
@@ -503,6 +508,7 @@ class TestActionAttach:
         _m_apply_contract_overrides,
         m_process_entitlement_delta,
         m_enable_order,
+        _m_attachment_data_file_write,
         expected_exception,
         expected_msg,
         FakeConfig,
