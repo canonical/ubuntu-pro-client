@@ -354,6 +354,64 @@ class TestGetDpkgArch:
         ]
 
 
+class TestGetVirtType:
+    @pytest.mark.parametrize(
+        [
+            "subp_side_effect",
+            "load_file_side_effect",
+            "expected",
+        ],
+        [
+            ([("", "")], None, ""),
+            ([("lxc\n", "")], None, "lxc"),
+            ([("lxc\n", "anything")], None, "lxc"),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                [""],
+                "",
+            ),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                ["line\nline\nlinedockerline\nline"],
+                "docker",
+            ),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                ["line\nline\nlinebuildkitline\nline"],
+                "docker",
+            ),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                ["line\nline\nlinebuildahline\nline"],
+                "podman",
+            ),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                ["line\nline\nline\nline"],
+                "",
+            ),
+            (
+                exceptions.ProcessExecutionError(cmd="", stdout="", stderr=""),
+                FileNotFoundError(),
+                "",
+            ),
+        ],
+    )
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.subp")
+    def test_get_virt_type(
+        self,
+        m_subp,
+        m_load_file,
+        subp_side_effect,
+        load_file_side_effect,
+        expected,
+    ):
+        m_subp.side_effect = subp_side_effect
+        m_load_file.side_effect = load_file_side_effect
+        assert expected == system.get_virt_type.__wrapped__()
+
+
 class TestIsLTS:
     @pytest.mark.parametrize(
         "series, supported_esm, expected",
