@@ -343,6 +343,20 @@ def is_container(run_path: str = "/run") -> bool:
 
 
 @lru_cache(maxsize=None)
+def is_desktop() -> bool:
+    """Returns True if any package installed has "ubuntu-desktop" in the name.
+
+    This includes ubuntu-desktop, ubuntu-desktop-minimal, kubuntu-desktop, etc.
+    """
+    from uaclient import apt
+
+    for package in apt.get_installed_packages():
+        if "ubuntu-desktop" in package.name:
+            return True
+    return False
+
+
+@lru_cache(maxsize=None)
 def _parse_os_release() -> Dict[str, str]:
     try:
         file_contents = load_file("/etc/os-release")
