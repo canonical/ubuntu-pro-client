@@ -1558,6 +1558,10 @@ def action_attach(args, *, cfg):
                 event.info(msg.msg, file_type=sys.stderr)
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 ret = 1
+
+        contract_client = contract.UAContractClient(cfg)
+        contract_client.update_activity_token()
+
         _post_cli_attach(cfg)
         return ret
 

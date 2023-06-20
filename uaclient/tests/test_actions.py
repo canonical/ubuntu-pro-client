@@ -48,6 +48,7 @@ class TestAttachWithToken:
             "expected_attachment_data_file_write_call_args",
             "expected_status_call_args",
             "expected_update_motd_messages_call_args",
+            "expected_update_activity_token_call_args",
             "expected_get_instance_id_call_args",
             "expected_timer_start_call_args",
             "expected_raises",
@@ -62,6 +63,7 @@ class TestAttachWithToken:
                 None,
                 None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
+                [],
                 [],
                 [],
                 [],
@@ -89,6 +91,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
+                [mock.call()],
                 [],
                 [],
                 pytest.raises(exceptions.UrlError),
@@ -109,6 +112,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
+                [mock.call()],
                 [],
                 [],
                 pytest.raises(exceptions.UserFacingError),
@@ -129,6 +133,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
+                [],
                 [mock.call()],
                 [mock.call()],
                 helpers.does_not_raise(),
@@ -152,6 +157,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
+                [],
                 [mock.call()],
                 [mock.call()],
                 helpers.does_not_raise(),
@@ -175,6 +181,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
+                [],
                 [mock.call()],
                 [mock.call()],
                 helpers.does_not_raise(),
@@ -183,6 +190,9 @@ class TestAttachWithToken:
     )
     @mock.patch(M_PATH + "timer.start")
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.update_activity_token",
+    )
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "ua_status.status")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
@@ -206,6 +216,7 @@ class TestAttachWithToken:
         m_attachment_data_file_write,
         m_status,
         m_update_motd_messages,
+        m_update_activity_token,
         m_get_instance_id,
         m_timer_start,
         token,
@@ -223,6 +234,7 @@ class TestAttachWithToken:
         expected_attachment_data_file_write_call_args,
         expected_status_call_args,
         expected_update_motd_messages_call_args,
+        expected_update_activity_token_call_args,
         expected_get_instance_id_call_args,
         expected_timer_start_call_args,
         expected_raises,
@@ -268,6 +280,10 @@ class TestAttachWithToken:
         assert (
             expected_update_motd_messages_call_args
             == m_update_motd_messages.call_args_list
+        )
+        assert (
+            expected_update_activity_token_call_args
+            == m_update_activity_token.call_args_list
         )
         assert (
             expected_get_instance_id_call_args
