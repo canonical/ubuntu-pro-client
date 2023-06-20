@@ -45,6 +45,7 @@ class TestAttachWithToken:
             "expected_get_machine_id_call_args",
             "expected_config_write_cache_call_args",
             "expected_process_entitlements_delta_call_args",
+            "expected_attachment_data_file_write_call_args",
             "expected_status_call_args",
             "expected_update_motd_messages_call_args",
             "expected_get_instance_id_call_args",
@@ -69,6 +70,7 @@ class TestAttachWithToken:
                 [],
                 [],
                 [],
+                [],
                 pytest.raises(exceptions.ConnectivityError),
             ),
             (
@@ -84,6 +86,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [mock.call("machine-id", "machine-id")],
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
                 [],
@@ -103,6 +106,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [mock.call("machine-id", "machine-id")],
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
                 [],
@@ -122,6 +126,7 @@ class TestAttachWithToken:
                 [mock.call(mock.ANY)],
                 [mock.call("machine-id", "machine-id")],
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
                 [mock.call()],
@@ -144,6 +149,7 @@ class TestAttachWithToken:
                     mock.call("instance-id", "id"),
                 ],
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
                 [mock.call()],
@@ -166,6 +172,7 @@ class TestAttachWithToken:
                     mock.call("instance-id", "id"),
                 ],
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, False)],
+                [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
                 [mock.call()],
@@ -178,6 +185,7 @@ class TestAttachWithToken:
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "ua_status.status")
+    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch(M_PATH + "contract.process_entitlements_delta")
     @mock.patch(
         "uaclient.files.MachineTokenFile.entitlements",
@@ -195,6 +203,7 @@ class TestAttachWithToken:
         m_config_write_cache,
         m_entitlements,
         m_process_entitlements_delta,
+        m_attachment_data_file_write,
         m_status,
         m_update_motd_messages,
         m_get_instance_id,
@@ -211,6 +220,7 @@ class TestAttachWithToken:
         expected_get_machine_id_call_args,
         expected_config_write_cache_call_args,
         expected_process_entitlements_delta_call_args,
+        expected_attachment_data_file_write_call_args,
         expected_status_call_args,
         expected_update_motd_messages_call_args,
         expected_get_instance_id_call_args,
@@ -249,6 +259,10 @@ class TestAttachWithToken:
         assert (
             expected_process_entitlements_delta_call_args
             == m_process_entitlements_delta.call_args_list
+        )
+        assert (
+            expected_attachment_data_file_write_call_args
+            == m_attachment_data_file_write.call_args_list
         )
         assert expected_status_call_args == m_status.call_args_list
         assert (

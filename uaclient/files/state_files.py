@@ -267,3 +267,19 @@ anbox_cloud_credentials_file = DataObjectFile(
     ),
     DataObjectFileFormat.JSON,
 )
+
+
+class AttachmentData(DataObject):
+    fields = [
+        Field("attached_at", DatetimeDataValue),
+    ]
+
+    def __init__(self, attached_at: datetime.datetime):
+        self.attached_at = attached_at
+
+
+attachment_data_file = DataObjectFile(
+    AttachmentData,
+    UAFile("attachment.json", private=False),
+    DataObjectFileFormat.JSON,
+)

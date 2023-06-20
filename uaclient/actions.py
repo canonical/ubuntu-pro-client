@@ -1,3 +1,4 @@
+import datetime
 import glob
 import logging
 import os
@@ -22,7 +23,11 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
-from uaclient.files.state_files import timer_jobs_state_file
+from uaclient.files.state_files import (
+    AttachmentData,
+    attachment_data_file,
+    timer_jobs_state_file,
+)
 
 LOG = logging.getLogger("pro.actions")
 
@@ -52,6 +57,7 @@ def attach_with_token(
     from uaclient.timer.update_messaging import update_motd_messages
 
     contract_client = contract.UAContractClient(cfg)
+    attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
 
     try:
         new_machine_token = contract_client.add_contract_machine(
@@ -82,6 +88,7 @@ def attach_with_token(
         )
     except (exceptions.UrlError, exceptions.UserFacingError) as exc:
         # Persist updated status in the event of partial attach
+        attachment_data_file.write(AttachmentData(attached_at=attached_at))
         ua_status.status(cfg=cfg)
         update_motd_messages(cfg)
         raise exc
@@ -90,6 +97,7 @@ def attach_with_token(
     if current_iid:
         cfg.write_cache("instance-id", current_iid)
 
+    attachment_data_file.write(AttachmentData(attached_at=attached_at))
     update_motd_messages(cfg)
     timer.start()
 
