@@ -8,7 +8,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import exceptions, messages, system
+from uaclient import apt, exceptions, messages, system
 
 
 class TestGetKernelInfo:
@@ -521,6 +521,90 @@ class TestIsContainer:
 
         calls = [mock.call(["ischroot"])]
         assert calls == m_subp.call_args_list
+
+
+class TestIsDesktop:
+    @pytest.mark.parametrize(
+        ["installed_packages", "expected"],
+        [
+            ([], False),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="desktop-not-ubuntu", version="", arch=""
+                    ),
+                ],
+                False,
+            ),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="ubuntu-desktop", version="", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="ubuntu-desktop-minimal", version="", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="kubuntu-desktop", version="", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="xubuntu-desktop", version="", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="", arch=""
+                    ),
+                    apt.InstalledAptPackage(
+                        name="lubuntu-desktop", version="", arch=""
+                    ),
+                ],
+                True,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.apt.get_installed_packages")
+    def test_true_systemd_detect_virt_success(
+        self,
+        m_installed_packages,
+        installed_packages,
+        expected,
+    ):
+        m_installed_packages.return_value = installed_packages
+        assert expected == system.is_desktop.__wrapped__()
 
 
 class TestParseOSRelease:
