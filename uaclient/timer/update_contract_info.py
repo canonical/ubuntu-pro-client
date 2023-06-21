@@ -6,7 +6,7 @@ from uaclient.config import UAConfig
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def update_contract_info(cfg: UAConfig) -> bool:

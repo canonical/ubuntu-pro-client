@@ -9,15 +9,23 @@ from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Dict, List, Optional, Union  # noqa: F401
 
-from uaclient import event_logger, exceptions, messages
+from uaclient import exceptions, messages
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 from uaclient.types import MessagingOperations
 
 DROPPED_KEY = object()
 
 
-event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+def replace_top_level_logger_name(name: str) -> str:
+    """Replace the name of the root logger from __name__"""
+    if name == "":
+        return ""
+    names = name.split(".")
+    names[0] = "ubuntupro"
+    return ".".join(names)
+
+
+LOG = logging.getLogger(replace_top_level_logger_name(__name__))
 
 
 class LogFormatter(logging.Formatter):
@@ -91,12 +99,10 @@ def disable_log_to_console():
     (Note that the @contextmanager decorator also allows this function to be
     used as a decorator.)
     """
-    uaclient_logger = logging.getLogger("uaclient")
-    log_handlers = uaclient_logger.handlers
-    if not log_handlers and uaclient_logger.parent:
-        log_handlers = uaclient_logger.parent.handlers
+    upro_logger = logging.getLogger("ubuntupro")
+    log_handlers = upro_logger.handlers
     potential_handlers = [
-        handler for handler in log_handlers if handler.name == "ua-console"
+        handler for handler in log_handlers if handler.name == "upro-console"
     ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end
@@ -192,6 +198,9 @@ def prompt_choices(msg: str = "", valid_choices: List[str] = []) -> str:
 
     :return: Valid response character chosen.
     """
+    from uaclient import event_logger
+
+    event = event_logger.get_event_logger()
     value = ""
     error_msg = "{} is not one of: {}".format(
         value, ", ".join([choice.upper() for choice in valid_choices])
@@ -316,6 +325,9 @@ def handle_message_operations(
 
     :return: True upon success, False on failure.
     """
+    from uaclient import event_logger
+
+    event = event_logger.get_event_logger()
     if not msg_ops:
         return True
 

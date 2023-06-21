@@ -14,6 +14,8 @@ PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
 PROXY_VALIDATION_SNAP_HTTPS_URL = "https://api.snapcraft.io"
 
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
 UnparsedHTTPResponse = NamedTuple(
     "UnparsedHTTPResponse",
     [
@@ -70,7 +72,7 @@ def validate_proxy(
     except (socket.timeout, error.URLError) as e:
         with util.disable_log_to_console():
             msg = getattr(e, "reason", str(e))
-            logging.error(
+            LOG.error(
                 messages.ERROR_USING_PROXY.format(
                     proxy=proxy, test_url=test_url, error=msg
                 )
@@ -108,7 +110,7 @@ def configure_web_proxy(
                     set(proxy_value.split(",")).union(set(UA_NO_PROXY_URLS))
                 )
             )
-    logging.debug("Setting no_proxy: %s", no_proxy)
+    LOG.debug("Setting no_proxy: %s", no_proxy)
     os.environ["no_proxy"] = no_proxy
     os.environ["NO_PROXY"] = no_proxy
     if proxy_dict:
@@ -154,7 +156,7 @@ def readurl(
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
     )
-    logging.debug(
+    LOG.debug(
         "URL [{}]: {}, headers: {{{}}}, data: {}".format(
             method or "GET",
             url,
@@ -188,7 +190,7 @@ def readurl(
         elif json_list:
             body_to_log = json_list
         debug_msg += ", data: {}".format(body_to_log)
-    logging.debug(debug_msg)
+    LOG.debug(debug_msg)
 
     return HTTPResponse(
         code=resp.code,

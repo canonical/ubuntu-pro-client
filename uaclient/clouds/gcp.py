@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional  # noqa: F401
 from uaclient import exceptions, http, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
-LOG = logging.getLogger("pro.clouds.gcp")
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 TOKEN_URL = (
     "http://metadata/computeMetadata/v1/instance/service-accounts/"

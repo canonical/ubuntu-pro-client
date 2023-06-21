@@ -5,12 +5,12 @@ from subprocess import TimeoutExpired
 
 from uaclient import exceptions
 from uaclient import log as pro_log
-from uaclient import system
+from uaclient import system, util
 from uaclient.config import UAConfig
 from uaclient.defaults import DEFAULT_DATA_DIR
 from uaclient.log import JsonArrayFormatter
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 AUTO_ATTACH_STATUS_MOTD_FILE = os.path.join(
     DEFAULT_DATA_DIR, "messages", "motd-auto-attach-status"
@@ -41,7 +41,10 @@ def cleanup(cfg: UAConfig):
     retry_auto_attach.cleanup(cfg)
 
 
-def setup_logging(console_level, log_level, log_file, logger):
+def setup_logging(console_level, log_level, log_file, logger=None):
+    if logger is None:
+        logger = logging.getLogger("ubuntupro")
+
     logger.setLevel(log_level)
 
     logger.handlers = []
@@ -50,11 +53,11 @@ def setup_logging(console_level, log_level, log_file, logger):
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setFormatter(logging.Formatter("%(message)s"))
     console_handler.setLevel(console_level)
-    console_handler.set_name("ua-console")
+    console_handler.set_name("upro-console")
     logger.addHandler(console_handler)
 
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
-    file_handler.set_name("ua-file")
+    file_handler.set_name("upro-file")
     logger.addHandler(file_handler)

@@ -26,7 +26,7 @@ LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
 LIVEPATCH_API_V1_KERNELS_SUPPORTED = "/v1/api/kernels/supported"
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 @enum.unique
@@ -141,7 +141,7 @@ def status() -> Optional[LivepatchStatusStatus]:
         status_json = json.loads(out)
     except json.JSONDecodeError:
         with util.disable_log_to_console():
-            logging.warning(
+            LOG.warning(
                 messages.JSON_PARSER_ERROR.format(
                     source="canonical-livepatch status", out=out
                 ).msg
@@ -218,10 +218,8 @@ class UALivepatchClient(serviceclient.UAServiceClient):
 
         if response.code != 200:
             with util.disable_log_to_console():
-                logging.warning(
-                    "livepatch supported kernels API was unsuccessful"
-                )
-                logging.warning(response.body)
+                LOG.warning("livepatch supported kernels API was unsuccessful")
+                LOG.warning(response.body)
             return None
 
         api_supported_val = response.json_dict.get("Supported")

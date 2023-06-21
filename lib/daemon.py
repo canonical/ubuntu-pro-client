@@ -12,8 +12,7 @@ from uaclient.daemon import (
     setup_logging,
 )
 
-LOG = logging.getLogger("uaclient.lib.daemon")
-uaclient_logger = logging.getLogger("uaclient")
+LOG = logging.getLogger("ubuntupro.lib.daemon")
 
 
 def main() -> int:
@@ -27,16 +26,24 @@ def main() -> int:
     setup_logging(
         logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG
     )
+    # used with loggers in uaclient.daemon
+    daemon_logger = logging.getLogger("ubuntupro.daemon")
+    setup_logging(
+        logging.INFO,
+        logging.DEBUG,
+        log_file=cfg.daemon_log_file,
+        logger=daemon_logger,
+    )
     # The ua-daemon logger should log everything to its file
     # Make sure the ua-daemon logger does not generate double logging
     # by propagating to the root logger
+    LOG.propagate = False
+    daemon_logger.propagate = False
     # The root logger should only log errors to the daemon log file
-    # TODO: is this okay? root_logger("uaclient")
     setup_logging(
         logging.CRITICAL,
         logging.ERROR,
-        log_file=cfg.daemon_log_file,
-        logger=uaclient_logger,
+        cfg.daemon_log_file,
     )
 
     LOG.debug("daemon starting")

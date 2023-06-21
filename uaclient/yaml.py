@@ -1,9 +1,10 @@
 import logging
 import sys
 
+from uaclient import util
 from uaclient.messages import BROKEN_YAML_MODULE, MISSING_YAML_MODULE
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 try:
     import yaml

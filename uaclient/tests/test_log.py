@@ -5,8 +5,9 @@ from io import StringIO
 import pytest
 
 from uaclient import log as pro_log
+from uaclient import util
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 LOG_FMT = "%(asctime)s%(name)s%(funcName)s%(lineno)s\
 %(levelname)s%(message)s%(extra)s"
 DATE_FMT = "%Y-%m-%dT%H:%M:%S%z"
@@ -137,7 +138,7 @@ class TestLoggerFormatter:
             ),
         ),
     )
-    @pytest.mark.parametrize("caplog_text", [logging.NOTSET], indirect=True)
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     def test_valid_json_output(
         self, caplog_text, message, level, log_fn, levelname, extra
     ):
@@ -151,7 +152,7 @@ class TestLoggerFormatter:
         logged_value = buffer.getvalue()
         val = json.loads(logged_value)
         assert val[1] == levelname
-        assert val[2] == __name__
+        assert val[2] == util.replace_top_level_logger_name(__name__)
         assert val[5] == message
         if extra:
             assert val[6].get("key") == extra.get("key")

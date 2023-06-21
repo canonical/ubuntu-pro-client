@@ -21,7 +21,7 @@ from uaclient.types import (  # noqa: F401
 )
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 CONDITIONAL_PACKAGES_EVERYWHERE = [
     "strongswan",

@@ -38,7 +38,6 @@ VALID_ENDPOINTS = [
 def call_api(
     endpoint_path: str, options: List[str], cfg: UAConfig
 ) -> APIResponse:
-    # setup null handler for all API endpoints
 
     if endpoint_path not in VALID_ENDPOINTS:
         return error_out(
