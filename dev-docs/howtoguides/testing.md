@@ -50,7 +50,7 @@ The testing can be overridden to install ubuntu-advantage-tools from other sourc
 - `archive`: install the latest version available in the archive, not adding any PPA
 - `proposed`: install the package from the -proposed pocket - specially useful for SRU testing (see [the release guide](how_to_release_a_new_version_of_ua.md))
 - `custom`: install from a custom provided PPA. If set, then two other variables need to be set: `UACLIENT_BEHAVE_CUSTOM_PPA=<PPA URL>` and `UACLIENT_BEHAVE_CUSTOM_PPA_KEYID=<signing key for the PPA>`.
-- `local`: install from a local copy of the ubuntu-advantage-client source code
+- `local`: install from a local copy of the ubuntu-pro-client source code
 
 `local` is particularly useful, as it runs the suite against the local code, thus including and validating the latest changes made. It is advised to run any related integration tests against local code changes before pushing them to be reviewed.
 

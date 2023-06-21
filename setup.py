@@ -1,5 +1,5 @@
 # Copyright (C) 2019 Canonical Ltd.
-# This file is part of ubuntu-advantage-client.  See LICENSE file for license.
+# This file is part of ubuntu-pro-client.  See LICENSE file for license.
 
 import glob
 

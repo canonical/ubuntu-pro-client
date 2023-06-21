@@ -133,7 +133,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     a. `git-ubuntu clone ubuntu-advantage-tools; cd ubuntu-advantage-tools`
 
-    b. `git remote add upstream git@github.com:canonical/ubuntu-advantage-client.git`
+    b. `git remote add upstream git@github.com:canonical/ubuntu-pro-client.git`
 
     c. `git fetch upstream`
 
@@ -195,7 +195,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b. With the package in proposed, perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
 
-    c. Perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
+    c. Perform the [Ubuntu-advantage-tools SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
       * There may also be one-time test scripts added in the `sru/` directory for this release.
 
     d. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:

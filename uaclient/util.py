@@ -534,12 +534,12 @@ def handle_unicode_characters(message: str) -> str:
     ):
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
         # writing to a utf-8 output; see
-        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859
+        # https://github.com/canonical/ubuntu-pro-client/issues/859
         message = message.replace("\u2014", "-")
 
         # Remove our unicode success/failure marks if we aren't going to be
         # writing to a utf-8 output; see
-        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/1463
+        # https://github.com/canonical/ubuntu-pro-client/issues/1463
         message = message.replace(messages.OKGREEN_CHECK + " ", "")
         message = message.replace(messages.FAIL_X + " ", "")
 
