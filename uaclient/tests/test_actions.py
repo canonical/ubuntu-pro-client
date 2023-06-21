@@ -340,7 +340,7 @@ class TestAutoAttach:
 
 @mock.patch("uaclient.actions._write_command_output_to_file")
 class TestCollectLogs:
-    @mock.patch("uaclient.actions.logging.warning")
+    @mock.patch("uaclient.actions.LOG.warning")
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")

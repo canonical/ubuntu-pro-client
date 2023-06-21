@@ -51,7 +51,7 @@ OVERRIDE_SELECTOR_WEIGHTS = {
 }
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -226,7 +226,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         # a full `activityInfo` object which belongs at the root of
         # `machine-token.json`
         if response.json_dict:
-
             machine_token = self.cfg.machine_token
             # The activity information received as a response here
             # will not provide the information inside an activityInfo

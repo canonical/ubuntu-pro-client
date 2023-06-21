@@ -34,7 +34,7 @@ from uaclient.util import is_config_value_true
 from uaclient.yaml import safe_load
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class IncompatibleService:
@@ -341,9 +341,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
 
         if self.is_access_expired():
-            logging.debug(
-                "Updating contract on service '%s' expiry", self.name
-            )
+            LOG.debug("Updating contract on service '%s' expiry", self.name)
             contract.refresh(self.cfg)
 
         if not self.contract_status() == ContractStatus.ENTITLED:
