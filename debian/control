@@ -26,8 +26,8 @@ Build-Depends: bash-completion,
                python3-yaml
 Standards-Version: 4.5.1
 Homepage: https://ubuntu.com/advantage
-Vcs-Git: https://github.com/canonical/ubuntu-advantage-client.git
-Vcs-Browser: https://github.com/canonical/ubuntu-advantage-client
+Vcs-Git: https://github.com/canonical/ubuntu-pro-client.git
+Vcs-Browser: https://github.com/canonical/ubuntu-pro-client
 Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools

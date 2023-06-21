@@ -1,6 +1,6 @@
 # Code Formatting
 
-The `ubuntu-advantage-client` code base is formatted using
+The `ubuntu-pro-client` code base is formatted using
 [black](https://github.com/psf/black), and imports are sorted with
 [isort](https://github.com/PyCQA/isort).  When making changes, you
 should ensure that your code is blackened and isorted, or it will
