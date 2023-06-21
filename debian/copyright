@@ -1,9 +1,9 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: ubuntu-advantage-script
-Source: https://github.com/CanonicalLtd/ubuntu-advantage-script
+Upstream-Name: ubuntu-pro-client
+Source: https://github.com/canonical/ubuntu-pro-client
 
 Files: *
-Copyright: 2017, Canonical Ltd
+Copyright: 2023, Canonical Ltd
 License: GPL-3.0
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
