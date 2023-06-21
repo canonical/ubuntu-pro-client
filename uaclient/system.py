@@ -21,7 +21,7 @@ DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DISTRO_INFO_CSV = "/usr/share/distro-info/ubuntu.csv"
 
 CPU_VENDOR_MAP = {"GenuineIntel": "intel"}
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 # N.B. this relies on the version normalisation we perform in get_release_info
 REGEX_OS_RELEASE_VERSION = (
@@ -96,13 +96,13 @@ def _get_kernel_changelog_timestamp(
 ) -> Optional[datetime.datetime]:
     if is_container():
         with util.disable_log_to_console():
-            logging.warning(
+            LOG.warning(
                 "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
             )
         return None
 
     with util.disable_log_to_console():
-        logging.warning("Falling back to using timestamp of kernel changelog")
+        LOG.warning("Falling back to using timestamp of kernel changelog")
 
     try:
         stat_result = os.stat(
@@ -115,7 +115,7 @@ def _get_kernel_changelog_timestamp(
         )
     except Exception:
         with util.disable_log_to_console():
-            logging.warning("Unable to stat kernel changelog")
+            LOG.warning("Unable to stat kernel changelog")
         return None
 
 
@@ -125,14 +125,14 @@ def _get_kernel_build_date(
     date_match = re.search(RE_KERNEL_EXTRACT_BUILD_DATE, uname.version)
     if date_match is None:
         with util.disable_log_to_console():
-            logging.warning("Unable to find build date in uname version")
+            LOG.warning("Unable to find build date in uname version")
         return _get_kernel_changelog_timestamp(uname)
     date_str = date_match.group(0)
     try:
         dt = datetime.datetime.strptime(date_str, "%a %b %d %H:%M:%S %Z %Y")
     except ValueError:
         with util.disable_log_to_console():
-            logging.warning("Unable to parse build date from uname version")
+            LOG.warning("Unable to parse build date from uname version")
         return _get_kernel_changelog_timestamp(uname)
     if dt.tzinfo is None:
         # Give it a default timezone if it didn't get one from strptime
@@ -541,10 +541,10 @@ def write_file(
 def ensure_file_absent(file_path: str) -> None:
     """Remove a file if it exists, logging a message about removal."""
     try:
-        logging.debug("Removing file: %s", file_path)
+        LOG.debug("Removing file: %s", file_path)
         os.unlink(file_path)
     except FileNotFoundError:
-        logging.debug("File does not exist: %s", file_path)
+        LOG.debug("File does not exist: %s", file_path)
 
 
 def _subp(
@@ -679,10 +679,10 @@ def subp(
 
 def ensure_folder_absent(folder_path: str) -> None:
     try:
-        logging.debug("Removing folder: %s", folder_path)
+        LOG.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
     except FileNotFoundError:
-        logging.debug("Folder does not exist: %s", folder_path)
+        LOG.debug("Folder does not exist: %s", folder_path)
 
 
 def get_systemd_job_state(job_name: str) -> bool:

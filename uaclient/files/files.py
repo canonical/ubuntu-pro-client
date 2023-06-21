@@ -8,7 +8,7 @@ from uaclient import defaults, event_logger, exceptions, messages, system, util
 from uaclient.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class UAFile:

@@ -19,7 +19,7 @@ from uaclient.entitlements import base
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class RepoEntitlement(base.UAEntitlement):

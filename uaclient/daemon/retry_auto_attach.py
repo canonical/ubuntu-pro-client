@@ -2,7 +2,7 @@ import datetime
 import logging
 import time
 
-from uaclient import exceptions, lock, messages, system
+from uaclient import exceptions, lock, messages, system, util
 from uaclient.api import exceptions as api_exceptions
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -13,7 +13,7 @@ from uaclient.config import UAConfig
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
 from uaclient.files import notices, state_files
 
-LOG = logging.getLogger("pro.daemon.retry_auto_attach")
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 RETRY_INTERVALS = [
     900,  # 15m (T+15m)

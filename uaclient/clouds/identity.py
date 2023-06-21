@@ -3,10 +3,10 @@ from enum import Enum
 from functools import lru_cache
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import clouds, exceptions, system
+from uaclient import clouds, exceptions, system, util
 from uaclient.config import apply_config_settings_override
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 CLOUD_TYPE_TO_TITLE = {
     "aws": "AWS",

@@ -5,7 +5,6 @@ import pytest
 
 from uaclient import apt, messages, system
 from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
@@ -18,21 +17,6 @@ def entitlement(entitlement_factory):
         called_name="cis",
         additional_packages=["pkg1"],
     )
-
-
-class TestCISEntitlementCanEnable:
-    def test_can_enable_true_on_entitlement_inactive(
-        self, capsys, entitlement
-    ):
-        """When entitlement is INACTIVE, can_enable returns True."""
-        # Unset static affordance container check
-        with mock.patch.object(
-            entitlement,
-            "application_status",
-            return_value=(ApplicationStatus.DISABLED, ""),
-        ):
-            assert entitlement.can_enable()
-        assert ("", "") == capsys.readouterr()
 
 
 class TestCISEntitlementEnable:

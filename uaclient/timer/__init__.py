@@ -1,9 +1,9 @@
 import logging
 from subprocess import TimeoutExpired
 
-from uaclient import exceptions, system
+from uaclient import exceptions, system, util
 
-LOG = logging.getLogger("uaclient.timer")
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def start():

@@ -1,5 +1,6 @@
 """Tests related to uaclient.util module."""
 import datetime
+import io
 import json
 import logging
 
@@ -81,7 +82,17 @@ class TestDisableLogToConsole:
 
         log_file = tmpdir.join("file.log").strpath
         m_get_user.return_value = log_file
-        cli.setup_logging(logging.INFO, logging.INFO, log_file=log_file)
+        logger = logging.getLogger("ubuntupro")
+        logger.handlers = []
+
+        logger.setLevel(logging.INFO)
+        output = io.StringIO()
+        console_handler = logging.StreamHandler(output)
+        console_handler.setLevel(logging.INFO)
+        console_handler.set_name(
+            "upro-console"
+        )  # Used to disable console logging
+        logger.addHandler(console_handler)
 
         if disable_log:
             context_manager = util.disable_log_to_console
@@ -89,11 +100,12 @@ class TestDisableLogToConsole:
             context_manager = mock.MagicMock
 
         with context_manager():
-            logging.error("test error")
-            logging.info("test info")
+            logger.error("test error")
+            logger.info("test info")
 
-        out, err = capsys.readouterr()
-        combined_output = out + err
+        # out, err = capsys.readouterr()
+        out = output.getvalue()
+        combined_output = out
         if disable_log:
             assert not combined_output
         else:
@@ -114,11 +126,12 @@ class TestDisableLogToConsole:
         with mock.patch(
             "uaclient.cli.config.UAConfig", return_value=FakeConfig()
         ):
+            logger = logging.getLogger("ubuntupro")
             cli.setup_logging(logging.DEBUG, logging.DEBUG)
 
             with util.disable_log_to_console():
-                logging.error("test error")
-                logging.info("test info")
+                logger.error("test error")
+                logger.info("test info")
 
         out, err = capsys.readouterr()
         combined_output = out + err
@@ -489,3 +502,21 @@ class TestDeduplicateArches:
     )
     def test_deduplicate_arches(self, arches, expected):
         assert expected == util.deduplicate_arches(arches)
+
+
+class TestReplaceLoggerName:
+    @pytest.mark.parametrize(
+        ["logger_name", "new_logger_name"],
+        (
+            ("uaclient.module.name1", "ubuntupro.module.name1"),
+            ("log.module1.name2", "ubuntupro.module1.name2"),
+            ("prolog.lang.old", "ubuntupro.lang.old"),
+            ("", ""),
+            (".", "ubuntupro."),
+            ("module1", "ubuntupro"),
+        ),
+    )
+    def test_replace_top_level_logger_name(self, logger_name, new_logger_name):
+        assert (
+            util.replace_top_level_logger_name(logger_name) == new_logger_name
+        )

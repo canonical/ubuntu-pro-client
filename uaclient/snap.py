@@ -15,7 +15,7 @@ SNAPD_SOCKET_PATH = "/run/snapd.socket"
 SNAPD_SNAPS_API = "/v2/snaps/{}"
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 SnapPackage = NamedTuple(
@@ -53,7 +53,7 @@ def configure_snap_proxy(
         before the second retry.
     """
     if not is_snapd_installed():
-        logging.debug("Skipping configure snap proxy. snapd is not installed.")
+        LOG.debug("Skipping configure snap proxy. snapd is not installed.")
         return
 
     if http_proxy or https_proxy:
@@ -85,9 +85,7 @@ def unconfigure_snap_proxy(
         before the second retry.
     """
     if not is_snapd_installed():
-        logging.debug(
-            "Skipping unconfigure snap proxy. snapd is not installed."
-        )
+        LOG.debug("Skipping unconfigure snap proxy. snapd is not installed.")
         return
     system.subp(
         ["snap", "unset", "system", "proxy.{}".format(protocol_type)],
@@ -127,7 +125,7 @@ def install_snapd():
     try:
         apt.run_apt_update_command()
     except exceptions.UserFacingError as e:
-        logging.debug(
+        LOG.debug(
             "Trying to install snapd." " Ignoring apt-get update failure: %s",
             str(e),
         )
@@ -145,7 +143,7 @@ def run_snapd_wait_cmd():
         system.subp([SNAP_CMD, "wait", "system", "seed.loaded"], capture=True)
     except exceptions.ProcessExecutionError as e:
         if re.search(r"unknown command .*wait", str(e).lower()):
-            logging.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+            LOG.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
         else:
             raise
 
@@ -187,7 +185,7 @@ def get_snap_info(snap: str) -> SnapPackage:
             data = json.loads(out)
         except json.JSONDecodeError:
             with util.disable_log_to_console():
-                logging.warning(
+                LOG.warning(
                     messages.JSON_PARSER_ERROR.format(
                         source="SNAPD API {}".format(url),
                         out=out,

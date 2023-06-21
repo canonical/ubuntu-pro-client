@@ -27,7 +27,7 @@ import logging
 import sys
 import time
 
-from uaclient import contract, defaults, system
+from uaclient import contract, defaults, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 
@@ -45,7 +45,7 @@ current_codename_to_past_codename = {
     "mantic": "lunar",
 }
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:

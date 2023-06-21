@@ -31,7 +31,7 @@ from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
 
-LOG = logging.getLogger("uaclient.lib.reboot_cmds")
+LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
 
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):

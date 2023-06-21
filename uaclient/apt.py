@@ -14,7 +14,7 @@ from typing import Dict, Iterable, List, NamedTuple, Optional, Union
 import apt  # type: ignore
 import apt_pkg  # type: ignore
 
-from uaclient import event_logger, exceptions, gpg, messages, system
+from uaclient import event_logger, exceptions, gpg, messages, system, util
 from uaclient.defaults import ESM_APT_ROOTDIR
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
@@ -56,7 +56,7 @@ deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
 APT_RETRIES = [1.0, 5.0, 10.0]
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 @enum.unique

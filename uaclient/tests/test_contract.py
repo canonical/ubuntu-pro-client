@@ -1566,7 +1566,7 @@ class TestApplyContractOverrides:
 
 @mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
 class TestRequestAutoAttach:
-    @mock.patch("uaclient.contract.logging.debug")
+    @mock.patch("uaclient.contract.LOG.debug")
     def test_request_for_invalid_pro_image(
         self, m_logging_debug, m_request_url, FakeConfig
     ):
