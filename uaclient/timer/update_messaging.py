@@ -12,7 +12,7 @@ import os
 from os.path import exists
 from typing import Tuple
 
-from uaclient import contract, defaults, messages, system
+from uaclient import contract, defaults, messages, system, util
 from uaclient.api.u.pro.packages.updates.v1 import (
     _updates as api_u_pro_packages_updates_v1,
 )
@@ -25,7 +25,7 @@ MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
     "/usr/lib/update-notifier/update-motd-updates-available"
 )
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 @enum.unique

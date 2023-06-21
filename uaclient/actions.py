@@ -29,7 +29,7 @@ from uaclient.files.state_files import (
     timer_jobs_state_file,
 )
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 UA_SERVICES = (
@@ -259,7 +259,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
                 content,
             )
         except Exception as e:
-            logging.warning(
+            LOG.warning(
                 "Failed to collect user log file: %s\n%s", log_file, str(e)
             )
 

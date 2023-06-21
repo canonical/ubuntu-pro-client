@@ -31,8 +31,7 @@ from uaclient.daemon import (
 )
 from uaclient.files import state_files
 
-uaclient_logger = logging.getLogger("uaclient")
-LOG = logging.getLogger("uaclient.lib.auto_attach")
+LOG = logging.getLogger("ubuntupro.lib.auto_attach")
 
 try:
     import cloudinit.stages as ci_stages  # type: ignore
@@ -108,13 +107,11 @@ if __name__ == "__main__":
         logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
-        logger=uaclient_logger,
     )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,
-        log_file=cfg.log_file,
-        logger=uaclient_logger,
+        cfg.log_file,
     )
     sys.exit(main(cfg))

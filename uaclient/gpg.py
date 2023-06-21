@@ -2,9 +2,9 @@ import logging
 import os
 import shutil
 
-from uaclient import exceptions
+from uaclient import exceptions, util
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:

@@ -6,7 +6,7 @@ from typing import Any, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions, messages, util
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class IncorrectTypeError(exceptions.UserFacingError):

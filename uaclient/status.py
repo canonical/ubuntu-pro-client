@@ -30,7 +30,7 @@ from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 ESSENTIAL = "essential"

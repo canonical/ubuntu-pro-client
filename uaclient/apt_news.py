@@ -25,7 +25,7 @@ from uaclient.timer.update_messaging import (
     get_contract_expiry_status,
 )
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class AptNewsMessageSelectors(DataObject):
@@ -169,7 +169,7 @@ def fetch_aptnews_json(cfg: UAConfig):
 def fetch_and_process_apt_news(cfg: UAConfig) -> Optional[str]:
     news_dict = fetch_aptnews_json(cfg)
     msg = select_message(cfg, news_dict.get("messages", []))
-    logging.debug("using msg: %r", msg)
+    LOG.debug("using msg: %r", msg)
     if msg is not None:
         return "\n".join(msg.lines)
     return None
@@ -227,6 +227,6 @@ def update_apt_news(cfg: UAConfig):
             state_files.apt_news_contents_file.delete()
             state_files.apt_news_raw_file.delete()
     except Exception as e:
-        logging.debug("something went wrong while processing apt_news: %r", e)
+        LOG.debug("something went wrong while processing apt_news: %r", e)
         state_files.apt_news_contents_file.delete()
         state_files.apt_news_raw_file.delete()

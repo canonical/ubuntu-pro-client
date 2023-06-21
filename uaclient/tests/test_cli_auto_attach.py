@@ -138,6 +138,7 @@ class TestActionAutoAttach:
             ),
         ],
     )
+    @mock.patch("uaclient.cli.LOG.error")
     @mock.patch(M_PATH + "logging")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
@@ -146,18 +147,19 @@ class TestActionAutoAttach:
         m_full_auto_attach,
         m_post_cli_attach,
         m_logging,
+        _m_log_error,
         api_side_effect,
         expected_err,
         expected_ret,
-        capsys,
         FakeConfig,
+        capsys,
     ):
         m_full_auto_attach.side_effect = api_side_effect
         cfg = FakeConfig()
         with pytest.raises(SystemExit) as excinfo:
             main_error_handler(action_auto_attach)(mock.MagicMock(), cfg=cfg)
         assert expected_ret == excinfo.value.code
-        _out, err = capsys.readouterr()
+        _, err = capsys.readouterr()
         assert expected_err == err
         assert [] == m_post_cli_attach.call_args_list
 

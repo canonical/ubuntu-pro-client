@@ -3,11 +3,11 @@ import logging
 import os
 import time
 
-from uaclient import config, exceptions
+from uaclient import config, exceptions, util
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 # Set a module-level callable here so we don't have to reinstantiate
 # UAConfig in order to determine dynamic data_path exception handling of

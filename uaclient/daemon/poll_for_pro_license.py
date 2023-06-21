@@ -10,7 +10,7 @@ from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
 from uaclient.daemon import retry_auto_attach
 
-LOG = logging.getLogger("pro.daemon.poll_for_pro_license")
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):

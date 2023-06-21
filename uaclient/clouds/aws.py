@@ -19,7 +19,7 @@ AWS_TOKEN_TTL_SECONDS = "21600"
 AWS_TOKEN_PUT_HEADER = "X-aws-ec2-metadata-token"
 AWS_TOKEN_REQ_HEADER = AWS_TOKEN_PUT_HEADER + "-ttl-seconds"
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class UAAutoAttachAWSInstance(AutoAttachCloudInstance):

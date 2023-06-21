@@ -507,7 +507,6 @@ class TestMain:
         _m_setup_logging,
         m_delete_cache_key,
         capsys,
-        logging_sandbox,
         caplog_text,
         event,
         exception,
@@ -556,7 +555,6 @@ class TestMain:
         _m_setup_logging,
         m_delete_cache_key,
         capsys,
-        logging_sandbox,
         caplog_text,
         exception,
         expected_error_msg,
@@ -606,7 +604,6 @@ class TestMain:
         m_get_parser,
         _m_setup_logging,
         capsys,
-        logging_sandbox,
         caplog_text,
         event,
         exception,
@@ -662,7 +659,6 @@ class TestMain:
         error_url,
         expected_log,
         capsys,
-        logging_sandbox,
         caplog_text,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
@@ -688,7 +684,7 @@ class TestMain:
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_command_line_is_logged(
-        self, _m_get_parser, _m_setup_logging, logging_sandbox, caplog_text
+        self, _m_get_parser, _m_setup_logging, caplog_text
     ):
         main(["some", "args"])
 
@@ -708,7 +704,6 @@ class TestMain:
         _m_pro_environment,
         _m_get_parser,
         _m_setup_logging,
-        logging_sandbox,
         caplog_text,
     ):
         main(["some", "args"])
@@ -846,9 +841,9 @@ class TestSetupLogging:
         ):
             setup_logging(console_level, log_level, logger=logger)
         assert len(logger.handlers) == 2
-        assert logger.handlers[0].name == "ua-console"
+        assert logger.handlers[0].name == "upro-console"
         assert logger.handlers[0].level == console_level
-        assert logger.handlers[1].name == "ua-file"
+        assert logger.handlers[1].name == "upro-file"
         assert logger.handlers[1].level == log_level
 
     @mock.patch("pathlib.Path.touch")

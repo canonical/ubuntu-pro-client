@@ -121,7 +121,7 @@ def caplog_text(request):
 
     except LookupError:
         # If the caplog fixture isn't available, shim something in ourselves
-        root = logging.getLogger("uaclient")
+        root = logging.getLogger("ubuntupro")
         root.propagate = False
         root.setLevel(log_level)
         handler = logging.StreamHandler(io.StringIO())
@@ -148,13 +148,13 @@ def caplog_text(request):
 def logging_sandbox():
     # Monkeypatch a replacement root logger, so that our changes to logging
     # configuration don't persist outside of the test
-    uaclient_logger = logging.getLogger("uaclient")
-    uaclient_logger.setLevel(logging.WARNING)
+    upro_logger = logging.getLogger("ubuntupro")
+    upro_logger.setLevel(logging.WARNING)
 
-    with mock.patch.object(logging, "root", uaclient_logger):
-        with mock.patch.object(logging.Logger, "root", uaclient_logger):
+    with mock.patch.object(logging, "root", upro_logger):
+        with mock.patch.object(logging.Logger, "root", upro_logger):
             with mock.patch.object(
-                logging.Logger, "manager", logging.Manager(uaclient_logger)
+                logging.Logger, "manager", logging.Manager(upro_logger)
             ):
                 yield
 

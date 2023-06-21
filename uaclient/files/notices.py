@@ -6,7 +6,7 @@ from typing import List
 
 from uaclient import defaults, event_logger, messages, system, util
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()
 NoticeFileDetails = namedtuple(
     "NoticeFileDetails", ["order_id", "label", "is_permanent", "message"]

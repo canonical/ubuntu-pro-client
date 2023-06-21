@@ -5,7 +5,7 @@ from typing import Any, Dict
 from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
-LOG = logging.getLogger("pro.clouds.azure")
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 IMDS_BASE_URL = "http://169.254.169.254/metadata/"
 

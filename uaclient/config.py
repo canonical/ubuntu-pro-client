@@ -31,7 +31,7 @@ from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.yaml import safe_load
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 PRIVATE_SUBDIR = "private"
 MERGE_ID_KEY_MAP = {

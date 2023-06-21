@@ -7,8 +7,7 @@ from uaclient.apt import update_esm_caches
 from uaclient.config import UAConfig
 from uaclient.daemon import setup_logging
 
-LOG = logging.getLogger("uaclient.lib.esm_cache")
-uaclient_logger = logging.getLogger("uaclient")
+LOG = logging.getLogger("ubuntupro.lib.esm_cache")
 
 
 def main(cfg: UAConfig) -> None:
@@ -24,13 +23,11 @@ if __name__ == "__main__":
         logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
-        logger=uaclient_logger,
     )
     cfg = UAConfig()
     setup_logging(
         logging.INFO,
         logging.DEBUG,
-        log_file=cfg.log_file,
-        logger=uaclient_logger,
+        cfg.log_file,
     )
     main(cfg)

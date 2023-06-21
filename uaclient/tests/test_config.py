@@ -1153,7 +1153,7 @@ class TestFeatures:
             ),
         ),
     )
-    @mock.patch("uaclient.config.logging.warning")
+    @mock.patch("uaclient.config.LOG.warning")
     def test_features_are_a_property_of_uaconfig(
         self,
         m_log_warning,

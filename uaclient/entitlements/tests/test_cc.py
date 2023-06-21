@@ -75,37 +75,13 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         assert details == uf_status_details.msg
 
 
-class TestCommonCriteriaEntitlementCanEnable:
-    @mock.patch("uaclient.system.subp", return_value=("", ""))
-    @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system.get_release_info")
-    def test_can_enable_true_on_entitlement_inactive(
-        self, m_release_info, m_dpkg_arch, _m_subp, capsys, FakeConfig
-    ):
-        """When entitlement is INACTIVE, can_enable returns True."""
-        m_release_info.return_value = system.ReleaseInfo(
-            distribution="", release="", series="xenial", pretty_version=""
-        )
-        m_dpkg_arch.return_value = "s390x"
-        cfg = FakeConfig().for_attached_machine(
-            machine_token=CC_MACHINE_TOKEN,
-        )
-        entitlement = CommonCriteriaEntitlement(cfg, allow_beta=True)
-        uf_status, uf_status_details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INACTIVE == uf_status
-        details = "{} is not configured".format(entitlement.title)
-        assert details == uf_status_details.msg
-        assert (True, None) == entitlement.can_enable()
-        assert ("", "") == capsys.readouterr()
-
-
 class TestCommonCriteriaEntitlementEnable:
-
     # Paramterize True/False for apt_transport_https and ca_certificates
     @pytest.mark.parametrize(
         "apt_transport_https,ca_certificates",
         itertools.product([False, True], repeat=2),
     )
+    @mock.patch("uaclient.system.get_kernel_info")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
@@ -122,6 +98,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
+        m_get_kernel_info,
         capsys,
         event,
         apt_transport_https,

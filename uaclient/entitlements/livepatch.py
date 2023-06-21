@@ -9,6 +9,7 @@ from uaclient import (
     messages,
     snap,
     system,
+    util,
 )
 from uaclient.entitlements.base import IncompatibleService, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -22,7 +23,7 @@ ERROR_MSG_MAP = {
 }
 
 event = event_logger.get_event_logger()
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class LivepatchEntitlement(UAEntitlement):
