@@ -7,8 +7,8 @@
 </h1>
 
 ###### Clean and Consistent CLI for your Ubuntu Pro Systems
-[![Latest Upstream Version](https://img.shields.io/github/v/tag/canonical/ubuntu-advantage-client.svg?label=Latest%20Upstream%20Version&logo=github&logoColor=white&color=33ce57)](https://github.com/canonical/ubuntu-pro-client/tags)
-[![CI](https://github.com/canonical/ubuntu-advantage-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)](https://github.com/canonical/ubuntu-pro-client/actions)
+[![Latest Upstream Version](https://img.shields.io/github/v/tag/canonical/ubuntu-pro-client.svg?label=Latest%20Upstream%20Version&logo=github&logoColor=white&color=33ce57)](https://github.com/canonical/ubuntu-pro-client/tags)
+[![CI](https://github.com/canonical/ubuntu-pro-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)](https://github.com/canonical/ubuntu-pro-client/actions)
 [![Documentation Status](https://readthedocs.com/projects/canonical-ubuntu-pro-client/badge/?version=latest)](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/?badge=latest)
 <br/>
 [![Released Xenial Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/xenial?label=Xenial&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/xenial/+source/ubuntu-advantage-tools)

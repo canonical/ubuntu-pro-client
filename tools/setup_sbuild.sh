@@ -32,7 +32,7 @@ do
         sudo schroot -c source:"$name" -u root -d / -- apt-get update
         sudo schroot -c source:"$name" -u root -d / -- apt-get dist-upgrade -y
         sudo schroot -c source:"$name" -u root -d / -- apt-get install -y make dpkg-dev git devscripts equivs
-        sudo schroot -c source:"$name" -u root -d / -- git clone --depth 1 https://github.com/canonical/ubuntu-advantage-client /var/tmp/uac
+        sudo schroot -c source:"$name" -u root -d / -- git clone --depth 1 https://github.com/canonical/ubuntu-pro-client /var/tmp/uac
         sudo schroot -c source:"$name" -u root -d / -- make -f /var/tmp/uac/Makefile deps
         sudo schroot -c source:"$name" -u root -d / -- rm -rf /var/tmp/uac
     done
