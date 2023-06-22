@@ -688,6 +688,125 @@ Feature: Ua fix command behaviour
 
         .*✔.* USN-4038-3 is resolved.
         """
+        When I run `pro fix USN-6130-1` as non-root
+        Then stdout matches regexp:
+        """
+        USN-6130-1: Linux kernel vulnerabilities
+        Found CVEs:
+         - https://ubuntu.com/security/CVE-2023-30456
+         - https://ubuntu.com/security/CVE-2023-1380
+         - https://ubuntu.com/security/CVE-2023-32233
+         - https://ubuntu.com/security/CVE-2023-31436
+
+        Fixing requested USN-6130-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6130-1 does not affect your system.
+
+        Found related USNs:
+        - USN-6033-1
+        - USN-6122-1
+        - USN-6123-1
+        - USN-6124-1
+        - USN-6127-1
+        - USN-6131-1
+        - USN-6132-1
+        - USN-6135-1
+        - USN-6149-1
+        - USN-6150-1
+        - USN-6162-1
+        - USN-6173-1
+        - USN-6175-1
+        - USN-6186-1
+
+        Fixing related USNs:
+        - USN-6033-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6033-1 does not affect your system.
+
+        - USN-6122-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6122-1 does not affect your system.
+
+        - USN-6123-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6123-1 does not affect your system.
+
+        - USN-6124-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6124-1 does not affect your system.
+
+        - USN-6127-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6127-1 does not affect your system.
+
+        - USN-6131-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6131-1 does not affect your system.
+
+        - USN-6132-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6132-1 does not affect your system.
+
+        - USN-6135-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6135-1 does not affect your system.
+
+        - USN-6149-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6149-1 does not affect your system.
+
+        - USN-6150-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6150-1 does not affect your system.
+
+        - USN-6162-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6162-1 does not affect your system.
+
+        - USN-6173-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6173-1 does not affect your system.
+
+        - USN-6175-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6175-1 does not affect your system.
+
+        - USN-6186-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6186-1 does not affect your system.
+
+        Summary:
+        .*✔.* USN-6130-1 \[requested\] does not affect your system.
+        .*✔.* USN-6033-1 \[related\] does not affect your system.
+        .*✔.* USN-6122-1 \[related\] does not affect your system.
+        .*✔.* USN-6123-1 \[related\] does not affect your system.
+        .*✔.* USN-6124-1 \[related\] does not affect your system.
+        .*✔.* USN-6127-1 \[related\] does not affect your system.
+        .*✔.* USN-6131-1 \[related\] does not affect your system.
+        .*✔.* USN-6132-1 \[related\] does not affect your system.
+        .*✔.* USN-6135-1 \[related\] does not affect your system.
+        .*✔.* USN-6149-1 \[related\] does not affect your system.
+        .*✔.* USN-6150-1 \[related\] does not affect your system.
+        .*✔.* USN-6162-1 \[related\] does not affect your system.
+        .*✔.* USN-6173-1 \[related\] does not affect your system.
+        .*✔.* USN-6175-1 \[related\] does not affect your system.
+        .*✔.* USN-6186-1 \[related\] does not affect your system.
+        """
 
     @series.bionic
     @uses.config.machine_type.lxd-container
