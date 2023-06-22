@@ -2427,6 +2427,26 @@ class TestGetRelatedUSNs:
 
         assert [] == get_related_usns(usn, client)
 
+    def test_usns_ignore_non_usns_items(self, FakeConfig):
+        expected_value = mock.MagicMock(id="USN-1235-1")
+
+        def fake_get_notice(notice_id):
+            return expected_value
+
+        m_client = mock.MagicMock()
+        m_client.get_notice.side_effect = fake_get_notice
+
+        m_usn = mock.MagicMock(
+            cves=[
+                mock.MagicMock(
+                    notices_ids=["USN-1235-1", "LSN-0088-1"],
+                )
+            ],
+            id="USN-8796-1",
+        )
+
+        assert [expected_value] == get_related_usns(m_usn, m_client)
+
 
 class TestGetUSNAffectedPackagesStatus:
     @pytest.mark.parametrize(
