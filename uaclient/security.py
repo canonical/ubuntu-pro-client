@@ -601,6 +601,10 @@ def get_related_usns(usn, client):
     related_usns = {}
     for cve in usn.cves:
         for related_usn_id in cve.notices_ids:
+            # We should ignore any other item that is not a USN
+            # For example, LSNs
+            if not related_usn_id.startswith("USN-"):
+                continue
             if related_usn_id == usn.id:
                 continue
             if related_usn_id not in related_usns:
