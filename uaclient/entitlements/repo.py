@@ -72,14 +72,18 @@ class RepoEntitlement(base.UAEntitlement):
     def repo_key_file(self) -> str:
         pass
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
         """Enable specific entitlement.
 
-        @return: True on success, False otherwise.
+        @return: Tuple:
+            True on success, False otherwise.
+            True if an apt update is required before post_enable.
         @raises: UserFacingError on failure to install suggested packages
         """
         self.setup_apt_config(silent=silent)
+        return True, True
 
+    def _perform_post_enable(self, silent: bool = False) -> bool:
         if self.supports_access_only and self.access_only:
             packages_str = (
                 ": " + " ".join(self.packages)
@@ -171,7 +175,7 @@ class RepoEntitlement(base.UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> bool:
+    ) -> Tuple[bool, bool]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -182,10 +186,15 @@ class RepoEntitlement(base.UAEntitlement):
             operation. When False, a message will be logged to inform the user
             about the recommended enabled service.
 
-        :return: True when delta operations are processed; False when noop.
+        :return: Tuple with:
+            True when delta operations are processed; False when noop.
+            True when an apt update is required, False otherwise.
         """
-        if super().process_contract_deltas(orig_access, deltas, allow_enable):
-            return True  # Already processed parent class deltas
+        processed, apt_update = super().process_contract_deltas(
+            orig_access, deltas, allow_enable
+        )
+        if processed:
+            return True, apt_update  # Already processed parent class deltas
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
@@ -199,7 +208,7 @@ class RepoEntitlement(base.UAEntitlement):
             application_status, _ = self.application_status()
 
         if application_status == ApplicationStatus.DISABLED:
-            return False
+            return False, False
 
         if not self._check_apt_url_is_applied(delta_apt_url):
             logging.info(
@@ -225,7 +234,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
             self.install_packages(package_list=delta_packages)
 
-        return True
+        return True, True
 
     def install_packages(
         self,
@@ -398,17 +407,6 @@ class RepoEntitlement(base.UAEntitlement):
             repo_suites,
             self.repo_key_file,
         )
-        # Run apt-update on any repo-entitlement enable because the machine
-        # probably wants access to the repo that was just enabled.
-        # Side-effect is that apt policy will now report the repo as accessible
-        # which allows pro status to report correct info
-        if not silent:
-            event.info(messages.APT_UPDATING_LISTS)
-        try:
-            apt.run_apt_update_command()
-        except exceptions.UserFacingError:
-            self.remove_apt_config(run_apt_update=False)
-            raise
 
     def remove_apt_config(
         self, run_apt_update: bool = True, silent: bool = False

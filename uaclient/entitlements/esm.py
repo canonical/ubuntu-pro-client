@@ -21,14 +21,14 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
 
         return (ROSEntitlement, ROSUpdatesEntitlement)
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
         from uaclient.timer.update_messaging import update_motd_messages
 
-        enable_performed = super()._perform_enable(silent=silent)
+        enable_performed, apt_update = super()._perform_enable(silent=silent)
         if enable_performed:
             update_motd_messages(self.cfg)
             self.disable_local_esm_repo()
-        return enable_performed
+        return enable_performed, apt_update
 
     def setup_local_esm_repo(self) -> None:
         series = system.get_release_info().series

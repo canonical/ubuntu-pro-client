@@ -19,6 +19,7 @@ from uaclient.contract import (
     get_contract_information,
     is_contract_changed,
     process_entitlement_delta,
+    process_entitlements_delta,
     request_updated_contract,
 )
 from uaclient.entitlements.base import UAEntitlement
@@ -563,6 +564,161 @@ class TestUAContractClient:
         assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
 
+class TestProcessEntitlementsDeltas:
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
+    def test_happy_path(
+        self,
+        m_entitlements_enable_order,
+        m_process_entitlement_delta,
+        m_run_apt_update_command,
+        FakeConfig,
+        event,
+    ):
+        m_entitlements_enable_order.return_value = ["esm-infra", "esm-apps"]
+        esm_infra = mock.MagicMock()
+        esm_infra.name = "esm-infra"
+        esm_apps = mock.MagicMock()
+        esm_apps.name = "esm-apps"
+        m_process_entitlement_delta.side_effect = (
+            ({"deltas"}, True, True, esm_infra),
+            ({"deltas"}, True, True, esm_apps),
+        )
+
+        process_entitlements_delta(
+            cfg=FakeConfig(),
+            past_entitlements=mock.MagicMock(),
+            new_entitlements=mock.MagicMock(),
+            allow_enable=True,
+            series_overrides=True,
+        )
+
+        assert 2 == m_process_entitlement_delta.call_count
+        assert 1 == m_run_apt_update_command.call_count
+        assert 1 == esm_infra.post_enable.call_count
+        assert 1 == esm_apps.post_enable.call_count
+        assert not event._failed_services
+        assert {"esm-infra", "esm-apps"} == event._processed_services
+
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
+    def test_error_on_service_enable(
+        self,
+        m_entitlements_enable_order,
+        m_process_entitlement_delta,
+        m_run_apt_update_command,
+        FakeConfig,
+        event,
+    ):
+        m_entitlements_enable_order.return_value = ["esm-infra", "esm-apps"]
+        esm_infra = mock.MagicMock()
+        esm_infra.name = "esm-infra"
+        esm_apps = mock.MagicMock()
+        esm_apps.name = "esm-apps"
+        m_process_entitlement_delta.side_effect = (
+            ({"deltas"}, True, True, esm_infra),
+            exceptions.UserFacingError("hola"),
+        )
+
+        with pytest.raises(exceptions.AttachFailureDefaultServices):
+            process_entitlements_delta(
+                cfg=FakeConfig(),
+                past_entitlements=mock.MagicMock(),
+                new_entitlements=mock.MagicMock(),
+                allow_enable=True,
+                series_overrides=True,
+            )
+
+        assert 2 == m_process_entitlement_delta.call_count
+        assert 1 == m_run_apt_update_command.call_count
+        assert 1 == esm_infra.post_enable.call_count
+        assert 0 == esm_apps.post_enable.call_count
+        assert {"esm-infra"} == event._processed_services
+        assert {"esm-apps"} == event._failed_services
+
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
+    def test_error_on_update(
+        self,
+        m_entitlements_enable_order,
+        m_process_entitlement_delta,
+        m_run_apt_update_command,
+        FakeConfig,
+        event,
+    ):
+        m_entitlements_enable_order.return_value = ["esm-infra", "esm-apps"]
+        esm_infra = mock.MagicMock()
+        esm_infra.name = "esm-infra"
+        esm_apps = mock.MagicMock()
+        esm_apps.name = "esm-apps"
+        m_process_entitlement_delta.side_effect = (
+            ({"deltas"}, True, True, esm_infra),
+            ({"deltas"}, True, True, esm_apps),
+        )
+        m_run_apt_update_command.side_effect = Exception
+
+        with pytest.raises(exceptions.AttachFailureUnknownError):
+            process_entitlements_delta(
+                cfg=FakeConfig(),
+                past_entitlements=mock.MagicMock(),
+                new_entitlements=mock.MagicMock(),
+                allow_enable=True,
+                series_overrides=True,
+            )
+
+        assert 2 == m_process_entitlement_delta.call_count
+        assert 1 == m_run_apt_update_command.call_count
+        assert 0 == esm_infra.post_enable.call_count
+        assert 1 == esm_infra.disable.call_count
+        assert 0 == esm_apps.post_enable.call_count
+        assert 1 == esm_apps.disable.call_count
+        assert not event._processed_services
+        assert {"esm-infra", "esm-apps"} == event._failed_services
+
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.entitlements.entitlements_enable_order")
+    def test_error_on_post_enable(
+        self,
+        m_entitlements_enable_order,
+        m_process_entitlement_delta,
+        m_run_apt_update_command,
+        FakeConfig,
+        event,
+    ):
+        m_entitlements_enable_order.return_value = ["esm-infra", "esm-apps"]
+        esm_infra = mock.MagicMock()
+        esm_infra.name = "esm-infra"
+        esm_apps = mock.MagicMock()
+        esm_apps.name = "esm-apps"
+        esm_apps.post_enable.side_effect = exceptions.UserFacingError("gato")
+        m_process_entitlement_delta.side_effect = (
+            ({"deltas"}, True, True, esm_infra),
+            ({"deltas"}, True, True, esm_apps),
+        )
+
+        with pytest.raises(exceptions.AttachFailureDefaultServices):
+            process_entitlements_delta(
+                cfg=FakeConfig(),
+                past_entitlements=mock.MagicMock(),
+                new_entitlements=mock.MagicMock(),
+                allow_enable=True,
+                series_overrides=True,
+            )
+
+        assert 2 == m_process_entitlement_delta.call_count
+        assert 1 == m_run_apt_update_command.call_count
+        assert 1 == esm_infra.post_enable.call_count
+        assert 0 == esm_infra.disable.call_count
+        assert 1 == esm_apps.post_enable.call_count
+        assert 1 == esm_apps.disable.call_count
+        assert {"esm-infra"} == event._processed_services
+        assert {"esm-apps"} == event._failed_services
+
+
 class TestProcessEntitlementDeltas:
     def test_error_on_missing_entitlement_type(self, FakeConfig):
         """Raise an error when neither dict contains entitlement type."""
@@ -579,7 +735,7 @@ class TestProcessEntitlementDeltas:
 
     def test_no_delta_on_equal_dicts(self, FakeConfig):
         """No deltas are reported or processed when dicts are equal."""
-        assert ({}, False) == process_entitlement_delta(
+        assert ({}, False, False, None) == process_entitlement_delta(
             cfg=FakeConfig(),
             orig_access={"entitlement": {"no": "diff"}},
             new_access={"entitlement": {"no": "diff"}},
@@ -590,12 +746,12 @@ class TestProcessEntitlementDeltas:
         self, m_process_contract_deltas, FakeConfig
     ):
         """Call entitlement.process_contract_deltas to handle any deltas."""
-        m_process_contract_deltas.return_value = True
+        m_process_contract_deltas.return_value = (True, True)
         original_access = {"entitlement": {"type": "esm-infra"}}
         new_access = copy.deepcopy(original_access)
         new_access["entitlement"]["newkey"] = "newvalue"
         expected = {"entitlement": {"newkey": "newvalue"}}
-        assert (expected, True) == process_entitlement_delta(
+        assert (expected, True, True, mock.ANY) == process_entitlement_delta(
             cfg=FakeConfig(),
             orig_access=original_access,
             new_access=new_access,
@@ -612,8 +768,9 @@ class TestProcessEntitlementDeltas:
         """Process and report full deltas on empty original access dict."""
         # Limit delta processing logic to handle attached state-A to state-B
         # Fresh installs will have empty/unset
+        m_process_contract_deltas.return_value = (True, True)
         new_access = {"entitlement": {"type": "esm-infra", "other": "val2"}}
-        actual, _ = process_entitlement_delta(
+        actual, _, _, _ = process_entitlement_delta(
             cfg=FakeConfig(), orig_access={}, new_access=new_access
         )
         assert new_access == actual
@@ -905,7 +1062,7 @@ class TestRequestUpdatedContract:
                     "Ubuntu Pro server provided no aptKey directive for"
                     " esm-infra"
                 ),
-                (None, False),
+                ({}, False, False, None),
                 ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
             (RuntimeError("some APT error"), None, UNEXPECTED_ERROR),
@@ -929,7 +1086,7 @@ class TestRequestUpdatedContract:
         self,
         client,
         get_machine_id,
-        process_entitlement_delta,
+        m_process_entitlement_delta,
         m_enable_order,
         first_error,
         second_error,
@@ -943,11 +1100,10 @@ class TestRequestUpdatedContract:
 
         Unexpected exceptions take priority over the handled UserFacingErrors.
         """
-        # Fail first and succeed second call to process_entitlement_delta
-        process_entitlement_delta.side_effect = (
+        m_process_entitlement_delta.side_effect = (
             first_error,
             second_error,
-            (None, False),
+            ({}, False, False, None),
         )
 
         # resourceEntitlements specifically ordered reverse alphabetically
@@ -985,7 +1141,7 @@ class TestRequestUpdatedContract:
         client.return_value = fake_client
         with pytest.raises(exceptions.UserFacingError) as exc:
             assert None is request_updated_contract(cfg)
-        assert 3 == process_entitlement_delta.call_count
+        assert 3 == m_process_entitlement_delta.call_count
         assert ux_error_msg.msg == str(exc.value.msg)
 
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
@@ -1034,7 +1190,7 @@ class TestRequestUpdatedContract:
         cfg = FakeConfig.for_attached_machine(
             machine_token=machine_token,
         )
-        process_entitlement_delta.return_value = (None, False)
+        process_entitlement_delta.return_value = ({}, False, False, None)
         assert None is request_updated_contract(cfg)
         assert new_token == cfg.machine_token_file.machine_token
 

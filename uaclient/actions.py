@@ -4,10 +4,12 @@ import os
 from typing import List, Optional  # noqa: F401
 
 from uaclient import (
+    apt,
     clouds,
     config,
     contract,
     entitlements,
+    event_logger,
     exceptions,
     livepatch,
 )
@@ -25,6 +27,7 @@ from uaclient.defaults import (
 from uaclient.files.state_files import timer_jobs_state_file
 
 LOG = logging.getLogger("pro.actions")
+event = event_logger.get_event_logger()
 
 
 UA_SERVICES = (
@@ -123,7 +126,14 @@ def enable_entitlement_by_name(
         called_name=name,
         access_only=access_only,
     )
-    return entitlement.enable()
+    ent_ret, reason, apt_update = entitlement.enable()
+    if not ent_ret:
+        return ent_ret, reason
+    if apt_update:
+        event.info(messages.APT_UPDATING_LISTS)
+        apt.run_apt_update_command()
+    entitlement.post_enable()
+    return ent_ret, reason
 
 
 def status(

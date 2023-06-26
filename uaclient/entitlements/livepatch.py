@@ -79,10 +79,12 @@ class LivepatchEntitlement(UAEntitlement):
             ),
         )
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
         """Enable specific entitlement.
 
-        @return: True on success, False otherwise.
+        @return: Tuple:
+            True on success, False otherwise.
+            True if an apt update is required before post_enable.
         """
         if not system.which(snap.SNAP_CMD):
             event.info("Installing snapd")
@@ -115,14 +117,17 @@ class LivepatchEntitlement(UAEntitlement):
 
         livepatch.configure_livepatch_proxy(http_proxy, https_proxy)
 
-        return self.setup_livepatch_config(
-            process_directives=True, process_token=True
+        return (
+            self.setup_livepatch_config(
+                process_directives=True, process_token=True
+            ),
+            False,
         )
 
     def setup_livepatch_config(
         self, process_directives: bool = True, process_token: bool = True
     ) -> bool:
-        """Processs configuration setup for livepatch directives.
+        """Process configuration setup for livepatch directives.
 
         :param process_directives: Boolean set True when directives should be
             processsed.
@@ -249,7 +254,7 @@ class LivepatchEntitlement(UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> bool:
+    ) -> Tuple[bool, bool]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -260,10 +265,15 @@ class LivepatchEntitlement(UAEntitlement):
             operation. When False, a message will be logged to inform the user
             about the recommended enabled service.
 
-        :return: True when delta operations are processed; False when noop.
+        :return: Tuple with:
+            True when delta operations are processed; False when noop.
+            True when an apt update is required, False otherwise.
         """
-        if super().process_contract_deltas(orig_access, deltas, allow_enable):
-            return True  # Already processed parent class deltas
+        processed, apt_update = super().process_contract_deltas(
+            orig_access, deltas, allow_enable
+        )
+        if processed:
+            return True, apt_update  # Already processed parent class deltas
 
         delta_entitlement = deltas.get("entitlement", {})
         process_enable_default = delta_entitlement.get("obligations", {}).get(
@@ -271,12 +281,13 @@ class LivepatchEntitlement(UAEntitlement):
         )
 
         if process_enable_default:
-            enable_success, _ = self.enable()
-            return enable_success
+            enable_success, _, apt_update = self.enable()
+            return enable_success, apt_update
 
         application_status, _ = self.application_status()
         if application_status == ApplicationStatus.DISABLED:
-            return False  # only operate on changed directives when ACTIVE
+            # only operate on changed directives when ACTIVE
+            return False, False
         delta_directives = delta_entitlement.get("directives", {})
         supported_deltas = set(["caCerts", "remoteServer"])
         process_directives = bool(
@@ -285,11 +296,14 @@ class LivepatchEntitlement(UAEntitlement):
         process_token = bool(deltas.get("resourceToken", False))
         if any([process_directives, process_token]):
             logging.info("Updating '%s' on changed directives.", self.name)
-            return self.setup_livepatch_config(
-                process_directives=process_directives,
-                process_token=process_token,
+            return (
+                self.setup_livepatch_config(
+                    process_directives=process_directives,
+                    process_token=process_token,
+                ),
+                True,
             )
-        return True
+        return True, True
 
 
 def process_config_directives(cfg):

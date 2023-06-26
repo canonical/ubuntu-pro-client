@@ -4,6 +4,7 @@ import socket
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
+    apt,
     clouds,
     event_logger,
     exceptions,
@@ -15,6 +16,7 @@ from uaclient import (
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
+from uaclient.entitlements.base import UAEntitlement
 from uaclient.http import serviceclient
 
 # Here we describe every endpoint from the ua-contracts
@@ -476,6 +478,9 @@ def process_entitlements_delta(
     # We need to sort our entitlements because some of them
     # depend on other service to be enable first.
     failed_services = []  # type: List[str]
+    ents_info = []  # type: List[Tuple[UAEntitlement, Dict]]
+    ents_with_update = []  # type: List[UAEntitlement]
+    do_apt_update = False
     for name in entitlements_enable_order(cfg):
         try:
             new_entitlement = new_entitlements[name]
@@ -484,13 +489,21 @@ def process_entitlements_delta(
 
         failed_services = []
         try:
-            deltas, service_enabled = process_entitlement_delta(
+            orig_access = past_entitlements.get(name, {})
+            (
+                deltas,
+                service_enabled,
+                apt_update,
+                entitlement,
+            ) = process_entitlement_delta(
                 cfg=cfg,
-                orig_access=past_entitlements.get(name, {}),
+                orig_access=orig_access,
                 new_access=new_entitlement,
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
+            if not entitlement:
+                continue
         except exceptions.UserFacingError:
             delta_error = True
             failed_services.append(name)
@@ -508,10 +521,68 @@ def process_entitlements_delta(
                     " {delta}".format(name=name, delta=new_entitlement)
                 )
         else:
+            if service_enabled:
+                ents_info.append((entitlement, deltas))
+            if apt_update:
+                do_apt_update = True
+                ents_with_update.append(entitlement)
+
+    apt_update_error = False
+    names_update = list(map(lambda e: e.name, ents_with_update))
+    if do_apt_update:
+        # Run apt-update on any repo-entitlement enable because the machine
+        # probably wants access to the repo that was just enabled.
+        # Side-effect is that apt policy will now report the repo as accessible
+        # which allows pro status to report correct info
+        event.info(messages.APT_UPDATING_LISTS)
+        try:
+            apt.run_apt_update_command()
+        except exceptions.UserFacingError:
+            apt_update_error = True
+            delta_error = True
+        except Exception:
+            apt_update_error = True
+            unexpected_error = True
+        if apt_update_error:
+            failed_services.extend(names_update)
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Unexpected error during apt update for:"
+                    " {}".format(names_update)
+                )
+            # Disable services that require an apt update.
+            for ent in ents_with_update:
+                ent.disable()
+
+    for ent, deltas in ents_info:
+        if apt_update_error and ent.name in names_update:
+            continue  # skip post_enable for failed services
+        try:
+            ent.post_enable()
+        except exceptions.UserFacingError:
+            delta_error = True
+            failed_services.append(name)
+            with util.disable_log_to_console():
+                logging.error(
+                    "Failed to process contract delta for {name}:"
+                    " {delta}".format(name=name, delta=deltas)
+                )
+            ent.disable()
+        except Exception:
+            unexpected_error = True
+            failed_services.append(name)
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Unexpected error processing contract delta for {name}:"
+                    " {delta}".format(name=name, delta=deltas)
+                )
+            ent.disable()
+        else:
             # If we have any deltas to process and we were able to process
             # them, then we will mark that service as successfully enabled
-            if service_enabled and deltas:
-                event.service_processed(name)
+            if deltas:
+                event.service_processed(ent.name)
+
     event.services_failed(failed_services)
     if unexpected_error:
         raise exceptions.AttachFailureUnknownError(
@@ -534,7 +605,7 @@ def process_entitlement_delta(
     new_access: Dict[str, Any],
     allow_enable: bool = False,
     series_overrides: bool = True,
-) -> Tuple[Dict, bool]:
+) -> Tuple[Dict, bool, bool, Optional[UAEntitlement]]:
     """Process a entitlement access dictionary deltas if they exist.
 
     :param cfg: UAConfig instance
@@ -549,8 +620,11 @@ def process_entitlement_delta(
         applied to the new_access dict.
 
     :raise UserFacingError: on failure to process deltas.
-    :return: A tuple containing a dict of processed deltas and a
-             boolean indicating if the service was fully processed
+    :return: A tuple containing
+        dict of processed deltas
+        boolean indicating if the service was fully processed
+        boolean indicating if an apt update is required before post_enable
+        entitlement object if deltas to apply, none otherwise
     """
     from uaclient.entitlements import entitlement_factory
 
@@ -559,6 +633,8 @@ def process_entitlement_delta(
 
     deltas = util.get_dict_deltas(orig_access, new_access)
     ret = False
+    apt_update = False
+    entitlement = None
     if deltas:
         name = orig_access.get("entitlement", {}).get("type")
         if not name:
@@ -583,10 +659,10 @@ def process_entitlement_delta(
             raise exc
 
         entitlement = ent_cls(cfg=cfg, assume_yes=allow_enable)
-        ret = entitlement.process_contract_deltas(
+        ret, apt_update = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
-    return deltas, ret
+    return deltas, ret, apt_update, entitlement
 
 
 def _create_attach_forbidden_message(

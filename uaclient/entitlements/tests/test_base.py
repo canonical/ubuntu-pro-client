@@ -31,6 +31,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         cfg=None,
         disable=None,
         enable=None,
+        apt_update=False,
         applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
         application_status=(ApplicationStatus.DISABLED, ""),
         allow_beta=False,
@@ -50,6 +51,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self.supports_access_only = supports_access_only
         self._disable = disable
         self._enable = enable
+        self._apt_update = apt_update
         self._applicability_status = applicability_status
         self._application_status = application_status
         self._dependent_services = dependent_services
@@ -65,7 +67,10 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         return self._disable
 
     def _perform_enable(self, **kwargs):
-        return self._enable
+        return self._enable, self._apt_update
+
+    def _perform_post_enable(self, **kwargs):
+        return True
 
     def applicability_status(self):
         return self._applicability_status
@@ -107,6 +112,7 @@ def concrete_entitlement_factory(FakeConfig):
         access_only: bool = False,
         enable: bool = False,
         disable: bool = False,
+        apt_update: bool = False,
         dependent_services: Tuple[Any, ...] = None,
         required_services: Tuple[Any, ...] = None,
         variant_name: str = ""
@@ -139,6 +145,7 @@ def concrete_entitlement_factory(FakeConfig):
             access_only=access_only,
             enable=enable,
             disable=disable,
+            apt_update=apt_update,
             dependent_services=dependent_services,
             required_services=required_services,
             variant_name=variant_name,
@@ -435,7 +442,7 @@ class TestUaEntitlementEnable:
             ),
         )
 
-        ret, reason = base_ent.enable()
+        ret, reason, apt_update = base_ent.enable()
 
         expected_prompt_call = 1
         if block_disable_on_enable:
@@ -453,6 +460,7 @@ class TestUaEntitlementEnable:
             assert reason is None
         else:
             assert reason.reason == expected_reason
+        assert apt_update is False
         assert m_prompt.call_count == expected_prompt_call
         assert m_is_config_value_true.call_count == 1
         assert m_entitlement_obj.disable.call_count == expected_disable_call
@@ -471,7 +479,7 @@ class TestUaEntitlementEnable:
             ApplicationStatus.DISABLED,
             "",
         ]
-        m_ent_obj.enable.return_value = (True, "")
+        m_ent_obj.enable.return_value = (True, "", False)
         type(m_ent_obj).title = mock.PropertyMock(return_value="test")
 
         base_ent = concrete_entitlement_factory(
@@ -482,7 +490,7 @@ class TestUaEntitlementEnable:
             required_services=(m_ent_cls,),
         )
 
-        ret, reason = base_ent.enable()
+        ret, reason, apt_update = base_ent.enable()
 
         expected_prompt_call = 1
         expected_ret = False
@@ -497,6 +505,7 @@ class TestUaEntitlementEnable:
             assert reason is None
         else:
             assert reason.reason == expected_reason
+        assert not apt_update
         assert m_prompt.call_count == expected_prompt_call
         assert m_ent_obj.enable.call_count == expected_enable_call
 
@@ -567,7 +576,7 @@ class TestUaEntitlementEnable:
         entitlement = concrete_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
 
-        assert (False, can_enable_fail) == entitlement.enable()
+        assert (False, can_enable_fail, False) == entitlement.enable()
 
         assert 1 == m_can_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count
@@ -605,7 +614,7 @@ class TestUaEntitlementEnable:
         m_ent_cls = mock.Mock()
         type(m_ent_cls).name = mock.PropertyMock(return_value="Test")
         m_ent_obj = m_ent_cls.return_value
-        m_ent_obj.enable.return_value = (False, enable_fail_reason)
+        m_ent_obj.enable.return_value = (False, enable_fail_reason, False)
         m_ent_obj.application_status.return_value = (
             ApplicationStatus.DISABLED,
             None,
@@ -622,13 +631,14 @@ class TestUaEntitlementEnable:
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
             m_can_enable.return_value = (False, fail_reason)
-            ret, fail = entitlement.enable()
+            ret, fail, apt_update = entitlement.enable()
 
         assert not ret
         expected_msg = "Cannot enable required service: Test"
         if enable_fail_reason.message:
             expected_msg += "\n" + enable_fail_reason.message.msg
         assert expected_msg == fail.message.msg
+        assert not apt_update
         assert 1 == m_can_enable.call_count
 
     @pytest.mark.parametrize(
@@ -639,14 +649,14 @@ class TestUaEntitlementEnable:
             "expected_result",
         ],
         (
-            ([False], 0, 0, (False, None)),
-            ([True, False], 1, 0, (False, None)),
-            ([True, True, False], 1, 1, (False, None)),
-            ([True, True, True], 1, 1, (True, None)),
+            ([False], 0, 0, (False, None, False)),
+            ([True, False], 1, 0, (False, None, False)),
+            ([True, True, False], 1, 1, (True, None, False)),
+            ([True, True, True], 1, 1, (True, None, False)),
         ),
     )
     @mock.patch.object(
-        ConcreteTestEntitlement, "_perform_enable", return_value=True
+        ConcreteTestEntitlement, "_perform_enable", return_value=(True, False)
     )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.can_enable",
@@ -669,6 +679,33 @@ class TestUaEntitlementEnable:
         assert expected_result == entitlement.enable()
         assert can_enable_call_count == m_can_enable.call_count
         assert perform_enable_call_count == m_perform_enable.call_count
+
+    @pytest.mark.parametrize(
+        [
+            "msg_ops_results",
+            "expected_result",
+        ],
+        (
+            ([False], False),
+            ([True], True),
+        ),
+    )
+    @mock.patch.object(
+        ConcreteTestEntitlement, "_perform_post_enable", return_value=True
+    )
+    @mock.patch("uaclient.util.handle_message_operations")
+    def test_post_enable_when_messaging_hooks_fail(
+        self,
+        m_handle_messaging_hooks,
+        m_perform_post_enable,
+        msg_ops_results,
+        expected_result,
+        concrete_entitlement_factory,
+    ):
+        m_handle_messaging_hooks.side_effect = msg_ops_results
+        entitlement = concrete_entitlement_factory()
+        assert expected_result == entitlement.post_enable()
+        assert 1 == m_perform_post_enable.call_count
 
 
 class TestUaEntitlementCanDisable:
@@ -1075,6 +1112,7 @@ class TestUaEntitlementProcessContractDeltas:
         entitlement.is_beta = True
         assert not entitlement.allow_beta
         with mock.patch.object(entitlement, "enable") as m_enable:
+            m_enable.return_value = (False, None, False)
             entitlement.process_contract_deltas(
                 orig_access, delta, allow_enable=True
             )

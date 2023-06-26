@@ -126,7 +126,7 @@ class TestProcessContractDeltas:
             ApplicabilityStatus.APPLICABLE,
             "",
         )
-        assert not entitlement.process_contract_deltas(
+        assert (False, False) == entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
             {
                 "entitlement": {"obligations": {"enableByDefault": False}},
@@ -154,6 +154,7 @@ class TestProcessContractDeltas:
             ApplicabilityStatus.APPLICABLE,
             "",
         )
+        m_enable.return_value = (True, None, True)
         assert entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
             {
@@ -266,7 +267,7 @@ class TestProcessContractDeltas:
     ):
         """Remove old apt url when aptURL delta occurs on active service."""
         m_check_apt_url_applied.return_value = False
-        m_process_contract_deltas.return_value = False
+        m_process_contract_deltas.return_value = (False, False)
         m_read_cache.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
         }
@@ -326,7 +327,7 @@ class TestProcessContractDeltas:
     ):
         """Do not change system if apt url delta is already applied."""
         m_check_apt_url_applied.return_value = True
-        m_process_contract_deltas.return_value = False
+        m_process_contract_deltas.return_value = (False, False)
         m_read_cache.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
         }
@@ -430,7 +431,7 @@ class TestRepoEnable:
     @mock.patch.object(
         RepoTestEntitlement, "can_enable", return_value=(True, None)
     )
-    def test_enable_calls_adds_apt_repo_and_calls_apt_update(
+    def test_enable_calls_adds_apt_repo_and_requests_apt_update(
         self,
         m_can_enable,
         m_release_info,
@@ -461,19 +462,85 @@ class TestRepoEnable:
         else:
             messaging_patch = mock.MagicMock()
 
-        expected_apt_calls = [
+        if packages is None:
+            packages = entitlement.packages
+
+        # We patch the type of entitlement because packages is a property
+        with mock.patch.object(type(entitlement), "packages", packages):
+            with messaging_patch:
+                _, _, do_apt_update = entitlement.enable()
+
+        expected_calls = [
+            mock.call(apt.APT_METHOD_HTTPS_FILE),
+            mock.call(apt.CA_CERTIFICATES_FILE),
+        ]
+        assert expected_calls in m_exists.call_args_list
+        assert do_apt_update
+        assert [] == m_subp.call_args_list
+        add_apt_calls = [
             mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
+                "/etc/apt/sources.list.d/ubuntu-repotest.list",
+                "http://REPOTEST/ubuntu",
+                "repotest-token",
+                ["xenial"],
+                entitlement.repo_key_file,
             )
         ]
+        assert add_apt_calls == m_apt_add.call_args_list
+        assert 0 == m_should_reboot.call_count
+        assert 1 == m_setup_apt_proxy.call_count
+        stdout, _ = capsys.readouterr()
+        assert not stdout
+
+    @pytest.mark.parametrize("should_reboot", (False, True))
+    @pytest.mark.parametrize("with_pre_install_msg", (False, True))
+    @pytest.mark.parametrize("packages", (["a"], [], None))
+    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch(M_PATH + "system.should_reboot")
+    @mock.patch(M_PATH + "system.subp", return_value=("", ""))
+    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
+    @mock.patch(M_PATH + "exists", return_value=True)
+    @mock.patch(M_PATH + "system.get_release_info")
+    @mock.patch.object(
+        RepoTestEntitlement, "can_enable", return_value=(True, None)
+    )
+    def test_post_enable_installs_pkgs(
+        self,
+        m_can_enable,
+        m_release_info,
+        m_exists,
+        m_apt_add,
+        m_subp,
+        m_should_reboot,
+        m_setup_apt_proxy,
+        entitlement,
+        capsys,
+        caplog_text,
+        event,
+        packages,
+        with_pre_install_msg,
+        should_reboot,
+    ):
+        """On enable add authenticated apt repo and refresh package lists."""
+        m_release_info.return_value = mock.MagicMock(series="xenial")
+        m_should_reboot.return_value = should_reboot
+
+        pre_install_msgs = ["Some pre-install information", "Some more info"]
+        if with_pre_install_msg:
+            messaging_patch = mock.patch(
+                M_PATH + "RepoEntitlement.messaging",
+                new_callable=mock.PropertyMock,
+                return_value={"pre_install": pre_install_msgs},
+            )
+        else:
+            messaging_patch = mock.MagicMock()
+
+        expected_apt_calls = []
 
         reboot_msg = "A reboot is required to complete install."
         expected_output = (
             "\n".join(
-                ["Updating package lists", "Repo Test Class enabled"]
+                ["Repo Test Class enabled"]
                 + ([reboot_msg] if should_reboot else [])
             )
             + "\n"
@@ -496,8 +563,7 @@ class TestRepoEnable:
                 )
                 expected_output = (
                     "\n".join(
-                        ["Updating package lists"]
-                        + (pre_install_msgs if with_pre_install_msg else [])
+                        (pre_install_msgs if with_pre_install_msg else [])
                         + [
                             "Installing Repo Test Class packages",
                             "Repo Test Class enabled",
@@ -512,26 +578,12 @@ class TestRepoEnable:
         # We patch the type of entitlement because packages is a property
         with mock.patch.object(type(entitlement), "packages", packages):
             with messaging_patch:
-                entitlement.enable()
+                entitlement.post_enable()
 
-        expected_calls = [
-            mock.call(apt.APT_METHOD_HTTPS_FILE),
-            mock.call(apt.CA_CERTIFICATES_FILE),
-        ]
-        assert expected_calls in m_exists.call_args_list
         assert expected_apt_calls == m_subp.call_args_list
-        add_apt_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest.list",
-                "http://REPOTEST/ubuntu",
-                "repotest-token",
-                ["xenial"],
-                entitlement.repo_key_file,
-            )
-        ]
-        assert add_apt_calls == m_apt_add.call_args_list
+        assert [] == m_apt_add.call_args_list
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_setup_apt_proxy.call_count
+        assert 0 == m_setup_apt_proxy.call_count
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 
@@ -558,7 +610,7 @@ class TestRepoEnable:
                         with mock.patch.object(
                             entitlement, "remove_apt_config"
                         ) as m_rac:
-                            entitlement.enable()
+                            entitlement.post_enable()
 
         assert "Could not enable Repo Test Class." == excinfo.value.msg
         assert 1 == m_rac.call_count
@@ -570,37 +622,27 @@ class TestPerformEnable:
             "supports_access_only",
             "access_only",
             "expected_setup_apt_calls",
-            "expected_install_calls",
-            "expected_check_for_reboot_calls",
         ],
         [
             (
                 False,
                 False,
                 [mock.call(silent=mock.ANY)],
-                [mock.call()],
-                [mock.call(operation="install")],
             ),
             (
                 False,
                 True,
                 [mock.call(silent=mock.ANY)],
-                [mock.call()],
-                [mock.call(operation="install")],
             ),
             (
                 True,
                 False,
                 [mock.call(silent=mock.ANY)],
-                [mock.call()],
-                [mock.call(operation="install")],
             ),
             (
                 True,
                 True,
                 [mock.call(silent=mock.ANY)],
-                [],
-                [],
             ),
         ],
     )
@@ -615,6 +657,69 @@ class TestPerformEnable:
         supports_access_only,
         access_only,
         expected_setup_apt_calls,
+        entitlement_factory,
+    ):
+        with mock.patch.object(
+            RepoTestEntitlement, "supports_access_only", supports_access_only
+        ):
+            entitlement = entitlement_factory(
+                RepoTestEntitlement,
+                affordances={"series": ["xenial"]},
+                access_only=access_only,
+            )
+            assert entitlement._perform_enable(silent=True) == (True, True)
+            assert (
+                m_setup_apt_config.call_args_list == expected_setup_apt_calls
+            )
+            assert m_install_packages.call_args_list == []
+            assert m_check_for_reboot_msg.call_args_list == []
+
+
+class TestPostEnable:
+    @pytest.mark.parametrize(
+        [
+            "supports_access_only",
+            "access_only",
+            "expected_install_calls",
+            "expected_check_for_reboot_calls",
+        ],
+        [
+            (
+                False,
+                False,
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                False,
+                True,
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                True,
+                False,
+                [mock.call()],
+                [mock.call(operation="install")],
+            ),
+            (
+                True,
+                True,
+                [],
+                [],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "RepoEntitlement._check_for_reboot_msg")
+    @mock.patch(M_PATH + "RepoEntitlement.install_packages")
+    @mock.patch(M_PATH + "RepoEntitlement.setup_apt_config")
+    def test_post_enable(
+        self,
+        m_setup_apt_config,
+        m_install_packages,
+        m_check_for_reboot_msg,
+        supports_access_only,
+        access_only,
         expected_install_calls,
         expected_check_for_reboot_calls,
         entitlement_factory,
@@ -627,10 +732,8 @@ class TestPerformEnable:
                 affordances={"series": ["xenial"]},
                 access_only=access_only,
             )
-            assert entitlement._perform_enable(silent=True) is True
-            assert (
-                m_setup_apt_config.call_args_list == expected_setup_apt_calls
-            )
+            assert entitlement.post_enable()
+            assert m_setup_apt_config.call_args_list == []
             assert m_install_packages.call_args_list == expected_install_calls
             assert (
                 m_check_for_reboot_msg.call_args_list
@@ -877,7 +980,7 @@ class TestSetupAptConfig:
         _m_apply_overrides,
         m_get_release_info,
         m_add_ppa_pinning,
-        m_run_apt_update_command,
+        _m_run_apt_update_command,
         m_add_auth_repo,
         _m_setup_apt_proxy,
         entitlement_factory,
@@ -903,7 +1006,6 @@ class TestSetupAptConfig:
                 entitlement.repo_pin_priority,
             )
         ] == m_add_ppa_pinning.call_args_list
-        assert [mock.call()] == m_run_apt_update_command.call_args_list
 
 
 class TestCheckAptURLIsApplied:

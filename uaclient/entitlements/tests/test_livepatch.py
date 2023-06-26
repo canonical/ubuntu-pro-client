@@ -299,7 +299,9 @@ class TestLivepatchProcessContractDeltas:
             "",
         )
         deltas = {"entitlement": {"directives": {"caCerts": "new"}}}
-        assert not entitlement.process_contract_deltas({}, deltas, False)
+        assert (False, False) == entitlement.process_contract_deltas(
+            {}, deltas, False
+        )
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
@@ -712,7 +714,7 @@ class TestLivepatchEntitlementEnable:
                 )
             ) as m_fips:
                 m_fips.return_value = (ApplicationStatus.ENABLED, "")
-                result, reason = entitlement.enable()
+                result, reason, apt_update = entitlement.enable()
                 assert not result
 
                 msg = "Cannot enable Livepatch when {} is enabled.".format(

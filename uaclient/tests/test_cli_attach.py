@@ -562,8 +562,10 @@ class TestActionAttach:
         cfg = FakeConfig()
 
         m_enable_order.return_value = ["test1", "test2"]
+        fake_entitlement = mock.MagicMock()
+        fake_entitlement.name = "test1"
         m_process_entitlement_delta.side_effect = [
-            ({"test": 123}, True),
+            ({"test": 123}, True, True, fake_entitlement),
             expected_exception,
         ]
         m_request_url.return_value = http.HTTPResponse(
@@ -637,6 +639,7 @@ class TestActionAttach:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
+        assert fake_entitlement.post_enable.call_count == 1
 
     @mock.patch(M_PATH + "_initiate")
     @mock.patch(M_PATH + "_wait")

@@ -416,7 +416,7 @@ class TestActionEnable:
         m_entitlement_cls = mock.MagicMock()
         m_valid_services.return_value = ["testitlement"]
         m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.enable.return_value = (True, None)
+        m_entitlement_obj.enable.return_value = (True, None, True)
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -458,7 +458,7 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
-        m_ent1_obj.enable.return_value = (False, None)
+        m_ent1_obj.enable.return_value = (False, None, False)
 
         m_ent2_cls = mock.Mock()
         m_ent2_cls.name = "ent2"
@@ -468,6 +468,7 @@ class TestActionEnable:
         m_ent2_obj.enable.return_value = (
             False,
             CanEnableFailure(CanEnableFailureReason.IS_BETA),
+            False,
         )
 
         m_ent3_cls = mock.Mock()
@@ -475,7 +476,7 @@ class TestActionEnable:
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
-        m_ent3_obj.enable.return_value = (True, None)
+        m_ent3_obj.enable.return_value = (True, None, True)
 
         def factory_side_effect(cfg, name, variant):
             if name == "ent2":
@@ -496,7 +497,10 @@ class TestActionEnable:
         args_mock.beta = False
         args_mock.variant = ""
 
-        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg = (
+            "One moment, checking your subscription first\n"
+            "Updating package lists\n"
+        )
 
         with pytest.raises(exceptions.UserFacingError) as err:
             fake_stdout = io.StringIO()
@@ -577,7 +581,7 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
-        m_ent1_obj.enable.return_value = (False, None)
+        m_ent1_obj.enable.return_value = (False, None, False)
 
         m_ent2_cls = mock.Mock()
         m_ent2_cls.name = "ent2"
@@ -586,16 +590,16 @@ class TestActionEnable:
         m_ent2_obj = m_ent2_cls.return_value
         failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
         if beta_flag:
-            m_ent2_obj.enable.return_value = (True, None)
+            m_ent2_obj.enable.return_value = (True, None, True)
         else:
-            m_ent2_obj.enable.return_value = (False, failure_reason)
+            m_ent2_obj.enable.return_value = (False, failure_reason, False)
 
         m_ent3_cls = mock.Mock()
         m_ent3_cls.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls)._is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
-        m_ent3_obj.enable.return_value = (True, None)
+        m_ent3_obj.enable.return_value = (True, None, True)
 
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
@@ -622,7 +626,12 @@ class TestActionEnable:
 
         m_valid_services.side_effect = valid_services_side_effect
 
-        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg = (
+            "One moment, checking your subscription first\n"
+            "Updating package lists\n"
+        )
+        if beta_flag:
+            expected_msg += "Updating package lists\n"
         not_found_name = "ent1"
         mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
@@ -721,6 +730,7 @@ class TestActionEnable:
                 CanEnableFailureReason.ALREADY_ENABLED,
                 message=messages.NamedMessage("test-code", "msg"),
             ),
+            False,
         )
 
         cfg = FakeConfig.for_attached_machine()
@@ -862,7 +872,7 @@ class TestActionEnable:
     ):
         m_entitlement_cls = mock.Mock()
         m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.enable.return_value = (True, None)
+        m_entitlement_obj.enable.return_value = (True, None, True)
 
         cfg = FakeConfig.for_attached_machine()
 

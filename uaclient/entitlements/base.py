@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from uaclient import (
+    apt,
     config,
     contract,
     event_logger,
@@ -413,31 +414,32 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def enable(
         self,
         silent: bool = False,
-    ) -> Tuple[bool, Union[None, CanEnableFailure]]:
+    ) -> Tuple[bool, Union[None, CanEnableFailure], bool]:
         """Enable specific entitlement.
 
-        @return: tuple of (success, optional reason)
-            (True, None) on success.
-            (False, reason) otherwise. reason is only non-None if it is a
+        @return: tuple of (success, optional reason, apt_update)
+            True on success, False otherwise.
+            only non-None if not success and it is a
                 populated CanEnableFailure reason. This may expand to
                 include other types of reasons in the future.
+            True if an apt update is required, False otherwise.
         """
 
         msg_ops = self.messaging.get("pre_can_enable", [])
         if not util.handle_message_operations(msg_ops):
-            return False, None
+            return False, None, False
 
         can_enable, fail = self.can_enable()
         if not can_enable:
             if fail is None:
                 # this shouldn't happen, but if it does we shouldn't continue
-                return False, None
+                return False, None, False
             elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
                 # Try to disable those services before proceeding with enable
                 incompat_ret, error = self.handle_incompatible_services()
                 if not incompat_ret:
                     fail.message = error
-                    return False, fail
+                    return False, fail, False
             elif (
                 fail.reason
                 == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
@@ -446,14 +448,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 req_ret, error = self._enable_required_services()
                 if not req_ret:
                     fail.message = error
-                    return False, fail
+                    return False, fail, False
             else:
                 # every other reason means we can't continue
-                return False, fail
+                return False, fail, False
 
         msg_ops = self.messaging.get("pre_enable", [])
         if not util.handle_message_operations(msg_ops):
-            return False, None
+            return False, None, False
 
         # TODO: Move all logic from RepoEntitlement that
         # handles the additionalPackages and APT directives
@@ -461,17 +463,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         # is a step on that direction
         if not self.access_only:
             if not self.handle_required_snaps():
-                return False, None
+                return False, None, False
 
-        ret = self._perform_enable(silent=silent)
+        ret, apt_update = self._perform_enable(silent=silent)
         if not ret:
-            return False, None
+            return False, None, False
 
-        msg_ops = self.messaging.get("post_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
-
-        return True, None
+        return True, None, apt_update
 
     def handle_required_snaps(self) -> bool:
         """ "install snaps necessary to enable a service."""
@@ -536,15 +534,40 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True
 
     @abc.abstractmethod
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
         """
         Enable specific entitlement. This should be implemented by subclasses.
         This method does the actual enablement, and does not check can_enable
         or handle pre_enable or post_enable messaging.
 
-        @return: True on success, False otherwise.
+        @return:
+            True on success, False otherwise.
+            True if an apt update is required before post_enable.
         """
         pass
+
+    def post_enable(self, silent: bool = False) -> bool:
+        """Post-enable specific entitlement.
+
+        @return: True on success, False otherwise.
+        """
+        ret = self._perform_post_enable(silent=silent)
+        if not ret:
+            return False
+        msg_ops = self.messaging.get("post_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False
+        return True
+
+    def _perform_post_enable(self, silent: bool = False) -> bool:
+        """
+        Post-enable specific entitlement. This can be overridden by subclasses.
+        This method does the actual post enablement, and does not check
+        can_enable or handle pre_enable or post_enable messaging.
+
+        @return: True on success, False otherwise.
+        """
+        return True
 
     def detect_dependent_services(self) -> bool:
         """
@@ -571,6 +594,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if all required services are active
             False is at least one of the required services is disabled
         """
+        # TODO: When any service has a required service,
+        # extend service-active definition to take into account
+        # services that are being enabled, i.e., services that have
+        # been enabled but not post-enabled.
         for required_service_cls in self.required_services:
             ent_status, _ = required_service_cls(self.cfg).application_status()
             if ent_status != ApplicationStatus.ENABLED:
@@ -687,7 +714,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     return False, e_msg
 
                 event.info("Enabling required service: {}".format(ent.title))
-                ret, fail = ent.enable(silent=True)
+                ret, fail, apt_update = ent.enable(silent=True)
                 if not ret:
                     error_msg = ""
                     if fail and fail.message and fail.message.msg:
@@ -697,6 +724,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         error=error_msg, service=ent.title
                     )
                     return ret, msg
+
+                # TODO: Divide this path into enable, apt_update and
+                # post_enable to reduce the number of apt updates
+                if apt_update:
+                    apt.run_apt_update_command()
+                ent.post_enable(silent=True)
 
         return True, None
 
@@ -1081,7 +1114,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> bool:
+    ) -> Tuple[bool, bool]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -1092,11 +1125,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             operation. When False, a message will be logged to inform the user
             about the recommended enabled service.
 
-        :return: True when delta operations are processed; False when noop.
+        :return: Tuple with:
+            True when delta operations are processed; False when noop.
+            True when an apt update is required, False otherwise.
         :raise: UserFacingError when auto-enable fails unexpectedly.
         """
         if not deltas:
-            return True  # We processed all deltas that needed processing
+            # We processed all deltas that needed processing
+            return True, False
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
@@ -1136,7 +1172,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
             self.cfg.delete_cache_key("machine-access-{}".format(self.name))
-            return True
+            return True, False
 
         resourceToken = orig_access.get("resourceToken")
         if not resourceToken:
@@ -1151,16 +1187,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         can_enable, _ = self.can_enable()
         if can_enable and enable_by_default:
+            apt_update = False
             if allow_enable:
                 msg = messages.ENABLE_BY_DEFAULT_TMPL.format(name=self.name)
 
                 event.info(msg, file_type=sys.stderr)
-                self.enable()
+                _, _, apt_update = self.enable()
             else:
                 msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
                     name=self.name
                 )
                 event.info(msg, file_type=sys.stderr)
-            return True
+            return True, apt_update
 
-        return False
+        return False, False

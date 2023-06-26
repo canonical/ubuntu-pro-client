@@ -370,7 +370,6 @@ Feature: Ua fix command behaviour
         > .*\{ pro attach .*\}.*
         Updating package lists
         Ubuntu Pro: ESM Apps enabled
-        Updating package lists
         Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:

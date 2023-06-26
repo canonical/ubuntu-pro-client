@@ -272,6 +272,109 @@ class TestFIPSEntitlementEnable:
         """When entitled, configure apt repo auth token, pinning and url."""
         notice_ent_cls = NoticesManager()
         patched_packages = ["a", "b"]
+
+        with contextlib.ExitStack() as stack:
+            m_add_apt = stack.enter_context(
+                mock.patch("uaclient.apt.add_auth_apt_repo")
+            )
+            m_add_pinning = stack.enter_context(
+                mock.patch("uaclient.apt.add_ppa_pinning")
+            )
+            m_installed_pkgs = stack.enter_context(
+                mock.patch(
+                    "uaclient.apt.get_installed_packages_names",
+                    return_value=["openssh-server", "strongswan"],
+                )
+            )
+            m_subp = stack.enter_context(
+                mock.patch("uaclient.system.subp", return_value=("", ""))
+            )
+            m_can_enable = stack.enter_context(
+                mock.patch.object(entitlement, "can_enable")
+            )
+            stack.enter_context(
+                mock.patch("uaclient.util.handle_message_operations")
+            )
+            stack.enter_context(
+                mock.patch(
+                    "uaclient.system.get_release_info",
+                    return_value=mock.MagicMock(series="xenial"),
+                )
+            )
+            stack.enter_context(
+                mock.patch(
+                    "uaclient.entitlements.fips.system.should_reboot",
+                    return_value=True,
+                )
+            )
+            stack.enter_context(mock.patch(M_REPOPATH + "exists"))
+            stack.enter_context(
+                mock.patch.object(fips, "services_once_enabled_file")
+            )
+            # Note that this patch uses a PropertyMock and happens on the
+            # entitlement's type because packages is a property
+            m_packages = mock.PropertyMock(return_value=patched_packages)
+            stack.enter_context(
+                mock.patch.object(type(entitlement), "packages", m_packages)
+            )
+            stack.enter_context(
+                mock.patch("uaclient.system.is_container", return_value=False)
+            )
+
+            m_can_enable.return_value = (True, None)
+            assert (True, None, True) == entitlement.enable()
+
+        repo_url = "http://{}".format(entitlement.name.upper())
+        add_apt_calls = [
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
+                    entitlement.name
+                ),
+                "{}/ubuntu".format(repo_url),
+                "{}-token".format(entitlement.name),
+                ["xenial"],
+                entitlement.repo_key_file,
+            )
+        ]
+        apt_pinning_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name),
+                repo_url,
+                entitlement.origin,
+                1001,
+            )
+        ]
+
+        subp_calls = [
+            mock.call(
+                ["apt-mark", "showholds"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+                override_env_vars=None,
+            ),
+        ]
+
+        assert [mock.call()] == m_can_enable.call_args_list
+        assert 1 == m_setup_apt_proxy.call_count
+        assert 0 == m_installed_pkgs.call_count
+        assert add_apt_calls == m_add_apt.call_args_list
+        assert apt_pinning_calls == m_add_pinning.call_args_list
+        assert subp_calls == m_subp.call_args_list
+        assert [
+            messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+        ] not in notice_ent_cls.list()
+
+    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch(M_PATH + "get_cloud_type", return_value=("", None))
+    def test_post_enable_configures_apt_sources_and_auth_files(
+        self,
+        _m_get_cloud_type,
+        m_setup_apt_proxy,
+        entitlement,
+    ):
+        """When entitled, configure apt repo auth token, pinning and url."""
+        notice_ent_cls = NoticesManager()
+        patched_packages = ["a", "b"]
         expected_conditional_packages = [
             "openssh-server",
             "openssh-server-hmac",
@@ -328,28 +431,7 @@ class TestFIPSEntitlementEnable:
             )
 
             m_can_enable.return_value = (True, None)
-            assert (True, None) == entitlement.enable()
-
-        repo_url = "http://{}".format(entitlement.name.upper())
-        add_apt_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
-                    entitlement.name
-                ),
-                "{}/ubuntu".format(repo_url),
-                "{}-token".format(entitlement.name),
-                ["xenial"],
-                entitlement.repo_key_file,
-            )
-        ]
-        apt_pinning_calls = [
-            mock.call(
-                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name),
-                repo_url,
-                entitlement.origin,
-                1001,
-            )
-        ]
+            assert entitlement.post_enable()
 
         install_cmd = []
         install_cmd.append(
@@ -387,27 +469,13 @@ class TestFIPSEntitlementEnable:
                 )
             )
 
-        subp_calls = [
-            mock.call(
-                ["apt-mark", "showholds"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
-            ),
-            mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
-            ),
-        ]
-        subp_calls += install_cmd
+        subp_calls = install_cmd
 
-        assert [mock.call()] == m_can_enable.call_args_list
-        assert 1 == m_setup_apt_proxy.call_count
+        assert [] == m_can_enable.call_args_list
+        assert 0 == m_setup_apt_proxy.call_count
         assert 1 == m_installed_pkgs.call_count
-        assert add_apt_calls == m_add_apt.call_args_list
-        assert apt_pinning_calls == m_add_pinning.call_args_list
+        assert [] == m_add_apt.call_args_list
+        assert [] == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
         assert [
             messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
@@ -416,8 +484,8 @@ class TestFIPSEntitlementEnable:
     @pytest.mark.parametrize(
         "fips_common_enable_return_value, expected_remove_notice_calls",
         [
-            (True, [mock.call(Notice.FIPS_INSTALL_OUT_OF_DATE)]),
-            (False, []),
+            ((True, True), [mock.call(Notice.FIPS_INSTALL_OUT_OF_DATE)]),
+            ((False, False), []),
         ],
     )
     @mock.patch(
@@ -436,7 +504,7 @@ class TestFIPSEntitlementEnable:
         fips_entitlement = entitlement_factory(FIPSEntitlement)
         assert (
             fips_common_enable_return_value
-            is fips_entitlement._perform_enable()
+            == fips_entitlement._perform_enable()
         )
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
 
@@ -444,7 +512,7 @@ class TestFIPSEntitlementEnable:
         "repo_enable_return_value, expected_remove_notice_calls",
         [
             (
-                True,
+                (True, True),
                 [
                     mock.call(
                         Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
@@ -454,7 +522,7 @@ class TestFIPSEntitlementEnable:
                     ),
                 ],
             ),
-            (False, []),
+            ((False, False), []),
         ],
     )
     @mock.patch("uaclient.entitlements.repo.RepoEntitlement._perform_enable")
@@ -469,7 +537,7 @@ class TestFIPSEntitlementEnable:
     ):
         m_repo_enable.return_value = repo_enable_return_value
         with mock.patch.object(fips, "services_once_enabled_file"):
-            assert repo_enable_return_value is entitlement._perform_enable()
+            assert repo_enable_return_value == entitlement._perform_enable()
         assert (
             expected_remove_notice_calls == m_remove_notice.call_args_list[:2]
         )
@@ -582,7 +650,7 @@ class TestFIPSEntitlementEnable:
                     ApplicationStatus.ENABLED,
                     "",
                 )
-                ret, fail = fips_ent.enable()
+                ret, fail, apt_update = fips_ent.enable()
 
         assert not ret
         expected_msg = "Cannot enable FIPS when Livepatch is enabled."
@@ -616,7 +684,7 @@ class TestFIPSEntitlementEnable:
                     ApplicationStatus.ENABLED,
                     "",
                 )
-                result, reason = fips_entitlement.enable()
+                result, reason, apt_update = fips_entitlement.enable()
                 assert not result
                 expected_msg = (
                     "Cannot enable FIPS when FIPS Updates is enabled."
@@ -650,7 +718,7 @@ class TestFIPSEntitlementEnable:
             with mock.patch.object(
                 fips, "services_once_enabled_file", fake_dof
             ):
-                result, reason = fips_entitlement.enable()
+                result, reason, apt_update = fips_entitlement.enable()
                 assert not result
                 expected_msg = (
                     "Cannot enable FIPS because FIPS Updates was once enabled."
@@ -678,7 +746,7 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_livepatch:
             m_livepatch.return_value = (ApplicationStatus.DISABLED, "")
-            result, reason = entitlement.enable()
+            result, reason, apt_update = entitlement.enable()
             assert not result
             expected_msg = """\
             Ubuntu Xenial does not provide a GCP optimized FIPS kernel"""
@@ -715,7 +783,7 @@ class TestFIPSEntitlementEnable:
                 ApplicationStatus.DISABLED,
                 "",
             )
-            result, reason = entitlement.enable()
+            result, reason, apt_update = entitlement.enable()
             assert not result
             expected_msg = """\
             Ubuntu Test does not provide a GCP optimized FIPS kernel"""
@@ -812,6 +880,7 @@ class TestFIPSEntitlementEnable:
             None,
             NoCloudTypeReason.CLOUD_ID_ERROR,
         )
+        m_perform_enable.return_value = (True, True)
         fips_entitlement = entitlement_factory(FIPSEntitlement)
         fips_entitlement._perform_enable()
         logs = caplog_text()
@@ -1240,7 +1309,7 @@ class TestFipsEntitlementPackages:
 
 
 class TestFIPSUpdatesEntitlementEnable:
-    @pytest.mark.parametrize("enable_ret", ((True), (False)))
+    @pytest.mark.parametrize("enable_ret", ((True, True), (False, False)))
     @mock.patch("uaclient.entitlements.fips.notices.NoticesManager.remove")
     @mock.patch(
         "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
@@ -1265,7 +1334,7 @@ class TestFIPSUpdatesEntitlementEnable:
             )
             assert fips_updates_ent._perform_enable() == enable_ret
 
-        if enable_ret:
+        if enable_ret[0]:
             assert 1 == m_services_once_enabled.write.call_count
         else:
             assert not m_services_once_enabled.write.call_count

@@ -40,11 +40,11 @@ class AnboxEntitlement(RepoEntitlement):
         else:
             return {}
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        ret = super()._perform_enable(silent=silent)
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
+        ret, apt_update = super()._perform_enable(silent=silent)
 
         if not ret:
-            return ret
+            return ret, apt_update
 
         directives = self.entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
@@ -68,7 +68,7 @@ class AnboxEntitlement(RepoEntitlement):
 
         anbox_cloud_credentials_file.write(anbox_cloud_data)
 
-        return True
+        return True, apt_update
 
     def _perform_disable(self, silent=False):
         super()._perform_disable(silent=silent)

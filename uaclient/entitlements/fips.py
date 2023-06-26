@@ -326,16 +326,17 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 messages.DISABLE_FAILED_TMPL.format(title=self.title),
             )
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        if super()._perform_enable(silent=silent):
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
+        ret, apt_update = super()._perform_enable(silent=silent)
+        if ret:
             notices.remove(
                 Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
             )
             notices.remove(Notice.FIPS_REBOOT_REQUIRED)
             notices.remove(Notice.FIPS_DISABLE_REBOOT_REQUIRED)
-            return True
+            return True, apt_update
 
-        return False
+        return False, apt_update
 
     def setup_apt_config(self, silent: bool = False) -> None:
         """Setup apt config based on the resourceToken and directives.
@@ -449,20 +450,21 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
             logging.warning(
                 "Could not determine cloud, "
                 "defaulting to generic FIPS package."
             )
-        if super()._perform_enable(silent=silent):
+        ret, apt_update = super()._perform_enable(silent=silent)
+        if ret:
             notices.remove(
                 Notice.FIPS_INSTALL_OUT_OF_DATE,
             )
-            return True
+            return True, apt_update
 
-        return False
+        return False, apt_update
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
@@ -518,8 +520,9 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        if super()._perform_enable(silent=silent):
+    def _perform_enable(self, silent: bool = False) -> Tuple[bool, bool]:
+        ret, apt_update = super()._perform_enable(silent=silent)
+        if ret:
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )
@@ -531,6 +534,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             services_once_enabled_file.write(
                 ServicesOnceEnabledData(fips_updates=True)
             )
-            return True
+            return True, apt_update
 
-        return False
+        return False, apt_update
