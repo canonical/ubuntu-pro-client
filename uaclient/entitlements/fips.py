@@ -27,6 +27,7 @@ CONDITIONAL_PACKAGES_EVERYWHERE = [
     "strongswan-hmac",
     "openssh-client",
     "openssh-server",
+    "shim-signed",
 ]
 CONDITIONAL_PACKAGES_OPENSSH_HMAC = [
     "openssh-client-hmac",
@@ -112,6 +113,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         "libgcrypt20",
         "libgcrypt20-hmac",
         "fips-initramfs-generic",
+        "shim-signed",
     ]
 
     @property
