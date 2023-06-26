@@ -25,7 +25,7 @@ TOKEN_TO_ENVVAR = {
 }
 
 PLATFORM_SERIES_TESTS = {
-    "azuregeneric": ["xenial", "bionic", "focal", "jammy"],
+    "azuregeneric": ["xenial", "bionic", "focal", "jammy", "kinetic"],
     "azurepro": ["xenial", "bionic", "focal", "jammy"],
     "azurepro-fips": ["xenial", "bionic", "focal"],
     "awsgeneric": ["xenial", "bionic", "focal", "jammy"],
