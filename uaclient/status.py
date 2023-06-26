@@ -518,7 +518,7 @@ def simulate_status(
     inapplicable_resources = [
         resource["name"]
         for resource in sorted(resources, key=lambda x: x["name"])
-        if not resource["available"]
+        if not resource["available"] or resource["available"] == "no"
     ]
 
     for resource in resources:
