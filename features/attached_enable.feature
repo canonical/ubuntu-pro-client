@@ -1103,7 +1103,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     # Overall test for overrides; in the future, when many services
     # have overrides, we can consider removing this
-    # FIPS is a good choice because we expect to have it
+    # esm-infra is a good choice because it doesn't already have
+    # other overrides that would interfere with the test
     @series.focal
     @uses.config.machine_type.aws.generic
     Scenario: Cloud overrides for a generic aws Focal instance
@@ -1113,30 +1114,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         machineTokenInfo:
           contractInfo:
             resourceEntitlements:
-              - type: fips
-                entitled: true
-                affordances:
-                  architectures:
-                    - amd64
-                    - ppc64el
-                    - ppc64le
-                    - s390x
-                    - x86_64
-                  series:
-                    - xenial
-                    - bionic
-                    - focal
-                directives:
-                  additionalPackages:
-                   - ubuntu-fips
-                  aptKey: E23341B2A1467EDBF07057D6C1997C40EDE22758
-                  aptURL: https://esm.ubuntu.com/fips
-                  suites:
-                    - xenial
-                    - bionic
-                    - focal
-                obligations:
-                  enableByDefault: false
+              - type: esm-infra
                 overrides:
                   - selector:
                       series: focal
@@ -1149,8 +1127,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       additionalPackages:
                         - some-package-aws
         """
-        And I attach `contract_token` with sudo
-        And I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
+        And I attach `contract_token` with sudo and options `--no-auto-enable`
+        And I verify that running `pro enable esm-infra` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         Stderr: E: Unable to locate package some-package-aws

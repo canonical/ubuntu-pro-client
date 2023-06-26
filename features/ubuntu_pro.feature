@@ -241,7 +241,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-        livepatch     +yes +enabled  +Canonical Livepatch service
+        livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
         Then stdout matches regexp:
         """
@@ -259,7 +259,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified core packages
         fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-        livepatch     +yes +enabled  +Canonical Livepatch service
+        livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
         Then stdout matches regexp:
         """
@@ -335,11 +335,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        |
-           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | usg        |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s |
+           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     |
 
 
     @series.lts
@@ -464,7 +464,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
-           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | usg        |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -588,7 +588,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
-           | jammy   | n/a      | n/a      | n/a      | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | warning   | Current kernel is not supported | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
