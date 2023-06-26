@@ -507,20 +507,14 @@ def simulate_status(
             event.info("This token is not valid.\n" + message.msg + "\n")
             ret = 1
 
-    status_cache = cfg.read_cache("status-cache")
-    if status_cache:
-        resources = status_cache.get("services")
-    else:
-        resources = get_available_resources(cfg)
-
-    entitlements = contract_info.get("resourceEntitlements", [])
-
+    resources = get_available_resources(cfg)
     inapplicable_resources = [
         resource["name"]
         for resource in sorted(resources, key=lambda x: x["name"])
         if not resource["available"]
     ]
 
+    entitlements = contract_info.get("resourceEntitlements", [])
     for resource in resources:
         entitlement_name = resource.get("name", "")
         try:
