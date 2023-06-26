@@ -1,5 +1,0 @@
-mypy
-pyparsing==3.0.7
-pytest==6.1.2
-importlib-metadata==3.3.0
-packaging==20.9

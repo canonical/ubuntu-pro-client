@@ -1,3 +1,0 @@
-# Avoid warning on wanted-by-target
-
-ubuntu-advantage-pro: systemd-service-file-refers-to-unusual-wantedby-target

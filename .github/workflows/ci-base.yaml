@@ -1,6 +1,6 @@
 ---
 
-name: CI (base)
+name: CI (docs)
 
 on:
   push:
@@ -11,8 +11,8 @@ defaults:
     shell: sh -ex {0}
 
 jobs:
-  lint-and-style:
-    name: Static Analysis
+  build-docs:
+    name: Build Docs
     runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
@@ -31,15 +31,3 @@ jobs:
         run: python3 ./tools/check-versions-are-consistent.py
       - name: Docs
         run: tox -e docs
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Unit
-        run: tox -e test
