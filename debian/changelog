@@ -1,3 +1,13 @@
+ubuntu-advantage-tools (28.1) mantic; urgency=medium
+
+  * New upstream release 28.1 (LP: #2017949)
+    - fips: ensure shim-signed is updated to the version in the fips repo
+      if necessary
+    - status: fix bug where an existing status cache could influence the
+      simulated status output
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 26 Jun 2023 15:05:11 -0400
+
 ubuntu-advantage-tools (28) mantic; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
