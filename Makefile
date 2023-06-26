@@ -1,27 +1,23 @@
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-mkfile_dir := $(dir $(mkfile_path))
+VENV          	= .sphinx/venv
+ACTIVATE_VENV	= $(VENV)/bin/activate
+SOURCEDIR     	= docs/
+BUILDDIR     	= docs/build/
+
+install:
+	python3 -m venv $(VENV)
+	. $(ACTIVATE_VENV); pip install --upgrade -r docs-requirements.txt
 
 build:
-	$(MAKE) -C apt-hook build
+	. $(ACTIVATE_VENV); sphinx-build -W -b html $(SOURCEDIR) $(BUILDDIR)
+
+run:
+	. $(ACTIVATE_VENV); sphinx-autobuild $(SOURCEDIR) $(BUILDDIR)
+
+serve:
+	python3 -m http.server --directory $(BUILDDIR) 8000
 
 clean:
-	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.gz *.tar.xz
-	rm -f azure-*-uaclient-ci-* ec2-uaclient-ci-* gcp-*-uaclient-ci-* lxd-container-*-uaclient-ci-* lxd-virtual-machine-*-uaclient-ci-*
-	rm -rf *.egg-info/ .tox/ .cache/ .mypy_cache/
-	rm -rf docs/build/
-	find . -type f -name '*.pyc' -delete
-	find . -type d -name '*__pycache__' -delete
-	$(MAKE) -C apt-hook clean
+	rm -rf $(VENV)
+	rm -rf $(BUILDDIR)
 
-deps:
-	@which mk-build-deps > /dev/null || { \
-		echo "Missing mk-build-deps; installing devscripts, equivs."; \
-		apt-get install --no-install-recommends --yes devscripts equivs; \
-	}
-	mk-build-deps --tool "apt-get --no-install-recommends --yes" \
-		--install --remove ${mkfile_dir}/debian/control
-
-test:
-	@tox
-
-.PHONY: build clean test
+.PHONY: install build run serve clean

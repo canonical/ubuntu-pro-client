@@ -15,19 +15,9 @@ jobs:
     name: Build Docs
     runs-on: ubuntu-22.04
     steps:
-      - name: Install dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Formatting
-        run: tox -e black -e isort
-      - name: Style
-        run: tox -e flake8
-      - name: Mypy
-        run: tox -e mypy
-      - name: Version Consistency
-        run: python3 ./tools/check-versions-are-consistent.py
-      - name: Docs
-        run: tox -e docs
+      - name: Install docs environment
+        run: make install
+      - name: Build docs
+        run: make build
