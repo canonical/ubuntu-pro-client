@@ -37,7 +37,7 @@ Flags:
 """
 
 
-@mock.patch("uaclient.contract.request_updated_contract")
+@mock.patch("uaclient.contract.refresh")
 class TestActionEnable:
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
@@ -45,7 +45,7 @@ class TestActionEnable:
         self,
         _m_resources,
         _m_setup_logging,
-        _request_updated_contract,
+        _refresh,
         capsys,
         FakeConfig,
     ):
@@ -64,7 +64,7 @@ class TestActionEnable:
     def test_non_root_users_are_rejected(
         self,
         _m_resources,
-        _request_updated_contract,
+        _refresh,
         we_are_currently_root,
         capsys,
         event,
@@ -133,7 +133,7 @@ class TestActionEnable:
     def test_lock_file_exists(
         self,
         m_subp,
-        _request_updated_contract,
+        _refresh,
         capsys,
         event,
         FakeConfig,
@@ -194,7 +194,7 @@ class TestActionEnable:
     def test_unattached_error_message(
         self,
         m_we_are_currently_root,
-        _request_updated_contract,
+        _refresh,
         root,
         expected_error_template,
         capsys,
@@ -257,7 +257,7 @@ class TestActionEnable:
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
-        _request_updated_contract,
+        _refresh,
         root,
         expected_error_template,
         is_attached,
@@ -345,7 +345,7 @@ class TestActionEnable:
     def test_unattached_invalid_and_valid_service_error_message(
         self,
         m_we_are_currently_root,
-        _request_updated_contract,
+        _refresh,
         root,
         expected_error_template,
         event,
@@ -407,7 +407,7 @@ class TestActionEnable:
         self,
         m_valid_services,
         _m_get_available_resources,
-        m_request_updated_contract,
+        m_refresh,
         assume_yes,
         FakeConfig,
     ):
@@ -450,7 +450,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
-        _m_request_updated_contract,
+        _m_refresh,
         event,
         FakeConfig,
     ):
@@ -568,7 +568,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
-        _m_request_updated_contract,
+        _m_refresh,
         beta_flag,
         event,
         FakeConfig,
@@ -708,7 +708,7 @@ class TestActionEnable:
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
-        _m_request_updated_contract,
+        _m_refresh,
         event,
         FakeConfig,
     ):
@@ -783,7 +783,7 @@ class TestActionEnable:
     )
     def test_invalid_service_names(
         self,
-        _m_request_updated_contract,
+        _m_refresh,
         service,
         beta,
         event,
@@ -855,7 +855,7 @@ class TestActionEnable:
         self,
         m_status,
         _m_get_available_resources,
-        _m_request_updated_contract,
+        _m_refresh,
         allow_beta,
         event,
         FakeConfig,

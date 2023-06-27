@@ -51,20 +51,39 @@ def attach_with_token(
     """
     from uaclient.timer.update_messaging import update_motd_messages
 
+    contract_client = contract.UAContractClient(cfg)
+
     try:
-        contract.request_updated_contract(
-            cfg, token, allow_enable=allow_enable
+        new_machine_token = contract_client.add_contract_machine(
+            contract_token=token
         )
-    except exceptions.UrlError as exc:
+    except exceptions.UrlError as e:
+        with util.disable_log_to_console():
+            logging.exception(str(e))
+        raise exceptions.ConnectivityError()
+
+    cfg.machine_token_file.write(new_machine_token)
+
+    system.get_machine_id.cache_clear()
+    machine_id = new_machine_token.get("machineTokenInfo", {}).get(
+        "machineId", system.get_machine_id(cfg)
+    )
+    cfg.write_cache("machine-id", machine_id)
+
+    try:
+        contract.process_entitlements_delta(
+            cfg,
+            {},
+            # we load from the file here instead of using the response
+            # so that we get any machine_token_overlay present during testing
+            # TODO: decide if there is a better way to do this
+            cfg.machine_token_file.entitlements,
+            allow_enable,
+        )
+    except (exceptions.UrlError, exceptions.UserFacingError) as exc:
         # Persist updated status in the event of partial attach
         ua_status.status(cfg=cfg)
         update_motd_messages(cfg)
-        raise exc
-    except exceptions.UserFacingError as exc:
-        # Persist updated status in the event of partial attach
-        ua_status.status(cfg=cfg)
-        update_motd_messages(cfg)
-        # raise this exception in case we cannot enable all services
         raise exc
 
     current_iid = identity.get_instance_id()
