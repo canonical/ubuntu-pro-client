@@ -7,33 +7,21 @@ import pytest
 
 from uaclient import exceptions, http, messages, util
 from uaclient.contract import (
-    API_V1_ADD_CONTRACT_MACHINE,
     API_V1_AVAILABLE_RESOURCES,
-    API_V1_GET_CONTRACT_MACHINE,
     API_V1_GET_CONTRACT_USING_TOKEN,
-    API_V1_GET_RESOURCE_MACHINE_ACCESS,
     UAContractClient,
+    _create_attach_forbidden_message,
     _get_override_weight,
     apply_contract_overrides,
     get_available_resources,
     get_contract_information,
     is_contract_changed,
     process_entitlement_delta,
-    request_updated_contract,
+    refresh,
 )
 from uaclient.entitlements.base import UAEntitlement
-from uaclient.messages import (
-    ATTACH_EXPIRED_TOKEN,
-    ATTACH_FAILURE_DEFAULT_SERVICES,
-    ATTACH_FORBIDDEN,
-    ATTACH_FORBIDDEN_EXPIRED,
-    ATTACH_FORBIDDEN_NEVER,
-    ATTACH_FORBIDDEN_NOT_YET,
-    ATTACH_INVALID_TOKEN,
-    INVALID_PRO_IMAGE,
-    UNEXPECTED_ERROR,
-)
 from uaclient.status import UserFacingStatus
+from uaclient.testing import helpers
 from uaclient.testing.fakes import FakeContractClient
 from uaclient.version import get_version
 
@@ -45,112 +33,102 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 @mock.patch("uaclient.contract.system.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
-        "machine_id_response", (("contract-machine-id"), None)
+        [
+            "request_url_side_effect",
+            "expected_raises",
+            "expected_result",
+        ],
+        [
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=400,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                pytest.raises(exceptions.ContractAPIError),
+                None,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={"expires": "date"},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                helpers.does_not_raise(),
+                {"test": "value", "expires": "date"},
+            ),
+        ],
     )
-    @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.system.get_virt_type")
-    @mock.patch("uaclient.contract.system.get_dpkg_arch")
-    @mock.patch("uaclient.contract.system.get_kernel_info")
-    @mock.patch("uaclient.contract.system.get_release_info")
+    @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
+    @mock.patch("uaclient.contract.UAContractClient._get_platform_data")
+    @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_update_contract_machine(
         self,
-        m_get_release_info,
-        m_get_kernel_info,
-        m_get_dpkg_arch,
-        m_get_virt_type,
-        m_get_machine_id,
+        m_headers,
+        m_get_platform_data,
+        m_get_activity_info,
+        _m_get_machine_id,
         m_request_url,
-        machine_id_response,
-        activity_id,
-        FakeConfig,
+        request_url_side_effect,
+        expected_raises,
+        expected_result,
     ):
-        """POST or DELETE to ua-contracts and write machine-token cache.
-
-        Setting detach=True will result in a DELETE operation.
-        """
-        m_get_release_info.return_value = mock.MagicMock(
-            distribution="Ubuntu",
-            release="release",
-            series="series",
-            pretty_version="version",
-        )
-        m_get_kernel_info.return_value = mock.MagicMock(uname_release="kernel")
-        m_get_dpkg_arch.return_value = "arch"
-        m_get_virt_type.return_value = "virt"
-        m_get_machine_id.return_value = "machineId"
-
-        machine_token = {"machineTokenInfo": {}}
-        if machine_id_response:
-            machine_token["machineTokenInfo"][
-                "machineId"
-            ] = machine_id_response
-
-        m_request_url.return_value = http.HTTPResponse(
-            code=200,
-            headers={},
-            body="",
-            json_dict=machine_token,
-            json_list=[],
-        )
-        cfg = FakeConfig.for_attached_machine()
-        client = UAContractClient(cfg)
-        kwargs = {"machine_token": "mToken", "contract_id": "cId"}
-        enabled_services = ["esm-apps", "livepatch"]
-
-        def entitlement_user_facing_status(self):
-            if self.name in enabled_services:
-                return (UserFacingStatus.ACTIVE, "")
-            return (UserFacingStatus.INACTIVE, "")
-
-        with mock.patch.object(
-            type(cfg.machine_token_file), "activity_id", activity_id
-        ):
-            with mock.patch.object(
-                UAEntitlement,
-                "user_facing_status",
-                new=entitlement_user_facing_status,
-            ):
-                client._update_contract_machine(**kwargs)
-
-        assert machine_token != cfg.machine_token_file.machine_token
-        client.update_files_after_machine_token_update(machine_token)
-        assert machine_token == cfg.machine_token_file.machine_token
-        expected_machine_id = "machineId"
-        if machine_id_response:
-            expected_machine_id = machine_id_response
-
-        assert expected_machine_id == cfg.read_cache("machine-id")
-        params = {
-            "headers": {
-                "user-agent": "UA-Client/{}".format(get_version()),
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "Bearer mToken",
-            },
-            "method": "POST",
+        m_headers.return_value = {"header": "headerval"}
+        m_get_platform_data.return_value = {
+            "platform": "data",
+            "machineId": "something",
         }
-        expected_activity_id = activity_id if activity_id else "machineId"
-        params["data"] = {
-            "machineId": "machineId",
-            "architecture": "arch",
-            "os": {
-                "type": "Linux",
-                "kernel": "kernel",
-                "distribution": "Ubuntu",
-                "release": "release",
-                "series": "series",
-                "version": "version",
-                "virt": "virt",
-            },
-            "activityInfo": {
-                "activityToken": None,
-                "activityID": expected_activity_id,
-                "resources": enabled_services,
-            },
-        }
-        assert m_request_url.call_args_list == [
-            mock.call("/v1/contracts/cId/context/machines/machineId", **params)
-        ]
+        m_get_activity_info.return_value = mock.sentinel.activity_info
+        m_request_url.side_effect = request_url_side_effect
+
+        client = UAContractClient(mock.MagicMock())
+        with expected_raises:
+            result = client.update_contract_machine(
+                "mToken", "cId", mock.sentinel.machine_id
+            )
+
+        if expected_result:
+            assert expected_result == result
+
+        assert [
+            mock.call(
+                "/v1/contracts/cId/context/machines/something",
+                headers={
+                    "header": "headerval",
+                    "Authorization": "Bearer mToken",
+                },
+                method="POST",
+                data={
+                    "platform": "data",
+                    "machineId": "something",
+                    "activityInfo": mock.sentinel.activity_info,
+                },
+            )
+        ] == m_request_url.call_args_list
+        assert [
+            mock.call(mock.sentinel.machine_id)
+        ] == m_get_platform_data.call_args_list
 
     @pytest.mark.parametrize("machine_id_param", (("attach-machine-id")))
     @pytest.mark.parametrize(
@@ -337,69 +315,121 @@ class TestUAContractClient:
             mock.call("/v1/contracts/cid/machine-activity/machineId", **params)
         ] == request_url.call_args_list
 
-    @pytest.mark.parametrize("machine_id_param", (("attach-machine-id"), None))
     @pytest.mark.parametrize(
-        "machine_id_response", (("contract-machine-id"), None)
+        [
+            "request_url_side_effect",
+            "expected_create_attach_forbidden_message_call_args",
+            "expected_raises",
+            "expected_result",
+        ],
+        [
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                [],
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=401,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                [],
+                pytest.raises(exceptions.AttachInvalidTokenError),
+                None,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=403,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                [mock.call(mock.ANY)],
+                pytest.raises(exceptions.UserFacingError),
+                None,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=400,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                [],
+                pytest.raises(exceptions.ContractAPIError),
+                None,
+            ),
+        ],
     )
-    @mock.patch.object(UAContractClient, "_get_platform_data")
+    @mock.patch("uaclient.contract._create_attach_forbidden_message")
+    @mock.patch("uaclient.contract.UAContractClient._get_platform_data")
+    @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_add_contract_machine(
         self,
-        m_platform_data,
-        get_machine_id,
-        request_url,
-        machine_id_response,
-        machine_id_param,
-        FakeConfig,
+        m_headers,
+        m_get_platform_data,
+        m_create_attach_forbidden_message,
+        _m_get_machine_id,
+        m_request_url,
+        request_url_side_effect,
+        expected_create_attach_forbidden_message_call_args,
+        expected_raises,
+        expected_result,
     ):
-        def fake_platform_data(machine_id):
-            machine_id = "machine-id" if not machine_id else machine_id
-            return {"machineId": machine_id}
-
-        m_platform_data.side_effect = fake_platform_data
-
-        machine_token = {"machineTokenInfo": {}}
-        if machine_id_response:
-            machine_token["machineTokenInfo"][
-                "machineId"
-            ] = machine_id_response
-
-        request_url.return_value = http.HTTPResponse(
-            code=200,
-            headers={},
-            body="",
-            json_dict=machine_token,
-            json_list=[],
-        )
-        contract_token = "mToken"
-
-        params = {
-            "data": fake_platform_data(machine_id_param),
-            "headers": {
-                "user-agent": "UA-Client/{}".format(get_version()),
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "Bearer mToken",
-            },
+        m_headers.return_value = {"header": "headerval"}
+        m_get_platform_data.return_value = {
+            "platform": "data",
         }
+        m_request_url.side_effect = request_url_side_effect
 
-        cfg = FakeConfig()
-        client = UAContractClient(cfg)
-        client.add_contract_machine(
-            contract_token=contract_token, machine_id=machine_id_param
-        )
+        client = UAContractClient(mock.MagicMock())
+        with expected_raises:
+            result = client.add_contract_machine(
+                "cToken", mock.sentinel.machine_id
+            )
+
+        if expected_result:
+            assert expected_result == result
 
         assert [
-            mock.call("/v1/context/machines/token", **params)
-        ] == request_url.call_args_list
-
-        expected_machine_id = "contract-machine-id"
-        if not machine_id_response:
-            if machine_id_param:
-                expected_machine_id = machine_id_param
-            else:
-                expected_machine_id = "machine-id"
-
-        assert expected_machine_id == cfg.read_cache("machine-id")
+            mock.call(
+                "/v1/context/machines/token",
+                headers={
+                    "header": "headerval",
+                    "Authorization": "Bearer cToken",
+                },
+                data={
+                    "platform": "data",
+                },
+            )
+        ] == m_request_url.call_args_list
+        assert [
+            mock.call(mock.sentinel.machine_id)
+        ] == m_get_platform_data.call_args_list
+        assert (
+            expected_create_attach_forbidden_message_call_args
+            == m_create_attach_forbidden_message.call_args_list
+        )
 
     def test_new_magic_attach_token_successfull(
         self,
@@ -644,6 +674,130 @@ class TestProcessEntitlementDeltas:
         assert 0 == m_process_contract_deltas.call_count
 
 
+class TestCreateAttachForbiddenMessage:
+    @pytest.mark.parametrize(
+        [
+            "http_response",
+            "expected_message",
+        ],
+        [
+            (
+                http.HTTPResponse(
+                    code=403, headers={}, body="", json_list=[], json_dict={}
+                ),
+                messages.ATTACH_EXPIRED_TOKEN,
+            ),
+            (
+                http.HTTPResponse(
+                    code=403,
+                    headers={},
+                    body="",
+                    json_list=[],
+                    json_dict={
+                        "code": "forbidden",
+                        "info": {
+                            "contractId": "contract-id",
+                            "reason": "no-longer-effective",
+                            "time": datetime.datetime(
+                                2021,
+                                5,
+                                7,
+                                9,
+                                46,
+                                37,
+                                tzinfo=datetime.timezone.utc,
+                            ),
+                        },
+                        "message": 'contract "contract-id" is no longer effective',  # noqa: E501
+                        "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                    },
+                ),
+                messages.NamedMessage(
+                    name=messages.ATTACH_FORBIDDEN_EXPIRED.name,
+                    msg=messages.ATTACH_FORBIDDEN.format(
+                        reason=messages.ATTACH_FORBIDDEN_EXPIRED.format(
+                            contract_id="contract-id", date="May 07, 2021"
+                        ).msg
+                    ).msg,
+                    additional_info={
+                        "contract_expiry_date": "05-07-2021",
+                        "contract_id": "contract-id",
+                    },
+                ),
+            ),
+            (
+                http.HTTPResponse(
+                    code=403,
+                    headers={},
+                    body="",
+                    json_list=[],
+                    json_dict={
+                        "code": "forbidden",
+                        "info": {
+                            "contractId": "contract-id",
+                            "reason": "not-effective-yet",
+                            "time": datetime.datetime(
+                                2021,
+                                5,
+                                7,
+                                9,
+                                46,
+                                37,
+                                tzinfo=datetime.timezone.utc,
+                            ),
+                        },
+                        "message": 'contract "contract-id" is not effective yet',  # noqa: E501
+                        "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                    },
+                ),
+                messages.NamedMessage(
+                    name=messages.ATTACH_FORBIDDEN_NOT_YET.name,
+                    msg=messages.ATTACH_FORBIDDEN.format(
+                        reason=messages.ATTACH_FORBIDDEN_NOT_YET.format(
+                            contract_id="contract-id", date="May 07, 2021"
+                        ).msg
+                    ).msg,
+                    additional_info={
+                        "contract_effective_date": "05-07-2021",
+                        "contract_id": "contract-id",
+                    },
+                ),
+            ),
+            (
+                http.HTTPResponse(
+                    code=403,
+                    headers={},
+                    body="",
+                    json_list=[],
+                    json_dict={
+                        "code": "forbidden",
+                        "info": {
+                            "contractId": "contract-id",
+                            "reason": "never-effective",
+                        },
+                        "message": 'contract "contract-id" is was never effective',  # noqa: E501
+                        "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                    },
+                ),
+                messages.NamedMessage(
+                    name=messages.ATTACH_FORBIDDEN_NEVER.name,
+                    msg=messages.ATTACH_FORBIDDEN.format(
+                        reason=messages.ATTACH_FORBIDDEN_NEVER.format(
+                            contract_id="contract-id"
+                        ).msg
+                    ).msg,
+                ),
+            ),
+        ],
+    )
+    def test_create_attach_forbidden_message(
+        self, http_response, expected_message
+    ):
+        assert expected_message == _create_attach_forbidden_message(
+            http_response
+        )
+
+
 class TestGetAvailableResources:
     @mock.patch.object(UAContractClient, "available_resources")
     def test_available_resources_error_on_network_disconnected(
@@ -702,371 +856,81 @@ class TestGetContractInformation:
         assert information == get_contract_information(cfg, "some_token")
 
 
-class TestRequestUpdatedContract:
-    refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
-        contract="cid", machine="mid"
-    )
-    access_route_ent1 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
-        resource="ent1", machine="mid"
-    )
-    access_route_ent2 = API_V1_GET_RESOURCE_MACHINE_ACCESS.format(
-        resource="ent2", machine="mid"
-    )
-
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_attached_config_and_contract_token_runtime_error(
-        self, client, FakeConfig
-    ):
-        """When attached, error if called with a contract_token."""
-
-        def fake_contract_client(cfg):
-            return FakeContractClient(cfg)
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            request_updated_contract(cfg, contract_token="something")
-
-        expected_msg = (
-            "Got unexpected contract_token on an already attached machine"
-        )
-        assert expected_msg == str(exc.value.msg)
-
+class TestRefresh:
     @pytest.mark.parametrize(
-        "error_code, error_msg, error_response",
-        (
-            (401, ATTACH_INVALID_TOKEN, {"message": "unauthorized"}),
-            (403, ATTACH_EXPIRED_TOKEN, {}),
+        [
+            "update_contract_machine_result",
+            "expected_write_cache_call_args",
+        ],
+        [
             (
-                403,
-                ATTACH_FORBIDDEN.format(
-                    reason=ATTACH_FORBIDDEN_EXPIRED.format(
-                        contract_id="contract-id", date="May 07, 2021"
-                    ).msg
-                ),
-                {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "no-longer-effective",
-                        "time": datetime.datetime(
-                            2021, 5, 7, 9, 46, 37, tzinfo=datetime.timezone.utc
-                        ),
-                    },
-                    "message": 'contract "contract-id" is no longer effective',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
-                },
+                {"response": "val"},
+                [mock.call("machine-id", mock.sentinel.system_machine_id)],
             ),
             (
-                403,
-                ATTACH_FORBIDDEN.format(
-                    reason=ATTACH_FORBIDDEN_NOT_YET.format(
-                        contract_id="contract-id", date="May 07, 2021"
-                    ).msg
-                ),
                 {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "not-effective-yet",
-                        "time": datetime.datetime(
-                            2021, 5, 7, 9, 46, 37, tzinfo=datetime.timezone.utc
-                        ),
+                    "response": "val",
+                    "machineTokenInfo": {
+                        "machineId": mock.sentinel.response_machine_id
                     },
-                    "message": 'contract "contract-id" is not effective yet',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
                 },
+                [mock.call("machine-id", mock.sentinel.response_machine_id)],
             ),
-            (
-                403,
-                ATTACH_FORBIDDEN.format(
-                    reason=ATTACH_FORBIDDEN_NEVER.format(
-                        contract_id="contract-id"
-                    ).msg
-                ),
-                {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "never-effective",
-                    },
-                    "message": 'contract "contract-id" is was never effective',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
-                },
-            ),
-        ),
+        ],
     )
-    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self,
-        client,
-        get_machine_id,
-        FakeConfig,
-        error_code,
-        error_msg,
-        error_response,
-    ):
-        """When attaching, invalid token errors result in proper user error."""
-
-        def fake_contract_client(cfg):
-            fake_client = FakeContractClient(cfg)
-            fake_client._responses = {
-                API_V1_ADD_CONTRACT_MACHINE: http.HTTPResponse(
-                    code=error_code,
-                    headers={},
-                    body="",
-                    json_dict=error_response,
-                    json_list=[],
-                )
-            }
-            return fake_client
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig()
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            request_updated_contract(cfg, contract_token="yep")
-
-        assert error_msg.msg == str(exc.value.msg)
-
-    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_user_facing_error_on_machine_token_refresh_failure(
-        self, client, get_machine_id, FakeConfig
-    ):
-        """When attaching, error on failure to refresh the machine token."""
-
-        def fake_contract_client(cfg):
-            fake_client = FakeContractClient(cfg)
-            fake_client._responses = {
-                self.refresh_route: http.HTTPResponse(
-                    code=500,
-                    headers={},
-                    body="Machine token refresh fail",
-                    json_dict={},
-                    json_list=[],
-                )
-            }
-            return fake_client
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            request_updated_contract(cfg)
-
-        assert "Machine token refresh fail" in str(exc.value)
-
-    @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_user_facing_error_on_service_token_refresh_failure(
-        self, client, get_machine_id, m_enable_order, FakeConfig
-    ):
-        """When attaching, error on any failed specific service refresh."""
-
-        machine_token = {
-            "machineToken": "mToken",
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "id": "cid",
-                    "resourceEntitlements": [
-                        {"entitled": True, "type": "ent2"},
-                        {"entitled": True, "type": "ent1"},
-                    ],
-                }
-            },
-        }
-        m_enable_order.return_value = ["ent2", "ent1"]
-
-        def fake_contract_client(cfg):
-            fake_client = FakeContractClient(cfg)
-            fake_client._responses = {self.refresh_route: machine_token}
-            return fake_client
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=machine_token,
-        )
-        with mock.patch(M_PATH + "process_entitlement_delta") as m_process:
-            m_process.side_effect = (
-                exceptions.UserFacingError("broken ent1"),
-                exceptions.UserFacingError("broken ent2"),
-            )
-            with pytest.raises(exceptions.UserFacingError) as exc:
-                request_updated_contract(cfg)
-
-        assert ATTACH_FAILURE_DEFAULT_SERVICES.msg == str(exc.value.msg)
-
-    @pytest.mark.parametrize(
-        "first_error, second_error, ux_error_msg",
-        (
-            (
-                exceptions.UserFacingError(
-                    "Ubuntu Pro server provided no aptKey directive for"
-                    " esm-infra"
-                ),
-                (None, False),
-                ATTACH_FAILURE_DEFAULT_SERVICES,
-            ),
-            (RuntimeError("some APT error"), None, UNEXPECTED_ERROR),
-            # Order high-priority RuntimeError as second_error to ensure it
-            # is raised as primary error_msg
-            (
-                exceptions.UserFacingError(
-                    "Ubuntu Pro server provided no aptKey directive for"
-                    " esm-infra"
-                ),
-                RuntimeError("some APT error"),  # High-priority ordered 2
-                UNEXPECTED_ERROR,
-            ),
-        ),
+    @mock.patch(M_PATH + "process_entitlements_delta")
+    @mock.patch(M_PATH + "UAConfig.write_cache")
+    @mock.patch(M_PATH + "system.get_machine_id")
+    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch(M_PATH + "UAContractClient.update_contract_machine")
+    @mock.patch(
+        M_PATH + "UAConfig.machine_token", new_callable=mock.PropertyMock
     )
-    @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch(M_PATH + "process_entitlement_delta")
-    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_user_facing_error_due_to_unexpected_process_entitlement_delta(
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.entitlements",
+        new_callable=mock.PropertyMock,
+    )
+    def test_refresh(
         self,
-        client,
-        get_machine_id,
-        process_entitlement_delta,
-        m_enable_order,
-        first_error,
-        second_error,
-        ux_error_msg,
+        m_entitlements,
+        m_machine_token,
+        m_update_contract_machine,
+        m_machine_token_file_write,
+        m_get_machine_id,
+        m_write_cache,
+        m_process_entitlements_deltas,
+        update_contract_machine_result,
+        expected_write_cache_call_args,
         FakeConfig,
     ):
-        """Unexpected errors from process_entitlement_delta are raised.
-
-        Remaining entitlements are processed regardless of error and error is
-        raised at the end.
-
-        Unexpected exceptions take priority over the handled UserFacingErrors.
-        """
-        # Fail first and succeed second call to process_entitlement_delta
-        process_entitlement_delta.side_effect = (
-            first_error,
-            second_error,
-            (None, False),
-        )
-
-        # resourceEntitlements specifically ordered reverse alphabetically
-        # to ensure proper sorting for process_contract_delta calls below
-        machine_token = {
-            "machineToken": "mToken",
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "id": "cid",
-                    "resourceEntitlements": [
-                        {"entitled": False, "type": "ent3"},
-                        {"entitled": False, "type": "ent2"},
-                        {"entitled": True, "type": "ent1"},
-                    ],
-                }
-            },
-        }
-        m_enable_order.return_value = ["ent3", "ent2", "ent1"]
-
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=machine_token,
-        )
-        fake_client = FakeContractClient(cfg)
-        fake_client._responses = {
-            self.refresh_route: machine_token,
-            self.access_route_ent1: {
-                "entitlement": {
-                    "entitled": True,
-                    "type": "ent1",
-                    "new": "newval",
-                }
-            },
-        }
-
-        client.return_value = fake_client
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            assert None is request_updated_contract(cfg)
-        assert 3 == process_entitlement_delta.call_count
-        assert ux_error_msg.msg == str(exc.value.msg)
-
-    @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch(M_PATH + "process_entitlement_delta")
-    @mock.patch("uaclient.system.get_machine_id", return_value="mid")
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_attached_config_refresh_machine_token_and_services(
-        self,
-        client,
-        get_machine_id,
-        process_entitlement_delta,
-        m_enable_order,
-        FakeConfig,
-    ):
-        """When attached, refresh machine token and entitled services.
-
-        Processing service deltas are processed in a sorted order based on
-        service dependencies to ensure operations occur the same regardless
-        of dict ordering.
-        """
-        m_enable_order.return_value = ["ent2", "ent1"]
-
-        machine_token = {
-            "machineToken": "mToken",
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "id": "cid",
-                    "resourceEntitlements": [
-                        {"entitled": False, "type": "ent2"},
-                        {"entitled": True, "type": "ent1"},
-                    ],
-                }
-            },
-        }
-        new_token = copy.deepcopy(machine_token)
-        new_token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
-            1
-        ]["new"] = "newval"
-
-        def fake_contract_client(cfg):
-            client = FakeContractClient(cfg)
-            client._responses = {self.refresh_route: new_token}
-            return client
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=machine_token,
-        )
-        process_entitlement_delta.return_value = (None, False)
-        assert None is request_updated_contract(cfg)
-        assert new_token == cfg.machine_token_file.machine_token
-
-        process_calls = [
-            mock.call(
-                cfg=cfg,
-                orig_access={
-                    "entitlement": {"entitled": False, "type": "ent2"}
-                },
-                new_access={
-                    "entitlement": {"entitled": False, "type": "ent2"}
-                },
-                allow_enable=False,
-                series_overrides=True,
-            ),
-            mock.call(
-                cfg=cfg,
-                orig_access={
-                    "entitlement": {"entitled": True, "type": "ent1"}
-                },
-                new_access={
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-                allow_enable=False,
-                series_overrides=True,
-            ),
+        m_entitlements.side_effect = [
+            mock.sentinel.orig_entitlements,
+            mock.sentinel.new_entitlements,
         ]
-        assert process_calls == process_entitlement_delta.call_args_list
+        m_machine_token.return_value = {
+            "machineToken": "mToken",
+            "machineTokenInfo": {"contractInfo": {"id": "cId"}},
+        }
+        m_update_contract_machine.return_value = update_contract_machine_result
+        m_get_machine_id.return_value = mock.sentinel.system_machine_id
+
+        refresh(FakeConfig())
+
+        assert [
+            mock.call(machine_token="mToken", contract_id="cId")
+        ] == m_update_contract_machine.call_args_list
+        assert [
+            mock.call(update_contract_machine_result)
+        ] == m_machine_token_file_write.call_args_list
+        assert expected_write_cache_call_args == m_write_cache.call_args_list
+        assert [
+            mock.call(
+                mock.ANY,
+                mock.sentinel.orig_entitlements,
+                mock.sentinel.new_entitlements,
+                allow_enable=False,
+            )
+        ] == m_process_entitlements_deltas.call_args_list
 
 
 @mock.patch("uaclient.contract.UAContractClient.get_contract_machine")
@@ -1394,7 +1258,7 @@ class TestRequestAutoAttach:
                 instance=mock.MagicMock()
             )
 
-        expected_message = INVALID_PRO_IMAGE.format(
+        expected_message = messages.INVALID_PRO_IMAGE.format(
             msg=error_response["message"]
         )
         expected_args = [mock.call(error_response["message"])]

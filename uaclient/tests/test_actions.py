@@ -19,6 +19,7 @@ from uaclient.exceptions import (
     NonAutoAttachImageError,
     UserFacingError,
 )
+from uaclient.testing import helpers
 
 M_PATH = "uaclient.actions."
 
@@ -31,52 +32,234 @@ def fake_instance_factory():
 
 class TestAttachWithToken:
     @pytest.mark.parametrize(
-        "request_updated_contract_side_effect, expected_error_class,"
-        " expect_status_call",
         [
-            (None, None, False),
-            (exceptions.UrlError("cause", "url"), exceptions.UrlError, True),
+            "token",
+            "allow_enable",
+            "add_contract_machine_side_effect",
+            "machine_id",
+            "entitlements",
+            "process_entitlements_delta_side_effect",
+            "instance_id",
+            "expected_add_contract_machine_call_args",
+            "expected_machine_token_file_write_call_args",
+            "expected_get_machine_id_call_args",
+            "expected_config_write_cache_call_args",
+            "expected_process_entitlements_delta_call_args",
+            "expected_status_call_args",
+            "expected_update_motd_messages_call_args",
+            "expected_get_instance_id_call_args",
+            "expected_timer_start_call_args",
+            "expected_raises",
+        ],
+        [
             (
-                exceptions.UserFacingError("test"),
-                exceptions.UserFacingError,
+                "token",
                 True,
+                exceptions.UrlError(Exception(), "url"),
+                None,
+                None,
+                None,
+                None,
+                [mock.call(contract_token="token")],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                pytest.raises(exceptions.ConnectivityError),
+            ),
+            (
+                "token",
+                True,
+                [{"machineTokenInfo": {"machineId": "machine-id"}}],
+                "get-machine-id-result",
+                mock.sentinel.entitlements,
+                exceptions.UrlError(Exception(), "url"),
+                None,
+                [mock.call(contract_token="token")],
+                [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
+                [mock.call(mock.ANY)],
+                [mock.call("machine-id", "machine-id")],
+                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(cfg=mock.ANY)],
+                [mock.call(mock.ANY)],
+                [],
+                [],
+                pytest.raises(exceptions.UrlError),
+            ),
+            (
+                "token",
+                True,
+                [{"machineTokenInfo": {"machineId": "machine-id"}}],
+                "get-machine-id-result",
+                mock.sentinel.entitlements,
+                exceptions.UserFacingError("message"),
+                None,
+                [mock.call(contract_token="token")],
+                [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
+                [mock.call(mock.ANY)],
+                [mock.call("machine-id", "machine-id")],
+                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [mock.call(cfg=mock.ANY)],
+                [mock.call(mock.ANY)],
+                [],
+                [],
+                pytest.raises(exceptions.UserFacingError),
+            ),
+            (
+                "token",
+                True,
+                [{"machineTokenInfo": {"machineId": "machine-id"}}],
+                "get-machine-id-result",
+                mock.sentinel.entitlements,
+                None,
+                None,
+                [mock.call(contract_token="token")],
+                [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
+                [mock.call(mock.ANY)],
+                [mock.call("machine-id", "machine-id")],
+                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [],
+                [mock.call(mock.ANY)],
+                [mock.call()],
+                [mock.call()],
+                helpers.does_not_raise(),
+            ),
+            (
+                "token",
+                True,
+                [{"machineTokenInfo": {"machineId": "machine-id"}}],
+                "get-machine-id-result",
+                mock.sentinel.entitlements,
+                None,
+                "id",
+                [mock.call(contract_token="token")],
+                [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
+                [mock.call(mock.ANY)],
+                [
+                    mock.call("machine-id", "machine-id"),
+                    mock.call("instance-id", "id"),
+                ],
+                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                [],
+                [mock.call(mock.ANY)],
+                [mock.call()],
+                [mock.call()],
+                helpers.does_not_raise(),
+            ),
+            (
+                "token2",
+                False,
+                [{"machineTokenInfo": {"machineId": "machine-id"}}],
+                "get-machine-id-result",
+                mock.sentinel.entitlements,
+                None,
+                "id",
+                [mock.call(contract_token="token2")],
+                [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
+                [mock.call(mock.ANY)],
+                [
+                    mock.call("machine-id", "machine-id"),
+                    mock.call("instance-id", "id"),
+                ],
+                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, False)],
+                [],
+                [mock.call(mock.ANY)],
+                [mock.call()],
+                [mock.call()],
+                helpers.does_not_raise(),
             ),
         ],
     )
+    @mock.patch(M_PATH + "timer.start")
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
-    @mock.patch("uaclient.status.status")
-    @mock.patch(M_PATH + "contract.request_updated_contract")
+    @mock.patch(M_PATH + "ua_status.status")
+    @mock.patch(M_PATH + "contract.process_entitlements_delta")
+    @mock.patch(
+        "uaclient.files.MachineTokenFile.entitlements",
+        new_callable=mock.PropertyMock,
+    )
     @mock.patch(M_PATH + "config.UAConfig.write_cache")
+    @mock.patch(M_PATH + "system.get_machine_id")
+    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     def test_attach_with_token(
         self,
-        m_write_cache,
-        m_request_updated_contract,
+        m_add_contract_machine,
+        m_machine_token_file_write,
+        m_get_machine_id,
+        m_config_write_cache,
+        m_entitlements,
+        m_process_entitlements_delta,
         m_status,
-        m_update_apt_and_motd_msgs,
-        _m_get_instance_id,
-        request_updated_contract_side_effect,
-        expected_error_class,
-        expect_status_call,
+        m_update_motd_messages,
+        m_get_instance_id,
+        m_timer_start,
+        token,
+        allow_enable,
+        add_contract_machine_side_effect,
+        machine_id,
+        entitlements,
+        process_entitlements_delta_side_effect,
+        instance_id,
+        expected_add_contract_machine_call_args,
+        expected_machine_token_file_write_call_args,
+        expected_get_machine_id_call_args,
+        expected_config_write_cache_call_args,
+        expected_process_entitlements_delta_call_args,
+        expected_status_call_args,
+        expected_update_motd_messages_call_args,
+        expected_get_instance_id_call_args,
+        expected_timer_start_call_args,
+        expected_raises,
         FakeConfig,
     ):
         cfg = FakeConfig()
-        m_request_updated_contract.side_effect = (
-            request_updated_contract_side_effect
+        m_add_contract_machine.side_effect = add_contract_machine_side_effect
+        m_get_machine_id.return_value = machine_id
+        m_entitlements.return_value = entitlements
+        m_process_entitlements_delta.side_effect = (
+            process_entitlements_delta_side_effect
         )
-        if expected_error_class:
-            with pytest.raises(expected_error_class):
-                attach_with_token(cfg, "token", False)
-        else:
-            attach_with_token(cfg, "token", False)
-        if expect_status_call:
-            assert [mock.call(cfg=cfg)] == m_status.call_args_list
-        if not expect_status_call:
-            assert [
-                mock.call("instance-id", "my-iid")
-            ] == m_write_cache.call_args_list
+        m_get_instance_id.return_value = instance_id
 
-        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
+        with expected_raises:
+            attach_with_token(cfg, token, allow_enable)
+
+        assert (
+            expected_add_contract_machine_call_args
+            == m_add_contract_machine.call_args_list
+        )
+        assert (
+            expected_machine_token_file_write_call_args
+            == m_machine_token_file_write.call_args_list
+        )
+        assert (
+            expected_get_machine_id_call_args
+            == m_get_machine_id.call_args_list
+        )
+        assert (
+            expected_config_write_cache_call_args
+            == m_config_write_cache.call_args_list
+        )
+        assert (
+            expected_process_entitlements_delta_call_args
+            == m_process_entitlements_delta.call_args_list
+        )
+        assert expected_status_call_args == m_status.call_args_list
+        assert (
+            expected_update_motd_messages_call_args
+            == m_update_motd_messages.call_args_list
+        )
+        assert (
+            expected_get_instance_id_call_args
+            == m_get_instance_id.call_args_list
+        )
+        assert expected_timer_start_call_args == m_timer_start.call_args_list
 
 
 class TestAutoAttach:

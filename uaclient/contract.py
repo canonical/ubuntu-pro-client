@@ -85,14 +85,6 @@ class UAContractClient(serviceclient.UAServiceClient):
                 API_V1_ADD_CONTRACT_MACHINE, response.code, response.body
             )
 
-        self.cfg.machine_token_file.write(response.json_dict)
-
-        system.get_machine_id.cache_clear()
-        machine_id = response.json_dict.get("machineTokenInfo", {}).get(
-            "machineId", data.get("machineId")
-        )
-        self.cfg.write_cache("machine-id", machine_id)
-
         return response.json_dict
 
     def available_resources(self) -> Dict[str, Any]:
@@ -188,19 +180,6 @@ class UAContractClient(serviceclient.UAServiceClient):
                 "machine-access-{}".format(resource), response.json_dict
             )
         return response.json_dict
-
-    def update_contract_machine(
-        self,
-        machine_token: str,
-        contract_id: str,
-        machine_id: Optional[str] = None,
-    ) -> Dict:
-        """Update existing machine-token for an attached machine."""
-        return self._update_contract_machine(
-            machine_token=machine_token,
-            contract_id=contract_id,
-            machine_id=machine_id,
-        )
 
     def update_activity_token(self):
         """Report current activity token and enabled services.
@@ -355,7 +334,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             response.json_dict["expires"] = response.headers["expires"]
         return response.json_dict
 
-    def _update_contract_machine(
+    def update_contract_machine(
         self,
         machine_token: str,
         contract_id: str,
@@ -387,21 +366,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
-        machine_id = response.json_dict.get("machineTokenInfo", {}).get(
-            "machineId", data.get("machineId")
-        )
         return response.json_dict
-
-    def update_files_after_machine_token_update(
-        self, response: Dict[str, Any]
-    ):
-        self.cfg.machine_token_file.write(response)
-        system.get_machine_id.cache_clear()
-        data = self._get_platform_data(None)
-        machine_id = response.get("machineTokenInfo", {}).get(
-            "machineId", data.get("machineId")
-        )
-        self.cfg.write_cache("machine-id", machine_id)
 
     def _get_platform_data(self, machine_id):
         """Return a dict of platform-related data for contract requests"""
@@ -632,49 +597,37 @@ def _create_attach_forbidden_message(
     return msg
 
 
-def request_updated_contract(
-    cfg, contract_token: Optional[str] = None, allow_enable=False
-):
+def refresh(cfg):
     """Request contract refresh from ua-contracts service.
 
-    Compare original token to new token and react to entitlement deltas.
-
     :param cfg: Instance of UAConfig for this machine.
-    :param contract_token: String contraining an optional contract token.
-    :param allow_enable: Boolean set True if allowed to perform the enable
-        operation. When False, a message will be logged to inform the user
-        about the recommended enabled service.
 
     :raise UserFacingError: on failure to update contract or error processing
         contract deltas
-    :raise ConnectivityError: On failure to contact the server
+    :raise UrlError: On failure during a connection
     """
-    orig_token = cfg.machine_token
     orig_entitlements = cfg.machine_token_file.entitlements
-    if orig_token and contract_token:
-        msg = messages.UNEXPECTED_CONTRACT_TOKEN_ON_ATTACHED_MACHINE
-        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+    orig_token = cfg.machine_token
+    machine_token = orig_token["machineToken"]
+    contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
+
     contract_client = UAContractClient(cfg)
-    if contract_token:  # We are a mid ua-attach and need to get machinetoken
-        try:
-            contract_client.add_contract_machine(contract_token=contract_token)
-        except exceptions.UrlError as e:
-            with util.disable_log_to_console():
-                logging.exception(str(e))
-            raise exceptions.ConnectivityError()
-    else:
-        machine_token = orig_token["machineToken"]
-        contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
-        resp = contract_client.update_contract_machine(
-            machine_token=machine_token, contract_id=contract_id
-        )
-        contract_client.update_files_after_machine_token_update(resp)
+    resp = contract_client.update_contract_machine(
+        machine_token=machine_token, contract_id=contract_id
+    )
+
+    cfg.machine_token_file.write(resp)
+    system.get_machine_id.cache_clear()
+    machine_id = resp.get("machineTokenInfo", {}).get(
+        "machineId", system.get_machine_id(cfg)
+    )
+    cfg.write_cache("machine-id", machine_id)
 
     process_entitlements_delta(
         cfg,
         orig_entitlements,
         cfg.machine_token_file.entitlements,
-        allow_enable,
+        allow_enable=False,
     )
 
 
