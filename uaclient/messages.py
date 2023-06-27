@@ -4,13 +4,18 @@ from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL, PRO_ATTACH_URL
 
 
 class NamedMessage:
-    def __init__(self, name: str, msg: str):
+    def __init__(
+        self,
+        name: str,
+        msg: str,
+        additional_info: Optional[Dict[str, str]] = None,
+    ):
         self.name = name
         self.msg = msg
         # we should use this field whenever we want to provide
         # extra information to the message. This is specially
         # useful if the message represents an error.
-        self.additional_info = None  # type: Optional[Dict[str, str]]
+        self.additional_info = additional_info
 
     def __eq__(self, other):
         return (

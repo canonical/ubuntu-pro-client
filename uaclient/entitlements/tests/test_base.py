@@ -246,10 +246,10 @@ class TestUaEntitlementCanEnable:
         )
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.contract.request_updated_contract")
+    @mock.patch("uaclient.contract.refresh")
     def test_can_enable_updates_expired_contract(
         self,
-        m_request_updated_contract,
+        m_refresh,
         caplog_text,
         concrete_entitlement_factory,
     ):
@@ -260,9 +260,7 @@ class TestUaEntitlementCanEnable:
         with mock.patch.object(ent, "is_access_expired", return_value=True):
             assert not ent.can_enable()[0]
 
-        assert [
-            mock.call(ent.cfg)
-        ] == m_request_updated_contract.call_args_list
+        assert [mock.call(ent.cfg)] == m_refresh.call_args_list
         assert (
             "Updating contract on service 'testconcreteentitlement' expiry"
             in caplog_text()

@@ -344,7 +344,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             logging.debug(
                 "Updating contract on service '%s' expiry", self.name
             )
-            contract.request_updated_contract(self.cfg)
+            contract.refresh(self.cfg)
 
         if not self.contract_status() == ContractStatus.ENTITLED:
             return (
