@@ -7,8 +7,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, http, messages, status, util
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient import event_logger, http, messages, util
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -23,7 +22,6 @@ from uaclient.exceptions import (
     MagicAttachInvalidParam,
     MagicAttachTokenError,
     NonRootUserError,
-    UrlError,
     UserFacingError,
 )
 from uaclient.testing.fakes import FakeFile
@@ -229,54 +227,6 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @pytest.mark.parametrize(
-        "error_class, error_args",
-        (
-            (UrlError, ("cause", "url")),
-            (UserFacingError, ("Unable to attach default services",)),
-        ),
-    )
-    @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
-    @mock.patch(M_PATH + "contract.request_updated_contract")
-    def test_status_updated_when_auto_enable_fails(
-        self,
-        request_updated_contract,
-        m_update_apt_and_motd_msgs,
-        _m_get_available_resources,
-        _m_remove_notice,
-        _m_should_reboot,
-        error_class,
-        error_args,
-        FakeConfig,
-        event,
-    ):
-        """If auto-enable of a service fails, attach status is updated."""
-        token = "contract-token"
-        args = mock.MagicMock(token=token, attach_config=None)
-        cfg = FakeConfig()
-        status.status(cfg=cfg)  # persist unattached status
-        # read persisted status cache from disk
-        orig_unattached_status = cfg.read_cache("status-cache")
-
-        def fake_request_updated_contract(cfg, contract_token, allow_enable):
-            cfg.machine_token_file.write(ENTITLED_MACHINE_TOKEN)
-            raise error_class(*error_args)
-
-        request_updated_contract.side_effect = fake_request_updated_contract
-        with pytest.raises(SystemExit) as excinfo:
-            main_error_handler(action_attach)(args, cfg)
-
-        assert 1 == excinfo.value.code
-        assert _is_attached(cfg).is_attached
-        # Assert updated status cache is written to disk
-        assert orig_unattached_status != cfg.read_cache(
-            "status-cache"
-        ), "Did not persist on disk status during attach failure"
-        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
-
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
@@ -353,8 +303,12 @@ class TestActionAttach:
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
-    def test_auto_enable_passed_through_to_request_updated_contract(
+    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "actions.attach_with_token")
+    def test_auto_enable_passed_through_to_attach_with_token(
         self,
+        m_attach_with_token,
+        _m_post_cli_attach,
         m_update_apt_and_motd_msgs,
         _m_get_available_resources,
         _m_remove_notice,
@@ -362,20 +316,16 @@ class TestActionAttach:
         auto_enable,
         FakeConfig,
     ):
-        args = mock.MagicMock(auto_enable=auto_enable, attach_config=None)
-
-        def fake_contract_updates(cfg, contract_token, allow_enable):
-            cfg.machine_token_file.write(BASIC_MACHINE_TOKEN)
-            return True
+        args = mock.MagicMock(
+            auto_enable=auto_enable, attach_config=None, token="token"
+        )
 
         cfg = FakeConfig()
-        with mock.patch(M_PATH + "contract.request_updated_contract") as m_ruc:
-            m_ruc.side_effect = fake_contract_updates
-            action_attach(args, cfg)
+        action_attach(args, cfg)
 
-        expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
-        assert [expected_call] == m_ruc.call_args_list
-        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
+        assert [
+            mock.call(mock.ANY, token="token", allow_enable=auto_enable)
+        ] == m_attach_with_token.call_args_list
 
     def test_attach_config_and_token_mutually_exclusive(
         self,

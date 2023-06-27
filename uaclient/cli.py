@@ -1286,7 +1286,7 @@ def action_enable(args, *, cfg, **kwargs):
 
     event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
-        contract.request_updated_contract(cfg)
+        contract.refresh(cfg)
     except (exceptions.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(messages.REFRESH_CONTRACT_FAILURE, exc_info=True)
@@ -1763,7 +1763,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
 @assert_attached()
 def _action_refresh_contract(_args, cfg: config.UAConfig):
     try:
-        contract.request_updated_contract(cfg)
+        contract.refresh(cfg)
     except exceptions.UrlError as exc:
         with util.disable_log_to_console():
             logging.exception(exc)
