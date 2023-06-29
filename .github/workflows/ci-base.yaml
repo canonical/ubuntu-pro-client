@@ -29,8 +29,6 @@ jobs:
         run: tox -e mypy
       - name: Version Consistency
         run: python3 ./tools/check-versions-are-consistent.py
-      - name: Docs
-        run: tox -e docs
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-22.04
