@@ -45,7 +45,7 @@ sudo pro new-sub-command --new-flag
 that apply. -->
  - [ ] I have updated or added any unit tests accordingly
  - [ ] I have updated or added any integration tests accordingly
- - [ ] I have updated or added any documentation accordingly
+ - [ ] Changes here need to be documented, and this was done in: <!-- Insert PR number here if the box is checked (ex. #1234) -->
 
 ## Does this PR require extra reviews?
 <!-- Should people outside of the team see and approve these changes before the
