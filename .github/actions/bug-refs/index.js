@@ -3,7 +3,7 @@ const github = require('@actions/github');
 
 const commentHeader = "<!-- ubuntu-pro-client-bug-refs -->";
 
-function createCommentBody(commits, title) {
+function createCommentBody(commits, title, body) {
     let newComment = "";
     newComment += commentHeader;
     newComment += "\n";
@@ -49,6 +49,19 @@ function createCommentBody(commits, title) {
     }
     newComment += "\n";
 
+    newComment += "Documentation:";
+    if (!body.includes('[x] Changes here need to be documented')){
+        newComment += " The changes in this PR do not require documentation changes.";
+    } else {
+        docsPullMatch = body.match(/and this was done in: (#\d+)/)
+        if (docsPullMatch){
+            newComment += ` Documentation changes addressed in ${docsPullMatch[1]}`;
+        } else {
+            newComment += " The changes in this PR do require documentation changes, but those were not addressed yet.";
+        }
+    }
+    newComment += "\n\n";
+
     newComment += "👍 this comment to confirm that this is correct.";
 
     return newComment;
@@ -80,7 +93,11 @@ async function run() {
     if (theComment) {
         // comment already exists, update it appropriately
         const existingBody = theComment.body;
-        const newBody = createCommentBody(commits.data, context.payload.pull_request.title);
+        const newBody = createCommentBody(
+            commits.data,
+            context.payload.pull_request.title,
+            context.payload.pull_request.body
+        );
         if (existingBody !== newBody) {
             client.rest.issues.updateComment({
                 owner: context.issue.owner,
@@ -91,12 +108,22 @@ async function run() {
         }
     } else {
         // first run, comment doesn't exist yet
-        const newBody = createCommentBody(commits.data, context.payload.pull_request.title);
+        const newBody = createCommentBody(
+            commits.data,
+            context.payload.pull_request.title,
+            context.payload.pull_request.body
+        );
         client.rest.issues.createComment({
             owner: context.issue.owner,
             repo: context.issue.repo,
             issue_number: context.issue.number,
             body: newBody,
+        });
+        client.rest.reactions.createForIssue({
+            owner: context.issue.owner,
+            repo: context.issue.repo,
+            issue_number: context.issue.number,
+            content: "eyes"
         });
     }
 }
