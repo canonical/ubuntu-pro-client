@@ -43,8 +43,9 @@ apt-hook/ubuntu-advantage.pot
 apt-hook/json-hook
 apt-hook/json-hook-test
 
-# docs
-docs/build/
-
 # custom github actions use node
 node_modules
+
+# docs
+docs/build/
+.sphinx
