@@ -1075,7 +1075,7 @@ This endpoint shows the Pro services that are enabled on the machine.
                - Description
              * - ``enabled_services``
                - *List[EnabledService]*
-               - A list of ``EnabledServices`` objects
+               - A list of ``EnabledService`` objects
 
         - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledService``
 
@@ -1087,7 +1087,9 @@ This endpoint shows the Pro services that are enabled on the machine.
                - Description
              * - ``name``
                - *str*
-               - Name of the service
+               - | Name of the service.
+                 | Possible values are: ``cc-eal``, ``cis``, ``esm-apps``, ``esm-infra``, ``fips``, ``fips-updates``, ``livepatch``, ``realtime-kernel``, ``ros``, ``ros-updates``.
+                 | When ``usg`` is enabled, this value will be ``cis``.
              * - ``variant_enabled``
                - *bool*
                - If a variant of the service is enabled
