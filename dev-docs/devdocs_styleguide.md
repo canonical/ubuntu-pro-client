@@ -12,14 +12,36 @@ This causes all Markdown (.md) files to be parsed as MyST, and
 [enables the use of directives](https://myst-parser.readthedocs.io/en/latest/syntax/roles-and-directives.html),
 which can be awkward to achieve in standard Markdown.
 
+## Branches
+
+To facilitate the package release process and keep the documentation maintained
+in the same repository as the codebase, there are two separate branches for the
+docs:
+- The `docs` branch, where the latest documentation is kept, used to track
+  releases and publish it in `Read The Docs`;
+- The `docs-devel` branch, where the documentation of upcoming features and changes is kept until they are ready to be released.
+
+When a pull request with improvements or new content to the documentation
+contains features which are not released yet, it should target the
+`docs-devel` branch. Fixes, improvements, and content for existing features can
+target the `docs` branch directly, so they are published immediately after the
+pull request is merged.
+
 ## Building the docs
 
-To build the docs for Ubuntu Pro Client, you can use a `tox` command. You can
-install `tox` on your machine by running the `make test` command. Once tox is
-installed, just run the command:
+To build the docs for Ubuntu Pro Client, you can use the `make` command.
+Switch to the `docs` (or `docs-devel`) branch and make sure to install the
+dependencies:
 
 ```
-$ tox -e docs
+$ git checkout docs
+$ make install
+```
+
+When the environment is set up, run:
+
+```
+$ make build
 ```
 
 The command will generate the HTML pages inside `docs/build`. The makefile
