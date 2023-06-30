@@ -33,7 +33,9 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",
     "sphinxcontrib.mermaid",
+    "sphinx.ext.autosectionlabel",
 ]
+autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 
