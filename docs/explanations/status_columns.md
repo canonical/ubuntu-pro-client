@@ -109,6 +109,21 @@ output for informational and debugging purposes.
 
 ## Machine-readable output
 
+### Status API functions
+
+Some status information can be obtained from API functions. These include:
+
+- Is the machine currently attached to an Ubuntu Pro subscription? See [u.pro.status.is_attached.v1](references/api:u.pro.status.is_attached.v1)
+- Which Ubuntu Pro services are currently enabled on the machine? See [u.pro.status.enabled_services.v1](references/api:u.pro.status.enabled_services.v1)
+
+If you need status-related information for which there is no API function, then `pro status --format=json` (described below) is the recommended machine-readable interface.
+
+```{attention}
+Please let us know what status information you need that is missing from the API by clicking "Give feedback" at the top of this page.
+```
+
+### `pro status --format=json`
+
 The `pro status` command supports a `--format` flag with options including `json` and `yaml`. These result in a machine-readable form of the information presented by the `pro status` command.
 
 ```{note}
@@ -188,9 +203,9 @@ For example, running `sudo pro status --format=json` on an attached machine may 
 ```
 
 Some particularly important attributes in the output include:
-* `attached`: This boolean value indicates whether this machine is attached to an Ubuntu Pro account. This does not tell you if any particular service (e.g. `esm-infra`) is enabled. You must check the individual service item in the `services` list for that status (described below).
+* `attached`: This boolean value indicates whether this machine is attached to an Ubuntu Pro account (Starting with version 28.1, we recommend using the [u.pro.status.is_attached.v1](references/api:u.pro.status.is_attached.v1) API instead). This does not tell you if any particular service (e.g. `esm-infra`) is enabled. You must check the individual service item in the `services` list for that status (described below).
 * `expires`: This is the date that the Ubuntu Pro subscription is valid until (in RFC3339 format). After this date has passed the machine should be treated as if not attached and no services are enabled. `attached` may still say `true` and services may still say they are `entitled` and `enabled`, but if the `expires` date has passed, you should assume the services are not functioning.
-* `services`: This is a list of Ubuntu Pro services. Each item has its own attributes. Widely applicable services include those with `name` equal to `esm-infra`, `esm-apps`, and `livepatch`. Some important fields in each service object are:
+* `services`: This is a list of Ubuntu Pro services (Starting with version 28.1, we recommend using the [u.pro.status.enabled_services.v1](references/api:u.pro.status.enabled_services.v1) API instead). Each item has its own attributes. Widely applicable services include those with `name` equal to `esm-infra`, `esm-apps`, and `livepatch`. Some important fields in each service object are:
   * `name`: The name of the service.
   * `entitled`: A boolean indicating whether the attached Ubuntu Pro account is allowed to enable this service.
   * `status`: A string indicating the service's current status on the machine. Any value other than `enabled` should be treated as if the service is not enabled and not working properly on the machine. Possible values are:
@@ -204,7 +219,3 @@ For example, if you want to programatically find the status of esm-infra on a pa
 sudo pro status --format=json | jq '.services[] | select(.name == "esm-infra").status'
 ```
 That command will print one of the `status` values defined above.
-
-```{attention}
-In an future version of Ubuntu Pro Client, there will be an [API](../references/api.rst) function to access this information. For now, though, `pro status --format=json` is the recommended machine-readable interface to this data.
-```
