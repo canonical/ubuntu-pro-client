@@ -47,6 +47,7 @@ Feature: Performing attach using ua-airgapped
         """
         500 .*:8000/ubuntu jammy-infra-security/main
         """
+        Then I verify that running `pro refresh` `with sudo` exits `0`
 
         Examples: ubuntu release
             | release |
