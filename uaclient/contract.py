@@ -78,8 +78,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         activity_info = self._get_activity_info()
         activity_info["lastAttachment"] = attachment_dt.isoformat()
         data = {"machineId": machine_id, "activityInfo": activity_info}
+        backcompat_data = _support_old_machine_info(data)
         response = self.request_url(
-            API_V1_ADD_CONTRACT_MACHINE, data=data, headers=headers
+            API_V1_ADD_CONTRACT_MACHINE, data=backcompat_data, headers=headers
         )
         if response.code == 401:
             raise exceptions.AttachInvalidTokenError()
@@ -380,11 +381,12 @@ class UAContractClient(serviceclient.UAServiceClient):
             "machineId": machine_id,
             "activityInfo": self._get_activity_info(),
         }
+        backcompat_data = _support_old_machine_info(data)
         url = API_V1_UPDATE_CONTRACT_MACHINE.format(
             contract=contract_id, machine=machine_id
         )
         response = self.request_url(
-            url, headers=headers, method="POST", data=data
+            url, headers=headers, method="POST", data=backcompat_data
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
@@ -425,6 +427,33 @@ class UAContractClient(serviceclient.UAServiceClient):
             **activity_info,
             **machine_info,
         }
+
+
+def _support_old_machine_info(request_body: dict):
+    """
+    Transforms a request_body that has the new activity_info into a body that
+    includes both old and new forms of machineInfo/activityInfo
+
+    This is necessary because there may be old ua-airgapped contract
+    servers deployed that we need to support.
+    This function is used for attach and refresh calls.
+    """
+    activity_info = request_body.get("activityInfo", {})
+
+    return {
+        "machineId": request_body.get("machineId"),
+        "activityInfo": activity_info,
+        "architecture": activity_info.get("architecture"),
+        "os": {
+            "distribution": activity_info.get("distribution"),
+            "kernel": activity_info.get("kernel"),
+            "series": activity_info.get("series"),
+            # These two are required for old ua-airgapped but not sent anymore
+            # in the new activityInfo
+            "type": "Linux",
+            "release": system.get_release_info().release,
+        },
+    }
 
 
 def process_entitlements_delta(

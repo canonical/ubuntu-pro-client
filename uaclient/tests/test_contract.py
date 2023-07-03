@@ -13,6 +13,7 @@ from uaclient.contract import (
     UAContractClient,
     _create_attach_forbidden_message,
     _get_override_weight,
+    _support_old_machine_info,
     apply_contract_overrides,
     get_available_resources,
     get_contract_information,
@@ -103,12 +104,14 @@ class TestUAContractClient:
             ),
         ],
     )
+    @mock.patch("uaclient.contract._support_old_machine_info")
     @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
     @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_update_contract_machine(
         self,
         m_headers,
         m_get_activity_info,
+        m_support_old_machine_info,
         m_get_machine_id,
         m_request_url,
         machine_id,
@@ -119,6 +122,9 @@ class TestUAContractClient:
     ):
         m_headers.return_value = {"header": "headerval"}
         m_get_activity_info.return_value = mock.sentinel.activity_info
+        m_support_old_machine_info.return_value = (
+            mock.sentinel.support_old_machine_info
+        )
         m_request_url.side_effect = request_url_side_effect
         m_get_machine_id.return_value = "get_machine_id"
 
@@ -133,16 +139,21 @@ class TestUAContractClient:
 
         assert [
             mock.call(
+                {
+                    "machineId": expected_machine_id,
+                    "activityInfo": mock.sentinel.activity_info,
+                }
+            )
+        ] == m_support_old_machine_info.call_args_list
+        assert [
+            mock.call(
                 "/v1/contracts/cId/context/machines/" + expected_machine_id,
                 headers={
                     "header": "headerval",
                     "Authorization": "Bearer mToken",
                 },
                 method="POST",
-                data={
-                    "machineId": expected_machine_id,
-                    "activityInfo": mock.sentinel.activity_info,
-                },
+                data=mock.sentinel.support_old_machine_info,
             )
         ] == m_request_url.call_args_list
 
@@ -420,12 +431,14 @@ class TestUAContractClient:
         ],
     )
     @mock.patch("uaclient.contract._create_attach_forbidden_message")
+    @mock.patch("uaclient.contract._support_old_machine_info")
     @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
     @mock.patch("uaclient.contract.UAContractClient.headers")
     def test_add_contract_machine(
         self,
         m_headers,
         m_get_activity_info,
+        m_support_old_machine_info,
         m_create_attach_forbidden_message,
         m_get_machine_id,
         m_request_url,
@@ -440,6 +453,9 @@ class TestUAContractClient:
         m_get_activity_info.return_value = {
             "activity": "info",
         }
+        m_support_old_machine_info.return_value = (
+            mock.sentinel.support_old_machine_info
+        )
         m_request_url.side_effect = request_url_side_effect
         m_get_machine_id.return_value = mock.sentinel.get_machine_id
 
@@ -458,18 +474,23 @@ class TestUAContractClient:
 
         assert [
             mock.call(
-                "/v1/context/machines/token",
-                headers={
-                    "header": "headerval",
-                    "Authorization": "Bearer cToken",
-                },
-                data={
+                {
                     "machineId": expected_machine_id,
                     "activityInfo": {
                         "activity": "info",
                         "lastAttachment": "2000-01-02T03:04:05+00:00",
                     },
+                }
+            )
+        ] == m_support_old_machine_info.call_args_list
+        assert [
+            mock.call(
+                "/v1/context/machines/token",
+                headers={
+                    "header": "headerval",
+                    "Authorization": "Bearer cToken",
                 },
+                data=mock.sentinel.support_old_machine_info,
             )
         ] == m_request_url.call_args_list
         assert (
@@ -848,6 +869,64 @@ class TestUAContractClient:
         )
         client = UAContractClient(cfg)
         assert expected == client._get_activity_info()
+
+
+class TestSupportOldMachineInfo:
+    @pytest.mark.parametrize(
+        [
+            "request_body",
+            "release_info",
+            "expected_result",
+        ],
+        [
+            (
+                {
+                    "machineId": "mach",
+                    "activityInfo": {
+                        "architecture": "arch",
+                        "distribution": "dist",
+                        "kernel": "kern",
+                        "series": "seri",
+                        "other": "othe",
+                    },
+                },
+                system.ReleaseInfo(
+                    distribution="",
+                    release="rele",
+                    series="",
+                    pretty_version="",
+                ),
+                {
+                    "machineId": "mach",
+                    "activityInfo": {
+                        "architecture": "arch",
+                        "distribution": "dist",
+                        "kernel": "kern",
+                        "series": "seri",
+                        "other": "othe",
+                    },
+                    "architecture": "arch",
+                    "os": {
+                        "distribution": "dist",
+                        "kernel": "kern",
+                        "series": "seri",
+                        "type": "Linux",
+                        "release": "rele",
+                    },
+                },
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "system.get_release_info")
+    def test_support_old_machine_info(
+        self,
+        m_get_release_info,
+        request_body,
+        release_info,
+        expected_result,
+    ):
+        m_get_release_info.return_value = release_info
+        assert expected_result == _support_old_machine_info(request_body)
 
 
 class TestProcessEntitlementDeltas:
