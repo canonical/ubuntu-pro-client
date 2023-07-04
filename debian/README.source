@@ -1,0 +1,38 @@
+===================================
+Packaging of ubuntu-advantage-tools
+===================================
+
+Development code
+===================================
+
+The development branches of ubuntu-advantage-tools are hosted in GitHub, at:
+https://github.com/canonical/ubuntu-pro-client
+
+New pull requests with contributions either to the codebase itself or to the
+documentation branches should always be opened in GitHub.
+
+Package source code
+===================================
+
+The source code used to build the package is hosted in Launchpad, at:
+https://git.launchpad.net/ubuntu/+source/ubuntu-advantage-tools
+
+The development branch in Launchpad is equivalent to the release branch in
+GitHub. Everytime a new version is released, the content of the GitHub release
+branch is brought in a Merge Request to the Launchpad development branch.
+
+Particularities
+===================================
+
+- ubuntu-advantage-tools ships the same features and bugfixes to all
+  supported Ubuntu releases. This means the package is practically the
+  same across all LTS releases, including the ones in ESM period, and in
+  the interim releases. (The only differences are the specific dependencies,
+  dealt with in the debian/ files when building the package).
+
+- Some test-related files and folders are present in the source package, but
+  are ignored when building the binary packages. debian/rules specifies
+  'pybuild' as the build system, and unit tests / integration tests are
+  excluded in 'setup.py'. As a consequence, changes to the tests are less
+  relevant in SRU reviews: they stil reflect what is being tested in each
+  release, but they do not cause any impact to the stable releases.
