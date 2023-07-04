@@ -283,7 +283,7 @@ constructive feedback.
 .. _real-time kernel: https://ubuntu.com/realtime-kernel
 .. _more information about real-time Ubuntu: https://ubuntu.com/kernel/real-time/contact-us
 .. _Landscape: https://ubuntu.com/landscape
-.. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu-advantage-tools/+filebug
+.. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-pro-client/blob/main/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
