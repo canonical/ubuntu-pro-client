@@ -2,6 +2,7 @@ Feature: APT Messages
 
     @series.xenial
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -101,6 +102,7 @@ Feature: APT Messages
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -159,6 +161,7 @@ Feature: APT Messages
     @series.focal
     @series.jammy
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -219,6 +222,7 @@ Feature: APT Messages
 
     @series.all
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: APT News
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -645,6 +649,7 @@ Feature: APT Messages
     @series.kinetic
     @series.lunar
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
