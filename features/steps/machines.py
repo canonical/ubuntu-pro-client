@@ -17,10 +17,18 @@ MachinesDict = Dict[str, MachineTuple]
 @when(
     "I launch a `{series}` machine named `{machine_name}` from the snapshot of `{snapshot_name}`"  # noqa: E501
 )
+@when(
+    "I launch a `{series}` `{machine_type}` machine named `{machine_name}` from the snapshot of `{snapshot_name}`"  # noqa: E501
+)
 @given("a `{series}` machine")
+@given("a `{series}` `{machine_type}` machine")
 @given("a `{series}` machine named `{machine_name}`")
+@given("a `{series}` `{machine_type}` machine named `{machine_name}`")
 @given(
     "a `{series}` machine named `{machine_name}` with ingress ports `{ports}`"
+)
+@given(
+    "a `{series}` `{machine_type}` machine named `{machine_name}` with ingress ports `{ports}`"  # noqa: E501
 )
 def given_a_machine(
     context,

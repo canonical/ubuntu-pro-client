@@ -67,14 +67,6 @@ class AptNewsMessage(DataObject):
         self.lines = lines
 
 
-def format_message(msg: AptNewsMessage) -> str:
-    result = "#\n"
-    for line in msg.lines:
-        result += "# {}\n".format(line)
-    result += "#\n"
-    return result
-
-
 def do_selectors_apply(
     cfg: UAConfig, selectors: Optional[AptNewsMessageSelectors]
 ) -> bool:
@@ -172,34 +164,25 @@ def fetch_aptnews_json(cfg: UAConfig):
     )
 
 
-def fetch_and_process_apt_news(cfg: UAConfig):
-    try:
-        news_dict = fetch_aptnews_json(cfg)
-        msg = select_message(cfg, news_dict.get("messages", []))
-        logging.debug("using msg: %r", msg)
-        if msg is not None:
-            msg_str = format_message(msg)
-            state_files.apt_news_contents_file.write(msg_str)
-        else:
-            state_files.apt_news_contents_file.delete()
-    except Exception as e:
-        logging.debug("something went wrong while processing apt_news: %r", e)
-        state_files.apt_news_contents_file.delete()
+def fetch_and_process_apt_news(cfg: UAConfig) -> Optional[str]:
+    news_dict = fetch_aptnews_json(cfg)
+    msg = select_message(cfg, news_dict.get("messages", []))
+    logging.debug("using msg: %r", msg)
+    if msg is not None:
+        return "\n".join(msg.lines)
+    return None
 
 
-def local_apt_news(cfg: UAConfig) -> bool:
+def local_apt_news(cfg: UAConfig) -> Optional[str]:
     """
-    :return: True if local news was written, False otherwise
+    :return: str if local news, None otherwise
     """
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
 
     if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-        state_files.apt_news_contents_file.write(
-            messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
-                remaining_days=remaining_days
-            )
+        return messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+            remaining_days=remaining_days
         )
-        return True
 
     if expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
         grace_period_remaining = (
@@ -210,24 +193,38 @@ def local_apt_news(cfg: UAConfig) -> bool:
             exp_dt_str = "Unknown"
         else:
             exp_dt_str = exp_dt.strftime("%d %b %Y")
-        state_files.apt_news_contents_file.write(
-            messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
-                expired_date=exp_dt_str, remaining_days=grace_period_remaining
-            )
+        return messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
+            expired_date=exp_dt_str, remaining_days=grace_period_remaining
         )
-        return True
 
     if expiry_status == ContractExpiryStatus.EXPIRED:
-        state_files.apt_news_contents_file.write(
-            messages.CONTRACT_EXPIRED_APT_NEWS
-        )
-        return True
+        return messages.CONTRACT_EXPIRED_APT_NEWS
 
-    return False
+    return None
+
+
+def format_news_for_apt_update(news: str) -> str:
+    result = "#\n"
+    for line in news.split("\n"):
+        result += "# {}\n".format(line)
+    result += "#\n"
+    return result
 
 
 def update_apt_news(cfg: UAConfig):
-    local_news_written = local_apt_news(cfg)
-    if not local_news_written:
-        apt_pkg.init()
-        fetch_and_process_apt_news(cfg)
+    try:
+        news = local_apt_news(cfg)
+        if not news:
+            apt_pkg.init()
+            news = fetch_and_process_apt_news(cfg)
+        if news:
+            state_files.apt_news_raw_file.write(news)
+            apt_update_formatted_news = format_news_for_apt_update(news)
+            state_files.apt_news_contents_file.write(apt_update_formatted_news)
+        else:
+            state_files.apt_news_contents_file.delete()
+            state_files.apt_news_raw_file.delete()
+    except Exception as e:
+        logging.debug("something went wrong while processing apt_news: %r", e)
+        state_files.apt_news_contents_file.delete()
+        state_files.apt_news_raw_file.delete()
