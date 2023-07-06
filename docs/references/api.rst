@@ -145,6 +145,7 @@ The currently available endpoints are:
 - `u.pro.packages.updates.v1`_
 - `u.pro.status.is_attached.v1`_
 - `u.pro.status.enabled_services.v1`_
+- `u.apt_news.current_news.v1`_
 - `u.security.package_manifest.v1`_
 - `u.unattended_upgrades.status.v1`_
 
@@ -1103,6 +1104,64 @@ This endpoint shows the Pro services that are enabled on the machine.
         .. code-block:: bash
 
            pro api u.pro.status.enabled_services.v1
+
+u.apt_news.current_news.v1
+==============================
+
+This endpoint returns the current APT News that gets displayed in `apt upgrade`.
+
+- Introduced in Ubuntu Pro Client Version: ``29~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.apt_news.current_news.v1 import current_news
+
+           result = current_news().current_news
+
+      - Expected return object:
+
+        - ``uaclient.api.u.apt_news.current_news.v1.CurrentNewsResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``current_news``
+               - *Optional[str]*
+               - | The current APT News to be displayed for the system. This could be a str with up to three lines (i.e. up to two ``\n`` characters).
+                 | If there is no APT News to be displayed, this will be ``None``.
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.apt_news.current_news.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "current_news":"This is a news message.\nThis is the second line of the message.\nAnd this is the third line."
+           }
 
 u.security.package_manifest.v1
 ==============================
