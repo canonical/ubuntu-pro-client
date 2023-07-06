@@ -1,4 +1,3 @@
-import re
 import textwrap
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -25,13 +24,12 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
 )
 from uaclient.system import (
-    REBOOT_PKGS_FILE_PATH,
     get_distro_info,
     get_kernel_info,
+    get_reboot_required_pkgs,
     get_release_info,
     is_current_series_lts,
     is_supported,
-    load_file,
     should_reboot,
 )
 
@@ -248,30 +246,22 @@ def get_reboot_status():
     if not should_reboot():
         return RebootStatus.REBOOT_NOT_REQUIRED
 
-    try:
-        pkg_list_str = load_file(REBOOT_PKGS_FILE_PATH)
-    except FileNotFoundError:
-        # If we cannot load that file, we cannot evaluate if we have
-        # kernel related packages that require a reboot. Therefore, we
-        # will just say that a reboot is required
+    reboot_required_pkgs = get_reboot_required_pkgs()
+
+    if not reboot_required_pkgs:
         return RebootStatus.REBOOT_REQUIRED
-
-    pkg_list = pkg_list_str.split()
-    num_pkgs = len(pkg_list)
-
-    kernel_regex = "^(linux-image|linux-base).*"
-    num_kernel_pkgs = 0
-
-    for pkg in pkg_list:
-        if re.match(kernel_regex, pkg):
-            num_kernel_pkgs += 1
 
     # We will only check the Livepatch state if all the
     # packages that require a reboot are kernel related
-    if num_kernel_pkgs != num_pkgs:
+    if reboot_required_pkgs.standard_packages:
         return RebootStatus.REBOOT_REQUIRED
 
-    if not livepatch.is_livepatch_installed():
+    # If there are no kernel packages to cover or livepatch is not installed,
+    # we should only return that a reboot is required
+    if (
+        not reboot_required_pkgs.kernel_packages
+        or not livepatch.is_livepatch_installed()
+    ):
         return RebootStatus.REBOOT_REQUIRED
 
     our_kernel_version = get_kernel_info().proc_version_signature_version

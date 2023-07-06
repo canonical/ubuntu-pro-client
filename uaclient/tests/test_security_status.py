@@ -20,7 +20,7 @@ from uaclient.security_status import (
     get_update_status,
     security_status_dict,
 )
-from uaclient.system import KernelInfo
+from uaclient.system import KernelInfo, RebootRequiredPkgs
 
 M_PATH = "uaclient.security_status."
 
@@ -681,53 +681,68 @@ class TestRebootStatus:
         assert get_reboot_status() == RebootStatus.REBOOT_NOT_REQUIRED
         assert 1 == m_should_reboot.call_count
 
-    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.get_reboot_required_pkgs")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_no_reboot_pkgs_file(
-        self, m_should_reboot, m_load_file
+        self, m_should_reboot, m_get_reboot_required_pkgs
     ):
-        m_load_file.side_effect = FileNotFoundError()
+        m_get_reboot_required_pkgs.return_value = None
         assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_load_file.call_count
+        assert 1 == m_get_reboot_required_pkgs.call_count
 
     @mock.patch("uaclient.security_status.livepatch.status")
     @mock.patch(
         "uaclient.security_status.livepatch.is_livepatch_installed",
         return_value=True,
     )
-    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.get_reboot_required_pkgs")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_livepatch_status_none(
         self,
         m_should_reboot,
-        m_load_file,
+        m_get_reboot_required_pkgs,
         _m_is_livepatch_installed,
         m_livepatch_status,
     ):
-        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_get_reboot_required_pkgs.return_value = RebootRequiredPkgs(
+            standard_packages=[],
+            kernel_packages=["linux-base", "linux-image-5.4.0-1074"],
+        )
         m_livepatch_status.return_value = None
         assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
 
     @pytest.mark.parametrize(
-        "pkgs,expected_state",
+        "reboot_required_pkgs,expected_state",
         (
-            ("pkg1\npkg2", RebootStatus.REBOOT_REQUIRED),
             (
-                "linux-image-5.4.0-1074\nlinux-base\npkg2",
+                RebootRequiredPkgs(
+                    standard_packages=["pkg1", "pkg2"], kernel_packages=[]
+                ),
+                RebootStatus.REBOOT_REQUIRED,
+            ),
+            (
+                RebootRequiredPkgs(
+                    standard_packages=["pkg2"],
+                    kernel_packages=["linux-base", "linux-image-5.4.0-1074"],
+                ),
                 RebootStatus.REBOOT_REQUIRED,
             ),
         ),
     )
-    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.get_reboot_required_pkgs")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_reboot_pkgs_file_present(
-        self, m_should_reboot, m_load_file, pkgs, expected_state
+        self,
+        m_should_reboot,
+        m_get_reboot_required_pkgs,
+        reboot_required_pkgs,
+        expected_state,
     ):
-        m_load_file.return_value = pkgs
+        m_get_reboot_required_pkgs.return_value = reboot_required_pkgs
         assert get_reboot_status() == expected_state
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_load_file.call_count
+        assert 1 == m_get_reboot_required_pkgs.call_count
 
     @pytest.mark.parametrize(
         [
@@ -773,12 +788,12 @@ class TestRebootStatus:
     @mock.patch("uaclient.security_status.get_kernel_info")
     @mock.patch("uaclient.security_status.livepatch.is_livepatch_installed")
     @mock.patch("uaclient.security_status.livepatch.status")
-    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.get_reboot_required_pkgs")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_reboot_pkgs_file_only_kernel_pkgs(
         self,
         m_should_reboot,
-        m_load_file,
+        m_get_reboot_required_pkgs,
         m_livepatch_status,
         m_is_livepatch_installed,
         m_kernel_info,
@@ -791,7 +806,10 @@ class TestRebootStatus:
             proc_version_signature_version=kernel_name
         )
         m_is_livepatch_installed.return_value = True
-        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_get_reboot_required_pkgs.return_value = RebootRequiredPkgs(
+            standard_packages=[],
+            kernel_packages=["linux-base", "linux-image-5.4.0-1074"],
+        )
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="4.15.0-187.198-generic",
             livepatch=livepatch.LivepatchPatchStatus(
@@ -802,7 +820,7 @@ class TestRebootStatus:
 
         assert get_reboot_status() == expected_state
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_load_file.call_count
+        assert 1 == m_get_reboot_required_pkgs.call_count
         assert 1 == m_is_livepatch_installed.call_count
         assert 1 == m_livepatch_status.call_count
         assert 1 == m_kernel_info.call_count
@@ -810,12 +828,12 @@ class TestRebootStatus:
     @mock.patch("uaclient.security_status.get_kernel_info")
     @mock.patch("uaclient.security_status.livepatch.is_livepatch_installed")
     @mock.patch("uaclient.security_status.livepatch.status")
-    @mock.patch("uaclient.security_status.load_file")
+    @mock.patch("uaclient.security_status.get_reboot_required_pkgs")
     @mock.patch("uaclient.security_status.should_reboot", return_value=True)
     def test_get_reboot_status_fail_parsing_kernel_info(
         self,
         m_should_reboot,
-        m_load_file,
+        m_get_reboot_required_pkgs,
         m_livepatch_status,
         m_is_livepatch_installed,
         m_kernel_info,
@@ -824,7 +842,10 @@ class TestRebootStatus:
             proc_version_signature_version=None
         )
         m_is_livepatch_installed.return_value = True
-        m_load_file.return_value = "linux-image-5.4.0-1074\nlinux-base"
+        m_get_reboot_required_pkgs.return_value = RebootRequiredPkgs(
+            standard_packages=[],
+            kernel_packages=["linux-base", "linux-image-5.4.0-1074"],
+        )
         m_livepatch_status.return_value = livepatch.LivepatchStatusStatus(
             kernel="4.15.0-187.198-generic",
             livepatch=livepatch.LivepatchPatchStatus(
@@ -835,7 +856,7 @@ class TestRebootStatus:
 
         assert get_reboot_status() == RebootStatus.REBOOT_REQUIRED
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_load_file.call_count
+        assert 1 == m_get_reboot_required_pkgs.call_count
         assert 1 == m_is_livepatch_installed.call_count
         assert 1 == m_livepatch_status.call_count
         assert 1 == m_kernel_info.call_count
