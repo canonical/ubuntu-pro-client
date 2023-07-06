@@ -78,6 +78,14 @@ CpuInfo = NamedTuple(
     ],
 )
 
+RebootRequiredPkgs = NamedTuple(
+    "RebootRequiredPkgs",
+    [
+        ("standard_packages", Optional[List[str]]),
+        ("kernel_packages", Optional[List[str]]),
+    ],
+)
+
 
 RE_KERNEL_EXTRACT_BUILD_DATE = r"(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*"
 
@@ -683,3 +691,25 @@ def get_user_cache_dir() -> str:
         return xdg_cache_home + "/" + defaults.USER_CACHE_SUBDIR
 
     return os.path.expanduser("~") + "/.cache/" + defaults.USER_CACHE_SUBDIR
+
+
+def get_reboot_required_pkgs() -> Optional[RebootRequiredPkgs]:
+    try:
+        pkg_list_str = load_file(REBOOT_PKGS_FILE_PATH)
+    except FileNotFoundError:
+        return None
+
+    standard_packages = []
+    kernel_packages = []
+    kernel_regex = "^(linux-image|linux-base).*"
+
+    for pkg in pkg_list_str.split():
+        if re.match(kernel_regex, pkg):
+            kernel_packages.append(pkg)
+        else:
+            standard_packages.append(pkg)
+
+    return RebootRequiredPkgs(
+        standard_packages=sorted(standard_packages),
+        kernel_packages=sorted(kernel_packages),
+    )
