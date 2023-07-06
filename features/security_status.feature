@@ -1,9 +1,9 @@
-@uses.config.contract_token
 Feature: Security status command behavior
 
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: Run security status with JSON/YAML format
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -93,6 +93,7 @@ Feature: Security status command behavior
 
     @series.xenial
     @uses.config.machine_type.lxd-vm
+    @uses.config.contract_token
     Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -112,6 +113,7 @@ Feature: Security status command behavior
 
     @series.xenial
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
@@ -454,6 +456,7 @@ Feature: Security status command behavior
 
     @series.focal
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine

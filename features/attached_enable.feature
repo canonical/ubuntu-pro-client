@@ -945,7 +945,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @uses.config.contract_token
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable ros on a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -1160,7 +1159,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
     @series.xenial
-    @uses.config.contract_token
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT auth file is edited correctly on enable
         Given a `<release>` machine with ubuntu-advantage-tools installed
