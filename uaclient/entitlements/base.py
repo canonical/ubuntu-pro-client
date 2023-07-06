@@ -1061,6 +1061,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return ApplicationStatus.DISABLED
 
+    def _should_enable_by_default(
+        self, obligations: Dict[str, Any], resourceToken: Optional[str]
+    ) -> bool:
+        return bool(obligations.get("enableByDefault") and resourceToken)
+
     def process_contract_deltas(
         self,
         orig_access: Dict[str, Any],
@@ -1127,8 +1132,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not resourceToken:
             resourceToken = deltas.get("resourceToken")
         delta_obligations = delta_entitlement.get("obligations", {})
-        enable_by_default = bool(
-            delta_obligations.get("enableByDefault") and resourceToken
+        enable_by_default = self._should_enable_by_default(
+            delta_obligations, resourceToken
         )
 
         if enable_by_default:
