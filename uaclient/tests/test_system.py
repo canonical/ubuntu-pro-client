@@ -1282,3 +1282,42 @@ class TestGetUserCacheDir:
         m_environ_get.return_value = xdg_cache_home
         m_expanduser.return_value = expanduser_result
         assert expected == system.get_user_cache_dir()
+
+
+class TestGetRebootRequiredPkgs:
+    @mock.patch("uaclient.system.load_file")
+    def test_when_no_reboot_required_file_is_found(self, m_load_file):
+        m_load_file.side_effect = FileNotFoundError()
+        assert system.get_reboot_required_pkgs() is None
+
+    @pytest.mark.parametrize(
+        "reboot_required_pkgs,expected_standard_pkgs,expected_kernel_pkgs",
+        (
+            ("", [], []),
+            ("pkg1\npkg2", ["pkg1", "pkg2"], []),
+            (
+                "pkg1\nlinux-image-pkg\npkg2\nlinux-base-pkg",
+                ["pkg1", "pkg2"],
+                ["linux-base-pkg", "linux-image-pkg"],
+            ),
+            (
+                "linux-image-pkg\nlinux-base-pkg",
+                [],
+                ["linux-base-pkg", "linux-image-pkg"],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.load_file")
+    def test_reboot_required_pkgs(
+        self,
+        m_load_file,
+        reboot_required_pkgs,
+        expected_standard_pkgs,
+        expected_kernel_pkgs,
+    ):
+        m_load_file.return_value = reboot_required_pkgs
+        reboot_required_pkgs = system.get_reboot_required_pkgs()
+
+        assert reboot_required_pkgs is not None
+        assert expected_standard_pkgs == reboot_required_pkgs.standard_packages
+        assert expected_kernel_pkgs == reboot_required_pkgs.kernel_packages
