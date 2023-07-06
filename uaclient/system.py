@@ -507,9 +507,11 @@ def write_file(
 
 def ensure_file_absent(file_path: str) -> None:
     """Remove a file if it exists, logging a message about removal."""
-    if os.path.exists(file_path):
+    try:
         logging.debug("Removing file: %s", file_path)
         os.unlink(file_path)
+    except FileNotFoundError:
+        logging.debug("File does not exist: %s", file_path)
 
 
 def _subp(
@@ -626,9 +628,11 @@ def subp(
 
 
 def ensure_folder_absent(folder_path: str) -> None:
-    if os.path.exists(folder_path):
+    try:
         logging.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
+    except FileNotFoundError:
+        logging.debug("Folder does not exist: %s", folder_path)
 
 
 def get_systemd_job_state(job_name: str) -> bool:
