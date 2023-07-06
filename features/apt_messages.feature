@@ -1,9 +1,10 @@
 Feature: APT Messages
 
     @series.xenial
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `apt-get update` with sudo
         When I run `apt-get upgrade -y` with sudo
@@ -95,14 +96,15 @@ Feature: APT Messages
         """
 
         Examples: ubuntu release
-           | release | standard-pkg                                                          | infra-pkg                                            | apps-pkg     |
-           | xenial  | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
+           | release | machine_type  | standard-pkg                                                          | infra-pkg                                            | apps-pkg     |
+           | xenial  | lxd-container | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
     @series.bionic
     @series.xenial
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-infra on upgrade
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt-get -y upgrade` with sudo
         When I run `apt-get -y autoremove` with sudo
@@ -152,15 +154,16 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
-          | release | version |
-          | xenial  | 16      |
-          | bionic  | 18      |
+          | release | machine_type  | version |
+          | xenial  | lxd-container | 16      |
+          | bionic  | lxd-container | 18      |
 
     @series.focal
     @series.jammy
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook advertises esm-apps on upgrade
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
@@ -212,10 +215,10 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded\.
         """
         Examples: ubuntu release
-          | release | package | learn_more_msg                                                    |
-          | bionic  | ansible | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
-          | focal   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
-          | jammy   | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | release | machine_type  | package | learn_more_msg                                                    |
+          | bionic  | lxd-container | ansible | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | lxd-container | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | jammy   | lxd-container | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -644,9 +647,10 @@ Feature: APT Messages
 
     @series.kinetic
     @series.lunar
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
@@ -690,6 +694,6 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
         Examples: ubuntu release
-          | release |
-          | kinetic |
-          | lunar   |
+          | release | machine_type  |
+          | kinetic | lxd-container |
+          | lunar   | lxd-container |
