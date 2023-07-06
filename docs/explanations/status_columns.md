@@ -5,38 +5,40 @@ depend on whether the Ubuntu Pro subscription is attached or unattached.
 
 ## Pro subscription unattached
 When unattached, users will see the following status table containing only
-three columns:
+three columns (output truncated for brevity):
 
-```
+```text
 SERVICE          AVAILABLE  DESCRIPTION
-cc-eal           no         Common Criteria EAL2 Provisioning Packages
-cis              no         Security compliance and audit tools
+...
+esm-apps         yes        Expanded Security Maintenance for Applications
 esm-infra        yes        Expanded Security Maintenance for Infrastructure
-fips             no         NIST-certified core packages
-fips-updates     no         NIST-certified core packages with priority security updates
+fips             yes        NIST-certified core packages
+fips-updates     yes        NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
+...
 ```
 
 Where:
 
-* **SERVICE**: Is the name of service being offered
+* **SERVICE**: Is the name of service being offered.
 * **AVAILABLE**: Shows if that service is available on that machine. To verify
   if a service is available, we check the machine kernel version, architecture,
-  Ubuntu release being used and the machine type (i.e lxd for LXD containers)
+  Ubuntu release being used and the machine type (i.e lxd for LXD containers).
 * **DESCRIPTION**: A short description of the service.
 
 ## With Pro subscription attached
 
 However, if we run the same command when attached, we have an output with 4
-columns:
+columns (output truncated):
 
-```
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified core packages
-fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-livepatch     yes       n/a       Canonical Livepatch service
+```text
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+fips             yes       disabled  NIST-certified core packages
+fips-updates     yes       disabled  NIST-certified core packages with priority security updates
+livepatch        yes       enabled   Canonical Livepatch service
+...
 ```
 
 You may notice that the column **AVAILABLE** is no longer shown, and instead we
@@ -58,6 +60,9 @@ The **STATUS** column allows for three possible states:
 * **n/a**: This means "not applicable". This will show if the service cannot be
   enabled on the machine due to a non-contract restriction. For example, we
   cannot enable `livepatch` on a container.
+
+  "Not applicable" rows are not shown by default. If you would like to see
+  the full output, use the `pro status --all` command.
 
 ## Notices
 

@@ -38,7 +38,8 @@ realtime-kernel  yes       disabled  Ubuntu kernel with PREEMPT_RT patches integ
 ```{important}
 Once you enable Livepatch, enabling some Pro services will not be possible until
 Livepatch is disabled. For a better view of which services are compatible with
-Livepatch, please look at the [services compatibility matrix](../references/compatibility_matrix.md)
+Livepatch, please look at the
+[services compatibility matrix](../references/compatibility_matrix.md).
 ```
 
 If Livepatch is disabled and you want to enable it, run the following command:
@@ -71,8 +72,26 @@ $ sudo canonical-livepatch status
 
 Although you can enable Livepatch on an unsupported kernel, since patches are
 kernel-specific, you will not receive any updates from Livepatch if your kernel
-is not supported. The `canonical-livepatch status` command will warn you if
-your kernel is unsupported (output truncated for brevity):
+is not supported. 
+
+The `pro status` command will warn you if Livepatch is not supported in its
+output:
+
+```console
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+livepatch        yes       warning   Current kernel is not supported
+realtime-kernel  yes       disabled  Ubuntu kernel with PREEMPT_RT patches integrated
+
+NOTICES
+The current kernel (5.19.0-46-generic, amd64) is not supported by livepatch.
+Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
+```
+
+The `canonical-livepatch status` command will also warn you if your kernel is
+unsupported (output truncated for brevity):
 
 ```console
 ...
@@ -82,7 +101,8 @@ patch state: ✓ no livepatches needed for this kernel yet
 ...
 ```
 
-You can also check [the support matrix](https://ubuntu.com/security/livepatch/docs/kernels)
+You can also check
+[the support matrix](https://ubuntu.com/security/livepatch/docs/kernels)
 to see if your kernel is supported by Livepatch. To find out more, refer to
 this explanation of
 [how Livepatch works](https://ubuntu.com/security/livepatch/docs/livepatch/explanation/howitworks).
@@ -93,7 +113,7 @@ Enabling Livepatch installs the Livepatch client as snap package, and there are
 a few possible ways to disable it. The simplest is to use `pro`:
 
 ```console
-pro disable livepatch
+sudo pro disable livepatch
 ```
 
 If you also want to remove the Livepatch client from your machine, you can
