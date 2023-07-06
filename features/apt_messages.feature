@@ -224,18 +224,20 @@ Feature: APT Messages
           | jammy   | lxd-container | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT News
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         # On interim releases we will not enable any service, so we need a manual apt-get update
         When I run `apt-get update` with sudo
         When I run `DEBIAN_FRONTEND=noninteractive apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get autoremove -y` with sudo
+        When I apt install `jq`
         When I run `pro detach --assume-yes` with sudo
 
-        Given a `focal` machine named `apt-news-server`
+        Given a `focal` `<machine_type>` machine named `apt-news-server`
         When I run `apt-get update` `with sudo` on the `apt-news-server` machine
         When I apt install `nginx` on the `apt-news-server` machine
         When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
@@ -269,6 +271,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "one"
+        """
 
         # Test that it is not shown in apt-get output
         When I run `apt-get upgrade` with sudo
@@ -280,6 +287,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
         {
@@ -295,7 +303,6 @@ Feature: APT Messages
           ]
         }
         """
-
         # apt update stamp will prevent a apt_news refresh
         When I run `apt-get update` with sudo
         When I run `apt upgrade` with sudo
@@ -309,6 +316,11 @@ Feature: APT Messages
         # one
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "one"
         """
         
         # manual refresh gets new message
@@ -326,6 +338,11 @@ Feature: APT Messages
         # three
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "one\ntwo\nthree"
         """
         
         # creates /run/ubuntu-advantage and /var/lib/ubuntu-advantage/messages if not there
@@ -346,6 +363,11 @@ Feature: APT Messages
         # three
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "one\ntwo\nthree"
         """
         
         # more than 3 lines ignored
@@ -375,6 +397,11 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        null
+        """
         
         # more than 77 chars ignored
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -399,6 +426,11 @@ Feature: APT Messages
         Reading state information...
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        null
         """
         
         # end is respected
@@ -425,6 +457,11 @@ Feature: APT Messages
         Reading state information...
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        null
         """
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
         """
@@ -453,6 +490,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "one"
+        """
         
         # begin >30 days ago ignored, even if end is set to future
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -479,6 +521,11 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        null
+        """
         
         # begin in future
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -504,6 +551,11 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        null
+        """
         
         # local apt news overrides for contract expiry notices
         When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -528,7 +580,7 @@ Feature: APT Messages
             effectiveTo: $behave_var{today +2}
         """
         # test that apt update will trigger hook to update apt_news for local override
-        When I run shell command `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
+        When I run `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
         When I run `apt-get update` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
@@ -543,6 +595,11 @@ Feature: APT Messages
         # security coverage for your applications.
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro to ensure continued\nsecurity coverage for your applications."
         """
         When I set the machine token overlay to the following yaml
         """
@@ -566,6 +623,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then stdout matches regexp:
+        """
+        "CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.\\nRenew your subscription at https:\/\/ubuntu.com\/pro to ensure continued\\nsecurity coverage for your applications.\\nYour grace period will expire in 11 days."
+        """
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -586,6 +648,11 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
+        """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
         {
@@ -596,7 +663,6 @@ Feature: APT Messages
             }
         }
         """
-        When I wait `1` seconds
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
@@ -611,14 +677,19 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        Then I will see the following on stdout
+        """
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
+        """
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | kinetic |
-          | lunar   |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | kinetic | lxd-container |
+          | lunar   | lxd-container |
 
     @series.xenial
     @series.bionic

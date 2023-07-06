@@ -136,6 +136,7 @@ timer_jobs_state_file = DataObjectFile(
 
 
 apt_news_contents_file = UAFile("apt-news", directory=defaults.MESSAGES_DIR)
+apt_news_raw_file = UAFile("apt-news-raw", directory=defaults.MESSAGES_DIR)
 
 
 class LivepatchSupportCacheData(DataObject):

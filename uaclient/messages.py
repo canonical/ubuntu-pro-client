@@ -327,26 +327,17 @@ Renew your service at https://ubuntu.com/pro
 """
 
 CONTRACT_EXPIRES_SOON_APT_NEWS = """\
-#
-# CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
-# Renew your subscription at https://ubuntu.com/pro to ensure continued
-# security coverage for your applications.
-#
-"""
+CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
+Renew your subscription at https://ubuntu.com/pro to ensure continued
+security coverage for your applications."""
 CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS = """\
-#
-# CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
-# Renew your subscription at https://ubuntu.com/pro to ensure continued
-# security coverage for your applications.
-# Your grace period will expire in {remaining_days} days.
-#
-"""
+CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
+Renew your subscription at https://ubuntu.com/pro to ensure continued
+security coverage for your applications.
+Your grace period will expire in {remaining_days} days."""
 CONTRACT_EXPIRED_APT_NEWS = """\
-#
-# *Your Ubuntu Pro subscription has EXPIRED*
-# Renew your service at https://ubuntu.com/pro
-#
-"""
+*Your Ubuntu Pro subscription has EXPIRED*
+Renew your service at https://ubuntu.com/pro"""
 
 # END MOTD and APT command messaging
 
