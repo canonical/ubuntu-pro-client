@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from uaclient import contract, event_logger, messages, system
 from uaclient.entitlements.repo import RepoEntitlement
@@ -74,3 +74,12 @@ class AnboxEntitlement(RepoEntitlement):
         super()._perform_disable(silent=silent)
         anbox_cloud_credentials_file.delete()
         return True
+
+    # TODO: remove this function
+    # This is just a placeholder until we can deliver the Anbox
+    # resourceToken from the contracts without relying on the
+    # enableByDefault obligation
+    def _should_enable_by_default(
+        self, obligations: Dict[str, Any], resourceToken: Optional[str]
+    ) -> bool:
+        return False
