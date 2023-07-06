@@ -14,43 +14,6 @@ NOW = datetime.now(timezone.utc)
 
 class TestAptNews:
     @pytest.mark.parametrize(
-        ["msg", "expected"],
-        [
-            (
-                apt_news.AptNewsMessage(begin=NOW, lines=["one"]),
-                """\
-#
-# one
-#
-""",
-            ),
-            (
-                apt_news.AptNewsMessage(begin=NOW, lines=["one", "two"]),
-                """\
-#
-# one
-# two
-#
-""",
-            ),
-            (
-                apt_news.AptNewsMessage(
-                    begin=NOW, lines=["one", "two", "three"]
-                ),
-                """\
-#
-# one
-# two
-# three
-#
-""",
-            ),
-        ],
-    )
-    def test_format_message(self, msg, expected):
-        assert expected == apt_news.format_message(msg)
-
-    @pytest.mark.parametrize(
         ["selectors", "series", "cloud_type", "attached", "expected"],
         [
             (
@@ -452,187 +415,97 @@ class TestAptNews:
             "apt_news_json",
             "select_message_args",
             "select_message",
-            "format_message_args",
-            "write_args",
-            "delete_args",
+            "expected_result",
         ],
         [
             (
                 {},
                 [mock.call(mock.ANY, [])],
                 None,
-                [],
-                [],
-                [mock.call()],
+                None,
             ),
             (
                 {"messages": []},
                 [mock.call(mock.ANY, [])],
                 None,
-                [],
-                [],
-                [mock.call()],
+                None,
             ),
             (
-                {"messages": [{"begin": NOW, "lines": ["one"]}]},
-                [mock.call(mock.ANY, [{"begin": NOW, "lines": ["one"]}])],
-                apt_news.AptNewsMessage(begin=NOW, lines=["one"]),
-                [mock.call(apt_news.AptNewsMessage(begin=NOW, lines=["one"]))],
-                [mock.call(mock.ANY)],
-                [],
+                {"messages": [{"begin": NOW, "lines": ["one", "two"]}]},
+                [
+                    mock.call(
+                        mock.ANY, [{"begin": NOW, "lines": ["one", "two"]}]
+                    )
+                ],
+                apt_news.AptNewsMessage(begin=NOW, lines=["one", "two"]),
+                "one\ntwo",
             ),
         ],
     )
-    @mock.patch(M_PATH + "state_files.apt_news_contents_file.delete")
-    @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
-    @mock.patch(M_PATH + "format_message")
     @mock.patch(M_PATH + "select_message")
     @mock.patch(M_PATH + "fetch_aptnews_json")
     def test_fetch_and_process_apt_news(
         self,
         m_fetch_aptnews_json,
         m_select_message,
-        m_format_message,
-        m_news_write,
-        m_news_delete,
         apt_news_json,
         select_message_args,
         select_message,
-        format_message_args,
-        write_args,
-        delete_args,
+        expected_result,
         FakeConfig,
     ):
         m_fetch_aptnews_json.return_value = apt_news_json
         m_select_message.return_value = select_message
 
-        apt_news.fetch_and_process_apt_news(FakeConfig())
+        assert expected_result == apt_news.fetch_and_process_apt_news(
+            FakeConfig()
+        )
 
         assert select_message_args == m_select_message.call_args_list
-        assert format_message_args == m_format_message.call_args_list
-        assert write_args == m_news_write.call_args_list
-        assert delete_args == m_news_delete.call_args_list
-
-    @pytest.mark.parametrize(
-        [
-            "apt_news_json",
-            "select_message",
-            "format_message",
-        ],
-        [
-            (
-                Exception(),
-                None,
-                None,
-            ),
-            (
-                {},
-                Exception(),
-                None,
-            ),
-            (
-                {},
-                [None],
-                None,
-            ),
-            (
-                {},
-                [object()],
-                Exception(),
-            ),
-        ],
-    )
-    @mock.patch(M_PATH + "state_files.apt_news_contents_file.delete")
-    @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
-    @mock.patch(M_PATH + "format_message")
-    @mock.patch(M_PATH + "select_message")
-    @mock.patch(M_PATH + "fetch_aptnews_json")
-    def test_fetch_and_process_apt_news_error(
-        self,
-        m_fetch_aptnews_json,
-        m_select_message,
-        m_format_message,
-        m_news_write,
-        m_news_delete,
-        apt_news_json,
-        select_message,
-        format_message,
-        FakeConfig,
-    ):
-        m_fetch_aptnews_json.side_effect = apt_news_json
-        m_select_message.side_effect = select_message
-        m_format_message.side_effect = format_message
-
-        apt_news.fetch_and_process_apt_news(FakeConfig())
-
-        assert [] == m_news_write.call_args_list
-        assert [mock.call()] == m_news_delete.call_args_list
 
     @pytest.mark.parametrize(
         [
             "expiry_status",
-            "write_calls",
             "expected",
         ],
         [
             (
                 (ContractExpiryStatus.ACTIVE, 0),
-                [],
-                False,
+                None,
             ),
             (
                 (ContractExpiryStatus.NONE, 0),
-                [],
-                False,
+                None,
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
-                [
-                    mock.call(
-                        messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
-                            remaining_days=10
-                        )
-                    )
-                ],
-                True,
+                messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+                    remaining_days=10
+                ),
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
-                [
-                    mock.call(
-                        messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
-                            remaining_days=15
-                        )
-                    )
-                ],
-                True,
+                messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
+                    remaining_days=15
+                ),
             ),
             (
                 (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
-                [
-                    mock.call(
-                        messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
-                            remaining_days=10, expired_date="21 Dec 2012"
-                        )
-                    )
-                ],
-                True,
+                messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
+                    remaining_days=10, expired_date="21 Dec 2012"
+                ),
             ),
             (
                 (ContractExpiryStatus.EXPIRED, -15),
-                [mock.call(messages.CONTRACT_EXPIRED_APT_NEWS)],
-                True,
+                messages.CONTRACT_EXPIRED_APT_NEWS,
             ),
         ],
     )
-    @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
     @mock.patch(M_PATH + "get_contract_expiry_status")
     def test_local_apt_news(
         self,
         m_get_contract_expiry_status,
-        m_news_write,
         expiry_status,
-        write_calls,
         expected,
         FakeConfig,
     ):
@@ -643,4 +516,131 @@ class TestAptNews:
         )
         assert expected == apt_news.local_apt_news(cfg)
 
-        assert write_calls == m_news_write.call_args_list
+    @pytest.mark.parametrize(
+        ["msg", "expected"],
+        [
+            (
+                "one",
+                """\
+#
+# one
+#
+""",
+            ),
+            (
+                "one\ntwo",
+                """\
+#
+# one
+# two
+#
+""",
+            ),
+            (
+                "one\ntwo\nthree",
+                """\
+#
+# one
+# two
+# three
+#
+""",
+            ),
+        ],
+    )
+    def test_format_news_for_apt_update(self, msg, expected):
+        assert expected == apt_news.format_news_for_apt_update(msg)
+
+    @pytest.mark.parametrize(
+        [
+            "local_news",
+            "remote_news",
+            "expected_formatted_write_calls",
+            "expected_raw_write_calls",
+            "expected_formatted_delete_calls",
+            "expected_raw_delete_calls",
+        ],
+        [
+            (
+                [None],
+                [None],
+                [],
+                [],
+                [mock.call()],
+                [mock.call()],
+            ),
+            (
+                Exception(),
+                [None],
+                [],
+                [],
+                [mock.call()],
+                [mock.call()],
+            ),
+            (
+                [None],
+                Exception(),
+                [],
+                [],
+                [mock.call()],
+                [mock.call()],
+            ),
+            (
+                [mock.sentinel.local_news],
+                [None],
+                [mock.call(mock.sentinel.formatted_news)],
+                [mock.call(mock.sentinel.local_news)],
+                [],
+                [],
+            ),
+            (
+                [None],
+                [mock.sentinel.remote_news],
+                [mock.call(mock.sentinel.formatted_news)],
+                [mock.call(mock.sentinel.remote_news)],
+                [],
+                [],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "state_files.apt_news_raw_file.delete")
+    @mock.patch(M_PATH + "state_files.apt_news_contents_file.delete")
+    @mock.patch(M_PATH + "state_files.apt_news_raw_file.write")
+    @mock.patch(M_PATH + "state_files.apt_news_contents_file.write")
+    @mock.patch(M_PATH + "format_news_for_apt_update")
+    @mock.patch(M_PATH + "fetch_and_process_apt_news")
+    @mock.patch(M_PATH + "local_apt_news")
+    def test_update_apt_news(
+        self,
+        m_local_apt_news,
+        m_fetch_and_process_apt_news,
+        m_format_news_for_apt_update,
+        m_formatted_write,
+        m_raw_write,
+        m_formatted_delete,
+        m_raw_delete,
+        local_news,
+        remote_news,
+        expected_formatted_write_calls,
+        expected_raw_write_calls,
+        expected_formatted_delete_calls,
+        expected_raw_delete_calls,
+        FakeConfig,
+    ):
+        m_local_apt_news.side_effect = local_news
+        m_fetch_and_process_apt_news.side_effect = remote_news
+        m_format_news_for_apt_update.return_value = (
+            mock.sentinel.formatted_news
+        )
+
+        apt_news.update_apt_news(FakeConfig())
+
+        assert (
+            expected_formatted_write_calls == m_formatted_write.call_args_list
+        )
+        assert expected_raw_write_calls == m_raw_write.call_args_list
+        assert (
+            expected_formatted_delete_calls
+            == m_formatted_delete.call_args_list
+        )
+        assert expected_raw_delete_calls == m_raw_delete.call_args_list
