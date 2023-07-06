@@ -1,4 +1,3 @@
-@uses.config.contract_token
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.all
@@ -53,6 +52,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.lts
     @uses.config.machine_type.lxd-container
+    @uses.config.contract_token
     Scenario Outline: Run collect-logs on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

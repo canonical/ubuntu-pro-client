@@ -1,10 +1,10 @@
-@uses.config.contract_token
 Feature: Upgrade between releases when uaclient is unattached
 
     @slow
     @series.all
     @uses.config.machine_type.lxd-container
     @upgrade
+    @uses.config.contract_token
     Scenario Outline: Unattached upgrade
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # Local PPAs are prepared and served only when testing with local debs
