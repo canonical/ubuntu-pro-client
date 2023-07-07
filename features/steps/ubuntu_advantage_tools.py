@@ -209,7 +209,7 @@ def when_i_create_local_ppas(context, release, next_release):
     from features.steps.machines import given_a_machine
 
     # We need Kinetic or greater to support zstd when creating the PPAs
-    given_a_machine(context, "kinetic", "ppa")
+    given_a_machine(context, "kinetic", machine_name="ppa")
     when_i_run_command(
         context, "apt-get update", "with sudo", machine_name="ppa"
     )
