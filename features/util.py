@@ -12,6 +12,8 @@ from typing import Callable, Iterable, List, Optional
 
 import yaml
 
+from uaclient.system import get_dpkg_arch
+
 SUT = "system-under-test"
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
@@ -151,6 +153,7 @@ def repo_state_hash(
 
 def build_debs(
     series: str,
+    architecture: Optional[str] = None,
     chroot: Optional[str] = None,
     sbuild_output_to_terminal: bool = False,
 ) -> List[str]:
@@ -163,7 +166,10 @@ def build_debs(
 
     :return: A list of file paths to debs created by the build.
     """
-    deb_prefix = "{}-{}-".format(series, repo_state_hash())
+    if architecture is None:
+        architecture = get_dpkg_arch()
+
+    deb_prefix = "{}-{}-{}-".format(series, architecture, repo_state_hash())
     tools_deb_name = "{}ubuntu-advantage-tools.deb".format(deb_prefix)
     pro_deb_name = "{}ubuntu-advantage-pro.deb".format(deb_prefix)
     tools_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, tools_deb_name)
@@ -232,7 +238,7 @@ def build_debs(
         "--build-dir",
         SBUILD_DIR,
         "--arch",
-        "amd64",
+        architecture,
         "-d",
         series,
         SOURCE_PR_UNTAR_DIR,
@@ -241,7 +247,7 @@ def build_debs(
         sbuild_cmd += ["--chroot", chroot]
     else:
         # use ua-series-arch chroot if present
-        ua_chroot = "ua-{}-amd64".format(series)
+        ua_chroot = "ua-{}-{}".format(series, architecture)
         proc = subprocess.run(
             ["schroot", "--info", "--chroot", ua_chroot],
             stdout=subprocess.DEVNULL,
