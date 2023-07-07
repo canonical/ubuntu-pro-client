@@ -673,7 +673,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  |
            | bionic  |
 
-
     @series.xenial
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable livepatch
@@ -692,7 +691,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "no"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "no", "reboot_required_packages": {"kernel_packages": null, "standard_packages": null}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
@@ -703,7 +702,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \[\], "standard_packages": \["libc6"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
@@ -720,7 +719,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes-kernel-livepatches-applied"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes-kernel-livepatches-applied", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \[\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
@@ -731,7 +730,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"reboot_required": "yes"}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \["dbus"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
