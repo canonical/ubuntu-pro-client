@@ -11,6 +11,7 @@ from uaclient import defaults, messages, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
+from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -20,10 +21,6 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
-from uaclient.timer.update_messaging import (
-    ContractExpiryStatus,
-    get_contract_expiry_status,
-)
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
