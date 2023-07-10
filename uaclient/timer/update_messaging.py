@@ -6,11 +6,9 @@ will be sourced by apt-hook/hook.cc and various /etc/update-motd.d/ hooks to
 present updated text about Ubuntu Pro service and token state.
 """
 
-import enum
 import logging
 import os
 from os.path import exists
-from typing import Tuple
 
 from uaclient import contract, defaults, messages, system, util
 from uaclient.api.u.pro.packages.updates.v1 import (
@@ -26,15 +24,6 @@ UPDATE_NOTIFIER_MOTD_SCRIPT = (
     "/usr/lib/update-notifier/update-motd-updates-available"
 )
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
-
-
-@enum.unique
-class ContractExpiryStatus(enum.Enum):
-    NONE = 0
-    ACTIVE = 1
-    ACTIVE_EXPIRED_SOON = 2
-    EXPIRED_GRACE_PERIOD = 3
-    EXPIRED = 4
 
 
 def update_contract_expiry(cfg: UAConfig):
@@ -62,33 +51,6 @@ def update_contract_expiry(cfg: UAConfig):
         cfg.machine_token_file.write(orig_token)
 
 
-def get_contract_expiry_status(
-    cfg: UAConfig,
-) -> Tuple[ContractExpiryStatus, int]:
-    """Return a tuple [ContractExpiryStatus, num_days]"""
-    if not _is_attached(cfg).is_attached:
-        return ContractExpiryStatus.NONE, 0
-
-    grace_period = defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
-    pending_expiry = defaults.CONTRACT_EXPIRY_PENDING_DAYS
-    remaining_days = cfg.machine_token_file.contract_remaining_days
-
-    # if unknown assume the worst
-    if remaining_days is None:
-        LOG.warning(
-            "contract effectiveTo date is null - assuming it is expired"
-        )
-        return ContractExpiryStatus.EXPIRED, -grace_period
-
-    if 0 <= remaining_days <= pending_expiry:
-        return ContractExpiryStatus.ACTIVE_EXPIRED_SOON, remaining_days
-    elif -grace_period <= remaining_days < 0:
-        return ContractExpiryStatus.EXPIRED_GRACE_PERIOD, remaining_days
-    elif remaining_days < -grace_period:
-        return ContractExpiryStatus.EXPIRED, remaining_days
-    return ContractExpiryStatus.ACTIVE, remaining_days
-
-
 def update_motd_messages(cfg: UAConfig) -> bool:
     """Emit human-readable status message used by motd.
 
@@ -104,28 +66,30 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         cfg.data_dir, "messages", MOTD_CONTRACT_STATUS_FILE_NAME
     )
 
-    expiry_status, remaining_days = get_contract_expiry_status(cfg)
+    expiry_status, remaining_days = contract.get_contract_expiry_status(cfg)
     if expiry_status in (
-        ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
-        ContractExpiryStatus.EXPIRED_GRACE_PERIOD,
-        ContractExpiryStatus.EXPIRED,
+        contract.ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
+        contract.ContractExpiryStatus.EXPIRED_GRACE_PERIOD,
+        contract.ContractExpiryStatus.EXPIRED,
     ):
         update_contract_expiry(cfg)
-        expiry_status, remaining_days = get_contract_expiry_status(cfg)
+        expiry_status, remaining_days = contract.get_contract_expiry_status(
+            cfg
+        )
 
     if expiry_status in (
-        ContractExpiryStatus.ACTIVE,
-        ContractExpiryStatus.NONE,
+        contract.ContractExpiryStatus.ACTIVE,
+        contract.ContractExpiryStatus.NONE,
     ):
         system.ensure_file_absent(motd_contract_status_msg_path)
-    elif expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
+    elif expiry_status == contract.ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
         system.write_file(
             motd_contract_status_msg_path,
             messages.CONTRACT_EXPIRES_SOON_MOTD.format(
                 remaining_days=remaining_days,
             ),
         )
-    elif expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
+    elif expiry_status == contract.ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
@@ -141,7 +105,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
                 remaining_days=grace_period_remaining,
             ),
         )
-    elif expiry_status == ContractExpiryStatus.EXPIRED:
+    elif expiry_status == contract.ContractExpiryStatus.EXPIRED:
         service = "n/a"
         pkg_num = 0
 
