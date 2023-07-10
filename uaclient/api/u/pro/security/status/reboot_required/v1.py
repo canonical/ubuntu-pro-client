@@ -1,5 +1,7 @@
+from enum import Enum
 from typing import List, Optional
 
+from uaclient import livepatch
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
@@ -10,10 +12,10 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.livepatch import status
-from uaclient.security_status import (
+from uaclient.system import (
+    get_kernel_info,
     get_reboot_required_pkgs,
-    get_reboot_status,
+    should_reboot,
 )
 
 
@@ -61,14 +63,62 @@ class RebootRequiredResult(DataObject, AdditionalInfo):
         self.livepatch_support = livepatch_support
 
 
+class RebootStatus(Enum):
+    REBOOT_REQUIRED = "yes"
+    REBOOT_NOT_REQUIRED = "no"
+    REBOOT_REQUIRED_LIVEPATCH_APPLIED = "yes-kernel-livepatches-applied"
+
+
+def _get_reboot_status():
+    if not should_reboot():
+        return RebootStatus.REBOOT_NOT_REQUIRED
+
+    reboot_required_pkgs = get_reboot_required_pkgs()
+
+    if not reboot_required_pkgs:
+        return RebootStatus.REBOOT_REQUIRED
+
+    # We will only check the Livepatch state if all the
+    # packages that require a reboot are kernel related
+    if reboot_required_pkgs.standard_packages:
+        return RebootStatus.REBOOT_REQUIRED
+
+    # If there are no kernel packages to cover or livepatch is not installed,
+    # we should only return that a reboot is required
+    if (
+        not reboot_required_pkgs.kernel_packages
+        or not livepatch.is_livepatch_installed()
+    ):
+        return RebootStatus.REBOOT_REQUIRED
+
+    our_kernel_version = get_kernel_info().proc_version_signature_version
+    lp_status = livepatch.status()
+    if (
+        lp_status is not None
+        and our_kernel_version is not None
+        and our_kernel_version == lp_status.kernel
+        and lp_status.livepatch is not None
+        and (
+            lp_status.livepatch.state == "applied"
+            or lp_status.livepatch.state == "nothing-to-apply"
+        )
+        and lp_status.supported == "supported"
+    ):
+        return RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED
+
+    # Any other Livepatch status will not be considered here to modify the
+    # reboot state
+    return RebootStatus.REBOOT_REQUIRED
+
+
 def reboot_required() -> RebootRequiredResult:
     return _reboot_required(UAConfig())
 
 
 def _reboot_required(cfg: UAConfig) -> RebootRequiredResult:
-    reboot_status = get_reboot_status()
+    reboot_status = _get_reboot_status()
     reboot_required_pkgs = get_reboot_required_pkgs()
-    livepatch_status = status()
+    livepatch_status = livepatch.status()
 
     if not livepatch_status:
         livepatch_enabled_and_kernel_patched = False
