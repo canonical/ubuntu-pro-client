@@ -9,6 +9,9 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 import apt  # type: ignore
 
 from uaclient import livepatch, messages
+from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+    _reboot_required,
+)
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import (
     PreserveAptCfg,
@@ -26,11 +29,9 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.system import (
     get_distro_info,
     get_kernel_info,
-    get_reboot_required_pkgs,
     get_release_info,
     is_current_series_lts,
     is_supported,
-    should_reboot,
 )
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
@@ -42,12 +43,6 @@ class UpdateStatus(Enum):
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
-
-
-class RebootStatus(Enum):
-    REBOOT_REQUIRED = "yes"
-    REBOOT_NOT_REQUIRED = "no"
-    REBOOT_REQUIRED_LIVEPATCH_APPLIED = "yes-kernel-livepatches-applied"
 
 
 @lru_cache(maxsize=None)
@@ -242,48 +237,6 @@ def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
     return []
 
 
-def get_reboot_status():
-    if not should_reboot():
-        return RebootStatus.REBOOT_NOT_REQUIRED
-
-    reboot_required_pkgs = get_reboot_required_pkgs()
-
-    if not reboot_required_pkgs:
-        return RebootStatus.REBOOT_REQUIRED
-
-    # We will only check the Livepatch state if all the
-    # packages that require a reboot are kernel related
-    if reboot_required_pkgs.standard_packages:
-        return RebootStatus.REBOOT_REQUIRED
-
-    # If there are no kernel packages to cover or livepatch is not installed,
-    # we should only return that a reboot is required
-    if (
-        not reboot_required_pkgs.kernel_packages
-        or not livepatch.is_livepatch_installed()
-    ):
-        return RebootStatus.REBOOT_REQUIRED
-
-    our_kernel_version = get_kernel_info().proc_version_signature_version
-    lp_status = livepatch.status()
-    if (
-        lp_status is not None
-        and our_kernel_version is not None
-        and our_kernel_version == lp_status.kernel
-        and lp_status.livepatch is not None
-        and (
-            lp_status.livepatch.state == "applied"
-            or lp_status.livepatch.state == "nothing-to-apply"
-        )
-        and lp_status.supported == "supported"
-    ):
-        return RebootStatus.REBOOT_REQUIRED_LIVEPATCH_APPLIED
-
-    # Any other Livepatch status will not be considered here to modify the
-    # reboot state
-    return RebootStatus.REBOOT_REQUIRED
-
-
 def create_updates_list(
     security_upgradable_versions: DefaultDict[
         str, List[Tuple[apt.package.Version, str]]
@@ -352,7 +305,7 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     summary["num_standard_security_updates"] = len(
         security_upgradable_versions["standard-security"]
     )
-    summary["reboot_required"] = get_reboot_status().value
+    summary["reboot_required"] = _reboot_required(cfg).reboot_required
 
     return {
         "_schema_version": "0.1",
