@@ -200,6 +200,8 @@ Feature: Attached status
         fips-updates    +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+        ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
+        └ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
         usg             +yes      +disabled +Security compliance and audit tools
