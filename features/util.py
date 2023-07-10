@@ -149,6 +149,14 @@ def repo_state_hash(
     return hashlib.md5(output_to_hash).hexdigest()
 
 
+def get_debs_for_series(debs_path: str, series: str) -> List[str]:
+    return [
+        os.path.join(debs_path, deb_file)
+        for deb_file in os.listdir(debs_path)
+        if series in deb_file
+    ]
+
+
 def build_debs(
     series: str,
     chroot: Optional[str] = None,

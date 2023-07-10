@@ -1,12 +1,18 @@
 import datetime
 import logging
+import sys
 from typing import Dict, NamedTuple
 
 from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
 
 from features.steps.ubuntu_advantage_tools import when_i_install_uat
-from features.util import SUT, InstallationSource, build_debs
+from features.util import (
+    SUT,
+    InstallationSource,
+    build_debs,
+    get_debs_for_series,
+)
 
 MachineTuple = NamedTuple(
     "MachineTuple", [("series", str), ("instance", BaseInstance)]
@@ -140,6 +146,18 @@ def given_a_sut_machine(context, series, machine_type=None):
             series,
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
+
+    if context.pro_config.install_from == InstallationSource.PREBUILT:
+        deb_paths = get_debs_for_series(context.pro_config.debs_path, series)
+        if not deb_paths:
+            logging.error(
+                (
+                    "UACLIENT_BEHAVE_INSTALL_FROM is set to 'prebuilt', "
+                    "but no debs for series {} were found in"
+                    "UACLIENT_BEHAVE_DEBS_PATH"
+                ).format(series)
+            )
+            sys.exit(1)
 
     if context.pro_config.snapshot_strategy:
         if "builder" not in context.snapshots:

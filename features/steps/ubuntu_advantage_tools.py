@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 
 from behave import then, when
@@ -7,7 +6,12 @@ from behave import then, when
 from features.steps.files import when_i_create_file_with_content
 from features.steps.packages import when_i_apt_install
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
-from features.util import SUT, InstallationSource, build_debs
+from features.util import (
+    SUT,
+    InstallationSource,
+    build_debs,
+    get_debs_for_series,
+)
 
 
 @when("I install ubuntu-advantage-tools")
@@ -25,12 +29,7 @@ def when_i_install_uat(context, machine_name=SUT):
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
     elif context.pro_config.install_from is InstallationSource.PREBUILT:
-        debs_path = context.pro_config.debs_path
-        deb_paths = [
-            os.path.join(debs_path, deb_file)
-            for deb_file in os.listdir(debs_path)
-            if series in deb_file
-        ]
+        deb_paths = get_debs_for_series(context.pro_config.debs_path, series)
         logging.info("using debs: {}".format(deb_paths))
         for deb_path in deb_paths:
             if "pro" not in deb_path or is_pro:
