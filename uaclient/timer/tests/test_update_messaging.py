@@ -8,12 +8,9 @@ from uaclient.api.u.pro.packages.updates.v1 import (
     PackageUpdatesResult,
     UpdateSummary,
 )
+from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.timer.update_messaging import (
-    ContractExpiryStatus,
-    get_contract_expiry_status,
-    update_motd_messages,
-)
+from uaclient.timer.update_messaging import update_motd_messages
 
 M_PATH = "uaclient.timer.update_messaging."
 
@@ -336,7 +333,7 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "update_contract_expiry")
-    @mock.patch(M_PATH + "get_contract_expiry_status")
+    @mock.patch("uaclient.contract.get_contract_expiry_status")
     @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,
