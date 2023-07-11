@@ -508,19 +508,6 @@ def remove_auth_apt_repo(
     remove_repo_from_apt_auth_file(repo_url)
 
 
-def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
-    """Add an apt preferences file and pin for a PPA."""
-    _protocol, repo_path = repo_url.split("://")
-    if repo_path.endswith("/"):  # strip trailing slash
-        repo_path = repo_path[:-1]
-    content = (
-        "Package: *\n"
-        "Pin: release o={origin}\n"
-        "Pin-Priority: {priority}\n".format(origin=origin, priority=priority)
-    )
-    system.write_file(apt_preference_file, content)
-
-
 def get_apt_auth_file_from_apt_config():
     """Return to patch to the system configured APT auth file."""
     out, _err = system.subp(
@@ -583,19 +570,12 @@ def clean_apt_files(*, _entitlements=None):
         if not issubclass(ent_cls, RepoEntitlement):
             continue
         repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
-        pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
         if os.path.exists(repo_file):
             event.info(
                 "Removing apt source file: {}".format(repo_file),
                 file_type=sys.stderr,
             )
             system.ensure_file_absent(repo_file)
-        if os.path.exists(pref_file):
-            event.info(
-                "Removing apt preferences file: {}".format(pref_file),
-                file_type=sys.stderr,
-            )
-            system.ensure_file_absent(pref_file)
 
 
 def is_installed(pkg: str) -> bool:

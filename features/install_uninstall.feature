@@ -22,13 +22,12 @@ Feature: Pro Install and Uninstall related tests
     Scenario Outline: Purge package after attaching it to a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
         Then I verify that files exist matching `/var/log/ubuntu-advantage.log`
         And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `0`
         And I verify that files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
         And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-pro-esm-infra.gpg`
         And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
-        And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
+        And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-pro-preferences`
         When I run `apt-get purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
         Then stdout matches regexp:
         """

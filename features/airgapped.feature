@@ -3,7 +3,7 @@ Feature: Performing attach using ua-airgapped
 
     @series.jammy
     @uses.config.machine_type.lxd-container
-    Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
+    Scenario Outline: Attached enable of airgapped services in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # set up the apt mirror configuration
         Given a `jammy` machine named `mirror`
@@ -41,11 +41,11 @@ Feature: Performing attach using ua-airgapped
         When I run `apt-cache policy hello` with sudo
         Then stdout matches regexp:
         """
-        500 .*:9000/ubuntu jammy-apps-security/main
+        510 .*:9000/ubuntu jammy-apps-security/main
         """
         And stdout matches regexp:
         """
-        500 .*:8000/ubuntu jammy-infra-security/main
+        510 .*:8000/ubuntu jammy-infra-security/main
         """
 
         Examples: ubuntu release

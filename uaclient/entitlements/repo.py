@@ -3,7 +3,7 @@ import copy
 import logging
 import re
 from os.path import exists
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
     apt,
@@ -22,13 +22,8 @@ event = event_logger.get_event_logger()
 
 
 class RepoEntitlement(base.UAEntitlement):
-
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
-    repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
-
-    # The repo Origin value for setting pinning
-    origin = None  # type: Optional[str]
 
     # GH: #1084 call apt in noninteractive mode
     apt_noninteractive = False
@@ -36,11 +31,6 @@ class RepoEntitlement(base.UAEntitlement):
     # Check if the requested packages are installed to inform if
     # the service is enabled or not
     check_packages_are_installed = False
-
-    # Optional repo pin priority in subclass
-    @property
-    def repo_pin_priority(self) -> Union[int, str, None]:
-        return None
 
     @property
     def packages(self) -> List[str]:
@@ -356,22 +346,6 @@ class RepoEntitlement(base.UAEntitlement):
                     self.name, self.cfg.contract_url
                 )
             )
-        if self.repo_pin_priority:
-            if not self.origin:
-                raise exceptions.UserFacingError(
-                    "Cannot setup apt pin. Empty apt repo origin value '{}'.\n"
-                    "{}".format(
-                        self.origin,
-                        messages.ENABLED_FAILED.format(title=self.title).msg,
-                    )
-                )
-            repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
-            apt.add_ppa_pinning(
-                repo_pref_file,
-                repo_url,
-                self.origin,
-                self.repo_pin_priority,
-            )
 
         prerequisite_pkgs = []
         if not exists(apt.APT_METHOD_HTTPS_FILE):
@@ -430,10 +404,6 @@ class RepoEntitlement(base.UAEntitlement):
 
         apt.remove_auth_apt_repo(repo_filename, repo_url, self.repo_key_file)
         apt.remove_apt_list_files(repo_url, series)
-
-        if self.repo_pin_priority:
-            repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
-            system.ensure_file_absent(repo_pref_file)
 
         if run_apt_update:
             if not silent:

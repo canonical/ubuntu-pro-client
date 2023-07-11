@@ -82,8 +82,6 @@ FIPS_CONTAINER_CONDITIONAL_PACKAGES = {
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
-
-    repo_pin_priority = 1001
     repo_key_file = "ubuntu-pro-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
 

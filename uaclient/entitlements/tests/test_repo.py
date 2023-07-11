@@ -25,10 +25,6 @@ class RepoTestEntitlement(RepoEntitlement):
     repo_key_file = "test.gpg"
 
 
-class RepoTestEntitlementRepoWithPin(RepoTestEntitlement):
-    repo_pin_priority = 1000
-
-
 @pytest.fixture
 def entitlement(entitlement_factory):
     return entitlement_factory(
@@ -690,35 +686,6 @@ class TestRemoveAptConfig:
             )
         ] == m_remove_auth_apt_repo.call_args_list
 
-    @mock.patch(M_PATH + "system.ensure_file_absent")
-    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.remove_apt_list_files")
-    @mock.patch(M_PATH + "apt.run_apt_command")
-    @mock.patch(M_PATH + "system.get_release_info")
-    @mock.patch(M_PATH + "contract.apply_contract_overrides")
-    def test_repo_pin_priority_int_removes_apt_preferences(
-        self,
-        _m_contract_overrides,
-        m_get_release_info,
-        _m_run_apt_command,
-        _m_remove_apt_list_files,
-        _m_remove_auth_apt_repo,
-        m_ensure_file_absent,
-        entitlement_factory,
-    ):
-        """Remove apt preferences file when repo_pin_priority is an int."""
-        m_get_release_info.return_value = mock.MagicMock(series="xenial")
-
-        entitlement = entitlement_factory(
-            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
-        )
-
-        assert 1000 == entitlement.repo_pin_priority
-        entitlement.remove_apt_config()
-        assert [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest")
-        ] == m_ensure_file_absent.call_args_list
-
 
 class TestSetupAptConfig:
     @pytest.mark.parametrize(
@@ -848,62 +815,6 @@ class TestSetupAptConfig:
             packages=["apt-transport-https", "ca-certificates"]
         )
         assert install_call in m_run_apt_install_command.call_args_list
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "system.get_release_info")
-    def test_setup_error_with_repo_pin_priority_and_missing_origin(
-        self, m_get_release_info, _setup_apt_proxy, entitlement_factory
-    ):
-        """Raise error when repo_pin_priority is set and origin is None."""
-        m_get_release_info.return_value = mock.MagicMock(series="xenial")
-        entitlement = entitlement_factory(
-            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
-        )
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            entitlement.setup_apt_config()
-        assert (
-            "Cannot setup apt pin. Empty apt repo origin value 'None'."
-            in str(excinfo.value)
-        )
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.run_apt_update_command")
-    @mock.patch(M_PATH + "apt.add_ppa_pinning")
-    @mock.patch(M_PATH + "system.get_release_info")
-    @mock.patch(M_PATH + "contract.apply_contract_overrides")
-    def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
-        self,
-        _m_apply_overrides,
-        m_get_release_info,
-        m_add_ppa_pinning,
-        m_run_apt_update_command,
-        m_add_auth_repo,
-        _m_setup_apt_proxy,
-        entitlement_factory,
-    ):
-        """When repo_pin_priority is an int, set pin in apt preferences."""
-        m_get_release_info.return_value = mock.MagicMock(series="xenial")
-        entitlement = entitlement_factory(
-            RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
-        )
-        entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
-        with mock.patch(M_PATH + "exists") as m_exists:
-            m_exists.return_value = True  # Skip prerequisite pkg installs
-            entitlement.setup_apt_config()
-        assert [
-            mock.call("/usr/lib/apt/methods/https"),
-            mock.call("/usr/sbin/update-ca-certificates"),
-        ] == m_exists.call_args_list
-        assert [
-            mock.call(
-                "/etc/apt/preferences.d/ubuntu-repotest",
-                "http://REPOTEST",
-                "RepoTestOrigin",
-                entitlement.repo_pin_priority,
-            )
-        ] == m_add_ppa_pinning.call_args_list
-        assert [mock.call()] == m_run_apt_update_command.call_args_list
 
 
 class TestCheckAptURLIsApplied:

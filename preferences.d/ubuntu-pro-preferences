@@ -1,0 +1,15 @@
+Package: *
+Pin: release o=UbuntuESM
+Pin-Priority: 510
+
+Package: *
+Pin: release o=UbuntuESMApps
+Pin-Priority: 510
+
+Package: *
+Pin: release o=UbuntuFIPS
+Pin-Priority: 1001
+
+Package: *
+Pin: release o=UbuntuFIPSUpdates
+Pin-Priority: 1001

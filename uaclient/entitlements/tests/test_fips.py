@@ -112,10 +112,6 @@ class TestFIPSEntitlementDefaults:
         """GPG keyring file is the same for both FIPS and FIPS with Updates"""
         assert entitlement.repo_key_file == "ubuntu-pro-fips.gpg"
 
-    def test_default_repo_pinning(self, entitlement):
-        """FIPS and FIPS with Updates repositories are pinned."""
-        assert entitlement.repo_pin_priority == 1001
-
     @pytest.mark.parametrize("assume_yes", (True, False))
     def test_messaging_passes_assume_yes(
         self, assume_yes, fips_entitlement_factory
@@ -283,9 +279,6 @@ class TestFIPSEntitlementEnable:
             m_add_apt = stack.enter_context(
                 mock.patch("uaclient.apt.add_auth_apt_repo")
             )
-            m_add_pinning = stack.enter_context(
-                mock.patch("uaclient.apt.add_ppa_pinning")
-            )
             m_installed_pkgs = stack.enter_context(
                 mock.patch(
                     "uaclient.apt.get_installed_packages_names",
@@ -340,14 +333,6 @@ class TestFIPSEntitlementEnable:
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
-            )
-        ]
-        apt_pinning_calls = [
-            mock.call(
-                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name),
-                repo_url,
-                entitlement.origin,
-                1001,
             )
         ]
 
@@ -407,7 +392,6 @@ class TestFIPSEntitlementEnable:
         assert 1 == m_setup_apt_proxy.call_count
         assert 1 == m_installed_pkgs.call_count
         assert add_apt_calls == m_add_apt.call_args_list
-        assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
         assert [
             messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
@@ -501,51 +485,6 @@ class TestFIPSEntitlementEnable:
         )
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    def test_enable_errors_on_repo_pin_but_invalid_origin(
-        self, _m_setup_apt_proxy, entitlement
-    ):
-        """Error when no valid origin is provided on a pinned entitlemnt."""
-        entitlement.origin = None  # invalid value
-
-        with contextlib.ExitStack() as stack:
-            m_add_apt = stack.enter_context(
-                mock.patch("uaclient.apt.add_auth_apt_repo")
-            )
-            m_add_pinning = stack.enter_context(
-                mock.patch("uaclient.apt.add_ppa_pinning")
-            )
-            stack.enter_context(
-                mock.patch.object(
-                    entitlement, "can_enable", return_value=(True, None)
-                )
-            )
-            stack.enter_context(
-                mock.patch("uaclient.util.handle_message_operations")
-            )
-            m_remove_apt_config = stack.enter_context(
-                mock.patch.object(entitlement, "remove_apt_config")
-            )
-            stack.enter_context(
-                mock.patch(
-                    "uaclient.system.get_release_info",
-                    return_value=mock.MagicMock(series="xenial"),
-                )
-            )
-            stack.enter_context(mock.patch(M_REPOPATH + "exists"))
-
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
-                entitlement.enable()
-
-        error_msg = (
-            "Cannot setup apt pin. Empty apt repo origin value 'None'.\n"
-            "Could not enable {}.".format(entitlement.title)
-        )
-        assert error_msg == excinfo.value.msg
-        assert 0 == m_add_apt.call_count
-        assert 0 == m_add_pinning.call_count
-        assert 0 == m_remove_apt_config.call_count
 
     @mock.patch(
         "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)

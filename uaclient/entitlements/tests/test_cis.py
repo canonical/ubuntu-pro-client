@@ -82,8 +82,7 @@ class TestCISEntitlementEnable:
 
         with mock.patch(M_REPOPATH + "exists", mock.Mock(return_value=True)):
             with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
-                with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
-                    assert entitlement.enable()
+                assert entitlement.enable()
 
         add_apt_calls = [
             mock.call(
@@ -125,8 +124,6 @@ class TestCISEntitlementEnable:
         ]
 
         assert add_apt_calls == m_add_apt.call_args_list
-        # No apt pinning for cis
-        assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert subp_apt_cmds == m_subp.call_args_list
         assert 1 == m_apt_policy.call_count

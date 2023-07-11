@@ -41,6 +41,8 @@ ESM_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-trusty"
 ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-infra-trusty"
 ESM_INFRA_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-infra"
 ESM_APPS_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-apps"
+FIPS_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-fips"
+FIPS_UPDATES_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-fips-updates"
 
 SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-auto-attach.service"
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
@@ -395,6 +397,15 @@ rename_gpg_keys() {
     fi
 }
 
+remove_old_fips_preferences() {
+    if check_service_is_enabled fips; then
+        rm -f $FIPS_APT_PREF_FILE
+    fi
+    if check_service_is_enabled fips-updates; then
+        rm -f $FIPS_UPDATES_APT_PREF_FILE
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -491,6 +502,7 @@ case "$1" in
       # Rename the gpg keys to -pro-
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "29~"; then
           rename_gpg_keys
+          remove_old_fips_preferences
       fi
 
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then

@@ -22,7 +22,6 @@ from uaclient.apt import (
     PreserveAptCfg,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
-    add_ppa_pinning,
     assert_valid_apt_credentials,
     clean_apt_files,
     compare_versions,
@@ -56,29 +55,6 @@ APT_LIST_RETURN_STRING = """\
 a/release, now 1.2+3 arch123 [i,a]
 b/release-updates, now 1.2+3 arch123 [i,a]
 """
-
-
-class TestAddPPAPinning:
-    @mock.patch("uaclient.system.get_release_info")
-    def test_write_apt_pin_file_to_apt_preferences(
-        self, m_get_release_info, tmpdir
-    ):
-        """Write proper apt pin file to specified apt_preference_file."""
-        m_get_release_info.return_value = mock.MagicMock(series="xenial")
-        pref_file = tmpdir.join("preffile").strpath
-        assert None is add_ppa_pinning(
-            pref_file,
-            repo_url="http://fakerepo",
-            origin="MYORIG",
-            priority=1003,
-        )
-        expected_pref = dedent(
-            """\
-            Package: *
-            Pin: release o=MYORIG
-            Pin-Priority: 1003\n"""
-        )
-        assert expected_pref == system.load_file(pref_file)
 
 
 class TestFindAptListFilesFromRepoSeries:
@@ -580,22 +556,16 @@ class TestCleanAptFiles:
         # Set up our tmpdir with some fake list files
         entitlement_name = "test_ent"
         repo_tmpl = tmpdir.join("source-{name}").strpath
-        pref_tmpl = tmpdir.join("pref-{name}").strpath
 
         class TestRepo(request.param):
             name = entitlement_name
             repo_list_file_tmpl = repo_tmpl
-            repo_pref_file_tmpl = pref_tmpl
             is_repo = request.param == RepoEntitlement
 
         for series in ["acidic", "base"]:
             source_name = repo_tmpl.format(name=entitlement_name)
-            pref_name = pref_tmpl.format(name=entitlement_name)
 
             with open(source_name, "w") as f:
-                f.write("")
-
-            with open(pref_name, "w") as f:
                 f.write("")
 
         return TestRepo
@@ -610,7 +580,7 @@ class TestCleanAptFiles:
 
         clean_apt_files(_entitlements=m_entitlements)
 
-        assert 2 == m_ensure_file_absent.call_count
+        assert 1 == m_ensure_file_absent.call_count
 
     def test_files_for_all_series_removed(self, mock_apt_entitlement, tmpdir):
         m_entitlements = mock.Mock()
@@ -621,9 +591,7 @@ class TestCleanAptFiles:
         if mock_apt_entitlement.is_repo:
             assert [] == tmpdir.listdir()
         else:
-            assert sorted(
-                [tmpdir.join("source-test_ent"), tmpdir.join("pref-test_ent")]
-            ) == sorted(tmpdir.listdir())
+            assert [tmpdir.join("source-test_ent")] == tmpdir.listdir()
 
     def test_other_files_not_removed(self, mock_apt_entitlement, tmpdir):
         other_filename = "other_file-acidic"
@@ -640,7 +608,6 @@ class TestCleanAptFiles:
             assert sorted(
                 [
                     tmpdir.join("source-test_ent"),
-                    tmpdir.join("pref-test_ent"),
                     tmpdir.join(other_filename),
                 ]
             ) == sorted(tmpdir.listdir())

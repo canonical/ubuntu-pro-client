@@ -156,9 +156,8 @@ class TestCommonCriteriaEntitlementEnable:
         entitlement = CommonCriteriaEntitlement(cfg, allow_beta=True)
 
         with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
-            with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
-                with mock.patch(M_REPOPATH + "exists", side_effect=exists):
-                    assert (True, None) == entitlement.enable()
+            with mock.patch(M_REPOPATH + "exists", side_effect=exists):
+                assert (True, None) == entitlement.enable()
 
         add_apt_calls = [
             mock.call(
@@ -224,8 +223,6 @@ class TestCommonCriteriaEntitlementEnable:
         )
 
         assert add_apt_calls == m_add_apt.call_args_list
-        # No apt pinning for cc
-        assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert 1 == m_should_reboot.call_count
         assert 1 == m_apt_cache_policy.call_count
