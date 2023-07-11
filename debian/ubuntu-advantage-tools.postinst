@@ -395,6 +395,15 @@ rename_gpg_keys() {
     fi
 }
 
+pin_esm_repos() {
+    if check_service_is_enabled esm-infra; then
+        echo "Package: *\nPin: release o=UbuntuESM\nPin-Priority: 510" > /etc/apt/preferences.d/ubuntu-esm-infra
+    fi
+    if check_service_is_enabled esm-apps; then
+        echo "Package: *\nPin: release o=UbuntuESMApps\nPin-Priority: 510" > /etc/apt/preferences.d/ubuntu-esm-apps
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -491,6 +500,7 @@ case "$1" in
       # Rename the gpg keys to -pro-
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "29~"; then
           rename_gpg_keys
+          pin_esm_repos
       fi
 
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
