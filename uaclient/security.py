@@ -92,17 +92,21 @@ class FixStatus(enum.Enum):
     """
 
     class _Value:
-        def __init__(self, value):
+        def __init__(self, value: int, msg: str):
             self.value = value
+            self.msg = msg
 
-    SYSTEM_NON_VULNERABLE = _Value(0)
-    SYSTEM_NOT_AFFECTED = _Value(0)
-    SYSTEM_STILL_VULNERABLE = _Value(1)
-    SYSTEM_VULNERABLE_UNTIL_REBOOT = _Value(2)
+    SYSTEM_NON_VULNERABLE = _Value(0, "fixed")
+    SYSTEM_NOT_AFFECTED = _Value(0, "not-affected")
+    SYSTEM_STILL_VULNERABLE = _Value(1, "still-affected")
+    SYSTEM_VULNERABLE_UNTIL_REBOOT = _Value(2, "affected-until-reboot")
 
     @property
     def exit_code(self):
         return self.value.value
+
+    def __str__(self):
+        return self.value.msg
 
 
 FixResult = NamedTuple(
@@ -816,7 +820,7 @@ def fix_security_issue_id(
             if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
-                )
+                ).msg
             raise exceptions.UserFacingError(msg)
 
         print(cve.get_url_header())
@@ -839,7 +843,7 @@ def fix_security_issue_id(
             if e.code == 404:
                 msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
-                )
+                ).msg
             raise exceptions.UserFacingError(msg)
 
         print(usn.get_url_header())

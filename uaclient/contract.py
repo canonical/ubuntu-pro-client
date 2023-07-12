@@ -411,6 +411,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def _get_activity_info(self):
         """Return a dict of activity info data for contract requests"""
+
         machine_info = {
             "distribution": system.get_release_info().distribution,
             "kernel": system.get_kernel_info().uname_release,
