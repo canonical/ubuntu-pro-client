@@ -526,3 +526,9 @@ class ProxyAuthenticationFailed(UserFacingError):
     def __init__(self) -> None:
         msg = messages.PROXY_AUTH_FAIL
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class SecurityIssueNotFound(UserFacingError):
+    def __init__(self, issue_id: str):
+        msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(issue_id=issue_id)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
