@@ -73,7 +73,6 @@ Found error: {error} when reading json file: {file_path}"""
 
 SECURITY_FIX_ATTACH_PROMPT = """\
 Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel"""
-SECURITY_FIX_NOT_FOUND_ISSUE = "Error: {issue_id} not found."
 SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
 SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
@@ -1440,4 +1439,27 @@ Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`\
 LANDSCAPE_CONFIG_FAILED = NamedMessage(
     "landscape-config-failed",
     """landscape-config command failed""",
+)
+
+API_ERROR_ARGS_AND_DATA_TOGETHER = NamedMessage(
+    "api-error-args-and-data-together",
+    "Cannot provide both --args and --data at the same time",
+)
+
+API_JSON_DATA_FORMAT_ERROR = FormattedNamedMessage(
+    "api-json-data-format-error",
+    "Error parsing API json data parameter:\n{data}",
+)
+
+INVALID_SECURITY_ISSUE = FormattedNamedMessage(
+    "invalid-security-issue",
+    """\
+Error: issue "{issue_id}" is not recognized.\n
+CVE should follow the pattern CVE-yyyy-nnn.\n
+USN should follow the pattern USN-nnnn.""",
+)
+
+SECURITY_FIX_NOT_FOUND_ISSUE = FormattedNamedMessage(
+    "security-fix-not-found-issue",
+    "Error: {issue_id} not found.",
 )
