@@ -1242,7 +1242,7 @@ class TestHandleAdditionalSnaps:
                                 {"name": "test1"},
                                 {
                                     "name": "test2",
-                                    "classic_confinement_support": True,
+                                    "classicConfinementSupport": True,
                                 },
                                 {"name": "test3"},
                             ]

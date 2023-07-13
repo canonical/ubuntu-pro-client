@@ -515,7 +515,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 snap.get_snap_info(snap_name)
             except exceptions.SnapNotInstalledError:
                 classic_confinement_support = snap_pkg.get(
-                    "classic_confinement_support", False
+                    "classicConfinementSupport", False
                 )
 
                 snap.install_snap(
