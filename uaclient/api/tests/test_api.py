@@ -9,6 +9,7 @@ from uaclient.exceptions import UserFacingError
 from uaclient.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
+    API_JSON_DATA_FORMAT_ERROR,
     API_MISSING_ARG,
     API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
@@ -60,7 +61,7 @@ class TestAPIErrors:
 class TestAPICall:
     @mock.patch("uaclient.api.api.error_out")
     def test_invalid_endpoint(self, m_error_out, FakeConfig):
-        result = call_api("invalid_endpoint", [], cfg=FakeConfig())
+        result = call_api("invalid_endpoint", [], "", cfg=FakeConfig())
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
         arg = m_error_out.call_args[0][0]
@@ -82,7 +83,7 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-            result = call_api("example_endpoint", arguments, FakeConfig)
+            result = call_api("example_endpoint", arguments, "", FakeConfig)
 
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
@@ -110,7 +111,9 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-            result = call_api("example_endpoint", ["not=valid"], FakeConfig())
+            result = call_api(
+                "example_endpoint", ["not=valid"], "", FakeConfig()
+            )
 
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
@@ -149,7 +152,7 @@ class TestAPICall:
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api(
-                "example_endpoint", ["extra=argument"], FakeConfig()
+                "example_endpoint", ["extra=argument"], "", FakeConfig()
             )
 
         assert len(result.warnings) == 1
@@ -178,7 +181,7 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-            result = call_api("example_endpoint", arguments, cfg)
+            result = call_api("example_endpoint", arguments, "", cfg)
 
         assert isinstance(result, APIResponse)
         assert result.result == "success"
@@ -199,7 +202,7 @@ class TestAPICall:
     def test_endpoint_function_error(
         self, m_import_module, m_error_out, FakeConfig
     ):
-        mock_endpoint = mock.MagicMock()
+        mock_endpoint = mock.MagicMock(options_cls=None)
         exception = UserFacingError(
             "something is wrong", "fn-specific", {"extra": "info"}
         )
@@ -210,7 +213,7 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-            result = call_api("example_endpoint", [], FakeConfig())
+            result = call_api("example_endpoint", [], "", FakeConfig())
 
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
@@ -242,7 +245,7 @@ class TestAPICall:
         FakeConfig,
     ):
         m_environment.return_value = env_return
-        mock_endpoint = mock.MagicMock()
+        mock_endpoint = mock.MagicMock(options_cls=None)
         mock_endpoint.fn.return_value.warnings = [
             ErrorWarningObject(
                 title="there is a warning",
@@ -257,7 +260,7 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-            result = call_api("example_endpoint", [], FakeConfig())
+            result = call_api("example_endpoint", [], "", FakeConfig())
 
         assert len(result.warnings) == 1
         warning = result.warnings[0]
@@ -298,7 +301,7 @@ class TestAPICall:
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
 
-            result = call_api("example_endpoint", [], FakeConfig())
+            result = call_api("example_endpoint", [], "", FakeConfig())
 
         assert len(result.warnings) == 1
         warning = result.warnings[0]
@@ -308,3 +311,70 @@ class TestAPICall:
         )
         assert warning.code == WARN_NEW_VERSION_AVAILABLE.name
         assert warning.meta == {}
+
+    @mock.patch("uaclient.api.api.import_module")
+    def test_api_with_data_parameter(
+        self,
+        m_import_module,
+        FakeConfig,
+    ):
+        m_options_cls = mock.MagicMock(
+            fields=[
+                mock.MagicMock(key="test"),
+            ]
+        )
+        mock_endpoint = mock.MagicMock(options_cls=m_options_cls)
+        mock_endpoint_fn = mock.MagicMock()
+        mock_endpoint.fn = mock_endpoint_fn
+
+        m_import_module.return_value.endpoint = mock_endpoint
+        data = '{"test": ["1", "2"]}'
+        cfg = FakeConfig()
+
+        with mock.patch(
+            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+        ):
+            result = call_api("example_endpoint", [], data, cfg)
+
+        assert isinstance(result, APIResponse)
+        assert result.result == "success"
+        assert result.data.attributes == mock_endpoint_fn.return_value
+        assert mock_endpoint_fn.call_count == 1
+        assert m_options_cls.from_dict.call_args_list == [
+            mock.call({"test": ["1", "2"]})
+        ]
+        assert mock_endpoint_fn.call_args_list == [
+            mock.call(m_options_cls.from_dict.return_value, cfg)
+        ]
+
+    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.api.import_module")
+    def test_endpoint_function_error_with_invalid_data(
+        self, m_import_module, m_error_out, FakeConfig
+    ):
+        m_options_cls = mock.MagicMock(
+            fields=[
+                mock.MagicMock(key="test"),
+            ]
+        )
+        mock_endpoint = mock.MagicMock(options_cls=m_options_cls)
+
+        data = "{"
+        exception = APIError(
+            msg=API_JSON_DATA_FORMAT_ERROR.format(data=data).msg,
+            msg_code=API_JSON_DATA_FORMAT_ERROR.name,
+        )
+        mock_endpoint.fn.side_effect = exception
+
+        m_import_module.return_value.endpoint = mock_endpoint
+
+        with mock.patch(
+            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+        ):
+            result = call_api("example_endpoint", [], data, FakeConfig())
+
+        assert result == m_error_out.return_value
+        assert m_error_out.call_count == 1
+        assert isinstance(m_error_out.call_args[0][0], APIError)
+        assert m_error_out.call_args[0][0].msg == exception.msg
+        assert m_error_out.call_args[0][0].msg_code == exception.msg_code
