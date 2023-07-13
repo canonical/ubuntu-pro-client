@@ -297,6 +297,12 @@ def api_parser(parser):
         nargs="*",
         help="Options to pass to the API endpoint, formatted as key=value",
     )
+    parser.add_argument(
+        "--data",
+        dest="data",
+        default="",
+        help="arguments in JSON format to the API endpoint",
+    )
     return parser
 
 
@@ -1445,7 +1451,11 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
 
 def action_api(args, *, cfg, **kwargs):
-    result = call_api(args.endpoint_path, args.options, cfg)
+    if args.options and args.data:
+        msg = messages.API_ERROR_ARGS_AND_DATA_TOGETHER
+        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+
+    result = call_api(args.endpoint_path, args.options, args.data, cfg)
     print(result.to_json())
     return 0 if result.result == "success" else 1
 
