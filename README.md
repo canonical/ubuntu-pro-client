@@ -1,6 +1,6 @@
 <h1>
   <a href="https://ubuntu.com/pro" target="_blank">
-    <img src="./docs/_static/circle_of_friends.png" width="33"/>
+    <img src="https://raw.githubusercontent.com/canonical/ubuntu-pro-client/docs/docs/_static/circle_of_friends.png" width="33"/>
   </a>
   <br>
   Ubuntu Pro Client
