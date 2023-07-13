@@ -4,11 +4,12 @@ import textwrap
 import mock
 import pytest
 
+from uaclient import exceptions, messages
 from uaclient.cli import action_api, api_parser, get_parser, main
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: api \[-h\] \[--args \[OPTIONS .*\]\] endpoint
+usage: api \[-h\] \[--args \[OPTIONS .*\]\] \[--data DATA\] endpoint
 
 Calls the Client API endpoints.
 
@@ -19,6 +20,7 @@ positional arguments:
   -h, --help            show this help message and exit
   --args \[OPTIONS .*\](.|\n)*Options to pass to the API endpoint, formatted as(.|\n)*
                         key=value
+  --data DATA           arguments in JSON format to the API endpoint
 """  # noqa
 )
 
@@ -43,14 +45,29 @@ class TestActionAPI:
         args = mock.MagicMock()
         args.endpoint_path = "example_endpoint"
         args.options = []
+        args.data = ""
         cfg = FakeConfig()
         return_code = action_api(args, cfg=cfg)
         assert m_call_api.call_count == 1
         assert m_call_api.call_args_list == [
-            mock.call("example_endpoint", [], cfg)
+            mock.call("example_endpoint", [], "", cfg)
         ]
         assert m_call_api.return_value.to_json.call_count == 1
         assert return_code == expected_return
+
+    def test_api_error_out_if_options_and_data_are_provided(self):
+        args = mock.MagicMock()
+        args.endpoint_path = "example_endpoint"
+        args.options = ["test=123"]
+        args.data = '{"test": ["123"]}'
+
+        with pytest.raises(exceptions.UserFacingError) as e:
+            action_api(args, cfg=mock.MagicMock())
+
+        assert e.value.msg == messages.API_ERROR_ARGS_AND_DATA_TOGETHER.msg
+        assert (
+            e.value.msg_code == messages.API_ERROR_ARGS_AND_DATA_TOGETHER.name
+        )
 
 
 class TestParser:

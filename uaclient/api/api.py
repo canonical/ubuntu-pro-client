@@ -1,5 +1,6 @@
+import json
 from importlib import import_module
-from typing import Callable, List
+from typing import Any, Callable, Dict, List, Tuple
 
 from uaclient.api.data_types import APIData, APIResponse, ErrorWarningObject
 from uaclient.api.errors import APIError, error_out
@@ -8,6 +9,7 @@ from uaclient.data_types import IncorrectFieldTypeError
 from uaclient.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
+    API_JSON_DATA_FORMAT_ERROR,
     API_MISSING_ARG,
     API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
@@ -24,6 +26,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.wait.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
+    "u.pro.security.fix.cve.plan.v1",
     "u.pro.security.status.livepatch_cves.v1",
     "u.pro.security.status.reboot_required.v1",
     "u.pro.status.enabled_services.v1",
@@ -35,8 +38,76 @@ VALID_ENDPOINTS = [
 ]
 
 
+def _process_options(
+    options: List[str], fields: List[str]
+) -> Tuple[Dict[str, Any], List[ErrorWarningObject]]:
+    kwargs = {}
+    warnings = []
+
+    for option in options:
+        try:
+            k, v = option.split("=")
+        except ValueError:
+            raise APIError(
+                msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
+                msg_code=API_BAD_ARGS_FORMAT.name,
+            )
+
+        if not k or not v:
+            raise APIError(
+                msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
+                msg_code=API_BAD_ARGS_FORMAT.name,
+            )
+
+        if k not in fields:
+            warnings.append(
+                ErrorWarningObject(
+                    title=API_UNKNOWN_ARG.format(arg=k).msg,
+                    code=API_UNKNOWN_ARG.name,
+                    meta={},
+                )
+            )
+
+        kwargs[k] = v
+
+    return kwargs, warnings
+
+
+def _process_data(
+    data: str, fields: List[str]
+) -> Tuple[Dict[str, Any], List[ErrorWarningObject]]:
+    kwargs = {}
+    warnings = []
+
+    try:
+        json_data = json.loads(data)
+    except json.decoder.JSONDecodeError:
+        msg = API_JSON_DATA_FORMAT_ERROR.format(data=data)
+        raise APIError(msg=msg.msg, msg_code=msg.name)
+
+    for k, v in json_data.items():
+        if not k or not v:
+            raise APIError(
+                msg=API_BAD_ARGS_FORMAT.format(arg="{}:{}".format(k, v)).msg,
+                msg_code=API_BAD_ARGS_FORMAT.name,
+            )
+
+        if k not in fields:
+            warnings.append(
+                ErrorWarningObject(
+                    title=API_UNKNOWN_ARG.format(arg=k).msg,
+                    code=API_UNKNOWN_ARG.name,
+                    meta={},
+                )
+            )
+
+        kwargs[k] = v
+
+    return kwargs, warnings
+
+
 def call_api(
-    endpoint_path: str, options: List[str], cfg: UAConfig
+    endpoint_path: str, options: List[str], data: str, cfg: UAConfig
 ) -> APIResponse:
 
     if endpoint_path not in VALID_ENDPOINTS:
@@ -53,38 +124,17 @@ def call_api(
     option_warnings = []
 
     if endpoint.options_cls:
-        kwargs = {}
         fields = [f.key for f in endpoint.options_cls.fields]
-
-        for option in options:
-            try:
-                k, v = option.split("=")
-            except ValueError:
-                return error_out(
-                    APIError(
-                        msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
-                        msg_code=API_BAD_ARGS_FORMAT.name,
-                    )
-                )
-
-            if not k or not v:
-                return error_out(
-                    APIError(
-                        msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
-                        msg_code=API_BAD_ARGS_FORMAT.name,
-                    )
-                )
-
-            if k not in fields:
-                option_warnings.append(
-                    ErrorWarningObject(
-                        title=API_UNKNOWN_ARG.format(arg=k).msg,
-                        code=API_UNKNOWN_ARG.name,
-                        meta={},
-                    )
-                )
-
-            kwargs[k] = v
+        try:
+            if options:
+                kwargs, warnings = _process_options(options, fields)
+            elif data:
+                kwargs, warnings = _process_data(data, fields)
+            else:
+                kwargs, warnings = {}, []
+            option_warnings.extend(warnings)
+        except APIError as e:
+            return error_out(e)
 
         try:
             options = endpoint.options_cls.from_dict(kwargs)
@@ -104,7 +154,7 @@ def call_api(
             return error_out(e)
 
     else:
-        if options:
+        if options or data:
             return error_out(
                 APIError(
                     msg=API_NO_ARG_FOR_ENDPOINT.format(
