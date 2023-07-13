@@ -55,7 +55,7 @@ Feature: Enable anbox on Ubuntu
                   - name: lxd
                   - name: amc
                   - name: anbox-cloud-appliance
-                    classic_confinement_support: true
+                    classicConfinementSupport: true
         """
         And I run `pro enable anbox-cloud --access-only --assume-yes` with sudo
         Then I will see the following on stdout:
