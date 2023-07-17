@@ -271,7 +271,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "one"
@@ -317,7 +317,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "one"
@@ -339,7 +339,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "one\ntwo\nthree"
@@ -364,7 +364,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "one\ntwo\nthree"
@@ -397,7 +397,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         null
@@ -427,7 +427,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         null
@@ -458,7 +458,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         null
@@ -490,7 +490,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "one"
@@ -521,7 +521,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         null
@@ -551,7 +551,7 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         null
@@ -596,7 +596,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro to ensure continued\nsecurity coverage for your applications."
@@ -623,7 +623,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then stdout matches regexp:
         """
         "CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.\\nRenew your subscription at https:\/\/ubuntu.com\/pro to ensure continued\\nsecurity coverage for your applications.\\nYour grace period will expire in 11 days."
@@ -648,7 +648,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
@@ -677,7 +677,7 @@ Feature: APT Messages
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
-        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` with sudo
+        When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
         "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
