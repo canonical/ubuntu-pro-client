@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "required": [ "cves_data" ],
+  "properties": {
+    "cves_data": {
+      "type": "object",
+      "properties": {
+        "expected_status": {
+          "type": "string"
+        },
+        "cves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "expected_status": {
+                "type": "string"
+              },
+              "plan": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "operation": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^.*$": {
+                          "anyOf": [
+                            {"type": "string"},
+                            {"type": "array", "items": {"type": "string"}}
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "order": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              },
+              "warnings": {
+                "type": "object",
+                "properties": {
+                  "warning_type": {
+                    "type": "string"
+                  },
+                  "order": {
+                    "type": "integer"
+                  },
+                  "data": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^.*$": {
+                        "anyOf": [
+                          {"type": "string"},
+                          {"type": "array", "items": {"type": "string"}}
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

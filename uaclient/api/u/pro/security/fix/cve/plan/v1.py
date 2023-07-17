@@ -4,7 +4,7 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.fix import FixPlanResult, fix_plan
+from uaclient.fix import FixPlanResult, fix_plan_cve
 from uaclient.security import FixStatus
 
 
@@ -66,7 +66,7 @@ def _plan(options: CVEFixPlanOptions, cfg: UAConfig) -> CVESFixPlanResult:
     cves = []  # type: List[FixPlanResult]
     expected_status = ""
     for cve in options.cves:
-        cve_plan = fix_plan(cve, cfg=cfg)
+        cve_plan = fix_plan_cve(cve, cfg=cfg)
         expected_status = _get_expected_overall_status(
             expected_status, cve_plan.expected_status
         )

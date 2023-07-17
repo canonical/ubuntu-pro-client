@@ -18,7 +18,8 @@ from uaclient.fix import (
     NoOpData,
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
-    fix_plan,
+    fix_plan_cve,
+    fix_plan_usn,
 )
 from uaclient.messages import INVALID_SECURITY_ISSUE
 from uaclient.security import CVEPackageStatus, FixStatus
@@ -26,11 +27,9 @@ from uaclient.security import CVEPackageStatus, FixStatus
 
 class TestFixPlan:
     @pytest.mark.parametrize(
-        "issue_id", (("CVE-sdsa", ("USN-sadsa"), ("test"), (""), (None)))
+        "issue_id", (("CVE-sdsa"), ("test"), (""), (None))
     )
-    def test_fix_plan_invalid_security_issue(self, issue_id):
-        fix_plan(issue_id, cfg=mock.MagicMock())
-
+    def test_fix_plan_cve_invalid_security_issue(self, issue_id):
         expected_plan = FixPlanResult(
             title=issue_id,
             expected_status="error",
@@ -41,7 +40,26 @@ class TestFixPlan:
                 code=INVALID_SECURITY_ISSUE.name,
             ),
         )
-        assert expected_plan == fix_plan(issue_id, cfg=mock.MagicMock())
+        assert expected_plan == fix_plan_cve(issue_id, cfg=mock.MagicMock())
+
+    @pytest.mark.parametrize(
+        "issue_id", (("USN-sadsa"), ("test"), (""), (None))
+    )
+    def test_fix_plan_usn_invalid_security_issue(self, issue_id):
+        expected_plan = FixPlanUSNResult(
+            target_usn_plan=FixPlanResult(
+                title=issue_id,
+                expected_status="error",
+                plan=[],
+                warnings=[],
+                error=FixPlanError(
+                    msg=INVALID_SECURITY_ISSUE.format(issue_id=issue_id).msg,
+                    code=INVALID_SECURITY_ISSUE.name,
+                ),
+            ),
+            related_usns_plan=[],
+        )
+        assert expected_plan == fix_plan_usn(issue_id, cfg=mock.MagicMock())
 
     @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
     def test_fix_plan_cve_fixed_by_livepatch(
@@ -67,7 +85,7 @@ class TestFixPlan:
             error=None,
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -103,7 +121,7 @@ class TestFixPlan:
             error=None,
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -176,7 +194,7 @@ class TestFixPlan:
             error=None,
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -357,7 +375,7 @@ class TestFixPlan:
             error=None,
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -438,7 +456,7 @@ class TestFixPlan:
             ],
             error=None,
         )
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -528,7 +546,7 @@ class TestFixPlan:
             error=None,
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
@@ -538,10 +556,8 @@ class TestFixPlan:
     @mock.patch("uaclient.fix.get_affected_packages_from_usn")
     @mock.patch("uaclient.fix._get_usn_data")
     @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
     def test_fix_plan_for_usn(
         self,
-        m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_usn_data,
         m_get_affected_packages_from_usn,
@@ -549,7 +565,6 @@ class TestFixPlan:
         m_apt_compare_versions,
         m_get_pkg_candidate_version,
     ):
-        m_check_cve_fixed_by_livepatch.return_value = (None, None)
         m_query_installed_pkgs.return_value = {
             "pkg1": {
                 "bin1": "1.0",
@@ -710,7 +725,7 @@ class TestFixPlan:
             ],
         )
 
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_usn(
             issue_id="usn-1234-1", cfg=mock.MagicMock()
         )
 
@@ -781,6 +796,6 @@ class TestFixPlan:
             warnings=[],
             error=None,
         )
-        assert expected_plan == fix_plan(
+        assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )

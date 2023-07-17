@@ -531,7 +531,10 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     except exceptions.SecurityIssueNotFound as e:
         fix_plan = FixPlan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
-        return fix_plan.fix_plan
+        return FixPlanUSNResult(
+            target_usn_plan=fix_plan.fix_plan,
+            related_usns_plan=[],
+        )
 
     affected_pkg_status = get_affected_packages_from_usn(
         usn=usn, installed_packages=installed_packages
@@ -573,7 +576,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     )
 
 
-def fix_plan(issue_id: str, cfg: UAConfig):
+def fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
     if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
         fix_plan = FixPlan(title=issue_id)
         msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
@@ -581,10 +584,20 @@ def fix_plan(issue_id: str, cfg: UAConfig):
         return fix_plan.fix_plan
 
     issue_id = issue_id.upper()
+    return _fix_plan_cve(issue_id, cfg)
 
-    if "CVE" in issue_id:
-        return _fix_plan_cve(issue_id, cfg)
 
+def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
+    if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
+        fix_plan = FixPlan(title=issue_id)
+        msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
+        fix_plan.register_error(error_msg=msg.msg, error_code=msg.name)
+        return FixPlanUSNResult(
+            target_usn_plan=fix_plan.fix_plan,
+            related_usns_plan=[],
+        )
+
+    issue_id = issue_id.upper()
     return _fix_plan_usn(issue_id, cfg)
 
 
@@ -594,7 +607,7 @@ def _generate_fix_plan(
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_pkgs: Dict[str, Dict[str, str]],
     cfg: UAConfig,
-):
+) -> FixPlanResult:
     fix_plan = FixPlan(title=issue_id)
 
     count = len(affected_pkg_status)
