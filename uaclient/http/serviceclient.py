@@ -132,7 +132,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         return http.HTTPResponse(
             code=response["code"],
             headers=response.get("headers", {}),
-            body=str(response["response"]),
+            body=json.dumps(response["response"], sort_keys=True),
             json_dict=json_dict,
             json_list=json_list,
         )
