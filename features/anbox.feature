@@ -53,6 +53,7 @@ Feature: Enable anbox on Ubuntu
                 directives:
                   requiredSnaps:
                   - name: lxd
+                    channel: 5.0/stable
                   - name: amc
                   - name: anbox-cloud-appliance
                     classicConfinementSupport: true

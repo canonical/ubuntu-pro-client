@@ -155,11 +155,18 @@ def run_snapd_wait_cmd():
             raise
 
 
-def install_snap(snap: str, classic_confinement_support: bool = False):
+def install_snap(
+    snap: str,
+    channel: Optional[str] = None,
+    classic_confinement_support: bool = False,
+):
     cmd = [SNAP_CMD, "install", snap]
 
     if classic_confinement_support:
         cmd += ["--classic"]
+
+    if channel:
+        cmd += ["--channel={}".format(channel)]
 
     system.subp(
         cmd,
