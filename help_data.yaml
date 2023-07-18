@@ -1,3 +1,12 @@
+anbox-cloud:
+    help: |
+      The anbox-cloud service is not enabled by default. When the anbox-cloud
+      service is enabled, by default, the Appliance variant is enabled.
+      Enabling this service allows the Anbox Cloud charms to provision a PPA
+      with the Anbox Cloud resources on the machines where they are deployed.
+      The charms also configure the Anbox Management Service (AMS) with the
+      necessary image server credentials. To learn more about Anbox
+      Cloud, see https://anbox-cloud.io
 cc-eal:
     help: |
       Common Criteria is an Information Technology Security Evaluation standard
