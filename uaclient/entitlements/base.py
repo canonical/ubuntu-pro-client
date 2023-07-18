@@ -520,6 +520,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 classic_confinement_support = snap_pkg.get(
                     "classicConfinementSupport", False
                 )
+                channel = snap_pkg.get("channel")
 
                 event.info(
                     messages.INSTALLING_REQUIRED_SNAP_PACKAGE.format(
@@ -528,6 +529,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 )
                 snap.install_snap(
                     snap_name,
+                    channel=channel,
                     classic_confinement_support=classic_confinement_support,
                 )
 
