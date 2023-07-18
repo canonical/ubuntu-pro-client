@@ -1377,10 +1377,21 @@ Upgrading it to the latest available version.""",
 ANBOX_RUN_INIT_CMD = NamedMessage(
     "anbox-run-init-cmd",
     """\
-Please run:
+To finish setting up the Anbox Cloud Appliance, run:
 
 $ sudo anbox-cloud-appliance init
 
-To finish setting up the anbox-cloud service.
+You can accept the default answers if you do not have any specific
+configuration changes.
+For more information, see
+https://anbox-cloud.io/docs/tut/installing-appliance for more information.
 """,
+)
+
+INSTALLING_REQUIRED_SNAPS = NamedMessage(
+    "installing-required-snaps", "Installing required snaps"
+)
+
+INSTALLING_REQUIRED_SNAP_PACKAGE = FormattedNamedMessage(
+    "installing-required-snap-package", "Installing required snap: {snap}"
 )
