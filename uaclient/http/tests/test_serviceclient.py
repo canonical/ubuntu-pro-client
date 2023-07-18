@@ -129,7 +129,7 @@ class Test_GetFakeResponses:
             assert http.HTTPResponse(
                 code=response["code"],
                 headers=response.get("headers", {}),
-                body=str(response["response"]),
+                body=json.dumps(response["response"], sort_keys=True),
                 json_dict=response["response"]
                 if isinstance(response["response"], dict)
                 else {},
