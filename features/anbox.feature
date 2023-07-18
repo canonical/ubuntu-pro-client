@@ -92,13 +92,20 @@ Feature: Enable anbox on Ubuntu
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
+        Installing required snaps
+        Installing required snap: amc
+        Installing required snap: anbox-cloud-appliance
+        Installing required snap: lxd
         Updating package lists
         Anbox Cloud enabled
-        Please run:
+        To finish setting up the Anbox Cloud Appliance, run:
 
         $ sudo anbox-cloud-appliance init
 
-        To finish setting up the anbox-cloud service.
+        You can accept the default answers if you do not have any specific
+        configuration changes.
+        For more information, see
+        https://anbox-cloud.io/docs/tut/installing-appliance for more information.
         """
         When I run `pro status` as non-root
         Then stdout matches regexp:
