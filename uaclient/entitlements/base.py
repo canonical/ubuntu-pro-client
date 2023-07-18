@@ -508,7 +508,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
 
-        for snap_pkg in required_snaps:
+        if required_snaps:
+            event.info(messages.INSTALLING_REQUIRED_SNAPS.msg)
+
+        for snap_pkg in sorted(required_snaps, key=lambda x: x.get("name")):
             # The name field should always be delivered by the contract side
             snap_name = snap_pkg["name"]
             try:
@@ -518,6 +521,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     "classicConfinementSupport", False
                 )
 
+                event.info(
+                    messages.INSTALLING_REQUIRED_SNAP_PACKAGE.format(
+                        snap=snap_name
+                    ).msg
+                )
                 snap.install_snap(
                     snap_name,
                     classic_confinement_support=classic_confinement_support,
