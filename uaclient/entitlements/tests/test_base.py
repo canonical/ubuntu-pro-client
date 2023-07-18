@@ -1239,7 +1239,7 @@ class TestHandleAdditionalSnaps:
                     "entitlement": {
                         "directives": {
                             "requiredSnaps": [
-                                {"name": "test1"},
+                                {"name": "test1", "channel": "latest/stable"},
                                 {
                                     "name": "test2",
                                     "classicConfinementSupport": True,
@@ -1298,6 +1298,12 @@ class TestHandleAdditionalSnaps:
             assert 2 == m_validate_proxy.call_count
             assert 1 == m_configure_snap_proxy.call_count
             assert [
-                mock.call("test1", classic_confinement_support=False),
-                mock.call("test2", classic_confinement_support=True),
+                mock.call(
+                    "test1",
+                    channel="latest/stable",
+                    classic_confinement_support=False,
+                ),
+                mock.call(
+                    "test2", channel=None, classic_confinement_support=True
+                ),
             ] == m_install_snap.call_args_list
