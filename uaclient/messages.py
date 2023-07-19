@@ -1455,8 +1455,8 @@ INVALID_SECURITY_ISSUE = FormattedNamedMessage(
     "invalid-security-issue",
     """\
 Error: issue "{issue_id}" is not recognized.\n
-CVE should follow the pattern CVE-yyyy-nnn.\n
-USN should follow the pattern USN-nnnn.""",
+CVEs should follow the pattern CVE-yyyy-nnn.\n
+USNs should follow the pattern USN-nnnn.""",
 )
 
 SECURITY_FIX_NOT_FOUND_ISSUE = FormattedNamedMessage(
