@@ -273,12 +273,12 @@ def assert_not_attached(f):
     """Decorator asserting unattached config."""
 
     @wraps(f)
-    def new_f(args, cfg):
+    def new_f(args, cfg, **kwargs):
         if _is_attached(cfg).is_attached:
             raise exceptions.AlreadyAttachedError(
                 cfg.machine_token_file.account.get("name", "")
             )
-        return f(args, cfg=cfg)
+        return f(args, cfg=cfg, **kwargs)
 
     return new_f
 
@@ -1360,7 +1360,7 @@ def action_enable(args, *, cfg, **kwargs):
 @assert_root
 @assert_attached()
 @assert_lock_file("pro detach")
-def action_detach(args, *, cfg) -> int:
+def action_detach(args, *, cfg, **kwargs) -> int:
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
@@ -1443,14 +1443,14 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     event.process_events()
 
 
-def action_api(args, *, cfg):
+def action_api(args, *, cfg, **kwargs):
     result = call_api(args.endpoint_path, args.options, cfg)
     print(result.to_json())
     return 0 if result.result == "success" else 1
 
 
 @assert_root
-def action_auto_attach(args, *, cfg: config.UAConfig) -> int:
+def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
     try:
         _full_auto_attach(
             FullAutoAttachOptions(),
@@ -1501,7 +1501,7 @@ def _magic_attach(args, *, cfg, **kwargs):
 @assert_not_attached
 @assert_root
 @assert_lock_file("pro attach")
-def action_attach(args, *, cfg):
+def action_attach(args, *, cfg, **kwargs):
     if args.token and args.attach_config:
         raise exceptions.UserFacingError(
             msg=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg,
@@ -1573,7 +1573,7 @@ def action_attach(args, *, cfg):
         return ret
 
 
-def action_collect_logs(args, *, cfg: config.UAConfig):
+def action_collect_logs(args, *, cfg: config.UAConfig, **kwargs):
     output_file = args.output or UA_COLLECT_LOGS_FILE
     with tempfile.TemporaryDirectory() as output_dir:
         actions.collect_logs(cfg, output_dir)
@@ -1711,7 +1711,7 @@ def get_parser(cfg: config.UAConfig):
     return parser
 
 
-def action_status(args, *, cfg: config.UAConfig):
+def action_status(args, *, cfg: config.UAConfig, **kwargs):
     if not cfg:
         cfg = config.UAConfig()
     show_all = args.all if args else False
@@ -1751,13 +1751,13 @@ def action_system(args, *, cfg, **kwargs):
     return 0
 
 
-def action_system_reboot_required(args, *, cfg: config.UAConfig):
+def action_system_reboot_required(args, *, cfg: config.UAConfig, **kwargs):
     result = _reboot_required(cfg)
     event.info(result.reboot_required)
     return 0
 
 
-def print_version(_args=None, cfg=None):
+def print_version(_args=None, cfg=None, **kwargs):
     print(version.get_version())
 
 
@@ -1801,7 +1801,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
 
 @assert_root
 @assert_lock_file("pro refresh")
-def action_refresh(args, *, cfg: config.UAConfig):
+def action_refresh(args, *, cfg: config.UAConfig, **kwargs):
     if args.target is None or args.target == "config":
         _action_refresh_config(args, cfg)
 
@@ -1839,7 +1839,7 @@ def configure_apt_proxy(
     )
 
 
-def action_help(args, *, cfg):
+def action_help(args, *, cfg, **kwargs):
     service = args.service
     show_all = args.all
 
@@ -2042,7 +2042,17 @@ def main(sys_argv=None):
         parser.print_usage()
         print(TRY_HELP)
         sys.exit(1)
-    args = parser.parse_args(args=cli_arguments)
+
+    # Grab everything after a "--" if present and handle separately
+    if "--" in cli_arguments:
+        double_dash_index = cli_arguments.index("--")
+        pro_cli_args = cli_arguments[:double_dash_index]
+        extra_args = cli_arguments[double_dash_index + 1 :]
+    else:
+        pro_cli_args = cli_arguments
+        extra_args = []
+
+    args = parser.parse_args(args=pro_cli_args)
     set_event_mode(args)
 
     http_proxy = cfg.http_proxy
@@ -2067,7 +2077,7 @@ def main(sys_argv=None):
 
     _warn_about_output_redirection(args)
 
-    return_value = args.action(args, cfg=cfg)
+    return_value = args.action(args, cfg=cfg, extra_args=extra_args)
 
     _warn_about_new_version(args)
 
