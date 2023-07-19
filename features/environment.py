@@ -285,16 +285,16 @@ class UAClientBehaveConfig:
                 continue
             kwargs[our_key] = value
 
+        # userdata should override environment variables
+        kwargs.update(config.userdata)
+
         # Next, sanitise the non-string options to Python types
         for key in cls.boolean_options:
             bool_value = True  # Default to True
             if key in kwargs:
-                if kwargs[key] == "0":
+                if kwargs[key] == "0" or str(kwargs[key]).lower() == "false":
                     bool_value = False
                 kwargs[key] = bool_value
-
-        # userdata should override environment variables
-        kwargs.update(config.userdata)
 
         if "install_from" in kwargs:
             kwargs["install_from"] = InstallationSource(kwargs["install_from"])
