@@ -1,0 +1,107 @@
+{
+  "definitions": {
+      "fix_plan": {
+         "type": "object",
+         "properties": {
+           "title": {
+               "type": "string"
+           },
+           "expected_status": {
+               "type": "string"
+           },
+           "plan": {
+               "type": "array",
+               "items": {
+               "type": "object",
+               "properties": {
+                   "operation": {
+                   "type": "string"
+                   },
+                   "data": {
+                     "type": "object",
+                     "patternProperties": {
+                         "^.*$": {
+                           "anyOf": [
+                              {"type": "string"},
+                              {"type": "array", "items": {"type": "string"}}
+                           ]
+                         }
+                     },
+                     "additionalProperties": false
+                   },
+                   "order": {
+                     "type": "integer"
+                   }
+               }
+               }
+           },
+           "warnings": {
+               "type": "array",
+               "items": {
+               "type": "object",
+               "properties": {
+                   "warning_type": {
+                   "type": "string"
+                   },
+                   "order": {
+                   "type": "integer"
+                   },
+                   "data": {
+                     "type": "object",
+                     "patternProperties": {
+                         "^.*$": {
+                           "anyOf": [
+                               {"type": "string"},
+                               {"type": "array", "items": {"type": "string"}}
+                           ]
+                         }
+                     },
+                     "additionalProperties": false
+                   }
+               }
+             }
+           },
+           "error": {
+               "type": [ "null", "object" ],
+               "properties": {
+                   "msg": {
+                       "type": "string"
+                   },
+                   "code": {
+                       "type": "string"
+                   }
+               }
+           }
+        }
+      }
+  },
+  "type": "object",
+  "required": [ "usns_data" ],
+  "properties": {
+    "usns_data": {
+      "type": "object",
+      "properties": {
+        "expected_status": {
+          "type": "string"
+        },
+        "usns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target_usn_plan": {
+                 "$ref": "#/definitions/fix_plan",
+                 "related_usns_plan": {
+                     "type": [ "null", "array" ],
+                     "items": {
+                         "$ref": "#/definitions/fix_plan"
+                     }
+                 }
+               }
+             }
+          }
+        }
+      }
+    }
+  }
+}
