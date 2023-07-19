@@ -31,6 +31,12 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
     assert_that(context.process.returncode, equal_to(0))
 
 
+@when("I run `{command}` `{user_spec}` and the following stdin")
+def when_i_run_command_with_long_stdin(context, command, user_spec):
+    text = process_template_vars(context, context.text)
+    when_i_run_command(context, command, user_spec, stdin=text)
+
+
 @when("I run `{command}` {user_spec}")
 @when("I run `{command}` `{user_spec}` on the `{machine_name}` machine")
 @when("I run `{command}` `{user_spec}` and stdin `{stdin}`")
