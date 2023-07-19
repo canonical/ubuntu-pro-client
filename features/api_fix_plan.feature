@@ -1,9 +1,6 @@
 Feature: Fix plan API endpoints
 
-    @series.xenial
-    @series.bionic
-    @series.focal
-    @series.jammy
+    @series.lts
     @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -20,12 +17,12 @@ Feature: Fix plan API endpoints
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-123455", "CVE-12"]}'` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"CVE-123455\\" is not recognized.\\n\\nCVE should follow the pattern CVE-yyyy-nnn.\\n\\nUSN should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "CVE-123455", "warnings": \[\]}, {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"CVE-12\\" is not recognized.\\n\\nCVE should follow the pattern CVE-yyyy-nnn.\\n\\nUSN should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "CVE-12", "warnings": \[\]}\], "expected_status": "error"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"CVE-123455\\" is not recognized.\\n\\nCVEs should follow the pattern CVE-yyyy-nnn.\\n\\nUSNs should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "CVE-123455", "warnings": \[\]}, {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"CVE-12\\" is not recognized.\\n\\nCVEs should follow the pattern CVE-yyyy-nnn.\\n\\nUSNs should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "CVE-12", "warnings": \[\]}\], "expected_status": "error"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro api u.pro.security.fix.usn.plan.v1 --data '{"usns": ["USN-123455", "USN-12"]}'` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"usns_data": {"expected_status": "error", "usns": \[{"related_usns_plan": \[\], "target_usn_plan": {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"USN-123455\\" is not recognized.\\n\\nCVE should follow the pattern CVE-yyyy-nnn.\\n\\nUSN should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "USN-123455", "warnings": \[\]}}, {"related_usns_plan": \[\], "target_usn_plan": {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"USN-12\\" is not recognized.\\n\\nCVE should follow the pattern CVE-yyyy-nnn.\\n\\nUSN should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "USN-12", "warnings": \[\]}}\]}}, "meta": {"environment_vars": \[\]}, "type": "USNFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"usns_data": {"expected_status": "error", "usns": \[{"related_usns_plan": \[\], "target_usn_plan": {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"USN-123455\\" is not recognized.\\n\\nCVEs should follow the pattern CVE-yyyy-nnn.\\n\\nUSNs should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "USN-123455", "warnings": \[\]}}, {"related_usns_plan": \[\], "target_usn_plan": {"error": {"code": "invalid-security-issue", "msg": "Error: issue \\"USN-12\\" is not recognized.\\n\\nCVEs should follow the pattern CVE-yyyy-nnn.\\n\\nUSNs should follow the pattern USN-nnnn."}, "expected_status": "error", "plan": \[\], "title": "USN-12", "warnings": \[\]}}\]}}, "meta": {"environment_vars": \[\]}, "type": "USNFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release details
