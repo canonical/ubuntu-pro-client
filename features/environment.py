@@ -455,7 +455,7 @@ def before_scenario(context: Context, scenario: Scenario):
     for step in scenario.steps:
         if step.text:
             step.text = process_template_vars(
-                context, step.text, logger_fn=logger.warn
+                context, step.text, logger_fn=logger.warn, shown=True
             )
 
 
