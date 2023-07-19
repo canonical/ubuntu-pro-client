@@ -1288,36 +1288,26 @@ class TestSubp:
         ] == m_popen.call_args_list
 
 
-class TestGetSystemdJobState:
+class TestIsSystemdServiceActive:
     @pytest.mark.parametrize(
-        "systemd_return,expected_return",
+        [
+            "subp_side_effect",
+            "expected_return",
+        ],
         (
-            ("active", True),
-            ("inactive", False),
-            ("", False),
-            (None, False),
-            ("test", False),
+            (None, True),
+            (exceptions.ProcessExecutionError("test"), False),
         ),
     )
     @mock.patch("uaclient.system.subp")
-    def test_get_systemd_job_state(
+    def test_is_systemd_unit_active(
         self,
-        subp,
-        systemd_return,
+        m_subp,
+        subp_side_effect,
         expected_return,
     ):
-        subp.return_value = (systemd_return, "")
-        assert expected_return == system.get_systemd_job_state(job_name="test")
-
-    @mock.patch("uaclient.system.subp")
-    def test_systemd_job_state_non_zero(
-        self,
-        subp,
-    ):
-        subp.side_effect = exceptions.ProcessExecutionError(
-            cmd="test", exit_code=3, stdout="inactive", stderr=""
-        )
-        assert False is system.get_systemd_job_state(job_name="test")
+        m_subp.side_effect = subp_side_effect
+        assert expected_return == system.is_systemd_unit_active("test")
 
 
 class TestGetCpuInfo:
