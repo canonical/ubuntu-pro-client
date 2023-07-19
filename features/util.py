@@ -310,7 +310,7 @@ def _replace_and_log(s, old, new, logger_fn):
 
 
 def process_template_vars(
-    context, template: str, logger_fn: Optional[Callable] = None
+    context, template: str, logger_fn: Optional[Callable] = None, shown=False
 ) -> str:
     if logger_fn is None:
         logger_fn = logging.info
@@ -370,6 +370,15 @@ def process_template_vars(
                 context.pro_config.contract_token_staging,
                 logger_fn,
             )
+        elif function_name == "config":
+            item = args[1]
+            if not shown or item not in context.pro_config.redact_options:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    getattr(context.pro_config, item),
+                    logger_fn,
+                )
         elif function_name == "stored_var":
             if context.stored_vars.get(args[1]):
                 processed_template = _replace_and_log(
