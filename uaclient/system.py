@@ -685,26 +685,22 @@ def ensure_folder_absent(folder_path: str) -> None:
         LOG.debug("Folder does not exist: %s", folder_path)
 
 
-def get_systemd_job_state(job_name: str) -> bool:
+def is_systemd_unit_active(service_name: str) -> bool:
     """
     Get if the systemd job is active in the system. Note that any status
     different from "active" will make this function return False.
     Additionally, if the system doesn't exist we will also return False
     here.
 
-    @param job_name: Name of the systemd job to look at
+    @param service_name: Name of the systemd job to look at
 
     @return: A Boolean specifying if the job is active or not
     """
     try:
-        out, _ = subp(["systemctl", "is-active", job_name])
-    except exceptions.ProcessExecutionError as e:
-        out = e.stdout
-
-    if not out:
+        subp(["systemctl", "is-active", "--quiet", service_name])
+    except exceptions.ProcessExecutionError:
         return False
-
-    return out.strip() == "active"
+    return True
 
 
 def get_user_cache_dir() -> str:

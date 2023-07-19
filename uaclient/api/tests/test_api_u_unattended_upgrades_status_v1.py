@@ -15,7 +15,10 @@ M_PATH = "uaclient.api.u.unattended_upgrades.status.v1"
 
 class TestUnattendedUpgradesGetAptDailyJob:
     @pytest.mark.parametrize(
-        "job_state_return,expected_return",
+        [
+            "systemd_unit_active_return",
+            "expected_return",
+        ],
         (
             ((True, True), True),
             ((False, True), False),
@@ -23,11 +26,14 @@ class TestUnattendedUpgradesGetAptDailyJob:
             ((False, False), False),
         ),
     )
-    @mock.patch(M_PATH + ".get_systemd_job_state")
+    @mock.patch(M_PATH + ".system.is_systemd_unit_active")
     def test_get_apt_daily_job_status(
-        self, m_systemd_job_state, job_state_return, expected_return
+        self,
+        m_is_systemd_unit_active,
+        systemd_unit_active_return,
+        expected_return,
     ):
-        m_systemd_job_state.side_effect = job_state_return
+        m_is_systemd_unit_active.side_effect = systemd_unit_active_return
         assert expected_return is api._get_apt_daily_job_status()
 
 
