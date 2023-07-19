@@ -1229,7 +1229,7 @@ class TestGetContractVariant:
         assert 1 == m_base_ent_cfg.call_count
 
 
-class TestHandleAdditionalSnaps:
+class TestHandleRequiredSnaps:
     @pytest.mark.parametrize(
         "entitlement_cfg",
         (
@@ -1262,7 +1262,7 @@ class TestHandleAdditionalSnaps:
     @mock.patch("uaclient.snap.install_snap")
     @mock.patch("uaclient.http.validate_proxy")
     @mock.patch("uaclient.snap.configure_snap_proxy")
-    def test_get_contract_variant(
+    def test_handle_required_snaps(
         self,
         m_configure_snap_proxy,
         m_validate_proxy,
