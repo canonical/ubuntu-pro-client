@@ -2,7 +2,7 @@ import datetime
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
-from uaclient import exceptions, messages
+from uaclient import exceptions, messages, system
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.exceptions import UnattendedUpgradesError
@@ -16,7 +16,6 @@ from uaclient.data_types import (
     IntDataValue,
     StringDataValue,
 )
-from uaclient.system import get_systemd_job_state
 
 UNATTENDED_UPGRADES_CONFIG_KEYS = [
     "APT::Periodic::Enable",
@@ -91,8 +90,10 @@ class UnattendedUpgradesStatusResult(DataObject, AdditionalInfo):
 
 def _get_apt_daily_job_status() -> bool:
     try:
-        apt_daily_job_enabled = get_systemd_job_state("apt-daily.timer")
-        apt_daily_upgrade_job_enabled = get_systemd_job_state(
+        apt_daily_job_enabled = system.is_systemd_unit_active(
+            "apt-daily.timer"
+        )
+        apt_daily_upgrade_job_enabled = system.is_systemd_unit_active(
             "apt-daily-upgrade.timer"
         )
         systemd_apt_timer_enabled = (
