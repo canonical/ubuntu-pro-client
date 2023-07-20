@@ -51,12 +51,8 @@ def configure_snap_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not system.which(SNAP_CMD):
-        logging.debug(
-            "Skipping configure snap proxy. {} does not exist.".format(
-                SNAP_CMD
-            )
-        )
+    if not is_snapd_installed():
+        logging.debug("Skipping configure snap proxy. snapd is not installed.")
         return
 
     if http_proxy or https_proxy:
@@ -87,11 +83,9 @@ def unconfigure_snap_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not system.which(SNAP_CMD):
+    if not is_snapd_installed():
         logging.debug(
-            "Skipping unconfigure snap proxy. {} does not exist.".format(
-                SNAP_CMD
-            )
+            "Skipping unconfigure snap proxy. snapd is not installed."
         )
         return
     system.subp(
