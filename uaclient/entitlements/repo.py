@@ -175,7 +175,7 @@ class RepoEntitlement(base.UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> Tuple[bool, bool]:
+    ) -> Tuple[bool, List[str]]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -190,11 +190,12 @@ class RepoEntitlement(base.UAEntitlement):
             True when delta operations are processed; False when noop.
             True when an apt update is required, False otherwise.
         """
-        processed, apt_update = super().process_contract_deltas(
+        processed, svcs_to_enable = super().process_contract_deltas(
             orig_access, deltas, allow_enable
         )
         if processed:
-            return True, apt_update  # Already processed parent class deltas
+            # Already processed parent class deltas
+            return True, svcs_to_enable
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
@@ -208,7 +209,7 @@ class RepoEntitlement(base.UAEntitlement):
             application_status, _ = self.application_status()
 
         if application_status == ApplicationStatus.DISABLED:
-            return False, False
+            return False, []
 
         if not self._check_apt_url_is_applied(delta_apt_url):
             logging.info(
@@ -234,7 +235,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
             self.install_packages(package_list=delta_packages)
 
-        return True, True
+        return True, []
 
     def install_packages(
         self,

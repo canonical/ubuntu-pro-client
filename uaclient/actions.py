@@ -1,7 +1,7 @@
 import glob
 import logging
 import os
-from typing import List, Optional  # noqa: F401
+from typing import List, NamedTuple, Optional, Tuple, Union  # noqa: F401
 
 from uaclient import (
     apt,
@@ -24,6 +24,8 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
+from uaclient.entitlements.base import UAEntitlement
+from uaclient.entitlements.entitlement_status import CanEnableFailure
 from uaclient.files.state_files import timer_jobs_state_file
 
 LOG = logging.getLogger("pro.actions")
@@ -101,9 +103,23 @@ def auto_attach(
     attach_with_token(cfg, token=token, allow_enable=allow_enable)
 
 
-def enable_entitlement_by_name(
+_EnableInfo = Tuple[bool, Union[None, CanEnableFailure], Optional[Exception]]
+
+_ServiceInfo = NamedTuple(
+    "_ServiceInfo",
+    [
+        ("name", str),
+        ("service", UAEntitlement),
+        ("enable", _EnableInfo),
+        ("apt_update", bool),
+        ("post_enable", Optional[bool]),
+    ],
+)
+
+
+def enable_entitlements_by_name(
     cfg: config.UAConfig,
-    name: str,
+    names: List[str],
     *,
     assume_yes: bool = False,
     allow_beta: bool = False,
@@ -116,24 +132,57 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=name, variant=variant
-    )
-    entitlement = ent_cls(
-        cfg,
-        assume_yes=assume_yes,
-        allow_beta=allow_beta,
-        called_name=name,
-        access_only=access_only,
-    )
-    ent_ret, reason, apt_update = entitlement.enable()
-    if not ent_ret:
-        return ent_ret, reason
-    if apt_update:
+    do_apt_update = False
+    services_info = []
+    for name in names:
+        ent_cls = entitlements.entitlement_factory(
+            cfg=cfg, name=name, variant=variant
+        )
+        svc = ent_cls(
+            cfg,
+            assume_yes=assume_yes,
+            allow_beta=allow_beta,
+            called_name=name,
+            access_only=access_only,
+        )
+        enable_info = None  # type: _EnableInfo  # type: ignore
+        try:
+            ent_ret, reason, apt_update = svc.enable()
+            enable_info = (ent_ret, reason, None)
+        except Exception as e:
+            enable_info = (False, None, e)
+            apt_update = False
+        services_info.append(
+            _ServiceInfo(name, svc, enable_info, apt_update, None)
+        )
+        if not ent_ret:
+            return ent_ret, reason
+        do_apt_update |= apt_update
+
+    apt_exception = None
+    if do_apt_update:
         event.info(messages.APT_UPDATING_LISTS)
-        apt.run_apt_update_command()
-    entitlement.post_enable()
-    return ent_ret, reason
+        try:
+            apt.run_apt_update_command()
+        except Exception as e:
+            apt_exception = e
+
+    for svc_info in services_info:
+        exception = svc_info.enable[2]
+        # Do not post_enable a svc that failed during enable.
+        if svc_info.apt_update and apt_exception is not None:
+            exception = exception or apt_exception
+        if exception is None and svc_info.enable[0]:
+            try:
+                svc_info.service.post_enable()
+            except Exception as e:
+                exception = e
+        yield (
+            svc_info.name,
+            svc_info.enable[0],
+            svc_info.enable[1],
+            exception,
+        )
 
 
 def status(

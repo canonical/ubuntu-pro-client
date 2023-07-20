@@ -36,11 +36,13 @@ def _enable_services_by_name(
     cfg: UAConfig, services: List[str], allow_beta: bool
 ) -> List[Tuple[str, messages.NamedMessage]]:
     failed_services = []
-    for name in order_entitlements_for_enabling(cfg, services):
+    found = order_entitlements_for_enabling(cfg, services)
+    for name, ent_ret, reason, ex in actions.enable_entitlements_by_name(
+        cfg, found, assume_yes=True, allow_beta=allow_beta
+    ):
         try:
-            ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg, name, assume_yes=True, allow_beta=allow_beta
-            )
+            if ex is not None:
+                raise ex
         except exceptions.UserFacingError as e:
             failed_services.append(
                 (name, messages.NamedMessage(e.msg_code or "unknown", e.msg))

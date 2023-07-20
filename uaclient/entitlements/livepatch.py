@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
     event_logger,
@@ -254,7 +254,7 @@ class LivepatchEntitlement(UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> Tuple[bool, bool]:
+    ) -> Tuple[bool, List[str]]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -269,11 +269,12 @@ class LivepatchEntitlement(UAEntitlement):
             True when delta operations are processed; False when noop.
             True when an apt update is required, False otherwise.
         """
-        processed, apt_update = super().process_contract_deltas(
+        processed, svcs_to_enable = super().process_contract_deltas(
             orig_access, deltas, allow_enable
         )
         if processed:
-            return True, apt_update  # Already processed parent class deltas
+            # Already processed parent class deltas
+            return True, svcs_to_enable
 
         delta_entitlement = deltas.get("entitlement", {})
         process_enable_default = delta_entitlement.get("obligations", {}).get(
@@ -281,13 +282,13 @@ class LivepatchEntitlement(UAEntitlement):
         )
 
         if process_enable_default:
-            enable_success, _, apt_update = self.enable()
-            return enable_success, apt_update
+            svcs_to_enable.append(self.name)
+            return False, svcs_to_enable
 
         application_status, _ = self.application_status()
         if application_status == ApplicationStatus.DISABLED:
             # only operate on changed directives when ACTIVE
-            return False, False
+            return False, []
         delta_directives = delta_entitlement.get("directives", {})
         supported_deltas = set(["caCerts", "remoteServer"])
         process_directives = bool(
@@ -301,9 +302,9 @@ class LivepatchEntitlement(UAEntitlement):
                     process_directives=process_directives,
                     process_token=process_token,
                 ),
-                True,
+                [],
             )
-        return True, True
+        return True, []
 
 
 def process_config_directives(cfg):

@@ -1114,7 +1114,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
-    ) -> Tuple[bool, bool]:
+    ) -> Tuple[bool, List[str]]:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -1130,9 +1130,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True when an apt update is required, False otherwise.
         :raise: UserFacingError when auto-enable fails unexpectedly.
         """
+        svcs_to_enable = []  # type: List[str]
         if not deltas:
             # We processed all deltas that needed processing
-            return True, False
+            return True, svcs_to_enable
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
@@ -1172,7 +1173,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
             self.cfg.delete_cache_key("machine-access-{}".format(self.name))
-            return True, False
+            return True, svcs_to_enable
 
         resourceToken = orig_access.get("resourceToken")
         if not resourceToken:
@@ -1185,19 +1186,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if enable_by_default:
             self.allow_beta = True
 
+        # TODO: Pass in services that are going to be enabled
         can_enable, _ = self.can_enable()
         if can_enable and enable_by_default:
-            apt_update = False
             if allow_enable:
+                # TODO: message
                 msg = messages.ENABLE_BY_DEFAULT_TMPL.format(name=self.name)
 
-                event.info(msg, file_type=sys.stderr)
-                _, _, apt_update = self.enable()
+                # event.info(msg, file_type=sys.stderr)
+                svcs_to_enable.append(self.name)
             else:
                 msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
                     name=self.name
                 )
                 event.info(msg, file_type=sys.stderr)
-            return True, apt_update
+            return True, svcs_to_enable
 
-        return False, False
+        return False, svcs_to_enable

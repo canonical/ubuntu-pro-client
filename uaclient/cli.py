@@ -1297,16 +1297,17 @@ def action_enable(args, *, cfg, **kwargs):
         names, cfg
     )
     ret = True
-    for ent_name in entitlements_found:
+    for ent_name, ent_ret, reason, e in actions.enable_entitlements_by_name(
+        cfg,
+        entitlements_found,
+        assume_yes=args.assume_yes,
+        allow_beta=args.beta,
+        access_only=access_only,
+        variant=variant,
+    ):
         try:
-            ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg,
-                ent_name,
-                assume_yes=args.assume_yes,
-                allow_beta=args.beta,
-                access_only=access_only,
-                variant=variant,
-            )
+            if e is not None:
+                raise e
             ua_status.status(cfg=cfg)  # Update the status cache
 
             if (
@@ -1531,10 +1532,19 @@ def action_attach(args, *, cfg):
             found, not_found = get_valid_entitlement_names(
                 enable_services_override, cfg
             )
-            for name in found:
-                ent_ret, reason = actions.enable_entitlement_by_name(
-                    cfg, name, assume_yes=True, allow_beta=True
-                )
+            for (
+                name,
+                ent_ret,
+                reason,
+                ex,
+            ) in actions.enable_entitlements_by_name(
+                cfg,
+                found,
+                assume_yes=True,
+                allow_beta=True,
+            ):
+                if ex is not None:
+                    raise ex
                 if not ent_ret:
                     ret = 1
                     if (
