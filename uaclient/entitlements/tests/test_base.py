@@ -1255,7 +1255,6 @@ class TestHandleRequiredSnaps:
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement._base_entitlement_cfg"
     )
-    @mock.patch("uaclient.system.which", return_value=True)
     @mock.patch("uaclient.snap.is_snapd_installed", return_value=True)
     @mock.patch("uaclient.snap.run_snapd_wait_cmd")
     @mock.patch("uaclient.snap.get_snap_info")
@@ -1270,7 +1269,6 @@ class TestHandleRequiredSnaps:
         m_get_snap_info,
         m_run_snapd_wait_cmd,
         m_is_snapd_installed,
-        m_which,
         m_base_ent_cfg,
         entitlement_cfg,
         concrete_entitlement_factory,
@@ -1286,13 +1284,11 @@ class TestHandleRequiredSnaps:
         assert entitlement.handle_required_snaps()
 
         if not entitlement_cfg:
-            assert 0 == m_which.call_count
             assert 0 == m_is_snapd_installed.call_count
             assert 0 == m_run_snapd_wait_cmd.call_count
             assert 0 == m_validate_proxy.call_count
             assert 0 == m_configure_snap_proxy.call_count
         else:
-            assert 1 == m_which.call_count
             assert 1 == m_is_snapd_installed.call_count
             assert 1 == m_run_snapd_wait_cmd.call_count
             assert 2 == m_validate_proxy.call_count
