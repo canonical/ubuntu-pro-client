@@ -15,54 +15,56 @@ from uaclient.snap import (
 
 
 class TestConfigureSnapProxy:
-    @pytest.mark.parametrize(
-        "http_proxy,https_proxy,retry_sleeps",
-        (
-            ("http_proxy", "https_proxy", [1, 2]),
-            ("http_proxy", "", None),
-            ("", "https_proxy", [1, 2]),
-            ("http_proxy", None, [1, 2]),
-            (None, "https_proxy", None),
-            (None, None, [1, 2]),
-        ),
-    )
+    @pytest.mark.parametrize("http_proxy", ("http_proxy", "", None))
+    @pytest.mark.parametrize("https_proxy", ("https_proxy", "", None))
+    @pytest.mark.parametrize("snapd_installed", (True, False))
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.system.which", return_value=True)
+    @mock.patch("uaclient.snap.is_snapd_installed")
     def test_configure_snap_proxy(
-        self, m_which, m_subp, http_proxy, https_proxy, retry_sleeps, capsys
+        self,
+        m_is_snapd_installed,
+        m_subp,
+        http_proxy,
+        https_proxy,
+        snapd_installed,
+        capsys,
     ):
+        retry_sleeps = mock.MagicMock()
+        m_is_snapd_installed.return_value = snapd_installed
         configure_snap_proxy(http_proxy, https_proxy, retry_sleeps)
         expected_calls = []
-        if http_proxy:
-            expected_calls.append(
-                mock.call(
-                    [
-                        "snap",
-                        "set",
-                        "system",
-                        "proxy.http={}".format(http_proxy),
-                    ],
-                    retry_sleeps=retry_sleeps,
+        if snapd_installed:
+            if http_proxy:
+                expected_calls.append(
+                    mock.call(
+                        [
+                            "snap",
+                            "set",
+                            "system",
+                            "proxy.http={}".format(http_proxy),
+                        ],
+                        retry_sleeps=retry_sleeps,
+                    )
                 )
-            )
 
-        if https_proxy:
-            expected_calls.append(
-                mock.call(
-                    [
-                        "snap",
-                        "set",
-                        "system",
-                        "proxy.https={}".format(https_proxy),
-                    ],
-                    retry_sleeps=retry_sleeps,
+            if https_proxy:
+                expected_calls.append(
+                    mock.call(
+                        [
+                            "snap",
+                            "set",
+                            "system",
+                            "proxy.https={}".format(https_proxy),
+                        ],
+                        retry_sleeps=retry_sleeps,
+                    )
                 )
-            )
 
         assert m_subp.call_args_list == expected_calls
+        assert 1 == m_is_snapd_installed.call_count
 
         out, _ = capsys.readouterr()
-        if http_proxy or https_proxy:
+        if snapd_installed and (http_proxy or https_proxy):
             assert out.strip() == messages.SETTING_SERVICE_PROXY.format(
                 service="snap"
             )
@@ -91,32 +93,35 @@ class TestConfigureSnapProxy:
 
 
 class TestUnconfigureSnapProxy:
-    @pytest.mark.parametrize(
-        "snap_installed, protocol_type, retry_sleeps",
-        ((True, "http", None), (True, "https", [1]), (True, "http", [])),
-    )
+    @pytest.mark.parametrize("protocol_type", ("http", "https"))
+    @pytest.mark.parametrize("retry_sleeps", (None, [1], []))
+    @pytest.mark.parametrize("snapd_installed", (True, False))
     @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.system.which")
+    @mock.patch("uaclient.snap.is_snapd_installed")
     def test_unconfigure_snap_proxy(
-        self, which, subp, snap_installed, protocol_type, retry_sleeps
+        self,
+        m_snapd_installed,
+        m_subp,
+        protocol_type,
+        retry_sleeps,
+        snapd_installed,
     ):
-        if snap_installed:
-            which.return_value = "/usr/bin/snap"
+        m_snapd_installed.return_value = snapd_installed
+        subp_calls = []
+        if snapd_installed:
             subp_calls = [
                 mock.call(
                     ["snap", "unset", "system", "proxy." + protocol_type],
                     retry_sleeps=retry_sleeps,
                 )
             ]
-        else:
-            which.return_value = None
-            subp_calls = []
+
         kwargs = {"protocol_type": protocol_type}
         if retry_sleeps is not None:
             kwargs["retry_sleeps"] = retry_sleeps
         assert None is unconfigure_snap_proxy(**kwargs)
-        assert [mock.call("/usr/bin/snap")] == which.call_args_list
-        assert subp_calls == subp.call_args_list
+        assert 1 == m_snapd_installed.call_count
+        assert subp_calls == m_subp.call_args_list
 
 
 class TestSnapPackagesInstalled:

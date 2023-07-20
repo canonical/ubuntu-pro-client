@@ -87,15 +87,6 @@ class APTInstallInvalidRepoError(UserFacingError):
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
-class SnapdNotProperlyInstalledError(UserFacingError):
-    def __init__(self, snap_cmd: str, service: str) -> None:
-        msg = messages.SNAPD_NOT_PROPERLY_INSTALLED.format(
-            snap_cmd=snap_cmd, service=service
-        )
-
-        super().__init__(msg=msg.msg, msg_code=msg.name)
-
-
 class CannotInstallSnapdError(UserFacingError):
     def __init__(self) -> None:
         msg = messages.CANNOT_INSTALL_SNAPD

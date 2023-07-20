@@ -611,14 +611,6 @@ APT_INSTALL_INVALID_REPO = FormattedNamedMessage(
     "apt-install-invalid-repo", "{header_msg}APT install failed.{repo_msg}"
 )
 
-SNAPD_NOT_PROPERLY_INSTALLED = FormattedNamedMessage(
-    "snapd-not-properly-installed-for-livepatch",
-    (
-        "{snap_cmd} is present but snapd is not installed;"
-        " cannot enable {service}"
-    ),
-)
-
 CANNOT_INSTALL_SNAPD = NamedMessage(
     "cannot-install-snapd", "Failed to install snapd on the system"
 )
