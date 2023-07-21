@@ -29,10 +29,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     def _get_imds_url_response(self):
         headers = self._request_imds_v2_token_headers()
         response = http.readurl(
-            IMDS_URL.format(self._ip_address),
-            headers=headers,
-            timeout=1,
-            proxies=self.proxies,
+            IMDS_URL.format(self._ip_address), headers=headers, timeout=1
         )
         if response.code == 200:
             return response.body
@@ -80,7 +77,6 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
             method="PUT",
             headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
             timeout=1,
-            proxies=self.proxies,
         )
         if response.code == 200:
             self._api_token = response.body

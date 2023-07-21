@@ -72,7 +72,6 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             method=method,
             timeout=timeout_to_use,
             log_response_body=log_response_body,
-            proxies=self.cfg.proxies,
         )
 
     def _get_response_overlay(self, url: str):

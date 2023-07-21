@@ -42,7 +42,7 @@ def poll_for_pro_license(cfg: UAConfig):
         return
 
     try:
-        cloud = cloud_instance_factory(cfg.proxies)
+        cloud = cloud_instance_factory()
     except exceptions.CloudFactoryError:
         LOG.debug("Not on cloud, shutting down")
         return
