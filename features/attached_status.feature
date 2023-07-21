@@ -38,7 +38,6 @@ Feature: Attached status
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

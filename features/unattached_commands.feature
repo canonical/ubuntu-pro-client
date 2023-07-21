@@ -28,7 +28,6 @@ Feature: Command behaviour when unattached
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -56,8 +55,6 @@ Feature: Command behaviour when unattached
            | focal   | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
-           | kinetic | detach  |
-           | kinetic | refresh |
            | jammy   | detach  |
            | jammy   | refresh |
            | lunar   | detach  |
@@ -109,7 +106,6 @@ Feature: Command behaviour when unattached
            | bionic   | yes             |
            | focal    | yes             |
            | jammy    | yes             |
-           | kinetic  | no              |
            | lunar    | no              |
            | mantic   | no              |
 
@@ -181,8 +177,6 @@ Feature: Command behaviour when unattached
           | bionic  | disable  |
           | focal   | enable   |
           | focal   | disable  |
-          | kinetic | enable   |
-          | kinetic | disable  |
           | jammy   | enable   |
           | jammy   | disable  |
           | lunar   | enable   |
@@ -271,7 +265,6 @@ Feature: Command behaviour when unattached
           | bionic  |
           | focal   |
           | jammy   |
-          | kinetic |
           | lunar   |
           | mantic  |
 
@@ -337,6 +330,7 @@ Feature: Command behaviour when unattached
     @series.focal
     @series.jammy
     @series.lunar
+    @series.mantic
     @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
@@ -393,7 +387,6 @@ Feature: Command behaviour when unattached
           | release |
           | focal   |
           | jammy   |
-          # | kinetic | There is a very weird error on Kinetic, irrelevant to this test
           | lunar   |
           | mantic  |
 
@@ -434,7 +427,6 @@ Feature: Command behaviour when unattached
           | jammy   |
 
     @series.jammy
-    @series.kinetic
     @series.lunar
     @series.mantic
     @uses.config.machine_type.lxd-container
@@ -505,7 +497,6 @@ Feature: Command behaviour when unattached
         Examples: ubuntu release
           | release | python_version | suffix                  |
           | jammy   | python3.10     |                         |
-          | kinetic | python3.10     |                         |
           # Lunar+ has a BIG error message explaining why this is a clear user error...
           | lunar   | python3.11     | --break-system-packages |
           | mantic  | python3.11     | --break-system-packages |
@@ -602,6 +593,5 @@ Feature: Command behaviour when unattached
           | bionic  |
           | focal   |
           | jammy   |
-          | kinetic |
           | lunar   |
           | mantic  |

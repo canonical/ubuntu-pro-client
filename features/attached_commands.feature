@@ -56,7 +56,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -83,7 +82,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -291,7 +289,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -315,7 +312,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -387,7 +383,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -440,7 +435,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @series.kinetic
     @series.lunar
     @series.mantic
     @uses.config.machine_type.lxd-container
@@ -548,7 +542,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | infra-status |
            | bionic  | enabled      |
            | xenial  | enabled      |
-           | kinetic | n/a          |
            | lunar   | n/a          |
            | mantic  | n/a          |
 
@@ -773,7 +766,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

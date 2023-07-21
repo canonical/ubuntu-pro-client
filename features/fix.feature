@@ -29,7 +29,6 @@ Feature: Ua fix command behaviour
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

@@ -39,7 +39,6 @@ Feature: Pro is expected version
             | bionic  |
             | focal   |
             | jammy   |
-            | kinetic |
             | lunar   |
             | mantic  |
 
@@ -73,6 +72,5 @@ Feature: Pro is expected version
             | bionic  |
             | focal   |
             | jammy   |
-            | kinetic |
             | lunar   |
             | mantic  |
