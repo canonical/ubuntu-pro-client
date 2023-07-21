@@ -3,7 +3,7 @@ import shlex
 import subprocess
 import time
 
-from behave import then, when
+from behave import step, then, when
 from hamcrest import assert_that, equal_to
 
 from features.util import SUT, process_template_vars
@@ -90,7 +90,7 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
     assert_that(expected_return, equal_to(actual_return))
 
 
-@then("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
+@step("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
 def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
@@ -112,15 +112,6 @@ def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
 
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
-
-
-@when("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
-def when_i_verify_that_running_cmd_with_spec_exits_with_codes(
-    context, cmd_name, spec, exit_codes
-):
-    then_i_verify_that_running_cmd_with_spec_exits_with_codes(
-        context, cmd_name, spec, exit_codes
-    )
 
 
 def get_command_prefix_for_user_spec(user_spec):
