@@ -1198,3 +1198,119 @@ Feature: Proxy configuration
         Real-time kernel enabled
         A reboot is required to complete install.
         """
+
+    @series.lts
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Support HTTPS-in-HTTPS proxies
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+
+        # set up a HTTPS proxy
+        Given a `jammy` `<machine_type>` machine named `proxy`
+        When I run `apt update` `with sudo` on the `proxy` machine
+        And I apt install `openssl libssl-dev ssl-cert squid-openssl apache2-utils` on the `proxy` machine
+        And I run `openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes -out ca.crt -keyout ca.key -subj "/C=CN/ST=BJ/O=STS/CN=CA"` `with sudo` on the `proxy` machine
+        And I run `openssl genrsa -out $behave_var{machine-name proxy}.lxd.key` `with sudo` on the `proxy` machine
+        And I run `openssl req -new -key $behave_var{machine-name proxy}.lxd.key -out $behave_var{machine-name proxy}.lxd.csr -subj "/C=CN/ST=BJ/O=STS/CN=$behave_var{machine-name proxy}.lxd"` `with sudo` on the `proxy` machine
+        And I create the file `/home/ubuntu/data.ext` on the `proxy` machine with the following
+        """
+        authorityKeyIdentifier=keyid,issuer
+        basicConstraints=CA:FALSE
+        subjectAltName = @alt_names
+        [alt_names]
+        DNS.1 = $behave_var{machine-name proxy}.lxd
+        """
+        And I run `openssl x509 -req -in $behave_var{machine-name proxy}.lxd.csr -out $behave_var{machine-name proxy}.lxd.crt -sha256 -CA ca.crt -CAkey ca.key -CAcreateserial -days 3650 -extfile data.ext` `with sudo` on the `proxy` machine
+        And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
+        And I create the file `/etc/squid/squid.conf` on the `proxy` machine with the following:
+        """
+        dns_v4_first on
+        auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwordfile
+        acl topsecret proxy_auth REQUIRED
+        acl all src 0.0.0.0/0
+        http_access allow topsecret
+        http_access deny all
+        via off
+        forwarded_for delete
+        https_port 0.0.0.0:3129 cert=/home/ubuntu/$behave_var{machine-name proxy}.lxd.crt key=/home/ubuntu/$behave_var{machine-name proxy}.lxd.key
+        """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+
+        # Configure system-under-test to trust the HTTPS proxy
+        When I move `proxy` `/home/ubuntu/ca.crt` to `system-under-test` `/usr/local/share/ca-certificates/ca.crt`
+        And I run `update-ca-certificates` with sudo
+        And I run `systemctl restart snapd.service` with sudo
+
+        # error message to install pycurl
+        When I verify that running `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
+        Then I will see the following on stderr
+        """
+        To use an HTTPS proxy for HTTPS connections, please install pycurl with `apt install python3-pycurl`
+        """
+
+        When I apt install `python3-pycurl`
+
+        # error message on failed auth
+        When I verify that running `pro config set https_proxy=https://someuser:wrongpassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
+        Then I will see the following on stderr
+        """
+        Proxy authentication failed
+        """
+
+        When I run `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
+        And I run `pro config set ua_apt_https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
+
+        When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        And I attach `contract_token` with sudo and options `--no-auto-enable`
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout contains substring
+        """
+        CONNECT contracts.canonical.com:443 someuser
+        """
+        And stdout does not contain substring
+        """
+        error:transaction-end-before-headers
+        """
+
+        When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        And I run `pro enable esm-infra` with sudo
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout contains substring
+        """
+        CONNECT esm.ubuntu.com:443 someuser
+        """
+        And stdout does not contain substring
+        """
+        error:transaction-end-before-headers
+        """
+
+        # Pre-install canonical-livepatch to tell it to trust the cert
+        When I run `snap install canonical-livepatch` with sudo
+        And I run shell command `canonical-livepatch config ca-certs=@stdin < /usr/local/share/ca-certificates/ca.crt` with sudo
+
+        When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        And I run `pro enable livepatch` with sudo
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout contains substring
+        """
+        CONNECT api.snapcraft.io:443 someuser
+        """
+        And stdout does not contain substring
+        """
+        error:transaction-end-before-headers
+        """
+
+        When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        And I run `apt-get install hello` with sudo
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout contains substring
+        """
+        CONNECT esm.ubuntu.com:443 someuser
+        """
+
+        Examples: ubuntu release
+           | release | machine_type |
+           | bionic  | lxd-vm       |
+           | focal   | lxd-vm       |
+           | jammy   | lxd-vm       |
+           | mantic  | lxd-vm       |

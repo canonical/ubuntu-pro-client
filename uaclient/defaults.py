@@ -70,3 +70,5 @@ WORLD_READABLE_MODE = 0o644
 NOTICES_PERMANENT_DIRECTORY = DEFAULT_DATA_DIR + "/notices/"
 NOTICES_TEMPORARY_DIRECTORY = UAC_RUN_PATH + "notices/"
 USER_CACHE_SUBDIR = "ubuntu-pro"
+
+SSL_CERTS_PATH = "/etc/ssl/certs/ca-certificates.crt"

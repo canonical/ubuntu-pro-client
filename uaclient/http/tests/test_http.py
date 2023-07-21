@@ -1,5 +1,6 @@
 import socket
 import urllib
+from urllib.parse import urlparse
 
 import mock
 import pytest
@@ -53,8 +54,10 @@ class TestValidateProxy:
     @mock.patch("urllib.request.ProxyHandler")
     @mock.patch("urllib.request.build_opener")
     @mock.patch("urllib.request.OpenerDirector.open")
+    @mock.patch("uaclient.http._readurl_pycurl_https_in_https")
     def test_calls_open_on_valid_url(
         self,
+        m_readurl_pycurl,
         m_open,
         m_build_opener,
         m_proxy_handler,
@@ -67,13 +70,25 @@ class TestValidateProxy:
         Check that we attempt to use a valid url as a proxy
         Also check that we return the proxy value when the open call succeeds
         """
+        m_request_resp = mock.MagicMock()
         m_build_opener.return_value = urllib.request.OpenerDirector()
+        m_request.return_value = m_request_resp
+        m_readurl_pycurl.return_value = mock.MagicMock(code=200)
+
         ret = http.validate_proxy(protocol, proxy, test_url)
 
         assert [mock.call(test_url, method="HEAD")] == m_request.call_args_list
-        assert [mock.call({protocol: proxy})] == m_proxy_handler.call_args_list
-        assert 1 == m_build_opener.call_count
-        assert 1 == m_open.call_count
+
+        if protocol == "https" and urlparse(proxy).scheme == "https":
+            assert [
+                mock.call(m_request_resp, https_proxy=proxy)
+            ] == m_readurl_pycurl.call_args_list
+        else:
+            assert [
+                mock.call({protocol: proxy})
+            ] == m_proxy_handler.call_args_list
+            assert 1 == m_build_opener.call_count
+            assert 1 == m_open.call_count
 
         assert proxy == ret
 
@@ -397,3 +412,50 @@ class TestReadurl:
             url, data, headers, method, timeout
         )
         assert expected_urllib_calls == m_readurl_urllib.call_args_list
+
+
+class TestShouldUsePycurl:
+    @pytest.mark.parametrize("proxy_bypass", ((True), (False)))
+    @pytest.mark.parametrize(
+        "https_proxy,target_url,expected_return",
+        (
+            ("https://proxy:443", "https://www.test.com", True),
+            ("http://proxy:443", "https://www.test.com", False),
+            ("https://proxy:443", "http://www.test.com", False),
+        ),
+    )
+    @mock.patch("urllib.request.proxy_bypass")
+    def test_should_use_pycurl(
+        self,
+        m_proxy_bypass,
+        https_proxy,
+        target_url,
+        expected_return,
+        proxy_bypass,
+    ):
+        m_proxy_bypass.return_value = proxy_bypass
+
+        if proxy_bypass:
+            assert not http.should_use_pycurl(https_proxy, target_url)
+        else:
+            assert expected_return == http.should_use_pycurl(
+                https_proxy, target_url
+            )
+
+
+class TestHandlePycurlError:
+    @pytest.mark.parametrize(
+        "error_args,expected_exception",
+        (
+            (("PYCURL_ERROR", "test"), exceptions.PycurlError),
+            (("NON_PYCURL_ERROR", "test"), exceptions.PycurlError),
+            (
+                ("PYCURL_ERROR", "HTTP code 407 from proxy: proxy"),
+                exceptions.ProxyAuthenticationFailed,
+            ),
+        ),
+    )
+    def test_handle_pycurl_error(self, error_args, expected_exception):
+        with pytest.raises(expected_exception):
+            m_error = mock.MagicMock(args=error_args)
+            http._handle_pycurl_error(m_error, "PYCURL_ERROR")
