@@ -150,3 +150,13 @@ def when_i_set_key_val_json_file(context, key, json_value, filename):
     new_content = json.dumps(content)
 
     when_i_create_file_with_content(context, filename, text=new_content)
+
+
+@when("I move `{src_machine}` `{src_path}` to `{dest_machine}` `{dest_path}`")
+def when_i_move_file_from_one_machine_to_another(
+    context, src_machine, src_path, dest_machine, dest_path
+):
+    content = _get_file_contents(context, src_path, machine_name=src_machine)
+    when_i_create_file_with_content(
+        context, dest_path, machine_name=dest_machine, text=content
+    )
