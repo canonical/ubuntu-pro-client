@@ -1,0 +1,12 @@
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+  jobs:
+    post_checkout:
+      # Always skip on main branch.
+      # Docs are kept in separate docs and docs-devel branches.
+      - exit 183
+
