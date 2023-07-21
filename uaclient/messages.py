@@ -1391,3 +1391,16 @@ INSTALLING_REQUIRED_SNAPS = NamedMessage(
 INSTALLING_REQUIRED_SNAP_PACKAGE = FormattedNamedMessage(
     "installing-required-snap-package", "Installing required snap: {snap}"
 )
+
+PYCURL_REQUIRED = NamedMessage(
+    "pycurl-required",
+    (
+        "To use an HTTPS proxy for HTTPS connections, please install "
+        "pycurl with `apt install python3-pycurl`"
+    ),
+)
+PYCURL_ERROR = FormattedNamedMessage("pycurl-error", "PycURL Error: {e}")
+
+PROXY_AUTH_FAIL = NamedMessage(
+    "proxy-auth-fail", "Proxy authentication failed"
+)

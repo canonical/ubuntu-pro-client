@@ -508,3 +508,21 @@ class SnapdInvalidJson(UserFacingError):
             out=out,
         )
         super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class PycurlRequiredError(UserFacingError):
+    def __init__(self) -> None:
+        msg = messages.PYCURL_REQUIRED
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class PycurlError(UserFacingError):
+    def __init__(self, e) -> None:
+        msg = messages.PYCURL_ERROR.format(e=str(e))
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class ProxyAuthenticationFailed(UserFacingError):
+    def __init__(self) -> None:
+        msg = messages.PROXY_AUTH_FAIL
+        super().__init__(msg=msg.msg, msg_code=msg.name)
