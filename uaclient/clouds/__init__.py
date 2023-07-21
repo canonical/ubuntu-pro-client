@@ -1,11 +1,8 @@
 import abc
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
-    def __init__(self, proxies: Dict[str, Optional[str]]):
-        self.proxies = proxies
-
     @property
     @abc.abstractmethod
     def identity_doc(self) -> Dict[str, Any]:
