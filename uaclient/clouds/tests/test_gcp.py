@@ -19,7 +19,7 @@ M_PATH = "uaclient.clouds.gcp."
 class TestUAAutoAttachGCPInstance:
     def test_cloud_type(self):
         """cloud_type is returned as GCP."""
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         assert "gcp" == instance.cloud_type
 
     @mock.patch(M_PATH + "http.readurl")
@@ -32,14 +32,11 @@ class TestUAAutoAttachGCPInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         assert {"identityToken": "attestedWOOT!==="} == instance.identity_doc
         assert [
             mock.call(
-                TOKEN_URL,
-                headers={"Metadata-Flavor": "Google"},
-                timeout=1,
-                proxies={},
+                TOKEN_URL, headers={"Metadata-Flavor": "Google"}, timeout=1
             )
         ] == readurl.call_args_list
 
@@ -52,7 +49,7 @@ class TestUAAutoAttachGCPInstance:
     ):
         """Retries backoff before failing to get GCP.identity_doc"""
 
-        def fake_someurlerrors(url, headers, timeout, proxies):
+        def fake_someurlerrors(url, headers, timeout):
             if readurl.call_count <= fail_count:
                 return http.HTTPResponse(
                     code=700 + readurl.call_count,
@@ -71,7 +68,7 @@ class TestUAAutoAttachGCPInstance:
 
         readurl.side_effect = fake_someurlerrors
 
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         if exception:
             with pytest.raises(GCPProAccountError) as excinfo:
                 instance.identity_doc
@@ -125,7 +122,7 @@ class TestUAAutoAttachGCPInstance:
 
         load_file.side_effect = fake_load_file
 
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize(
@@ -155,9 +152,7 @@ class TestUAAutoAttachGCPInstance:
                 False,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -176,9 +171,7 @@ class TestUAAutoAttachGCPInstance:
                 True,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -197,9 +190,7 @@ class TestUAAutoAttachGCPInstance:
                 False,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -218,9 +209,7 @@ class TestUAAutoAttachGCPInstance:
                 True,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -239,9 +228,7 @@ class TestUAAutoAttachGCPInstance:
                 True,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -260,9 +247,7 @@ class TestUAAutoAttachGCPInstance:
                 True,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -281,9 +266,7 @@ class TestUAAutoAttachGCPInstance:
                 False,
                 [
                     mock.call(
-                        LICENSES_URL,
-                        headers={"Metadata-Flavor": "Google"},
-                        proxies={},
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
                     )
                 ],
             ),
@@ -304,7 +287,6 @@ class TestUAAutoAttachGCPInstance:
                     mock.call(
                         LICENSES_URL + WAIT_FOR_CHANGE,
                         headers={"Metadata-Flavor": "Google"},
-                        proxies={},
                     )
                 ],
             ),
@@ -327,7 +309,6 @@ class TestUAAutoAttachGCPInstance:
                         + WAIT_FOR_CHANGE
                         + LAST_ETAG.format(etag="existing-etag"),
                         headers={"Metadata-Flavor": "Google"},
-                        proxies={},
                     )
                 ],
             ),
@@ -348,7 +329,7 @@ class TestUAAutoAttachGCPInstance:
         expected_result,
         expected_readurl,
     ):
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         instance.etag = existing_etag
         m_readurl.return_value = http.HTTPResponse(
             code=200,
@@ -423,6 +404,6 @@ class TestUAAutoAttachGCPInstance:
         self, m_get_release_info, platform_info, expected_result
     ):
         m_get_release_info.return_value = platform_info
-        instance = UAAutoAttachGCPInstance({})
+        instance = UAAutoAttachGCPInstance()
         result = instance.should_poll_for_pro_license()
         assert expected_result == result

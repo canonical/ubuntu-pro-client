@@ -104,11 +104,20 @@ def validate_proxy(
         raise exceptions.ProxyNotWorkingError(proxy)
 
 
+_global_proxy_dict = {}
+
+
 def configure_web_proxy(
     http_proxy: Optional[str], https_proxy: Optional[str]
 ) -> None:
     """
-    Configure urllib to use http and https proxies.
+    Globally configure pro-client to use http and https proxies.
+
+    - sets global proxy configuration for urllib
+    - sets the no_proxy environment variable for the current process
+      which gets inherited for all subprocesses
+    - sets module variable for use in https-in-https pycurl requests
+      this is retrieved later using get_configured_web_proxy
 
     :param http_proxy: http proxy to be used by urllib. If None, it will
                        not be configured
@@ -141,6 +150,14 @@ def configure_web_proxy(
         proxy_handler = request.ProxyHandler(proxy_dict)
         opener = request.build_opener(proxy_handler)
         request.install_opener(opener)
+
+    LOG.debug("Setting global proxy dict", extra={"extra": proxy_dict})
+    global _global_proxy_dict
+    _global_proxy_dict = proxy_dict
+
+
+def get_configured_web_proxy() -> Dict[str, str]:
+    return _global_proxy_dict
 
 
 def _readurl_urllib(
@@ -312,7 +329,6 @@ def readurl(
     method: Optional[str] = None,
     timeout: Optional[int] = None,
     log_response_body: bool = True,
-    proxies: Dict[str, Optional[str]] = {},
 ) -> HTTPResponse:
     if data and not method:
         method = "POST"
@@ -330,7 +346,7 @@ def readurl(
         )
     )
 
-    https_proxy = proxies.get("https_proxy")
+    https_proxy = get_configured_web_proxy().get("https")
     if should_use_pycurl(https_proxy, url):
         resp = _readurl_pycurl_https_in_https(
             req, timeout=timeout, https_proxy=https_proxy

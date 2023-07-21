@@ -22,7 +22,7 @@ def should_auto_attach() -> ShouldAutoAttachResult:
 
 def _should_auto_attach(cfg: UAConfig) -> ShouldAutoAttachResult:
     try:
-        cloud_instance_factory(cfg.proxies)
+        cloud_instance_factory()
     except exceptions.CloudFactoryError:
         return ShouldAutoAttachResult(
             should_auto_attach=False,

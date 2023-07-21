@@ -51,9 +51,7 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
 
 
-def cloud_instance_factory(
-    proxies: Dict[str, Optional[str]]
-) -> clouds.AutoAttachCloudInstance:
+def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
     """
     :raises CloudFactoryError: if no cloud instance object can be constructed
     :raises CloudFactoryNoCloudError: if no cloud instance object can be
@@ -79,7 +77,7 @@ def cloud_instance_factory(
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
         raise exceptions.CloudFactoryUnsupportedCloudError(cloud_type)
-    instance = cls(proxies)
+    instance = cls()
     if not instance.is_viable:
         raise exceptions.CloudFactoryNonViableCloudError(cloud_type)
     return instance
