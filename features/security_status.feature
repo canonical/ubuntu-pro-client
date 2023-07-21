@@ -773,10 +773,11 @@ Feature: Security status command behavior
         Enable esm-apps with: pro enable esm-apps
         """
 
-    @series.kinetic
+    # Latest released non-LTS
+    @series.lunar
     @uses.config.machine_type.lxd-container
     Scenario: Run security status in an Ubuntu machine
-        Given a `kinetic` machine with ubuntu-advantage-tools installed
+        Given a `lunar` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I run `apt-get install -y ansible` with sudo
@@ -794,7 +795,7 @@ Feature: Security status command behavior
             pro security-status --help
         for a list of available options\.
 
-        Main/Restricted packages receive updates until 7/2023\.
+        Main/Restricted packages receive updates until 1/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -805,7 +806,7 @@ Feature: Security status command behavior
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
 
-        Main/Restricted packages receive updates until 7/2023\.
+        Main/Restricted packages receive updates until 1/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -836,7 +837,7 @@ Feature: Security status command behavior
             sudo apt-get update
         to get the latest package information from apt\.
 
-        Main/Restricted packages receive updates until 7/2023\.
+        Main/Restricted packages receive updates until 1/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -858,7 +859,7 @@ Feature: Security status command behavior
             sudo apt-get update
         to get the latest package information from apt\.
 
-        Main/Restricted packages receive updates until 7/2023\.
+        Main/Restricted packages receive updates until 1/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """

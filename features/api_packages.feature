@@ -35,4 +35,4 @@ Feature: Package related API endpoints
             | bionic  | libcurl4        | 7.58.0-2ubuntu3  | standard-security |
             | focal   | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
             | jammy   | libcurl4        | 7.81.0-1         | standard-security |
-            | kinetic | libcurl4        | 7.85.0-1         | standard-security |
+            | lunar   | libcurl4        | 7.88.1-8ubuntu1  | standard-updates  |

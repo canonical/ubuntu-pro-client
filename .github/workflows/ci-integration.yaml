@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'kinetic', 'lunar', 'mantic']
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'lunar', 'mantic']
     steps:
       - name: Prepare build tools
         env:
@@ -65,7 +65,7 @@ jobs:
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['bionic', 'focal', 'jammy', 'kinetic', 'lunar']
+        release: ['bionic', 'focal', 'jammy', 'lunar']
         platform: ['lxd']
         host_os: ['ubuntu-22.04']
         include:

@@ -26,7 +26,6 @@ Feature: Logs in Json Array Formatter
           | xenial  |
           | bionic  |
           | focal   |
-          | kinetic |
           | jammy   |
           | lunar   |
           | mantic  |
@@ -59,7 +58,6 @@ Feature: Logs in Json Array Formatter
           | xenial  |
           | bionic  |
           | focal   |
-          | kinetic |
           | jammy   |
           | lunar   |
           | mantic  |
@@ -87,7 +85,6 @@ Feature: Logs in Json Array Formatter
           | xenial  |
           | bionic  |
           | focal   |
-          | kinetic |
           | jammy   |
           | lunar   |
           | mantic  |

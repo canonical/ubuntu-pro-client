@@ -15,7 +15,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | bionic  |
             | focal   |
             | jammy   |
-            | kinetic |
             | lunar   |
             | mantic  |
 
@@ -331,7 +330,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | bionic  |
             | focal   |
             | jammy   |
-            | kinetic |
             | lunar   |
 
     @series.lts

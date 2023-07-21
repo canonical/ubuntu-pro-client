@@ -28,7 +28,6 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -57,6 +56,5 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
