@@ -1,12 +1,13 @@
+import io
 import json
 import logging
 import os
 import socket
 from typing import Any, Dict, List, NamedTuple, Optional
 from urllib import error, request
-from urllib.parse import urlparse
+from urllib.parse import ParseResult, urlparse
 
-from uaclient import exceptions, messages, util
+from uaclient import defaults, exceptions, messages, util
 
 UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
@@ -63,6 +64,29 @@ def validate_proxy(
         raise exceptions.ProxyInvalidUrl(proxy)
 
     req = request.Request(test_url, method="HEAD")
+
+    if protocol == "https" and urlparse(proxy).scheme == "https":
+        try:
+            response = _readurl_pycurl_https_in_https(req, https_proxy=proxy)
+        except exceptions.PycurlRequiredError:
+            raise
+        except exceptions.ProxyAuthenticationFailed:
+            raise
+        except Exception as e:
+            with util.disable_log_to_console():
+                msg = getattr(e, "reason", str(e))
+                LOG.error(
+                    messages.ERROR_USING_PROXY.format(
+                        proxy=proxy, test_url=test_url, error=msg
+                    )
+                )
+            raise exceptions.ProxyNotWorkingError(proxy)
+
+        if response.code == 200:
+            return proxy
+        else:
+            raise exceptions.ProxyNotWorkingError(proxy)
+
     proxy_handler = request.ProxyHandler({protocol: proxy})
     opener = request.build_opener(proxy_handler)
 
@@ -141,6 +165,146 @@ def _readurl_urllib(
     )
 
 
+def should_use_pycurl(https_proxy, target_url):
+    """
+    We only want to use pycurl if all of the following are true
+
+    - The target url scheme is https
+    - The target host is not in no_proxy
+    - An https_proxy is configured either via pro's config or via environment
+    - The https_proxy url scheme is https
+
+    urllib.request provides some helpful functions that we re-use here.
+
+    This function also returns the https_proxy to use, since it is calculated
+    here anyway.
+    """
+    parsed_target_url = urlparse(target_url)
+    parsed_https_proxy = _parse_https_proxy(https_proxy)
+    ret = (
+        parsed_target_url.scheme == "https"
+        and not request.proxy_bypass(parsed_target_url.hostname)
+        and parsed_https_proxy is not None
+        and parsed_https_proxy.scheme == "https"
+    )
+    LOG.debug("Should use pycurl: %r", ret)
+    return ret
+
+
+def _handle_pycurl_error(error, authentication_error_code):
+    code = None
+    msg = None
+    if len(error.args) > 0:
+        code = error.args[0]
+    if len(error.args) > 1:
+        msg = error.args[1]
+    if (
+        code == authentication_error_code
+        and msg
+        and "HTTP code 407 from proxy" in msg
+    ):
+        raise exceptions.ProxyAuthenticationFailed()
+    else:
+        raise exceptions.PycurlError(error)
+
+
+def _readurl_pycurl_https_in_https(
+    req: request.Request,
+    timeout: Optional[int] = None,
+    https_proxy: Optional[str] = None,
+) -> UnparsedHTTPResponse:
+    try:
+        import pycurl
+    except ImportError:
+        raise exceptions.PycurlRequiredError()
+
+    c = pycurl.Curl()
+
+    # Method
+    method = req.get_method().upper()
+    if method == "GET":
+        c.setopt(pycurl.HTTPGET, True)
+    elif method == "HEAD":
+        c.setopt(pycurl.NOBODY, True)
+    elif method == "POST":
+        c.setopt(pycurl.POST, True)
+        if req.data:
+            c.setopt(pycurl.COPYPOSTFIELDS, req.data)
+    else:
+        raise ValueError(
+            'HTTP method "{}" not supported in HTTPS-in-HTTPS mode'.format(
+                method
+            )
+        )
+
+    # Location
+    c.setopt(pycurl.URL, req.get_full_url())
+
+    # Headers
+    header_str_list = [
+        "{}: {}".format(name, val) for name, val in req.header_items()
+    ]
+    if len(header_str_list) > 0:
+        c.setopt(pycurl.HTTPHEADER, header_str_list)
+
+    # Behavior
+    c.setopt(pycurl.FOLLOWLOCATION, True)
+    c.setopt(pycurl.CAINFO, defaults.SSL_CERTS_PATH)
+    if timeout:
+        c.setopt(pycurl.TIMEOUT, timeout)
+
+    # Proxy
+    if https_proxy:
+        parsed_https_proxy = _parse_https_proxy(https_proxy)
+        https_proxy = (
+            parsed_https_proxy.geturl() if parsed_https_proxy else None
+        )
+        c.setopt(pycurl.PROXY, https_proxy)
+        c.setopt(pycurl.PROXYTYPE, 2)  # 2 == HTTPS
+    else:
+        with util.disable_log_to_console():
+            LOG.warning("in pycurl request function without an https proxy")
+
+    # Response handling
+    body_output = io.BytesIO()
+    c.setopt(pycurl.WRITEDATA, body_output)
+    headers = {}
+
+    def save_header(header_line):
+        header_line = header_line.decode("iso-8859-1")
+        if ":" not in header_line:
+            return
+        name_raw, value_raw = header_line.split(":", 1)
+        name = name_raw.strip().lower()
+        value = value_raw.strip()
+        headers[name] = value
+
+    c.setopt(pycurl.HEADERFUNCTION, save_header)
+
+    # Do it
+    try:
+        c.perform()
+    except pycurl.error as e:
+        _handle_pycurl_error(e, authentication_error_code=pycurl.E_RECV_ERROR)
+
+    code = int(c.getinfo(pycurl.RESPONSE_CODE))
+    body = body_output.getvalue().decode("utf-8")
+
+    c.close()
+
+    return UnparsedHTTPResponse(
+        code=code,
+        headers=headers,
+        body=body,
+    )
+
+
+def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
+    if not https_proxy:
+        https_proxy = request.getproxies().get("https")
+    return urlparse(https_proxy) if https_proxy else None
+
+
 def readurl(
     url: str,
     data: Optional[bytes] = None,
@@ -166,7 +330,13 @@ def readurl(
         )
     )
 
-    resp = _readurl_urllib(req, timeout=timeout)
+    https_proxy = proxies.get("https_proxy")
+    if should_use_pycurl(https_proxy, url):
+        resp = _readurl_pycurl_https_in_https(
+            req, timeout=timeout, https_proxy=https_proxy
+        )
+    else:
+        resp = _readurl_urllib(req, timeout=timeout)
 
     json_dict = {}
     json_list = []
