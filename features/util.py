@@ -336,6 +336,14 @@ def process_template_vars(
                     context.machines[args[1]].instance.ip,
                     logger_fn,
                 )
+        elif function_name == "machine-name":
+            if args[1] in context.machines:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.machines[args[1]].instance.name,
+                    logger_fn,
+                )
         elif function_name == "cloud":
             processed_template = _replace_and_log(
                 processed_template,
