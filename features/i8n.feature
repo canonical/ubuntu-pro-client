@@ -124,6 +124,5 @@ Feature: Pro supports multiple languages
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |

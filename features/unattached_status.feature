@@ -38,7 +38,6 @@ Feature: Unattached status
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

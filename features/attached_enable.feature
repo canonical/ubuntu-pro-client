@@ -50,7 +50,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.focal
     @series.jammy
-    @series.kinetic
     @series.lunar
     @series.mantic
     @uses.config.machine_type.lxd-container
@@ -72,7 +71,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | release | version    | full_name        |
             | focal   | 20.04 LTS  | Focal Fossa      |
             | jammy   | 22.04 LTS  | Jammy Jellyfish  |
-            | kinetic | 22.10      | Kinetic Kudu     |
             | lunar   | 23.04      | Lunar Lobster    |
             | mantic  | 23.10      | Mantic Minotaur  |
 
@@ -276,7 +274,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

@@ -13,7 +13,6 @@ Feature: Pro Install and Uninstall related tests
            | bionic  |
            | focal   |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 

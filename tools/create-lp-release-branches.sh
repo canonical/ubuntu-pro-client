@@ -54,7 +54,7 @@ do
       bionic) version=${UA_VERSION}~18.04;;
       focal) version=${UA_VERSION}~20.04;;
       jammy) version=${UA_VERSION}~22.04;;
-      kinetic) version=${UA_VERSION}~22.10;;
+      lunar) version=${UA_VERSION}~23.04;;
   esac
   dch_cmd=(dch -m -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
   if [ -z "$DO_IT" ]; then

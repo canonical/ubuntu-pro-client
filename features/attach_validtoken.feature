@@ -2,7 +2,6 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         subscription using a valid token
 
-    @series.kinetic
     @series.lunar
     @series.mantic
     @uses.config.machine_type.lxd-container
@@ -38,7 +37,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
         Examples: ubuntu release
             | release |
-            | kinetic |
             | lunar   |
             | mantic  |
 
@@ -247,7 +245,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
            | jammy   | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
 
-    @series.all
+    @series.lts
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attach command in an generic Azure Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
