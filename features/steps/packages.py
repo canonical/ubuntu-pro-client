@@ -7,14 +7,13 @@ from features.steps.shell import when_i_run_command
 from features.util import SUT
 
 
-@when("I apt install `{package_name}`")
-@when("I apt install `{package_name}` on the `{machine_name}` machine")
-def when_i_apt_install(context, package_name, machine_name=SUT):
+@when("I apt install `{package_names}`")
+@when("I apt install `{package_names}` on the `{machine_name}` machine")
+def when_i_apt_install(context, package_names, machine_name=SUT):
     when_i_run_command(
         context,
         " ".join(
             [
-                "sudo",
                 "DEBIAN_FRONTEND=noninteractive",
                 "apt-get",
                 "install",
@@ -22,7 +21,7 @@ def when_i_apt_install(context, package_name, machine_name=SUT):
                 "--allow-downgrades",
                 '-o Dpkg::Options::="--force-confdef"',
                 '-o Dpkg::Options::="--force-confold"',
-                package_name,
+                *package_names.split(" "),
             ]
         ),
         "with sudo",
