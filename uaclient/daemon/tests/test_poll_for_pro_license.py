@@ -154,7 +154,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachAWSInstance({}),
+                UAAutoAttachAWSInstance(),
                 None,
                 None,
                 None,
@@ -166,7 +166,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance({}),
+                UAAutoAttachGCPInstance(),
                 False,
                 None,
                 None,
@@ -178,7 +178,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance({}),
+                UAAutoAttachGCPInstance(),
                 True,
                 True,
                 None,
@@ -190,7 +190,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance({}),
+                UAAutoAttachGCPInstance(),
                 True,
                 exceptions.CancelProLicensePolling(),
                 None,
@@ -202,7 +202,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance({}),
+                UAAutoAttachGCPInstance(),
                 True,
                 False,
                 False,
@@ -218,7 +218,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance({}),
+                UAAutoAttachGCPInstance(),
                 True,
                 False,
                 False,
@@ -416,7 +416,7 @@ class TestPollForProLicense:
 
         m_is_config_value_true.return_value = False
         m_is_current_series_lts.return_value = True
-        m_cloud_instance_factory.return_value = UAAutoAttachGCPInstance({})
+        m_cloud_instance_factory.return_value = UAAutoAttachGCPInstance()
         m_should_poll.return_value = True
         m_is_pro_license_present.side_effect = (
             is_pro_license_present_side_effect

@@ -42,7 +42,6 @@ class TestRequestUrl:
                 method=None,
                 timeout=30,
                 log_response_body=True,
-                proxies=cfg.proxies,
             )
         ] == m_readurl.call_args_list
 
