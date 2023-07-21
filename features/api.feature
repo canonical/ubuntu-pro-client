@@ -21,7 +21,6 @@ Feature: Client behaviour for the API endpoints
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |
 
@@ -61,6 +60,5 @@ Feature: Client behaviour for the API endpoints
            | focal   |
            | xenial  |
            | jammy   |
-           | kinetic |
            | lunar   |
            | mantic  |

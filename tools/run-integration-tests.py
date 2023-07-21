@@ -13,7 +13,6 @@ SERIES_TO_VERSION = {
     "bionic": "18.04",
     "focal": "20.04",
     "jammy": "22.04",
-    "kinetic": "22.10",
     "lunar": "23.04",
     "mantic": "23.10",
 }
@@ -25,7 +24,7 @@ TOKEN_TO_ENVVAR = {
 }
 
 PLATFORM_SERIES_TESTS = {
-    "azuregeneric": ["xenial", "bionic", "focal", "jammy", "kinetic"],
+    "azuregeneric": ["xenial", "bionic", "focal", "jammy"],
     "azurepro": ["xenial", "bionic", "focal", "jammy"],
     "azurepro-fips": ["xenial", "bionic", "focal"],
     "awsgeneric": ["xenial", "bionic", "focal", "jammy"],
@@ -35,17 +34,9 @@ PLATFORM_SERIES_TESTS = {
     "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "lunar"],
     "gcppro": ["xenial", "bionic", "focal", "jammy"],
     "gcppro-fips": ["bionic", "focal"],
-    "lxd": [
-        "xenial",
-        "bionic",
-        "focal",
-        "jammy",
-        "kinetic",
-        "lunar",
-        "mantic",
-    ],
-    "vm": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar", "mantic"],
-    "upgrade": ["xenial", "bionic", "focal", "jammy", "kinetic", "lunar"],
+    "lxd": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
+    "vm": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
+    "upgrade": ["xenial", "bionic", "focal", "jammy", "lunar"],
 }
 
 

@@ -46,7 +46,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | bionic  |
           | focal   |
           | jammy   |
-          | kinetic |
           | lunar   |
           | mantic  |
 

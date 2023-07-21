@@ -141,7 +141,6 @@ Feature: Livepatch
             | release | machine_type | old_kernel_version |
             | focal   | gcp.generic  | 5.4.0-28-generic   |
 
-    @series.kinetic
     @series.lunar
     @series.mantic
     @uses.config.machine_type.any
@@ -171,6 +170,5 @@ Feature: Livepatch
         """
         Examples: ubuntu release
             | release | machine_type | pretty_name             |
-            | kinetic | lxd-vm       | 22.10 (Kinetic Kudu)    |
             | lunar   | lxd-vm       | 23.04 (Lunar Lobster)   |
             | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |

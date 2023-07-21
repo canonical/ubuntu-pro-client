@@ -688,7 +688,6 @@ Feature: APT Messages
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | kinetic | lxd-container |
           | lunar   | lxd-container |
 
     @series.xenial
@@ -720,7 +719,6 @@ Feature: APT Messages
           | focal   | azure.generic | Learn more about Ubuntu Pro on Azure at https://ubuntu.com/azure/pro             |
           | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
-    @series.kinetic
     @series.lunar
     @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
@@ -771,5 +769,4 @@ Feature: APT Messages
         """
         Examples: ubuntu release
           | release | machine_type  |
-          | kinetic | lxd-container |
           | lunar   | lxd-container |
