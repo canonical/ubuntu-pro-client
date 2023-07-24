@@ -22,6 +22,7 @@ from uaclient import (
     contract,
     defaults,
     exceptions,
+    http,
     lock,
     messages,
     upgrade_lts_contract,
@@ -124,4 +125,5 @@ if __name__ == "__main__":
     )
     cfg = config.UAConfig()
     setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
+    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     sys.exit(main(cfg=cfg))

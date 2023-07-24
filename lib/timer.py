@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
-from uaclient import defaults
+from uaclient import defaults, http
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
@@ -199,5 +199,6 @@ if __name__ == "__main__":
     LOG.propagate = False
     # The root logger should log any error to the timer log file
     setup_logging(logging.CRITICAL, logging.ERROR, log_file=cfg.timer_log_file)
+    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
     run_jobs(cfg=cfg, current_time=current_time)

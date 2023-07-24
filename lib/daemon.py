@@ -4,7 +4,7 @@ import sys
 
 from systemd.daemon import notify  # type: ignore
 
-from uaclient import defaults
+from uaclient import defaults, http
 from uaclient.config import UAConfig
 from uaclient.daemon import (
     poll_for_pro_license,
@@ -45,6 +45,7 @@ def main() -> int:
         logging.ERROR,
         cfg.daemon_log_file,
     )
+    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
     LOG.debug("daemon starting")
 
