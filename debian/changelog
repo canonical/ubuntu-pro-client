@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (29.4~22.04+previewjammyfips1) jammy; urgency=medium
+
+  * fips: support pro enable fips on jammy as a testing preview
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 25 Sep 2023 12:02:33 -0400
+
 ubuntu-advantage-tools (29.4) mantic; urgency=medium
 
   * esm: remove static config file that pin packages from esm-infra
