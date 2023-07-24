@@ -13,7 +13,7 @@ their side.
 import logging
 import sys
 
-from uaclient import defaults, messages, system
+from uaclient import defaults, http, messages, system
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
@@ -114,4 +114,5 @@ if __name__ == "__main__":
         logging.DEBUG,
         cfg.log_file,
     )
+    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     sys.exit(main(cfg))
