@@ -34,6 +34,7 @@ extensions = [
     "sphinx_design",
     "sphinxcontrib.mermaid",
     "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.jquery",
 ]
 autosectionlabel_prefix_document = True
 
@@ -63,7 +64,7 @@ myst_heading_anchors = 3
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
-html_logo = "_static/circle_of_friends.png"
+# html_logo = "_static/circle_of_friends.png"
 html_theme_options = {
     "light_css_variables": {
         "color-sidebar-background-border": "none",
@@ -96,6 +97,13 @@ html_theme_options = {
         "color-sidebar-item-background--hover": "#333",
     },
 }
+html_context = {
+    "product_page": "ubuntu.com/pro",
+    "product_tag": "_static/circle_of_friends.png",
+    "github_version": "docs",
+    "github_folder": "/docs/",
+    "github_issues": "enabled"
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -107,8 +115,10 @@ html_css_files = [
     "css/github_issue_links.css",
     "css/custom.css",
     "css/mermaid.css",
+    "css/header.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
+    "js/header-nav.js",
     "js/synced_tab_links.js",
 ]
