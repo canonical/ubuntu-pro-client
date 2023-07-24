@@ -105,8 +105,7 @@ Feature: Enable anbox on Ubuntu
 
         You can accept the default answers if you do not have any specific
         configuration changes.
-        For more information, see
-        https://anbox-cloud.io/docs/tut/installing-appliance for more information.
+        For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
         """
         When I run `pro status` as non-root
         Then stdout matches regexp:
