@@ -296,30 +296,30 @@ Feature: Command behaviour when unattached
         When I press tab twice to autocomplete the `ua enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra +livepatch +ros-updates\r
-        cis     +fips +realtime-kernel +\r
-        esm-apps +fips-updates +ros +\r
+        anbox-cloud +esm-apps +fips-updates +ros\r
+        cc-eal +esm-infra +livepatch +ros-updates\r
+        cis +fips +realtime-kernel
         """
         When I press tab twice to autocomplete the `pro enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra +livepatch +ros-updates\r
-        cis     +fips +realtime-kernel +\r
-        esm-apps +fips-updates +ros +\r
+        anbox-cloud +esm-apps +fips-updates +ros\r
+        cc-eal +esm-infra +livepatch +ros-updates\r
+        cis +fips +realtime-kernel
         """
         When I press tab twice to autocomplete the `ua disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra +livepatch +ros-updates\r
-        cis     +fips +realtime-kernel +\r
-        esm-apps +fips-updates +ros +\r
+        anbox-cloud +esm-apps +fips-updates +ros\r
+        cc-eal +esm-infra +livepatch +ros-updates\r
+        cis +fips +realtime-kernel
         """
         When I press tab twice to autocomplete the `pro disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +esm-infra +livepatch +ros-updates\r
-        cis     +fips +realtime-kernel +\r
-        esm-apps +fips-updates +ros +\r
+        anbox-cloud +esm-apps +fips-updates +ros\r
+        cc-eal +esm-infra +livepatch +ros-updates\r
+        cis +fips +realtime-kernel
         """
 
         Examples: ubuntu release
@@ -357,30 +357,30 @@ Feature: Command behaviour when unattached
         When I press tab twice to autocomplete the `ua enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +fips +realtime-kernel +usg\r
-        esm-apps +fips-updates +ros +\r
-        esm-infra +livepatch +ros-updates +\r
+        anbox-cloud +esm-infra +livepatch +ros-updates\r
+        cc-eal +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros
         """
         When I press tab twice to autocomplete the `pro enable` command
         Then stdout matches regexp:
         """
-        cc-eal  +fips +realtime-kernel +usg\r
-        esm-apps +fips-updates +ros +\r
-        esm-infra +livepatch +ros-updates +\r
+        anbox-cloud +esm-infra +livepatch +ros-updates\r
+        cc-eal +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros
         """
         When I press tab twice to autocomplete the `ua disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +fips +realtime-kernel +usg\r
-        esm-apps +fips-updates +ros +\r
-        esm-infra +livepatch +ros-updates +\r
+        anbox-cloud +esm-infra +livepatch +ros-updates\r
+        cc-eal +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros
         """
         When I press tab twice to autocomplete the `pro disable` command
         Then stdout matches regexp:
         """
-        cc-eal  +fips +realtime-kernel +usg\r
-        esm-apps +fips-updates +ros +\r
-        esm-infra +livepatch +ros-updates +\r
+        anbox-cloud +esm-infra +livepatch +ros-updates\r
+        cc-eal +fips +realtime-kernel +usg\r
+        esm-apps +fips-updates +ros
         """
 
         Examples: ubuntu release
