@@ -289,7 +289,7 @@ def get_cloud_instance(
 ) -> AutoAttachCloudInstance:
     instance = None  # type: Optional[AutoAttachCloudInstance]
     try:
-        instance = identity.cloud_instance_factory()
+        instance = identity.cloud_instance_factory(cfg.proxies)
     except exceptions.CloudFactoryError as e:
         if isinstance(e, exceptions.CloudFactoryNoCloudError):
             raise exceptions.UserFacingError(

@@ -33,7 +33,8 @@ GCP_LICENSES = {
 
 
 class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
-    def __init__(self):
+    def __init__(self, proxies: Dict[str, Optional[str]]):
+        super().__init__(proxies)
         # store ETAG
         # https://cloud.google.com/compute/docs/metadata/querying-metadata#etags  # noqa
         self.etag = None  # type: Optional[str]
@@ -44,7 +45,10 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     @util.retry(exceptions.GCPProAccountError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         response = http.readurl(
-            TOKEN_URL, headers={"Metadata-Flavor": "Google"}, timeout=1
+            TOKEN_URL,
+            headers={"Metadata-Flavor": "Google"},
+            timeout=1,
+            proxies=self.proxies,
         )
         if response.code == 200:
             return {"identityToken": response.body}
@@ -107,7 +111,11 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
             if self.etag:
                 url += LAST_ETAG.format(etag=self.etag)
 
-        response = http.readurl(url, headers={"Metadata-Flavor": "Google"})
+        response = http.readurl(
+            url,
+            headers={"Metadata-Flavor": "Google"},
+            proxies=self.proxies,
+        )
         if response.code == 200:
             license_ids = [license["id"] for license in response.json_list]
             self.etag = response.headers.get("etag")
