@@ -244,6 +244,17 @@ class UAConfig:
         state_files.user_config_file.write(self.user_config)
 
     @property
+    def proxies(self) -> Dict[str, Optional[str]]:
+        return {
+            "http_proxy": self.http_proxy,
+            "https_proxy": self.https_proxy,
+            "apt_http_proxy": self.ua_apt_http_proxy,
+            "apt_https_proxy": self.ua_apt_https_proxy,
+            "global_apt_http_proxy": self.global_apt_http_proxy,
+            "global_apt_https_proxy": self.global_apt_https_proxy,
+        }
+
+    @property
     def update_messaging_timer(self) -> int:
         val = self.user_config.update_messaging_timer
         if val is None:
@@ -519,7 +530,9 @@ class UAConfig:
             http.PROXY_VALIDATION_APT_HTTPS_URL,
         )
         http.validate_proxy(
-            "http", self.ua_apt_http_proxy, http.PROXY_VALIDATION_APT_HTTP_URL
+            "http",
+            self.ua_apt_http_proxy,
+            http.PROXY_VALIDATION_APT_HTTP_URL,
         )
         http.validate_proxy(
             "https",
@@ -530,7 +543,9 @@ class UAConfig:
             "http", self.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
         )
         http.validate_proxy(
-            "https", self.https_proxy, http.PROXY_VALIDATION_SNAP_HTTPS_URL
+            "https",
+            self.https_proxy,
+            http.PROXY_VALIDATION_SNAP_HTTPS_URL,
         )
 
         if self.global_apt_http_proxy or self.global_apt_https_proxy:
