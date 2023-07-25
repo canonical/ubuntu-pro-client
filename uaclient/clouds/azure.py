@@ -30,7 +30,10 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
         responses = {}
         for key, url in sorted(IMDS_URLS.items()):
             response = http.readurl(
-                url, headers={"Metadata": "true"}, timeout=1
+                url,
+                headers={"Metadata": "true"},
+                timeout=1,
+                proxies=self.proxies,
             )
             if response.code != 200:
                 raise exceptions.CloudMetadataError(
@@ -65,7 +68,9 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
 
         url = IMDS_URLS.get("compute", "")
         try:
-            response = http.readurl(url, headers={"Metadata": "true"})
+            response = http.readurl(
+                url, headers={"Metadata": "true"}, proxies=self.proxies
+            )
         except OSError as e:
             LOG.error(e)
             raise exceptions.CancelProLicensePolling()
