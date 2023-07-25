@@ -21,7 +21,7 @@ M_PATH = "uaclient.clouds.aws."
 
 class TestUAAutoAttachAWSInstance:
     def test_cloud_type(self):
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert "aws" == instance.cloud_type
 
     @mock.patch(M_PATH + "http.readurl")
@@ -34,7 +34,7 @@ class TestUAAutoAttachAWSInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert None is instance._get_imds_v2_token_headers(
             ip_address=IMDS_IPV4_ADDRESS
         )
@@ -46,7 +46,7 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "http.readurl")
     def test__get_imds_v2_token_headers_caches_response(self, readurl):
         """Return API token headers for IMDSv2 access. Response is cached."""
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         url = "http://169.254.169.254/latest/api/token"
         readurl.return_value = http.HTTPResponse(
             code=200,
@@ -66,6 +66,7 @@ class TestUAAutoAttachAWSInstance:
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             )
         ] == readurl.call_args_list
 
@@ -78,7 +79,9 @@ class TestUAAutoAttachAWSInstance:
     ):
         """Retry backoff before failing _get_imds_v2_token_headers."""
 
-        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
+        def fake_someurlerrors(
+            url, method=None, headers=None, timeout=1, proxies={}
+        ):
             if readurl.call_count <= fail_count:
                 return http.HTTPResponse(
                     code=700 + readurl.call_count,
@@ -96,7 +99,7 @@ class TestUAAutoAttachAWSInstance:
             )
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         if exception:
             with pytest.raises(exceptions.CloudMetadataError):
                 instance._get_imds_v2_token_headers(
@@ -130,7 +133,7 @@ class TestUAAutoAttachAWSInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
         token_url = "http://169.254.169.254/latest/api/token"
@@ -140,9 +143,13 @@ class TestUAAutoAttachAWSInstance:
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             ),
             mock.call(
-                url, headers={AWS_TOKEN_PUT_HEADER: "pkcs7WOOT!=="}, timeout=1
+                url,
+                headers={AWS_TOKEN_PUT_HEADER: "pkcs7WOOT!=="},
+                timeout=1,
+                proxies={},
             ),
         ] == readurl.call_args_list
 
@@ -155,7 +162,9 @@ class TestUAAutoAttachAWSInstance:
     ):
         """Retry backoff is attempted before failing to get AWS.identity_doc"""
 
-        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
+        def fake_someurlerrors(
+            url, method=None, headers=None, timeout=1, proxies={}
+        ):
             # due to _get_imds_v2_token_headers
             if "latest/api/token" in url:
                 return http.HTTPResponse(
@@ -182,7 +191,7 @@ class TestUAAutoAttachAWSInstance:
             )
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         if exception:
             with pytest.raises(exceptions.CloudMetadataError) as excinfo:
                 instance.identity_doc
@@ -206,7 +215,7 @@ class TestUAAutoAttachAWSInstance:
     def test_is_viable_based_on_sys_hypervisor_uuid(self, load_file, uuid):
         """Viable ec2 platform is determined by /sys/hypervisor/uuid prefix"""
         load_file.return_value = uuid
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert True is instance.is_viable
 
     @pytest.mark.parametrize(
@@ -240,7 +249,7 @@ class TestUAAutoAttachAWSInstance:
             raise AssertionError("Invalid load_file of {}".format(f_name))
 
         load_file.side_effect = fake_load_file
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -248,11 +257,13 @@ class TestUAAutoAttachAWSInstance:
     def test_identity_doc_default_to_ipv6_if_ipv4_fail(
         self, readurl, caplog_text
     ):
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
-        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
+        def fake_someurlerrors(
+            url, method=None, headers=None, timeout=1, proxies={}
+        ):
             if ipv4_address in url:
                 raise Exception("IPv4 exception")
 
@@ -282,17 +293,20 @@ class TestUAAutoAttachAWSInstance:
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             ),
             mock.call(
                 IMDS_V2_TOKEN_URL.format(ipv6_address),
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             ),
             mock.call(
                 IMDS_URL.format(ipv6_address),
                 headers={AWS_TOKEN_PUT_HEADER: "base64token=="},
                 timeout=1,
+                proxies={},
             ),
         ]
 
@@ -307,7 +321,7 @@ class TestUAAutoAttachAWSInstance:
         self, readurl, caplog_text
     ):
 
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
@@ -328,12 +342,14 @@ class TestUAAutoAttachAWSInstance:
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             ),
             mock.call(
                 IMDS_V2_TOKEN_URL.format(ipv6_address),
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
                 timeout=1,
+                proxies={},
             ),
         ]
         assert expected == readurl.call_args_list
@@ -348,11 +364,11 @@ class TestUAAutoAttachAWSInstance:
 
     def test_unsupported_should_poll_for_pro_license(self):
         """Unsupported"""
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         assert not instance.should_poll_for_pro_license()
 
     def test_unsupported_is_pro_license_present(self):
         """Unsupported"""
-        instance = UAAutoAttachAWSInstance()
+        instance = UAAutoAttachAWSInstance({})
         with pytest.raises(exceptions.InPlaceUpgradeNotSupportedError):
             instance.is_pro_license_present(wait_for_change=False)

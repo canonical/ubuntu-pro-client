@@ -148,6 +148,7 @@ def readurl(
     method: Optional[str] = None,
     timeout: Optional[int] = None,
     log_response_body: bool = True,
+    proxies: Dict[str, Optional[str]] = {},
 ) -> HTTPResponse:
     if data and not method:
         method = "POST"
