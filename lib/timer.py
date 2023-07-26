@@ -8,6 +8,9 @@ from typing import Callable, Optional
 
 from uaclient import defaults, http
 from uaclient.cli import setup_logging
+
+from systemd import journal  # type: ignore
+
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
 from uaclient.files.state_files import (
@@ -19,7 +22,12 @@ from uaclient.timer.metering import metering_enabled_resources
 from uaclient.timer.update_contract_info import update_contract_info
 from uaclient.timer.update_messaging import update_motd_messages
 
-LOG = logging.getLogger("ubuntupro.lib.timer")
+LOG = logging.getLogger("ubuntupro.timer")
+root_logger = logging.getLogger("ubuntupro")
+LOG.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client"))
+root_logger.addHandler(
+    journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client")
+)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
 UPDATE_CONTRACT_INFO_INTERVAL = 86400  # 24 hours
@@ -179,24 +187,15 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
-    setup_logging(
-        logging.DEBUG,
-        defaults.CONFIG_DEFAULTS["timer_log_file"],
-        logger=LOG,
-    )
+    LOG.setLevel(logging.DEBUG)
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
+    LOG.setLevel(logging.DEBUG)
 
-    # The ua-timer logger should log everything to its file
-    setup_logging(
-        logging.DEBUG,
-        log_file=cfg.timer_log_file,
-        logger=LOG,
-    )
     # Make sure the ua-timer logger does not generate double logging
     LOG.propagate = False
     # The root logger should log any error to the timer log file
-    setup_logging(logging.ERROR, log_file=cfg.timer_log_file)
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
+    root_logger.setLevel(logging.ERROR)
 
     run_jobs(cfg=cfg, current_time=current_time)
