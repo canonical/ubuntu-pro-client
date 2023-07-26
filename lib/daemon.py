@@ -5,47 +5,27 @@ import sys
 from systemd.daemon import notify  # type: ignore
 
 from uaclient import defaults, http
+from systemd import journal  # type: ignore
 from uaclient.config import UAConfig
-from uaclient.daemon import (
-    poll_for_pro_license,
-    retry_auto_attach,
-    setup_logging,
-)
+from uaclient.daemon import poll_for_pro_license, retry_auto_attach
 
-LOG = logging.getLogger("ubuntupro.lib.daemon")
+LOG = logging.getLogger("ubuntupro.daemon")
+root_logger = logging.getLogger("ubuntupro")
+LOG.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client"))
+root_logger.addHandler(
+    journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client")
+)
 
 
 def main() -> int:
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        defaults.CONFIG_DEFAULTS["daemon_log_file"],
-        logger=LOG,
-    )
+    LOG.setLevel(logging.DEBUG)
     cfg = UAConfig()
-    setup_logging(
-        logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG
-    )
-    # used with loggers in uaclient.daemon
-    daemon_logger = logging.getLogger("ubuntupro.daemon")
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        log_file=cfg.daemon_log_file,
-        logger=daemon_logger,
-    )
+    LOG.setLevel(logging.DEBUG)
     # The ua-daemon logger should log everything to its file
     # Make sure the ua-daemon logger does not generate double logging
     # by propagating to the root logger
     LOG.propagate = False
-    daemon_logger.propagate = False
-    # The root logger should only log errors to the daemon log file
-    setup_logging(
-        logging.CRITICAL,
-        logging.ERROR,
-        cfg.daemon_log_file,
-    )
-    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
+    root_logger.setLevel(logging.ERROR)
 
     LOG.debug("daemon starting")
 
