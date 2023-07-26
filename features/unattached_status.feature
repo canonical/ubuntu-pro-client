@@ -578,6 +578,7 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+        fips            +yes       +yes       +no           +NIST-certified core packages
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
 
