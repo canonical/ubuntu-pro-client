@@ -288,6 +288,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
+        extra_args: Optional[List[str]] = None,
     ) -> None:
         """Setup UAEntitlement instance
 
@@ -299,6 +300,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
         self.access_only = access_only
+        if extra_args is not None:
+            self.extra_args = extra_args
+        else:
+            self.extra_args = []
         self._called_name = called_name
         self._valid_service = None  # type: Optional[bool]
 
