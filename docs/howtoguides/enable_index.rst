@@ -9,5 +9,6 @@ How to enable...
    CIS <enable_cis.md>
    ESM-Infra and ESM-Apps <enable_esm_infra.md>
    FIPS <enable_fips.md>
+   Landscape <enable_landscape.rst>
    Livepatch <enable_livepatch.md>
    Real-Time Kernel <enable_realtime_kernel.md>

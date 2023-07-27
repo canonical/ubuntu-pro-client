@@ -65,6 +65,18 @@ that stream specifically on those machines.
            the `Livepatch documentation`_, or learn
            :doc:`how to enable it<howtoguides/enable_livepatch>` with ``pro``.
 
+       * **Landscape**
+
+         `Landscape`_ is the leading management and administration tool for
+         Ubuntu. It can manage up to 40,000 Ubuntu machines with a single
+         interface, and can automate security patching, as well as hardening
+         and compliance. Landscape can be `self-hosted`_ or you can use Canonical's
+         `Landscape SaaS`_ offering.
+
+         * Find out more about
+           :doc:`registering a machine with Landscape<howtoguides/enable_landscape>`
+           using ``pro``.
+
        Want more information?
 
     .. tab-item:: Security certification
@@ -280,6 +292,9 @@ constructive feedback.
 .. _Livepatch: https://ubuntu.com/security/livepatch
 .. _Livepatch documentation: https://ubuntu.com/security/livepatch/docs
 .. _list of supported kernels: https://ubuntu.com/security/livepatch/docs/livepatch/reference/kernels
+.. _Landscape: https://ubuntu.com/landscape
+.. _self-hosted: https://ubuntu.com/landscape/pricing
+.. _Landscape SaaS: https://ubuntu.com/landscape/pricing
 .. _real-time kernel: https://ubuntu.com/realtime-kernel
 .. _more information about real-time Ubuntu: https://ubuntu.com/kernel/real-time/contact-us
 .. _Landscape: https://ubuntu.com/landscape
