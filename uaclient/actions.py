@@ -133,7 +133,8 @@ def enable_entitlement_by_name(
     assume_yes: bool = False,
     allow_beta: bool = False,
     access_only: bool = False,
-    variant: str = ""
+    variant: str = "",
+    extra_args: Optional[List[str]] = None
 ):
     """
     Constructs an entitlement based on the name provided. Passes kwargs onto
@@ -150,6 +151,7 @@ def enable_entitlement_by_name(
         allow_beta=allow_beta,
         called_name=name,
         access_only=access_only,
+        extra_args=extra_args,
     )
     return entitlement.enable()
 

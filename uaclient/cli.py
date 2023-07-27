@@ -1310,6 +1310,7 @@ def action_enable(args, *, cfg, **kwargs):
                 allow_beta=args.beta,
                 access_only=access_only,
                 variant=variant,
+                extra_args=kwargs.get("extra_args"),
             )
             ua_status.status(cfg=cfg)  # Update the status cache
 

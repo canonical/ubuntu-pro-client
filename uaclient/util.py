@@ -300,6 +300,15 @@ REDACT_SENSITIVE_LOGS = [
     r"(\'token\': \')[^\']+",
     r"(\'userCode\': \')[^\']+",
     r"(\'magic_token=)[^\']+",
+    r"(--registration-key=\")[^\"]+",
+    r"(--registration-key=\')[^\']+",
+    r"(--registration-key=)[^ ]+",
+    r"(--registration-key \")[^\"]+",
+    r"(--registration-key \')[^\']+",
+    r"(--registration-key )[^\s]+",
+    r"(-p \")[^\"]+",
+    r"(-p \')[^\']+",
+    r"(-p )[^\s]+",
 ]
 
 

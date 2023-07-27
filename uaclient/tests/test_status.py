@@ -651,6 +651,8 @@ class TestStatus:
     )
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
+    @mock.patch(M_PATH + "landscape.LandscapeEntitlement.user_facing_status")
+    @mock.patch(M_PATH + "landscape.LandscapeEntitlement.contract_status")
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.user_facing_status")
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.contract_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
@@ -663,6 +665,8 @@ class TestStatus:
         m_repo_uf_status,
         m_esm_contract_status,
         m_esm_uf_status,
+        m_landscape_contract_status,
+        m_landscape_uf_status,
         m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_livepatch_status,
@@ -692,6 +696,11 @@ class TestStatus:
         m_esm_uf_status.return_value = (
             UserFacingStatus.INAPPLICABLE,
             messages.NamedMessage("test-code", "esm-apps details"),
+        )
+        m_landscape_contract_status.return_value = ContractStatus.ENTITLED
+        m_landscape_uf_status.return_value = (
+            UserFacingStatus.INAPPLICABLE,
+            messages.NamedMessage("test-code", "landscape details"),
         )
         token = {
             "availableResources": all_resources_available,
@@ -758,6 +767,7 @@ class TestStatus:
         ent_details = {
             "livepatch": "livepatch details",
             "esm-apps": "esm-apps details",
+            "landscape": "landscape details",
         }
 
         rt_variants = {
@@ -842,6 +852,8 @@ class TestStatus:
                     "variants": variants,
                 }
             )
+        print("expected")
+        print(repr(expected))
         with mock.patch(
             "uaclient.status._get_config_status"
         ) as m_get_cfg_status:

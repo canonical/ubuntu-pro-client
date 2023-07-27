@@ -190,10 +190,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | valid_services                                                                                                    |
-           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
-           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -247,9 +247,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | infra-pkg | esm-infra-url                       | msg                                                                                                                   |
-           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.all
     @uses.config.machine_type.lxd-container
@@ -488,7 +488,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stderr matches regexp:
         """
         Cannot enable unknown service 'usg'.
-        Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel.
+        Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates\.
         """
 
         Examples: cis service
