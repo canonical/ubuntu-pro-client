@@ -341,6 +341,42 @@ class TestRedactSensitiveLogs:
                 "'magic_token=SEKRET'",
                 "'magic_token=<REDACTED>'",
             ),
+            (
+                "--account-name name --registration-key=reg-key --silent",
+                "--account-name name --registration-key=<REDACTED> --silent",
+            ),
+            (
+                '--account-name name --registration-key="reg key" --silent',
+                "--account-name name --registration-key=<REDACTED> --silent",
+            ),
+            (
+                "--account-name name --registration-key='reg key' --silent",
+                "--account-name name --registration-key=<REDACTED> --silent",
+            ),
+            (
+                "--account-name name --registration-key reg-key --silent",
+                "--account-name name --registration-key <REDACTED> --silent",
+            ),
+            (
+                '--account-name name --registration-key "reg key" --silent',
+                "--account-name name --registration-key <REDACTED> --silent",
+            ),
+            (
+                "--account-name name --registration-key 'reg key' --silent",
+                "--account-name name --registration-key <REDACTED> --silent",
+            ),
+            (
+                "--account-name name -p reg-key --silent",
+                "--account-name name -p <REDACTED> --silent",
+            ),
+            (
+                '--account-name name -p "reg key" --silent',
+                "--account-name name -p <REDACTED> --silent",
+            ),
+            (
+                "--account-name name -p 'reg key' --silent",
+                "--account-name name -p <REDACTED> --silent",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):

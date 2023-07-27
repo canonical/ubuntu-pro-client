@@ -96,17 +96,19 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
     assert_that(expected_return, equal_to(actual_return))
 
 
-@step("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
-def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+@step(
+    "I verify that running `{cmd_name}` `{spec}` and the following stdin exits `{exit_codes}`"  # noqa
+)
+def i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
-    when_i_run_command(context, cmd_name, spec, verify_return=False)
-    logging.debug("got return code: %d", context.process.returncode)
-    expected_codes = exit_codes.split(",")
-    assert str(context.process.returncode) in expected_codes
+    text = process_template_vars(context, context.text)
+    then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
+        context, cmd_name, spec, text, exit_codes
+    )
 
 
-@when(
+@step(
     "I verify that running `{cmd_name}` `{spec}` and stdin `{stdin}` exits `{exit_codes}`"  # noqa
 )
 def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
@@ -116,6 +118,16 @@ def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
         context, cmd_name, spec, stdin=stdin, verify_return=False
     )
 
+    expected_codes = exit_codes.split(",")
+    assert str(context.process.returncode) in expected_codes
+
+
+@step("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
+def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+    context, cmd_name, spec, exit_codes
+):
+    when_i_run_command(context, cmd_name, spec, verify_return=False)
+    logging.debug("got return code: %d", context.process.returncode)
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
 

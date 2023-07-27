@@ -62,6 +62,16 @@ fips-updates:
       for those modules that have been provided since their certification date.
       You can find out more at https://ubuntu.com/security/certifications#fips.
 
+landscape:
+  help: |
+    Landscape Client can be installed on this machine and enrolled in
+    Canonical's Landscape SaaS: https://landscape.canonical.com
+    or a self-hosted Landscape: https://ubuntu.com/landscape/install
+    Landscape allows you to manage many machines as easily as one,
+    with an intuitive dashboard and API interface for automation,
+    hardening, auditing, and more. Find out more about Landscape at
+    https://ubuntu.com/landscape
+
 livepatch:
     help: |
       Livepatch provides selected high and critical kernel CVE fixes and other

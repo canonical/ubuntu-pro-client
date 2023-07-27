@@ -10,6 +10,7 @@ from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
+from uaclient.entitlements.landscape import LandscapeEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
@@ -24,6 +25,7 @@ ENTITLEMENT_CLASSES = [
     ESMInfraEntitlement,
     fips.FIPSEntitlement,
     fips.FIPSUpdatesEntitlement,
+    LandscapeEntitlement,
     LivepatchEntitlement,
     RealtimeKernelEntitlement,
     ROSEntitlement,
