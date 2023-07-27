@@ -21,8 +21,8 @@ Enable an Ubuntu Pro service.
 Arguments:
   service              the name(s) of the Ubuntu Pro services to enable. One
                        of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                       fips, fips-updates, livepatch, realtime-kernel, ros,
-                       ros-updates
+                       fips, fips-updates, landscape, livepatch, realtime-
+                       kernel, ros, ros-updates
 
 Flags:
   -h, --help           show this help message and exit
@@ -443,6 +443,7 @@ class TestActionEnable:
                 allow_beta=False,
                 called_name="testitlement",
                 access_only=False,
+                extra_args=None,
             )
         ] == m_entitlement_cls.call_args_list
 
@@ -527,6 +528,7 @@ class TestActionEnable:
                     allow_beta=False,
                     called_name=m_ent_cls.name,
                     access_only=False,
+                    extra_args=None,
                 )
             ] == m_ent_cls.call_args_list
 
@@ -668,6 +670,7 @@ class TestActionEnable:
                     allow_beta=beta_flag,
                     called_name=m_ent_cls.name,
                     access_only=False,
+                    extra_args=None,
                 )
             ] == m_ent_cls.call_args_list
 
@@ -901,6 +904,7 @@ class TestActionEnable:
                 allow_beta=allow_beta,
                 called_name="testitlement",
                 access_only=False,
+                extra_args=None,
             )
         ] == m_entitlement_cls.call_args_list
 

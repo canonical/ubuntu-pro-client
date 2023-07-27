@@ -136,10 +136,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | valid_services                                                                                                    |
-           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
-           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -176,10 +176,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | msg                                                                                                                   |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -219,6 +219,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
        fips          +<fips>     +NIST-certified core packages
        fips-updates  +<fips>     +NIST-certified core packages with priority security updates
+       landscape     +(yes|no)   +Management and administration tool for Ubuntu
        livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
        realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
        ros           +<ros>      +Security Updates for the Robot Operating System
@@ -428,10 +429,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
         Examples: ubuntu release
            | release | msg                                                                                                                   |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlivepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates, usg. |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.xenial
     @series.bionic
@@ -488,6 +489,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
@@ -508,6 +511,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
@@ -528,6 +533,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
@@ -596,6 +603,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
@@ -622,6 +631,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated
@@ -648,6 +659,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
+         - landscape: Management and administration tool for Ubuntu
+           \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
          - realtime-kernel: Ubuntu kernel with PREEMPT_RT patches integrated

@@ -9,9 +9,9 @@ _ua_complete()
     prev_word="${COMP_WORDS[COMP_CWORD-1]}"
 
     if [ "$VERSION_ID" = "16.04" ] || [ "$VERSION_ID" == "18.04" ]; then
-        services="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates livepatch realtime-kernel ros ros-updates"
+        services="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates"
     else
-        services="anbox-cloud cc-eal esm-apps esm-infra fips fips-updates livepatch realtime-kernel ros ros-updates usg"
+        services="anbox-cloud cc-eal esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
     fi
 
     subcmds="--debug --help --version api attach auto-attach collect-logs config detach disable enable fix help refresh security-status status system version"

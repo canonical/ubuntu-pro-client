@@ -189,6 +189,7 @@ APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
+DISABLED_TMPL = "{title} disabled"
 UNABLE_TO_DETERMINE_CLOUD_TYPE = (
     """\
 Unable to determine auto-attach platform support
@@ -1407,4 +1408,36 @@ PYCURL_ERROR = FormattedNamedMessage("pycurl-error", "PycURL Error: {e}")
 
 PROXY_AUTH_FAIL = NamedMessage(
     "proxy-auth-fail", "Proxy authentication failed"
+)
+
+EXECUTING_COMMAND = "Executing `{}`"
+BACKING_UP_FILE = "Backing up {original} as {backup}"
+
+LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
+    "landscape-client-not-installed", "lanscape-client is not installed"
+)
+LANDSCAPE_NOT_CONFIGURED = NamedMessage(
+    "landscape-not-configured",
+    """\
+Landscape is installed but not configured.
+Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_NOT_REGISTERED = NamedMessage(
+    "landscape-not-registered",
+    """\
+Landscape is installed and configured but not registered.
+Run `sudo landscape-config` to register, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
+    "landscape-service-not-active",
+    """\
+Landscape is installed and configured and registered but not running.
+Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_CONFIG_FAILED = NamedMessage(
+    "landscape-config-failed",
+    """landscape-config command failed""",
 )

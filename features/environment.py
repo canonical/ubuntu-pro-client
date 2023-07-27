@@ -86,6 +86,9 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "landscape_registration_key",
+        "landscape_api_access_key",
+        "landscape_api_secret_key",
         "machine_type",
         "private_key_file",
         "private_key_name",
@@ -102,6 +105,9 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "landscape_registration_key",
+        "landscape_api_access_key",
+        "landscape_api_secret_key",
     ]
 
     # This variable is used in .from_environ() but also to emit the "Config
@@ -124,6 +130,9 @@ class UAClientBehaveConfig:
         contract_token: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
+        landscape_registration_key: Optional[str] = None,
+        landscape_api_access_key: Optional[str] = None,
+        landscape_api_secret_key: Optional[str] = None,
         artifact_dir: str = "artifacts",
         install_from: InstallationSource = InstallationSource.LOCAL,
         custom_ppa: Optional[str] = None,
@@ -141,6 +150,9 @@ class UAClientBehaveConfig:
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
+        self.landscape_registration_key = landscape_registration_key
+        self.landscape_api_access_key = landscape_api_access_key
+        self.landscape_api_secret_key = landscape_api_secret_key
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
         self.machine_type = machine_type
