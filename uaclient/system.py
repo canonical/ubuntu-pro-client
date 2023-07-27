@@ -553,6 +553,7 @@ def _subp(
     capture: bool = False,
     timeout: Optional[float] = None,
     override_env_vars: Optional[Dict[str, str]] = None,
+    pipe_stdouterr: bool = True,
 ) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -577,6 +578,12 @@ def _subp(
         x if isinstance(x, bytes) else x.encode("utf-8") for x in args
     ]
 
+    stdout = None
+    stderr = None
+    if pipe_stdouterr:
+        stdout = subprocess.PIPE
+        stderr = subprocess.PIPE
+
     # If env is None, subprocess.Popen will use the process environment
     # variables by default, as stated here:
     # https://docs.python.org/3.5/library/subprocess.html?highlight=subprocess#popen-constructor
@@ -590,27 +597,32 @@ def _subp(
     try:
         proc = subprocess.Popen(
             bytes_args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=stdout,
+            stderr=stderr,
             env=merged_env,
         )
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
         try:
+            out_result = out.decode("utf-8") if out else ""
+            err_result = err.decode("utf-8") if err else ""
             raise exceptions.ProcessExecutionError(
                 cmd=redacted_cmd,
                 exit_code=proc.returncode,
-                stdout=out.decode("utf-8"),
-                stderr=err.decode("utf-8"),
+                stdout=out_result,
+                stderr=err_result,
             )
         except UnboundLocalError:
             raise exceptions.ProcessExecutionError(cmd=redacted_cmd)
+
+    out_result = out.decode("utf-8") if out else ""
+    err_result = err.decode("utf-8") if err else ""
     if proc.returncode not in rcs:
         raise exceptions.ProcessExecutionError(
             cmd=redacted_cmd,
             exit_code=proc.returncode,
-            stdout=out.decode("utf-8"),
-            stderr=err.decode("utf-8"),
+            stdout=out_result,
+            stderr=err_result,
         )
     if capture:
         LOG.debug(
@@ -619,7 +631,7 @@ def _subp(
             proc.returncode,
             err,
         )
-    return out.decode("utf-8"), err.decode("utf-8")
+    return out_result, err_result
 
 
 def subp(
@@ -629,6 +641,7 @@ def subp(
     timeout: Optional[float] = None,
     retry_sleeps: Optional[List[float]] = None,
     override_env_vars: Optional[Dict[str, str]] = None,
+    pipe_stdouterr: bool = True,
 ) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -662,6 +675,7 @@ def subp(
                 capture,
                 timeout,
                 override_env_vars=override_env_vars,
+                pipe_stdouterr=pipe_stdouterr,
             )
             break
         except exceptions.ProcessExecutionError as e:

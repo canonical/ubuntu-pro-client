@@ -1287,6 +1287,27 @@ class TestSubp:
             )
         ] == m_popen.call_args_list
 
+    @mock.patch("subprocess.Popen")
+    def test_subp_no_pipe_stdouterr(
+        self,
+        m_popen,
+        _subp,
+    ):
+        mock_process = mock.MagicMock(returncode=0)
+        mock_process.communicate.return_value = (b"", b"")
+        m_popen.return_value = mock_process
+
+        _subp(["fake"], pipe_stdouterr=False)
+
+        assert [
+            mock.call(
+                [b"fake"],
+                stdout=None,
+                stderr=None,
+                env=None,
+            )
+        ] == m_popen.call_args_list
+
 
 class TestIsSystemdServiceActive:
     @pytest.mark.parametrize(
