@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from uaclient import (
+    apt,
     config,
     contract,
     event_logger,
@@ -460,6 +461,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not self.access_only:
             if not self.handle_required_snaps():
                 return False, None
+            if not self.handle_required_packages():
+                return False, None
 
         ret = self._perform_enable(silent=silent)
         if not ret:
@@ -526,6 +529,59 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     channel=channel,
                     classic_confinement_support=classic_confinement_support,
                 )
+
+        return True
+
+    def handle_required_packages(self) -> bool:
+        """install packages necessary to enable a service."""
+        required_packages = (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("requiredPackages")
+        )
+
+        # If we don't have the directive, there is nothing
+        # to process here
+        if not required_packages:
+            return True
+
+        event.info(messages.APT_UPDATING_LISTS)
+        apt.run_apt_update_command()
+
+        package_names = [package["name"] for package in required_packages]
+        msg = messages.INSTALLING_PACKAGES.format(" ".join(package_names))
+        logging.debug(msg)
+        event.info(msg)
+        apt.run_apt_install_command(package_names)
+
+        return True
+
+    def handle_removing_required_packages(self) -> bool:
+        """install packages necessary to enable a service."""
+        required_packages = (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("requiredPackages")
+        )
+
+        # If we don't have the directive, there is nothing
+        # to process here
+        if not required_packages:
+            return True
+
+        package_names = [
+            package["name"]
+            for package in required_packages
+            if package.get("removeOnDisable", False)
+        ]
+        package_names_str = " ".join(package_names)
+        msg = messages.UNINSTALLING_PACKAGES.format(package_names_str)
+        logging.debug(msg)
+        event.info(msg)
+        apt.remove_packages(
+            package_names,
+            messages.UNINSTALLING_PACKAGES_FAILED.format(package_names_str),
+        )
 
         return True
 
@@ -760,6 +816,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return False, fail
 
         if not self._perform_disable(silent=silent):
+            return False, None
+
+        if not self.handle_removing_required_packages():
             return False, None
 
         msg_ops = self.messaging.get("post_disable", [])
