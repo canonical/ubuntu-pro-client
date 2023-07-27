@@ -1384,6 +1384,10 @@ For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
 """,
 )
 
+INSTALLING_PACKAGES = "Installing {}"
+UNINSTALLING_PACKAGES = "Uninstalling {}"
+UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
+
 INSTALLING_REQUIRED_SNAPS = NamedMessage(
     "installing-required-snaps", "Installing required snaps"
 )

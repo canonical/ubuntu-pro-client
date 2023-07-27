@@ -1301,3 +1301,140 @@ class TestHandleRequiredSnaps:
                     "test2", channel=None, classic_confinement_support=True
                 ),
             ] == m_install_snap.call_args_list
+
+
+class TestHandleRequiredPackages:
+    @pytest.mark.parametrize(
+        [
+            "required_packages_directive",
+            "expected_apt_update_calls",
+            "expected_apt_install_calls",
+            "expected_result",
+        ],
+        [
+            (
+                None,
+                [],
+                [],
+                True,
+            ),
+            (
+                [],
+                [],
+                [],
+                True,
+            ),
+            (
+                [{"name": "package"}],
+                [mock.call()],
+                [mock.call(["package"])],
+                True,
+            ),
+            (
+                [{"name": "package"}, {"name": "package2"}],
+                [mock.call()],
+                [mock.call(["package", "package2"])],
+                True,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.apt.run_apt_install_command")
+    @mock.patch("uaclient.apt.run_apt_update_command")
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.entitlement_cfg",
+        new_callable=mock.PropertyMock,
+    )
+    def test_handle_required_packages(
+        self,
+        m_entitlement_cfg,
+        m_apt_update,
+        m_apt_install,
+        required_packages_directive,
+        expected_apt_update_calls,
+        expected_apt_install_calls,
+        expected_result,
+        concrete_entitlement_factory,
+    ):
+        entitlement = concrete_entitlement_factory()
+        m_entitlement_cfg.return_value = {
+            "entitlement": {
+                "directives": {"requiredPackages": required_packages_directive}
+            }
+        }
+
+        assert expected_result == entitlement.handle_required_packages()
+        assert expected_apt_update_calls == m_apt_update.call_args_list
+        assert expected_apt_install_calls == m_apt_install.call_args_list
+
+    @pytest.mark.parametrize(
+        [
+            "required_packages_directive",
+            "expected_apt_remove_calls",
+            "expected_result",
+        ],
+        [
+            (
+                None,
+                [],
+                True,
+            ),
+            (
+                [],
+                [],
+                True,
+            ),
+            (
+                [{"name": "package"}],
+                [mock.call([], mock.ANY)],
+                True,
+            ),
+            (
+                [{"name": "package"}, {"name": "package2"}],
+                [mock.call([], mock.ANY)],
+                True,
+            ),
+            (
+                [
+                    {"name": "package"},
+                    {"name": "package2", "removeOnDisable": True},
+                ],
+                [mock.call(["package2"], mock.ANY)],
+                True,
+            ),
+            (
+                [
+                    {"name": "package"},
+                    {"name": "package2", "removeOnDisable": True},
+                    {"name": "package3", "removeOnDisable": False},
+                    {"name": "package4", "removeOnDisable": True},
+                ],
+                [mock.call(["package2", "package4"], mock.ANY)],
+                True,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.apt.remove_packages")
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.entitlement_cfg",
+        new_callable=mock.PropertyMock,
+    )
+    def test_handle_removing_required_packages(
+        self,
+        m_entitlement_cfg,
+        m_apt_remove,
+        required_packages_directive,
+        expected_apt_remove_calls,
+        expected_result,
+        concrete_entitlement_factory,
+    ):
+        entitlement = concrete_entitlement_factory()
+        m_entitlement_cfg.return_value = {
+            "entitlement": {
+                "directives": {"requiredPackages": required_packages_directive}
+            }
+        }
+
+        assert (
+            expected_result == entitlement.handle_removing_required_packages()
+        )
+        assert expected_apt_remove_calls == m_apt_remove.call_args_list
