@@ -1,3 +1,4 @@
+(get_token_and_attach)=
 # How to get an Ubuntu Pro token and attach to a subscription
 
 ## Get an Ubuntu Pro token
