@@ -718,6 +718,7 @@ Feature: Ua fix command behaviour
         - USN-6175-1
         - USN-6186-1
         - USN-6222-1
+        - USN-6256-1
 
         Fixing related USNs:
         - USN-6033-1
@@ -795,6 +796,11 @@ Feature: Ua fix command behaviour
 
         .*✔.* USN-6222-1 does not affect your system.
 
+        - USN-6256-1
+        No affected source packages are installed.
+
+        .*✔.* USN-6256-1 does not affect your system.
+
         Summary:
         .*✔.* USN-6130-1 \[requested\] does not affect your system.
         .*✔.* USN-6033-1 \[related\] does not affect your system.
@@ -812,6 +818,7 @@ Feature: Ua fix command behaviour
         .*✔.* USN-6175-1 \[related\] does not affect your system.
         .*✔.* USN-6186-1 \[related\] does not affect your system.
         .*✔.* USN-6222-1 \[related\] does not affect your system.
+        .*✔.* USN-6256-1 \[related\] does not affect your system.
         """
 
     @series.bionic
