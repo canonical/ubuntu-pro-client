@@ -194,8 +194,6 @@ def _get_state_files(cfg: config.UAConfig):
     return [
         cfg.cfg_path or DEFAULT_CONFIG_FILE,
         cfg.log_file,
-        cfg.timer_log_file,
-        cfg.daemon_log_file,
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
@@ -227,17 +225,20 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
     _write_command_output_to_file(
         (
             "journalctl --boot=0 -o short-precise "
-            "{} "
             "-u cloud-init-local.service "
-            "-u cloud-init-config.service -u cloud-config.service"
-        ).format(
+            "-u cloud-init-config.service "
+            "-u cloud-config.service"
+        ),
+        "{}/cloud-init-journal.txt".format(output_dir),
+    )
+    _write_command_output_to_file(
+        ("journalctl -o short-precise " "{}").format(
             " ".join(
                 ["-u {}".format(s) for s in UA_SERVICES if ".service" in s]
             )
         ),
-        "{}/journalctl.txt".format(output_dir),
+        "{}/pro-journal.txt".format(output_dir),
     )
-
     for service in UA_SERVICES:
         _write_command_output_to_file(
             "systemctl status {}".format(service),

@@ -311,12 +311,10 @@ CFG_BASE_CONTENT = """\
 # picked up by Ubuntu Pro client.
 
 contract_url: https://contracts.canonical.com
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
-timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
 CFG_FEATURES_CONTENT = """\
@@ -325,7 +323,6 @@ CFG_FEATURES_CONTENT = """\
 # picked up by Ubuntu Pro client.
 
 contract_url: https://contracts.canonical.com
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 features:
   extra_security_params:
@@ -338,7 +335,6 @@ security_url: https://ubuntu.com/security
 settings_overrides:
   c: 1
   d: 2
-timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
 USER_CFG_DICT = {
@@ -1004,8 +1000,6 @@ class TestParseConfig:
             "security_url": "https://ubuntu.com/security",
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
-            "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
-            "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",  # noqa: E501
             "log_level": "debug",
         }
         assert expected_default_config == config

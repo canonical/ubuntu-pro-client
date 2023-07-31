@@ -61,16 +61,16 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Scenario Outline: daemon should run when appropriate on gcp generic lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Configured to not poll for pro license, shutting down
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         daemon ending
         """
@@ -94,7 +94,10 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         When I run `sed -i s/#DefaultMemoryAccounting=no/DefaultMemoryAccounting=yes/ /etc/systemd/system.conf` with sudo
         When I run `systemctl daemon-reexec` with sudo
 
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        # on bionic, systemd version=237; which does not allow for log rotation + vacuum in same line e.g.
+        # journalctl --flush --rotate --vacuum-time=1s
+        When I run `journalctl --flush --rotate` with sudo
+        When I run `journalctl --vacuum-time=1s` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
 
         # wait to get memory after it has settled/after startup checks
@@ -110,12 +113,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Then on `focal`, systemd status output says memory usage is less than `13` MB
         Then on `jammy`, systemd status output says memory usage is less than `14` MB
 
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout does not match regexp:
+        Then stdout does not contain substring:
         """
         daemon ending
         """
@@ -147,19 +150,20 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
 
         # verify detach starts it and it starts again after reboot
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `journalctl --flush --rotate` with sudo
+        When I run `journalctl --vacuum-time=1s` with sudo
         When I run `pro detach --assume-yes` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
         Active: active \(running\)
         """
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout does not match regexp:
+        Then stdout does not contain substring:
         """
         daemon ending
         """
@@ -169,12 +173,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: active \(running\)
         """
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout does not match regexp:
+        Then stdout does not contain substring:
         """
         daemon ending
         """
@@ -214,16 +218,16 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Scenario Outline: daemon should run when appropriate on azure generic lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Configured to not poll for pro license, shutting down
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         daemon ending
         """
@@ -246,16 +250,16 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         When I run `systemctl restart ubuntu-advantage.service` with sudo
         # give it time to get past the initial request
         When I wait `5` seconds
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Cancelling polling
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         daemon ending
         """
@@ -283,16 +287,16 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Scenario Outline: daemon does not start on gcp,azure generic non lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I wait `1` seconds
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout matches regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Not on LTS, shutting down
         """
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         daemon ending
         """
@@ -313,7 +317,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I attach `contract_token` with sudo
         When I run `pro detach --assume-yes` with sudo
         When I reboot the machine
@@ -323,7 +326,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         Examples: version
             | release |
             | xenial  |
@@ -351,7 +353,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         When I reboot the machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
@@ -359,7 +360,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
         Examples: version
             | release |
             | xenial  |
@@ -379,7 +379,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         log_file: /var/log/ubuntu-advantage.log
         """
         When I run `pro auto-attach` with sudo
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `journalctl --flush --rotate` with sudo
+        When I run `journalctl --vacuum-time=1s` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
@@ -388,8 +389,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout does not match regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout does not contain substring:
         """
         daemon starting
         """
@@ -401,8 +402,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
-        Then stdout does not match regexp:
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+        Then stdout does not contain substring:
         """
         daemon starting
         """
