@@ -8,8 +8,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
-        When I run `touch /var/log/ubuntu-advantage-timer.log.1` with sudo
-        When I run `touch /var/log/ubuntu-advantage-timer.log.2.gz` with sudo
         When I run `pro collect-logs` with sudo
         Then I verify that files exist matching `ua_logs.tar.gz`
         When I run `tar zxf ua_logs.tar.gz` as non-root
@@ -21,9 +19,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         build.info
         cloud-id.txt
+        cloud-init-journal.txt
         jobs-status.json
-        journalctl.txt
         livepatch-status.txt-error
+        pro-journal.txt
         systemd-timers.txt
         ua-auto-attach.path.txt(-error)?
         ua-auto-attach.service.txt(-error)?
@@ -36,9 +35,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         ubuntu-advantage.log.1
         ubuntu-advantage.log.2.gz
         ubuntu-advantage.service.txt
-        ubuntu-advantage-timer.log
-        ubuntu-advantage-timer.log.1
-        ubuntu-advantage-timer.log.2.gz
         """
         Examples: ubuntu release
           | release |
@@ -59,8 +55,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
-        When I run `touch /var/log/ubuntu-advantage-timer.log.1` with sudo
-        When I run `touch /var/log/ubuntu-advantage-timer.log.2.gz` with sudo
         When I run `pro collect-logs` with sudo
         Then I verify that files exist matching `ua_logs.tar.gz`
         When I run `tar zxf ua_logs.tar.gz` as non-root
@@ -72,9 +66,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         build.info
         cloud-id.txt
+        cloud-init-journal.txt
         jobs-status.json
-        journalctl.txt
         livepatch-status.txt-error
+        pro-journal.txt
         systemd-timers.txt
         ua-auto-attach.path.txt(-error)?
         ua-auto-attach.service.txt(-error)?
@@ -87,9 +82,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         ubuntu-advantage.log.1
         ubuntu-advantage.log.2.gz
         ubuntu-advantage.service.txt
-        ubuntu-advantage-timer.log
-        ubuntu-advantage-timer.log.1
-        ubuntu-advantage-timer.log.2.gz
         ubuntu-esm-apps.list
         ubuntu-esm-infra.list
         """

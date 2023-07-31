@@ -13,13 +13,8 @@ import pytest
 # Those need to be mocked here, before importing our modules, so the pytest
 # virtualenv doesn't cry because it can't find the modules
 m_apt_pkg = mock.MagicMock()
-m_systemd_pkg = mock.MagicMock()
-m_systemd_pkg.journal = mock.MagicMock()
-m_systemd_pkg.journal.JournalHandler = mock.MagicMock()
-m_systemd_pkg.journal.JournalHandler.return_value.level = logging.DEBUG
 sys.modules["apt"] = mock.MagicMock()
 sys.modules["apt_pkg"] = m_apt_pkg
-sys.modules["systemd"] = m_systemd_pkg
 
 # Useless try/except to make flake8 happy \_("/)_/
 try:

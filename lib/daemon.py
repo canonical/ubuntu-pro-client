@@ -4,28 +4,23 @@ import sys
 
 from systemd.daemon import notify  # type: ignore
 
-from uaclient import defaults, http
-from systemd import journal  # type: ignore
+from uaclient import http
 from uaclient.config import UAConfig
 from uaclient.daemon import poll_for_pro_license, retry_auto_attach
+from uaclient.log import setup_journald_logging
 
 LOG = logging.getLogger("ubuntupro.daemon")
-root_logger = logging.getLogger("ubuntupro")
-LOG.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client"))
-root_logger.addHandler(
-    journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client")
-)
 
 
 def main() -> int:
-    LOG.setLevel(logging.DEBUG)
-    cfg = UAConfig()
-    LOG.setLevel(logging.DEBUG)
-    # The ua-daemon logger should log everything to its file
-    # Make sure the ua-daemon logger does not generate double logging
-    # by propagating to the root logger
+    setup_journald_logging(logging.DEBUG, LOG)
+    # Make sure the ubuntupro.daemon logger does not generate double logging
     LOG.propagate = False
-    root_logger.setLevel(logging.ERROR)
+    setup_journald_logging(logging.ERROR, logging.getLogger("ubuntupro"))
+
+    cfg = UAConfig()
+
+    http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
     LOG.debug("daemon starting")
 

@@ -20,14 +20,11 @@ def add_info(report, ui=None):
             "ua-status.json-error",
             "livepatch-status.txt",
             "livepatch-status.txt-error",
+            "pro-journal.txt",
             os.path.basename(cfg.cfg_path),
             os.path.basename(cfg.log_file),
-            os.path.basename(cfg.timer_log_file),
-            os.path.basename(cfg.daemon_log_file),
             os.path.basename(cfg.data_path("jobs-status")),
             os.path.basename(defaults.CONFIG_DEFAULTS["log_file"]),
-            os.path.basename(defaults.CONFIG_DEFAULTS["timer_log_file"]),
-            os.path.basename(defaults.CONFIG_DEFAULTS["daemon_log_file"]),
         }
         for f in auto_include_log_files:
             attach_file_if_exists(report, os.path.join(output_dir, f), key=f)

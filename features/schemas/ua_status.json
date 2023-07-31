@@ -209,12 +209,6 @@
         "log_file": {
           "type": "string"
         },
-        "timer_log_file": {
-          "type": "string"
-        },
-        "license_check_log_file": {
-          "type": "string"
-        },
         "ua_config": {
           "type": "object",
           "properties": {

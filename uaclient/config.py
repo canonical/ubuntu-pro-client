@@ -65,8 +65,6 @@ VALID_UA_CONFIG_KEYS = (
     "log_level",
     "security_url",
     "settings_overrides",
-    "timer_log_file",
-    "daemon_log_file",
     "ua_config",
     "livepatch_url",
 )
@@ -377,18 +375,6 @@ class UAConfig:
     @property
     def log_file(self) -> str:
         return self.cfg.get("log_file", CONFIG_DEFAULTS["log_file"])
-
-    @property
-    def timer_log_file(self) -> str:
-        return self.cfg.get(
-            "timer_log_file", CONFIG_DEFAULTS["timer_log_file"]
-        )
-
-    @property
-    def daemon_log_file(self):
-        return self.cfg.get(
-            "daemon_log_file", CONFIG_DEFAULTS["daemon_log_file"]
-        )
 
     @property
     def features(self):
