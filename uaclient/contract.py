@@ -432,7 +432,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 "resources": [service.name for service in enabled_services],
                 "lastAttachment": attachment_data.attached_at.isoformat()
                 if attachment_data
-                else "",
+                else None,
             }
         else:
             activity_info = {}
