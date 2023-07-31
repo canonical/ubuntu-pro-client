@@ -60,19 +60,19 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
@@ -85,11 +85,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
         """
@@ -100,8 +100,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then stdout matches regexp:
         """
         Version table:
-        \s*\*\*\* .* 500
-        \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        \s*\*\*\* .* 510
+        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
@@ -280,19 +280,19 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
@@ -305,11 +305,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
         """
@@ -320,8 +320,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then stdout matches regexp:
         """
         Version table:
-        \s*\*\*\* .* 500
-        \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        \s*\*\*\* .* 510
+        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
@@ -553,19 +553,19 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `500`
+        And apt-cache policy for the following url has permission `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
@@ -578,11 +578,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
         Then stdout matches regexp:
         """
-        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
+        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
         And stdout matches regexp:
         """
@@ -593,8 +593,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Then stdout matches regexp:
         """
         Version table:
-        \s*\*\*\* .* 500
-        \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        \s*\*\*\* .* 510
+        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then I will see the following on stdout:
