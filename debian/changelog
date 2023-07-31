@@ -1,3 +1,34 @@
+ubuntu-advantage-tools (29) mantic; urgency=medium
+
+  * d/control:
+    - Update links for the project github page
+  * d/ubuntu-advantage-tools.{postinst,postrm}:
+    - rename repo GPG keys from -advantage to -pro (GH: #1539)
+  * d/README:
+    - add file with basic explanation on the source code (GH: #2463)
+  * New upstream release 29 (LP: #2029144)
+    - anbox-cloud: add support for service
+    - api
+      + new endpoint: u.pro.security.fix.plan.cve.v1
+      + new endpoint: u.pro.security.fix.plan.usn.v1
+      + new endpoint: u.apt_news.current_news.v1
+      + add more data explaining the decision made for
+        u.pro.security.status.reboot_required.v1 endpoint
+    - contract:
+      + send activityInfo after cli attach, enable and disable
+      + start recording when the machine has attached to a Pro subsctiption
+      + more reliable detection when running on a docker container
+    - esm: create static files to pin packages from esm-infra and esm-apps with
+      higher priority (GH: #2580)
+    - fix: ignore non-USN items on related usns
+    - landscape: add support for the service
+    - logging: update to ubuntupro logging namespace
+    - proxy: Add support for TLS-in-TLS proxy (LP: #1999909)
+    - snapd: look for the snapd package instead of the snap command
+    - system: try/except logic to remove files and folders (LP: #2025731)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Mon, 31 Jul 2023 15:46:23 +0000
+
 ubuntu-advantage-tools (28.1) mantic; urgency=medium
 
   * New upstream release 28.1 (LP: #2017949)
