@@ -6,11 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
-from uaclient import defaults, http
-from uaclient.cli import setup_logging
-
-from systemd import journal  # type: ignore
-
+from uaclient import http
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
 from uaclient.files.state_files import (
@@ -18,16 +14,12 @@ from uaclient.files.state_files import (
     TimerJobState,
     timer_jobs_state_file,
 )
+from uaclient.log import setup_journald_logging
 from uaclient.timer.metering import metering_enabled_resources
 from uaclient.timer.update_contract_info import update_contract_info
 from uaclient.timer.update_messaging import update_motd_messages
 
 LOG = logging.getLogger("ubuntupro.timer")
-root_logger = logging.getLogger("ubuntupro")
-LOG.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client"))
-root_logger.addHandler(
-    journal.JournalHandler(SYSLOG_IDENTIFIER="ubuntu-pro-client")
-)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
 UPDATE_CONTRACT_INFO_INTERVAL = 86400  # 24 hours
@@ -188,15 +180,14 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
-    LOG.setLevel(logging.DEBUG)
+    setup_journald_logging(logging.DEBUG, LOG)
+    # Make sure the ubuntupro.timer logger does not generate double logging
+    LOG.propagate = False
+    setup_journald_logging(logging.ERROR, logging.getLogger("ubuntupro"))
+
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
-    LOG.setLevel(logging.DEBUG)
 
-    # Make sure the ua-timer logger does not generate double logging
-    LOG.propagate = False
-    # The root logger should log any error to the timer log file
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
-    root_logger.setLevel(logging.ERROR)
 
     run_jobs(cfg=cfg, current_time=current_time)

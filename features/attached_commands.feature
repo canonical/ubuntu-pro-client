@@ -38,7 +38,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         /var/log/ubuntu-advantage.log
-        /var/log/ubuntu-advantage-timer.log
         """
         When I run `logrotate --force /etc/logrotate.d/ubuntu-advantage-tools` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
@@ -46,8 +45,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         /var/log/ubuntu-advantage.log
         /var/log/ubuntu-advantage.log.1
-        /var/log/ubuntu-advantage-timer.log
-        /var/log/ubuntu-advantage-timer.log.1
         """
 
         Examples: ubuntu release
@@ -744,8 +741,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         { "metering_timer": "notanumber", "update_messaging_timer": -10 }
         """
-        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        Then I verify that running `grep "Invalid value for update_messaging interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
+        And I run `systemctl start ua-timer.service` with sudo
+        Then I verify that running `sh -c 'journalctl -u ua-timer.service | grep "Invalid value for update_messaging interval found in config."'` `with sudo` exits `0`
         And I verify that the timer interval for `update_messaging` is `21600`
         And I verify that the timer interval for `metering` is `14400`
         When I create the file `/var/lib/ubuntu-advantage/jobs-status.json` with the following:

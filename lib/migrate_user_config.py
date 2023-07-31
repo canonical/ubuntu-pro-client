@@ -112,8 +112,6 @@ def create_new_uaclient_conffile(old_uaclient_conf):
         "data_dir",
         "log_file",
         "security_url",
-        "timer_log_file",
-        "daemon_log_file",
     ):
         old_val = old_uaclient_conf.get(field)
         if old_val is not None and old_val != defaults.CONFIG_DEFAULTS.get(
