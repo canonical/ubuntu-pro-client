@@ -5,7 +5,6 @@ import os
 import re
 import sys
 import time
-from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Dict, List, Optional, Union  # noqa: F401
 
@@ -26,17 +25,6 @@ def replace_top_level_logger_name(name: str) -> str:
 
 
 LOG = logging.getLogger(replace_top_level_logger_name(__name__))
-
-
-class LogFormatter(logging.Formatter):
-    FORMATS = {
-        logging.ERROR: "ERROR: %(message)s",
-        logging.DEBUG: "DEBUG: %(message)s",
-    }
-
-    def format(self, record: logging.LogRecord) -> str:
-        log_fmt = self.FORMATS.get(record.levelno, "%(message)s")
-        return logging.Formatter(log_fmt).format(record)
 
 
 class DatetimeAwareJSONEncoder(json.JSONEncoder):
@@ -80,48 +68,6 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
                     new_value = value
                 o[key] = new_value
         return o
-
-
-@contextmanager
-def disable_log_to_console():
-    """
-    A context manager that disables logging to console in its body
-
-    N.B. This _will not_ disable console logging if it finds the console
-    handler is configured at DEBUG level; the assumption is that this means we
-    want as much output as possible, even if it risks duplication.
-
-    This context manager will allow us to gradually move away from using the
-    logging framework for user-facing output, by applying it to parts of the
-    codebase piece-wise. (Once the conversion is complete, we should have no
-    further use for it and it can be removed.)
-
-    (Note that the @contextmanager decorator also allows this function to be
-    used as a decorator.)
-    """
-    upro_logger = logging.getLogger("ubuntupro")
-    log_handlers = upro_logger.handlers
-    potential_handlers = [
-        handler for handler in log_handlers if handler.name == "upro-console"
-    ]
-    if not potential_handlers:
-        # We didn't find a handler, so execute the body as normal then end
-        # execution
-        LOG.debug("disable_log_to_console: no console handler found")
-        yield
-        return
-
-    console_handler = potential_handlers[0]
-    old_level = console_handler.level
-    if old_level == logging.DEBUG:
-        yield
-        return
-
-    console_handler.setLevel(1000)
-    try:
-        yield
-    finally:
-        console_handler.setLevel(old_level)
 
 
 def retry(exception, retry_sleeps):

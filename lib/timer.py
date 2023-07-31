@@ -180,7 +180,6 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 if __name__ == "__main__":
     setup_logging(
-        logging.CRITICAL,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["timer_log_file"],
         logger=LOG,
@@ -190,7 +189,6 @@ if __name__ == "__main__":
 
     # The ua-timer logger should log everything to its file
     setup_logging(
-        logging.CRITICAL,
         logging.DEBUG,
         log_file=cfg.timer_log_file,
         logger=LOG,
@@ -198,7 +196,7 @@ if __name__ == "__main__":
     # Make sure the ua-timer logger does not generate double logging
     LOG.propagate = False
     # The root logger should log any error to the timer log file
-    setup_logging(logging.CRITICAL, logging.ERROR, log_file=cfg.timer_log_file)
+    setup_logging(logging.ERROR, log_file=cfg.timer_log_file)
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
     run_jobs(cfg=cfg, current_time=current_time)

@@ -119,11 +119,10 @@ def main(cfg: config.UAConfig) -> int:
 
 if __name__ == "__main__":
     setup_logging(
-        logging.INFO,
         logging.DEBUG,
         defaults.CONFIG_DEFAULTS["log_file"],
     )
     cfg = config.UAConfig()
-    setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
+    setup_logging(logging.DEBUG, log_file=cfg.log_file)
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     sys.exit(main(cfg=cfg))
