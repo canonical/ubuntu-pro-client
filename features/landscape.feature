@@ -150,9 +150,6 @@ Feature: Enable landscape on Ubuntu
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
         """
         When I run `sudo pro disable landscape` with sudo
-
-        # cleanup
-        Then I reject all pending computers on Landscape
         Examples: ubuntu release
             | release | machine_type  |
             | mantic  | lxd-container |
@@ -249,9 +246,6 @@ Feature: Enable landscape on Ubuntu
         Landscape is installed and configured but not registered.
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
         """
-
-        # cleanup
-        Then I reject all pending computers on Landscape
         Examples: ubuntu release
             | release | machine_type  |
             | mantic  | lxd-container |
