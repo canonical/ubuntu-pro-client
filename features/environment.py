@@ -17,6 +17,7 @@ import features.cloud as cloud
 from features.util import (
     SUT,
     InstallationSource,
+    landscape_reject_all_pending_computers,
     lxc_get_property,
     process_template_vars,
 )
@@ -560,3 +561,9 @@ def after_all(context):
                     context.snapshots["builder"], str(e)
                 )
             )
+
+    if (
+        context.pro_config.landscape_api_access_key
+        and context.pro_config.landscape_api_secret_key
+    ):
+        landscape_reject_all_pending_computers(context)
