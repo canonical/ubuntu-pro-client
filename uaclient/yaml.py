@@ -10,6 +10,7 @@ try:
     import yaml
 except ImportError:
     LOG.error(MISSING_YAML_MODULE.msg)
+    print(MISSING_YAML_MODULE.msg, file=sys.stderr)
     sys.exit(1)
 
 
@@ -17,7 +18,9 @@ def safe_load(stream):
     try:
         return yaml.safe_load(stream)
     except AttributeError:
-        LOG.error(BROKEN_YAML_MODULE.format(path=yaml.__path__).msg)
+        msg = BROKEN_YAML_MODULE.format(path=yaml.__path__).msg
+        LOG.error(msg)
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
 
@@ -25,7 +28,9 @@ def safe_dump(data, stream=None, **kwargs):
     try:
         return yaml.safe_dump(data, stream, **kwargs)
     except AttributeError:
-        LOG.error(BROKEN_YAML_MODULE.format(path=yaml.__path__).msg)
+        msg = BROKEN_YAML_MODULE.format(path=yaml.__path__).msg
+        LOG.error(msg)
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
 

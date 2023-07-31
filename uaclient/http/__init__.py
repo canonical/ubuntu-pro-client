@@ -73,13 +73,12 @@ def validate_proxy(
         except exceptions.ProxyAuthenticationFailed:
             raise
         except Exception as e:
-            with util.disable_log_to_console():
-                msg = getattr(e, "reason", str(e))
-                LOG.error(
-                    messages.ERROR_USING_PROXY.format(
-                        proxy=proxy, test_url=test_url, error=msg
-                    )
+            msg = getattr(e, "reason", str(e))
+            LOG.error(
+                messages.ERROR_USING_PROXY.format(
+                    proxy=proxy, test_url=test_url, error=msg
                 )
+            )
             raise exceptions.ProxyNotWorkingError(proxy)
 
         if response.code == 200:
@@ -94,13 +93,12 @@ def validate_proxy(
         opener.open(req)
         return proxy
     except (socket.timeout, error.URLError) as e:
-        with util.disable_log_to_console():
-            msg = getattr(e, "reason", str(e))
-            LOG.error(
-                messages.ERROR_USING_PROXY.format(
-                    proxy=proxy, test_url=test_url, error=msg
-                )
+        msg = getattr(e, "reason", str(e))
+        LOG.error(
+            messages.ERROR_USING_PROXY.format(
+                proxy=proxy, test_url=test_url, error=msg
             )
+        )
         raise exceptions.ProxyNotWorkingError(proxy)
 
 
@@ -279,8 +277,7 @@ def _readurl_pycurl_https_in_https(
         c.setopt(pycurl.PROXY, https_proxy)
         c.setopt(pycurl.PROXYTYPE, 2)  # 2 == HTTPS
     else:
-        with util.disable_log_to_console():
-            LOG.warning("in pycurl request function without an https proxy")
+        LOG.warning("in pycurl request function without an https proxy")
 
     # Response handling
     body_output = io.BytesIO()

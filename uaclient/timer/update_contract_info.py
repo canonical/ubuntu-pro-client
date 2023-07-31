@@ -21,10 +21,9 @@ def update_contract_info(cfg: UAConfig) -> bool:
                     Notice.CONTRACT_REFRESH_WARNING,
                 )
         except Exception as e:
-            with util.disable_log_to_console():
-                err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
-                    reason=str(e)
-                )
-                LOG.warning(err_msg)
+            err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
+                reason=str(e)
+            )
+            LOG.warning(err_msg)
             return False
     return True

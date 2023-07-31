@@ -1776,8 +1776,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
     try:
         cfg.process_config()
     except RuntimeError as exc:
-        with util.disable_log_to_console():
-            LOG.exception(exc)
+        LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_CONFIG_FAILURE)
     print(messages.REFRESH_CONFIG_SUCCESS)
 
@@ -1787,8 +1786,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
     try:
         contract.refresh(cfg)
     except exceptions.UrlError as exc:
-        with util.disable_log_to_console():
-            LOG.exception(exc)
+        LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_CONTRACT_FAILURE)
     print(messages.REFRESH_CONTRACT_SUCCESS)
 
@@ -1803,8 +1801,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
         if cfg.apt_news:
             apt_news.update_apt_news(cfg)
     except Exception as exc:
-        with util.disable_log_to_console():
-            LOG.exception(exc)
+        LOG.exception(exc)
         raise exceptions.UserFacingError(messages.REFRESH_MESSAGES_FAILURE)
     else:
         print(messages.REFRESH_MESSAGES_SUCCESS)
@@ -1885,7 +1882,9 @@ def _warn_about_new_version(cmd_args=None) -> None:
 
     new_version = version.check_for_new_version()
     if new_version:
+        msg = NEW_VERSION_NOTICE.format(version=new_version)
         LOG.warning(NEW_VERSION_NOTICE.format(version=new_version))
+        event.info(msg, file_type=sys.stderr)
 
 
 def _warn_about_output_redirection(cmd_args) -> None:
@@ -1896,14 +1895,14 @@ def _warn_about_output_redirection(cmd_args) -> None:
     ):
         if hasattr(cmd_args, "format") and cmd_args.format in ("json", "yaml"):
             return
-        LOG.warning(
-            messages.WARNING_HUMAN_READABLE_OUTPUT.format(
-                command=cmd_args.command
-            )
+        msg = messages.WARNING_HUMAN_READABLE_OUTPUT.format(
+            command=cmd_args.command
         )
+        LOG.warning(msg)
+        event.info(msg, file_type=sys.stderr)
 
 
-def setup_logging(console_level, log_level, log_file=None, logger=None):
+def setup_logging(log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file
 
     It configures the pro client logger.
@@ -1920,7 +1919,6 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     if isinstance(log_level, str):
         log_level = log_level.upper()
 
-    console_formatter = util.LogFormatter()
     if not logger:
         logger = logging.getLogger("ubuntupro")
     logger.setLevel(log_level)
@@ -1929,20 +1927,11 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
     # Clear all handlers, so they are replaced for this logger
     logger.handlers = []
 
-    # Setup console logging
-    console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(console_level)
-    console_handler.set_name("upro-console")  # Used to disable console logging
-    logger.addHandler(console_handler)
-
+    # Setup file logging
     log_file_path = pathlib.Path(log_file)
-
     if not log_file_path.exists():
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
         log_file_path.touch(mode=0o640)
-    # Setup file logging
-
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
@@ -1966,8 +1955,7 @@ def main_error_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt:
-            with util.disable_log_to_console():
-                LOG.error("KeyboardInterrupt")
+            LOG.error("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
             lock.clear_lock_file_if_present()
             sys.exit(1)
@@ -1980,15 +1968,12 @@ def main_error_handler(func):
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
             else:
-                with util.disable_log_to_console():
-                    msg_args = {"url": exc.url, "error": exc}
-                    if exc.url:
-                        msg_tmpl = (
-                            messages.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
-                        )
-                    else:
-                        msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
-                    LOG.exception(msg_tmpl.format(**msg_args))
+                msg_args = {"url": exc.url, "error": exc}
+                if exc.url:
+                    msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
+                else:
+                    msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
+                LOG.exception(msg_tmpl.format(**msg_args))
 
                 msg = messages.CONNECTIVITY_ERROR
                 event.error(error_msg=msg.msg, error_code=msg.name)
@@ -2001,8 +1986,7 @@ def main_error_handler(func):
 
             sys.exit(1)
         except exceptions.UserFacingError as exc:
-            with util.disable_log_to_console():
-                LOG.error(exc.msg)
+            LOG.error(exc.msg)
 
             event.error(
                 error_msg=exc.msg,
@@ -2019,8 +2003,7 @@ def main_error_handler(func):
 
             sys.exit(exc.exit_code)
         except Exception as e:
-            with util.disable_log_to_console():
-                LOG.exception("Unhandled exception, please file a bug")
+            LOG.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
                 info_msg=messages.UNEXPECTED_ERROR.msg, file_type=sys.stderr
@@ -2040,13 +2023,15 @@ def main_error_handler(func):
 @main_error_handler
 def main(sys_argv=None):
     setup_logging(
-        logging.INFO,
         defaults.CONFIG_DEFAULTS["log_level"],
         defaults.CONFIG_DEFAULTS["log_file"],
     )
+    cfg = config.UAConfig()
+    setup_logging(cfg.log_level, cfg.log_file)
+
     if not sys_argv:
         sys_argv = sys.argv
-    cfg = config.UAConfig()
+
     parser = get_parser(cfg=cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
@@ -2064,20 +2049,20 @@ def main(sys_argv=None):
         extra_args = []
 
     args = parser.parse_args(args=pro_cli_args)
+    if args.debug:
+        console_handler = logging.StreamHandler(sys.stderr)
+        console_handler.setLevel(logging.DEBUG)
+        logging.getLogger("ubuntupro").addHandler(console_handler)
+
     set_event_mode(args)
 
     http_proxy = cfg.http_proxy
     https_proxy = cfg.https_proxy
     http.configure_web_proxy(http_proxy=http_proxy, https_proxy=https_proxy)
 
-    log_level = cfg.log_level
-    console_level = logging.DEBUG if args.debug else logging.INFO
-    setup_logging(console_level, log_level, cfg.log_file)
-
     LOG.debug("Executed with sys.argv: %r" % sys_argv)
 
-    with util.disable_log_to_console():
-        cfg.warn_about_invalid_keys()
+    cfg.warn_about_invalid_keys()
 
     pro_environment = [
         "{}={}".format(k, v)

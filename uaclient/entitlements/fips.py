@@ -450,10 +450,12 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     def _perform_enable(self, silent: bool = False) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
-            LOG.warning(
+            msg = (
                 "Could not determine cloud, "
                 "defaulting to generic FIPS package."
             )
+            LOG.warning(msg)
+            event.info(msg)
         if super()._perform_enable(silent=silent):
             notices.remove(
                 Notice.FIPS_INSTALL_OUT_OF_DATE,
