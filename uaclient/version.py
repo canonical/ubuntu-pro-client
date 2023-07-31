@@ -15,7 +15,7 @@ from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.system import subp
 
-__VERSION__ = "28.1"
+__VERSION__ = "29"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 CANDIDATE_REGEX = r"Candidate: (?P<candidate>.*?)\n"
