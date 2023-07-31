@@ -493,21 +493,23 @@ class TestMain:
         (
             (
                 TypeError("'NoneType' object is not subscriptable"),
-                messages.UNEXPECTED_ERROR.msg + "\n",
+                messages.UNEXPECTED_ERROR.msg,
                 "Unhandled exception, please file a bug",
             ),
         ),
     )
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
+    @mock.patch("uaclient.cli.event.info")
+    @mock.patch("uaclient.cli.LOG.exception")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_errors_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
+        m_log_exception,
+        m_event_info,
         m_delete_cache_key,
-        capsys,
-        caplog_text,
         event,
         exception,
         expected_error_msg,
@@ -529,35 +531,31 @@ class TestMain:
         exc = excinfo.value
         assert 1 == exc.code
 
-        out, err = capsys.readouterr()
-        assert "" == out
-        assert expected_error_msg == err
-        error_log = caplog_text()
-        assert "Traceback (most recent call last):" in error_log
-        assert expected_log in error_log
+        assert [
+            mock.call(info_msg=expected_error_msg, file_type=mock.ANY)
+        ] == m_event_info.call_args_list
+        assert [mock.call(expected_log)] == m_log_exception.call_args_list
 
     @pytest.mark.parametrize(
-        "exception,expected_error_msg,expected_log",
+        "exception,expected_log",
         (
             (
                 KeyboardInterrupt,
-                "Interrupt received; exiting.\n",
                 "KeyboardInterrupt",
             ),
         ),
     )
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
+    @mock.patch("uaclient.cli.LOG.error")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_interrupt_errors_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
+        m_log_error,
         m_delete_cache_key,
-        capsys,
-        caplog_text,
         exception,
-        expected_error_msg,
         expected_log,
         FakeConfig,
     ):
@@ -576,11 +574,7 @@ class TestMain:
         exc = excinfo.value
         assert 1 == exc.code
 
-        out, err = capsys.readouterr()
-        assert "" == out
-        assert expected_error_msg == err
-        error_log = caplog_text()
-        assert expected_log in error_log
+        assert [mock.call(expected_log)] == m_log_error.call_args_list
 
     @pytest.mark.parametrize(
         "exception,expected_exit_code",
@@ -597,14 +591,16 @@ class TestMain:
             ),
         ],
     )
+    @mock.patch("uaclient.cli.event.info")
+    @mock.patch("uaclient.cli.LOG.error")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
-        capsys,
-        caplog_text,
+        m_log_error,
+        m_event_info,
         event,
         exception,
         expected_exit_code,
@@ -619,47 +615,41 @@ class TestMain:
         exc = excinfo.value
         assert expected_exit_code == exc.code
 
-        out, err = capsys.readouterr()
-        assert "" == out
-        assert "{}\n".format(expected_msg) == err
-        error_log = caplog_text()
-        # pytest 4.6.x started indenting trailing lines in log messages, which
-        # meant that our matching here stopped working once we introduced
-        # newlines into this log output in #973.  (If focal moves onto pytest
-        # 5.x before release, then we can remove this workaround.)  The
-        # upstream issue is https://github.com/pytest-dev/pytest/issues/5515
-        error_log = "\n".join(
-            [line.strip() for line in error_log.splitlines()]
-        )
-        assert expected_msg in error_log
-        assert "Traceback (most recent call last):" not in error_log
+        assert [
+            mock.call(info_msg=expected_msg, file_type=mock.ANY)
+        ] == m_event_info.call_args_list
+        assert [mock.call(expected_msg)] == m_log_error.call_args_list
 
     @pytest.mark.parametrize(
         "error_url,expected_log",
         (
             (
                 None,
+                "Failed to connect to authentication server\n"
                 "Check your Internet connection and try again."
                 " [Errno -2] Name or service not known",
             ),
             (
                 "http://nowhere.com",
+                "Failed to connect to authentication server\n"
                 "Check your Internet connection and try again."
                 " Failed to access URL: http://nowhere.com."
                 " [Errno -2] Name or service not known",
             ),
         ),
     )
+    @mock.patch("uaclient.cli.event.info")
+    @mock.patch("uaclient.cli.LOG.exception")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_url_error_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
+        m_log_exception,
+        m_event_info,
         error_url,
         expected_log,
-        capsys,
-        caplog_text,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exceptions.UrlError(
@@ -672,13 +662,12 @@ class TestMain:
         exc = excinfo.value
         assert 1 == exc.code
 
-        out, err = capsys.readouterr()
-        assert "" == out
-        assert "{}\n".format(messages.CONNECTIVITY_ERROR.msg) == err
-        error_log = caplog_text()
-
-        assert expected_log in error_log
-        assert "Traceback (most recent call last):" in error_log
+        assert [
+            mock.call(
+                info_msg=messages.CONNECTIVITY_ERROR.msg, file_type=mock.ANY
+            )
+        ] == m_event_info.call_args_list
+        assert [mock.call(expected_log)] == m_log_exception.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("uaclient.cli.setup_logging")
@@ -739,7 +728,6 @@ class TestMain:
 
         expected_setup_logging_calls = [
             mock.call(
-                logging.INFO,
                 defaults.CONFIG_DEFAULTS["log_level"],
                 defaults.CONFIG_DEFAULTS["log_file"],
             ),
@@ -747,7 +735,7 @@ class TestMain:
 
         if not config_error:
             expected_setup_logging_calls.append(
-                mock.call(mock.ANY, mock.ANY, cfg.log_file),
+                mock.call(mock.ANY, cfg.log_file),
             )
 
         assert expected_setup_logging_calls == m_setup_logging.call_args_list
@@ -827,7 +815,6 @@ class TestSetupLogging:
         logging_sandbox,
         FakeConfig,
     ):
-        console_level = logging.INFO
         log_level = logging.DEBUG
         logger = logging.getLogger("logger_a")
 
@@ -839,19 +826,16 @@ class TestSetupLogging:
         with mock.patch(
             "uaclient.cli.config.UAConfig", return_value=FakeConfig()
         ):
-            setup_logging(console_level, log_level, logger=logger)
-        assert len(logger.handlers) == 2
-        assert logger.handlers[0].name == "upro-console"
-        assert logger.handlers[0].level == console_level
-        assert logger.handlers[1].name == "upro-file"
-        assert logger.handlers[1].level == log_level
+            setup_logging(log_level, logger=logger)
+        assert len(logger.handlers) == 1
+        assert logger.handlers[0].name == "upro-file"
+        assert logger.handlers[0].level == log_level
 
     @mock.patch("pathlib.Path.touch")
     def test_log_file_created_if_not_present(self, m_path_touch, tmpdir):
         logger = logging.getLogger("logger_b")
         log_file = tmpdir.join("log_file").strpath
         setup_logging(
-            logging.DEBUG,
             logging.INFO,
             log_file=log_file,
             logger=logger,

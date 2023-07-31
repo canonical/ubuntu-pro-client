@@ -65,8 +65,7 @@ class LandscapeEntitlement(UAEntitlement):
         try:
             system.subp(cmd)
         except exceptions.ProcessExecutionError as e:
-            with util.disable_log_to_console():
-                LOG.error(e)
+            LOG.error(e)
             event.info(str(e).strip())
             event.warning(str(e), self.name)
 
@@ -82,8 +81,7 @@ class LandscapeEntitlement(UAEntitlement):
                 LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
             )
         except FileNotFoundError as e:
-            with util.disable_log_to_console():
-                LOG.error(e)
+            LOG.error(e)
             event.info(str(e))
             event.warning(str(e), self.name)
 

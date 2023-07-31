@@ -466,6 +466,7 @@ class TestLivepatchEntitlementEnable:
             "Installing snapd\n"
             "Updating package lists\n"
             "Installing canonical-livepatch snap\n"
+            "Disabling Livepatch prior to re-attach with new token\n"
             "Canonical livepatch enabled.\n"
         )
         assert (msg, "") == capsys.readouterr()
@@ -520,6 +521,7 @@ class TestLivepatchEntitlementEnable:
         )
         msg = (
             "Installing canonical-livepatch snap\n"
+            "Disabling Livepatch prior to re-attach with new token\n"
             "Canonical livepatch enabled.\n"
         )
         assert (msg, "") == capsys.readouterr()
@@ -579,7 +581,11 @@ class TestLivepatchEntitlementEnable:
             ),
         ]
         assert subp_calls == m_subp.call_args_list
-        assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+        assert (
+            "Disabling Livepatch prior to re-attach with new token\n"
+            "Canonical livepatch enabled.\n",
+            "",
+        ) == capsys.readouterr()
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1

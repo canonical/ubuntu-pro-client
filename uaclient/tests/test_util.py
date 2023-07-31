@@ -1,13 +1,11 @@
 """Tests related to uaclient.util module."""
 import datetime
-import io
 import json
-import logging
 
 import mock
 import pytest
 
-from uaclient import cli, exceptions, messages, util
+from uaclient import exceptions, messages, util
 
 
 class TestGetDictDeltas:
@@ -51,92 +49,6 @@ class TestGetDictDeltas:
         }
         expected = {"2": "new2", "3": {"3.2": "new3.2"}}
         assert expected == util.get_dict_deltas(orig_dict, new_dict)
-
-
-@mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-class TestDisableLogToConsole:
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    def test_no_error_if_console_handler_not_found(
-        self, m_we_are_currently_root, caplog_text
-    ):
-        with mock.patch("uaclient.util.logging.getLogger") as m_getlogger:
-            m_getlogger.return_value.handlers = []
-            with util.disable_log_to_console():
-                pass
-
-        assert "no console handler found" in caplog_text()
-
-    @pytest.mark.parametrize("disable_log", (True, False))
-    @mock.patch("uaclient.log.get_user_log_file")
-    def test_disable_log_to_console(
-        self,
-        m_get_user,
-        m_we_are_currently_root,
-        logging_sandbox,
-        capsys,
-        tmpdir,
-        disable_log,
-    ):
-        # This test is parameterised so that we are sure that the context
-        # manager is suppressing the output, not some other config change
-
-        log_file = tmpdir.join("file.log").strpath
-        m_get_user.return_value = log_file
-        logger = logging.getLogger("ubuntupro")
-        logger.handlers = []
-
-        logger.setLevel(logging.INFO)
-        output = io.StringIO()
-        console_handler = logging.StreamHandler(output)
-        console_handler.setLevel(logging.INFO)
-        console_handler.set_name(
-            "upro-console"
-        )  # Used to disable console logging
-        logger.addHandler(console_handler)
-
-        if disable_log:
-            context_manager = util.disable_log_to_console
-        else:
-            context_manager = mock.MagicMock
-
-        with context_manager():
-            logger.error("test error")
-            logger.info("test info")
-
-        # out, err = capsys.readouterr()
-        out = output.getvalue()
-        combined_output = out
-        if disable_log:
-            assert not combined_output
-        else:
-            assert "test error" in combined_output
-            assert "test info" in combined_output
-
-    @mock.patch("uaclient.log.get_user_log_file")
-    def test_disable_log_to_console_does_nothing_at_debug_level(
-        self,
-        m_get_user,
-        m_we_are_currently_root,
-        logging_sandbox,
-        capsys,
-        FakeConfig,
-        tmpdir,
-    ):
-        m_get_user.return_value = tmpdir.join("file.log").strpath
-        with mock.patch(
-            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
-        ):
-            logger = logging.getLogger("ubuntupro")
-            cli.setup_logging(logging.DEBUG, logging.DEBUG)
-
-            with util.disable_log_to_console():
-                logger.error("test error")
-                logger.info("test info")
-
-        out, err = capsys.readouterr()
-        combined_output = out + err
-        assert "test error" in combined_output
-        assert "test info" in combined_output
 
 
 JSON_TEST_PAIRS = (

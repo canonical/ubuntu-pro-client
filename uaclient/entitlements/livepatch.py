@@ -147,10 +147,11 @@ class LivepatchEntitlement(UAEntitlement):
                 livepatch_token = self.cfg.machine_token["machineToken"]
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
-                LOG.info(
-                    "Disabling %s prior to re-attach with new token",
-                    self.title,
+                msg = "Disabling {} prior to re-attach with new token".format(
+                    self.title
                 )
+                LOG.info(msg)
+                event.info(msg)
                 try:
                     system.subp([livepatch.LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
@@ -280,7 +281,9 @@ class LivepatchEntitlement(UAEntitlement):
         )
         process_token = bool(deltas.get("resourceToken", False))
         if any([process_directives, process_token]):
-            LOG.info("Updating '%s' on changed directives.", self.name)
+            msg = "Updating '{}' on changed directives.".format(self.name)
+            LOG.info(msg)
+            event.info(msg)
             return self.setup_livepatch_config(
                 process_directives=process_directives,
                 process_token=process_token,

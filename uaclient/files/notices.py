@@ -119,8 +119,7 @@ class NoticesManager:
         :param description: The content to be written to the notice file.
         """
         if not util.we_are_currently_root():
-            with util.disable_log_to_console():
-                LOG.warning("Trying to add a notice as non-root user")
+            LOG.warning("Trying to add a notice as non-root user")
             return
 
         directory = (
@@ -142,8 +141,7 @@ class NoticesManager:
         :param notice_details: Holds details concerning the notice file.
         """
         if not util.we_are_currently_root():
-            with util.disable_log_to_console():
-                LOG.warning("Trying to remove a notice as non-root user")
+            LOG.warning("Trying to remove a notice as non-root user")
             return
 
         directory = (
@@ -193,13 +191,12 @@ class NoticesManager:
                             raise Exception()
                         notices.append(notice.value.message)
                     except Exception:
-                        with util.disable_log_to_console():
-                            LOG.warning(
-                                "Something went wrong while processing"
-                                " notice: {}.".format(
-                                    notice_file_name,
-                                )
+                        LOG.warning(
+                            "Something went wrong while processing"
+                            " notice: {}.".format(
+                                notice_file_name,
                             )
+                        )
         notices.sort()
         return notices
 

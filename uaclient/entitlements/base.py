@@ -1179,17 +1179,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if application_status != ApplicationStatus.DISABLED:
                 if self.can_disable():
                     self.disable()
-                    LOG.info(
-                        "Due to contract refresh, '%s' is now disabled.",
-                        self.name,
-                    )
+                    msg = (
+                        "Due to contract refresh, " "'{}' is now disabled."
+                    ).format(self.name)
+                    LOG.info(msg)
+                    event.info(msg)
                 else:
-                    LOG.warning(
-                        "Unable to disable '%s' as recommended during contract"
+                    msg = (
+                        "Unable to disable '{}' as recommended during contract"
                         " refresh. Service is still active. See"
-                        " `pro status`",
-                        self.name,
-                    )
+                        " `pro status`"
+                    ).format(self.name)
+                    LOG.warning(msg)
+                    event.info(msg)
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
