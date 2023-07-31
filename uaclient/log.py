@@ -84,3 +84,12 @@ def get_all_user_log_files() -> List[str]:
         if os.path.isfile(user_path):
             log_files.append(user_path)
     return log_files
+
+
+def setup_journald_logging(log_level, logger):
+    logger.setLevel(log_level)
+    logger.addFilter(RedactionFilter())
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(JsonArrayFormatter())
+    console_handler.setLevel(log_level)
+    logger.addHandler(console_handler)
