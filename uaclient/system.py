@@ -95,14 +95,12 @@ def _get_kernel_changelog_timestamp(
     uname: os.uname_result,
 ) -> Optional[datetime.datetime]:
     if is_container():
-        with util.disable_log_to_console():
-            LOG.warning(
-                "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
-            )
+        LOG.warning(
+            "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
+        )
         return None
 
-    with util.disable_log_to_console():
-        LOG.warning("Falling back to using timestamp of kernel changelog")
+    LOG.warning("Falling back to using timestamp of kernel changelog")
 
     try:
         stat_result = os.stat(
@@ -114,8 +112,7 @@ def _get_kernel_changelog_timestamp(
             stat_result.st_mtime, datetime.timezone.utc
         )
     except Exception:
-        with util.disable_log_to_console():
-            LOG.warning("Unable to stat kernel changelog")
+        LOG.warning("Unable to stat kernel changelog")
         return None
 
 
@@ -124,15 +121,13 @@ def _get_kernel_build_date(
 ) -> Optional[datetime.datetime]:
     date_match = re.search(RE_KERNEL_EXTRACT_BUILD_DATE, uname.version)
     if date_match is None:
-        with util.disable_log_to_console():
-            LOG.warning("Unable to find build date in uname version")
+        LOG.warning("Unable to find build date in uname version")
         return _get_kernel_changelog_timestamp(uname)
     date_str = date_match.group(0)
     try:
         dt = datetime.datetime.strptime(date_str, "%a %b %d %H:%M:%S %Z %Y")
     except ValueError:
-        with util.disable_log_to_console():
-            LOG.warning("Unable to parse build date from uname version")
+        LOG.warning("Unable to parse build date from uname version")
         return _get_kernel_changelog_timestamp(uname)
     if dt.tzinfo is None:
         # Give it a default timezone if it didn't get one from strptime

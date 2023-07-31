@@ -131,31 +131,26 @@ def status() -> Optional[LivepatchStatusStatus]:
             [LIVEPATCH_CMD, "status", "--verbose", "--format", "json"]
         )
     except exceptions.ProcessExecutionError:
-        with util.disable_log_to_console():
-            LOG.warning(
-                "canonical-livepatch returned error when checking status"
-            )
+        LOG.warning("canonical-livepatch returned error when checking status")
         return None
 
     try:
         status_json = json.loads(out)
     except json.JSONDecodeError:
-        with util.disable_log_to_console():
-            LOG.warning(
-                messages.JSON_PARSER_ERROR.format(
-                    source="canonical-livepatch status", out=out
-                ).msg
-            )
+        LOG.warning(
+            messages.JSON_PARSER_ERROR.format(
+                source="canonical-livepatch status", out=out
+            ).msg
+        )
         return None
 
     try:
         status_root = LivepatchStatus.from_dict(status_json)
     except IncorrectTypeError:
-        with util.disable_log_to_console():
-            LOG.warning(
-                "canonical-livepatch status returned unexpected "
-                "structure: {}".format(out)
-            )
+        LOG.warning(
+            "canonical-livepatch status returned unexpected "
+            "structure: {}".format(out)
+        )
         return None
 
     if status_root.status is None or len(status_root.status) < 1:
@@ -209,17 +204,13 @@ class UALivepatchClient(serviceclient.UAServiceClient):
                 headers=headers,
             )
         except Exception as e:
-            with util.disable_log_to_console():
-                LOG.warning(
-                    "error while checking livepatch supported kernels API"
-                )
-                LOG.warning(e)
+            LOG.warning("error while checking livepatch supported kernels API")
+            LOG.warning(e)
             return None
 
         if response.code != 200:
-            with util.disable_log_to_console():
-                LOG.warning("livepatch supported kernels API was unsuccessful")
-                LOG.warning(response.body)
+            LOG.warning("livepatch supported kernels API was unsuccessful")
+            LOG.warning(response.body)
             return None
 
         api_supported_val = response.json_dict.get("Supported")
@@ -265,10 +256,7 @@ def _on_supported_kernel_cache(
             ]
         ):
             if cache_data.supported is None:
-                with util.disable_log_to_console():
-                    LOG.warning(
-                        "livepatch kernel support cache has None value"
-                    )
+                LOG.warning("livepatch kernel support cache has None value")
             return (True, cache_data.supported)
     return (False, None)
 
@@ -306,8 +294,7 @@ def _on_supported_kernel_api(
     )
 
     if supported is None:
-        with util.disable_log_to_console():
-            LOG.warning("livepatch kernel support API response was ambiguous")
+        LOG.warning("livepatch kernel support API response was ambiguous")
     return supported
 
 

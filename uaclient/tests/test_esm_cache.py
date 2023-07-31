@@ -28,11 +28,11 @@ class TestUpdateEsmCaches:
 
         assert expected_log_args == m_esm_cache_log_err.call_args_list
 
-    def test_log_exception(self, m_update_caches, capsys, FakeConfig):
+    def test_log_exception(self, m_update_caches, caplog_text, FakeConfig):
         expected_msg = "unexpected exception"
         expected_exception = Exception(expected_msg)
         m_update_caches.side_effect = expected_exception
         main(cfg=FakeConfig())
-        _, err = capsys.readouterr()
+        log = caplog_text()
 
-        assert expected_msg in err
+        assert expected_msg in log

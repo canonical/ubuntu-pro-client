@@ -184,13 +184,12 @@ def get_snap_info(snap: str) -> SnapPackage:
         try:
             data = json.loads(out)
         except json.JSONDecodeError:
-            with util.disable_log_to_console():
-                LOG.warning(
-                    messages.JSON_PARSER_ERROR.format(
-                        source="SNAPD API {}".format(url),
-                        out=out,
-                    ).msg
-                )
+            LOG.warning(
+                messages.JSON_PARSER_ERROR.format(
+                    source="SNAPD API {}".format(url),
+                    out=out,
+                ).msg
+            )
             raise exceptions.SnapdInvalidJson(url=url, out=out)
 
         # This means that the snap doesn't exist or is not installed

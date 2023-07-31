@@ -128,9 +128,8 @@ class UAConfig:
                     or state_files.UserConfigData()
                 )
             except Exception as e:
-                with util.disable_log_to_console():
-                    LOG.warning("Error loading user config: {}".format(e))
-                    LOG.warning("Using default config values")
+                LOG.warning("Error loading user config: {}".format(e))
+                LOG.warning("Using default config values")
                 self.user_config = state_files.UserConfigData()
 
         # support old ua_config values in uaclient.conf as user-config.json

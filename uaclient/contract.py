@@ -517,19 +517,17 @@ def process_entitlements_delta(
         except exceptions.UserFacingError:
             delta_error = True
             failed_services.append(name)
-            with util.disable_log_to_console():
-                LOG.error(
-                    "Failed to process contract delta for {name}:"
-                    " {delta}".format(name=name, delta=new_entitlement)
-                )
+            LOG.error(
+                "Failed to process contract delta for {name}:"
+                " {delta}".format(name=name, delta=new_entitlement)
+            )
         except Exception:
             unexpected_error = True
             failed_services.append(name)
-            with util.disable_log_to_console():
-                LOG.exception(
-                    "Unexpected error processing contract delta for {name}:"
-                    " {delta}".format(name=name, delta=new_entitlement)
-                )
+            LOG.exception(
+                "Unexpected error processing contract delta for {name}:"
+                " {delta}".format(name=name, delta=new_entitlement)
+            )
         else:
             # If we have any deltas to process and we were able to process
             # them, then we will mark that service as successfully enabled
