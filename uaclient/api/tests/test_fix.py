@@ -1,8 +1,7 @@
 import mock
 import pytest
 
-from uaclient.contract import ContractExpiryStatus
-from uaclient.fix import (
+from uaclient.api.u.pro.security.fix import (
     AptUpgradeData,
     AttachData,
     EnableData,
@@ -21,6 +20,7 @@ from uaclient.fix import (
     fix_plan_cve,
     fix_plan_usn,
 )
+from uaclient.contract import ContractExpiryStatus
 from uaclient.messages import INVALID_SECURITY_ISSUE
 from uaclient.security import CVEPackageStatus, FixStatus
 
@@ -61,7 +61,9 @@ class TestFixPlan:
         )
         assert expected_plan == fix_plan_usn(issue_id, cfg=mock.MagicMock())
 
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_cve_fixed_by_livepatch(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -89,9 +91,13 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_no_affected_packages(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -127,9 +133,13 @@ class TestFixPlan:
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_cve(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -198,14 +208,18 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.fix._enabled_services")
-    @mock.patch("uaclient.fix._is_attached")
-    @mock.patch("uaclient.fix.get_contract_expiry_status")
+    @mock.patch("uaclient.api.u.pro.security.fix._enabled_services")
+    @mock.patch("uaclient.api.u.pro.security.fix._is_attached")
+    @mock.patch("uaclient.api.u.pro.security.fix.get_contract_expiry_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_cve_that_requires_pro_services(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -381,9 +395,13 @@ class TestFixPlan:
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_cve_when_package_cannot_be_installed(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -462,9 +480,13 @@ class TestFixPlan:
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_cve_with_not_released_status(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -552,10 +574,16 @@ class TestFixPlan:
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix.merge_usn_released_binary_package_versions")
-    @mock.patch("uaclient.fix.get_affected_packages_from_usn")
-    @mock.patch("uaclient.fix._get_usn_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.merge_usn_released_binary_package_versions"  # noqa
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.get_affected_packages_from_usn"
+    )
+    @mock.patch("uaclient.api.u.pro.security.fix._get_usn_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
     def test_fix_plan_for_usn(
         self,
         m_query_installed_pkgs,
@@ -731,9 +759,13 @@ class TestFixPlan:
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.fix._get_cve_data")
-    @mock.patch("uaclient.fix.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.fix._check_cve_fixed_by_livepatch")
+    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+    )
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+    )
     def test_fix_plan_for_cve_when_package_already_installed(
         self,
         m_check_cve_fixed_by_livepatch,
