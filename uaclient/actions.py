@@ -65,7 +65,7 @@ def attach_with_token(
         )
     except exceptions.UrlError as e:
         with util.disable_log_to_console():
-            logging.exception(str(e))
+            LOG.exception(str(e))
         raise exceptions.ConnectivityError()
 
     cfg.machine_token_file.write(new_machine_token)
