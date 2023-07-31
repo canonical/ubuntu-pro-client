@@ -555,7 +555,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         package_names = [package["name"] for package in required_packages]
         msg = messages.INSTALLING_PACKAGES.format(" ".join(package_names))
-        logging.debug(msg)
+        LOG.debug(msg)
         event.info(msg)
         apt.run_apt_install_command(package_names)
 
@@ -581,7 +581,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         ]
         package_names_str = " ".join(package_names)
         msg = messages.UNINSTALLING_PACKAGES.format(package_names_str)
-        logging.debug(msg)
+        LOG.debug(msg)
         event.info(msg)
         apt.remove_packages(
             package_names,

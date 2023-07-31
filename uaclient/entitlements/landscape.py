@@ -6,6 +6,7 @@ from uaclient import apt, event_logger, exceptions, messages, system, util
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()
 
 LANDSCAPE_CLIENT_PACKAGE_NAME = "landscape-client"
@@ -26,7 +27,7 @@ class LandscapeEntitlement(UAEntitlement):
         if self.assume_yes and "--silent" not in cmd:
             cmd += ["--silent"]
 
-        logging.debug(messages.EXECUTING_COMMAND.format(" ".join(cmd)))
+        LOG.debug(messages.EXECUTING_COMMAND.format(" ".join(cmd)))
         event.info(
             util.redact_sensitive_logs(
                 messages.EXECUTING_COMMAND.format(" ".join(cmd))
@@ -65,7 +66,7 @@ class LandscapeEntitlement(UAEntitlement):
             system.subp(cmd)
         except exceptions.ProcessExecutionError as e:
             with util.disable_log_to_console():
-                logging.error(e)
+                LOG.error(e)
             event.info(str(e).strip())
             event.warning(str(e), self.name)
 
@@ -73,7 +74,7 @@ class LandscapeEntitlement(UAEntitlement):
             original=LANDSCAPE_CLIENT_CONFIG_PATH,
             backup=LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
         )
-        logging.debug(msg)
+        LOG.debug(msg)
         event.info(msg)
         try:
             os.rename(
@@ -82,7 +83,7 @@ class LandscapeEntitlement(UAEntitlement):
             )
         except FileNotFoundError as e:
             with util.disable_log_to_console():
-                logging.error(e)
+                LOG.error(e)
             event.info(str(e))
             event.warning(str(e), self.name)
 
