@@ -1,3 +1,7 @@
+# This file was created by ubuntu-advantage-tools
+# Pinning esm-apps packages to a slightly higher value than the archive,
+# so those are preferred when the service is enabled
+
 Package: *
 Pin: release o=UbuntuESMApps
 Pin-Priority: 510
