@@ -4,11 +4,10 @@ Feature: Magic attach flow related tests
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attach using the magic attach flow
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I change contract to staging with sudo
-        And I create the file `/tmp/response-overlay.json` with the following:
+        When I create the file `/tmp/response-overlay.json` with the following:
         """
         {
-            "https://contracts.staging.canonical.com/v1/magic-attach": [
+            "https://contracts.canonical.com/v1/magic-attach": [
             {
               "code": 200,
               "response": {
@@ -26,7 +25,7 @@ Feature: Magic attach flow related tests
                     "expires": "expire-date",
                     "expiresIn": 2000,
                     "contractID": "test-contract-id",
-                    "contractToken": "$behave_var{contract_token_staging}"
+                    "contractToken": "$behave_var{contract_token}"
                 }
             }]
         }
