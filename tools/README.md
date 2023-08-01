@@ -12,7 +12,6 @@ in this directory will be shipped as part of the packaging
 - README.md: This file.
 - refresh-keyrings.sh: Refresh the keyring files for services, stored in the repo
 - run-integration-tests.py: Python entrypoint for the `tox -e behave` commands.
-- setup_pyenv.sh: Downloads and compiles all Python versions we should support, and configures `pyenv` to use those.
 - setup_sbuild.sh: Downloads and prepares chroots used in the build (and test) process.
 - test-in-lxd.sh: Build the package and then install it on an LXD instance for testing
 - test-in-multipass.sh: Build the package and then install it on a multipass instance for testing
