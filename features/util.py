@@ -374,6 +374,13 @@ def process_template_vars(
                 context.pro_config.contract_token_staging,
                 logger_fn,
             )
+        elif function_name == "contract_token":
+            processed_template = _replace_and_log(
+                processed_template,
+                match.group(0),
+                context.pro_config.contract_token,
+                logger_fn,
+            )
         elif function_name == "config":
             item = args[1]
             if not shown or item not in context.pro_config.redact_options:
