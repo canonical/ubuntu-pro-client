@@ -1,2 +1,2 @@
 Tests: usage
-Restrictions: allow-stderr
+Restrictions: allow-stderr, superficial
