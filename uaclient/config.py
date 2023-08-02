@@ -562,7 +562,7 @@ class UAConfig:
         from uaclient.entitlements.entitlement_status import ApplicationStatus
         from uaclient.entitlements.livepatch import LivepatchEntitlement
 
-        livepatch_ent = LivepatchEntitlement()
+        livepatch_ent = LivepatchEntitlement(self)
         livepatch_status, _ = livepatch_ent.application_status()
 
         if livepatch_status == ApplicationStatus.ENABLED:
