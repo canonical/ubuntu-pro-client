@@ -61,3 +61,30 @@ You can manage `esm-infra` and `esm-apps` using `pro` on the command line. To
 find out how, read our guide on
 [enabling and disabling these services](../howtoguides/enable_esm_infra.md)
 on your machine.
+
+## Are `esm-infra` and `esm-apps` packages preferred over regular updates?
+
+Yes. The Pro Client will deliver the following configuration files to apt to
+ensure the `esm` updates are preferred when running `apt upgrade`:
+
+- `/etc/apt/preferences.d/ubuntu-pro-esm-infra`
+- `/etc/apt/preferences.d/ubuntu-pro-esm-apps`
+
+These files are *pinning* the packages coming from `esm` to give them a higher
+priority than the standard defined in apt. This means that the version to be
+installed by apt (in `install` or `upgrade`) or by unattended-upgrades will
+always be the highest `esm` version available for a given package, even if a
+higher version is present on a non-esm source.
+
+This behavior guarantees that if you have `esm-infra` or `esm-apps` enabled,
+your system will always have the `esm` patches installed for any package
+available in the ESM repositories.
+
+Although the preference files listed above will always be delivered by the
+package, they will only take effect when the packages from the sources they
+reference are available, i.e. when the services are enabled. Otherwise, it
+is safe to keep those files around.
+
+Check the
+[APT Configuration article in the Debian Wiki](https://wiki.debian.org/AptConfiguration#apt_preferences_.28APT_pinning.29)
+to learn more about pinning and priorities.
