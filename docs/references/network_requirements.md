@@ -39,3 +39,9 @@ Necessary endpoints for `snap`:
 
 Necessary endpoints for `livepatch`:
 - `livepatch.canonical.com:443`
+
+## Fix
+`pro fix` needs to fetch information about USNs and/or CVEs from the Ubuntu Security APIs.
+
+Necessary endpoints:
+- `ubuntu.com/security:443`
