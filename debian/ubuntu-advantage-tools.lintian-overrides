@@ -1,0 +1,10 @@
+# We are silencing this issue because of this LP: #1930121
+ubuntu-advantage-tools: command-with-path-in-maintainer-script
+
+# Ubuntu doesn't support sysv init.d
+ubuntu-advantage-tools: package-supports-alternative-init-but-no-init.d-script
+
+# We have made the decision of delivering those files
+ubuntu-advantage-tools: package-installs-apt-preferences
+
+ubuntu-advantage-tools: possible-bashism-in-maintainer-script
