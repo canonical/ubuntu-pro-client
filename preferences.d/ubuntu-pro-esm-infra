@@ -1,5 +1,6 @@
 # This file was created by ubuntu-advantage-tools
-# Pinning esm-infra packages to a slightly higher value than the archive,
+
+# Pin esm-infra packages to a slightly higher value than the archive,
 # so those are preferred when the service is enabled
 
 Package: *
