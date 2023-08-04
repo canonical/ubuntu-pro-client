@@ -365,34 +365,16 @@ migrate_user_config_post() {
 }
 
 rename_gpg_keys() {
-    # esm-infra
+    # esm-infra doesn't follow the name pattern
     if [ -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_INFRA_KEY_TRUSTY" ]; then
         mv "$APT_TRUSTED_KEY_DIR/$OLD_ESM_INFRA_KEY_TRUSTY" "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY"
     fi
-    # esm-apps
-    if [ -f "$APT_TRUSTED_KEY_DIR/$OLD_ESM_APPS_KEY" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/$OLD_ESM_APPS_KEY" "$APT_TRUSTED_KEY_DIR/$ESM_APPS_KEY"
-    fi
-    # cc-eal
-    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cc-eal.gpg" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cc-eal.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-cc-eal.gpg"
-    fi
-    # cis (and usg)
-    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cis.gpg" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-cis.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-cis.gpg"
-    fi
-    # fips (+updates)
-    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-fips.gpg" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-fips.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-fips.gpg"
-    fi
-    # ros (+updates)
-    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-ros.gpg" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-ros.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-ros.gpg"
-    fi
-    # realtime-kernel
-    if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-realtime-kernel.gpg" ]; then
-        mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-realtime-kernel.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-realtime-kernel.gpg"
-    fi
+    SERVICES="cc-eal cis esm-apps fips ros realtime-kernel"
+    for service in $SERVICES; do
+        if [ -f "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-$service.gpg" ]; then
+            mv "$APT_TRUSTED_KEY_DIR/ubuntu-advantage-$service.gpg" "$APT_TRUSTED_KEY_DIR/ubuntu-pro-$service.gpg"
+        fi
+    done
 }
 
 case "$1" in
