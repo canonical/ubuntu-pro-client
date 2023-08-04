@@ -7,6 +7,7 @@ ubuntu-advantage-tools (29) mantic; urgency=medium
     - update upstream-name and source
   * d/ubuntu-advantage-tools.{postinst,postrm}:
     - rename repo GPG keys from -advantage to -pro (GH: #1539)
+    - replace calls to systemctl for deb-systemd-invoke
   * d/README.source:
     - add file with basic explanation on the source code (GH: #2463)
   * New upstream release 29 (LP: #2029144)
