@@ -127,6 +127,20 @@ will be populated like this if we have a connectivity issue when running a
 that *warnings* means that the command was able to complete although unexpected
 scenarios happened when executing the command.
 
+CLI arguments
+------------------------------
+
+There are two ways to provide data to APIs that require arguments.
+
+* ``--args``: Use this to individually provide arguments to the CLI endpoint.
+
+  For example: ``pro api u.pro.attach.magic.revoke.v1 --args magic_token=TOKEN``
+
+* ``--data``: Use this to provide a JSON object containing all the data:
+
+  For example: ``pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1234-1235"]}'``
+
+
 Available endpoints
 ===================
 
@@ -139,6 +153,8 @@ The currently available endpoints are:
 - `u.pro.attach.auto.should_auto_attach.v1`_
 - `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.configure_retry_service.v1`_
+- `u.pro.security.fix.cve.plan.v1`_
+- `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
 - `u.pro.packages.summary.v1`_
@@ -612,6 +628,544 @@ like ``systemctl start ubuntu-advantage.service``.
 
         - This endpoint currently has no CLI support. Only the Python-based
           version is available.
+
+u.pro.security.fix.cve.plan.v1
+===============================
+
+This endpoint shows the necessary steps required to fix CVEs in the system without
+executing any of those steps.
+
+- Introduced in Ubuntu Pro Client Version: ``29~``
+- Args:
+
+  - ``cves``: A list of CVE (i.e. CVE-2023-2650) titles
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.security.fix.cve.plan.v1 import plan, CVEFixPlanOptions
+
+           options = CVEFixPlanOptions(cves=["CVE-1234-1234", "CVE-1234-1235"])
+           result = plan(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.CVESFixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``cves_data``
+               - *List[CVEFixPlanResult]*
+               - A list of CVEFixPlanResult objects
+
+        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.CVEFixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``expected_status``
+               - *str*
+               - The expected status of fixing the CVEs
+             * - ``cves``
+               - *List[FixPlanResult]*
+               - A list of FixPlanResult objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``title``
+               - *str*
+               - The title of the CVE
+             * - ``expected_status``
+               - *str*
+               - The expected status of fixing the CVE
+             * - ``plan``
+               - *List[FixPlanStep]*
+               - A list of FixPlanStep objects
+             * - ``warnings``
+               - *List[FixPlanWarning]*
+               - A list of FixPlanWarning objects
+             * - ``error``
+               - *Optional[FixPlanError]*
+               - A list of FixPlanError objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanStep``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``operation``
+               - *str*
+               - The operation that would be performed to fix the CVE. This can be either an attach, enable, apt-upgrade or a no-op type
+             * - ``order``
+               - *int*
+               - The execution order of the operation
+             * - ``data``
+               - *object*
+               - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
+             * - ``warnings``
+               - *List[FixPlanWarning]*
+               - A list of FixPlanWarning objects
+             * - ``error``
+               - *Optional[FixPlanError]*
+               - A list of FixPlanError objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``warning_type``
+               - *str*
+               - The type of warning
+             * - ``order``
+               - *int*
+               - The execution order of the operation
+             * - ``data``
+               - *object*
+               - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanError``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``msg``
+               - *str*
+               - The error message
+             * - ``code``
+               - *str*
+               - The message code
+
+        - ``uaclient.api.u.pro.security.fix import AptUpgradeData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``binary_packages``
+               - *List[str]*
+               - A list of binary packages that need to be upgraded
+             * - ``source_packages``
+               - *List[str]*
+               - A list of source packages that need to be upgraded
+
+        - ``uaclient.api.u.pro.security.fix import AttachData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``reason``
+               - *str*
+               - The reason why an attach operation is needed
+
+        - ``uaclient.api.u.pro.security.fix import EnableData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``service``
+               - *str*
+               - The Pro client service that needs to be enabled
+
+        - ``uaclient.api.u.pro.security.fix import NoOpData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of the CVE when no operation can be performed
+
+        - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``binary_package``
+               - *str*
+               - The binary package that cannot be installed
+             * - ``binary_package_version``
+               - *str*
+               - The version of the binary package that cannot be installed
+             * - ``source_package``
+               - *str*
+               - The source package associated with the binary package
+
+        - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``source_packages``
+               - *List[str]*
+               - A list of source packages that cannot be fixed at the moment
+             * - ``status``
+               - *str*
+               - The status of the CVE regarding those packages
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1234-1234", "CVE-1234-1235"]}'
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+              "cves_data": {
+                  "expected_status": "fixed",
+                  "cves": [
+                    {
+                        "title": "CVE-1234-56789",
+                        "expected_status": "fixed",
+                        "plan": [
+                            {
+                                "operation": "apt-upgrade",
+                                "order": 1,
+                                "data": {
+                                    "binary_packages": ["pkg1"],
+                                    "source_packages": ["pkg1"],
+                                }
+                            }
+                        ],
+                        "warnings": [],
+                        "error": null
+                    }
+                  ]
+              }
+           }
+
+u.pro.security.fix.usn.plan.v1
+===============================
+
+This endpoint shows the necessary steps required to fix USNs in the system without
+executing any of those steps.
+
+- Introduced in Ubuntu Pro Client Version: ``29~``
+- Args:
+
+  - ``usns``: A list of USNs (i.e. USN-6119-1) titles
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.security.fix.usn.plan.v1 import plan, USNFixPlanOptions
+
+           options = USNFixPlanOptions(cves=["USN-1234-1", "USN-1235-1"])
+           result = plan(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.USNSFixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``usns_data``
+               - *List[USNFixPlanResult]*
+               - A list of USNFixPlanResult objects
+
+        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.USNFixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``expected_status``
+               - *str*
+               - The expected status of fixing the USNs
+             * - ``cves``
+               - *List[FixPlanUSNResult]*
+               - A list of FixPlanUSNResult objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanUSNResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``target_usn_plan``
+               - *FixPlanResult*
+               - A FixPlanResult object for the target USN
+             * - ``related_usns_plan``
+               - *List[FixPlanResult]*
+               - A list of FixPlanResult objects for the related USNs
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``title``
+               - *str*
+               - The title of the USN
+             * - ``expected_status``
+               - *str*
+               - The expected status of fixing the USN
+             * - ``plan``
+               - *List[FixPlanStep]*
+               - A list of FixPlanStep objects
+             * - ``warnings``
+               - *List[FixPlanWarning]*
+               - A list of FixPlanWarning objects
+             * - ``error``
+               - *Optional[FixPlanError]*
+               - A list of FixPlanError objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanStep``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``operation``
+               - *str*
+               - The operation that would be performed to fix the USN
+             * - ``order``
+               - *int*
+               - The execution order of the operation
+             * - ``data``
+               - *object*
+               - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
+             * - ``warnings``
+               - *List[FixPlanWarning]*
+               - A list of FixPlanWarning objects
+             * - ``error``
+               - *Optional[FixPlanError]*
+               - A list of FixPlanError objects
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``warning_type``
+               - *str*
+               - The type of warning
+             * - ``order``
+               - *int*
+               - The execution order of the operation
+             * - ``data``
+               - *object*
+               - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
+
+        - ``uaclient.api.u.pro.security.fix import FixPlanError``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``msg``
+               - *str*
+               - The error message
+             * - ``code``
+               - *str*
+               - The message code
+
+        - ``uaclient.api.u.pro.security.fix import AptUpgradeData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``binary_packages``
+               - *List[str]*
+               - A list of binary packages that need to be upgraded
+             * - ``source_packages``
+               - *List[str]*
+               - A list of source packages that need to be upgraded
+
+        - ``uaclient.api.u.pro.security.fix import AttachData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``reason``
+               - *str*
+               - The reason why an attach operation is needed
+
+        - ``uaclient.api.u.pro.security.fix import EnableData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``service``
+               - *str*
+               - The Pro client service that needs to be enabled
+
+        - ``uaclient.api.u.pro.security.fix import NoOpData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of the USN when no operation can be performed
+
+        - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``binary_package``
+               - *str*
+               - The binary package that cannot be installed
+             * - ``binary_package_version``
+               - *str*
+               - The version of the binary package that cannot be installed
+             * - ``source_package``
+               - *str*
+               - The source package associated with the binary package
+
+        - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``source_packages``
+               - *List[str]*
+               - A list of source packages that cannot be fixed at the moment
+             * - ``status``
+               - *str*
+               - The status of the USN regarding those packages
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.security.fix.usn.plan.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+              "usns_data": {
+                  "expected_status": "fixed",
+                  "usns": [
+                    {
+                        "related_usns_plan": [],
+                        "target_usn_plan": {
+                            "title": "USN-1234-5",
+                            "expected_status": "fixed",
+                            "plan": [
+                                {
+                                    "operation": "apt-upgrade",
+                                    "order": 1,
+                                    "data": {
+                                        "binary_packages": ["pkg1"],
+                                        "source_packages": ["pkg1"],
+                                    }
+                                }
+                            ],
+                            "warnings": [],
+                            "error": null
+                        },
+                    }
+                  ]
+              }
+           }
 
 u.pro.security.status.livepatch_cves.v1
 =======================================
