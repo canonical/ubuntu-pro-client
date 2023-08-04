@@ -5,7 +5,7 @@ How to configure a TLS-in-TLS proxy
 
 .. warning:: TLS-in-TLS is only supported by the Ubuntu Pro Client on Ubuntu 18.04 and later.
 
-If you need to set ``https_proxy`` to a proxy that uses ``https://``, you need to follow a few extra steps to ensure all Ubuntu Pro actions work correctly.
+If you need to set ``https_proxy`` to a proxy that uses ``https://`` (a practice commonly referred to as "TLS-in-TLS"), you need to follow a few extra steps to ensure all Ubuntu Pro actions work correctly.
 
 
 Install the pycurl dependency
