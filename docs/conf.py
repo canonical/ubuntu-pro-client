@@ -122,3 +122,4 @@ html_js_files = [
     "js/header-nav.js",
     "js/synced_tab_links.js",
 ]
+html_favicon = "_static/favicon.ico"
