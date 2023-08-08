@@ -1,6 +1,22 @@
 /** Fix the font weight (300 for normal, 400 for slightly bold) **/
 /** Should be 100 for all headers, 400 for normal text  **/
 
+/** We are creating both of these styles only to have the
+ *  headers of the compatibility matrix to be vertically
+ *  aligned. The impact for other tables is that headers
+ *  will be forcedly aligned to the bottom line, but that
+ *  does not change the visualization of the other tables
+ **/
+.v {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+
+table.docutils th.text-center {
+  vertical-align: bottom;
+}
+
 h1, h2, h3, h4, h5, h6, .sidebar-tree .current-page>.reference, button, input, optgroup, select, textarea, th.head {
     font-weight: 200;
 }
