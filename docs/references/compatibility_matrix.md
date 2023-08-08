@@ -3,7 +3,7 @@
 Some Ubuntu Pro services are compatible with each other. The following
 matrix display the services that are compatible:
 
-|                 | esm-infra |  esm-apps  | livepatch  | cc-eal  |  cis    | usg      | fips     | fips-updates  | realtime-kernel  | ros      | ros-updates | anbox-cloud |
+|                 |<span class="v">esm-infra</span>|<span class="v">esm-apps</span>|<span class="v">livepatch</span>| <span class="v">cc-eal</span>|<span class="v">cis</span>|<span class="v">usg</span>|<span class="v" >fips</span>|<span class="v">fips-updates</span>|<span class="v">realtime-kernel</span>|<span class="v">ros</span>|<span class="v">ros-updates</span>|<span class="v">anbox-cloud</span>|
 | ----------------|:---------:|:----------:|:----------:|:-------:|:-------:|:--------:|:-----:   |:-------------:|:----------------:|:--------:|:-----------:|:-----------:|
 | esm-infra       | N/A       |  &#x2705;  | &#x2705;   | &#x2705;| &#x2705;| &#x2705; | &#x2705; | &#x2705;      | &#x2705;         | &#x2705; | &#x2705;    | &#x2705;    |
 | esm-apps        | &#x2705;  |  N/A       | &#x2705;   | &#x2705;| &#x2705;| &#x2705; | &#x2705; | &#x2705;      | &#x2705;         | &#x2705; | &#x2705;    | &#x2705;    |
