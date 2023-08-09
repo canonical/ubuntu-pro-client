@@ -1,3 +1,4 @@
+import logging
 import textwrap
 
 import mock
@@ -139,21 +140,20 @@ class TestActionAutoAttach:
             ),
         ],
     )
-    @mock.patch("uaclient.cli.LOG.error")
-    @mock.patch(M_PATH + "logging")
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
     def test_uncaught_errors_are_handled(
         self,
         m_full_auto_attach,
         m_post_cli_attach,
-        m_logging,
-        _m_log_error,
+        caplog_text,
         api_side_effect,
         expected_err,
         expected_ret,
         FakeConfig,
         capsys,
+        event,
     ):
         m_full_auto_attach.side_effect = api_side_effect
         cfg = FakeConfig()

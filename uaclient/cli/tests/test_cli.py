@@ -705,7 +705,6 @@ class TestMain:
         _m_get_parser,
         m_setup_logging,
         config_error,
-        logging_sandbox,
         tmpdir,
         FakeConfig,
     ):
@@ -810,7 +809,6 @@ class TestMain:
 class TestSetupLogging:
     def test_correct_handlers_added_to_logger(
         self,
-        logging_sandbox,
         FakeConfig,
     ):
         log_level = logging.DEBUG
