@@ -353,6 +353,7 @@ class TestActionStatus:
         _m_on_supported_kernel,
         capsys,
         FakeConfig,
+        event,
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):

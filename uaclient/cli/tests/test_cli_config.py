@@ -34,6 +34,7 @@ class TestMainConfig:
         additional_params,
         capsys,
         FakeConfig,
+        event,
     ):
         """Show help for --help and absent positional param"""
         with pytest.raises(SystemExit):
