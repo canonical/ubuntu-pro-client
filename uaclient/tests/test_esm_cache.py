@@ -18,7 +18,7 @@ class TestUpdateEsmCaches:
     ):
         expected_exception = MissingSeriesOnOSReleaseFile(version="version")
         m_update_caches.side_effect = expected_exception
-        main(cfg=FakeConfig())
+        main(cfg=None)
         expected_log_args = [
             mock.call(
                 "Error updating the cache: %s",

@@ -59,6 +59,7 @@ class TestActionEnable:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
+    @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_non_root_users_are_rejected(
@@ -66,6 +67,7 @@ class TestActionEnable:
         _m_resources,
         _refresh,
         we_are_currently_root,
+        m_setup_logging,
         capsys,
         event,
         FakeConfig,

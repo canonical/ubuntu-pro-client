@@ -56,6 +56,7 @@ class TestMainConfigUnSet:
         err_msg,
         capsys,
         FakeConfig,
+        event,
     ):
         """Exit 1 and print help on invalid key_value_pair input param."""
         with pytest.raises(SystemExit):
