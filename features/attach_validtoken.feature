@@ -28,6 +28,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
         fips          +yes      +n/a      +NIST-certified core packages
         fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
+        landscape     +yes      +<landscape>      +Management and administration tool for Ubuntu
         livepatch     +yes      +n/a      +Canonical Livepatch service
         """
         And stdout does not match regexp:
@@ -36,9 +37,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release
-            | release |
-            | lunar   |
-            | mantic  |
+            | release | landscape |
+            | lunar   | n/a       |
+            | mantic  | yes       |
 
     @series.lts
     @uses.config.machine_type.lxd-container
