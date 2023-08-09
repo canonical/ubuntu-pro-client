@@ -116,6 +116,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +disabled +Security Updates for the Robot Operating System
@@ -159,6 +160,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes      +n/a      +Security Updates for the Robot Operating System
@@ -201,6 +203,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +n/a      +NIST-certified core packages
         fips-updates    +yes      +n/a      +NIST-certified core packages with priority security updates
+        landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
         ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)

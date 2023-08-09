@@ -58,7 +58,6 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
@@ -80,7 +79,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
+        landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes       +Security Updates for the Robot Operating System
@@ -106,7 +105,6 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
@@ -139,7 +137,6 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         usg             +yes       +Security compliance and audit tools
 
@@ -159,7 +156,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
+        landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +Security Updates for the Robot Operating System
@@ -184,7 +181,6 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         usg             +yes       +Security compliance and audit tools
 
@@ -213,7 +209,6 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +Security compliance and audit tools
@@ -234,7 +229,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +no        +NIST-certified core packages
         fips-updates    +no        +NIST-certified core packages with priority security updates
-        landscape       +yes       +Management and administration tool for Ubuntu
+        landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +Security Updates for the Robot Operating System
@@ -257,7 +252,6 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        landscape       +yes       +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +Security compliance and audit tools
@@ -292,7 +286,6 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
         When I do a preflight check for `contract_token` with the all flag
@@ -306,7 +299,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
+        landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
@@ -355,7 +348,6 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         usg             +yes       +yes       +no           +Security compliance and audit tools
         """
@@ -369,7 +361,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
+        landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +yes       +no           +Security Updates for the Robot Operating System
@@ -417,7 +409,6 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +yes       +no           +Security compliance and audit tools
@@ -432,7 +423,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +no        +yes       +no           +NIST-certified core packages
         fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
-        landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
+        landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         ros             +no        +yes       +no           +Security Updates for the Robot Operating System
@@ -507,8 +498,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        (landscape       +(yes|no)       +yes       +no           +Management and administration tool for Ubuntu)?
-        ?livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +no        +no           +Security Updates for the Robot Operating System
         ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
         """
@@ -553,8 +543,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
-        (landscape       +(yes|no)       +yes       +no           +Management and administration tool for Ubuntu)?
-        ?livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         usg             +yes       +yes       +no           +Security compliance and audit tools
         """
 
@@ -596,8 +585,7 @@ Feature: Unattached status
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
-        (landscape       +(yes|no)       +yes       +no           +Management and administration tool for Ubuntu)?
-        ?livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
 
         Examples: ubuntu release
