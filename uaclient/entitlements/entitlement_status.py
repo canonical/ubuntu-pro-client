@@ -96,6 +96,7 @@ class CanEnableFailureReason(enum.Enum):
     INCOMPATIBLE_SERVICE = object()
     INACTIVE_REQUIRED_SERVICES = object()
     ACCESS_ONLY_NOT_SUPPORTED = object()
+    ONLY_ACCESS_ONLY_SUPPORTED = object()
 
 
 class CanEnableFailure:

@@ -6,16 +6,46 @@ Feature: Enable anbox on Ubuntu
     Scenario Outline: Enable Anbox cloud service in a container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        anbox-cloud +yes +disabled
+        """
         Then I verify that running `pro enable anbox-cloud` `as non-root` exits `1`
         And I will see the following on stderr:
         """
         This command must be run as root (try using sudo).
         """
-        Then I verify that running `pro enable anbox-cloud` `with sudo` exits `1`
+        When I verify that running `pro enable anbox-cloud` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Cannot install Anbox Cloud on a container.
+        It is only possible to enable Anbox Cloud on a container using
+        the --access-only flag.
+        """
+        When I run `pro enable anbox-cloud --access-only` with sudo
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        Skipping installing packages
+        Anbox Cloud access enabled
+        """
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        anbox-cloud +yes +enabled
+        """
+        When I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `500`
+        """
+        https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
+        """
+        When I run `pro disable anbox-cloud` with sudo
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        anbox-cloud +yes +disabled
         """
 
         Examples: ubuntu release

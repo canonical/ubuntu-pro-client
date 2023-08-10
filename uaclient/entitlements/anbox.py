@@ -1,12 +1,16 @@
 from typing import Any, Dict, Optional, Tuple
 
 from uaclient import contract, event_logger, messages, system
+from uaclient.entitlements.entitlement_status import (
+    CanEnableFailure,
+    CanEnableFailureReason,
+)
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.files.state_files import (
     AnboxCloudData,
     anbox_cloud_credentials_file,
 )
-from uaclient.types import MessagingOperationsDict, StaticAffordance
+from uaclient.types import MessagingOperationsDict
 
 event = event_logger.get_event_logger()
 
@@ -22,23 +26,28 @@ class AnboxEntitlement(RepoEntitlement):
     supports_access_only = True
 
     @property
-    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
-        return (
-            (
-                messages.SERVICE_ERROR_INSTALL_ON_CONTAINER.format(
-                    title=self.title
-                ),
-                lambda: system.is_container(),
-                False,
-            ),
-        )
-
-    @property
     def messaging(self) -> MessagingOperationsDict:
         if not self.access_only:
             return {"post_enable": [messages.ANBOX_RUN_INIT_CMD.msg]}
         else:
             return {}
+
+    def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
+        ret, reason = super().can_enable()
+
+        if not ret:
+            return ret, reason
+
+        if system.is_container() and not self.access_only:
+            return (
+                False,
+                CanEnableFailure(
+                    CanEnableFailureReason.ONLY_ACCESS_ONLY_SUPPORTED,
+                    messages.ANBOX_FAIL_TO_ENABLE_ON_CONTAINER,
+                ),
+            )
+
+        return True, None
 
     def _perform_enable(self, silent: bool = False) -> bool:
         ret = super()._perform_enable(silent=silent)
