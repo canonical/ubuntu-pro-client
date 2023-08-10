@@ -263,7 +263,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        Examples: ubuntu release
            | release | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
            | xenial  | no    | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
-           | bionic  | yes   | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | bionic  | no    | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | focal   | yes   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
            | jammy   | yes   | yes      | no     | yes | no   | no          | no  | usg        | yes             |
 
