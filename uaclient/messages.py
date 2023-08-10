@@ -1384,6 +1384,13 @@ For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
 """,
 )
 
+ANBOX_FAIL_TO_ENABLE_ON_CONTAINER = NamedMessage(
+    "anbox-fail-to-enable-on-container",
+    """\
+It is only possible to enable Anbox Cloud on a container using
+the --access-only flag.""",
+)
+
 INSTALLING_PACKAGES = "Installing {}"
 UNINSTALLING_PACKAGES = "Uninstalling {}"
 UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
