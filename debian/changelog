@@ -4,6 +4,12 @@ ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
 
  -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 20 Jun 2023 14:50:11 -0600
 
+ubuntu-advantage-tools (29.1) mantic; urgency=medium
+
+  * anbox: allow enabling service on container using the --access-only flag
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 10 Aug 2023 11:08:46 -0300
+
 ubuntu-advantage-tools (29) mantic; urgency=medium
 
   * d/control:
