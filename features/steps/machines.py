@@ -6,6 +6,7 @@ from typing import Dict, NamedTuple
 from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
 
+from features.steps.shell import when_i_run_command
 from features.steps.ubuntu_advantage_tools import when_i_install_uat
 from features.util import (
     SUT,
@@ -87,6 +88,16 @@ def given_a_machine(
     context.machines[machine_name] = MachineTuple(
         series=series, instance=instance
     )
+
+    if series == "xenial":
+        # Upgrading open-iscsi to esm version on xenial restarts this service
+        # This sometimes causes resource errors on github action runners
+        when_i_run_command(
+            context,
+            "systemctl mask iscsid.service",
+            "with sudo",
+            machine_name=machine_name,
+        )
 
     if cleanup:
 
