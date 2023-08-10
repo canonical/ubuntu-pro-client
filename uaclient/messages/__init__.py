@@ -1125,6 +1125,13 @@ class FormattedNamedMessage:
         )
 
 
+ANBOX_FAIL_TO_ENABLE_ON_CONTAINER = NamedMessage(
+    "anbox-fail-to-enable-on-container",
+    """\
+It is only possible to enable Anbox Cloud on a container using
+the --access-only flag.""",
+)
+
 UNEXPECTED_ERROR = NamedMessage(
     "unexpected-error",
     """\
