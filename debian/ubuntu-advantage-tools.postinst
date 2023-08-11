@@ -493,6 +493,17 @@ case "$1" in
           rename_gpg_keys
       fi
 
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "30~"; then
+          if [ "$VERSION_ID" = "16.04" ] \
+              || [ "$VERSION_ID" = "18.04" ] \
+              || [ "$VERSION_ID" = "20.04" ] \
+              || [ "$VERSION_ID" = "22.04" ] \
+              || [ "$VERSION_ID" = "23.04" ] \
+              || [ "$VERSION_ID" = "23.10" ]; then
+              ln -s ubuntupro /usr/lib/python3/dist-packages/uaclient
+          fi
+      fi
+
       if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
           echo "Warning: uaclient.conf contains old ua_config field." >&2
           echo "         Please do the following:" >&2
