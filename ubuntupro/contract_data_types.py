@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from uaclient.data_types import (
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     DatetimeDataValue,

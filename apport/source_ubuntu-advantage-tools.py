@@ -2,9 +2,9 @@ import os
 import tempfile
 
 from apport.hookutils import attach_file_if_exists
-from uaclient import defaults
-from uaclient.actions import collect_logs
-from uaclient.config import UAConfig
+from ubuntupro import defaults
+from ubuntupro.actions import collect_logs
+from ubuntupro.config import UAConfig
 
 
 def add_info(report, ui=None):

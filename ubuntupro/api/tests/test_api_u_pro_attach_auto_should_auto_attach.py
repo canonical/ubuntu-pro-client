@@ -1,12 +1,12 @@
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import (
+from ubuntupro import exceptions
+from ubuntupro.api.u.pro.attach.auto.should_auto_attach.v1 import (
     _should_auto_attach,
 )
 
-M_PATH = "uaclient.api.u.pro.attach.auto.should_auto_attach.v1"
+M_PATH = "ubuntupro.api.u.pro.attach.auto.should_auto_attach.v1"
 
 
 class TestShouldAutoAttachV1:
@@ -18,7 +18,7 @@ class TestShouldAutoAttachV1:
         ),
     )
     @mock.patch(M_PATH + ".cloud_instance_factory")
-    @mock.patch("uaclient.apt.get_installed_packages_names")
+    @mock.patch("ubuntupro.apt.get_installed_packages_names")
     def test_detect_is_pro(
         self,
         m_get_installed_pkgs,

@@ -6,18 +6,18 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
-from uaclient import defaults, http
-from uaclient.cli import setup_logging
-from uaclient.config import UAConfig
-from uaclient.exceptions import InvalidFileFormatError
-from uaclient.files.state_files import (
+from ubuntupro import defaults, http
+from ubuntupro.cli import setup_logging
+from ubuntupro.config import UAConfig
+from ubuntupro.exceptions import InvalidFileFormatError
+from ubuntupro.files.state_files import (
     AllTimerJobsState,
     TimerJobState,
     timer_jobs_state_file,
 )
-from uaclient.timer.metering import metering_enabled_resources
-from uaclient.timer.update_contract_info import update_contract_info
-from uaclient.timer.update_messaging import update_motd_messages
+from ubuntupro.timer.metering import metering_enabled_resources
+from ubuntupro.timer.update_contract_info import update_contract_info
+from ubuntupro.timer.update_messaging import update_motd_messages
 
 LOG = logging.getLogger("ubuntupro.lib.timer")
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours

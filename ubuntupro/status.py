@@ -6,7 +6,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import (
+from ubuntupro import (
     event_logger,
     exceptions,
     livepatch,
@@ -14,20 +14,23 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
-from uaclient.contract import get_available_resources, get_contract_information
-from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlement_factory
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UA_CONFIGURABLE_KEYS, UAConfig
+from ubuntupro.contract import (
+    get_available_resources,
+    get_contract_information,
+)
+from ubuntupro.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
+from ubuntupro.entitlements import entitlement_factory
+from ubuntupro.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingAvailability,
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.files import notices, state_files
-from uaclient.files.notices import Notice
-from uaclient.messages import TxtColor
+from ubuntupro.files import notices, state_files
+from ubuntupro.files.notices import Notice
+from ubuntupro.messages import TxtColor
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -786,7 +789,7 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
 
 
 def help(cfg, name):
-    """Return help information from an uaclient service as a dict
+    """Return help information from an ubuntupro service as a dict
 
     :param name: Name of the service for which to return help data.
 

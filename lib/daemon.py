@@ -4,9 +4,9 @@ import sys
 
 from systemd.daemon import notify  # type: ignore
 
-from uaclient import defaults, http
-from uaclient.config import UAConfig
-from uaclient.daemon import (
+from ubuntupro import defaults, http
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import (
     poll_for_pro_license,
     retry_auto_attach,
     setup_logging,
@@ -26,7 +26,7 @@ def main() -> int:
     setup_logging(
         logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file, logger=LOG
     )
-    # used with loggers in uaclient.daemon
+    # used with loggers in ubuntupro.daemon
     daemon_logger = logging.getLogger("ubuntupro.daemon")
     setup_logging(
         logging.INFO,

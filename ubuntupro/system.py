@@ -12,7 +12,7 @@ from functools import lru_cache
 from shutil import rmtree
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
-from uaclient import defaults, exceptions, messages, util
+from ubuntupro import defaults, exceptions, messages, util
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -359,7 +359,7 @@ def is_desktop() -> bool:
 
     This includes ubuntu-desktop, ubuntu-desktop-minimal, kubuntu-desktop, etc.
     """
-    from uaclient import apt
+    from ubuntupro import apt
 
     for package in apt.get_installed_packages():
         if "ubuntu-desktop" in package.name:

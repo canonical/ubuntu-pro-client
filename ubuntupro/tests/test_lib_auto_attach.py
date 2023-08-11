@@ -4,12 +4,12 @@ import mock
 import pytest
 
 from lib.auto_attach import check_cloudinit_userdata_for_ua_info, main
-from uaclient import messages
-from uaclient.api.exceptions import (
+from ubuntupro import messages
+from ubuntupro.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
 )
-from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
+from ubuntupro.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
 
 
 class TestCheckCloudinitUserdataForUAInfo:

@@ -1,4 +1,4 @@
-"""Tests related to uaclient.entitlement.livepatch module."""
+"""Tests related to ubuntupro.entitlement.livepatch module."""
 
 import contextlib
 import copy
@@ -9,26 +9,26 @@ from functools import partial
 import mock
 import pytest
 
-from uaclient import apt, exceptions, livepatch, messages, system
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import apt, exceptions, livepatch, messages, system
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
     CanEnableFailureReason,
     ContractStatus,
     UserFacingStatus,
 )
-from uaclient.entitlements.livepatch import (
+from ubuntupro.entitlements.livepatch import (
     LivepatchEntitlement,
     process_config_directives,
 )
-from uaclient.entitlements.tests.conftest import machine_token
-from uaclient.snap import SNAP_CMD
+from ubuntupro.entitlements.tests.conftest import machine_token
+from ubuntupro.snap import SNAP_CMD
 
-M_PATH = "uaclient.entitlements.livepatch."  # mock path
+M_PATH = "ubuntupro.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
 DISABLED_APP_STATUS = (ApplicationStatus.DISABLED, "")
 
-M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
+M_BASE_PATH = "ubuntupro.entitlements.base.UAEntitlement."
 
 DEFAULT_AFFORDANCES = {
     "architectures": ["x86_64"],
@@ -67,11 +67,11 @@ class TestLivepatchContractStatus:
 
 class TestLivepatchUserFacingStatus:
     @mock.patch(
-        "uaclient.livepatch.on_supported_kernel",
+        "ubuntupro.livepatch.on_supported_kernel",
         return_value=None,
     )
     @mock.patch(
-        "uaclient.entitlements.livepatch.system.is_container",
+        "ubuntupro.entitlements.livepatch.system.is_container",
         return_value=True,
     )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
@@ -87,7 +87,7 @@ class TestLivepatchUserFacingStatus:
         entitlement = livepatch_entitlement_factory(affordances=affordances)
 
         with mock.patch(
-            "uaclient.system.get_release_info"
+            "ubuntupro.system.get_release_info"
         ) as m_get_release_info:
             m_get_release_info.return_value = mock.MagicMock(series="xenial")
             uf_status, details = entitlement.user_facing_status()
@@ -105,7 +105,7 @@ class TestLivepatchUserFacingStatus:
         entitlement.cfg.machine_token_file.write(no_entitlements)
 
         with mock.patch(
-            "uaclient.system.get_release_info"
+            "ubuntupro.system.get_release_info"
         ) as m_get_release_info:
             m_get_release_info.return_value = mock.MagicMock(series="xenial")
             uf_status, details = entitlement.user_facing_status()
@@ -124,7 +124,7 @@ class TestLivepatchProcessConfigDirectives:
         """Livepatch config directives are passed to livepatch config."""
         directive_value = "{}-value".format(directive_key)
         cfg = {"entitlement": {"directives": {directive_key: directive_value}}}
-        with mock.patch("uaclient.system.subp") as m_subp:
+        with mock.patch("ubuntupro.system.subp") as m_subp:
             process_config_directives(cfg)
         expected_subp = mock.call(
             [
@@ -147,7 +147,7 @@ class TestLivepatchProcessConfigDirectives:
                 }
             }
         }
-        with mock.patch("uaclient.system.subp") as m_subp:
+        with mock.patch("ubuntupro.system.subp") as m_subp:
             process_config_directives(cfg)
         expected_calls = [
             mock.call(
@@ -165,18 +165,18 @@ class TestLivepatchProcessConfigDirectives:
     def test_ignores_other_or_absent(self, directives):
         """Ignore empty or unexpected directives and do not call livepatch."""
         cfg = {"entitlement": {"directives": directives}}
-        with mock.patch("uaclient.system.subp") as m_subp:
+        with mock.patch("ubuntupro.system.subp") as m_subp:
             process_config_directives(cfg)
         assert 0 == m_subp.call_count
 
 
 @mock.patch(
-    "uaclient.entitlements.fips.FIPSEntitlement.application_status",
+    "ubuntupro.entitlements.fips.FIPSEntitlement.application_status",
     return_value=DISABLED_APP_STATUS,
 )
 @mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS)
 @mock.patch(
-    "uaclient.entitlements.livepatch.system.is_container", return_value=False
+    "ubuntupro.entitlements.livepatch.system.is_container", return_value=False
 )
 class TestLivepatchEntitlementCanEnable:
     @pytest.mark.parametrize(
@@ -217,10 +217,10 @@ class TestLivepatchEntitlementCanEnable:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_dpkg_arch", return_value="x86_64")
-    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("ubuntupro.system.get_dpkg_arch", return_value="x86_64")
+    @mock.patch("ubuntupro.system.get_kernel_info")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_can_enable_true_on_entitlement_inactive(
@@ -237,18 +237,18 @@ class TestLivepatchEntitlementCanEnable:
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
         m_kernel_info.return_value = supported_kernel_ver
-        with mock.patch("uaclient.system.is_container") as m_container:
+        with mock.patch("ubuntupro.system.is_container") as m_container:
             m_container.return_value = False
             assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
         assert [mock.call()] == m_container.call_args_list
 
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     @mock.patch(
-        "uaclient.system.get_kernel_info",
+        "ubuntupro.system.get_kernel_info",
         return_value=mock.MagicMock(uname_release="4.2.9-00-generic"),
     )
     def test_can_enable_false_on_containers(
@@ -372,9 +372,9 @@ class TestLivepatchProcessContractDeltas:
 
 
 @mock.patch(M_PATH + "snap.is_snapd_installed")
-@mock.patch("uaclient.http.validate_proxy", side_effect=lambda x, y, z: y)
-@mock.patch("uaclient.snap.configure_snap_proxy")
-@mock.patch("uaclient.livepatch.configure_livepatch_proxy")
+@mock.patch("ubuntupro.http.validate_proxy", side_effect=lambda x, y, z: y)
+@mock.patch("ubuntupro.snap.configure_snap_proxy")
+@mock.patch("ubuntupro.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
 
     mocks_apt_update = [mock.call()]
@@ -417,12 +417,12 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("apt_update_success", (True, False))
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
-    @mock.patch("uaclient.apt.run_apt_install_command")
-    @mock.patch("uaclient.apt.run_apt_update_command")
-    @mock.patch("uaclient.system.which", return_value=None)
+    @mock.patch("ubuntupro.system.get_release_info")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.apt.run_apt_install_command")
+    @mock.patch("ubuntupro.apt.run_apt_update_command")
+    @mock.patch("ubuntupro.system.which", return_value=None)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -482,10 +482,10 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
-    @mock.patch("uaclient.system.which", return_value=None)
+    @mock.patch("ubuntupro.system.get_release_info")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.system.which", return_value=None)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -528,11 +528,11 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.system.get_release_info")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
     @mock.patch(
-        "uaclient.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
+        "ubuntupro.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
     )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -584,11 +584,11 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.system.get_release_info")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
     @mock.patch(
-        "uaclient.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
+        "ubuntupro.system.which", side_effect=["/path/to/exe", "/path/to/exe"]
     )
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -640,8 +640,8 @@ class TestLivepatchEntitlementEnable:
     @pytest.mark.parametrize(
         "cls_name, cls_title", (("FIPSEntitlement", "FIPS"),)
     )
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.system.is_container", return_value=False)
+    @mock.patch("ubuntupro.util.handle_message_operations")
+    @mock.patch("ubuntupro.system.is_container", return_value=False)
     def test_enable_fails_when_blocking_service_is_enabled(
         self,
         m_is_container,
@@ -658,7 +658,7 @@ class TestLivepatchEntitlementEnable:
 
         with mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS):
             with mock.patch(
-                "uaclient.entitlements.fips.{}.application_status".format(
+                "ubuntupro.entitlements.fips.{}.application_status".format(
                     cls_name
                 )
             ) as m_fips:
@@ -676,8 +676,8 @@ class TestLivepatchEntitlementEnable:
         assert m_livepatch_proxy.call_count == 0
 
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
-    @mock.patch("uaclient.system.which", return_value=None)
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.which", return_value=None)
+    @mock.patch("ubuntupro.system.subp")
     def test_enable_alerts_user_that_snapd_does_not_wait_command(
         self,
         m_subp,
@@ -735,9 +735,9 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @mock.patch("uaclient.snap.apt.run_apt_update_command")
-    @mock.patch("uaclient.system.which", return_value=True)
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.snap.apt.run_apt_update_command")
+    @mock.patch("ubuntupro.system.which", return_value=True)
+    @mock.patch("ubuntupro.system.subp")
     def test_enable_raise_exception_when_snapd_cant_be_installed(
         self,
         m_subp,
@@ -770,9 +770,9 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
-    @mock.patch("uaclient.snap.apt.run_apt_update_command")
-    @mock.patch("uaclient.system.which", return_value="/path/to/exe")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.snap.apt.run_apt_update_command")
+    @mock.patch("ubuntupro.system.which", return_value="/path/to/exe")
+    @mock.patch("ubuntupro.system.subp")
     def test_enable_raise_exception_for_unexpected_error_on_snapd_wait(
         self,
         m_subp,
@@ -827,8 +827,8 @@ class TestLivepatchApplicationStatus:
             ),
         ),
     )
-    @mock.patch("uaclient.system.which")
-    @mock.patch("uaclient.livepatch.status")
+    @mock.patch("ubuntupro.system.which")
+    @mock.patch("ubuntupro.livepatch.status")
     def test_application_status(
         self,
         m_livepatch_status,

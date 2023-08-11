@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.security.fix import (
+from ubuntupro.api.u.pro.security.fix import (
     AptUpgradeData,
     AttachData,
     EnableData,
@@ -20,9 +20,9 @@ from uaclient.api.u.pro.security.fix import (
     fix_plan_cve,
     fix_plan_usn,
 )
-from uaclient.contract import ContractExpiryStatus
-from uaclient.messages import INVALID_SECURITY_ISSUE
-from uaclient.security import CVEPackageStatus, FixStatus
+from ubuntupro.contract import ContractExpiryStatus
+from ubuntupro.messages import INVALID_SECURITY_ISSUE
+from ubuntupro.security import CVEPackageStatus, FixStatus
 
 
 class TestFixPlan:
@@ -62,7 +62,7 @@ class TestFixPlan:
         assert expected_plan == fix_plan_usn(issue_id, cfg=mock.MagicMock())
 
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_cve_fixed_by_livepatch(
         self,
@@ -91,12 +91,12 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_no_affected_packages(
         self,
@@ -131,14 +131,14 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_cve(
         self,
@@ -208,17 +208,17 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.api.u.pro.security.fix._enabled_services")
-    @mock.patch("uaclient.api.u.pro.security.fix._is_attached")
-    @mock.patch("uaclient.api.u.pro.security.fix.get_contract_expiry_status")
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._enabled_services")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._is_attached")
+    @mock.patch("ubuntupro.api.u.pro.security.fix.get_contract_expiry_status")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_cve_that_requires_pro_services(
         self,
@@ -393,14 +393,14 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_cve_when_package_cannot_be_installed(
         self,
@@ -478,14 +478,14 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_cve_with_not_released_status(
         self,
@@ -572,17 +572,17 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.merge_usn_released_binary_package_versions"  # noqa
+        "ubuntupro.api.u.pro.security.fix.merge_usn_released_binary_package_versions"  # noqa
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.get_affected_packages_from_usn"
+        "ubuntupro.api.u.pro.security.fix.get_affected_packages_from_usn"
     )
-    @mock.patch("uaclient.api.u.pro.security.fix._get_usn_data")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_usn_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     def test_fix_plan_for_usn(
         self,
@@ -757,14 +757,14 @@ class TestFixPlan:
             issue_id="usn-1234-1", cfg=mock.MagicMock()
         )
 
-    @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch("ubuntupro.apt.get_pkg_candidate_version")
+    @mock.patch("ubuntupro.apt.compare_versions")
+    @mock.patch("ubuntupro.api.u.pro.security.fix._get_cve_data")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.query_installed_source_pkg_versions"
+        "ubuntupro.api.u.pro.security.fix.query_installed_source_pkg_versions"
     )
     @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
+        "ubuntupro.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
     )
     def test_fix_plan_for_cve_when_package_already_installed(
         self,

@@ -3,11 +3,11 @@ from datetime import datetime, timedelta, timezone
 import mock
 import pytest
 
-from uaclient import apt_news, messages
-from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient.contract import ContractExpiryStatus
+from ubuntupro import apt_news, messages
+from ubuntupro.clouds.identity import NoCloudTypeReason
+from ubuntupro.contract import ContractExpiryStatus
 
-M_PATH = "uaclient.apt_news."
+M_PATH = "ubuntupro.apt_news."
 
 NOW = datetime.now(timezone.utc)
 

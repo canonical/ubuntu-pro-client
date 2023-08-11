@@ -4,8 +4,8 @@ import re
 import mock
 import pytest
 
-from uaclient import exceptions, http
-from uaclient.clouds.aws import (
+from ubuntupro import exceptions, http
+from ubuntupro.clouds.aws import (
     AWS_TOKEN_PUT_HEADER,
     AWS_TOKEN_REQ_HEADER,
     AWS_TOKEN_TTL_SECONDS,
@@ -16,7 +16,7 @@ from uaclient.clouds.aws import (
     UAAutoAttachAWSInstance,
 )
 
-M_PATH = "uaclient.clouds.aws."
+M_PATH = "ubuntupro.clouds.aws."
 
 
 class TestUAAutoAttachAWSInstance:

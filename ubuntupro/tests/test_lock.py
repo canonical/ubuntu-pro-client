@@ -1,19 +1,19 @@
 import mock
 import pytest
 
-from uaclient.exceptions import LockHeldError
-from uaclient.files.notices import Notice
-from uaclient.lock import SingleAttemptLock, SpinLock
-from uaclient.messages import LOCK_HELD
+from ubuntupro.exceptions import LockHeldError
+from ubuntupro.files.notices import Notice
+from ubuntupro.lock import SingleAttemptLock, SpinLock
+from ubuntupro.messages import LOCK_HELD
 
-M_PATH = "uaclient.lock."
-M_PATH_UACONFIG = "uaclient.config.UAConfig."
+M_PATH = "ubuntupro.lock."
+M_PATH_UACONFIG = "ubuntupro.config.UAConfig."
 
 
 @pytest.mark.parametrize("lock_cls", (SingleAttemptLock, SpinLock))
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.notices.NoticesManager.add")
+@mock.patch("ubuntupro.files.notices.NoticesManager.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestLockCommon:
     def test_creates_and_releases_lock(
@@ -76,7 +76,7 @@ class TestLockCommon:
 
 @mock.patch("os.getpid", return_value=123)
 @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.notices.NoticesManager.add")
+@mock.patch("ubuntupro.files.notices.NoticesManager.add")
 @mock.patch(M_PATH_UACONFIG + "write_cache")
 class TestSingleAttemptLock:
     @mock.patch(M_PATH_UACONFIG + "check_lock_info", return_value=(10, "held"))

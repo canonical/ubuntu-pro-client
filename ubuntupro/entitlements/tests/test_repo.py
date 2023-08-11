@@ -3,17 +3,17 @@ import copy
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, util
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import apt, exceptions, messages, util
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
     UserFacingStatus,
 )
-from uaclient.entitlements.repo import RepoEntitlement
-from uaclient.entitlements.tests.conftest import machine_token
+from ubuntupro.entitlements.repo import RepoEntitlement
+from ubuntupro.entitlements.tests.conftest import machine_token
 
-M_PATH = "uaclient.entitlements.repo."
-M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."
+M_PATH = "ubuntupro.entitlements.repo."
+M_CONTRACT_PATH = "ubuntupro.entitlements.repo.contract.UAContractClient."
 
 
 class RepoTestEntitlement(RepoEntitlement):
@@ -245,9 +245,9 @@ class TestProcessContractDeltas:
         assert 1 == m_check_apt_url_applied.call_count
 
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
+        "ubuntupro.entitlements.base.UAEntitlement.process_contract_deltas"
     )
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("ubuntupro.config.UAConfig.read_cache")
     @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
@@ -305,9 +305,9 @@ class TestProcessContractDeltas:
         assert 1 == m_check_apt_url_applied.call_count
 
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
+        "ubuntupro.entitlements.base.UAEntitlement.process_contract_deltas"
     )
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("ubuntupro.config.UAConfig.read_cache")
     @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
@@ -421,7 +421,7 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.should_reboot")
     @mock.patch(M_PATH + "system.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
@@ -535,7 +535,7 @@ class TestRepoEnable:
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.subp")
     def test_failed_install_removes_apt_config_and_packages(
         self, m_subp, _m_setup_apt_proxy, entitlement
@@ -746,7 +746,7 @@ class TestSetupAptConfig:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     def test_missing_directives(
         self,
         _setup_apt_proxy,
@@ -764,7 +764,7 @@ class TestSetupAptConfig:
         assert err_msg in str(excinfo.value)
 
     @pytest.mark.parametrize("enable_by_default", (True, False))
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_CONTRACT_PATH + "get_resource_machine_access")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -802,10 +802,10 @@ class TestSetupAptConfig:
                 mock.call("blah", "repotest")
             ] == _m_get_resource_machine_access.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch("os.path.exists", return_value=False)
-    @mock.patch("uaclient.apt.add_auth_apt_repo")
-    @mock.patch("uaclient.apt.run_apt_command")
+    @mock.patch("ubuntupro.apt.add_auth_apt_repo")
+    @mock.patch("ubuntupro.apt.run_apt_command")
     def test_calls_setup_apt_proxy(
         self,
         _m_run_apt_command,
@@ -820,7 +820,7 @@ class TestSetupAptConfig:
             mock.call(http_proxy=None, https_proxy=None, proxy_scope=None)
         ] == m_setup_apt_proxy.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
     @mock.patch(M_PATH + "contract.apply_contract_overrides")
@@ -849,7 +849,7 @@ class TestSetupAptConfig:
         )
         assert install_call in m_run_apt_install_command.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.get_release_info")
     def test_setup_error_with_repo_pin_priority_and_missing_origin(
         self, m_get_release_info, _setup_apt_proxy, entitlement_factory
@@ -866,7 +866,7 @@ class TestSetupAptConfig:
             in str(excinfo.value)
         )
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_update_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
@@ -908,14 +908,14 @@ class TestSetupAptConfig:
 
 class TestCheckAptURLIsApplied:
     @pytest.mark.parametrize("apt_url", (("test"), (None)))
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_check_apt_url_for_commented_apt_source_file(
         self, m_load_file, apt_url, entitlement
     ):
         m_load_file.return_value = "#test1\n#test2\n"
         assert not entitlement._check_apt_url_is_applied(apt_url)
 
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_check_apt_url_when_delta_apt_url_is_none(
         self, m_load_file, entitlement
     ):
@@ -925,7 +925,7 @@ class TestCheckAptURLIsApplied:
     @pytest.mark.parametrize(
         "apt_url,expected", (("test", True), ("blah", False))
     )
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_check_apt_url_inspects_apt_source_file(
         self, m_load_file, apt_url, expected, entitlement
     ):

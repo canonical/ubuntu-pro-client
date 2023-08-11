@@ -8,7 +8,7 @@ from hamcrest import assert_that, matches_regexp
 
 from features.steps.shell import when_i_run_command
 from features.util import SUT, process_template_vars
-from uaclient.defaults import DEFAULT_CONFIG_FILE
+from ubuntupro.defaults import DEFAULT_CONFIG_FILE
 
 
 def _get_file_contents(

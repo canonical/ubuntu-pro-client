@@ -15,7 +15,7 @@ Feature: Full Auto-Attach Endpoint
         """
         When I create the file `/tmp/full_auto_attach.py` with the following:
         """
-        from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
+        from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
 
         full_auto_attach(FullAutoAttachOptions(enable=["esm-infra"]))
         """

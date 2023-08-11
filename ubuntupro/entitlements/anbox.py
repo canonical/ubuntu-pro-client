@@ -1,12 +1,12 @@
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import contract, event_logger, messages, system
-from uaclient.entitlements.repo import RepoEntitlement
-from uaclient.files.state_files import (
+from ubuntupro import contract, event_logger, messages, system
+from ubuntupro.entitlements.repo import RepoEntitlement
+from ubuntupro.files.state_files import (
     AnboxCloudData,
     anbox_cloud_credentials_file,
 )
-from uaclient.types import MessagingOperationsDict, StaticAffordance
+from ubuntupro.types import MessagingOperationsDict, StaticAffordance
 
 event = event_logger.get_event_logger()
 

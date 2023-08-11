@@ -6,14 +6,14 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import event_logger, exceptions, messages
-from uaclient.cli import (
+from ubuntupro import event_logger, exceptions, messages
+from ubuntupro.cli import (
     action_detach,
     detach_parser,
     get_parser,
     main_error_handler,
 )
-from uaclient.testing.fakes import FakeContractClient
+from ubuntupro.testing.fakes import FakeContractClient
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
@@ -28,9 +28,9 @@ def entitlement_cls_mock_factory(can_disable, name=None):
     return mock.Mock(return_value=m_instance)
 
 
-@mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
+@mock.patch("ubuntupro.cli.util.prompt_for_confirmation", return_value=True)
 class TestActionDetach:
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
         self, m_we_are_currently_root, _m_prompt, FakeConfig, event, capsys
     ):
@@ -103,7 +103,7 @@ class TestActionDetach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
@@ -152,10 +152,10 @@ class TestActionDetach:
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],
     )
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.contract.UAContractClient")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
+    @mock.patch("ubuntupro.cli.entitlements_disable_order")
+    @mock.patch("ubuntupro.cli.entitlements.entitlement_factory")
     def test_entitlements_disabled_appropriately(
         self,
         m_ent_factory,
@@ -229,9 +229,9 @@ class TestActionDetach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.cli.entitlements_disable_order")
+    @mock.patch("ubuntupro.contract.UAContractClient")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_config_cache_deleted(
         self,
         m_update_apt_and_motd_msgs,
@@ -254,9 +254,9 @@ class TestActionDetach:
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.cli.entitlements_disable_order")
+    @mock.patch("ubuntupro.contract.UAContractClient")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_correct_message_emitted(
         self,
         m_update_apt_and_motd_msgs,
@@ -282,9 +282,9 @@ class TestActionDetach:
         assert messages.DETACH_SUCCESS + "\n" == out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.cli.entitlements_disable_order")
+    @mock.patch("ubuntupro.contract.UAContractClient")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_returns_zero(
         self,
         m_update_apt_and_motd_msgs,
@@ -340,10 +340,10 @@ class TestActionDetach:
             ),
         ],
     )
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
+    @mock.patch("ubuntupro.contract.UAContractClient")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
+    @mock.patch("ubuntupro.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.cli.entitlements_disable_order")
     def test_informational_message_emitted(
         self,
         m_disable_order,
@@ -412,7 +412,7 @@ class TestParser:
         parser = detach_parser(mock.Mock())
         assert "Flags" == parser._optionals.title
 
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_detach_parser_accepts_and_stores_assume_yes(
         self, _m_resources, FakeConfig
     ):
@@ -422,7 +422,7 @@ class TestParser:
 
         assert args.assume_yes
 
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_detach_parser_defaults_to_not_assume_yes(
         self, _m_resources, FakeConfig
     ):
@@ -432,7 +432,7 @@ class TestParser:
 
         assert not args.assume_yes
 
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_detach_parser_with_json_format(self, _m_resources, FakeConfig):
         full_parser = get_parser(FakeConfig())
         with mock.patch("sys.argv", ["pro", "detach", "--format", "json"]):

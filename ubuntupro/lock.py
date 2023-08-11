@@ -3,9 +3,9 @@ import logging
 import os
 import time
 
-from uaclient import config, exceptions, util
-from uaclient.files import notices
-from uaclient.files.notices import Notice
+from ubuntupro import config, exceptions, util
+from ubuntupro.files import notices
+from ubuntupro.files.notices import Notice
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

@@ -1,12 +1,12 @@
 import os
 from typing import Tuple, Type, Union
 
-from uaclient import gpg, system
-from uaclient.apt import APT_KEYS_DIR, ESM_REPO_FILE_CONTENT, KEYRINGS_DIR
-from uaclient.defaults import ESM_APT_ROOTDIR
-from uaclient.entitlements import repo
-from uaclient.entitlements.base import UAEntitlement
-from uaclient.entitlements.entitlement_status import CanDisableFailure
+from ubuntupro import gpg, system
+from ubuntupro.apt import APT_KEYS_DIR, ESM_REPO_FILE_CONTENT, KEYRINGS_DIR
+from ubuntupro.defaults import ESM_APT_ROOTDIR
+from ubuntupro.entitlements import repo
+from ubuntupro.entitlements.base import UAEntitlement
+from ubuntupro.entitlements.entitlement_status import CanDisableFailure
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
@@ -14,7 +14,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
 
     @property
     def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:
-        from uaclient.entitlements.ros import (
+        from ubuntupro.entitlements.ros import (
             ROSEntitlement,
             ROSUpdatesEntitlement,
         )
@@ -22,7 +22,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         return (ROSEntitlement, ROSUpdatesEntitlement)
 
     def _perform_enable(self, silent: bool = False) -> bool:
-        from uaclient.timer.update_messaging import update_motd_messages
+        from ubuntupro.timer.update_messaging import update_motd_messages
 
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
@@ -78,7 +78,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     def disable(
         self, silent=False
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
-        from uaclient.timer.update_messaging import update_motd_messages
+        from ubuntupro.timer.update_messaging import update_motd_messages
 
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:
@@ -98,7 +98,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     def disable(
         self, silent=False
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
-        from uaclient.timer.update_messaging import update_motd_messages
+        from ubuntupro.timer.update_messaging import update_motd_messages
 
         disable_performed, fail = super().disable(silent=silent)
         if disable_performed:

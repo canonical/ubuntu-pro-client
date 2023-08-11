@@ -13,23 +13,23 @@ their side.
 import logging
 import sys
 
-from uaclient import defaults, http, messages, system
-from uaclient.api.exceptions import (
+from ubuntupro import defaults, http, messages, system
+from ubuntupro.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
     EntitlementsNotEnabledError,
 )
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
-from uaclient.config import UAConfig
-from uaclient.daemon import (
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import (
     AUTO_ATTACH_STATUS_MOTD_FILE,
     retry_auto_attach,
     setup_logging,
 )
-from uaclient.files import state_files
+from ubuntupro.files import state_files
 
 LOG = logging.getLogger("ubuntupro.lib.auto_attach")
 

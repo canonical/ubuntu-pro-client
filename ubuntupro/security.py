@@ -6,32 +6,32 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import apt, exceptions, livepatch, messages, system, util
-from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
-from uaclient.api.u.pro.attach.magic.revoke.v1 import (
+from ubuntupro import apt, exceptions, livepatch, messages, system, util
+from ubuntupro.api.u.pro.attach.magic.initiate.v1 import _initiate
+from ubuntupro.api.u.pro.attach.magic.revoke.v1 import (
     MagicAttachRevokeOptions,
     _revoke,
 )
-from uaclient.api.u.pro.attach.magic.wait.v1 import (
+from ubuntupro.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
-from uaclient.clouds.identity import (
+from ubuntupro.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
     get_cloud_type,
 )
-from uaclient.config import UAConfig
-from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlement_factory
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.config import UAConfig
+from ubuntupro.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
+from ubuntupro.entitlements import entitlement_factory
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     UserFacingStatus,
 )
-from uaclient.files import notices
-from uaclient.files.notices import Notice
-from uaclient.http import serviceclient
-from uaclient.status import colorize_commands
+from ubuntupro.files import notices
+from ubuntupro.files.notices import Notice
+from ubuntupro.http import serviceclient
+from ubuntupro.status import colorize_commands
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -1412,7 +1412,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     """
     import argparse
 
-    from uaclient import cli
+    from ubuntupro import cli
 
     print(colorize_commands([["pro", "attach", token]]))
     try:
@@ -1485,7 +1485,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     """
     import argparse
 
-    from uaclient import cli
+    from ubuntupro import cli
 
     print(messages.SECURITY_SERVICE_DISABLED.format(service=service))
     choice = util.prompt_choices(
@@ -1570,7 +1570,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     """
     import argparse
 
-    from uaclient import cli
+    from ubuntupro import cli
 
     _inform_ubuntu_pro_existence_if_applicable()
     print(messages.SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)

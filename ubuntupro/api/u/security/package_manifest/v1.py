@@ -1,8 +1,8 @@
-from uaclient import apt, snap
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.config import UAConfig
-from uaclient.data_types import DataObject, Field, StringDataValue
+from ubuntupro import apt, snap
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import DataObject, Field, StringDataValue
 
 
 class PackageManifestResult(DataObject, AdditionalInfo):

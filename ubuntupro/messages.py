@@ -1,6 +1,6 @@
 from typing import Dict, Optional  # noqa: F401
 
-from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL, PRO_ATTACH_URL
+from ubuntupro.defaults import BASE_UA_URL, DOCUMENTATION_URL, PRO_ATTACH_URL
 
 
 class NamedMessage:

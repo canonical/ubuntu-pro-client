@@ -3,10 +3,10 @@ from subprocess import TimeoutExpired
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.daemon import start, stop
+from ubuntupro import exceptions
+from ubuntupro.daemon import start, stop
 
-M_PATH = "uaclient.daemon."
+M_PATH = "ubuntupro.daemon."
 
 
 @mock.patch(M_PATH + "system.subp")

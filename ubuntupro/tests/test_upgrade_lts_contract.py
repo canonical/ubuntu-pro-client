@@ -3,12 +3,14 @@ import logging
 import mock
 import pytest
 
-from uaclient.upgrade_lts_contract import process_contract_delta_after_apt_lock
+from ubuntupro.upgrade_lts_contract import (
+    process_contract_delta_after_apt_lock,
+)
 
 
 @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
 class TestUpgradeLTSContract:
-    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
+    @mock.patch("ubuntupro.upgrade_lts_contract._is_attached")
     def test_unattached_noops(
         self, m_is_attached, capsys, caplog_text, FakeConfig
     ):
@@ -27,9 +29,9 @@ class TestUpgradeLTSContract:
         for log in expected_logs:
             assert log in debug_logs
 
-    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
-    @mock.patch("uaclient.upgrade_lts_contract.system.get_release_info")
-    @mock.patch("uaclient.upgrade_lts_contract.system.subp")
+    @mock.patch("ubuntupro.upgrade_lts_contract._is_attached")
+    @mock.patch("ubuntupro.upgrade_lts_contract.system.get_release_info")
+    @mock.patch("ubuntupro.upgrade_lts_contract.system.subp")
     def test_upgrade_cancel_when_past_version_not_supported(
         self,
         m_subp,
@@ -61,13 +63,13 @@ class TestUpgradeLTSContract:
         for log in expected_msgs + expected_logs:
             assert log in debug_logs
 
-    @mock.patch("uaclient.upgrade_lts_contract._is_attached")
-    @mock.patch("uaclient.upgrade_lts_contract.system.get_release_info")
-    @mock.patch("uaclient.upgrade_lts_contract.system.subp")
+    @mock.patch("ubuntupro.upgrade_lts_contract._is_attached")
+    @mock.patch("ubuntupro.upgrade_lts_contract.system.get_release_info")
+    @mock.patch("ubuntupro.upgrade_lts_contract.system.subp")
     @mock.patch(
-        "uaclient.upgrade_lts_contract.contract.process_entitlements_delta"
+        "ubuntupro.upgrade_lts_contract.contract.process_entitlements_delta"
     )
-    @mock.patch("uaclient.upgrade_lts_contract.time.sleep")
+    @mock.patch("ubuntupro.upgrade_lts_contract.time.sleep")
     def test_upgrade_contract_when_apt_lock_is_held(
         self,
         m_sleep,
@@ -108,7 +110,7 @@ class TestUpgradeLTSContract:
         ]
 
         with mock.patch(
-            "uaclient.upgrade_lts_contract.UAConfig",
+            "ubuntupro.upgrade_lts_contract.UAConfig",
             return_value=FakeConfig(),
         ):
             process_contract_delta_after_apt_lock(FakeConfig())

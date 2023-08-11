@@ -1,8 +1,8 @@
 import textwrap
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import messages
-from uaclient.defaults import PRINT_WRAP_WIDTH
+from ubuntupro import messages
+from ubuntupro.defaults import PRINT_WRAP_WIDTH
 
 
 class UserFacingError(Exception):

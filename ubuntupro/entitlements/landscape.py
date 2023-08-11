@@ -2,9 +2,9 @@ import logging
 import os
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
-from uaclient.entitlements.base import UAEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro import apt, event_logger, exceptions, messages, system, util
+from ubuntupro.entitlements.base import UAEntitlement
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()

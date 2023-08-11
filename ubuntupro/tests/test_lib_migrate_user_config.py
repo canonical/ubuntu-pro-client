@@ -6,9 +6,9 @@ from lib.migrate_user_config import (
     create_new_user_config_file,
     load_pre_upgrade_conf,
 )
-from uaclient import messages
-from uaclient.testing.fakes import FakeFile
-from uaclient.yaml import safe_load
+from ubuntupro import messages
+from ubuntupro.testing.fakes import FakeFile
+from ubuntupro.yaml import safe_load
 
 
 class TestLoadPreUpgradeConf:

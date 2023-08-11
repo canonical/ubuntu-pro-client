@@ -1,5 +1,5 @@
-from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
-from uaclient.files.files import MachineTokenFile, UAFile
+from ubuntupro.files.data_types import DataObjectFile, DataObjectFileFormat
+from ubuntupro.files.files import MachineTokenFile, UAFile
 
 __all__ = [
     "DataObjectFile",

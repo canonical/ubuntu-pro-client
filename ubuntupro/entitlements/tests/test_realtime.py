@@ -1,12 +1,12 @@
 import mock
 import pytest
 
-from uaclient import messages
-from uaclient.entitlements.entitlement_status import ApplicabilityStatus
-from uaclient.entitlements.realtime import IntelIotgRealtime
-from uaclient.system import CpuInfo
+from ubuntupro import messages
+from ubuntupro.entitlements.entitlement_status import ApplicabilityStatus
+from ubuntupro.entitlements.realtime import IntelIotgRealtime
+from ubuntupro.system import CpuInfo
 
-RT_PATH = "uaclient.entitlements.realtime.RealtimeKernelEntitlement."
+RT_PATH = "ubuntupro.entitlements.realtime.RealtimeKernelEntitlement."
 
 
 class TestIntelIOTGVariannt:
@@ -29,8 +29,8 @@ class TestIntelIOTGVariannt:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch("uaclient.system.get_cpu_info")
+    @mock.patch("ubuntupro.system.get_kernel_info")
+    @mock.patch("ubuntupro.system.get_cpu_info")
     def test_applicability_status(
         self,
         m_get_cpu_info,

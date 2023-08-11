@@ -3,10 +3,10 @@ import logging
 import mock
 import pytest
 
-from uaclient.files.notices import Notice
-from uaclient.timer.update_contract_info import update_contract_info
+from ubuntupro.files.notices import Notice
+from ubuntupro.timer.update_contract_info import update_contract_info
 
-M_PATH = "uaclient.timer.update_contract_info."
+M_PATH = "ubuntupro.timer.update_contract_info."
 
 
 @mock.patch(M_PATH + "contract.is_contract_changed", return_value=False)

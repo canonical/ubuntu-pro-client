@@ -1,15 +1,15 @@
 import mock
 import pytest
 
-from uaclient import livepatch
-from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+from ubuntupro import livepatch
+from ubuntupro.api.u.pro.security.status.reboot_required.v1 import (
     RebootStatus,
     _get_reboot_status,
     _reboot_required,
 )
-from uaclient.system import RebootRequiredPkgs
+from ubuntupro.system import RebootRequiredPkgs
 
-M_PATH = "uaclient.api.u.pro.security.status.reboot_required.v1."
+M_PATH = "ubuntupro.api.u.pro.security.status.reboot_required.v1."
 
 
 class TestRebootRequired:
@@ -92,7 +92,7 @@ class TestRebootRequired:
             ),
         ),
     )
-    @mock.patch("uaclient.livepatch.status")
+    @mock.patch("ubuntupro.livepatch.status")
     @mock.patch(M_PATH + "get_reboot_required_pkgs")
     @mock.patch(M_PATH + "_get_reboot_status")
     def test_reboot_status_api(
@@ -144,8 +144,10 @@ class TestGetRebootStatus:
         assert 1 == m_should_reboot.call_count
         assert 1 == m_get_reboot_required_pkgs.call_count
 
-    @mock.patch("uaclient.livepatch.status")
-    @mock.patch("uaclient.livepatch.is_livepatch_installed", return_value=True)
+    @mock.patch("ubuntupro.livepatch.status")
+    @mock.patch(
+        "ubuntupro.livepatch.is_livepatch_installed", return_value=True
+    )
     @mock.patch(M_PATH + "get_reboot_required_pkgs")
     @mock.patch(M_PATH + "should_reboot", return_value=True)
     def test_get_reboot_status_livepatch_status_none(
@@ -236,8 +238,8 @@ class TestGetRebootStatus:
         ),
     )
     @mock.patch(M_PATH + "get_kernel_info")
-    @mock.patch("uaclient.livepatch.is_livepatch_installed")
-    @mock.patch("uaclient.livepatch.status")
+    @mock.patch("ubuntupro.livepatch.is_livepatch_installed")
+    @mock.patch("ubuntupro.livepatch.status")
     @mock.patch(M_PATH + "get_reboot_required_pkgs")
     @mock.patch(M_PATH + "should_reboot", return_value=True)
     def test_get_reboot_status_reboot_pkgs_file_only_kernel_pkgs(
@@ -276,8 +278,8 @@ class TestGetRebootStatus:
         assert 1 == m_kernel_info.call_count
 
     @mock.patch(M_PATH + "get_kernel_info")
-    @mock.patch("uaclient.livepatch.is_livepatch_installed")
-    @mock.patch("uaclient.livepatch.status")
+    @mock.patch("ubuntupro.livepatch.is_livepatch_installed")
+    @mock.patch("ubuntupro.livepatch.status")
     @mock.patch(M_PATH + "get_reboot_required_pkgs")
     @mock.patch(M_PATH + "should_reboot", return_value=True)
     def test_get_reboot_status_fail_parsing_kernel_info(

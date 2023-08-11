@@ -1,12 +1,12 @@
 import mock
 import pytest
 
-from uaclient.api.api import call_api
-from uaclient.api.data_types import APIResponse, ErrorWarningObject
-from uaclient.api.errors import APIError, error_out
-from uaclient.data_types import IncorrectFieldTypeError
-from uaclient.exceptions import UserFacingError
-from uaclient.messages import (
+from ubuntupro.api.api import call_api
+from ubuntupro.api.data_types import APIResponse, ErrorWarningObject
+from ubuntupro.api.errors import APIError, error_out
+from ubuntupro.data_types import IncorrectFieldTypeError
+from ubuntupro.exceptions import UserFacingError
+from ubuntupro.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
     API_JSON_DATA_FORMAT_ERROR,
@@ -18,7 +18,7 @@ from uaclient.messages import (
 
 
 class TestAPIErrors:
-    @mock.patch("uaclient.api.errors.get_pro_environment")
+    @mock.patch("ubuntupro.api.errors.get_pro_environment")
     def test_error_out_fields(self, _m_environment):
         error_response = error_out(None)
         assert isinstance(error_response, APIResponse)
@@ -59,7 +59,7 @@ class TestAPIErrors:
 
 
 class TestAPICall:
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("ubuntupro.api.api.error_out")
     def test_invalid_endpoint(self, m_error_out, FakeConfig):
         result = call_api("invalid_endpoint", [], "", cfg=FakeConfig())
         assert result == m_error_out.return_value
@@ -75,13 +75,13 @@ class TestAPICall:
     @pytest.mark.parametrize(
         "arguments", (["badformat"], ["=badformat"], ["badformat="])
     )
-    @mock.patch("uaclient.api.api.error_out")
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.error_out")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_bad_formatted_args(
         self, _m_import_module, m_error_out, arguments, FakeConfig
     ):
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", arguments, "", FakeConfig)
 
@@ -93,8 +93,8 @@ class TestAPICall:
         assert arg.msg_code == API_BAD_ARGS_FORMAT.name
 
     @pytest.mark.parametrize("options_cls", (None, mock.MagicMock()))
-    @mock.patch("uaclient.api.api.error_out")
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.error_out")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_wrong_args(
         self, m_import_module, m_error_out, options_cls, FakeConfig
     ):
@@ -109,7 +109,7 @@ class TestAPICall:
             )
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api(
                 "example_endpoint", ["not=valid"], "", FakeConfig()
@@ -137,8 +137,8 @@ class TestAPICall:
             )
             assert arg.msg_code == API_NO_ARG_FOR_ENDPOINT.name
 
-    @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.check_for_new_version", return_value=None)
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_warning_on_extra_args(
         self, m_import_module, _m_new_version_api, FakeConfig
     ):
@@ -149,7 +149,7 @@ class TestAPICall:
         m_import_module.return_value.endpoint = mock_endpoint
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api(
                 "example_endpoint", ["extra=argument"], "", FakeConfig()
@@ -165,7 +165,7 @@ class TestAPICall:
         "options_cls,arguments",
         ((None, []), (mock.MagicMock(), ["key=value"])),
     )
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_call_endpoint(
         self, m_import_module, options_cls, arguments, FakeConfig
     ):
@@ -179,7 +179,7 @@ class TestAPICall:
         cfg = FakeConfig()
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", arguments, "", cfg)
 
@@ -197,8 +197,8 @@ class TestAPICall:
         else:
             assert mock_endpoint_fn.call_args_list == [mock.call(cfg)]
 
-    @mock.patch("uaclient.api.api.error_out")
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.error_out")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_endpoint_function_error(
         self, m_import_module, m_error_out, FakeConfig
     ):
@@ -211,7 +211,7 @@ class TestAPICall:
         m_import_module.return_value.endpoint = mock_endpoint
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", [], "", FakeConfig())
 
@@ -232,9 +232,9 @@ class TestAPICall:
             ),
         ),
     )
-    @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
-    @mock.patch("uaclient.api.data_types.get_pro_environment")
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.check_for_new_version", return_value=None)
+    @mock.patch("ubuntupro.api.data_types.get_pro_environment")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_endpoint_function_warning_and_meta(
         self,
         m_import_module,
@@ -258,7 +258,7 @@ class TestAPICall:
         m_import_module.return_value.endpoint = mock_endpoint
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", [], "", FakeConfig())
 
@@ -275,11 +275,13 @@ class TestAPICall:
         }
 
     @pytest.mark.parametrize("api_error", (False, True))
-    @mock.patch("uaclient.api.api.check_for_new_version", return_value="1.2.3")
     @mock.patch(
-        "uaclient.api.errors.check_for_new_version", return_value="1.2.3"
+        "ubuntupro.api.api.check_for_new_version", return_value="1.2.3"
     )
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch(
+        "ubuntupro.api.errors.check_for_new_version", return_value="1.2.3"
+    )
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_warning_for_new_version(
         self,
         m_import_module,
@@ -298,7 +300,7 @@ class TestAPICall:
         m_import_module.return_value.endpoint = mock_endpoint
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
 
             result = call_api("example_endpoint", [], "", FakeConfig())
@@ -312,7 +314,7 @@ class TestAPICall:
         assert warning.code == WARN_NEW_VERSION_AVAILABLE.name
         assert warning.meta == {}
 
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_api_with_data_parameter(
         self,
         m_import_module,
@@ -332,7 +334,7 @@ class TestAPICall:
         cfg = FakeConfig()
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", [], data, cfg)
 
@@ -347,8 +349,8 @@ class TestAPICall:
             mock.call(m_options_cls.from_dict.return_value, cfg)
         ]
 
-    @mock.patch("uaclient.api.api.error_out")
-    @mock.patch("uaclient.api.api.import_module")
+    @mock.patch("ubuntupro.api.api.error_out")
+    @mock.patch("ubuntupro.api.api.import_module")
     def test_endpoint_function_error_with_invalid_data(
         self, m_import_module, m_error_out, FakeConfig
     ):
@@ -369,7 +371,7 @@ class TestAPICall:
         m_import_module.return_value.endpoint = mock_endpoint
 
         with mock.patch(
-            "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
+            "ubuntupro.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
             result = call_api("example_endpoint", [], data, FakeConfig())
 

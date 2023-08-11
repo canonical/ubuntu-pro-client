@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Union  # noqa: F401
 
-from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.util import get_pro_environment
-from uaclient.version import get_version
+from ubuntupro.data_types import DataObject, Field, StringDataValue, data_list
+from ubuntupro.util import get_pro_environment
+from ubuntupro.version import get_version
 
 
 class AdditionalInfo:

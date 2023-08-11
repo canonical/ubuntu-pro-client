@@ -38,7 +38,7 @@ ifeq (LTS,$(findstring LTS,$(VERSION)))
 	make -C apt-hook test
 endif
 	python3 -m pytest
-	python3 -m flake8 uaclient
+	python3 -m flake8 ubuntupro
 endif
 
 override_dh_gencontrol:

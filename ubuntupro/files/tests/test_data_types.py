@@ -1,15 +1,15 @@
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.data_types import (
+from ubuntupro import exceptions
+from ubuntupro.data_types import (
     DataObject,
     Field,
     IncorrectFieldTypeError,
     IntDataValue,
     StringDataValue,
 )
-from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
+from ubuntupro.files.data_types import DataObjectFile, DataObjectFileFormat
 
 
 class MockUAFile:

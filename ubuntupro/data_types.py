@@ -4,7 +4,7 @@ import logging
 from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar, Union
 
-from uaclient import exceptions, messages, util
+from ubuntupro import exceptions, messages, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

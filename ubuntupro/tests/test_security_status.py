@@ -4,13 +4,13 @@ from typing import List, Optional
 import mock
 import pytest
 
-from uaclient import livepatch
-from uaclient.api.u.pro.security.status.reboot_required.v1 import RebootStatus
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import livepatch
+from ubuntupro.api.u.pro.security.status.reboot_required.v1 import RebootStatus
+from ubuntupro.entitlements.entitlement_status import (
     ApplicationStatus,
     ContractStatus,
 )
-from uaclient.security_status import (
+from ubuntupro.security_status import (
     UpdateStatus,
     filter_security_updates,
     get_livepatch_fixed_cves,
@@ -19,9 +19,9 @@ from uaclient.security_status import (
     get_update_status,
     security_status_dict,
 )
-from uaclient.system import KernelInfo
+from ubuntupro.system import KernelInfo
 
-M_PATH = "uaclient.security_status."
+M_PATH = "ubuntupro.security_status."
 
 
 def mock_origin(
@@ -262,7 +262,7 @@ class TestSecurityStatus:
         ):
             assert "unknown" == get_origin_for_package(package_mock)
 
-    @mock.patch("uaclient.security_status.get_esm_cache", return_value={})
+    @mock.patch("ubuntupro.security_status.get_esm_cache", return_value={})
     def test_filter_security_updates(self, _m_get_esm_cache):
         expected_return = defaultdict(
             list,
@@ -387,7 +387,7 @@ class TestSecurityStatus:
                 == "not-a-security-update"
             )
 
-    @mock.patch("uaclient.security_status.get_esm_cache")
+    @mock.patch("ubuntupro.security_status.get_esm_cache")
     def test_filter_security_updates_when_esm_disabled(self, m_esm_cache):
         expected_return = defaultdict(
             list,

@@ -4,7 +4,7 @@ import logging
 import os
 from typing import List, Optional  # noqa: F401
 
-from uaclient import (
+from ubuntupro import (
     clouds,
     config,
     contract,
@@ -12,18 +12,18 @@ from uaclient import (
     exceptions,
     livepatch,
 )
-from uaclient import log as pro_log
-from uaclient import messages
-from uaclient import status as ua_status
-from uaclient import system, timer, util
-from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
-from uaclient.clouds import identity
-from uaclient.defaults import (
+from ubuntupro import log as pro_log
+from ubuntupro import messages
+from ubuntupro import status as ua_status
+from ubuntupro import system, timer, util
+from ubuntupro.clouds import AutoAttachCloudInstance  # noqa: F401
+from ubuntupro.clouds import identity
+from ubuntupro.defaults import (
     CLOUD_BUILD_INFO,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
-from uaclient.files.state_files import (
+from ubuntupro.files.state_files import (
     AttachmentData,
     attachment_data_file,
     timer_jobs_state_file,
@@ -54,7 +54,7 @@ def attach_with_token(
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
     """
-    from uaclient.timer.update_messaging import update_motd_messages
+    from ubuntupro.timer.update_messaging import update_motd_messages
 
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)

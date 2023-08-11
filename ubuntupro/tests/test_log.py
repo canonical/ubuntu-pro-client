@@ -4,8 +4,8 @@ from io import StringIO
 
 import pytest
 
-from uaclient import log as pro_log
-from uaclient import util
+from ubuntupro import log as pro_log
+from ubuntupro import util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 LOG_FMT = "%(asctime)s%(name)s%(funcName)s%(lineno)s\

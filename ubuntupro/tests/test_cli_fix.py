@@ -3,11 +3,11 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.cli import action_fix, main
-from uaclient.security import FixStatus
+from ubuntupro import exceptions
+from ubuntupro.cli import action_fix, main
+from ubuntupro.security import FixStatus
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -32,15 +32,15 @@ Flags:
 
 
 class TestActionFix:
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_fix_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "fix", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -66,7 +66,7 @@ class TestActionFix:
             ("USA-1234-12345678", False),
         ),
     )
-    @mock.patch("uaclient.security.fix_security_issue_id")
+    @mock.patch("ubuntupro.security.fix_security_issue_id")
     def test_attached(
         self, m_fix_security_issue_id, issue, is_valid, FakeConfig
     ):

@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from uaclient.messages import NamedMessage
+from ubuntupro.messages import NamedMessage
 
 StaticAffordance = Tuple[NamedMessage, Callable[[], Any], bool]
 

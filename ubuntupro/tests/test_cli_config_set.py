@@ -1,10 +1,10 @@
 import mock
 import pytest
 
-from uaclient import apt, http, messages
-from uaclient.cli import action_config_set, configure_apt_proxy, main
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.exceptions import NonRootUserError, UserFacingError
+from ubuntupro import apt, http, messages
+from ubuntupro.cli import action_config_set, configure_apt_proxy, main
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.exceptions import NonRootUserError, UserFacingError
 
 HELP_OUTPUT = """\
 usage: pro config set <key>=<value> [flags]
@@ -22,10 +22,10 @@ positional arguments:
 Flags:
   -h, --help      show this help message and exit
 """
-M_LIVEPATCH = "uaclient.entitlements.livepatch."
+M_LIVEPATCH = "ubuntupro.entitlements.livepatch."
 
 
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("ubuntupro.cli.setup_logging")
 class TestMainConfigSet:
     @pytest.mark.parametrize(
         "kv_pair,err_msg",
@@ -57,7 +57,7 @@ class TestMainConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_set_error_with_help_on_invalid_key_value_pair(
         self,
         _m_resources,
@@ -73,7 +73,7 @@ class TestMainConfigSet:
                 "sys.argv", ["/usr/bin/ua", "config", "set", kv_pair]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -82,10 +82,10 @@ class TestMainConfigSet:
         assert err_msg in err
 
 
-@mock.patch("uaclient.config.state_files.user_config_file.write")
-@mock.patch("uaclient.cli.contract.get_available_resources")
+@mock.patch("ubuntupro.config.state_files.user_config_file.write")
+@mock.patch("ubuntupro.cli.contract.get_available_resources")
 class TestActionConfigSet:
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
     def test_set_error_on_non_root_user(
         self, _m_resources, _we_are_currently_root, _write, FakeConfig
     ):
@@ -104,10 +104,10 @@ class TestActionConfigSet:
             ("https_proxy", "https://proxy", True),
         ),
     )
-    @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
+    @mock.patch("ubuntupro.livepatch.configure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
-    @mock.patch("uaclient.snap.configure_snap_proxy")
-    @mock.patch("uaclient.http.validate_proxy")
+    @mock.patch("ubuntupro.snap.configure_snap_proxy")
+    @mock.patch("ubuntupro.http.validate_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
         self,
         validate_proxy,
@@ -171,8 +171,8 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.http.validate_proxy")
+    @mock.patch("ubuntupro.cli.configure_apt_proxy")
+    @mock.patch("ubuntupro.http.validate_proxy")
     def test_set_apt_http_proxy_and_apt_https_proxy_prints_warning(
         self,
         validate_proxy,
@@ -277,8 +277,8 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.http.validate_proxy")
+    @mock.patch("ubuntupro.cli.configure_apt_proxy")
+    @mock.patch("ubuntupro.http.validate_proxy")
     def test_set_global_apt_http_and_global_apt_https_proxy(
         self,
         validate_proxy,
@@ -387,8 +387,8 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
-    @mock.patch("uaclient.http.validate_proxy")
+    @mock.patch("ubuntupro.cli.configure_apt_proxy")
+    @mock.patch("ubuntupro.http.validate_proxy")
     def test_set_ua_apt_http_and_ua_apt_https_proxy(
         self,
         validate_proxy,
@@ -452,7 +452,7 @@ class TestActionConfigSet:
             ("global_apt_https_proxy", None, apt.AptProxyScope.GLOBAL),
         ),
     )
-    @mock.patch("uaclient.cli.setup_apt_proxy")
+    @mock.patch("ubuntupro.cli.setup_apt_proxy")
     def test_configure_global_apt_proxy(
         self,
         setup_apt_proxy,
@@ -491,8 +491,8 @@ class TestActionConfigSet:
             ("global_apt_https_proxy", None, apt.AptProxyScope.UACLIENT),
         ),
     )
-    @mock.patch("uaclient.cli.setup_apt_proxy")
-    def test_configure_uaclient_apt_proxy(
+    @mock.patch("ubuntupro.cli.setup_apt_proxy")
+    def test_configure_ubuntupro_apt_proxy(
         self,
         setup_apt_proxy,
         _m_resources,

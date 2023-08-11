@@ -1,8 +1,8 @@
 import mock
 
 from lib.esm_cache import main
-from uaclient.exceptions import MissingSeriesOnOSReleaseFile
-from uaclient.messages import MISSING_SERIES_ON_OS_RELEASE
+from ubuntupro.exceptions import MissingSeriesOnOSReleaseFile
+from ubuntupro.messages import MISSING_SERIES_ON_OS_RELEASE
 
 
 @mock.patch("lib.esm_cache.update_esm_caches")

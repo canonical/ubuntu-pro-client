@@ -103,7 +103,7 @@ def then_stream_not_contains_substring(context, stream):
 
 @then("I will see the uaclient version on stdout")
 def then_i_will_see_the_uaclient_version_on_stdout(context):
-    python_import = "from uaclient.version import get_version"
+    python_import = "from ubuntupro.version import get_version"
 
     cmd = "python3 -c '{}; print(get_version())'".format(python_import)
 

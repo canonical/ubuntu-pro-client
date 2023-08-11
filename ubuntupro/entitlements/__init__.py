@@ -2,20 +2,20 @@ import enum
 import textwrap
 from typing import Dict, List, Type  # noqa: F401
 
-from uaclient import messages
-from uaclient.config import UAConfig
-from uaclient.entitlements import fips
-from uaclient.entitlements.anbox import AnboxEntitlement
-from uaclient.entitlements.base import UAEntitlement  # noqa: F401
-from uaclient.entitlements.cc import CommonCriteriaEntitlement
-from uaclient.entitlements.cis import CISEntitlement
-from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements.landscape import LandscapeEntitlement
-from uaclient.entitlements.livepatch import LivepatchEntitlement
-from uaclient.entitlements.realtime import RealtimeKernelEntitlement
-from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
-from uaclient.exceptions import EntitlementNotFoundError
-from uaclient.util import is_config_value_true
+from ubuntupro import messages
+from ubuntupro.config import UAConfig
+from ubuntupro.entitlements import fips
+from ubuntupro.entitlements.anbox import AnboxEntitlement
+from ubuntupro.entitlements.base import UAEntitlement  # noqa: F401
+from ubuntupro.entitlements.cc import CommonCriteriaEntitlement
+from ubuntupro.entitlements.cis import CISEntitlement
+from ubuntupro.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
+from ubuntupro.entitlements.landscape import LandscapeEntitlement
+from ubuntupro.entitlements.livepatch import LivepatchEntitlement
+from ubuntupro.entitlements.realtime import RealtimeKernelEntitlement
+from ubuntupro.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
+from ubuntupro.exceptions import EntitlementNotFoundError
+from ubuntupro.util import is_config_value_true
 
 ENTITLEMENT_CLASSES = [
     AnboxEntitlement,

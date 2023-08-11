@@ -2,11 +2,11 @@ import json
 from importlib import import_module
 from typing import Any, Callable, Dict, List, Tuple
 
-from uaclient.api.data_types import APIData, APIResponse, ErrorWarningObject
-from uaclient.api.errors import APIError, error_out
-from uaclient.config import UAConfig
-from uaclient.data_types import IncorrectFieldTypeError
-from uaclient.messages import (
+from ubuntupro.api.data_types import APIData, APIResponse, ErrorWarningObject
+from ubuntupro.api.errors import APIError, error_out
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import IncorrectFieldTypeError
+from ubuntupro.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
     API_JSON_DATA_FORMAT_ERROR,
@@ -15,7 +15,7 @@ from uaclient.messages import (
     API_UNKNOWN_ARG,
     WARN_NEW_VERSION_AVAILABLE,
 )
-from uaclient.version import check_for_new_version
+from ubuntupro.version import check_for_new_version
 
 VALID_ENDPOINTS = [
     "u.pro.attach.auto.configure_retry_service.v1",
@@ -119,7 +119,7 @@ def call_api(
             )
         )
 
-    module = import_module("uaclient.api." + endpoint_path)
+    module = import_module("ubuntupro.api." + endpoint_path)
     endpoint = module.endpoint
 
     option_warnings = []

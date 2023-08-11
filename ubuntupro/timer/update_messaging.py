@@ -10,14 +10,14 @@ import logging
 import os
 from os.path import exists
 
-from uaclient import contract, defaults, messages, system, util
-from uaclient.api.u.pro.packages.updates.v1 import (
+from ubuntupro import contract, defaults, messages, system, util
+from ubuntupro.api.u.pro.packages.updates.v1 import (
     _updates as api_u_pro_packages_updates_v1,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
 
 MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (

@@ -2,8 +2,8 @@ import os
 
 import mock
 
-from uaclient import system
-from uaclient.files import MachineTokenFile, UAFile
+from ubuntupro import system
+from ubuntupro.files import MachineTokenFile, UAFile
 
 
 class TestUAFile:
@@ -29,7 +29,7 @@ class TestMachineTokenFile:
         token_file.delete()
         assert token_file.machine_token is None
 
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_public_file_filtering(self, m_we_are_currently_root, tmpdir):
         # root access of machine token file
         m_we_are_currently_root.return_value = True

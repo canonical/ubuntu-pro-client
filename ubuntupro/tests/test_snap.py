@@ -1,10 +1,10 @@
-"""Tests related to uaclient.snap module."""
+"""Tests related to ubuntupro.snap module."""
 
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.snap import (
+from ubuntupro import exceptions, messages
+from ubuntupro.snap import (
     SnapPackage,
     configure_snap_proxy,
     get_config_option_value,
@@ -18,8 +18,8 @@ class TestConfigureSnapProxy:
     @pytest.mark.parametrize("http_proxy", ("http_proxy", "", None))
     @pytest.mark.parametrize("https_proxy", ("https_proxy", "", None))
     @pytest.mark.parametrize("snapd_installed", (True, False))
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.snap.is_snapd_installed")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.snap.is_snapd_installed")
     def test_configure_snap_proxy(
         self,
         m_is_snapd_installed,
@@ -80,7 +80,7 @@ class TestConfigureSnapProxy:
             ("proxy.https", ("value", ""), "value"),
         ],
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_get_config_option_value(
         self, m_util_subp, key, subp_side_effect, expected_ret
     ):
@@ -96,8 +96,8 @@ class TestUnconfigureSnapProxy:
     @pytest.mark.parametrize("protocol_type", ("http", "https"))
     @pytest.mark.parametrize("retry_sleeps", (None, [1], []))
     @pytest.mark.parametrize("snapd_installed", (True, False))
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.snap.is_snapd_installed")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.snap.is_snapd_installed")
     def test_unconfigure_snap_proxy(
         self,
         m_snapd_installed,
@@ -125,8 +125,8 @@ class TestUnconfigureSnapProxy:
 
 
 class TestSnapPackagesInstalled:
-    @mock.patch("uaclient.snap.get_snap_info")
-    @mock.patch("uaclient.snap.system.subp")
+    @mock.patch("ubuntupro.snap.get_snap_info")
+    @mock.patch("ubuntupro.snap.system.subp")
     def test_snap_packages_installed(self, m_sys_subp, m_get_snap_info):
         m_sys_subp.return_value = (
             "Name  Version Rev Tracking Publisher Notes\n"

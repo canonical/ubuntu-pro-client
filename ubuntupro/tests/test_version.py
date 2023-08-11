@@ -3,28 +3,28 @@ import os.path
 import mock
 import pytest
 
-from uaclient.version import (
+from ubuntupro.version import (
     check_for_new_version,
     get_last_known_candidate,
     get_version,
 )
 
 
-@mock.patch("uaclient.version.subp")
+@mock.patch("ubuntupro.version.subp")
 class TestGetVersion:
-    @mock.patch("uaclient.version.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.version.os.path.exists", return_value=True)
     def test_get_version_returns_packaged_version(self, m_exists, m_subp):
-        with mock.patch("uaclient.version.PACKAGED_VERSION", "24.1~18.04.1"):
+        with mock.patch("ubuntupro.version.PACKAGED_VERSION", "24.1~18.04.1"):
             assert "24.1~18.04.1" == get_version()
         assert 0 == m_subp.call_count
 
-    @mock.patch("uaclient.version.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.version.os.path.exists", return_value=True)
     def test_get_version_returns_matching_git_describe_long(
         self, m_exists, m_subp
     ):
         m_subp.return_value = ("24.1-5-g12345678", "")
         with mock.patch(
-            "uaclient.version.PACKAGED_VERSION", "@@PACKAGED_VERSION"
+            "ubuntupro.version.PACKAGED_VERSION", "@@PACKAGED_VERSION"
         ):
             assert "24.1-5-g12345678" == get_version()
         assert [
@@ -41,7 +41,7 @@ class TestGetLastKnownCandidate:
     @mock.patch("builtins.open", mock.mock_open(read_data="1.2.3"))
     @mock.patch("os.stat")
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.version.get_apt_cache_time", return_value=2)
+    @mock.patch("ubuntupro.version.get_apt_cache_time", return_value=2)
     def test_get_known_candidate_from_cache(
         self, _m_apt_cache_time, _m_exists, m_stat
     ):
@@ -51,7 +51,7 @@ class TestGetLastKnownCandidate:
     @mock.patch("builtins.open")
     @mock.patch("os.stat")
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.version.get_apt_cache_time", return_value=2)
+    @mock.patch("ubuntupro.version.get_apt_cache_time", return_value=2)
     def test_cant_open_cache_file(
         self, _m_apt_cache_time, _m_exists, m_stat, m_open
     ):
@@ -60,7 +60,7 @@ class TestGetLastKnownCandidate:
         assert None is get_last_known_candidate()
 
     @mock.patch("os.makedirs")
-    @mock.patch("uaclient.version.get_apt_cache_policy_for_package")
+    @mock.patch("ubuntupro.version.get_apt_cache_policy_for_package")
     @mock.patch("os.path.exists", return_value=False)
     def test_create_cache_before_returning(
         self, _m_exists, m_policy, _m_makedirs
@@ -77,7 +77,7 @@ class TestGetLastKnownCandidate:
             ]
 
     @mock.patch("builtins.open")
-    @mock.patch("uaclient.version.get_apt_cache_policy_for_package")
+    @mock.patch("ubuntupro.version.get_apt_cache_policy_for_package")
     @mock.patch("os.path.exists", return_value=False)
     def test_problem_updating_file(self, _m_exists, m_policy, m_open):
         m_policy.return_value = """
@@ -91,8 +91,8 @@ class TestGetLastKnownCandidate:
 
 class TestCheckForNewVersion:
     @pytest.mark.parametrize("compare_return", (True, False))
-    @mock.patch("uaclient.version.compare_versions")
-    @mock.patch("uaclient.version.get_last_known_candidate")
+    @mock.patch("ubuntupro.version.compare_versions")
+    @mock.patch("ubuntupro.version.get_last_known_candidate")
     def test_check_for_new_version(
         self, m_candidate, m_compare, compare_return
     ):

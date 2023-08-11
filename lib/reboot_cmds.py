@@ -3,8 +3,8 @@
 """
 Run configuration operations during system boot.
 
-Some uaclient operations cannot be fully completed by running a single
-command. For example, when upgrading uaclient from trusty to xenial,
+Some ubuntupro operations cannot be fully completed by running a single
+command. For example, when upgrading ubuntupro from trusty to xenial,
 we may have a livepatch change in the contract, allowing livepatch to be
 enabled on xenial. However, during the upgrade we cannot install livepatch on
 the system because the running kernel version will not be updated until reboot.
@@ -17,7 +17,7 @@ should run at next boot to process any pending/unresovled config operations.
 import logging
 import sys
 
-from uaclient import (
+from ubuntupro import (
     config,
     contract,
     defaults,
@@ -27,10 +27,10 @@ from uaclient import (
     messages,
     upgrade_lts_contract,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.cli import setup_logging
-from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.files import notices, state_files
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.cli import setup_logging
+from ubuntupro.entitlements.fips import FIPSEntitlement
+from ubuntupro.files import notices, state_files
 
 LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
 

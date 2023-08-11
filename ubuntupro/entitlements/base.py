@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from uaclient import (
+from ubuntupro import (
     apt,
     config,
     contract,
@@ -18,9 +18,9 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.defaults import DEFAULT_HELP_FILE
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.defaults import DEFAULT_HELP_FILE
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
     CanDisableFailure,
@@ -30,9 +30,9 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
-from uaclient.types import MessagingOperationsDict, StaticAffordance
-from uaclient.util import is_config_value_true
-from uaclient.yaml import safe_load
+from ubuntupro.types import MessagingOperationsDict, StaticAffordance
+from ubuntupro.util import is_config_value_true
+from ubuntupro.yaml import safe_load
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -1191,7 +1191,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         self.name,
                     )
             # Clean up former entitled machine-access-<name> response cache
-            # file because uaclient doesn't access machine-access-* routes or
+            # file because ubuntupro doesn't access machine-access-* routes or
             # responses on unentitled services.
             self.cfg.delete_cache_key("machine-access-{}".format(self.name))
             return True

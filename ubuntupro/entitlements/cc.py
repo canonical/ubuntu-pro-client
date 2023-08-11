@@ -1,7 +1,7 @@
 from typing import Optional  # noqa: F401
 
-from uaclient.entitlements import repo
-from uaclient.types import (  # noqa: F401
+from ubuntupro.entitlements import repo
+from ubuntupro.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
 )

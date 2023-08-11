@@ -11,7 +11,7 @@ import json
 import sys
 from typing import Any, Dict, List, Optional, Set, Union  # noqa: F401
 
-from uaclient.yaml import safe_dump
+from ubuntupro.yaml import safe_dump
 
 JSON_SCHEMA_VERSION = "0.1"
 EventFieldErrorType = Optional[Union[str, Dict[str, str]]]
@@ -42,7 +42,7 @@ class EventLoggerMode(enum.Enum):
 
 
 def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
-    from uaclient.util import get_pro_environment
+    from ubuntupro.util import get_pro_environment
 
     status["environment_vars"] = [
         {"name": name, "value": value}
@@ -217,7 +217,7 @@ class EventLogger:
             "needs_reboot": self._needs_reboot,
         }
 
-        from uaclient.util import DatetimeAwareJSONEncoder
+        from ubuntupro.util import DatetimeAwareJSONEncoder
 
         print(
             json.dumps(response, cls=DatetimeAwareJSONEncoder, sort_keys=True)
@@ -230,7 +230,7 @@ class EventLogger:
         output["warnings"] = self._warning_events
 
         if self._event_logger_mode == EventLoggerMode.JSON:
-            from uaclient.util import DatetimeAwareJSONEncoder
+            from ubuntupro.util import DatetimeAwareJSONEncoder
 
             print(
                 json.dumps(

@@ -3,8 +3,8 @@ import os
 import mock
 import pytest
 
-from uaclient import exceptions, gpg, system
-from uaclient.testing import data
+from ubuntupro import exceptions, gpg, system
+from ubuntupro.testing import data
 
 
 @pytest.yield_fixture
@@ -52,7 +52,7 @@ class TestExportGPGKey:
         # Create keyring with both ESM and CC-EAL2 keys
         source_key1.write(data.GPG_KEY1, "wb")
         source_key2.write(data.GPG_KEY2, "wb")
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             gpg.export_gpg_key(
                 source_keyfile=source_key1.strpath,
                 destination_keyfile=destination_keyfile,
@@ -67,7 +67,7 @@ class TestExportGPGKey:
             destination_keyfile,
             "--list-keys",
         ]
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             dest_out, _err = system.subp(gpg_dest_list_keys)
 
         assert "Ubuntu Common Criteria EAL2" in dest_out

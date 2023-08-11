@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.cli import action_refresh, main
-from uaclient.files.notices import Notice
+from ubuntupro import exceptions, messages
+from ubuntupro.cli import action_refresh, main
+from ubuntupro.files.notices import Notice
 
 HELP_OUTPUT = """\
 usage: pro refresh [contract|config|messages] [flags]
@@ -28,22 +28,22 @@ Flags:
 
 
 class TestActionRefresh:
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_refresh_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT in out
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
         self, we_are_currently_root, FakeConfig
     ):
@@ -75,7 +75,7 @@ class TestActionRefresh:
         else:
             action_refresh(mock.MagicMock(target=target), cfg=cfg)
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_lock_file_exists(self, m_subp, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()
@@ -89,8 +89,8 @@ class TestActionRefresh:
         ) == err.value.msg
 
     @mock.patch("logging.exception")
-    @mock.patch("uaclient.contract.refresh")
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.contract.refresh")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
     def test_refresh_contract_error_on_failure_to_update_contract(
         self,
         m_remove_notice,
@@ -111,8 +111,8 @@ class TestActionRefresh:
             mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
         ] != m_remove_notice.call_args_list
 
-    @mock.patch("uaclient.contract.refresh")
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.contract.refresh")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
     def test_refresh_contract_happy_path(
         self,
         m_remove_notice,
@@ -134,7 +134,7 @@ class TestActionRefresh:
             mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
 
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_refresh_messages_error(self, m_update_motd, FakeConfig):
         """On failure in update_motd_messages emit an error."""
         m_update_motd.side_effect = Exception("test")
@@ -144,11 +144,11 @@ class TestActionRefresh:
 
         assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
 
-    @mock.patch("uaclient.apt_news.update_apt_news")
-    @mock.patch("uaclient.timer.update_messaging.exists", return_value=True)
-    @mock.patch("uaclient.timer.update_messaging.LOG.exception")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.apt_news.update_apt_news")
+    @mock.patch("ubuntupro.timer.update_messaging.exists", return_value=True)
+    @mock.patch("ubuntupro.timer.update_messaging.LOG.exception")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_refresh_messages_doesnt_fail_if_update_notifier_does(
         self,
         m_update_motd,
@@ -171,9 +171,9 @@ class TestActionRefresh:
         assert [mock.call(subp_exc)] == log_exception.call_args_list
         assert messages.REFRESH_MESSAGES_SUCCESS in capsys.readouterr()[0]
 
-    @mock.patch("uaclient.apt_news.update_apt_news")
-    @mock.patch("uaclient.cli.refresh_motd")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch("ubuntupro.apt_news.update_apt_news")
+    @mock.patch("ubuntupro.cli.refresh_motd")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
     def test_refresh_messages_happy_path(
         self,
         m_update_motd,
@@ -196,7 +196,7 @@ class TestActionRefresh:
 
     @mock.patch("logging.exception")
     @mock.patch(
-        "uaclient.config.UAConfig.process_config", side_effect=RuntimeError()
+        "ubuntupro.config.UAConfig.process_config", side_effect=RuntimeError()
     )
     def test_refresh_config_error_on_failure_to_process_config(
         self,
@@ -213,7 +213,7 @@ class TestActionRefresh:
 
         assert messages.REFRESH_CONFIG_FAILURE == excinfo.value.msg
 
-    @mock.patch("uaclient.config.UAConfig.process_config")
+    @mock.patch("ubuntupro.config.UAConfig.process_config")
     def test_refresh_config_happy_path(
         self,
         m_process_config,
@@ -229,12 +229,12 @@ class TestActionRefresh:
         assert messages.REFRESH_CONFIG_SUCCESS in capsys.readouterr()[0]
         assert [mock.call()] == m_process_config.call_args_list
 
-    @mock.patch("uaclient.apt_news.update_apt_news")
-    @mock.patch("uaclient.cli.refresh_motd")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    @mock.patch("uaclient.contract.refresh")
-    @mock.patch("uaclient.config.UAConfig.process_config")
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.apt_news.update_apt_news")
+    @mock.patch("ubuntupro.cli.refresh_motd")
+    @mock.patch("ubuntupro.cli.update_motd_messages")
+    @mock.patch("ubuntupro.contract.refresh")
+    @mock.patch("ubuntupro.config.UAConfig.process_config")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
     def test_refresh_all_happy_path(
         self,
         m_remove_notice,

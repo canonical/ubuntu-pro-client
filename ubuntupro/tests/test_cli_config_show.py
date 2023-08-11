@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient.cli import action_config_show, main
+from ubuntupro.cli import action_config_show, main
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 HELP_OUTPUT = """\
 usage: pro config show [key] [flags]
@@ -16,8 +16,8 @@ positional arguments:
 """
 
 
-@mock.patch("uaclient.cli.logging.error")
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("ubuntupro.cli.logging.error")
+@mock.patch("ubuntupro.cli.setup_logging")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfigShow:
     def test_config_show_help(
@@ -34,7 +34,7 @@ class TestMainConfigShow:
                 "sys.argv", ["/usr/bin/ua", "config", "show", "--help"]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -49,7 +49,7 @@ class TestMainConfigShow:
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "config", "invalid"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()

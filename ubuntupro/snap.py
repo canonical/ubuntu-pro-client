@@ -5,7 +5,7 @@ import re
 import socket
 from typing import List, NamedTuple, Optional
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
+from ubuntupro import apt, event_logger, exceptions, messages, system, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]

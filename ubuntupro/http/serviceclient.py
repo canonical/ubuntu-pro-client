@@ -5,7 +5,7 @@ import posixpath
 from typing import Any, Dict, Optional  # noqa: F401
 from urllib.parse import urlencode
 
-from uaclient import config, http, system, util, version
+from ubuntupro import config, http, system, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):

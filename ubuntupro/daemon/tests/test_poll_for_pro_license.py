@@ -1,15 +1,15 @@
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.clouds.aws import UAAutoAttachAWSInstance
-from uaclient.clouds.gcp import UAAutoAttachGCPInstance
-from uaclient.daemon.poll_for_pro_license import (
+from ubuntupro import exceptions
+from ubuntupro.clouds.aws import UAAutoAttachAWSInstance
+from ubuntupro.clouds.gcp import UAAutoAttachGCPInstance
+from ubuntupro.daemon.poll_for_pro_license import (
     attempt_auto_attach,
     poll_for_pro_license,
 )
 
-M_PATH = "uaclient.daemon.poll_for_pro_license."
+M_PATH = "ubuntupro.daemon.poll_for_pro_license."
 
 
 time_mock_curr_value = 0

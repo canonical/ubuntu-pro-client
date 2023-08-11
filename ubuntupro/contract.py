@@ -4,7 +4,7 @@ import logging
 import socket
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import (
+from ubuntupro import (
     clouds,
     event_logger,
     exceptions,
@@ -14,16 +14,16 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.defaults import (
+from ubuntupro.api.u.pro.status.enabled_services.v1 import _enabled_services
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.defaults import (
     ATTACH_FAIL_DATE_FORMAT,
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
     CONTRACT_EXPIRY_PENDING_DAYS,
 )
-from uaclient.files.state_files import attachment_data_file
-from uaclient.http import serviceclient
+from ubuntupro.files.state_files import attachment_data_file
+from ubuntupro.http import serviceclient
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.
@@ -491,7 +491,7 @@ def process_entitlements_delta(
     :param series_overrides: Boolean set True if series overrides should be
         applied to the new_access dict.
     """
-    from uaclient.entitlements import entitlements_enable_order
+    from ubuntupro.entitlements import entitlements_enable_order
 
     delta_error = False
     unexpected_error = False
@@ -575,7 +575,7 @@ def process_entitlement_delta(
     :return: A tuple containing a dict of processed deltas and a
              boolean indicating if the service was fully processed
     """
-    from uaclient.entitlements import entitlement_factory
+    from ubuntupro.entitlements import entitlement_factory
 
     if series_overrides:
         apply_contract_overrides(new_access)
@@ -800,7 +800,7 @@ def apply_contract_overrides(
 
     :param orig_access: Dict with original entitlement access details
     """
-    from uaclient.clouds.identity import get_cloud_type
+    from ubuntupro.clouds.identity import get_cloud_type
 
     if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
         raise RuntimeError(

@@ -4,7 +4,7 @@ import os
 from collections import OrderedDict
 from typing import Any, Dict, List  # noqa: F401
 
-from uaclient import defaults, system, util
+from ubuntupro import defaults, system, util
 
 
 class RedactionFilter(logging.Filter):

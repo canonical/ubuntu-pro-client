@@ -1,6 +1,6 @@
-from uaclient import messages
-from uaclient.api.errors import APIError
-from uaclient.exceptions import (
+from ubuntupro import messages
+from ubuntupro.api.errors import APIError
+from ubuntupro.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
     ContractAPIError,

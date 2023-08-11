@@ -4,10 +4,10 @@ import json
 import mock
 import pytest
 
-from uaclient import exceptions, http, messages, system
-from uaclient.entitlements.livepatch import LivepatchEntitlement
-from uaclient.files.state_files import LivepatchSupportCacheData
-from uaclient.livepatch import (
+from ubuntupro import exceptions, http, messages, system
+from ubuntupro.entitlements.livepatch import LivepatchEntitlement
+from ubuntupro.files.state_files import LivepatchSupportCacheData
+from ubuntupro.livepatch import (
     LIVEPATCH_CMD,
     LivepatchPatchFixStatus,
     LivepatchPatchStatus,
@@ -24,7 +24,7 @@ from uaclient.livepatch import (
     unconfigure_livepatch_proxy,
 )
 
-M_PATH = "uaclient.livepatch."
+M_PATH = "ubuntupro.livepatch."
 
 
 class TestStatus:
@@ -905,7 +905,7 @@ class TestConfigureLivepatchProxy:
             (None, None, [1, 2]),
         ),
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_configure_livepatch_proxy(
         self, m_subp, http_proxy, https_proxy, retry_sleeps, capsys, event
     ):
@@ -1006,7 +1006,7 @@ check-interval: 60  # minutes""",
             ),
         ],
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_get_config_option_value(
         self, m_util_subp, key, subp_return_value, expected_ret
     ):
@@ -1028,8 +1028,8 @@ class TestUnconfigureLivepatchProxy:
             (False, "http", None),
         ),
     )
-    @mock.patch("uaclient.system.which")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.which")
+    @mock.patch("ubuntupro.system.subp")
     def test_unconfigure_livepatch_proxy(
         self, subp, which, livepatch_installed, protocol_type, retry_sleeps
     ):

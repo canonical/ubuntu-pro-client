@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import mock
 import pytest
 
-from uaclient import exceptions, http, messages
+from ubuntupro import exceptions, http, messages
 
 
 class TestIsServiceUrl:
@@ -54,7 +54,7 @@ class TestValidateProxy:
     @mock.patch("urllib.request.ProxyHandler")
     @mock.patch("urllib.request.build_opener")
     @mock.patch("urllib.request.OpenerDirector.open")
-    @mock.patch("uaclient.http._readurl_pycurl_https_in_https")
+    @mock.patch("ubuntupro.http._readurl_pycurl_https_in_https")
     def test_calls_open_on_valid_url(
         self,
         m_readurl_pycurl,
@@ -393,7 +393,7 @@ class TestReadurl:
             ),
         ],
     )
-    @mock.patch("uaclient.http._readurl_urllib")
+    @mock.patch("ubuntupro.http._readurl_urllib")
     def test_readurl(
         self,
         m_readurl_urllib,

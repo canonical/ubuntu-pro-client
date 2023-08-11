@@ -3,10 +3,10 @@ import os
 import mock
 import pytest
 
-from uaclient import defaults
-from uaclient.conftest import FakeNotice
-from uaclient.files import notices
-from uaclient.files.notices import NoticesManager
+from ubuntupro import defaults
+from ubuntupro.conftest import FakeNotice
+from ubuntupro.files import notices
+from ubuntupro.files.notices import NoticesManager
 
 
 class TestNotices:
@@ -19,7 +19,7 @@ class TestNotices:
             ),
         ),
     )
-    @mock.patch("uaclient.files.notices.system.write_file")
+    @mock.patch("ubuntupro.files.notices.system.write_file")
     def test_add(
         self,
         sys_write_file,
@@ -35,8 +35,8 @@ class TestNotices:
             )
         ] == sys_write_file.call_args_list
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.files.notices.system.write_file")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.files.notices.system.write_file")
     def test_add_non_root(
         self,
         m_sys_write_file,
@@ -65,7 +65,7 @@ class TestNotices:
         notice = NoticesManager()
         notice.add(label, content)
         with mock.patch(
-            "uaclient.files.notices.system.write_file"
+            "ubuntupro.files.notices.system.write_file"
         ) as sys_write_file:
             notice.add(label, content)
             assert 1 == sys_write_file.call_count
@@ -79,7 +79,7 @@ class TestNotices:
             ),
         ),
     )
-    @mock.patch("uaclient.files.notices.system.ensure_file_absent")
+    @mock.patch("ubuntupro.files.notices.system.ensure_file_absent")
     def test_remove(
         self,
         sys_file_absent,
@@ -95,8 +95,8 @@ class TestNotices:
             )
         ] == sys_file_absent.call_args_list
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.files.notices.system.ensure_file_absent")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.files.notices.system.ensure_file_absent")
     def test_remove_non_root(
         self,
         m_sys_file_absent,
@@ -108,9 +108,9 @@ class TestNotices:
         assert [] == m_sys_file_absent.call_args_list
         assert "Trying to remove a notice as non-root user" in caplog_text()
 
-    @mock.patch("uaclient.files.notices.NoticesManager.list")
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.files.notices.NoticesManager.add")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.list")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.add")
     def test_notice_module(
         self, notice_cls_add, notice_cls_remove, notice_cls_read
     ):

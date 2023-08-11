@@ -7,7 +7,7 @@ lib/reboot_cmds.py
 This function should be used after running do-release-upgrade in a machine.
 It will detect any contract deltas between the release before
 do-release-upgrade and the current release. If we find any differences in
-the uaclient contract between those releases, we will apply that difference
+the ubuntupro contract between those releases, we will apply that difference
 in the upgraded release.
 
 For example, suppose we are on Trusty and we are upgrading to Xenial. We found
@@ -27,9 +27,9 @@ import logging
 import sys
 import time
 
-from uaclient import contract, defaults, system, util
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
+from ubuntupro import contract, defaults, system, util
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
 
 # We consider the past release for LTSs to be the last LTS,
 # because we don't have any services available on non-LTS.

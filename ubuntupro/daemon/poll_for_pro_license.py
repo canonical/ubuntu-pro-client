@@ -1,14 +1,14 @@
 import logging
 import time
 
-from uaclient import actions, exceptions, lock, system, util
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.clouds import AutoAttachCloudInstance
-from uaclient.clouds.azure import UAAutoAttachAzureInstance
-from uaclient.clouds.gcp import UAAutoAttachGCPInstance
-from uaclient.clouds.identity import cloud_instance_factory
-from uaclient.config import UAConfig
-from uaclient.daemon import retry_auto_attach
+from ubuntupro import actions, exceptions, lock, system, util
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.clouds import AutoAttachCloudInstance
+from ubuntupro.clouds.azure import UAAutoAttachAzureInstance
+from ubuntupro.clouds.gcp import UAAutoAttachGCPInstance
+from ubuntupro.clouds.identity import cloud_instance_factory
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import retry_auto_attach
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

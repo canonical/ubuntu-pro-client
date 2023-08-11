@@ -1,4 +1,4 @@
-"""Tests related to uaclient.util module."""
+"""Tests related to ubuntupro.util module."""
 import datetime
 import io
 import json
@@ -7,7 +7,7 @@ import logging
 import mock
 import pytest
 
-from uaclient import cli, exceptions, messages, util
+from ubuntupro import cli, exceptions, messages, util
 
 
 class TestGetDictDeltas:
@@ -53,13 +53,13 @@ class TestGetDictDeltas:
         assert expected == util.get_dict_deltas(orig_dict, new_dict)
 
 
-@mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+@mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
 class TestDisableLogToConsole:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     def test_no_error_if_console_handler_not_found(
         self, m_we_are_currently_root, caplog_text
     ):
-        with mock.patch("uaclient.util.logging.getLogger") as m_getlogger:
+        with mock.patch("ubuntupro.util.logging.getLogger") as m_getlogger:
             m_getlogger.return_value.handlers = []
             with util.disable_log_to_console():
                 pass
@@ -67,7 +67,7 @@ class TestDisableLogToConsole:
         assert "no console handler found" in caplog_text()
 
     @pytest.mark.parametrize("disable_log", (True, False))
-    @mock.patch("uaclient.log.get_user_log_file")
+    @mock.patch("ubuntupro.log.get_user_log_file")
     def test_disable_log_to_console(
         self,
         m_get_user,
@@ -112,7 +112,7 @@ class TestDisableLogToConsole:
             assert "test error" in combined_output
             assert "test info" in combined_output
 
-    @mock.patch("uaclient.log.get_user_log_file")
+    @mock.patch("ubuntupro.log.get_user_log_file")
     def test_disable_log_to_console_does_nothing_at_debug_level(
         self,
         m_get_user,
@@ -124,7 +124,7 @@ class TestDisableLogToConsole:
     ):
         m_get_user.return_value = tmpdir.join("file.log").strpath
         with mock.patch(
-            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
+            "ubuntupro.cli.config.UAConfig", return_value=FakeConfig()
         ):
             logger = logging.getLogger("ubuntupro")
             cli.setup_logging(logging.DEBUG, logging.DEBUG)
@@ -544,7 +544,7 @@ class TestReplaceLoggerName:
     @pytest.mark.parametrize(
         ["logger_name", "new_logger_name"],
         (
-            ("uaclient.module.name1", "ubuntupro.module.name1"),
+            ("ubuntupro.module.name1", "ubuntupro.module.name1"),
             ("log.module1.name2", "ubuntupro.module1.name2"),
             ("prolog.lang.old", "ubuntupro.lang.old"),
             ("", ""),

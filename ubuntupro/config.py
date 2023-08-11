@@ -6,7 +6,7 @@ from collections import namedtuple
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
-from uaclient import (
+from ubuntupro import (
     apt,
     event_logger,
     exceptions,
@@ -17,7 +17,7 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.defaults import (
+from ubuntupro.defaults import (
     APT_NEWS_URL,
     BASE_CONTRACT_URL,
     BASE_LIVEPATCH_URL,
@@ -27,9 +27,9 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
 )
-from uaclient.files import notices, state_files
-from uaclient.files.notices import Notice
-from uaclient.yaml import safe_load
+from ubuntupro.files import notices, state_files
+from ubuntupro.files.notices import Notice
+from ubuntupro.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -558,9 +558,9 @@ class UAConfig:
             ):
                 services_with_proxies.append("snap")
 
-        from uaclient import livepatch
-        from uaclient.entitlements.entitlement_status import ApplicationStatus
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
+        from ubuntupro import livepatch
+        from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+        from ubuntupro.entitlements.livepatch import LivepatchEntitlement
 
         livepatch_ent = LivepatchEntitlement(self)
         livepatch_status, _ = livepatch_ent.application_status()
@@ -594,7 +594,7 @@ class UAConfig:
         if self.invalid_keys is not None:
             for invalid_key in sorted(self.invalid_keys):
                 LOG.warning(
-                    "Ignoring invalid uaclient.conf key: %s", invalid_key
+                    "Ignoring invalid ubuntupro.conf key: %s", invalid_key
                 )
         if "ua_config" in self.cfg:
             # this one is still technically supported but we want people to

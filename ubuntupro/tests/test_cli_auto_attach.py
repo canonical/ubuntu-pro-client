@@ -3,12 +3,12 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, exceptions, messages
-from uaclient.api import exceptions as api_exceptions
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro import event_logger, exceptions, messages
+from ubuntupro.api import exceptions as api_exceptions
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
 )
-from uaclient.cli import (
+from ubuntupro.cli import (
     action_auto_attach,
     auto_attach_parser,
     get_parser,
@@ -16,8 +16,8 @@ from uaclient.cli import (
     main_error_handler,
 )
 
-M_PATH = "uaclient.cli."
-M_ID_PATH = "uaclient.clouds.identity."
+M_PATH = "ubuntupro.cli."
+M_ID_PATH = "ubuntupro.clouds.identity."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -41,7 +41,7 @@ def test_non_root_users_are_rejected(we_are_currently_root, FakeConfig):
 
 
 class TestActionAutoAttach:
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.setup_logging")
     @mock.patch(M_PATH + "contract.get_available_resources")
     def test_auto_attach_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
@@ -51,7 +51,7 @@ class TestActionAutoAttach:
                 "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -138,7 +138,7 @@ class TestActionAutoAttach:
             ),
         ],
     )
-    @mock.patch("uaclient.cli.LOG.error")
+    @mock.patch("ubuntupro.cli.LOG.error")
     @mock.patch(M_PATH + "logging")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")

@@ -1,8 +1,8 @@
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.config import UAConfig
-from uaclient.data_types import DataObject, Field, IntDataValue
-from uaclient.security_status import get_installed_packages_by_origin
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import DataObject, Field, IntDataValue
+from ubuntupro.security_status import get_installed_packages_by_origin
 
 
 class PackageSummary(DataObject):

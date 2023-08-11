@@ -8,8 +8,8 @@ import stat
 import mock
 import pytest
 
-from uaclient import apt, exceptions, http, messages
-from uaclient.config import (
+from ubuntupro import apt, exceptions, http, messages
+from ubuntupro.config import (
     PRIVATE_SUBDIR,
     UA_CONFIGURABLE_KEYS,
     VALID_UA_CONFIG_KEYS,
@@ -17,20 +17,20 @@ from uaclient.config import (
     get_config_path,
     parse_config,
 )
-from uaclient.conftest import FakeNotice
-from uaclient.defaults import DEFAULT_CONFIG_FILE
-from uaclient.entitlements import valid_services
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.files import notices
-from uaclient.files.notices import NoticesManager
-from uaclient.util import depth_first_merge_overlay_dict
-from uaclient.yaml import safe_dump
+from ubuntupro.conftest import FakeNotice
+from ubuntupro.defaults import DEFAULT_CONFIG_FILE
+from ubuntupro.entitlements import valid_services
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.files import notices
+from ubuntupro.files.notices import NoticesManager
+from ubuntupro.util import depth_first_merge_overlay_dict
+from ubuntupro.yaml import safe_dump
 
 KNOWN_DATA_PATHS = (
     ("machine-access-cis", "machine-access-cis.json"),
     ("instance-id", "instance-id"),
 )
-M_PATH = "uaclient.entitlements."
+M_PATH = "ubuntupro.entitlements."
 
 
 @pytest.fixture
@@ -126,7 +126,7 @@ class TestNotices:
             ),
         ),
     )
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
     def test_add_notice_fails_as_nonroot(
         self,
         m_we_are_currently_root,
@@ -359,7 +359,7 @@ USER_CFG_DICT = {
 
 class TestUserConfigKeys:
     @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
-    @mock.patch("uaclient.config.state_files.user_config_file.write")
+    @mock.patch("ubuntupro.config.state_files.user_config_file.write")
     def test_user_configurable_keys_set_user_config(
         self, write, attr_name, tmpdir, FakeConfig
     ):
@@ -825,17 +825,17 @@ class TestProcessConfig:
             ),
         ],
     )
-    @mock.patch("uaclient.http.validate_proxy")
-    @mock.patch("uaclient.livepatch.get_config_option_value")
-    @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
+    @mock.patch("ubuntupro.http.validate_proxy")
+    @mock.patch("ubuntupro.livepatch.get_config_option_value")
+    @mock.patch("ubuntupro.livepatch.configure_livepatch_proxy")
     @mock.patch(
-        "uaclient.entitlements.livepatch.LivepatchEntitlement.application_status"  # noqa: E501
+        "ubuntupro.entitlements.livepatch.LivepatchEntitlement.application_status"  # noqa: E501
     )
-    @mock.patch("uaclient.snap.get_config_option_value")
-    @mock.patch("uaclient.snap.configure_snap_proxy")
-    @mock.patch("uaclient.snap.is_snapd_installed")
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.config.state_files.user_config_file.write")
+    @mock.patch("ubuntupro.snap.get_config_option_value")
+    @mock.patch("ubuntupro.snap.configure_snap_proxy")
+    @mock.patch("ubuntupro.snap.is_snapd_installed")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.config.state_files.user_config_file.write")
     def test_process_config(
         self,
         m_write,
@@ -988,12 +988,12 @@ class TestProcessConfig:
 
 
 class TestParseConfig:
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=False)
+    @mock.patch("ubuntupro.contract.get_available_resources")
     def test_parse_config_uses_defaults_when_no_config_present(
         self, _m_resources, m_exists
     ):
-        with mock.patch.dict("uaclient.config.os.environ", values={}):
+        with mock.patch.dict("ubuntupro.config.os.environ", values={}):
             config, _ = parse_config()
         expected_calls = [
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
@@ -1026,7 +1026,7 @@ class TestParseConfig:
         config_file = tmpdir.join("uaclient.conf")
         config_file.write(safe_dump(config_dict))
         env_vars = {"UA_CONFIG_FILE": config_file.strpath}
-        with mock.patch.dict("uaclient.config.os.environ", values=env_vars):
+        with mock.patch.dict("ubuntupro.config.os.environ", values=env_vars):
             cfg, invalid_keys = parse_config(config_file.strpath)
         assert set(expected_invalid_keys) == invalid_keys
         for key, value in config_dict.items():
@@ -1060,8 +1060,8 @@ class TestParseConfig:
             ("UA_LOG_LEVEL", "debug", "log_level", "debug"),
         ],
     )
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=False)
+    @mock.patch("ubuntupro.contract.get_available_resources")
     def test_parse_config_scrubs_user_environ_values(
         self,
         _m_resources,
@@ -1072,17 +1072,21 @@ class TestParseConfig:
         expected_val,
     ):
         user_values = {envvar_name: envvar_val}
-        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+        with mock.patch.dict(
+            "ubuntupro.config.os.environ", values=user_values
+        ):
             config, _ = parse_config()
         assert expected_val == config[field]
 
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=False)
     def test_parse_config_scrubs_user_environ_values_features(self, m_exists):
         user_values = {
             "UA_FEATURES_X_Y_Z": "XYZ_VAL",
             "UA_FEATURES_A_B_C": "ABC_VAL",
         }
-        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+        with mock.patch.dict(
+            "ubuntupro.config.os.environ", values=user_values
+        ):
             config, _ = parse_config()
         expected_config = {
             "features": {"a_b_c": "ABC_VAL", "x_y_z": "XYZ_VAL"}
@@ -1092,12 +1096,14 @@ class TestParseConfig:
     @pytest.mark.parametrize(
         "env_var,env_value", [("UA_SECURITY_URL", "ht://security")]
     )
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=False)
     def test_parse_raises_errors_on_invalid_urls(
         self, _m_exists, env_var, env_value
     ):
         user_values = {env_var: env_value}  # no acceptable url scheme
-        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+        with mock.patch.dict(
+            "ubuntupro.config.os.environ", values=user_values
+        ):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 parse_config()
         expected_msg = "Invalid url in config. {}: {}".format(
@@ -1105,8 +1111,8 @@ class TestParseConfig:
         )
         assert expected_msg == excinfo.value.msg
 
-    @mock.patch("uaclient.config.os.path.exists")
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.config.os.path.exists")
+    @mock.patch("ubuntupro.system.load_file")
     def test_parse_reads_yaml_from_environ_values(
         self, m_load_file, m_path_exists
     ):
@@ -1114,18 +1120,22 @@ class TestParseConfig:
         m_path_exists.side_effect = [False, True]
 
         user_values = {"UA_FEATURES_TEST": "test.yaml"}
-        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+        with mock.patch.dict(
+            "ubuntupro.config.os.environ", values=user_values
+        ):
             cfg, _ = parse_config()
 
         assert {"test": True, "foo": "bar"} == cfg["features"]["test"]
 
-    @mock.patch("uaclient.config.os.path.exists")
+    @mock.patch("ubuntupro.config.os.path.exists")
     def test_parse_raise_exception_when_environ_yaml_file_does_not_exist(
         self, m_path_exists
     ):
         m_path_exists.return_value = False
         user_values = {"UA_FEATURES_TEST": "test.yaml"}
-        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+        with mock.patch.dict(
+            "ubuntupro.config.os.environ", values=user_values
+        ):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 parse_config()
 
@@ -1153,7 +1163,7 @@ class TestFeatures:
             ),
         ),
     )
-    @mock.patch("uaclient.config.LOG.warning")
+    @mock.patch("ubuntupro.config.LOG.warning")
     def test_features_are_a_property_of_uaconfig(
         self,
         m_log_warning,
@@ -1219,9 +1229,9 @@ class TestMachineTokenOverlay:
         },
     }
 
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.files.MachineTokenFile.read")
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=True)
     def test_machine_token_update_with_overlay(
         self, m_path, m_token_read, m_load_file, FakeConfig
     ):
@@ -1271,15 +1281,15 @@ class TestMachineTokenOverlay:
         cfg = FakeConfig(cfg_overrides=user_cfg)
         assert expected == cfg.machine_token
 
-    @mock.patch("uaclient.files.MachineTokenFile.read")
+    @mock.patch("ubuntupro.files.MachineTokenFile.read")
     def test_machine_token_without_overlay(self, m_token_read, FakeConfig):
         user_cfg = {}
         m_token_read.return_value = self.machine_token_dict
         cfg = FakeConfig(cfg_overrides=user_cfg)
         assert self.machine_token_dict == cfg.machine_token
 
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    @mock.patch("ubuntupro.files.MachineTokenFile.read")
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=False)
     def test_machine_token_overlay_file_not_found(
         self, m_path, m_token_read, FakeConfig
     ):
@@ -1297,9 +1307,9 @@ class TestMachineTokenOverlay:
 
         assert expected_msg == str(excinfo.value)
 
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.files.MachineTokenFile.read")
+    @mock.patch("ubuntupro.config.os.path.exists", return_value=True)
     def test_machine_token_overlay_json_decode_error(
         self, m_path, m_token_read, m_load_file, FakeConfig
     ):
@@ -1354,19 +1364,19 @@ class TestDepthFirstMergeOverlayDict:
 class TestGetConfigPath:
     def test_get_config_path_from_env_var(self):
         with mock.patch.dict(
-            "uaclient.config.os.environ", values={"UA_CONFIG_FILE": "test"}
+            "ubuntupro.config.os.environ", values={"UA_CONFIG_FILE": "test"}
         ):
             assert "test" == get_config_path()
 
     def test_get_default_config_path(self):
-        with mock.patch.dict("uaclient.config.os.environ", values={}):
+        with mock.patch.dict("ubuntupro.config.os.environ", values={}):
             assert DEFAULT_CONFIG_FILE == get_config_path()
 
 
 class TestCheckLockInfo:
     @pytest.mark.parametrize("lock_content", ((""), ("corrupted")))
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_raise_exception_for_corrupted_lock(
         self,
         m_load_file,

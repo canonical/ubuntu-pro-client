@@ -1,9 +1,9 @@
 from typing import Any, Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import apt, event_logger, messages, system, util
-from uaclient.entitlements import repo
-from uaclient.entitlements.base import IncompatibleService, UAEntitlement
-from uaclient.types import (  # noqa: F401
+from ubuntupro import apt, event_logger, messages, system, util
+from ubuntupro.entitlements import repo
+from ubuntupro.entitlements.base import IncompatibleService, UAEntitlement
+from ubuntupro.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
     StaticAffordance,
@@ -41,11 +41,11 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        from uaclient.entitlements.fips import (
+        from ubuntupro.entitlements.fips import (
             FIPSEntitlement,
             FIPSUpdatesEntitlement,
         )
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
+        from ubuntupro.entitlements.livepatch import LivepatchEntitlement
 
         return (
             IncompatibleService(

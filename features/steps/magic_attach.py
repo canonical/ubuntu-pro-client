@@ -3,7 +3,7 @@ import json
 from behave import when
 
 from features.steps.shell import when_i_run_command
-from uaclient.util import DatetimeAwareJSONDecoder
+from ubuntupro.util import DatetimeAwareJSONDecoder
 
 
 @when("I initiate the magic attach flow")

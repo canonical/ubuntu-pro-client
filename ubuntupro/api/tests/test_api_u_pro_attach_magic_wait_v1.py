@@ -1,15 +1,15 @@
 import mock
 import pytest
 
-import uaclient.api.u.pro.attach.magic.wait.v1 as api_wait
-from uaclient import exceptions
-from uaclient.api.u.pro.attach.magic.wait.v1 import (
+import ubuntupro.api.u.pro.attach.magic.wait.v1 as api_wait
+from ubuntupro import exceptions
+from ubuntupro.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
 
 
-@mock.patch("uaclient.contract.UAContractClient.get_magic_attach_token_info")
+@mock.patch("ubuntupro.contract.UAContractClient.get_magic_attach_token_info")
 class TestMagicAttachWaitV1:
     @mock.patch("time.sleep")
     def test_wait_succeeds(self, m_sleep, m_attach_token_info, FakeConfig):

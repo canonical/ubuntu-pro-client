@@ -7,8 +7,8 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import event_logger, http, messages, util
-from uaclient.cli import (
+from ubuntupro import event_logger, http, messages, util
+from ubuntupro.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
     attach_parser,
@@ -16,7 +16,7 @@ from uaclient.cli import (
     main,
     main_error_handler,
 )
-from uaclient.exceptions import (
+from ubuntupro.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
     MagicAttachInvalidParam,
@@ -24,8 +24,8 @@ from uaclient.exceptions import (
     NonRootUserError,
     UserFacingError,
 )
-from uaclient.testing.fakes import FakeFile
-from uaclient.yaml import safe_dump
+from ubuntupro.testing.fakes import FakeFile
+from ubuntupro.yaml import safe_dump
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -52,7 +52,7 @@ Flags:
 """
 )
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 # Also used in test_cli_auto_attach.py
 BASIC_MACHINE_TOKEN = {
@@ -177,7 +177,7 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
@@ -230,13 +230,13 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
-    @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch("ubuntupro.files.state_files.attachment_data_file.write")
+    @mock.patch("ubuntupro.system.should_reboot", return_value=False)
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
-    @mock.patch("uaclient.actions.status", return_value=("", 0))
-    @mock.patch("uaclient.status.format_tabular")
+    @mock.patch("ubuntupro.actions.status", return_value=("", 0))
+    @mock.patch("ubuntupro.status.format_tabular")
     def test_happy_path_with_token_arg(
         self,
         m_format_tabular,
@@ -311,11 +311,11 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
-    @mock.patch("uaclient.system.should_reboot", return_value=False)
-    @mock.patch("uaclient.files.notices.NoticesManager.remove")
-    @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch("ubuntupro.files.state_files.attachment_data_file.write")
+    @mock.patch("ubuntupro.system.should_reboot", return_value=False)
+    @mock.patch("ubuntupro.files.notices.NoticesManager.remove")
+    @mock.patch("ubuntupro.status.get_available_resources")
+    @mock.patch("ubuntupro.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
     def test_auto_enable_passed_through_to_attach_with_token(
@@ -441,11 +441,11 @@ class TestActionAttach:
         return_value=(True, None),
     )
     @mock.patch(M_PATH + "actions.attach_with_token")
-    @mock.patch("uaclient.util.handle_unicode_characters")
-    @mock.patch("uaclient.status.format_tabular")
+    @mock.patch("ubuntupro.util.handle_unicode_characters")
+    @mock.patch("ubuntupro.status.format_tabular")
     @mock.patch(M_PATH + "actions.status")
-    @mock.patch("uaclient.daemon.cleanup")
-    @mock.patch("uaclient.daemon.stop")
+    @mock.patch("ubuntupro.daemon.cleanup")
+    @mock.patch("ubuntupro.daemon.stop")
     def test_attach_config_enable_services(
         self,
         _m_daemon_stop,
@@ -516,12 +516,12 @@ class TestActionAttach:
             (Exception("error"), messages.UNEXPECTED_ERROR),
         ),
     )
-    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
-    @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch("uaclient.contract.process_entitlement_delta")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
-    @mock.patch("uaclient.contract.UAContractClient.request_url")
-    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch("ubuntupro.files.state_files.attachment_data_file.write")
+    @mock.patch("ubuntupro.entitlements.entitlements_enable_order")
+    @mock.patch("ubuntupro.contract.process_entitlement_delta")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.contract.UAContractClient.request_url")
+    @mock.patch("ubuntupro.timer.update_messaging.update_motd_messages")
     def test_attach_when_one_service_fails_to_enable(
         self,
         _m_update_messages,
@@ -651,14 +651,14 @@ class TestActionAttach:
 
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestParser:
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.setup_logging")
     def test_attach_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/pro", "attach", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()

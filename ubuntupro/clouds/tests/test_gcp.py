@@ -3,17 +3,17 @@ import logging
 import mock
 import pytest
 
-from uaclient import http, system
-from uaclient.clouds.gcp import (
+from ubuntupro import http, system
+from ubuntupro.clouds.gcp import (
     LAST_ETAG,
     LICENSES_URL,
     TOKEN_URL,
     WAIT_FOR_CHANGE,
     UAAutoAttachGCPInstance,
 )
-from uaclient.exceptions import GCPProAccountError
+from ubuntupro.exceptions import GCPProAccountError
 
-M_PATH = "uaclient.clouds.gcp."
+M_PATH = "ubuntupro.clouds.gcp."
 
 
 class TestUAAutoAttachGCPInstance:

@@ -4,7 +4,7 @@ from collections import namedtuple
 from enum import Enum
 from typing import List
 
-from uaclient import defaults, event_logger, messages, system, util
+from ubuntupro import defaults, event_logger, messages, system, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()

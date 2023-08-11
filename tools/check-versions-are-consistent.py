@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, ".")
 
-from uaclient.version import __VERSION__
+from ubuntupro.version import __VERSION__
 
 python_version = __VERSION__
 changelog_version = (

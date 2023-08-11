@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import pytest
 
-from uaclient.data_types import (
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     DataValue,
@@ -20,7 +20,7 @@ from uaclient.data_types import (
     data_list,
 )
 
-M_PATH = "uaclient.data_types"
+M_PATH = "ubuntupro.data_types"
 
 
 class TestDataValues:

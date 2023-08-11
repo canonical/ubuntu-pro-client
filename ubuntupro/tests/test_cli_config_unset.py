@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient.cli import action_config_unset, main
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.exceptions import NonRootUserError
+from ubuntupro.cli import action_config_unset, main
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.exceptions import NonRootUserError
 
 HELP_OUTPUT = """\
 usage: pro config unset <key> [flags]
@@ -21,11 +21,11 @@ Flags:
   -h, --help  show this help message and exit
 """
 
-M_LIVEPATCH = "uaclient.entitlements.livepatch."
+M_LIVEPATCH = "ubuntupro.entitlements.livepatch."
 
 
-@mock.patch("uaclient.cli.setup_logging")
-@mock.patch("uaclient.cli.contract.get_available_resources")
+@mock.patch("ubuntupro.cli.setup_logging")
+@mock.patch("ubuntupro.cli.contract.get_available_resources")
 class TestMainConfigUnSet:
     @pytest.mark.parametrize(
         "kv_pair,err_msg",
@@ -63,7 +63,7 @@ class TestMainConfigUnSet:
                 "sys.argv", ["/usr/bin/ua", "config", "unset", kv_pair]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -72,9 +72,9 @@ class TestMainConfigUnSet:
         assert err_msg in err
 
 
-@mock.patch("uaclient.config.state_files.user_config_file.write")
+@mock.patch("ubuntupro.config.state_files.user_config_file.write")
 class TestActionConfigUnSet:
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
     def test_set_error_on_non_root_user(
         self, we_are_currently_root, _write, FakeConfig
     ):
@@ -93,9 +93,9 @@ class TestActionConfigUnSet:
             ("https_proxy", True),
         ),
     )
-    @mock.patch("uaclient.livepatch.unconfigure_livepatch_proxy")
+    @mock.patch("ubuntupro.livepatch.unconfigure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
-    @mock.patch("uaclient.snap.unconfigure_snap_proxy")
+    @mock.patch("ubuntupro.snap.unconfigure_snap_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
         self,
         unconfigure_snap_proxy,

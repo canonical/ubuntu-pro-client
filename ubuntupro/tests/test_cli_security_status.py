@@ -4,15 +4,15 @@ import textwrap
 import mock
 import pytest
 
-from uaclient.cli import (
+from ubuntupro.cli import (
     action_security_status,
     get_parser,
     main,
     security_status_parser,
 )
-from uaclient.util import DatetimeAwareJSONEncoder
+from ubuntupro.util import DatetimeAwareJSONEncoder
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -69,7 +69,7 @@ class TestActionSecurityStatus:
                 "sys.argv", ["/usr/bin/ua", "security-status", "--help"]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -141,7 +141,7 @@ class TestActionSecurityStatus:
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", cmdline_args):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()

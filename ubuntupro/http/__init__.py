@@ -7,7 +7,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from urllib import error, request
 from urllib.parse import ParseResult, urlparse
 
-from uaclient import defaults, exceptions, messages, util
+from ubuntupro import defaults, exceptions, messages, util
 
 UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"

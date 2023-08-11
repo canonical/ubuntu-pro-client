@@ -1,14 +1,14 @@
 import mock
 
-from uaclient import apt
-from uaclient.api.u.security.package_manifest.v1 import _package_manifest
-from uaclient.snap import SnapPackage
+from ubuntupro import apt
+from ubuntupro.api.u.security.package_manifest.v1 import _package_manifest
+from ubuntupro.snap import SnapPackage
 
-M_PATH = "uaclient.api.u.security.package_manifest.v1"
+M_PATH = "ubuntupro.api.u.security.package_manifest.v1"
 
 
-@mock.patch("uaclient.snap.get_snap_info")
-@mock.patch("uaclient.snap.system.subp")
+@mock.patch("ubuntupro.snap.get_snap_info")
+@mock.patch("ubuntupro.snap.system.subp")
 @mock.patch(M_PATH + ".apt.get_installed_packages")
 class TestPackageInstalledV1:
     def test_snap_packages_added(

@@ -3,18 +3,18 @@ from urllib import error
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro import exceptions, messages
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
 )
-from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
-from uaclient.daemon.retry_auto_attach import (
+from ubuntupro.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
+from ubuntupro.daemon.retry_auto_attach import (
     full_auto_attach_exception_to_failure_reason,
     retry_auto_attach,
 )
-from uaclient.files import state_files
+from ubuntupro.files import state_files
 
-M_PATH = "uaclient.daemon.retry_auto_attach."
+M_PATH = "ubuntupro.daemon.retry_auto_attach."
 
 
 class TestFullAutoAttachToFailureReason:
@@ -103,7 +103,7 @@ class TestRetryAutoAttach:
         FakeConfig,
     ):
         with mock.patch(
-            "uaclient.daemon.retry_auto_attach._is_attached",
+            "ubuntupro.daemon.retry_auto_attach._is_attached",
             new_callable=mock.PropertyMock,
             side_effect=[
                 mock.MagicMock(is_attached=False),
@@ -662,7 +662,7 @@ class TestRetryAutoAttach:
             interval_index=18, failure_reason=None
         )
         with mock.patch(
-            "uaclient.daemon.retry_auto_attach._is_attached",
+            "ubuntupro.daemon.retry_auto_attach._is_attached",
             new_callable=mock.PropertyMock,
             side_effect=[
                 mock.MagicMock(is_attached=False),

@@ -1,7 +1,7 @@
 import logging
 from subprocess import TimeoutExpired
 
-from uaclient import exceptions, system, util
+from ubuntupro import exceptions, system, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

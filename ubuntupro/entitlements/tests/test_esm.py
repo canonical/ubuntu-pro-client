@@ -3,11 +3,11 @@ import os.path
 import mock
 import pytest
 
-from uaclient import apt
-from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
+from ubuntupro import apt
+from ubuntupro.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 
-M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
-M_REPOPATH = "uaclient.entitlements.repo."
+M_PATH = "ubuntupro.entitlements.esm.ESMInfraEntitlement."
+M_REPOPATH = "ubuntupro.entitlements.repo."
 
 
 @pytest.fixture(params=[ESMAppsEntitlement, ESMInfraEntitlement])
@@ -15,9 +15,9 @@ def entitlement(request, entitlement_factory):
     return entitlement_factory(request.param, suites=["xenial"])
 
 
-@mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+@mock.patch("ubuntupro.timer.update_messaging.update_motd_messages")
 @mock.patch(
-    "uaclient.system.get_release_info",
+    "ubuntupro.system.get_release_info",
     return_value=mock.MagicMock(series="xenial"),
 )
 class TestESMEntitlementDisable:
@@ -34,7 +34,7 @@ class TestESMEntitlementDisable:
         entitlement = ESMInfraEntitlement({})
 
         with mock.patch(
-            "uaclient.apt.remove_auth_apt_repo"
+            "ubuntupro.apt.remove_auth_apt_repo"
         ) as m_remove_apt, mock.patch.object(
             entitlement, "setup_local_esm_repo"
         ) as m_setup_repo:
@@ -49,9 +49,9 @@ class TestESMEntitlementDisable:
 
     @pytest.mark.parametrize("is_active_esm", (True, False))
     @pytest.mark.parametrize("is_lts", (True, False))
-    @mock.patch("uaclient.entitlements.esm.system.is_current_series_lts")
+    @mock.patch("ubuntupro.entitlements.esm.system.is_current_series_lts")
     @mock.patch(
-        "uaclient.entitlements.esm.system.is_current_series_active_esm"
+        "ubuntupro.entitlements.esm.system.is_current_series_active_esm"
     )
     def test_disable_removes_config_and_updates_cache_and_messages(
         self,
@@ -95,11 +95,11 @@ class TestESMEntitlementDisable:
 
 class TestUpdateESMCaches:
     @pytest.mark.parametrize("file_exists", (False, True))
-    @mock.patch("uaclient.apt.os.path.exists")
-    @mock.patch("uaclient.apt.system.get_release_info")
-    @mock.patch("uaclient.apt.system.write_file")
-    @mock.patch("uaclient.apt.os.makedirs")
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.apt.os.path.exists")
+    @mock.patch("ubuntupro.apt.system.get_release_info")
+    @mock.patch("ubuntupro.apt.system.write_file")
+    @mock.patch("ubuntupro.apt.os.makedirs")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
     def test_setup_local_esm_repo(
         self,
         m_export_gpg,
@@ -159,7 +159,7 @@ class TestUpdateESMCaches:
                 )
             ]
 
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.system.ensure_file_absent")
     def disable_local_esm_repo(self, m_ensure_file_absent, entitlement):
         entitlement.disable_local_esm_repo()
         assert m_ensure_file_absent.call_args_list == [

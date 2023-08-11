@@ -6,9 +6,15 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import defaults, entitlements, event_logger, exceptions, messages
-from uaclient.cli import action_enable, main, main_error_handler
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import (
+    defaults,
+    entitlements,
+    event_logger,
+    exceptions,
+    messages,
+)
+from ubuntupro.cli import action_enable, main, main_error_handler
+from ubuntupro.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
@@ -37,10 +43,10 @@ Flags:
 """
 
 
-@mock.patch("uaclient.contract.refresh")
+@mock.patch("ubuntupro.contract.refresh")
 class TestActionEnable:
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_enable_help(
         self,
         _m_resources,
@@ -52,15 +58,15 @@ class TestActionEnable:
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_non_root_users_are_rejected(
         self,
         _m_resources,
@@ -97,15 +103,15 @@ class TestActionEnable:
                 ],
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     with mock.patch(
-                        "uaclient.log.get_user_log_file",
+                        "ubuntupro.log.get_user_log_file",
                         return_value=tmpdir.join("user.log").strpath,
                     ):
                         with mock.patch.dict(
-                            "uaclient.cli.defaults.CONFIG_DEFAULTS",
+                            "ubuntupro.cli.defaults.CONFIG_DEFAULTS",
                             defaults_ret,
                         ):
                             main()
@@ -129,7 +135,7 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
@@ -190,7 +196,7 @@ class TestActionEnable:
             (False, messages.NONROOT_USER),
         ],
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_unattached_error_message(
         self,
         m_we_are_currently_root,
@@ -253,7 +259,7 @@ class TestActionEnable:
             (False, messages.NONROOT_USER),
         ],
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
@@ -341,7 +347,7 @@ class TestActionEnable:
             (False, messages.NONROOT_USER),
         ],
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_unattached_invalid_and_valid_service_error_message(
         self,
         m_we_are_currently_root,
@@ -402,10 +408,10 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
+        "ubuntupro.cli.contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.valid_services")
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.entitlements.valid_services")
     def test_assume_yes_passed_to_service_init(
         self,
         m_valid_services,
@@ -431,7 +437,7 @@ class TestActionEnable:
         args.variant = ""
 
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "ubuntupro.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
             action_enable(args, cfg)
@@ -447,9 +453,9 @@ class TestActionEnable:
             )
         ] == m_entitlement_cls.call_args_list
 
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.entitlements.valid_services")
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.entitlements.valid_services")
     def test_entitlements_not_found_disabled_and_enabled(
         self,
         m_valid_services,
@@ -566,9 +572,9 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.entitlements.valid_services")
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.entitlements.valid_services")
     def test_entitlements_not_found_and_beta(
         self,
         m_valid_services,
@@ -712,9 +718,9 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
+        "ubuntupro.cli.contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
@@ -742,10 +748,10 @@ class TestActionEnable:
         args_mock.access_only = False
 
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "ubuntupro.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
-            "uaclient.entitlements.valid_services", return_value=["ent1"]
+            "ubuntupro.entitlements.valid_services", return_value=["ent1"]
         ):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
@@ -757,10 +763,10 @@ class TestActionEnable:
             )
 
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "ubuntupro.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
-            "uaclient.entitlements.valid_services", return_value=["ent1"]
+            "ubuntupro.entitlements.valid_services", return_value=["ent1"]
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
@@ -861,10 +867,10 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
     @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
+        "ubuntupro.cli.contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.status.status")
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.status.status")
     def test_entitlement_instantiated_and_enabled(
         self,
         m_status,
@@ -889,10 +895,10 @@ class TestActionEnable:
         args_mock.variant = ""
 
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "ubuntupro.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
-            "uaclient.entitlements.valid_services",
+            "ubuntupro.entitlements.valid_services",
             return_value=["testitlement"],
         ):
             ret = action_enable(args_mock, cfg)
@@ -917,10 +923,10 @@ class TestActionEnable:
         assert 1 == m_update_activity_token.call_count
 
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "ubuntupro.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
-            "uaclient.entitlements.valid_services",
+            "ubuntupro.entitlements.valid_services",
             return_value=["testitlement"],
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON

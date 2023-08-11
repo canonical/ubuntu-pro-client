@@ -1,8 +1,8 @@
 import datetime
 from typing import Any, Dict, List, Optional
 
-from uaclient import defaults
-from uaclient.data_types import (
+from ubuntupro import defaults
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     DatetimeDataValue,
@@ -11,8 +11,8 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
-from uaclient.files.files import UAFile, UserCacheFile
+from ubuntupro.files.data_types import DataObjectFile, DataObjectFileFormat
+from ubuntupro.files.files import UAFile, UserCacheFile
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
 

@@ -1,10 +1,10 @@
 from typing import Dict, Optional
 
-from uaclient.api.data_types import APIResponse, ErrorWarningObject
-from uaclient.exceptions import UserFacingError
-from uaclient.messages import WARN_NEW_VERSION_AVAILABLE
-from uaclient.util import get_pro_environment
-from uaclient.version import check_for_new_version
+from ubuntupro.api.data_types import APIResponse, ErrorWarningObject
+from ubuntupro.exceptions import UserFacingError
+from ubuntupro.messages import WARN_NEW_VERSION_AVAILABLE
+from ubuntupro.util import get_pro_environment
+from ubuntupro.version import check_for_new_version
 
 
 def error_out(exception: Exception) -> APIResponse:

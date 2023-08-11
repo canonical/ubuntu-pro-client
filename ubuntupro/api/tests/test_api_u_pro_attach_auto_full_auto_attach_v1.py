@@ -1,22 +1,22 @@
 import mock
 import pytest
 
-from uaclient import event_logger, messages
-from uaclient.api import exceptions
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro import event_logger, messages
+from ubuntupro.api import exceptions
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     FullAutoAttachResult,
     _enable_services_by_name,
     _full_auto_attach,
     _full_auto_attach_in_lock,
 )
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
-from uaclient.testing.helpers import does_not_raise
+from ubuntupro.testing.helpers import does_not_raise
 
-M_PATH = "uaclient.api.u.pro.attach.auto.full_auto_attach.v1."
+M_PATH = "ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1."
 
 
 class TestEnableServicesByName:
@@ -157,17 +157,17 @@ class TestEnableServicesByName:
         assert ret == expected_ret
 
 
-@mock.patch("uaclient.files.notices.add")
-@mock.patch("uaclient.files.notices.remove")
+@mock.patch("ubuntupro.files.notices.add")
+@mock.patch("ubuntupro.files.notices.remove")
 class TestFullAutoAttachV1:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
     @mock.patch(
-        "uaclient.actions.enable_entitlement_by_name",
+        "ubuntupro.actions.enable_entitlement_by_name",
     )
-    @mock.patch("uaclient.actions.get_cloud_instance")
-    @mock.patch("uaclient.actions.auto_attach")
+    @mock.patch("ubuntupro.actions.get_cloud_instance")
+    @mock.patch("ubuntupro.actions.auto_attach")
     def test_error_invalid_ent_names(
         self,
         _auto_attach,
@@ -200,11 +200,11 @@ class TestFullAutoAttachV1:
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
     @mock.patch(
-        "uaclient.actions.enable_entitlement_by_name",
+        "ubuntupro.actions.enable_entitlement_by_name",
         return_value=(False, None),
     )
-    @mock.patch("uaclient.actions.get_cloud_instance")
-    @mock.patch("uaclient.actions.auto_attach")
+    @mock.patch("ubuntupro.actions.get_cloud_instance")
+    @mock.patch("ubuntupro.actions.auto_attach")
     def test_error_full_auto_attach_fail(
         self,
         _auto_attach,
@@ -226,7 +226,7 @@ class TestFullAutoAttachV1:
         assert 4 == enable_ent_by_name.call_count
 
     @mock.patch(
-        "uaclient.lock.SpinLock.__enter__",
+        "ubuntupro.lock.SpinLock.__enter__",
         side_effect=[
             exceptions.LockHeldError("request", "holder", 10),
         ],

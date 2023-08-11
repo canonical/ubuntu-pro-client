@@ -4,8 +4,8 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.cli import action_api, api_parser, get_parser, main
+from ubuntupro import exceptions, messages
+from ubuntupro.cli import action_api, api_parser, get_parser, main
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -26,8 +26,8 @@ positional arguments:
 
 
 class TestActionAPI:
-    @mock.patch("uaclient.cli.entitlements.valid_services", return_value=[])
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.entitlements.valid_services", return_value=[])
+    @mock.patch("ubuntupro.cli.setup_logging")
     def test_api_help(self, _m_setup_logging, valid_services, capsys):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "api", "--help"]):
@@ -39,7 +39,7 @@ class TestActionAPI:
     @pytest.mark.parametrize(
         "result,expected_return", (("success", 0), ("failure", 1))
     )
-    @mock.patch("uaclient.cli.call_api")
+    @mock.patch("ubuntupro.cli.call_api")
     def test_api_action(self, m_call_api, result, expected_return, FakeConfig):
         m_call_api.return_value.result = result
         args = mock.MagicMock()

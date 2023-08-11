@@ -6,8 +6,8 @@ import re
 from functools import lru_cache
 from typing import List, Optional, Tuple
 
-from uaclient import event_logger, exceptions, messages, system, util
-from uaclient.data_types import (
+from ubuntupro import event_logger, exceptions, messages, system, util
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     Field,
@@ -15,8 +15,8 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.files import state_files
-from uaclient.http import serviceclient
+from ubuntupro.files import state_files
+from ubuntupro.http import serviceclient
 
 HTTP_PROXY_OPTION = "http-proxy"
 HTTPS_PROXY_OPTION = "https-proxy"
@@ -406,7 +406,7 @@ def configure_livepatch_proxy(
     :@param retry_sleeps: Optional list of sleep lengths to apply between
                                snap calls
     """
-    from uaclient.entitlements import LivepatchEntitlement
+    from ubuntupro.entitlements import LivepatchEntitlement
 
     if http_proxy or https_proxy:
         event.info(

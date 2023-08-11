@@ -5,7 +5,7 @@ import re
 from os.path import exists
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from uaclient import (
+from ubuntupro import (
     apt,
     contract,
     event_logger,
@@ -15,8 +15,8 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.entitlements import base
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.entitlements import base
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))

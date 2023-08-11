@@ -10,8 +10,8 @@ from features.steps.files import (
 )
 from features.steps.shell import when_i_run_command
 from features.util import SUT, process_template_vars
-from uaclient import util
-from uaclient.defaults import (
+from ubuntupro import util
+from ubuntupro.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_PRIVATE_MACHINE_TOKEN_PATH,
 )

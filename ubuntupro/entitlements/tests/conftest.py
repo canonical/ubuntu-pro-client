@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from uaclient import config, event_logger
+from ubuntupro import config, event_logger
 
 
 def machine_token(

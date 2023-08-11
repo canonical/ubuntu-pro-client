@@ -1,4 +1,4 @@
-"""Tests related to uaclient.entitlement.base module."""
+"""Tests related to ubuntupro.entitlement.base module."""
 
 import itertools
 import os.path
@@ -6,11 +6,11 @@ import os.path
 import mock
 import pytest
 
-from uaclient import apt, messages, status, system
-from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
-from uaclient.entitlements.tests.conftest import machine_token
+from ubuntupro import apt, messages, status, system
+from ubuntupro.entitlements.cc import CC_README, CommonCriteriaEntitlement
+from ubuntupro.entitlements.tests.conftest import machine_token
 
-M_REPOPATH = "uaclient.entitlements.repo."
+M_REPOPATH = "ubuntupro.entitlements.repo."
 
 CC_MACHINE_TOKEN = machine_token(
     entitlement_type="cc-eal",
@@ -49,8 +49,8 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
             ),
         ),
     )
-    @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system.get_release_info")
+    @mock.patch("ubuntupro.system.get_dpkg_arch")
+    @mock.patch("ubuntupro.system.get_release_info")
     def test_inapplicable_on_invalid_affordances(
         self,
         m_release_info,
@@ -81,14 +81,14 @@ class TestCommonCriteriaEntitlementEnable:
         "apt_transport_https,ca_certificates",
         itertools.product([False, True], repeat=2),
     )
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.system.should_reboot")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_cache_policy")
-    @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.contract.apply_contract_overrides")
+    @mock.patch("ubuntupro.system.get_kernel_info")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.system.should_reboot")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_cache_policy")
+    @mock.patch("ubuntupro.system.get_dpkg_arch")
+    @mock.patch("ubuntupro.system.get_release_info")
+    @mock.patch("ubuntupro.contract.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_contract_overrides,
@@ -132,8 +132,8 @@ class TestCommonCriteriaEntitlementEnable:
         )
         entitlement = CommonCriteriaEntitlement(cfg, allow_beta=True)
 
-        with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
-            with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
+        with mock.patch("ubuntupro.apt.add_auth_apt_repo") as m_add_apt:
+            with mock.patch("ubuntupro.apt.add_ppa_pinning") as m_add_pin:
                 with mock.patch(M_REPOPATH + "exists", side_effect=exists):
                     assert (True, None) == entitlement.enable()
 

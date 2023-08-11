@@ -5,8 +5,8 @@ import json
 import mock
 import pytest
 
-from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
-from uaclient.yaml import safe_load
+from ubuntupro.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
+from ubuntupro.yaml import safe_load
 
 
 class TestEventLogger:
@@ -108,7 +108,7 @@ class TestEventLogger:
         "event_mode",
         (EventLoggerMode.CLI, EventLoggerMode.JSON, EventLoggerMode.YAML),
     )
-    @mock.patch("uaclient.util.get_pro_environment")
+    @mock.patch("ubuntupro.util.get_pro_environment")
     def test_process_events_for_status(
         self, m_environment, event_mode, env_return, env_list, event
     ):

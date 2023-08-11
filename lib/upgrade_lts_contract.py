@@ -2,14 +2,14 @@
 
 """
 This script is called after running do-release-upgrade in a machine.
-See uaclient/upgrade_lts_contract.py for more details.
+See ubuntupro/upgrade_lts_contract.py for more details.
 """
 
 import logging
 
-from uaclient import http, upgrade_lts_contract
-from uaclient.cli import setup_logging
-from uaclient.config import UAConfig
+from ubuntupro import http, upgrade_lts_contract
+from ubuntupro.cli import setup_logging
+from ubuntupro.config import UAConfig
 
 if __name__ == "__main__":
     setup_logging(logging.INFO, logging.DEBUG)

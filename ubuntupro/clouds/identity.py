@@ -3,8 +3,8 @@ from enum import Enum
 from functools import lru_cache
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import clouds, exceptions, system, util
-from uaclient.config import apply_config_settings_override
+from ubuntupro import clouds, exceptions, system, util
+from ubuntupro.config import apply_config_settings_override
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -61,7 +61,7 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
     :raises CloudFactoryNonViableCloudError: if no cloud instance object can be
         constructed because we explicitly do not support the cloud we're on
     """
-    from uaclient.clouds import aws, azure, gcp
+    from ubuntupro.clouds import aws, azure, gcp
 
     cloud_instance_map = {
         "aws": aws.UAAutoAttachAWSInstance,

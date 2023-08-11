@@ -1,10 +1,10 @@
-from uaclient import exceptions
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.apt import is_installed
-from uaclient.clouds.identity import cloud_instance_factory
-from uaclient.config import UAConfig
-from uaclient.data_types import BoolDataValue, DataObject, Field
+from ubuntupro import exceptions
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.apt import is_installed
+from ubuntupro.clouds.identity import cloud_instance_factory
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import BoolDataValue, DataObject, Field
 
 
 class ShouldAutoAttachResult(DataObject, AdditionalInfo):

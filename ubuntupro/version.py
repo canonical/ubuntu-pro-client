@@ -6,14 +6,14 @@ import re
 from math import inf
 from typing import Optional
 
-from uaclient.apt import (
+from ubuntupro.apt import (
     compare_versions,
     get_apt_cache_policy_for_package,
     get_apt_cache_time,
 )
-from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
-from uaclient.exceptions import ProcessExecutionError
-from uaclient.system import subp
+from ubuntupro.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
+from ubuntupro.exceptions import ProcessExecutionError
+from ubuntupro.system import subp
 
 __VERSION__ = "1:1+devel"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"

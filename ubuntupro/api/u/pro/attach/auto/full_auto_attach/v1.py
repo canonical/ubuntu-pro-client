@@ -1,14 +1,14 @@
 from typing import List, Optional, Tuple
 
-from uaclient import actions, contract, event_logger, lock, messages, util
-from uaclient.api import exceptions
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.entitlements import order_entitlements_for_enabling
-from uaclient.entitlements.entitlement_status import CanEnableFailure
+from ubuntupro import actions, contract, event_logger, lock, messages, util
+from ubuntupro.api import exceptions
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import DataObject, Field, StringDataValue, data_list
+from ubuntupro.entitlements import order_entitlements_for_enabling
+from ubuntupro.entitlements.entitlement_status import CanEnableFailure
 
 event = event_logger.get_event_logger()
 

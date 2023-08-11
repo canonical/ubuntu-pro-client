@@ -9,9 +9,9 @@ from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Dict, List, Optional, Union  # noqa: F401
 
-from uaclient import exceptions, messages
-from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
-from uaclient.types import MessagingOperations
+from ubuntupro import exceptions, messages
+from ubuntupro.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
+from ubuntupro.types import MessagingOperations
 
 DROPPED_KEY = object()
 
@@ -198,7 +198,7 @@ def prompt_choices(msg: str = "", valid_choices: List[str] = []) -> str:
 
     :return: Valid response character chosen.
     """
-    from uaclient import event_logger
+    from ubuntupro import event_logger
 
     event = event_logger.get_event_logger()
     value = ""
@@ -334,7 +334,7 @@ def handle_message_operations(
 
     :return: True upon success, False on failure.
     """
-    from uaclient import event_logger
+    from ubuntupro import event_logger
 
     event = event_logger.get_event_logger()
     if not msg_ops:

@@ -1,11 +1,11 @@
 import mock
 
-from uaclient.api.u.pro.packages.summary.v1 import (
+from ubuntupro.api.u.pro.packages.summary.v1 import (
     PackageSummaryResult,
     _summary,
 )
 
-M_PATH = "uaclient.api.u.pro.packages.summary.v1."
+M_PATH = "ubuntupro.api.u.pro.packages.summary.v1."
 
 
 @mock.patch(M_PATH + "get_installed_packages_by_origin")

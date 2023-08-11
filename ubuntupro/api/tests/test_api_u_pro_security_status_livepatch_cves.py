@@ -1,11 +1,11 @@
 import mock
 
-from uaclient.api.u.pro.security.status.livepatch_cves.v1 import (
+from ubuntupro.api.u.pro.security.status.livepatch_cves.v1 import (
     LivepatchCVEsResult,
     _livepatch_cves,
 )
 
-M_PATH = "uaclient.api.u.pro.security.status.livepatch_cves.v1."
+M_PATH = "ubuntupro.api.u.pro.security.status.livepatch_cves.v1."
 
 
 @mock.patch(M_PATH + "get_livepatch_fixed_cves")

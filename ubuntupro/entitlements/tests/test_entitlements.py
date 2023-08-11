@@ -1,15 +1,15 @@
-"""Tests related to uaclient.entitlement.__init__ module."""
+"""Tests related to ubuntupro.entitlement.__init__ module."""
 import mock
 import pytest
 
-from uaclient import entitlements, exceptions, messages
+from ubuntupro import entitlements, exceptions, messages
 
 
 class TestValidServices:
     @pytest.mark.parametrize("show_all_names", ((True), (False)))
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
     @pytest.mark.parametrize("is_beta", ((True), (False)))
-    @mock.patch("uaclient.entitlements.is_config_value_true")
+    @mock.patch("ubuntupro.entitlements.is_config_value_true")
     def test_valid_services(
         self,
         m_is_config_value,

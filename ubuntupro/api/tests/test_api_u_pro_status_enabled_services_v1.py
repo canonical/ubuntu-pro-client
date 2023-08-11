@@ -1,15 +1,15 @@
 import mock
 
-from uaclient import entitlements
-from uaclient.api.u.pro.status.enabled_services.v1 import (
+from ubuntupro import entitlements
+from ubuntupro.api.u.pro.status.enabled_services.v1 import (
     EnabledService,
     _enabled_services,
 )
-from uaclient.entitlements.entitlement_status import UserFacingStatus
+from ubuntupro.entitlements.entitlement_status import UserFacingStatus
 
 
 class TestEnabledServicesV1:
-    @mock.patch("uaclient.api.u.pro.status.enabled_services.v1._is_attached")
+    @mock.patch("ubuntupro.api.u.pro.status.enabled_services.v1._is_attached")
     def test_enabled_services(self, m_is_attached):
         m_is_attached.return_value = mock.MagicMock(is_attached=True)
 
@@ -65,7 +65,7 @@ class TestEnabledServicesV1:
         assert 1 == m_is_attached.call_count
         assert expected_enabled_services == actual_enabled_services
 
-    @mock.patch("uaclient.api.u.pro.status.enabled_services.v1._is_attached")
+    @mock.patch("ubuntupro.api.u.pro.status.enabled_services.v1._is_attached")
     def test_enabled_services_when_unattached(self, m_is_attached):
         m_is_attached.return_value = mock.MagicMock(is_attached=False)
 

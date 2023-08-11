@@ -6,9 +6,9 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages
-from uaclient.cli import action_disable, main, main_error_handler
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import entitlements, event_logger, exceptions, messages
+from ubuntupro.cli import action_disable, main, main_error_handler
+from ubuntupro.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
 )
@@ -53,15 +53,15 @@ Flags:
 
 
 class TestDisable:
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_disable_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
     ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -74,11 +74,11 @@ class TestDisable:
         "disable_return,return_code", ((True, 0), (False, 1))
     )
     @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
+        "ubuntupro.cli.contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
-    @mock.patch("uaclient.cli.entitlements.valid_services")
-    @mock.patch("uaclient.status.status")
+    @mock.patch("ubuntupro.cli.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.cli.entitlements.valid_services")
+    @mock.patch("ubuntupro.status.status")
     def test_entitlement_instantiated_and_disabled(
         self,
         m_status,
@@ -189,9 +189,9 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.entitlements.valid_services")
-    @mock.patch("uaclient.status.status")
+    @mock.patch("ubuntupro.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.entitlements.valid_services")
+    @mock.patch("ubuntupro.status.status")
     def test_entitlements_not_found_disabled_and_enabled(
         self,
         m_status,
@@ -329,7 +329,7 @@ class TestDisable:
             (False, messages.NONROOT_USER),
         ],
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
@@ -447,7 +447,7 @@ class TestDisable:
             (False, messages.NONROOT_USER),
         ],
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_unattached_error_message(
         self,
         m_we_are_currently_root,
@@ -504,7 +504,7 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,

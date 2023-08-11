@@ -1,4 +1,4 @@
-"""Tests related to uaclient.entitlement.base module."""
+"""Tests related to ubuntupro.entitlement.base module."""
 import copy
 import logging
 from typing import Any, Dict, Optional, Tuple
@@ -6,9 +6,9 @@ from typing import Any, Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import exceptions, messages, system, util
-from uaclient.entitlements import base
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro import exceptions, messages, system, util
+from ubuntupro.entitlements import base
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
     CanDisableFailure,
@@ -17,7 +17,7 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailureReason,
     UserFacingStatus,
 )
-from uaclient.status import ContractStatus
+from ubuntupro.status import ContractStatus
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
@@ -180,7 +180,7 @@ class TestUaEntitlementNames:
         ),
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.presentation_name",
+        "ubuntupro.entitlements.base.UAEntitlement.presentation_name",
         new_callable=mock.PropertyMock,
     )
     def test_valid_names(
@@ -201,7 +201,7 @@ class TestUaEntitlementNames:
             }
         }
         with mock.patch(
-            "uaclient.files.MachineTokenFile.entitlements", m_entitlements
+            "ubuntupro.files.MachineTokenFile.entitlements", m_entitlements
         ):
             assert "something_else" == entitlement.presentation_name
 
@@ -246,7 +246,7 @@ class TestUaEntitlementCanEnable:
         )
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.contract.refresh")
+    @mock.patch("ubuntupro.contract.refresh")
     def test_can_enable_updates_expired_contract(
         self,
         m_refresh,
@@ -402,8 +402,8 @@ class TestUaEntitlementEnable:
         "block_disable_on_enable,assume_yes",
         [(False, False), (False, True), (True, False), (True, True)],
     )
-    @mock.patch("uaclient.util.is_config_value_true")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("ubuntupro.util.is_config_value_true")
+    @mock.patch("ubuntupro.util.prompt_for_confirmation")
     def test_enable_when_incompatible_service_found(
         self,
         m_prompt,
@@ -456,7 +456,7 @@ class TestUaEntitlementEnable:
         assert m_entitlement_obj.disable.call_count == expected_disable_call
 
     @pytest.mark.parametrize("assume_yes", ((False), (True)))
-    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("ubuntupro.util.prompt_for_confirmation")
     def test_enable_when_required_service_found(
         self, m_prompt, assume_yes, concrete_entitlement_factory
     ):
@@ -541,14 +541,14 @@ class TestUaEntitlementEnable:
         ],
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement._enable_required_services",
+        "ubuntupro.entitlements.base.UAEntitlement._enable_required_services",
         return_value=(False, "required error msg"),
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.handle_incompatible_services",  # noqa: E501
+        "ubuntupro.entitlements.base.UAEntitlement.handle_incompatible_services",  # noqa: E501
         return_value=False,
     )
-    @mock.patch("uaclient.entitlements.base.UAEntitlement.can_enable")
+    @mock.patch("ubuntupro.entitlements.base.UAEntitlement.can_enable")
     def test_enable_false_when_can_enable_false(
         self,
         m_can_enable,
@@ -576,8 +576,8 @@ class TestUaEntitlementEnable:
             assert can_enable_fail.message == "required error msg"
 
     @pytest.mark.parametrize("enable_fail_message", (("not entitled"), (None)))
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("ubuntupro.util.handle_message_operations")
+    @mock.patch("ubuntupro.util.prompt_for_confirmation")
     def test_enable_false_when_fails_to_enable_required_service(
         self,
         m_handle_msg,
@@ -647,10 +647,10 @@ class TestUaEntitlementEnable:
         ConcreteTestEntitlement, "_perform_enable", return_value=True
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.can_enable",
+        "ubuntupro.entitlements.base.UAEntitlement.can_enable",
         return_value=(True, None),
     )
-    @mock.patch("uaclient.util.handle_message_operations")
+    @mock.patch("ubuntupro.util.handle_message_operations")
     def test_enable_when_messaging_hooks_fail(
         self,
         m_handle_messaging_hooks,
@@ -711,7 +711,7 @@ class TestUaEntitlementCanDisable:
         assert fail.reason == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
         assert fail.message is None
 
-    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("ubuntupro.entitlements.entitlement_factory")
     def test_can_disable_when_ignoring_dependent_service(
         self, m_ent_factory, concrete_entitlement_factory
     ):
@@ -750,7 +750,7 @@ class TestUaEntitlementCanDisable:
 
 
 class TestUaEntitlementDisable:
-    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("ubuntupro.util.prompt_for_confirmation")
     def test_disable_when_dependent_service_found(
         self, m_prompt, concrete_entitlement_factory
     ):
@@ -783,8 +783,8 @@ class TestUaEntitlementDisable:
         assert m_ent_obj.disable.call_count == expected_disable_call
 
     @pytest.mark.parametrize("disable_fail_message", (("error"), (None)))
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("ubuntupro.util.handle_message_operations")
+    @mock.patch("ubuntupro.util.prompt_for_confirmation")
     def test_disable_false_when_fails_to_disable_dependent_service(
         self,
         m_handle_msg,
@@ -960,7 +960,7 @@ class TestUaEntitlementProcessContractDeltas:
         ),
     )
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=system.ReleaseInfo(
             distribution="", release="", series="example", pretty_version=""
         ),
@@ -1154,9 +1154,9 @@ class TestVariant:
             (["test_variant", "test_variant2"]),
         ),
     )
-    @mock.patch("uaclient.entitlements.base.UAEntitlement._get_variants")
+    @mock.patch("ubuntupro.entitlements.base.UAEntitlement._get_variants")
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement._get_contract_variants"
+        "ubuntupro.entitlements.base.UAEntitlement._get_contract_variants"
     )
     def test_variant_property(
         self,
@@ -1210,7 +1210,7 @@ class TestGetContractVariant:
         ),
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement._base_entitlement_cfg"
+        "ubuntupro.entitlements.base.UAEntitlement._base_entitlement_cfg"
     )
     def test_get_contract_variant(
         self, m_base_ent_cfg, entitlement_cfg, concrete_entitlement_factory
@@ -1251,14 +1251,14 @@ class TestHandleRequiredSnaps:
         ),
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement._base_entitlement_cfg"
+        "ubuntupro.entitlements.base.UAEntitlement._base_entitlement_cfg"
     )
-    @mock.patch("uaclient.snap.is_snapd_installed", return_value=True)
-    @mock.patch("uaclient.snap.run_snapd_wait_cmd")
-    @mock.patch("uaclient.snap.get_snap_info")
-    @mock.patch("uaclient.snap.install_snap")
-    @mock.patch("uaclient.http.validate_proxy")
-    @mock.patch("uaclient.snap.configure_snap_proxy")
+    @mock.patch("ubuntupro.snap.is_snapd_installed", return_value=True)
+    @mock.patch("ubuntupro.snap.run_snapd_wait_cmd")
+    @mock.patch("ubuntupro.snap.get_snap_info")
+    @mock.patch("ubuntupro.snap.install_snap")
+    @mock.patch("ubuntupro.http.validate_proxy")
+    @mock.patch("ubuntupro.snap.configure_snap_proxy")
     def test_handle_required_snaps(
         self,
         m_configure_snap_proxy,
@@ -1338,10 +1338,10 @@ class TestHandleRequiredPackages:
             ),
         ],
     )
-    @mock.patch("uaclient.apt.run_apt_install_command")
-    @mock.patch("uaclient.apt.run_apt_update_command")
+    @mock.patch("ubuntupro.apt.run_apt_install_command")
+    @mock.patch("ubuntupro.apt.run_apt_update_command")
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.entitlement_cfg",
+        "ubuntupro.entitlements.base.UAEntitlement.entitlement_cfg",
         new_callable=mock.PropertyMock,
     )
     def test_handle_required_packages(
@@ -1413,9 +1413,9 @@ class TestHandleRequiredPackages:
             ),
         ],
     )
-    @mock.patch("uaclient.apt.remove_packages")
+    @mock.patch("ubuntupro.apt.remove_packages")
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.entitlement_cfg",
+        "ubuntupro.entitlements.base.UAEntitlement.entitlement_cfg",
         new_callable=mock.PropertyMock,
     )
     def test_handle_removing_required_packages(

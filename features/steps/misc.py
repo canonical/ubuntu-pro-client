@@ -8,8 +8,8 @@ from hamcrest import assert_that, equal_to
 from features.steps.files import when_i_create_file_with_content
 from features.steps.packages import when_i_apt_install
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
-from uaclient.defaults import DEFAULT_CONFIG_FILE
-from uaclient.util import DatetimeAwareJSONDecoder
+from ubuntupro.defaults import DEFAULT_CONFIG_FILE
+from ubuntupro.util import DatetimeAwareJSONDecoder
 
 AUTOCOMPLETE_TEST_FILE = """\
 #!/usr/bin/expect -f

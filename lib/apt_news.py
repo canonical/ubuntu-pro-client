@@ -3,10 +3,10 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
-from uaclient import apt, defaults
-from uaclient.apt_news import update_apt_news
-from uaclient.config import UAConfig
-from uaclient.daemon import setup_logging
+from ubuntupro import apt, defaults
+from ubuntupro.apt_news import update_apt_news
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import setup_logging
 
 
 def main(cfg: UAConfig):

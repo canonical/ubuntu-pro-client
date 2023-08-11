@@ -2,10 +2,10 @@
 Functions to be used when running metering jobs
 """
 
-from uaclient import config
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.cli import assert_lock_file
-from uaclient.contract import UAContractClient
+from ubuntupro import config
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.cli import assert_lock_file
+from ubuntupro.contract import UAContractClient
 
 
 @assert_lock_file("timer metering job")

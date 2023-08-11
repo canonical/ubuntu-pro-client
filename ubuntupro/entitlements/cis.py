@@ -1,7 +1,7 @@
 from typing import List
 
-from uaclient.entitlements import repo
-from uaclient.types import MessagingOperationsDict
+from ubuntupro.entitlements import repo
+from ubuntupro.types import MessagingOperationsDict
 
 CIS_DOCS_URL = "https://ubuntu.com/security/cis"
 USG_DOCS_URL = "https://ubuntu.com/security/certifications/docs/usg"

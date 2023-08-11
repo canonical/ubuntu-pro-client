@@ -2,13 +2,13 @@ import datetime
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
-from uaclient import exceptions, messages, system
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.exceptions import UnattendedUpgradesError
-from uaclient.apt import get_apt_config_keys, get_apt_config_values
-from uaclient.config import UAConfig
-from uaclient.data_types import (
+from ubuntupro import exceptions, messages, system
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.api.exceptions import UnattendedUpgradesError
+from ubuntupro.apt import get_apt_config_keys, get_apt_config_values
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     DatetimeDataValue,

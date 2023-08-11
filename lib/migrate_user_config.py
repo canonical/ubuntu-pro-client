@@ -14,8 +14,8 @@ import json
 import os
 import sys
 
-from uaclient import defaults, messages
-from uaclient.yaml import safe_dump, safe_load
+from ubuntupro import defaults, messages
+from ubuntupro.yaml import safe_dump, safe_load
 
 UACLIENT_CONF_BACKUP_PATH = (
     "/etc/ubuntu-advantage/uaclient.conf.preinst-backup"

@@ -5,7 +5,7 @@ import glob
 
 import setuptools
 
-from uaclient import defaults
+from ubuntupro import defaults
 
 NAME = "ubuntu-advantage-tools"
 
@@ -76,8 +76,8 @@ setuptools.setup(
     url="https://ubuntu.com/support",
     entry_points={
         "console_scripts": [
-            "ubuntu-advantage=uaclient.cli:main",
-            "ua=uaclient.cli:main",
+            "ubuntu-advantage=ubuntupro.cli:main",
+            "ua=ubuntupro.cli:main",
         ]
     },
 )

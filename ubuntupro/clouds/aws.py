@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict
 
-from uaclient import exceptions, http, system, util
-from uaclient.clouds import AutoAttachCloudInstance
+from ubuntupro import exceptions, http, system, util
+from ubuntupro.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
 IMDS_IPV6_ADDRESS = "[fd00:ec2::254]"

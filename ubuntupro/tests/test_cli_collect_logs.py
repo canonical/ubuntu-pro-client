@@ -4,14 +4,14 @@ import textwrap
 import mock
 import pytest
 
-from uaclient.cli import (
+from ubuntupro.cli import (
     action_collect_logs,
     collect_logs_parser,
     get_parser,
     main,
 )
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -29,7 +29,7 @@ Collect logs and relevant system information into a tarball.
 
 
 class TestActionCollectLogs:
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.setup_logging")
     @mock.patch(M_PATH + "contract.get_available_resources")
     def test_collect_logs_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
@@ -39,7 +39,7 @@ class TestActionCollectLogs:
                 "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -47,7 +47,7 @@ class TestActionCollectLogs:
         assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize("is_root", ((True), (False)))
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     @mock.patch(
         "glob.glob",
         return_value=[
@@ -62,11 +62,11 @@ class TestActionCollectLogs:
     @mock.patch("pathlib.Path.stat")
     @mock.patch("os.chown")
     @mock.patch("os.path.isfile", return_value=True)
-    @mock.patch("uaclient.system.write_file")
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.system.subp", return_value=(None, None))
-    @mock.patch("uaclient.log.get_user_log_file")
-    @mock.patch("uaclient.log.get_all_user_log_files")
+    @mock.patch("ubuntupro.system.write_file")
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.system.subp", return_value=(None, None))
+    @mock.patch("ubuntupro.log.get_user_log_file")
+    @mock.patch("ubuntupro.log.get_all_user_log_files")
     def test_collect_logs(
         self,
         m_get_users,

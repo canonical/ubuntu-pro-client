@@ -1,17 +1,17 @@
 from typing import List, Optional
 
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.data_types import (
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     Field,
     StringDataValue,
     data_list,
 )
-from uaclient.entitlements.entitlement_status import UserFacingStatus
+from ubuntupro.entitlements.entitlement_status import UserFacingStatus
 
 
 class EnabledService(DataObject):
@@ -47,7 +47,7 @@ def enabled_services() -> EnabledServicesResult:
 
 
 def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
-    from uaclient.entitlements import ENTITLEMENT_CLASSES
+    from ubuntupro.entitlements import ENTITLEMENT_CLASSES
 
     if not _is_attached(cfg).is_attached:
         return EnabledServicesResult(enabled_services=[])

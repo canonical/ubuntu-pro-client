@@ -3,14 +3,14 @@ import json
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.actions import (
+from ubuntupro import exceptions, messages
+from ubuntupro.actions import (
     attach_with_token,
     auto_attach,
     collect_logs,
     get_cloud_instance,
 )
-from uaclient.exceptions import (
+from ubuntupro.exceptions import (
     CloudFactoryError,
     CloudFactoryNoCloudError,
     CloudFactoryNonViableCloudError,
@@ -19,9 +19,9 @@ from uaclient.exceptions import (
     NonAutoAttachImageError,
     UserFacingError,
 )
-from uaclient.testing import helpers
+from ubuntupro.testing import helpers
 
-M_PATH = "uaclient.actions."
+M_PATH = "ubuntupro.actions."
 
 
 def fake_instance_factory():
@@ -193,17 +193,17 @@ class TestAttachWithToken:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch("ubuntupro.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "ua_status.status")
-    @mock.patch("uaclient.files.state_files.attachment_data_file.write")
+    @mock.patch("ubuntupro.files.state_files.attachment_data_file.write")
     @mock.patch(M_PATH + "contract.process_entitlements_delta")
     @mock.patch(
-        "uaclient.files.MachineTokenFile.entitlements",
+        "ubuntupro.files.MachineTokenFile.entitlements",
         new_callable=mock.PropertyMock,
     )
     @mock.patch(M_PATH + "config.UAConfig.write_cache")
     @mock.patch(M_PATH + "system.get_machine_id")
-    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch("ubuntupro.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     def test_attach_with_token(
         self,
@@ -338,15 +338,15 @@ class TestAutoAttach:
         assert unexpected_error == excinfo.value
 
 
-@mock.patch("uaclient.actions._write_command_output_to_file")
+@mock.patch("ubuntupro.actions._write_command_output_to_file")
 class TestCollectLogs:
-    @mock.patch("uaclient.actions.LOG.warning")
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.system.write_file")
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.actions._get_state_files")
+    @mock.patch("ubuntupro.actions.LOG.warning")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.system.write_file")
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.actions._get_state_files")
     @mock.patch("glob.glob")
-    @mock.patch("uaclient.log.get_user_log_file")
+    @mock.patch("ubuntupro.log.get_user_log_file")
     def test_collect_logs_invalid_file(
         self,
         m_get_user,

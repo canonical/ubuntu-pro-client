@@ -1,4 +1,4 @@
-"""Tests related to uaclient.apt module."""
+"""Tests related to ubuntupro.apt module."""
 
 import glob
 import os
@@ -9,8 +9,8 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import exceptions, messages, system
-from uaclient.apt import (
+from ubuntupro import exceptions, messages, system
+from ubuntupro.apt import (
     APT_AUTH_COMMENT,
     APT_CONFIG_GLOBAL_PROXY_HTTP,
     APT_CONFIG_GLOBAL_PROXY_HTTPS,
@@ -40,10 +40,10 @@ from uaclient.apt import (
     setup_apt_proxy,
     update_esm_caches,
 )
-from uaclient.entitlements.base import UAEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.entitlements.repo import RepoEntitlement
-from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
+from ubuntupro.entitlements.base import UAEntitlement
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.entitlements.repo import RepoEntitlement
+from ubuntupro.entitlements.tests.test_repo import RepoTestEntitlement
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
 -32768 https://esm.ubuntu.com/ubuntu/ {0}-updates/main amd64 Packages
@@ -59,7 +59,7 @@ b/release-updates, now 1.2+3 arch123 [i,a]
 
 
 class TestAddPPAPinning:
-    @mock.patch("uaclient.system.get_release_info")
+    @mock.patch("ubuntupro.system.get_release_info")
     def test_write_apt_pin_file_to_apt_preferences(
         self, m_get_release_info, tmpdir
     ):
@@ -82,7 +82,7 @@ class TestAddPPAPinning:
 
 
 class TestFindAptListFilesFromRepoSeries:
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_find_all_apt_list_files_from_apt_config_key(self, m_subp, tmpdir):
         """Find all matching apt list files from apt-config dir."""
         m_subp.return_value = ("key='{}'".format(tmpdir.strpath), "")
@@ -105,7 +105,7 @@ class TestFindAptListFilesFromRepoSeries:
 
 
 class TestRemoveAptListFiles:
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_remove_all_apt_list_files_from_apt_config_key(
         self, m_subp, tmpdir
     ):
@@ -130,7 +130,7 @@ class TestRemoveAptListFiles:
 
 
 class TestValidAptCredentials:
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     @mock.patch("os.path.exists", return_value=False)
     def test_passes_when_missing_apt_helper(self, m_exists, m_subp):
         """When apt-helper tool is absent perform no validation."""
@@ -141,9 +141,9 @@ class TestValidAptCredentials:
         assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
 
-    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.apt.tempfile.TemporaryDirectory")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.os.path.exists", return_value=True)
     def test_passes_on_valid_creds(
         self, m_exists, m_subp, m_temporary_directory
     ):
@@ -200,9 +200,9 @@ class TestValidAptCredentials:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.apt.tempfile.TemporaryDirectory")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
         self,
         m_exists,
@@ -247,9 +247,9 @@ class TestValidAptCredentials:
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
-    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.os.path.exists", return_value=True)
+    @mock.patch("ubuntupro.apt.tempfile.TemporaryDirectory")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
         self, m_exists, m_subp, m_temporary_directory
     ):
@@ -292,12 +292,12 @@ class TestValidAptCredentials:
 
 
 class TestAddAuthAptRepo:
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
-    @mock.patch("uaclient.apt.assert_valid_apt_credentials")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_sources_file(
@@ -333,12 +333,12 @@ class TestAddAuthAptRepo:
         gpg_export_calls = [mock.call(src_keyfile, dest_keyfile)]
         assert gpg_export_calls == m_gpg_export.call_args_list
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
-    @mock.patch("uaclient.apt.assert_valid_apt_credentials")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
@@ -382,12 +382,12 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == system.load_file(repo_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
-    @mock.patch("uaclient.apt.assert_valid_apt_credentials")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
@@ -428,12 +428,12 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == system.load_file(repo_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
-    @mock.patch("uaclient.apt.assert_valid_apt_credentials")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
@@ -465,12 +465,12 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == system.load_file(auth_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
-    @mock.patch("uaclient.apt.assert_valid_apt_credentials")
+    @mock.patch("ubuntupro.apt.gpg.export_gpg_key")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.assert_valid_apt_credentials")
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
     )
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
@@ -504,7 +504,7 @@ class TestAddAuthAptRepo:
 
 
 class TestAddAptAuthConfEntry:
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
     def test_replaces_old_credentials_with_new(
         self, m_get_apt_auth_file, tmpdir
     ):
@@ -537,7 +537,7 @@ class TestAddAptAuthConfEntry:
         expected_content = content_template.format(APT_AUTH_COMMENT)
         assert expected_content == system.load_file(auth_file)
 
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
     def test_insert_repo_subroutes_before_existing_repo_basepath(
         self, m_get_apt_auth_file, tmpdir
     ):
@@ -601,7 +601,7 @@ class TestCleanAptFiles:
         return TestRepo
 
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.ensure_file_absent")
+    @mock.patch("ubuntupro.system.ensure_file_absent")
     def test_removals_for_repo_entitlements(
         self, m_ensure_file_absent, _m_path_exists
     ):
@@ -662,9 +662,9 @@ def remove_auth_apt_repo_kwargs(request):
 
 
 class TestRemoveAuthAptRepo:
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.system.subp")
+    @mock.patch("ubuntupro.apt.remove_repo_from_apt_auth_file")
+    @mock.patch("ubuntupro.apt.system.ensure_file_absent")
     def test_repo_file_deleted(
         self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
@@ -677,9 +677,9 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
 
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
+    @mock.patch("ubuntupro.apt.system.subp")
+    @mock.patch("ubuntupro.apt.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.remove_repo_from_apt_auth_file")
     def test_remove_from_auth_file_called(
         self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
@@ -692,9 +692,9 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_url) in m_remove_repo.call_args_list
 
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.system.subp")
+    @mock.patch("ubuntupro.apt.remove_repo_from_apt_auth_file")
+    @mock.patch("ubuntupro.apt.system.ensure_file_absent")
     def test_keyring_file_deleted_if_given(
         self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
     ):
@@ -719,9 +719,9 @@ class TestRemoveAuthAptRepo:
 
 
 class TestRemoveRepoFromAptAuthFile:
-    @mock.patch("uaclient.system.ensure_file_absent")
-    @mock.patch("uaclient.apt.system.write_file")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.system.write_file")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
     def test_auth_file_doesnt_exist_means_we_dont_remove_or_write_it(
         self, m_get_apt_auth_file, m_write_file, m_ensure_file_absent, tmpdir
     ):
@@ -747,9 +747,9 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.system.ensure_file_absent")
-    @mock.patch("uaclient.apt.system.write_file")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.system.write_file")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
     def test_file_removal(
         self,
         m_get_apt_auth_file,
@@ -801,8 +801,8 @@ class TestRemoveRepoFromAptAuthFile:
             ),
         ),
     )
-    @mock.patch("uaclient.system.ensure_file_absent")
-    @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
+    @mock.patch("ubuntupro.system.ensure_file_absent")
+    @mock.patch("ubuntupro.apt.get_apt_auth_file_from_apt_config")
     def test_file_rewrite(
         self,
         m_get_apt_auth_file,
@@ -828,7 +828,7 @@ class TestRemoveRepoFromAptAuthFile:
 
 
 class TestGetInstalledPackages:
-    @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
+    @mock.patch("ubuntupro.apt.system.subp", return_value=("", ""))
     def test_correct_command_called(self, m_subp):
         get_installed_packages_names()
 
@@ -836,7 +836,7 @@ class TestGetInstalledPackages:
         assert [expected_call] == m_subp.call_args_list
 
     @mock.patch(
-        "uaclient.apt.system.subp", return_value=("Listing... Done\n", "")
+        "ubuntupro.apt.system.subp", return_value=("Listing... Done\n", "")
     )
     def test_empty_output_means_empty_list(self, m_subp):
         assert [] == get_installed_packages_names()
@@ -845,7 +845,7 @@ class TestGetInstalledPackages:
         "apt_list_return",
         (APT_LIST_RETURN_STRING, APT_LIST_RETURN_STRING[:-1]),
     )
-    @mock.patch("uaclient.apt.system.subp")
+    @mock.patch("ubuntupro.apt.system.subp")
     def test_lines_are_split(self, m_subp, apt_list_return):
         m_subp.return_value = apt_list_return, ""
         assert ["a", "b"] == get_installed_packages_names()
@@ -898,7 +898,7 @@ class TestRunAptCommand:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.system.subp")
+    @mock.patch("ubuntupro.apt.system.subp")
     def test_run_apt_command_with_invalid_repositories(
         self, m_subp, error_list, output_list
     ):
@@ -914,7 +914,7 @@ class TestRunAptCommand:
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg
 
-    @mock.patch("uaclient.apt.system.subp")
+    @mock.patch("ubuntupro.apt.system.subp")
     def test_run_update_command_clean_apt_cache_policy_cache(self, m_subp):
         m_subp.side_effect = [
             ("policy1", ""),
@@ -932,7 +932,7 @@ class TestRunAptCommand:
         assert "policy2" == get_apt_cache_policy()
         get_apt_cache_policy.cache_clear()
 
-    @mock.patch("uaclient.apt.system.subp")
+    @mock.patch("ubuntupro.apt.system.subp")
     def test_failed_run_update_command_clean_apt_cache_policy_cache(
         self, m_subp
     ):
@@ -1009,8 +1009,8 @@ class TestAptProxyConfig:
             ),
         ],
     )
-    @mock.patch("uaclient.system.write_file")
-    @mock.patch("uaclient.system.ensure_file_absent")
+    @mock.patch("ubuntupro.system.write_file")
+    @mock.patch("ubuntupro.system.ensure_file_absent")
     def test_setup_apt_proxy_config(
         self,
         m_ensure_file_absent,
@@ -1038,7 +1038,7 @@ class TestAptIsInstalled:
             (False, ("foo", "bar")),
         ),
     )
-    @mock.patch("uaclient.apt.get_installed_packages_names")
+    @mock.patch("ubuntupro.apt.get_installed_packages_names")
     def test_is_installed_pkgs(
         self, m_get_installed_pkgs, expected, installed_pkgs
     ):
@@ -1065,7 +1065,7 @@ class TestCompareVersion:
         self, ver1, ver2, relation, expected_result, _subp
     ):
         """compare_versions returns True when the comparison is accurate."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             assert expected_result is compare_versions(ver1, ver2, relation)
 
 
@@ -1093,12 +1093,12 @@ class TestAptCache:
     @pytest.mark.parametrize("is_esm", (True, False))
     @pytest.mark.parametrize("can_enable_infra", ("yes", "no"))
     @pytest.mark.parametrize("can_enable_apps", ("yes", "no"))
-    @mock.patch("uaclient.entitlements.esm.ESMAppsEntitlement")
-    @mock.patch("uaclient.entitlements.esm.ESMInfraEntitlement")
-    @mock.patch("uaclient.apt.system.is_current_series_lts")
-    @mock.patch("uaclient.apt.system.is_current_series_active_esm")
-    @mock.patch("uaclient.apt.get_esm_cache")
-    @mock.patch("uaclient.actions.status")
+    @mock.patch("ubuntupro.entitlements.esm.ESMAppsEntitlement")
+    @mock.patch("ubuntupro.entitlements.esm.ESMInfraEntitlement")
+    @mock.patch("ubuntupro.apt.system.is_current_series_lts")
+    @mock.patch("ubuntupro.apt.system.is_current_series_active_esm")
+    @mock.patch("ubuntupro.apt.get_esm_cache")
+    @mock.patch("ubuntupro.actions.status")
     @mock.patch("apt_pkg.config")
     @mock.patch("apt_pkg.init_config")
     def test_update_esm_caches_based_on_lts(
@@ -1197,7 +1197,7 @@ class TestAptCache:
 
 
 class TestGetAptConfigValues:
-    @mock.patch("uaclient.apt._get_apt_config")
+    @mock.patch("ubuntupro.apt._get_apt_config")
     def test_apt_config_values(
         self,
         m_get_apt_config,
@@ -1255,8 +1255,8 @@ class TestPreserveAptCfg:
 
 class TestGetPkgCandidateversion:
     @pytest.mark.parametrize("check_esm_cache", ((True), (False)))
-    @mock.patch("uaclient.apt.get_apt_cache")
-    @mock.patch("uaclient.apt.get_esm_cache")
+    @mock.patch("ubuntupro.apt.get_apt_cache")
+    @mock.patch("ubuntupro.apt.get_esm_cache")
     def test_get_pkg_candidate_version(
         self,
         m_esm_cache,
@@ -1279,8 +1279,8 @@ class TestGetPkgCandidateversion:
         else:
             assert "1.3~esm1" == actual_value
 
-    @mock.patch("uaclient.apt.get_apt_cache")
-    @mock.patch("uaclient.apt.get_esm_cache")
+    @mock.patch("ubuntupro.apt.get_apt_cache")
+    @mock.patch("ubuntupro.apt.get_esm_cache")
     def test_get_pkg_candidate_version_when_esm_cache_fails(
         self,
         m_esm_cache,
@@ -1296,7 +1296,7 @@ class TestGetPkgCandidateversion:
         actual_value = get_pkg_candidate_version("pkg1", check_esm_cache=True)
         assert "1.2" == actual_value
 
-    @mock.patch("uaclient.apt.get_apt_cache")
+    @mock.patch("ubuntupro.apt.get_apt_cache")
     def test_get_pkg_candidate_version_when_candidate_doesnt_exist(
         self,
         m_apt_cache,

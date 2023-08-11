@@ -4,8 +4,15 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional  # noqa: F401
 
-from uaclient import defaults, event_logger, exceptions, messages, system, util
-from uaclient.contract_data_types import PublicMachineTokenData
+from ubuntupro import (
+    defaults,
+    event_logger,
+    exceptions,
+    messages,
+    system,
+    util,
+)
+from ubuntupro.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -205,7 +212,7 @@ class MachineTokenFile:
 
         Return an empty dict if no entitlements are present.
         """
-        from uaclient.contract import apply_contract_overrides
+        from ubuntupro.contract import apply_contract_overrides
 
         if not machine_token:
             return {}

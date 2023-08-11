@@ -8,25 +8,25 @@ from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
 
 import apt  # type: ignore
 
-from uaclient import livepatch, messages
-from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+from ubuntupro import livepatch, messages
+from ubuntupro.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.apt import (
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.apt import (
     PreserveAptCfg,
     get_apt_cache,
     get_apt_cache_datetime,
     get_esm_cache,
 )
-from uaclient.config import UAConfig
-from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.config import UAConfig
+from ubuntupro.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
+from ubuntupro.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
     ContractStatus,
 )
-from uaclient.system import (
+from ubuntupro.system import (
     get_distro_info,
     get_kernel_info,
     get_release_info,

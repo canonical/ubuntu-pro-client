@@ -13,7 +13,7 @@ import time
 from functools import wraps
 from typing import List, Optional, Tuple  # noqa
 
-from uaclient import (
+from ubuntupro import (
     actions,
     apt,
     apt_news,
@@ -27,47 +27,47 @@ from uaclient import (
     http,
     lock,
 )
-from uaclient import log as pro_log
-from uaclient import messages, security, security_status
-from uaclient import status as ua_status
-from uaclient import timer, util, version
-from uaclient.api.api import call_api
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro import log as pro_log
+from ubuntupro import messages, security, security_status
+from ubuntupro import status as ua_status
+from ubuntupro import timer, util, version
+from ubuntupro.api.api import call_api
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
 )
-from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
-from uaclient.api.u.pro.attach.magic.revoke.v1 import (
+from ubuntupro.api.u.pro.attach.magic.initiate.v1 import _initiate
+from ubuntupro.api.u.pro.attach.magic.revoke.v1 import (
     MagicAttachRevokeOptions,
     _revoke,
 )
-from uaclient.api.u.pro.attach.magic.wait.v1 import (
+from ubuntupro.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
-from uaclient.api.u.pro.security.status.reboot_required.v1 import (
+from ubuntupro.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
-from uaclient.defaults import PRINT_WRAP_WIDTH
-from uaclient.entitlements import (
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.apt import AptProxyScope, setup_apt_proxy
+from ubuntupro.data_types import AttachActionsConfigFile, IncorrectTypeError
+from ubuntupro.defaults import PRINT_WRAP_WIDTH
+from ubuntupro.entitlements import (
     create_enable_entitlements_not_found_message,
     entitlements_disable_order,
     get_valid_entitlement_names,
 )
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.entitlements.entitlement_status import (
     ApplicationStatus,
     CanDisableFailure,
     CanEnableFailure,
     CanEnableFailureReason,
 )
-from uaclient.files import notices, state_files
-from uaclient.files.notices import Notice
-from uaclient.log import JsonArrayFormatter
-from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
-from uaclient.yaml import safe_dump, safe_load
+from ubuntupro.files import notices, state_files
+from ubuntupro.files.notices import Notice
+from ubuntupro.log import JsonArrayFormatter
+from ubuntupro.timer.update_messaging import refresh_motd, update_motd_messages
+from ubuntupro.yaml import safe_dump, safe_load
 
 NAME = "pro"
 
@@ -1032,8 +1032,8 @@ def action_config_set(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    from uaclient.livepatch import configure_livepatch_proxy
-    from uaclient.snap import configure_snap_proxy
+    from ubuntupro.livepatch import configure_livepatch_proxy
+    from ubuntupro.snap import configure_snap_proxy
 
     parser = get_parser(cfg=cfg)
     config_parser = parser._get_positional_actions()[0].choices["config"]
@@ -1094,7 +1094,7 @@ def action_config_set(args, *, cfg, **kwargs):
         + cfg.global_scoped_proxy_options
     ):
         # setup_apt_proxy is destructive for unprovided values. Source complete
-        # current config values from uaclient.conf before applying set_value.
+        # current config values from ubuntupro.conf before applying set_value.
 
         protocol_type = "https" if "https" in set_key else "http"
         if protocol_type == "http":
@@ -1158,9 +1158,9 @@ def action_config_unset(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    from uaclient.apt import AptProxyScope
-    from uaclient.livepatch import unconfigure_livepatch_proxy
-    from uaclient.snap import unconfigure_snap_proxy
+    from ubuntupro.apt import AptProxyScope
+    from ubuntupro.livepatch import unconfigure_livepatch_proxy
+    from ubuntupro.snap import unconfigure_snap_proxy
 
     if args.key not in config.UA_CONFIGURABLE_KEYS:
         parser = get_parser(cfg=cfg)
@@ -1833,7 +1833,7 @@ def configure_apt_proxy(
     set_value: Optional[str],
 ) -> None:
     """
-    Handles setting part the apt proxies - global and uaclient scoped proxies
+    Handles setting part the apt proxies - global and ubuntupro scoped proxies
     """
     if scope == AptProxyScope.GLOBAL:
         http_proxy = cfg.global_apt_http_proxy

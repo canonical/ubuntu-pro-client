@@ -14,8 +14,8 @@ from typing import Dict, Iterable, List, NamedTuple, Optional, Union
 import apt  # type: ignore
 import apt_pkg  # type: ignore
 
-from uaclient import event_logger, exceptions, gpg, messages, system, util
-from uaclient.defaults import ESM_APT_ROOTDIR
+from ubuntupro import event_logger, exceptions, gpg, messages, system, util
+from ubuntupro.defaults import ESM_APT_ROOTDIR
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -566,17 +566,17 @@ def remove_apt_list_files(repo_url, series):
 
 def clean_apt_files(*, _entitlements=None):
     """
-    Clean apt files written by uaclient
+    Clean apt files written by ubuntupro
 
     :param _entitlements:
-        The uaclient.entitlements module to use, defaults to
-        uaclient.entitlements. (This is only present for testing, because the
+        The ubuntupro.entitlements module to use, defaults to
+        ubuntupro.entitlements. (This is only present for testing, because the
         import happens within the function to avoid circular imports.)
     """
-    from uaclient.entitlements.repo import RepoEntitlement
+    from ubuntupro.entitlements.repo import RepoEntitlement
 
     if _entitlements is None:
-        from uaclient import entitlements as __entitlements
+        from ubuntupro import entitlements as __entitlements
 
         _entitlements = __entitlements
 
@@ -707,9 +707,9 @@ def update_esm_caches(cfg) -> None:
     if not system.is_current_series_lts():
         return
 
-    from uaclient.actions import status
-    from uaclient.entitlements.entitlement_status import ApplicationStatus
-    from uaclient.entitlements.esm import (
+    from ubuntupro.actions import status
+    from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+    from ubuntupro.entitlements.esm import (
         ESMAppsEntitlement,
         ESMInfraEntitlement,
     )

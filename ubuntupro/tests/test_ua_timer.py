@@ -6,7 +6,7 @@ import pytest
 
 from lib import timer
 from lib.timer import MeteringTimedJob, TimedJob, run_jobs
-from uaclient.exceptions import InvalidFileFormatError
+from ubuntupro.exceptions import InvalidFileFormatError
 
 
 class TestTimedJob:

@@ -4,7 +4,7 @@ set -e
 
 remove_apt_files() {
     /usr/bin/python3 -c '
-from uaclient.apt import clean_apt_files
+from ubuntupro.apt import clean_apt_files
 
 clean_apt_files()
 '

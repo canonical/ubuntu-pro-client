@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient.cli import main
+from ubuntupro.cli import main
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 HELP_OUTPUT = """\
 usage: pro config <command> [flags]
@@ -21,8 +21,8 @@ Available Commands:
 """  # noqa
 
 
-@mock.patch("uaclient.cli.LOG.error")
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("ubuntupro.cli.LOG.error")
+@mock.patch("ubuntupro.cli.setup_logging")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfig:
     @pytest.mark.parametrize("additional_params", ([], ["--help"]))
@@ -41,7 +41,7 @@ class TestMainConfig:
                 "sys.argv", ["/usr/bin/ua", "config"] + additional_params
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()

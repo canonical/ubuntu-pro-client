@@ -18,8 +18,8 @@ import copy
 import json
 import logging
 
-from uaclient import system, util
-from uaclient.cli import setup_logging
+from ubuntupro import system, util
+from ubuntupro.cli import setup_logging
 
 LOG = logging.getLogger("ubuntupro.lib.patch_status_json")
 

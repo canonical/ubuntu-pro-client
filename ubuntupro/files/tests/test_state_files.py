@@ -1,6 +1,6 @@
 import pytest
 
-from uaclient.files.state_files import _services_once_enable_preprocess_data
+from ubuntupro.files.state_files import _services_once_enable_preprocess_data
 
 
 class TestServicesOnceEnabledPreprocessData:

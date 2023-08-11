@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient import exceptions, messages
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.entitlements.landscape import LandscapeEntitlement
+from ubuntupro import exceptions, messages
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.entitlements.landscape import LandscapeEntitlement
 
 
 class TestLandscapeEntitlement:
@@ -78,7 +78,7 @@ class TestLandscapeEntitlement:
             ),
         ],
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_perform_enable(
         self,
         m_subp,
@@ -144,7 +144,7 @@ class TestLandscapeEntitlement:
         ],
     )
     @mock.patch("os.rename")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_perform_disable(
         self,
         m_subp,
@@ -185,7 +185,7 @@ class TestLandscapeEntitlement:
             ),
         ],
     )
-    @mock.patch("uaclient.apt.is_installed")
+    @mock.patch("ubuntupro.apt.is_installed")
     def test_application_status(
         self,
         m_is_installed,
@@ -245,9 +245,9 @@ class TestLandscapeEntitlement:
             (True, False, None, True, [], (False, None)),
         ],
     )
-    @mock.patch("uaclient.system.is_systemd_unit_active")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.system.is_systemd_unit_active")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     @mock.patch("os.path.exists")
     def test_enabled_warning_status(
         self,

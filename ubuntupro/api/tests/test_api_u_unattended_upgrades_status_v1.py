@@ -3,14 +3,14 @@ import datetime
 import mock
 import pytest
 
-import uaclient.api.u.unattended_upgrades.status.v1 as api
-from uaclient.messages import (
+import ubuntupro.api.u.unattended_upgrades.status.v1 as api
+from ubuntupro.messages import (
     UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY,
     UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF,
     UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED,
 )
 
-M_PATH = "uaclient.api.u.unattended_upgrades.status.v1"
+M_PATH = "ubuntupro.api.u.unattended_upgrades.status.v1"
 
 
 class TestUnattendedUpgradesGetAptDailyJob:

@@ -1,5 +1,5 @@
-from uaclient import http
-from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
+from ubuntupro import http
+from ubuntupro.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
 
 
 class FakeContractClient(UAContractClient):

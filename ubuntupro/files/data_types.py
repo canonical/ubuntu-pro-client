@@ -2,12 +2,12 @@ import json
 from enum import Enum
 from typing import Callable, Dict, Generic, Optional, Type, TypeVar
 
-from uaclient import exceptions
-from uaclient.data_types import DataObject
-from uaclient.files.files import UAFile
-from uaclient.util import DatetimeAwareJSONDecoder
-from uaclient.yaml import parser as yaml_parser
-from uaclient.yaml import safe_dump, safe_load
+from ubuntupro import exceptions
+from ubuntupro.data_types import DataObject
+from ubuntupro.files.files import UAFile
+from ubuntupro.util import DatetimeAwareJSONDecoder
+from ubuntupro.yaml import parser as yaml_parser
+from ubuntupro.yaml import safe_dump, safe_load
 
 
 class DataObjectFileFormat(Enum):

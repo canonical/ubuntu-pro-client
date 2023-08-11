@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 import yaml
 
-from uaclient.system import get_dpkg_arch
+from ubuntupro.system import get_dpkg_arch
 
 SUT = "system-under-test"
 LXC_PROPERTY_MAP = {

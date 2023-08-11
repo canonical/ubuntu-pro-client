@@ -8,7 +8,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, system
+from ubuntupro import apt, exceptions, messages, system
 
 
 class TestGetKernelInfo:
@@ -193,9 +193,9 @@ class TestGetKernelInfo:
             ),
         ),
     )
-    @mock.patch("uaclient.system._get_kernel_build_date")
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.system.os.uname")
+    @mock.patch("ubuntupro.system._get_kernel_build_date")
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.system.os.uname")
     def test_get_kernel_info(
         self,
         m_uname,
@@ -256,7 +256,7 @@ class TestGetKernelInfo:
             ),
         ],
     )
-    @mock.patch("uaclient.system._get_kernel_changelog_timestamp")
+    @mock.patch("ubuntupro.system._get_kernel_changelog_timestamp")
     def test_get_kernel_build_date(
         self,
         m_get_kernel_changelog_timestamp,
@@ -310,7 +310,7 @@ class TestGetKernelInfo:
         ],
     )
     @mock.patch("os.stat")
-    @mock.patch("uaclient.system.is_container")
+    @mock.patch("ubuntupro.system.is_container")
     def test_get_kernel_changelog_timestamp(
         self,
         m_is_container,
@@ -345,7 +345,7 @@ class TestGetDpkgArch:
             ),
         ),
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_get_dpkg_arch(self, m_subp, stdout, expected):
         m_subp.return_value = (stdout, "")
         assert system.get_dpkg_arch.__wrapped__() == expected
@@ -397,8 +397,8 @@ class TestGetVirtType:
             ),
         ],
     )
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.system.subp")
     def test_get_virt_type(
         self,
         m_subp,
@@ -420,7 +420,7 @@ class TestIsLTS:
             ("groovy", "xenial\nbionic\nfocal", False),
         ),
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_is_lts_if_distro_info_supported_esm(
         self, subp, series, supported_esm, expected
     ):
@@ -436,7 +436,7 @@ class TestIsSupported:
     @pytest.mark.parametrize(
         "series,expected", (("sup1", True), ("unsup", False))
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_return_supported_series(self, subp, series, expected):
         subp.return_value = "sup1\nsup2\nsup3", ""
         assert expected is system.is_supported.__wrapped__(series)
@@ -458,8 +458,8 @@ class TestIsActiveESM:
             ("groovy", False, 0, False),
         ),
     )
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.system.is_lts")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.system.is_lts")
     def test_true_when_supported_esm_release_and_active(
         self, util_is_lts, subp, series, is_lts, days_until_esm, expected
     ):
@@ -485,7 +485,7 @@ class TestIsActiveESM:
 
 
 class TestIsContainer:
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_true_systemd_detect_virt_success(self, m_subp):
         """Return True when systemd-detect virt exits success."""
         system.is_container.cache_clear()
@@ -505,7 +505,7 @@ class TestIsContainer:
         ]
         assert calls == m_subp.call_args_list
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_true_on_run_container_type(self, m_subp, tmpdir):
         """Return True when /run/container_type exists."""
         system.is_container.cache_clear()
@@ -524,7 +524,7 @@ class TestIsContainer:
         ]
         assert calls == m_subp.call_args_list
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_true_on_run_systemd_container(self, m_subp, tmpdir):
         """Return True when /run/systemd/container exists."""
         system.is_container.cache_clear()
@@ -543,7 +543,7 @@ class TestIsContainer:
         ]
         assert calls == m_subp.call_args_list
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_false_on_non_sytemd_detect_virt_and_no_runfiles(
         self, m_subp, tmpdir
     ):
@@ -557,7 +557,7 @@ class TestIsContainer:
         ]
         tmpdir.join("systemd/container").write("", ensure=True)
 
-        with mock.patch("uaclient.util.os.path.exists") as m_exists:
+        with mock.patch("ubuntupro.util.os.path.exists") as m_exists:
             m_exists.return_value = False
             assert False is system.is_container(run_path=tmpdir.strpath)
         calls = [
@@ -571,7 +571,7 @@ class TestIsContainer:
         ]
         assert exists_calls == m_exists.call_args_list
 
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_false_on_chroot_system(self, m_subp):
         system.is_container.cache_clear()
         m_subp.return_value = ("", "")
@@ -654,7 +654,7 @@ class TestIsDesktop:
             ),
         ],
     )
-    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("ubuntupro.apt.get_installed_packages")
     def test_true_systemd_detect_virt_success(
         self,
         m_installed_packages,
@@ -791,7 +791,7 @@ LOGO=ubuntu-logo
             ),
         ),
     )
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_parse_os_release(self, m_load_file, content, expected):
         """_parse_os_release returns a dict of values from /etc/os-release."""
         m_load_file.return_value = content
@@ -799,7 +799,7 @@ LOGO=ubuntu-logo
         assert m_load_file.call_args_list == [mock.call("/etc/os-release")]
 
 
-@mock.patch("uaclient.system.load_file")
+@mock.patch("ubuntupro.system.load_file")
 class TestGetDistroInfo:
     content = """\
 version,codename,series,created,release,eol,eol-server,eol-esm
@@ -858,7 +858,7 @@ class TestGetReleaseInfo:
             ),
         ),
     )
-    @mock.patch("uaclient.system._parse_os_release")
+    @mock.patch("ubuntupro.system._parse_os_release")
     def test_get_release_info_error(
         self, m_parse_os_release, version, expected_exception
     ):
@@ -949,10 +949,10 @@ class TestGetReleaseInfo:
             ),
         ],
     )
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system._parse_os_release")
-    @mock.patch("uaclient.system.get_virt_type")
+    @mock.patch("ubuntupro.system.get_kernel_info")
+    @mock.patch("ubuntupro.system.get_dpkg_arch")
+    @mock.patch("ubuntupro.system._parse_os_release")
+    @mock.patch("ubuntupro.system.get_virt_type")
     def test_get_release_info_with_version(
         self,
         m_get_virt_type,
@@ -979,7 +979,7 @@ class TestGetMachineId:
         etc_machine_id.write("etc-machine-id")
         cfg = FakeConfig()
         with mock.patch(
-            "uaclient.system.ETC_MACHINE_ID", etc_machine_id.strpath
+            "ubuntupro.system.ETC_MACHINE_ID", etc_machine_id.strpath
         ):
             value = system.get_machine_id(cfg)
             # Test lru_cache caches /etc/machine-id from first read
@@ -998,10 +998,10 @@ class TestGetMachineId:
         dbus_machine_id.write("dbus-machine-id")
         cfg = FakeConfig()
         with mock.patch(
-            "uaclient.system.DBUS_MACHINE_ID", dbus_machine_id.strpath
+            "ubuntupro.system.DBUS_MACHINE_ID", dbus_machine_id.strpath
         ):
             with mock.patch(
-                "uaclient.system.ETC_MACHINE_ID", etc_machine_id.strpath
+                "ubuntupro.system.ETC_MACHINE_ID", etc_machine_id.strpath
             ):
                 value = system.get_machine_id(cfg)
         assert "dbus-machine-id" == value
@@ -1018,7 +1018,7 @@ class TestGetMachineId:
         def fake_exists(path):
             return bool(path == data_machine_id.strpath)
 
-        with mock.patch("uaclient.util.os.path.exists") as m_exists:
+        with mock.patch("ubuntupro.util.os.path.exists") as m_exists:
             m_exists.side_effect = fake_exists
             value = system.get_machine_id(cfg)
         assert "data-machine-id" == value
@@ -1030,8 +1030,8 @@ class TestGetMachineId:
         data_machine_id = tmpdir.mkdir("private").join("machine-id")
 
         cfg = FakeConfig()
-        with mock.patch("uaclient.util.os.path.exists") as m_exists:
-            with mock.patch("uaclient.system.uuid.uuid4") as m_uuid4:
+        with mock.patch("ubuntupro.util.os.path.exists") as m_exists:
+            with mock.patch("ubuntupro.system.uuid.uuid4") as m_uuid4:
                 m_exists.return_value = False
                 m_uuid4.return_value = uuid.UUID(
                     "0123456789abcdef0123456789abcdef"
@@ -1051,12 +1051,12 @@ class TestGetMachineId:
         # Need to initialize the property with a noop,
         # so load_file is not called after mocked
         cfg.machine_token
-        with mock.patch("uaclient.util.os.path.exists") as m_exists:
+        with mock.patch("ubuntupro.util.os.path.exists") as m_exists:
             m_exists.return_value = True
             with mock.patch(
-                "uaclient.system.load_file", return_value=empty_value
+                "ubuntupro.system.load_file", return_value=empty_value
             ):
-                with mock.patch("uaclient.system.uuid.uuid4") as m_uuid4:
+                with mock.patch("ubuntupro.system.uuid.uuid4") as m_uuid4:
                     m_uuid4.return_value = uuid.UUID(
                         "0123456789abcdef0123456789abcdef"
                     )
@@ -1076,7 +1076,7 @@ class TestShouldReboot:
         assert 1 == m_path.call_count
 
     @mock.patch("os.path.exists")
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_should_reboot_when_no_reboot_required_pkgs_exist(
         self, m_load_file, m_path
     ):
@@ -1104,7 +1104,7 @@ class TestShouldReboot:
         ),
     )
     @mock.patch("os.path.exists")
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_should_reboot_when_reboot_required_pkgs_exist(
         self,
         m_load_file,
@@ -1151,16 +1151,16 @@ class TestWriteFile:
 class TestSubp:
     def test_raise_error_on_timeout(self, _subp):
         """When cmd exceeds the timeout raises a TimeoutExpired error."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             with pytest.raises(subprocess.TimeoutExpired) as excinfo:
                 system.subp(["sleep", "2"], timeout=0)
         msg = "Command '[b'sleep', b'2']' timed out after 0 seconds"
         assert msg == str(excinfo.value)
 
-    @mock.patch("uaclient.util.time.sleep")
+    @mock.patch("ubuntupro.util.time.sleep")
     def test_default_do_not_retry_on_failure_return_code(self, m_sleep, _subp):
         """When no retry_sleeps are specified, do not retry failures."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             with pytest.raises(exceptions.ProcessExecutionError) as excinfo:
                 system.subp(["ls", "--bogus"])
 
@@ -1168,19 +1168,19 @@ class TestSubp:
         assert "" == excinfo.value.stdout
         assert 0 == m_sleep.call_count  # no retries
 
-    @mock.patch("uaclient.util.time.sleep")
+    @mock.patch("ubuntupro.util.time.sleep")
     def test_no_error_on_accepted_return_codes(self, m_sleep, _subp):
         """When rcs list includes the exit code, do not raise an error."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             out, _ = system.subp(["ls", "--bogus"], rcs=[2])
 
         assert "" == out
         assert 0 == m_sleep.call_count  # no retries
 
-    @mock.patch("uaclient.util.time.sleep")
+    @mock.patch("ubuntupro.util.time.sleep")
     def test_retry_with_specified_sleeps_on_error(self, m_sleep, _subp):
         """When retry_sleeps given, use defined sleeps between each retry."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             with pytest.raises(exceptions.ProcessExecutionError) as excinfo:
                 system.subp(["ls", "--bogus"], retry_sleeps=[1, 3, 0.4])
 
@@ -1189,20 +1189,20 @@ class TestSubp:
         expected_sleeps = [mock.call(1), mock.call(3), mock.call(0.4)]
         assert expected_sleeps == m_sleep.call_args_list
 
-    @mock.patch("uaclient.util.time.sleep")
+    @mock.patch("ubuntupro.util.time.sleep")
     def test_retry_doesnt_consume_retry_sleeps(self, m_sleep, _subp):
         """When retry_sleeps given, use defined sleeps between each retry."""
         sleeps = [1, 3, 0.4]
         expected_sleeps = sleeps.copy()
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
+        with mock.patch("ubuntupro.system._subp", side_effect=_subp):
             with pytest.raises(exceptions.ProcessExecutionError):
                 system.subp(["ls", "--bogus"], retry_sleeps=sleeps)
 
         assert expected_sleeps == sleeps
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.system._subp")
-    @mock.patch("uaclient.util.time.sleep")
+    @mock.patch("ubuntupro.system._subp")
+    @mock.patch("ubuntupro.util.time.sleep")
     def test_retry_logs_remaining_retries(self, m_sleep, m_subp, caplog_text):
         """When retry_sleeps given, use defined sleeps between each retry."""
         sleeps = [1, 3, 0.4]
@@ -1223,7 +1223,7 @@ class TestSubp:
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @pytest.mark.parametrize("capture", [True, False])
-    @mock.patch("uaclient.system._subp")
+    @mock.patch("ubuntupro.system._subp")
     def test_log_subp_fails_stdout_stderr_capture_toggle(
         self, m_subp, capture, caplog_text
     ):
@@ -1320,7 +1320,7 @@ class TestIsSystemdServiceActive:
             (exceptions.ProcessExecutionError("test"), False),
         ),
     )
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.system.subp")
     def test_is_systemd_unit_active(
         self,
         m_subp,
@@ -1394,7 +1394,7 @@ class TestGetCpuInfo:
             ),
         ),
     )
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_get_cpu_vendor(
         self, m_load_file, cpuinfo, vendor_id, model, stepping
     ):
@@ -1420,7 +1420,7 @@ class TestGetUserCacheDir:
     )
     @mock.patch("os.path.expanduser")
     @mock.patch("os.environ.get")
-    @mock.patch("uaclient.util.we_are_currently_root")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
     def test_get_user_cache_dir(
         self,
         m_we_are_currently_root,
@@ -1438,7 +1438,7 @@ class TestGetUserCacheDir:
 
 
 class TestGetRebootRequiredPkgs:
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_when_no_reboot_required_file_is_found(self, m_load_file):
         m_load_file.side_effect = FileNotFoundError()
         assert system.get_reboot_required_pkgs() is None
@@ -1460,7 +1460,7 @@ class TestGetRebootRequiredPkgs:
             ),
         ),
     )
-    @mock.patch("uaclient.system.load_file")
+    @mock.patch("ubuntupro.system.load_file")
     def test_reboot_required_pkgs(
         self,
         m_load_file,

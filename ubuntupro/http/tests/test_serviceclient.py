@@ -4,8 +4,8 @@ from urllib.parse import urlencode
 import mock
 import pytest
 
-from uaclient import http
-from uaclient.http.serviceclient import UAServiceClient
+from ubuntupro import http
+from ubuntupro.http.serviceclient import UAServiceClient
 
 
 class OurServiceClient(UAServiceClient):
@@ -21,7 +21,7 @@ class TestRequestUrl:
     @pytest.mark.parametrize(
         "m_kwargs", ({"a": 1, "b": "2", "c": "try me"}, {})
     )
-    @mock.patch("uaclient.http.readurl")
+    @mock.patch("ubuntupro.http.readurl")
     def test_url_query_params_append_querystring(
         self, m_readurl, m_kwargs, FakeConfig
     ):

@@ -1,7 +1,7 @@
 import enum
 from typing import Optional
 
-from uaclient import messages
+from ubuntupro import messages
 
 
 @enum.unique

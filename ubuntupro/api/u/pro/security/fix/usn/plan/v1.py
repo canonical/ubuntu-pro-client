@@ -1,11 +1,11 @@
 from typing import List
 
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.security.fix import FixPlanUSNResult, fix_plan_usn
-from uaclient.config import UAConfig
-from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.security import FixStatus
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.api.u.pro.security.fix import FixPlanUSNResult, fix_plan_usn
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import DataObject, Field, StringDataValue, data_list
+from ubuntupro.security import FixStatus
 
 
 class USNFixPlanOptions(DataObject):

@@ -3,12 +3,12 @@ import os
 import sys
 from subprocess import TimeoutExpired
 
-from uaclient import exceptions
-from uaclient import log as pro_log
-from uaclient import system, util
-from uaclient.config import UAConfig
-from uaclient.defaults import DEFAULT_DATA_DIR
-from uaclient.log import JsonArrayFormatter
+from ubuntupro import exceptions
+from ubuntupro import log as pro_log
+from ubuntupro import system, util
+from ubuntupro.config import UAConfig
+from ubuntupro.defaults import DEFAULT_DATA_DIR
+from ubuntupro.log import JsonArrayFormatter
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -36,7 +36,7 @@ def stop():
 
 
 def cleanup(cfg: UAConfig):
-    from uaclient.daemon import retry_auto_attach
+    from ubuntupro.daemon import retry_auto_attach
 
     retry_auto_attach.cleanup(cfg)
 

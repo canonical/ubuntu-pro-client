@@ -1,14 +1,14 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import (
+from ubuntupro.api.u.pro.attach.auto.configure_retry_service.v1 import (
     ConfigureRetryServiceOptions,
     _configure_retry_service,
 )
-from uaclient.daemon import retry_auto_attach
-from uaclient.files import state_files
+from ubuntupro.daemon import retry_auto_attach
+from ubuntupro.files import state_files
 
-M_PATH = "uaclient.api.u.pro.attach.auto.configure_retry_service.v1."
+M_PATH = "ubuntupro.api.u.pro.attach.auto.configure_retry_service.v1."
 
 
 @mock.patch(M_PATH + "system.create_file")

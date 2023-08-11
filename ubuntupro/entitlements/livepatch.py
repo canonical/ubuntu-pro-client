@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import (
+from ubuntupro import (
     event_logger,
     exceptions,
     http,
@@ -11,9 +11,9 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.entitlements.base import IncompatibleService, UAEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.types import StaticAffordance
+from ubuntupro.entitlements.base import IncompatibleService, UAEntitlement
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.types import StaticAffordance
 
 LIVEPATCH_RETRIES = [0.5, 1.0]
 
@@ -41,8 +41,8 @@ class LivepatchEntitlement(UAEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        from uaclient.entitlements.fips import FIPSEntitlement
-        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
+        from ubuntupro.entitlements.fips import FIPSEntitlement
+        from ubuntupro.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
             IncompatibleService(
@@ -57,7 +57,7 @@ class LivepatchEntitlement(UAEntitlement):
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock system.is_container in tests
-        from uaclient.entitlements.fips import FIPSEntitlement
+        from ubuntupro.entitlements.fips import FIPSEntitlement
 
         fips_ent = FIPSEntitlement(self.cfg)
 

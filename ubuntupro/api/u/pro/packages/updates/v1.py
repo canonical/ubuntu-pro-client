@@ -1,16 +1,16 @@
 from typing import List
 
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.config import UAConfig
-from uaclient.data_types import (
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import (
     DataObject,
     Field,
     IntDataValue,
     StringDataValue,
     data_list,
 )
-from uaclient.security_status import (
+from ubuntupro.security_status import (
     create_updates_list,
     filter_security_updates,
     get_installed_packages_by_origin,

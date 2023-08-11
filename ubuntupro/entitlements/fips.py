@@ -3,18 +3,18 @@ import os
 from itertools import groupby
 from typing import List, Optional, Tuple  # noqa: F401
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
-from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
-from uaclient.entitlements import repo
-from uaclient.entitlements.base import IncompatibleService
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.files import notices
-from uaclient.files.notices import Notice
-from uaclient.files.state_files import (
+from ubuntupro import apt, event_logger, exceptions, messages, system, util
+from ubuntupro.clouds.identity import NoCloudTypeReason, get_cloud_type
+from ubuntupro.entitlements import repo
+from ubuntupro.entitlements.base import IncompatibleService
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.files import notices
+from ubuntupro.files.notices import Notice
+from ubuntupro.files.state_files import (
     ServicesOnceEnabledData,
     services_once_enabled_file,
 )
-from uaclient.types import (  # noqa: F401
+from ubuntupro.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
     StaticAffordance,
@@ -366,8 +366,8 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
-        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
+        from ubuntupro.entitlements.livepatch import LivepatchEntitlement
+        from ubuntupro.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
             IncompatibleService(
@@ -471,7 +471,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
-        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
+        from ubuntupro.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
             IncompatibleService(

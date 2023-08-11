@@ -3,19 +3,19 @@ import re
 from collections import defaultdict
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
-from uaclient import apt, exceptions, messages
-from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
-from uaclient.data_types import (
+from ubuntupro import apt, exceptions, messages
+from ubuntupro.api.u.pro.status.enabled_services.v1 import _enabled_services
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.contract import ContractExpiryStatus, get_contract_expiry_status
+from ubuntupro.data_types import (
     DataObject,
     Field,
     IntDataValue,
     StringDataValue,
     data_list,
 )
-from uaclient.security import (
+from ubuntupro.security import (
     CVE_OR_USN_REGEX,
     UA_APPS_POCKET,
     UA_INFRA_POCKET,

@@ -1,18 +1,18 @@
 from enum import Enum
 from typing import List, Optional
 
-from uaclient import livepatch
-from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
-from uaclient.config import UAConfig
-from uaclient.data_types import (
+from ubuntupro import livepatch
+from ubuntupro.api.api import APIEndpoint
+from ubuntupro.api.data_types import AdditionalInfo
+from ubuntupro.config import UAConfig
+from ubuntupro.data_types import (
     BoolDataValue,
     DataObject,
     Field,
     StringDataValue,
     data_list,
 )
-from uaclient.system import (
+from ubuntupro.system import (
     get_kernel_info,
     get_reboot_required_pkgs,
     should_reboot,

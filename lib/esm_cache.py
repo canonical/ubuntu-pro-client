@@ -2,10 +2,10 @@
 
 import logging
 
-from uaclient import defaults
-from uaclient.apt import update_esm_caches
-from uaclient.config import UAConfig
-from uaclient.daemon import setup_logging
+from ubuntupro import defaults
+from ubuntupro.apt import update_esm_caches
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import setup_logging
 
 LOG = logging.getLogger("ubuntupro.lib.esm_cache")
 

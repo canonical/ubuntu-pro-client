@@ -1,10 +1,10 @@
 import logging
 
-from uaclient import contract, messages, util
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.files import notices
-from uaclient.files.notices import Notice
+from ubuntupro import contract, messages, util
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.files import notices
+from ubuntupro.files.notices import Notice
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

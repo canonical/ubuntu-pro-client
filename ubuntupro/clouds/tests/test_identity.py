@@ -1,15 +1,15 @@
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient.clouds.identity import (
+from ubuntupro import exceptions
+from ubuntupro.clouds.identity import (
     NoCloudTypeReason,
     cloud_instance_factory,
     get_cloud_type,
     get_instance_id,
 )
 
-M_PATH = "uaclient.clouds.identity."
+M_PATH = "ubuntupro.clouds.identity."
 
 
 class TestGetInstanceID:
@@ -72,9 +72,9 @@ class TestGetCloudType:
         ),
     )
     @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.system.which", return_value="/usr/bin/cloud-id")
-    @mock.patch("uaclient.system.subp", return_value=("test", ""))
+    @mock.patch("ubuntupro.system.load_file")
+    @mock.patch("ubuntupro.system.which", return_value="/usr/bin/cloud-id")
+    @mock.patch("ubuntupro.system.subp", return_value=("test", ""))
     def test_cloud_type_when_using_settings_override(
         self, m_subp, m_which, m_load_file, _m_path_exists, settings_overrides
     ):
@@ -118,9 +118,11 @@ class TestCloudInstanceFactory:
             return instance
 
         if cloud_type == "aws":
-            M_INSTANCE_PATH = "uaclient.clouds.aws.UAAutoAttachAWSInstance"
+            M_INSTANCE_PATH = "ubuntupro.clouds.aws.UAAutoAttachAWSInstance"
         else:
-            M_INSTANCE_PATH = "uaclient.clouds.azure.UAAutoAttachAzureInstance"
+            M_INSTANCE_PATH = (
+                "ubuntupro.clouds.azure.UAAutoAttachAzureInstance"
+            )
 
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_invalid_instance
@@ -143,9 +145,11 @@ class TestCloudInstanceFactory:
             return fake_instance
 
         if cloud_type == "azure":
-            M_INSTANCE_PATH = "uaclient.clouds.azure.UAAutoAttachAzureInstance"
+            M_INSTANCE_PATH = (
+                "ubuntupro.clouds.azure.UAAutoAttachAzureInstance"
+            )
         else:
-            M_INSTANCE_PATH = "uaclient.clouds.aws.UAAutoAttachAWSInstance"
+            M_INSTANCE_PATH = "ubuntupro.clouds.aws.UAAutoAttachAWSInstance"
 
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_viable_instance

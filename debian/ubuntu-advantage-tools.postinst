@@ -116,7 +116,7 @@ check_service_is_enabled() {
     _RET=$(/usr/bin/python3 -c "
 import os
 import json
-from uaclient.config import UAConfig
+from ubuntupro.config import UAConfig
 cfg = UAConfig()
 status = cfg.read_cache('status-cache')
 if status:
@@ -284,7 +284,7 @@ create_public_machine_token_file() {
     # version of the machine-token file with all the
     # sensitive data removed.
     /usr/bin/python3 -c "
-from uaclient.files import MachineTokenFile
+from ubuntupro.files import MachineTokenFile
 machine_token_file = MachineTokenFile()
 content = machine_token_file.read()
 machine_token_file.write(content)

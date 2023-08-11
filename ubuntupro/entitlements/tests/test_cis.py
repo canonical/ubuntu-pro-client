@@ -1,12 +1,12 @@
-"""Tests related to uaclient.entitlement.base module."""
+"""Tests related to ubuntupro.entitlement.base module."""
 
 import mock
 import pytest
 
-from uaclient import apt, messages, system
-from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
+from ubuntupro import apt, messages, system
+from ubuntupro.entitlements.cis import CIS_DOCS_URL, CISEntitlement
 
-M_REPOPATH = "uaclient.entitlements.repo."
+M_REPOPATH = "ubuntupro.entitlements.repo."
 
 
 @pytest.fixture
@@ -20,12 +20,12 @@ def entitlement(entitlement_factory):
 
 
 class TestCISEntitlementEnable:
-    @mock.patch("uaclient.apt.get_apt_cache_policy")
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.system.should_reboot")
-    @mock.patch("uaclient.system.subp")
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch("uaclient.system.get_release_info")
+    @mock.patch("ubuntupro.apt.get_apt_cache_policy")
+    @mock.patch("ubuntupro.apt.setup_apt_proxy")
+    @mock.patch("ubuntupro.system.should_reboot")
+    @mock.patch("ubuntupro.system.subp")
+    @mock.patch("ubuntupro.system.get_kernel_info")
+    @mock.patch("ubuntupro.system.get_release_info")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         m_release_info,
@@ -65,8 +65,8 @@ class TestCISEntitlementEnable:
         m_should_reboot.return_value = False
 
         with mock.patch(M_REPOPATH + "exists", mock.Mock(return_value=True)):
-            with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
-                with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
+            with mock.patch("ubuntupro.apt.add_auth_apt_repo") as m_add_apt:
+                with mock.patch("ubuntupro.apt.add_ppa_pinning") as m_add_pin:
                     assert entitlement.enable()
 
         add_apt_calls = [

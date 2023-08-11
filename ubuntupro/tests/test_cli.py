@@ -10,8 +10,8 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import defaults, exceptions, messages, status
-from uaclient.cli import (
+from ubuntupro import defaults, exceptions, messages, status
+from ubuntupro.cli import (
     action_help,
     assert_attached,
     assert_lock_file,
@@ -21,15 +21,15 @@ from uaclient.cli import (
     main,
     setup_logging,
 )
-from uaclient.entitlements import get_valid_entitlement_names
-from uaclient.exceptions import (
+from ubuntupro.entitlements import get_valid_entitlement_names
+from ubuntupro.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
     NonRootUserError,
     UnattachedError,
     UserFacingError,
 )
-from uaclient.files.notices import Notice
+from ubuntupro.files.notices import Notice
 
 BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10
@@ -77,7 +77,7 @@ def get_help(request, capsys, FakeConfig):
 
         def _get_help_output():
             with mock.patch(
-                "uaclient.config.UAConfig",
+                "ubuntupro.config.UAConfig",
                 return_value=FakeConfig(),
             ):
                 parser = get_parser(cfg)
@@ -91,7 +91,7 @@ def get_help(request, capsys, FakeConfig):
             parser = get_parser(cfg)
             with mock.patch("sys.argv", ["pro", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     with pytest.raises(SystemExit):
@@ -104,10 +104,10 @@ def get_help(request, capsys, FakeConfig):
         def _get_help_output():
             with mock.patch("sys.argv", request.param.split(" ")):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
-                    with mock.patch("uaclient.cli.setup_logging"):
+                    with mock.patch("ubuntupro.cli.setup_logging"):
                         main()
             out, _err = capsys.readouterr()
 
@@ -124,10 +124,10 @@ def get_help(request, capsys, FakeConfig):
 class TestCLIParser:
     maxDiff = None
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.log.get_user_log_file")
-    @mock.patch("uaclient.cli.entitlements")
-    @mock.patch("uaclient.cli.contract")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.log.get_user_log_file")
+    @mock.patch("ubuntupro.cli.entitlements")
+    @mock.patch("ubuntupro.cli.contract")
     def test_help_descr_and_url_is_wrapped_at_eighty_chars(
         self,
         m_contract,
@@ -159,14 +159,14 @@ class TestCLIParser:
             "   next line ({url})".format(url=BIG_URL),
         ]
         with mock.patch.dict(
-            "uaclient.cli.defaults.CONFIG_DEFAULTS", defaults_ret
+            "ubuntupro.cli.defaults.CONFIG_DEFAULTS", defaults_ret
         ):
             out, _ = get_help()
         assert "\n".join(lines) in out
 
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.log.get_user_log_file")
-    @mock.patch("uaclient.cli.contract")
+    @mock.patch("ubuntupro.util.we_are_currently_root", return_value=False)
+    @mock.patch("ubuntupro.log.get_user_log_file")
+    @mock.patch("ubuntupro.cli.contract")
     def test_help_sourced_dynamically_from_each_entitlement(
         self,
         m_contract,
@@ -184,7 +184,7 @@ class TestCLIParser:
             "log_file": default_get_user_log_file,
         }
         with mock.patch.dict(
-            "uaclient.cli.defaults.CONFIG_DEFAULTS", defaults_ret
+            "ubuntupro.cli.defaults.CONFIG_DEFAULTS", defaults_ret
         ):
             out, type_request = get_help()
             assert SERVICES_WRAPPED_HELP in out
@@ -201,8 +201,8 @@ class TestCLIParser:
             ("json", {"name": "test", "available": "yes", "help": "Test"}),
         ),
     )
-    @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.status._is_attached")
+    @mock.patch("ubuntupro.status.get_available_resources")
+    @mock.patch("ubuntupro.status._is_attached")
     def test_help_command_when_unnatached(
         self, m_attached, m_available_resources, out_format, expected_return
     ):
@@ -230,7 +230,7 @@ class TestCLIParser:
 
         fake_stdout = io.StringIO()
         with mock.patch(
-            "uaclient.status.entitlement_factory",
+            "ubuntupro.status.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
@@ -255,8 +255,8 @@ class TestCLIParser:
         ),
     )
     @pytest.mark.parametrize("is_beta", (True, False))
-    @mock.patch("uaclient.status.get_available_resources")
-    @mock.patch("uaclient.status._is_attached")
+    @mock.patch("ubuntupro.status.get_available_resources")
+    @mock.patch("ubuntupro.status._is_attached")
     def test_help_command_when_attached(
         self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
     ):
@@ -313,7 +313,7 @@ class TestCLIParser:
 
         fake_stdout = io.StringIO()
         with mock.patch(
-            "uaclient.status.entitlement_factory",
+            "ubuntupro.status.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
@@ -332,7 +332,7 @@ class TestCLIParser:
             ufs_call_count == m_entitlement_obj.user_facing_status.call_count
         )
 
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_help_command_for_invalid_service(self, m_available_resources):
         """Test help command when an invalid service is provided."""
         m_args = mock.MagicMock()
@@ -355,13 +355,13 @@ class TestCLIParser:
         assert 1 == m_available_resources.call_count
 
 
-M_PATH_UACONFIG = "uaclient.config.UAConfig."
+M_PATH_UACONFIG = "ubuntupro.config.UAConfig."
 
 
 class TestAssertLockFile:
     @mock.patch("os.getpid", return_value=123)
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-    @mock.patch("uaclient.files.notices.NoticesManager.add")
+    @mock.patch("ubuntupro.files.notices.NoticesManager.add")
     @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_assert_root_creates_lock_and_notice(
         self,
@@ -414,7 +414,7 @@ class TestAssertRoot:
             pass
 
         with mock.patch(
-            "uaclient.cli.util.we_are_currently_root", return_value=False
+            "ubuntupro.cli.util.we_are_currently_root", return_value=False
         ):
             with pytest.raises(NonRootUserError):
                 test_function()
@@ -431,7 +431,7 @@ class TestAssertAttached:
         cfg = FakeConfig.for_attached_machine()
 
         with mock.patch(
-            "uaclient.cli.util.we_are_currently_root", return_value=root
+            "ubuntupro.cli.util.we_are_currently_root", return_value=root
         ):
             ret = test_function(mock.Mock(), cfg)
 
@@ -448,7 +448,7 @@ class TestAssertAttached:
         cfg = FakeConfig()
 
         with mock.patch(
-            "uaclient.cli.util.we_are_currently_root", return_value=root
+            "ubuntupro.cli.util.we_are_currently_root", return_value=root
         ):
             with pytest.raises(UnattachedError):
                 test_function(mock.Mock(), cfg)
@@ -464,7 +464,7 @@ class TestAssertNotAttached:
         cfg = FakeConfig.for_attached_machine()
 
         with mock.patch(
-            "uaclient.cli.util.we_are_currently_root", return_value=root
+            "ubuntupro.cli.util.we_are_currently_root", return_value=root
         ):
             with pytest.raises(AlreadyAttachedError):
                 test_function(mock.Mock(), cfg)
@@ -477,7 +477,7 @@ class TestAssertNotAttached:
         cfg = FakeConfig()
 
         with mock.patch(
-            "uaclient.cli.util.we_are_currently_root", return_value=root
+            "ubuntupro.cli.util.we_are_currently_root", return_value=root
         ):
             ret = test_function(mock.Mock(), cfg)
 
@@ -499,8 +499,8 @@ class TestMain:
         ),
     )
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     def test_errors_handled_gracefully(
         self,
         m_get_parser,
@@ -520,7 +520,7 @@ class TestMain:
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -547,8 +547,8 @@ class TestMain:
         ),
     )
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     def test_interrupt_errors_handled_gracefully(
         self,
         m_get_parser,
@@ -567,7 +567,7 @@ class TestMain:
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -597,8 +597,8 @@ class TestMain:
             ),
         ],
     )
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
         self,
         m_get_parser,
@@ -650,8 +650,8 @@ class TestMain:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     def test_url_error_handled_gracefully(
         self,
         m_get_parser,
@@ -681,8 +681,8 @@ class TestMain:
         assert "Traceback (most recent call last):" in error_log
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     def test_command_line_is_logged(
         self, _m_get_parser, _m_setup_logging, caplog_text
     ):
@@ -693,10 +693,10 @@ class TestMain:
         assert "['some', 'args']" in log
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
     @mock.patch(
-        "uaclient.cli.util.get_pro_environment",
+        "ubuntupro.cli.util.get_pro_environment",
         return_value={"UA_ENV": "YES", "UA_FEATURES_WOW": "XYZ"},
     )
     def test_environment_is_logged(
@@ -713,9 +713,9 @@ class TestMain:
         assert "UA_ENV=YES" in log
         assert "UA_FEATURES_WOW=XYZ" in log
 
-    @mock.patch("uaclient.cli.setup_logging")
-    @mock.patch("uaclient.cli.get_parser")
-    @mock.patch("uaclient.cli.config.UAConfig")
+    @mock.patch("ubuntupro.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.get_parser")
+    @mock.patch("ubuntupro.cli.config.UAConfig")
     @pytest.mark.parametrize("config_error", [True, False])
     def test_setup_logging_with_defaults(
         self,
@@ -752,7 +752,7 @@ class TestMain:
 
         assert expected_setup_logging_calls == m_setup_logging.call_args_list
 
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("ubuntupro.cli.contract.get_available_resources")
     def test_argparse_errors_well_formatted(
         self, _m_resources, capsys, FakeConfig
     ):
@@ -789,9 +789,9 @@ class TestMain:
             (["pro", "security-status", "--format", "json"], False, False),
         ),
     )
-    @mock.patch("uaclient.cli.action_status")
-    @mock.patch("uaclient.cli.action_security_status")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.action_status")
+    @mock.patch("ubuntupro.cli.action_security_status")
+    @mock.patch("ubuntupro.cli.setup_logging")
     @mock.patch("sys.stdout.isatty")
     def test_status_human_readable_warning(
         self,
@@ -809,7 +809,7 @@ class TestMain:
         m_tty.return_value = is_tty
         with mock.patch("sys.argv", cli_args):
             with mock.patch(
-                "uaclient.config.UAConfig",
+                "ubuntupro.config.UAConfig",
                 return_value=FakeConfig(),
             ):
                 main()
@@ -837,7 +837,7 @@ class TestSetupLogging:
         logger.addHandler(handler)
 
         with mock.patch(
-            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
+            "ubuntupro.cli.config.UAConfig", return_value=FakeConfig()
         ):
             setup_logging(console_level, log_level, logger=logger)
         assert len(logger.handlers) == 2
@@ -861,7 +861,7 @@ class TestSetupLogging:
 
 class TestGetValidEntitlementNames:
     @mock.patch(
-        "uaclient.cli.entitlements.valid_services",
+        "ubuntupro.cli.entitlements.valid_services",
         return_value=["ent1", "ent2", "ent3"],
     )
     def test_get_valid_entitlements(self, _m_valid_services, FakeConfig):
@@ -890,7 +890,7 @@ to get the latest version with new features and bug fixes.
 class TestWarnAboutNewVersion:
     @pytest.mark.parametrize("new_version", (None, "1.2.3"))
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
-    @mock.patch("uaclient.cli.version.check_for_new_version")
+    @mock.patch("ubuntupro.cli.version.check_for_new_version")
     def test_warn_about_new_version(
         self,
         m_check_version,
@@ -911,7 +911,7 @@ class TestWarnAboutNewVersion:
     @pytest.mark.parametrize("out_format", (None, "tabular", "json"))
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @mock.patch(
-        "uaclient.cli.version.check_for_new_version", return_value="1.2.3"
+        "ubuntupro.cli.version.check_for_new_version", return_value="1.2.3"
     )
     def test_dont_show_for_api_calls(
         self,

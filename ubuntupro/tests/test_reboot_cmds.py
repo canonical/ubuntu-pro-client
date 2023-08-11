@@ -2,15 +2,15 @@ import mock
 import pytest
 
 from lib.reboot_cmds import fix_pro_pkg_holds, main
-from uaclient import exceptions
-from uaclient.testing.helpers import does_not_raise
+from ubuntupro import exceptions
+from ubuntupro.testing.helpers import does_not_raise
 
-M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
+M_FIPS_PATH = "ubuntupro.entitlements.fips.FIPSEntitlement."
 
 
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.install_packages")
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.setup_apt_config")
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.application_status")
+@mock.patch("ubuntupro.entitlements.fips.FIPSEntitlement.install_packages")
+@mock.patch("ubuntupro.entitlements.fips.FIPSEntitlement.setup_apt_config")
+@mock.patch("ubuntupro.entitlements.fips.FIPSEntitlement.application_status")
 class TestFixProPkgHolds:
     @pytest.mark.parametrize(
         [
@@ -83,17 +83,17 @@ class TestFixProPkgHolds:
         )
 
 
-@mock.patch("uaclient.files.notices.add")
-@mock.patch("uaclient.files.notices.remove")
+@mock.patch("ubuntupro.files.notices.add")
+@mock.patch("ubuntupro.files.notices.remove")
 @mock.patch(
-    "uaclient.upgrade_lts_contract.process_contract_delta_after_apt_lock"
+    "ubuntupro.upgrade_lts_contract.process_contract_delta_after_apt_lock"
 )  # noqa: E501
 @mock.patch("lib.reboot_cmds.refresh_contract")
 @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
-@mock.patch("uaclient.lock.SpinLock")
+@mock.patch("ubuntupro.lock.SpinLock")
 @mock.patch("lib.reboot_cmds._is_attached")
 @mock.patch(
-    "uaclient.files.state_files.reboot_cmd_marker_file",
+    "ubuntupro.files.state_files.reboot_cmd_marker_file",
     new_callable=mock.PropertyMock,
 )
 class TestMain:

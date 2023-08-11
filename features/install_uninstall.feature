@@ -57,10 +57,10 @@ Feature: Pro Install and Uninstall related tests
         When I run `apt update` with sudo
         And I run `apt install python3-venv -y` with sudo
         And I run `python3 -m venv env` with sudo
-        Then I verify that running `bash -c ". env/bin/activate && python3 -c 'import uaclient'"` `with sudo` exits `1`
+        Then I verify that running `bash -c ". env/bin/activate && python3 -c 'import ubuntupro'"` `with sudo` exits `1`
         Then stderr matches regexp:
         """
-        No module named 'uaclient'
+        No module named 'ubuntupro'
         """
         Then I verify that running `bash -c ". env/bin/activate && dpkg-reconfigure ubuntu-advantage-tools"` `with sudo` exits `0`
 
@@ -76,10 +76,10 @@ Feature: Pro Install and Uninstall related tests
         """
         Python 3.10.0
         """
-        Then I verify that running `python3 -c "import uaclient"` `with sudo` exits `1`
+        Then I verify that running `python3 -c "import ubuntupro"` `with sudo` exits `1`
         Then stderr matches regexp:
         """
-        No module named 'uaclient'
+        No module named 'ubuntupro'
         """
         Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
 

@@ -18,10 +18,10 @@ sys.modules["apt_pkg"] = m_apt_pkg
 
 # Useless try/except to make flake8 happy \_("/)_/
 try:
-    from uaclient import event_logger
-    from uaclient.config import UAConfig
-    from uaclient.files.notices import NoticeFileDetails
-    from uaclient.files.state_files import UserConfigData
+    from ubuntupro import event_logger
+    from ubuntupro.config import UAConfig
+    from ubuntupro.files.notices import NoticeFileDetails
+    from ubuntupro.files.state_files import UserConfigData
 except ImportError:
     raise
 
@@ -33,11 +33,11 @@ def _subp():
     If a test needs the actual _subp, this fixture yields it,
     so just add an argument to the test named "_subp".
     """
-    from uaclient.system import _subp
+    from ubuntupro.system import _subp
 
     original = _subp
     with mock.patch(
-        "uaclient.system._subp", return_value=("mockstdout", "mockstderr")
+        "ubuntupro.system._subp", return_value=("mockstdout", "mockstderr")
     ):
         yield original
 
@@ -49,10 +49,10 @@ def _warn_about_new_version():
     If a test needs the actual _warn_about_new_version, this fixture yields it,
     so just add an argument to the test named "_warn_about_new_version".
     """
-    from uaclient.cli import _warn_about_new_version
+    from ubuntupro.cli import _warn_about_new_version
 
     original = _warn_about_new_version
-    with mock.patch("uaclient.cli._warn_about_new_version"):
+    with mock.patch("ubuntupro.cli._warn_about_new_version"):
         yield original
 
 
@@ -62,10 +62,10 @@ def util_we_are_currently_root():
     A fixture that mocks util.we_are_currently_root for all tests.
     Default to true as most tests need it to be true.
     """
-    from uaclient.util import we_are_currently_root
+    from ubuntupro.util import we_are_currently_root
 
     original = we_are_currently_root
-    with mock.patch("uaclient.util.we_are_currently_root", return_value=True):
+    with mock.patch("ubuntupro.util.we_are_currently_root", return_value=True):
         yield original
 
 
@@ -283,11 +283,11 @@ def mock_notices_dir(tmpdir_factory):
     perm_dir = tmpdir_factory.mktemp("notices")
     temp_dir = tmpdir_factory.mktemp("temp_notices")
     with mock.patch(
-        "uaclient.defaults.NOTICES_PERMANENT_DIRECTORY",
+        "ubuntupro.defaults.NOTICES_PERMANENT_DIRECTORY",
         perm_dir.strpath,
     ):
         with mock.patch(
-            "uaclient.defaults.NOTICES_TEMPORARY_DIRECTORY",
+            "ubuntupro.defaults.NOTICES_TEMPORARY_DIRECTORY",
             temp_dir.strpath,
         ):
             yield

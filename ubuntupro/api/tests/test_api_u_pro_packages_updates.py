@@ -1,11 +1,11 @@
 import mock
 
-from uaclient.api.u.pro.packages.updates.v1 import (
+from ubuntupro.api.u.pro.packages.updates.v1 import (
     PackageUpdatesResult,
     _updates,
 )
 
-M_PATH = "uaclient.api.u.pro.packages.updates.v1."
+M_PATH = "ubuntupro.api.u.pro.packages.updates.v1."
 
 
 class TestPackagesUpdatesV1:

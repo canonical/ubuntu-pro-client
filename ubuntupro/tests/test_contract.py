@@ -5,9 +5,9 @@ import socket
 import mock
 import pytest
 
-from uaclient import exceptions, http, messages, system, util
-from uaclient.api.u.pro.status.is_attached.v1 import IsAttachedResult
-from uaclient.contract import (
+from ubuntupro import exceptions, http, messages, system, util
+from ubuntupro.api.u.pro.status.is_attached.v1 import IsAttachedResult
+from ubuntupro.contract import (
     API_V1_AVAILABLE_RESOURCES,
     API_V1_GET_CONTRACT_USING_TOKEN,
     UAContractClient,
@@ -21,17 +21,17 @@ from uaclient.contract import (
     process_entitlement_delta,
     refresh,
 )
-from uaclient.files.state_files import AttachmentData
-from uaclient.testing import helpers
-from uaclient.testing.fakes import FakeContractClient
-from uaclient.version import get_version
+from ubuntupro.files.state_files import AttachmentData
+from ubuntupro.testing import helpers
+from ubuntupro.testing.fakes import FakeContractClient
+from ubuntupro.version import get_version
 
-M_PATH = "uaclient.contract."
-M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
+M_PATH = "ubuntupro.contract."
+M_REPO_PATH = "ubuntupro.entitlements.repo.RepoEntitlement."
 
 
-@mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
-@mock.patch("uaclient.contract.system.get_machine_id")
+@mock.patch("ubuntupro.http.serviceclient.UAServiceClient.request_url")
+@mock.patch("ubuntupro.contract.system.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
         [
@@ -104,9 +104,9 @@ class TestUAContractClient:
             ),
         ],
     )
-    @mock.patch("uaclient.contract._support_old_machine_info")
-    @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
-    @mock.patch("uaclient.contract.UAContractClient.headers")
+    @mock.patch("ubuntupro.contract._support_old_machine_info")
+    @mock.patch("ubuntupro.contract.UAContractClient._get_activity_info")
+    @mock.patch("ubuntupro.contract.UAContractClient.headers")
     def test_update_contract_machine(
         self,
         m_headers,
@@ -166,7 +166,7 @@ class TestUAContractClient:
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
-    @mock.patch("uaclient.contract.system.get_release_info")
+    @mock.patch("ubuntupro.contract.system.get_release_info")
     @mock.patch.object(UAContractClient, "_get_activity_info")
     def test_get_contract_machine(
         self,
@@ -318,7 +318,7 @@ class TestUAContractClient:
         client = UAContractClient(cfg)
 
         with mock.patch(
-            "uaclient.config.files.MachineTokenFile.write"
+            "ubuntupro.config.files.MachineTokenFile.write"
         ) as m_write_file:
             client.update_activity_token()
 
@@ -430,10 +430,10 @@ class TestUAContractClient:
             ),
         ],
     )
-    @mock.patch("uaclient.contract._create_attach_forbidden_message")
-    @mock.patch("uaclient.contract._support_old_machine_info")
-    @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
-    @mock.patch("uaclient.contract.UAContractClient.headers")
+    @mock.patch("ubuntupro.contract._create_attach_forbidden_message")
+    @mock.patch("ubuntupro.contract._support_old_machine_info")
+    @mock.patch("ubuntupro.contract.UAContractClient._get_activity_info")
+    @mock.patch("ubuntupro.contract.UAContractClient.headers")
     def test_add_contract_machine(
         self,
         m_headers,
@@ -812,15 +812,15 @@ class TestUAContractClient:
             ),
         ],
     )
-    @mock.patch("uaclient.contract.attachment_data_file.read")
-    @mock.patch("uaclient.contract._enabled_services")
-    @mock.patch("uaclient.contract._is_attached")
-    @mock.patch("uaclient.contract.version.get_version")
-    @mock.patch("uaclient.contract.system.get_virt_type")
-    @mock.patch("uaclient.contract.system.is_desktop")
-    @mock.patch("uaclient.contract.system.get_dpkg_arch")
-    @mock.patch("uaclient.contract.system.get_kernel_info")
-    @mock.patch("uaclient.contract.system.get_release_info")
+    @mock.patch("ubuntupro.contract.attachment_data_file.read")
+    @mock.patch("ubuntupro.contract._enabled_services")
+    @mock.patch("ubuntupro.contract._is_attached")
+    @mock.patch("ubuntupro.contract.version.get_version")
+    @mock.patch("ubuntupro.contract.system.get_virt_type")
+    @mock.patch("ubuntupro.contract.system.is_desktop")
+    @mock.patch("ubuntupro.contract.system.get_dpkg_arch")
+    @mock.patch("ubuntupro.contract.system.get_kernel_info")
+    @mock.patch("ubuntupro.contract.system.get_release_info")
     def test_get_activity_info(
         self,
         m_get_release_info,
@@ -987,7 +987,7 @@ class TestProcessEntitlementDeltas:
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="fake_series"),
     )
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
@@ -1217,13 +1217,13 @@ class TestRefresh:
     @mock.patch(M_PATH + "process_entitlements_delta")
     @mock.patch(M_PATH + "UAConfig.write_cache")
     @mock.patch(M_PATH + "system.get_machine_id")
-    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch("ubuntupro.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "UAContractClient.update_contract_machine")
     @mock.patch(
         M_PATH + "UAConfig.machine_token", new_callable=mock.PropertyMock
     )
     @mock.patch(
-        "uaclient.files.MachineTokenFile.entitlements",
+        "ubuntupro.files.MachineTokenFile.entitlements",
         new_callable=mock.PropertyMock,
     )
     def test_refresh(
@@ -1269,7 +1269,7 @@ class TestRefresh:
         ] == m_process_entitlements_deltas.call_args_list
 
 
-@mock.patch("uaclient.contract.UAContractClient.get_contract_machine")
+@mock.patch("ubuntupro.contract.UAContractClient.get_contract_machine")
 class TestContractChanged:
     @pytest.mark.parametrize("has_contract_expired", (False, True))
     def test_contract_change_with_expiry(
@@ -1333,7 +1333,7 @@ class TestApplyContractOverrides:
         selector_values = {"selector1": "valueA", "selector2": "valueB"}
         selector_weights = {"selector1": 1, "selector2": 2}
         with mock.patch(
-            "uaclient.contract.OVERRIDE_SELECTOR_WEIGHTS", selector_weights
+            "ubuntupro.contract.OVERRIDE_SELECTOR_WEIGHTS", selector_weights
         ):
             assert expected_weight == _get_override_weight(
                 override_selector, selector_values
@@ -1351,11 +1351,11 @@ class TestApplyContractOverrides:
 
     @pytest.mark.parametrize("include_overrides", (True, False))
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
-        "uaclient.clouds.identity.get_cloud_type", return_value=(None, "")
+        "ubuntupro.clouds.identity.get_cloud_type", return_value=(None, "")
     )
     def test_return_same_dict_when_no_overrides_match(
         self, _m_cloud_type, _m_release_info, include_overrides
@@ -1409,7 +1409,7 @@ class TestApplyContractOverrides:
         assert expected == orig_access
 
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="ubuntuX"),
     )
     def test_missing_keys_are_included(self, _m_release_info):
@@ -1440,11 +1440,11 @@ class TestApplyContractOverrides:
         ),
     )
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
-        "uaclient.clouds.identity.get_cloud_type",
+        "ubuntupro.clouds.identity.get_cloud_type",
         return_value=("cloudX", None),
     )
     def test_applies_contract_overrides_respecting_weight(
@@ -1500,11 +1500,11 @@ class TestApplyContractOverrides:
         assert orig_access == expected
 
     @mock.patch(
-        "uaclient.system.get_release_info",
+        "ubuntupro.system.get_release_info",
         return_value=mock.MagicMock(series="ubuntuX"),
     )
     @mock.patch(
-        "uaclient.clouds.identity.get_cloud_type",
+        "ubuntupro.clouds.identity.get_cloud_type",
         return_value=("cloudX", None),
     )
     def test_different_overrides_applied_together(
@@ -1564,9 +1564,9 @@ class TestApplyContractOverrides:
         assert orig_access == expected
 
 
-@mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
+@mock.patch("ubuntupro.http.serviceclient.UAServiceClient.request_url")
 class TestRequestAutoAttach:
-    @mock.patch("uaclient.contract.LOG.debug")
+    @mock.patch("ubuntupro.contract.LOG.debug")
     def test_request_for_invalid_pro_image(
         self, m_logging_debug, m_request_url, FakeConfig
     ):

@@ -3,10 +3,10 @@ import logging
 import mock
 import pytest
 
-from uaclient import exceptions, http
-from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
+from ubuntupro import exceptions, http
+from ubuntupro.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
 
-M_PATH = "uaclient.clouds.azure."
+M_PATH = "ubuntupro.clouds.azure."
 
 
 class TestUAAutoAttachAzureInstance:

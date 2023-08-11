@@ -13,8 +13,8 @@ explicit_package_bases = "true"
 [[tool.mypy.overrides]]
 module = [
   "*.tests.*",
-  "uaclient.conftest",
-  "uaclient.testing.*",
+  "ubuntupro.conftest",
+  "ubuntupro.testing.*",
 ]
 ignore_errors = "true"
 

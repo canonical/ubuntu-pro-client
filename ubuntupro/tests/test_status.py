@@ -7,24 +7,24 @@ import string
 import mock
 import pytest
 
-from uaclient import messages, status
-from uaclient.entitlements import (
+from ubuntupro import messages, status
+from ubuntupro.entitlements import (
     ENTITLEMENT_CLASSES,
     entitlement_factory,
     valid_services,
 )
-from uaclient.entitlements.base import IncompatibleService
-from uaclient.entitlements.entitlement_status import (
+from ubuntupro.entitlements.base import IncompatibleService
+from ubuntupro.entitlements.entitlement_status import (
     ApplicationStatus,
     ContractStatus,
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.entitlements.ros import ROSEntitlement
-from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
-from uaclient.files.notices import Notice, NoticesManager
-from uaclient.status import (
+from ubuntupro.entitlements.fips import FIPSEntitlement
+from ubuntupro.entitlements.ros import ROSEntitlement
+from ubuntupro.entitlements.tests.test_base import ConcreteTestEntitlement
+from ubuntupro.files.notices import Notice, NoticesManager
+from ubuntupro.status import (
     DEFAULT_STATUS,
     TxtColor,
     colorize_commands,
@@ -35,7 +35,7 @@ DEFAULT_CFG_STATUS = {
     "execution_status": DEFAULT_STATUS["execution_status"],
     "execution_details": DEFAULT_STATUS["execution_details"],
 }
-M_PATH = "uaclient.entitlements."
+M_PATH = "ubuntupro.entitlements."
 
 
 @pytest.fixture
@@ -130,7 +130,7 @@ class TestColorizeCommands:
         assert colorize_commands(commands) == expected
 
 
-@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
+@mock.patch("ubuntupro.livepatch.on_supported_kernel", return_value=None)
 class TestFormatTabular:
     @pytest.mark.parametrize(
         "support_level,expected_colour,istty",
@@ -292,9 +292,9 @@ def ros_desc(FakeConfig):
     return entitlement_factory(cfg=FakeConfig(), name="ros").description
 
 
-@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
-@mock.patch("uaclient.files.notices.NoticesManager.remove")
-@mock.patch("uaclient.system.should_reboot", return_value=False)
+@mock.patch("ubuntupro.livepatch.on_supported_kernel", return_value=None)
+@mock.patch("ubuntupro.files.notices.NoticesManager.remove")
+@mock.patch("ubuntupro.system.should_reboot", return_value=False)
 class TestStatus:
     def check_beta(self, cls, show_all, uacfg=None, status=""):
         if not show_all:
@@ -314,7 +314,7 @@ class TestStatus:
         return False
 
     @pytest.mark.parametrize("show_all", (True, False))
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_root_unattached(
         self,
         m_get_available_resources,
@@ -360,7 +360,7 @@ class TestStatus:
         expected["version"] = mock.ANY
         expected["services"] = expected_services
         with mock.patch(
-            "uaclient.status._get_config_status"
+            "ubuntupro.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=show_all)
@@ -401,7 +401,7 @@ class TestStatus:
         M_PATH + "livepatch.LivepatchEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
     )
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_root_attached(
         self,
         m_get_avail_resources,
@@ -548,7 +548,7 @@ class TestStatus:
             }
         )
         with mock.patch(
-            "uaclient.status._get_config_status"
+            "ubuntupro.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=True)
@@ -558,13 +558,13 @@ class TestStatus:
             assert m_get_avail_resources.call_count == 1
         # status() idempotent
         with mock.patch(
-            "uaclient.status._get_config_status"
+            "ubuntupro.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=True)
 
-    @mock.patch("uaclient.util.we_are_currently_root")
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
         m_get_available_resources,
@@ -587,8 +587,8 @@ class TestStatus:
 
         assert root_unattached_status == nonroot_status
 
-    @mock.patch("uaclient.util.we_are_currently_root")
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_root_and_non_root_are_same_attached(
         self,
         m_get_available_resources,
@@ -606,7 +606,7 @@ class TestStatus:
         normal_status = status.status(cfg=normal_cfg)
         assert normal_status == root_status
 
-    @mock.patch("uaclient.status.get_available_resources", return_value=[])
+    @mock.patch("ubuntupro.status.get_available_resources", return_value=[])
     def test_cache_file_is_written_world_readable(
         self,
         _m_get_available_resources,
@@ -855,7 +855,7 @@ class TestStatus:
         print("expected")
         print(repr(expected))
         with mock.patch(
-            "uaclient.status._get_config_status"
+            "ubuntupro.status._get_config_status"
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             expected_status_calls = 12 if variants_in_contract else 9
@@ -871,8 +871,8 @@ class TestStatus:
         assert expected_calls == mock_notice.remove.call_args_list
 
     @pytest.mark.usefixtures("all_resources_available")
-    @mock.patch("uaclient.util.we_are_currently_root")
-    @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch("ubuntupro.util.we_are_currently_root")
+    @mock.patch("ubuntupro.status.get_available_resources")
     def test_expires_handled_appropriately(
         self,
         _m_get_available_resources,
@@ -924,10 +924,10 @@ class TestStatus:
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
     @mock.patch(
-        "uaclient.files.state_files.reboot_cmd_marker_file",
+        "ubuntupro.files.state_files.reboot_cmd_marker_file",
         new_callable=mock.PropertyMock,
     )
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
+    @mock.patch("ubuntupro.status.get_available_resources", return_value={})
     def test_nonroot_user_does_not_use_cache(
         self,
         _m_get_available_resources,

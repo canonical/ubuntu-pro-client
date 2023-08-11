@@ -2,7 +2,7 @@ import logging
 import os
 import shutil
 
-from uaclient import exceptions, util
+from ubuntupro import exceptions, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

@@ -10,14 +10,14 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, messages, status, util
-from uaclient.cli import action_status, get_parser, main, status_parser
-from uaclient.conftest import FakeNotice
-from uaclient.event_logger import EventLoggerMode
-from uaclient.files.notices import Notice, NoticesManager
-from uaclient.yaml import safe_load
+from ubuntupro import exceptions, messages, status, util
+from ubuntupro.cli import action_status, get_parser, main, status_parser
+from ubuntupro.conftest import FakeNotice
+from ubuntupro.event_logger import EventLoggerMode
+from ubuntupro.files.notices import Notice, NoticesManager
+from ubuntupro.yaml import safe_load
 
-M_PATH = "uaclient.cli."
+M_PATH = "ubuntupro.cli."
 
 
 RESPONSE_AVAILABLE_SERVICES = [
@@ -331,15 +331,15 @@ Flags:
 )
 
 
-@mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
-@mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
-@mock.patch("uaclient.system.should_reboot", return_value=False)
+@mock.patch("ubuntupro.livepatch.on_supported_kernel", return_value=None)
+@mock.patch("ubuntupro.cli.contract.is_contract_changed", return_value=False)
+@mock.patch("ubuntupro.system.should_reboot", return_value=False)
 @mock.patch(
-    "uaclient.status.get_available_resources",
+    "ubuntupro.status.get_available_resources",
     return_value=RESPONSE_AVAILABLE_SERVICES,
 )
 @mock.patch(
-    "uaclient.status.get_contract_information",
+    "ubuntupro.status.get_contract_information",
     return_value=RESPONSE_CONTRACT_INFO,
 )
 class TestActionStatus:
@@ -358,7 +358,7 @@ class TestActionStatus:
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()
@@ -389,7 +389,9 @@ class TestActionStatus:
             ),
         ),
     )
-    @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
+    @mock.patch(
+        "ubuntupro.status.format_expires", return_value="formatteddate"
+    )
     def test_attached(
         self,
         _m_format_expires,
@@ -412,7 +414,7 @@ class TestActionStatus:
         for notice in notices:
             mock_notice.add(notice[0], notice[1])
         with mock.patch(
-            "uaclient.config.UAConfig.features",
+            "ubuntupro.config.UAConfig.features",
             new_callable=mock.PropertyMock,
             return_value=features,
         ):
@@ -497,8 +499,8 @@ class TestActionStatus:
         )
         assert expected == capsys.readouterr()[0]
 
-    @mock.patch("uaclient.version.get_version", return_value="test_version")
-    @mock.patch("uaclient.system.subp")
+    @mock.patch("ubuntupro.version.get_version", return_value="test_version")
+    @mock.patch("ubuntupro.system.subp")
     @mock.patch(M_PATH + "time.sleep")
     def test_wait_blocks_until_lock_released(
         self,
@@ -692,7 +694,8 @@ class TestActionStatus:
                 event, "_event_logger_mode", event_logger_mode
             ), mock.patch.object(event, "_command", "status"):
                 with mock.patch(
-                    "uaclient.status._get_blocked_by_services", return_value=[]
+                    "ubuntupro.status._get_blocked_by_services",
+                    return_value=[],
                 ):
                     assert 0 == action_status(args, cfg=cfg)
 
@@ -975,7 +978,9 @@ class TestActionStatus:
         "encoding,expected_dash",
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
-    @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
+    @mock.patch(
+        "ubuntupro.status.format_expires", return_value="formatteddate"
+    )
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_format_expires,

@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient.cli import main
+from ubuntupro.cli import main
 
 HELP_OUTPUT = """\
 usage: pro system reboot-required [flags]
@@ -22,7 +22,7 @@ for the machine regarding reboot:
 
 
 class TestActionRebootRequired:
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("ubuntupro.cli.setup_logging")
     def test_enable_help(self, _m_setup_logging, capsys, FakeConfig):
         with pytest.raises(SystemExit):
             with mock.patch(
@@ -30,7 +30,7 @@ class TestActionRebootRequired:
                 ["/usr/bin/ua", "system", "reboot-required", "--help"],
             ):
                 with mock.patch(
-                    "uaclient.config.UAConfig",
+                    "ubuntupro.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
                     main()

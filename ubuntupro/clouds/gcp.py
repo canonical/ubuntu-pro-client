@@ -4,8 +4,8 @@ import logging
 import os
 from typing import Any, Dict, List, Optional  # noqa: F401
 
-from uaclient import exceptions, http, messages, system, util
-from uaclient.clouds import AutoAttachCloudInstance
+from ubuntupro import exceptions, http, messages, system, util
+from ubuntupro.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

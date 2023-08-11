@@ -3,16 +3,16 @@ import datetime
 import mock
 import pytest
 
-from uaclient import messages
-from uaclient.api.u.pro.packages.updates.v1 import (
+from ubuntupro import messages
+from ubuntupro.api.u.pro.packages.updates.v1 import (
     PackageUpdatesResult,
     UpdateSummary,
 )
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
-from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.timer.update_messaging import update_motd_messages
+from ubuntupro.contract import ContractExpiryStatus, get_contract_expiry_status
+from ubuntupro.entitlements.entitlement_status import ApplicationStatus
+from ubuntupro.timer.update_messaging import update_motd_messages
 
-M_PATH = "uaclient.timer.update_messaging."
+M_PATH = "ubuntupro.timer.update_messaging."
 
 
 class TestGetContractExpiryStatus:
@@ -46,7 +46,7 @@ class TestGetContractExpiryStatus:
         "expiry,is_updated",
         (("2040-05-08T19:02:26Z", False), ("2042-05-08T19:02:26Z", True)),
     )
-    @mock.patch("uaclient.files.MachineTokenFile.write")
+    @mock.patch("ubuntupro.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.get_contract_machine")
     def test_update_contract_expiry(
         self,
@@ -333,7 +333,7 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "update_contract_expiry")
-    @mock.patch("uaclient.contract.get_contract_expiry_status")
+    @mock.patch("ubuntupro.contract.get_contract_expiry_status")
     @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,

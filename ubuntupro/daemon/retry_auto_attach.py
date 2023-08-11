@@ -2,16 +2,16 @@ import datetime
 import logging
 import time
 
-from uaclient import exceptions, lock, messages, system, util
-from uaclient.api import exceptions as api_exceptions
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
+from ubuntupro import exceptions, lock, messages, system, util
+from ubuntupro.api import exceptions as api_exceptions
+from ubuntupro.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
-from uaclient.files import notices, state_files
+from ubuntupro.api.u.pro.status.is_attached.v1 import _is_attached
+from ubuntupro.config import UAConfig
+from ubuntupro.daemon import AUTO_ATTACH_STATUS_MOTD_FILE
+from ubuntupro.files import notices, state_files
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 

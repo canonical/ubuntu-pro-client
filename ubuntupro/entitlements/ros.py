@@ -1,7 +1,7 @@
 from typing import Tuple, Type  # noqa: F401
 
-from uaclient.entitlements import repo
-from uaclient.entitlements.base import UAEntitlement
+from ubuntupro.entitlements import repo
+from ubuntupro.entitlements.base import UAEntitlement
 
 
 class ROSCommonEntitlement(repo.RepoEntitlement):
@@ -16,7 +16,7 @@ class ROSEntitlement(ROSCommonEntitlement):
 
     @property
     def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
-        from uaclient.entitlements.esm import (
+        from ubuntupro.entitlements.esm import (
             ESMAppsEntitlement,
             ESMInfraEntitlement,
         )
@@ -38,7 +38,7 @@ class ROSUpdatesEntitlement(ROSCommonEntitlement):
 
     @property
     def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
-        from uaclient.entitlements.esm import (
+        from ubuntupro.entitlements.esm import (
             ESMAppsEntitlement,
             ESMInfraEntitlement,
         )
