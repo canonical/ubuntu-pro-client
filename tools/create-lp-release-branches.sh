@@ -56,7 +56,7 @@ do
       jammy) version=${UA_VERSION}~22.04;;
       lunar) version=${UA_VERSION}~23.04;;
   esac
-  dch_cmd=(dch -m -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
+  dch_cmd=(dch -m -v "${version}" -D "${release}" -b  "Backport new upstream release to $release (LP: #${SRU_BUG})")
   if [ -z "$DO_IT" ]; then
     echo "${dch_cmd[@]}"
   else
