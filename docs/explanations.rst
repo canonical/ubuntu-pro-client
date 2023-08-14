@@ -52,6 +52,8 @@ Other Pro features explained
     explanations/cves_and_usns_explained.md
     explanations/about_esm.md
     explanations/what_are_the_timer_jobs.md
+    explanations/using_pro_offline.rst
     explanations/what_is_the_daemon.md
     explanations/why_trusty_is_no_longer_supported.md
     explanations/errors_explained.md
+
