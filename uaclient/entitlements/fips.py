@@ -92,7 +92,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
-    help_doc_url = "https://ubuntu.com/security/certifications#fips"
+    help_doc_url = "https://ubuntu.com/security/fips"
 
     fips_pro_package_holds = [
         "fips-initramfs",
@@ -362,6 +362,13 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     name = "fips"
     title = "FIPS"
     description = "NIST-certified core packages"
+    help_text = """\
+FIPS 140-2 is a set of publicly announced cryptographic standards developed by
+the National Institute of Standards and Technology applicable for FedRAMP,
+HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
+security patching. For FIPS certified modules with security patches please
+see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
+"""
     origin = "UbuntuFIPS"
 
     @property
@@ -470,6 +477,10 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     title = "FIPS Updates"
     origin = "UbuntuFIPSUpdates"
     description = "NIST-certified core packages with priority security updates"
+    help_text = """\
+fips-updates installs fips modules including all security patches for those
+modules that have been provided since their certification date. You can find
+out more at https://ubuntu.com/security/fips"""
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:

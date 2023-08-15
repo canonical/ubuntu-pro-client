@@ -16,6 +16,15 @@ class AnboxEntitlement(RepoEntitlement):
     title = "Anbox Cloud"
     description = "Scalable Android in the cloud"
     help_doc_url = "https://anbox-cloud.io"
+    help_text = """\
+Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
+letting you focus on your apps. Run Android in system containers on public or
+private clouds with ultra low streaming latency. When the anbox-cloud service
+is enabled, by default, the Appliance variant is enabled. Enabling this service
+allows orchestration to provision a PPA with the Anbox Cloud resources. This
+step also configures the Anbox Management Service (AMS) with the necessary
+image server credentials. To learn more about Anbox Cloud, see
+https://anbox-cloud.io"""
     repo_key_file = "ubuntu-pro-anbox-cloud.gpg"
     repo_url_tmpl = "{}"
     affordance_check_series = True

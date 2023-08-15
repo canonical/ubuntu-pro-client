@@ -31,6 +31,13 @@ class LivepatchEntitlement(UAEntitlement):
     name = "livepatch"
     title = "Livepatch"
     description = "Canonical Livepatch service"
+    help_text = """\
+Livepatch provides selected high and critical kernel CVE fixes and other
+non-security bug fixes as kernel livepatches. Livepatches are applied without
+rebooting a machine which drastically limits the need for unscheduled system
+reboots. Due to the nature of fips compliance, livepatches cannot be enabled
+on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
+service at https://ubuntu.com/security/livepatch"""
     affordance_check_kernel_min_version = False
     affordance_check_kernel_flavor = False
     # we do want to check series because livepatch errors on non-lts releases
