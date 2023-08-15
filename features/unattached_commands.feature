@@ -76,17 +76,17 @@ Feature: Command behaviour when unattached
         <infra-available>
 
         Help:
-        Expanded Security Maintenance for Infrastructure provides access
-        to a private ppa which includes available high and critical CVE fixes
-        for Ubuntu LTS packages in the Ubuntu Main repository between the end
-        of the standard Ubuntu LTS security maintenance and its end of life.
-        It is enabled by default with Ubuntu Pro. You can find out more about
-        the service at https://ubuntu.com/security/esm
+        Expanded Security Maintenance for Infrastructure provides access to a private
+        PPA which includes available high and critical CVE fixes for Ubuntu LTS
+        packages in the Ubuntu Main repository between the end of the standard Ubuntu
+        LTS security maintenance and its end of life. It is enabled by default with
+        Ubuntu Pro. You can find out more about the service at
+        https://ubuntu.com/security/esm
         """
         When I run `pro help esm-infra --format json` with sudo
         Then I will see the following on stdout:
         """
-        {"name": "esm-infra", "available": "<infra-available>", "help": "Expanded Security Maintenance for Infrastructure provides access\nto a private ppa which includes available high and critical CVE fixes\nfor Ubuntu LTS packages in the Ubuntu Main repository between the end\nof the standard Ubuntu LTS security maintenance and its end of life.\nIt is enabled by default with Ubuntu Pro. You can find out more about\nthe service at https://ubuntu.com/security/esm\n"}
+        {"name": "esm-infra", "available": "<infra-available>", "help": "Expanded Security Maintenance for Infrastructure provides access to a private\nPPA which includes available high and critical CVE fixes for Ubuntu LTS\npackages in the Ubuntu Main repository between the end of the standard Ubuntu\nLTS security maintenance and its end of life. It is enabled by default with\nUbuntu Pro. You can find out more about the service at\nhttps://ubuntu.com/security/esm"}
         """
         When I verify that running `pro help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:

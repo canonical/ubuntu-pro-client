@@ -21,6 +21,13 @@ class LandscapeEntitlement(UAEntitlement):
     title = "Landscape"
     description = "Management and administration tool for Ubuntu"
     help_doc_url = "https://ubuntu.com/landscape"
+    help_text = """\
+Landscape Client can be installed on this machine and enrolled in Canonical's
+Landscape SaaS: https://landscape.canonical.com or a self-hosted Landscape:
+https://ubuntu.com/landscape/install
+Landscape allows you to manage many machines as easily as one, with an
+intuitive dashboard and API interface for automation, hardening, auditing, and
+more. Find out more about Landscape at https://ubuntu.com/landscape"""
 
     def _perform_enable(self, silent: bool = False) -> bool:
         cmd = ["landscape-config"] + self.extra_args

@@ -12,6 +12,11 @@ class CISEntitlement(repo.RepoEntitlement):
     help_doc_url = USG_DOCS_URL
     name = "cis"
     description = "Security compliance and audit tools"
+    help_text = """\
+Ubuntu Security Guide is a tool for hardening and auditing and allows for
+environment-specific customizations. It enables compliance with profiles such
+as DISA-STIG and the CIS benchmarks. Find out more at
+https://ubuntu.com/security/certifications/docs/usg"""
     repo_key_file = "ubuntu-pro-cis.gpg"
     apt_noninteractive = True
     supports_access_only = True
