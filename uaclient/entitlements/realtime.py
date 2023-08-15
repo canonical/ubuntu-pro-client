@@ -18,6 +18,13 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     name = "realtime-kernel"
     title = "Real-time kernel"
     description = "Ubuntu kernel with PREEMPT_RT patches integrated"
+    help_text = """\
+The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. It
+services latency-dependent use cases by providing deterministic response times.
+The Real-time kernel meets stringent preemption specifications and is suitable
+for telco applications and dedicated devices in industrial automation and
+robotics. The Real-time kernel is currently incompatible with FIPS and
+Livepatch."""
     help_doc_url = REALTIME_KERNEL_DOCS_URL
     repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True

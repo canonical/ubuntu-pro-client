@@ -73,6 +73,13 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     name = "esm-apps"
     title = "Ubuntu Pro: ESM Apps"
     description = "Expanded Security Maintenance for Applications"
+    help_text = """\
+Expanded Security Maintenance for Applications is enabled by default on
+entitled workloads. It provides access to a private PPA which includes
+available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
+its end of life. You can find out more about the esm service at
+https://ubuntu.com/security/esm"""
     repo_key_file = "ubuntu-pro-esm-apps.gpg"
 
     def disable(
@@ -93,6 +100,13 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESM"
     title = "Ubuntu Pro: ESM Infra"
     description = "Expanded Security Maintenance for Infrastructure"
+    help_text = """\
+Expanded Security Maintenance for Infrastructure provides access to a private
+PPA which includes available high and critical CVE fixes for Ubuntu LTS
+packages in the Ubuntu Main repository between the end of the standard Ubuntu
+LTS security maintenance and its end of life. It is enabled by default with
+Ubuntu Pro. You can find out more about the service at
+https://ubuntu.com/security/esm"""
     repo_key_file = "ubuntu-pro-esm-infra.gpg"
 
     def disable(

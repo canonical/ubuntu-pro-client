@@ -1,7 +1,6 @@
 import abc
 import copy
 import logging
-import os
 import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
@@ -19,7 +18,6 @@ from uaclient import (
     util,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
@@ -32,7 +30,6 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.types import MessagingOperationsDict, StaticAffordance
 from uaclient.util import is_config_value_true
-from uaclient.yaml import safe_load
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -61,8 +58,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Whether the entitlement supports the --access-only flag
     supports_access_only = False
 
-    # Help info message for the entitlement
-    _help_info = None  # type: str
+    # Help text for the entitlement
+    help_text = ""
 
     # List of services that are incompatible with this service
     _incompatible_services = ()  # type: Tuple[IncompatibleService, ...]
@@ -139,25 +136,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     @property
     def help_info(self) -> str:
         """Help information for the entitlement"""
-        if self._help_info is None:
-            help_dict = {}
+        help_text = self.help_text
 
-            if os.path.exists(DEFAULT_HELP_FILE):
-                with open(DEFAULT_HELP_FILE, "r") as f:
-                    help_dict = safe_load(f)
+        if self.variants:
+            variant_items = [
+                "  * {}: {}".format(variant_name, variant_cls.description)
+                for variant_name, variant_cls in self.variants.items()
+            ]
 
-            self._help_info = help_dict.get(self.name, {}).get("help", "")
+            variant_text = "\n".join(["\nVariants:\n"] + variant_items)
+            help_text += variant_text
 
-            if self.variants:
-                variant_items = [
-                    "  * {}: {}".format(variant_name, variant_cls.description)
-                    for variant_name, variant_cls in self.variants.items()
-                ]
-
-                variant_text = "\n".join(["\nVariants:\n"] + variant_items)
-                self._help_info += variant_text
-
-        return self._help_info
+        return help_text
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with
