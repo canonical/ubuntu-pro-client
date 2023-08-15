@@ -32,7 +32,7 @@ TEST_REQUIRES, TEST_LINKS = split_link_deps("test-requirements.txt")
 
 def _get_data_files():
     return [
-        ("/etc/ubuntu-advantage", ["uaclient.conf", "help_data.yaml"]),
+        ("/etc/ubuntu-advantage", ["uaclient.conf"]),
         ("/etc/update-motd.d", glob.glob("update-motd.d/*")),
         ("/usr/lib/ubuntu-advantage", glob.glob("lib/[!_]*")),
         ("/usr/share/keyrings", glob.glob("keyrings/*")),

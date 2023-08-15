@@ -15,6 +15,11 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     name = "cc-eal"
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
+    help_text = """\
+Common Criteria is an Information Technology Security Evaluation standard
+(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
+evaluated to assurance level EAL2 through CSEC. The evaluation was performed
+on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
     repo_key_file = "ubuntu-pro-cc-eal.gpg"
     apt_noninteractive = True
     supports_access_only = True
