@@ -27,14 +27,6 @@ class UserFacingError(Exception):
         self.additional_info = additional_info
 
 
-class APTInstallError(UserFacingError):
-    def __init__(self, name: str, service_msg: str) -> None:
-        super().__init__(
-            msg=messages.APT_INSTALL_FAILED.msg,
-            msg_code=messages.APT_INSTALL_FAILED.name,
-        )
-
-
 class APTProcessConflictError(UserFacingError):
     def __init__(self):
         super().__init__(
@@ -193,15 +185,6 @@ class MagicAttachTokenAlreadyActivated(UserFacingError):
 class MagicAttachTokenError(UserFacingError):
     def __init__(self):
         msg = messages.MAGIC_ATTACH_TOKEN_ERROR
-        super().__init__(
-            msg=msg.msg,
-            msg_code=msg.name,
-        )
-
-
-class MagicAttachInvalidEmail(UserFacingError):
-    def __init__(self, email: str):
-        msg = messages.MAGIC_ATTACH_INVALID_EMAIL.format(email=email)
         super().__init__(
             msg=msg.msg,
             msg_code=msg.name,
