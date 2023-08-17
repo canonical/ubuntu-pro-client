@@ -4,6 +4,13 @@ ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
 
  -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 20 Jun 2023 14:50:11 -0600
 
+ubuntu-advantage-tools (29.2) mantic; urgency=medium
+
+  * proxy: alert user if ca-certificates is not installed when using
+    a TLS-in-TLS proxy
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 17 Aug 2023 19:45:48 -0300
+
 ubuntu-advantage-tools (29.1) mantic; urgency=medium
 
   * anbox: allow enabling service on container using the --access-only flag
