@@ -539,11 +539,6 @@ MAGIC_ATTACH_TOKEN_ERROR = NamedMessage(
     "The magic attach token is invalid, has expired or never existed",
 )
 
-MAGIC_ATTACH_INVALID_EMAIL = FormattedNamedMessage(
-    "magic-attach-invalid-email",
-    "{email} is not a valid email.",
-)
-
 MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
     "magic-attach-service-unavailable",
     "Service unavailable, please try again later.",
@@ -557,8 +552,6 @@ MAGIC_ATTACH_INVALID_PARAM = FormattedNamedMessage(
 APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
     "apt-update-invalid-repo", "APT update failed.\n{repo_msg}"
 )
-
-APT_INSTALL_FAILED = NamedMessage("apt-install-failed", "APT install failed.")
 
 APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
     "apt-update-invalid-url-config",
