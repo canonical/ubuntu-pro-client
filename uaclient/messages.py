@@ -1411,6 +1411,9 @@ PYCURL_REQUIRED = NamedMessage(
     ),
 )
 PYCURL_ERROR = FormattedNamedMessage("pycurl-error", "PycURL Error: {e}")
+PYCURL_CA_CERTIFICATES_ERROR = NamedMessage(
+    "pycurl-ca-certificates-error", "Problem reading SSL CA certificates"
+)
 
 PROXY_AUTH_FAIL = NamedMessage(
     "proxy-auth-fail", "Proxy authentication failed"

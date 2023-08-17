@@ -453,9 +453,16 @@ class TestHandlePycurlError:
                 ("PYCURL_ERROR", "HTTP code 407 from proxy: proxy"),
                 exceptions.ProxyAuthenticationFailed,
             ),
+            (("PYCURL_ERROR", "test"), exceptions.PycurlError),
+            (
+                ("CA_CERTIFICATES_ERROR", "test"),
+                exceptions.PycurlCACertificatesError,
+            ),
         ),
     )
     def test_handle_pycurl_error(self, error_args, expected_exception):
         with pytest.raises(expected_exception):
             m_error = mock.MagicMock(args=error_args)
-            http._handle_pycurl_error(m_error, "PYCURL_ERROR")
+            http._handle_pycurl_error(
+                m_error, "url", "PYCURL_ERROR", "CA_CERTIFICATES_ERROR"
+            )
