@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional  # noqa: F401
 
-from uaclient import defaults, event_logger, exceptions, messages, system, util
+from uaclient import defaults, event_logger, exceptions, system, util
 from uaclient.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
@@ -158,28 +158,13 @@ class MachineTokenFile:
         return self._machine_token
 
     def parse_machine_token_overlay(self, machine_token_overlay_path):
-        if not os.path.exists(machine_token_overlay_path):
-            raise exceptions.UserFacingError(
-                messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
-                    file_path=machine_token_overlay_path
-                )
-            )
-
-        try:
-            machine_token_overlay_content = system.load_file(
-                machine_token_overlay_path
-            )
-
-            return json.loads(
-                machine_token_overlay_content,
-                cls=util.DatetimeAwareJSONDecoder,
-            )
-        except ValueError as e:
-            raise exceptions.UserFacingError(
-                messages.ERROR_JSON_DECODING_IN_FILE.format(
-                    error=str(e), file_path=machine_token_overlay_path
-                )
-            )
+        machine_token_overlay_content = system.load_file(
+            machine_token_overlay_path
+        )
+        return json.loads(
+            machine_token_overlay_content,
+            cls=util.DatetimeAwareJSONDecoder,
+        )
 
     @property
     def account(self) -> Optional[dict]:
