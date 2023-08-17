@@ -104,6 +104,12 @@ check_esm_pin "infra" 510
 check_esm_pin "apps" 510
 echo -e "###########################################\n"
 
+# Check pin for archive packages
+echo -e "\n* Check pins for package in archive"
+echo "###########################################"
+lxc exec $name -- apt-cache policy toilet python3-ipdb
+echo -e "###########################################\n"
+
 # Disable esm-apps and esm-infra
 # ----------------------------------------------------------------
 disable_esm_services
