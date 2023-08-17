@@ -1,7 +1,10 @@
-# This file was created by ubuntu-advantage-tools
-
-# Pin esm-apps packages to a slightly higher value than the archive,
-# so those are preferred when the service is enabled
+# This file is used by Ubuntu Pro and supplied by the ubuntu-advantage-tools
+# package. It has no effect if Ubuntu Pro services are not in use since no
+# other apt repositories are expected to match o=UbuntuESMApps.
+#
+# Pin esm-apps packages to a slightly higher value than the default,
+# so those are preferred over a non-ESM package from the archive when the
+# service is enabled.
 
 Package: *
 Pin: release o=UbuntuESMApps
