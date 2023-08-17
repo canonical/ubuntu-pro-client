@@ -1961,3 +1961,7 @@ E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-enum-value",
     "Value provided was not found in {enum_class}'s allowed: value: {values}",
 )
+
+E_PYCURL_CA_CERTIFICATES = NamedMessage(
+    "pycurl-ca-certificates-error", "Problem reading SSL CA certificates"
+)
