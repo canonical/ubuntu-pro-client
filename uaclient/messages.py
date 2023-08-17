@@ -66,10 +66,6 @@ BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
-INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
-Failed to find the machine token overlay file: {file_path}"""
-ERROR_JSON_DECODING_IN_FILE = """\
-Found error: {error} when reading json file: {file_path}"""
 
 SECURITY_FIX_ATTACH_PROMPT = """\
 Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel"""
