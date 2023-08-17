@@ -1719,9 +1719,22 @@ def main_error_handler(func):
             _warn_about_new_version()
 
             sys.exit(1)
+        except exceptions.PycurlCACertificatesError as exc:
+            tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
+            if apt.is_installed("ca-certificates"):
+                tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
+            msg = tmpl.format(url=exc.url)
+            event.error(error_msg=msg.msg, error_code=msg.name)
+            event.info(info_msg=msg.msg, file_type=sys.stderr)
+
+            lock.clear_lock_file_if_present()
+            event.process_events()
+
+            _warn_about_new_version()
+
+            sys.exit(1)
         except exceptions.UbuntuProError as exc:
             LOG.error(exc.msg)
-
             event.error(
                 error_msg=exc.msg,
                 error_code=exc.msg_code,

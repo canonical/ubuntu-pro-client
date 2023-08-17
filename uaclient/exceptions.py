@@ -228,6 +228,14 @@ class SecurityAPIError(ExternalAPIError):
     pass
 
 
+class PycurlCACertificatesError(UbuntuProError):
+    _msg = messages.E_PYCURL_CA_CERTIFICATES
+
+    def __init__(self, url, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.url = url
+
+
 ###############################################################################
 #                              ATTACH/ENABLE                                  #
 ###############################################################################
