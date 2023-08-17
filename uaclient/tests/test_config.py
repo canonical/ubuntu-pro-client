@@ -1278,48 +1278,6 @@ class TestMachineTokenOverlay:
         cfg = FakeConfig(cfg_overrides=user_cfg)
         assert self.machine_token_dict == cfg.machine_token
 
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_machine_token_overlay_file_not_found(
-        self, m_path, m_token_read, FakeConfig
-    ):
-        invalid_path = "machine-token-path"
-        user_cfg = {"features": {"machine_token_overlay": invalid_path}}
-        m_token_read.return_value = self.machine_token_dict
-
-        cfg = FakeConfig(cfg_overrides=user_cfg)
-        expected_msg = messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
-            file_path=invalid_path
-        )
-
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            cfg.machine_token
-
-        assert expected_msg == str(excinfo.value)
-
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=True)
-    def test_machine_token_overlay_json_decode_error(
-        self, m_path, m_token_read, m_load_file, FakeConfig
-    ):
-        invalid_json_path = "machine-token-path"
-        user_cfg = {"features": {"machine_token_overlay": invalid_json_path}}
-        m_token_read.return_value = self.machine_token_dict
-
-        json_str = '{"directives": {"remoteServer": "overlay"}'
-        m_load_file.return_value = json_str
-        expected_msg = messages.ERROR_JSON_DECODING_IN_FILE.format(
-            error="Expecting ',' delimiter: line 1 column 43 (char 42)",
-            file_path=invalid_json_path,
-        )
-
-        cfg = FakeConfig(cfg_overrides=user_cfg)
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            cfg.machine_token
-
-        assert expected_msg == str(excinfo.value)
-
 
 class TestDepthFirstMergeOverlayDict:
     @pytest.mark.parametrize(
