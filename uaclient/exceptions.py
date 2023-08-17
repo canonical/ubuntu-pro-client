@@ -522,6 +522,13 @@ class PycurlError(UserFacingError):
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
+class PycurlCACertificatesError(UserFacingError):
+    def __init__(self, url: str) -> None:
+        msg = messages.PYCURL_CA_CERTIFICATES_ERROR
+        self.url = url
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
 class ProxyAuthenticationFailed(UserFacingError):
     def __init__(self) -> None:
         msg = messages.PROXY_AUTH_FAIL

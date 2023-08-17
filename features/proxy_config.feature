@@ -1257,7 +1257,19 @@ Feature: Proxy configuration
         Proxy authentication failed
         """
 
-        When I run `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
+        When I run `apt remove ca-certificates -y` with sudo
+        And I run `rm -f /etc/ssl/certs/ca-certificates.crt` with sudo
+        And I verify that running `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Failed to access URL: https://.*
+        Cannot verify certificate of server
+        Please install "ca-certificates" and try again.
+        """
+
+        When I run `apt install ca-certificates -y` with sudo
+        And I run `update-ca-certificates` with sudo
+        And I run `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
         And I run `pro config set ua_apt_https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
 
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
@@ -1285,7 +1297,8 @@ Feature: Proxy configuration
         """
 
         # Pre-install canonical-livepatch to tell it to trust the cert
-        When I run `snap install canonical-livepatch` with sudo
+        When I run `apt install snapd -y` with sudo
+        And I run `snap install canonical-livepatch` with sudo
         And I run shell command `canonical-livepatch config ca-certs=@stdin < /usr/local/share/ca-certificates/ca.crt` with sudo
 
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine

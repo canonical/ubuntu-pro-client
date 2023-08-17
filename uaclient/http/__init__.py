@@ -72,6 +72,8 @@ def validate_proxy(
             raise
         except exceptions.ProxyAuthenticationFailed:
             raise
+        except exceptions.PycurlCACertificatesError:
+            raise
         except Exception as e:
             with util.disable_log_to_console():
                 msg = getattr(e, "reason", str(e))
@@ -208,7 +210,9 @@ def should_use_pycurl(https_proxy, target_url):
     return ret
 
 
-def _handle_pycurl_error(error, authentication_error_code):
+def _handle_pycurl_error(
+    error, url, authentication_error_code, ca_certificates_error_code
+):
     code = None
     msg = None
     if len(error.args) > 0:
@@ -221,6 +225,8 @@ def _handle_pycurl_error(error, authentication_error_code):
         and "HTTP code 407 from proxy" in msg
     ):
         raise exceptions.ProxyAuthenticationFailed()
+    elif code == ca_certificates_error_code:
+        raise exceptions.PycurlCACertificatesError(url)
     else:
         raise exceptions.PycurlError(error)
 
@@ -302,7 +308,12 @@ def _readurl_pycurl_https_in_https(
     try:
         c.perform()
     except pycurl.error as e:
-        _handle_pycurl_error(e, authentication_error_code=pycurl.E_RECV_ERROR)
+        _handle_pycurl_error(
+            e,
+            url=req.get_full_url(),
+            authentication_error_code=pycurl.E_RECV_ERROR,
+            ca_certificates_error_code=pycurl.E_SSL_CACERT_BADFILE,
+        )
 
     code = int(c.getinfo(pycurl.RESPONSE_CODE))
     body = body_output.getvalue().decode("utf-8")
