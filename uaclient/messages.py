@@ -100,7 +100,6 @@ SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
 SECURITY_AFFECTED_PKGS = (
     "{count} affected source package{plural_str} installed"
 )
-USN_FIXED = "{issue} is addressed."
 CVE_FIXED = "{issue} is resolved."
 CVE_FIXED_BY_LIVEPATCH = (
     OKGREEN_CHECK
@@ -184,7 +183,6 @@ APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
-DISABLED_TMPL = "{title} disabled"
 UNABLE_TO_DETERMINE_CLOUD_TYPE = (
     """\
 Unable to determine auto-attach platform support
@@ -254,7 +252,6 @@ A reboot is required to complete {operation}."""
 ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. Run: sudo pro enable {name}"""
 DETACH_SUCCESS = "This machine is now detached."
-DETACH_AUTOMATION_FAILURE = "Unable to automatically detach machine"
 
 REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
 REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
@@ -270,9 +267,6 @@ REFRESH_MESSAGES_FAILURE = (
 
 UPDATE_CHECK_CONTRACT_FAILURE = (
     """Failed to check for change in machine contract. Reason: {reason}"""
-)
-UPDATE_MOTD_NO_REQUIRED_CMD = (
-    "Required command to update MOTD messages not found: {cmd}."
 )
 
 INCOMPATIBLE_SERVICE = """\
@@ -415,10 +409,6 @@ FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
 Cannot disable dependent service: {required_service}{error}""",
 )
 
-DEPENDENT_SERVICE_NOT_FOUND = FormattedNamedMessage(
-    "dependent-service-not-found", "Dependent service {service} not found."
-)
-
 DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
     "depedent-service-stops-disable",
     """\
@@ -544,11 +534,6 @@ MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED = NamedMessage(
     "The magic attach token is already activated.",
 )
 
-MAGIC_ATTACH_EXPIRED_TOKEN = NamedMessage(
-    "magic-attach-token-expired",
-    "The magic attach token has expired or never existed.",
-)
-
 MAGIC_ATTACH_TOKEN_ERROR = NamedMessage(
     "magic-attach-token-error",
     "The magic attach token is invalid, has expired or never existed",
@@ -567,15 +552,6 @@ MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
 MAGIC_ATTACH_INVALID_PARAM = FormattedNamedMessage(
     "magic-attach-invalid-param",
     "This attach flow does not support {param} with value: {value}",
-)
-
-REQUIRED_SERVICE_NOT_FOUND = FormattedNamedMessage(
-    "required-service-not-found", "Required service {service} not found."
-)
-
-UNEXPECTED_CONTRACT_TOKEN_ON_ATTACHED_MACHINE = NamedMessage(
-    "unexpeced-contract-token-on-attached-machine",
-    "Got unexpected contract_token on an already attached machine",
 )
 
 APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
@@ -708,15 +684,6 @@ Include the token in the attach-config file instead.
     """,
 )
 
-ATTACH_REQUIRES_TOKEN = NamedMessage(
-    "attach-requires-token",
-    """\
-Attach requires a token: sudo pro attach <TOKEN>
-To obtain a token please visit: """
-    + BASE_UA_URL
-    + ".",
-)
-
 ATTACH_FAILURE = NamedMessage(
     "attach-failure",
     """\
@@ -838,11 +805,6 @@ REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
 REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
     "realtime-variant-incompatible",
     "{service} cannot be enabled together with {variant}",
-)
-REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
-    "beta-flag-required",
-    "Use `pro enable realtime-kernel --beta` to acknowledge the real-time"
-    " kernel is currently in beta and comes with no support.",
 )
 REALTIME_PROMPT = """\
 The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
@@ -967,10 +929,6 @@ Enter your token (from {}) to attach this system:""".format(
 )
 PROMPT_EXPIRED_ENTER_TOKEN = """\
 Enter your new token to renew Ubuntu Pro subscription on this system:"""
-PROMPT_UA_SUBSCRIPTION_URL = """\
-Open a browser to: {}""".format(
-    BASE_UA_URL
-)
 
 NOTICE_REFRESH_CONTRACT_WARNING = """\
 A change has been detected in your contract.
@@ -1019,7 +977,6 @@ MISSING_DISTRO_INFO_FILE = "Can't load the distro-info database."
 MISSING_SERIES_IN_DISTRO_INFO_FILE = (
     "Can't find series {} in the distro-info database."
 )
-NO_EOL_DATA_FOR_SERIES = "Unable to get {} dates for series {}"
 
 # Security Status output
 
@@ -1113,12 +1070,6 @@ ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
     'could not find entitlement named "{name}"',
 )
 
-TRY_UBUNTU_PRO_BETA = """\
-Try Ubuntu Pro beta with a free personal subscription on up to 5 machines.
-Learn more at https://ubuntu.com/pro"""
-
-INVALID_STATE_FILE = "Invalid state file: {}"
-
 ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
     "entitlements-not-enabled",
     "failed to enable some services",
@@ -1164,7 +1115,6 @@ RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE = (
 RETRY_ERROR_DETAIL_LOCK_HELD = "the pro lock was held by pid {pid}"
 RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
 RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
-RETRY_ERROR_DETAIL_URL_ERROR_CODE = "a {code} while reaching {url}"
 RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
@@ -1247,21 +1197,6 @@ BROKEN_YAML_MODULE = FormattedNamedMessage(
 FIX_CANNOT_INSTALL_PACKAGE = FormattedNamedMessage(
     "fix-cannot-install-package",
     "Cannot install package {package} version {version}" "",
-)
-
-ERROR_PARSING_APT_SOURCE_FILES = FormattedNamedMessage(
-    name="error-parsing-apt-source-files",
-    msg="""\
-Error parsing APT source files:
-{exception_str}""",
-)
-
-ERROR_RUNNING_CMD = FormattedNamedMessage(
-    "error-running-cmd",
-    """\
-Error running cmd: {cmd}
-{error_our}
-""",
 )
 
 UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
@@ -1358,13 +1293,6 @@ UNEXPECTED_SNAPD_API_ERROR = FormattedNamedMessage(
 
 SNAPD_CONNECTION_REFUSED = NamedMessage(
     "snapd-connection-refused", "Could not reach the SNAPD API"
-)
-
-SNAP_REVISION_NOT_SUPPORTED = FormattedNamedMessage(
-    "snap-revision-not-supported",
-    """\
-The installed version of {snap} is not supported.
-Upgrading it to the latest available version.""",
 )
 
 ANBOX_RUN_INIT_CMD = NamedMessage(
