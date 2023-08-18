@@ -24,7 +24,6 @@ from uaclient import (
     exceptions,
     http,
     lock,
-    messages,
     upgrade_lts_contract,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
@@ -60,11 +59,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
     try:
         fips.install_packages(cleanup_on_failure=False)
     except exceptions.UserFacingError:
-        LOG.warning(
-            "Failed to install packages at boot: {}".format(
-                ", ".join(fips.packages)
-            )
-        )
+        LOG.warning("Failed to install packages at boot: %r", fips.packages)
         raise
 
 
@@ -72,7 +67,7 @@ def refresh_contract(cfg: config.UAConfig):
     try:
         contract.refresh(cfg)
     except exceptions.UrlError:
-        LOG.warning(messages.REFRESH_CONTRACT_FAILURE)
+        LOG.warning("Failed to refresh contract")
         raise
 
 

@@ -91,7 +91,7 @@ class SpinLock(SingleAttemptLock):
         self.max_retries = max_retries
 
     def __enter__(self):
-        LOG.debug("spin lock starting for {}".format(self.lock_holder))
+        LOG.debug("spin lock starting for %s", self.lock_holder)
         tries = 0
         while True:
             try:
@@ -99,9 +99,7 @@ class SpinLock(SingleAttemptLock):
                 break
             except exceptions.LockHeldError as e:
                 LOG.debug(
-                    "SpinLock Attempt {}. {}. Spinning...".format(
-                        tries + 1, e.msg
-                    )
+                    "SpinLock Attempt %d. %s. Spinning...", tries + 1, e.msg
                 )
                 tries += 1
                 if tries >= self.max_retries:

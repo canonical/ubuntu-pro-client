@@ -120,13 +120,9 @@ class TestValidateProxy:
         )
 
         assert (
-            messages.ERROR_USING_PROXY.format(
-                proxy="http://localhost:1234",
-                test_url="http://example.com",
-                error=expected_message,
-            )
-            in caplog_text()
-        )
+            'Error trying to use "http://localhost:1234" as urllib proxy '
+            'to reach "http://example.com": {}'
+        ).format(expected_message) in caplog_text()
 
 
 class TestConfigureWebProxy:

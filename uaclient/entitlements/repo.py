@@ -202,14 +202,12 @@ class RepoEntitlement(base.UAEntitlement):
             return False
 
         if not self._check_apt_url_is_applied(delta_apt_url):
-
-            msg = (
-                "Updating '{}' apt sources list on changed directives.".format(
-                    self.name
-                )
+            LOG.info(
+                "New aptURL, updating %s apt sources list to %s",
+                self.name,
+                delta_apt_url,
             )
-            LOG.info(msg)
-            event.info(msg)
+            event.info(messages.REPO_UPDATING_APT_SOURCES.format(self.name))
 
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
@@ -222,11 +220,12 @@ class RepoEntitlement(base.UAEntitlement):
             self.setup_apt_config()
 
         if delta_packages:
-            msg = "Installing packages on changed directives: {}".format(
-                ", ".join(delta_packages)
+            LOG.info("New additionalPackages, installing %r", delta_packages)
+            event.info(
+                messages.REPO_REFRESH_INSTALLING_PACKAGES.format(
+                    ", ".join(delta_packages)
+                )
             )
-            LOG.info(msg)
-            event.info(msg)
             self.install_packages(package_list=delta_packages)
 
         return True

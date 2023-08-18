@@ -52,7 +52,7 @@ class UAFile:
         try:
             content = system.load_file(self.path)
         except FileNotFoundError:
-            LOG.debug("File does not exist: {}".format(self.path))
+            LOG.debug("Tried to load %s but file does not exist", self.path)
         return content
 
     def delete(self):

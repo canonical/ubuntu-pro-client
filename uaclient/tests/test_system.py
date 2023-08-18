@@ -1214,9 +1214,12 @@ class TestSubp:
 
         logs = caplog_text()
         expected_logs = [
-            "'Funky apt %d error'. Retrying 3 more times.",
-            "'Funky apt %d error'. Retrying 2 more times.",
-            "'Funky apt %d error'. Retrying 1 more times.",
+            "Invalid command specified 'Funky apt %d error'.",
+            "Retrying 3 more times.",
+            "Invalid command specified 'Funky apt %d error'.",
+            "Retrying 2 more times.",
+            "Invalid command specified 'Funky apt %d error'.",
+            "Retrying 1 more times.",
         ]
         for log in expected_logs:
             assert log in logs

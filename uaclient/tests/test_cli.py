@@ -2,7 +2,6 @@ import contextlib
 import io
 import json
 import logging
-import re
 import socket
 import sys
 import textwrap
@@ -620,20 +619,15 @@ class TestMain:
         assert [mock.call(expected_msg)] == m_log_error.call_args_list
 
     @pytest.mark.parametrize(
-        "error_url,expected_log",
+        ["error_url", "expected_log_call"],
         (
             (
-                None,
-                "Failed to connect to authentication server\n"
-                "Check your Internet connection and try again."
-                " [Errno -2] Name or service not known",
-            ),
-            (
                 "http://nowhere.com",
-                "Failed to connect to authentication server\n"
-                "Check your Internet connection and try again."
-                " Failed to access URL: http://nowhere.com."
-                " [Errno -2] Name or service not known",
+                mock.call(
+                    "Failed to access URL: %s",
+                    "http://nowhere.com",
+                    exc_info=mock.ANY,
+                ),
             ),
         ),
     )
@@ -648,7 +642,7 @@ class TestMain:
         m_log_exception,
         m_event_info,
         error_url,
-        expected_log,
+        expected_log_call,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = exceptions.UrlError(
@@ -666,7 +660,7 @@ class TestMain:
                 info_msg=messages.CONNECTIVITY_ERROR.msg, file_type=mock.ANY
             )
         ] == m_event_info.call_args_list
-        assert [mock.call(expected_log)] == m_log_exception.call_args_list
+        assert [expected_log_call] == m_log_exception.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("uaclient.cli.setup_logging")
@@ -760,7 +754,6 @@ class TestMain:
             == str(err)
         )
 
-    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(
         "cli_args,is_tty,should_warn",
         (
@@ -776,6 +769,7 @@ class TestMain:
             (["pro", "security-status", "--format", "json"], False, False),
         ),
     )
+    @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.action_status")
     @mock.patch("uaclient.cli.action_security_status")
     @mock.patch("uaclient.cli.setup_logging")
@@ -786,13 +780,12 @@ class TestMain:
         _m_setup_logging,
         _m_action_security_status,
         _m_action_status,
-        caplog_text,
+        m_event_info,
         cli_args,
         is_tty,
         should_warn,
         FakeConfig,
     ):
-        check_text = "WARNING: this output is intended to be human readable"
         m_tty.return_value = is_tty
         with mock.patch("sys.argv", cli_args):
             with mock.patch(
@@ -801,11 +794,17 @@ class TestMain:
             ):
                 main()
 
-        logs = caplog_text()
         if should_warn:
-            assert check_text in logs
+            assert [
+                mock.call(
+                    messages.WARNING_HUMAN_READABLE_OUTPUT.format(
+                        command=cli_args[1]
+                    ),
+                    file_type=mock.ANY,
+                )
+            ] == m_event_info.call_args_list
         else:
-            assert check_text not in logs
+            assert [] == m_event_info.call_args_list
 
 
 class TestSetupLogging:
@@ -872,13 +871,13 @@ to get the latest version with new features and bug fixes.
 # the reference for the fixture to test it.
 class TestWarnAboutNewVersion:
     @pytest.mark.parametrize("new_version", (None, "1.2.3"))
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.version.check_for_new_version")
     def test_warn_about_new_version(
         self,
         m_check_version,
+        m_event_info,
         new_version,
-        caplog_text,
         _warn_about_new_version,
     ):
         m_check_version.return_value = new_version
@@ -886,24 +885,33 @@ class TestWarnAboutNewVersion:
         _warn_about_new_version()
 
         if new_version:
-            assert re.search(expected_notice, caplog_text())
+            assert [
+                mock.call(
+                    messages.WARN_NEW_VERSION_AVAILABLE_CLI.format(
+                        version=new_version
+                    ),
+                    file_type=mock.ANY,
+                )
+            ] == m_event_info.call_args_list
         else:
-            assert not re.search(expected_notice, caplog_text())
+            assert [] == m_event_info.call_args_list
 
     @pytest.mark.parametrize("command", ("api", "status"))
     @pytest.mark.parametrize("out_format", (None, "tabular", "json"))
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch("uaclient.cli.event.info")
     @mock.patch(
         "uaclient.cli.version.check_for_new_version", return_value="1.2.3"
     )
     def test_dont_show_for_api_calls(
         self,
-        _m_check_version,
-        caplog_text,
+        m_check_version,
+        m_event_info,
         command,
         out_format,
         _warn_about_new_version,
     ):
+        m_check_version.return_value = "1"
+
         args = mock.MagicMock()
         args.command = command
         args.format = out_format
@@ -914,6 +922,13 @@ class TestWarnAboutNewVersion:
         _warn_about_new_version(args)
 
         if command != "api" and out_format != "json":
-            assert re.search(expected_notice, caplog_text())
+            assert [
+                mock.call(
+                    messages.WARN_NEW_VERSION_AVAILABLE_CLI.format(
+                        version="1"
+                    ),
+                    file_type=mock.ANY,
+                )
+            ] == m_event_info.call_args_list
         else:
-            assert not re.search(expected_notice, caplog_text())
+            assert [] == m_event_info.call_args_list
