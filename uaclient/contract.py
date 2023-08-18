@@ -264,7 +264,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
             )
         except exceptions.UrlError as e:
-            LOG.exception(str(e))
+            LOG.exception(e)
             raise exceptions.ConnectivityError()
         if response.code == 401:
             raise exceptions.MagicAttachTokenError()
@@ -290,7 +290,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 method="POST",
             )
         except exceptions.UrlError as e:
-            LOG.exception(str(e))
+            LOG.exception(e)
             raise exceptions.ConnectivityError()
         if response.code == 503:
             raise exceptions.MagicAttachUnavailable()
@@ -313,7 +313,7 @@ class UAContractClient(serviceclient.UAServiceClient):
                 method="DELETE",
             )
         except exceptions.UrlError as e:
-            LOG.exception(str(e))
+            LOG.exception(e)
             raise exceptions.ConnectivityError()
         if response.code == 400:
             raise exceptions.MagicAttachTokenAlreadyActivated()
@@ -514,19 +514,23 @@ def process_entitlements_delta(
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
-        except exceptions.UserFacingError:
+        except exceptions.UserFacingError as e:
+            LOG.exception(e)
             delta_error = True
             failed_services.append(name)
             LOG.error(
-                "Failed to process contract delta for {name}:"
-                " {delta}".format(name=name, delta=new_entitlement)
+                "Failed to process contract delta for %s: %r",
+                name,
+                new_entitlement,
             )
-        except Exception:
+        except Exception as e:
+            LOG.exception(e)
             unexpected_error = True
             failed_services.append(name)
             LOG.exception(
-                "Unexpected error processing contract delta for {name}:"
-                " {delta}".format(name=name, delta=new_entitlement)
+                "Unexpected error processing contract delta for %s: %r",
+                name,
+                new_entitlement,
             )
         else:
             # If we have any deltas to process and we were able to process

@@ -89,16 +89,6 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 
 UA_COLLECT_LOGS_FILE = "ua_logs.tar.gz"
 
-NEW_VERSION_NOTICE = (
-    "\n"
-    + messages.BLUE_INFO
-    + """\
- A new version is available: {version}
-Please run:
-    sudo apt-get install ubuntu-advantage-tools
-to get the latest version with new features and bug fixes."""
-)
-
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -1299,7 +1289,7 @@ def action_enable(args, *, cfg, **kwargs):
         contract.refresh(cfg)
     except (exceptions.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
-        LOG.debug(messages.REFRESH_CONTRACT_FAILURE, exc_info=True)
+        LOG.warning("Failed to refresh contract", exc_info=True)
         event.warning(warning_msg=messages.REFRESH_CONTRACT_FAILURE)
 
     names = getattr(args, "service", [])
@@ -1882,9 +1872,13 @@ def _warn_about_new_version(cmd_args=None) -> None:
 
     new_version = version.check_for_new_version()
     if new_version:
-        msg = NEW_VERSION_NOTICE.format(version=new_version)
-        LOG.warning(NEW_VERSION_NOTICE.format(version=new_version))
-        event.info(msg, file_type=sys.stderr)
+        LOG.warning("New version available: %s", new_version)
+        event.info(
+            messages.WARN_NEW_VERSION_AVAILABLE_CLI.format(
+                version=new_version
+            ),
+            file_type=sys.stderr,
+        )
 
 
 def _warn_about_output_redirection(cmd_args) -> None:
@@ -1895,11 +1889,13 @@ def _warn_about_output_redirection(cmd_args) -> None:
     ):
         if hasattr(cmd_args, "format") and cmd_args.format in ("json", "yaml"):
             return
-        msg = messages.WARNING_HUMAN_READABLE_OUTPUT.format(
-            command=cmd_args.command
+        LOG.warning("Not in a tty and human-readable command called")
+        event.info(
+            messages.WARNING_HUMAN_READABLE_OUTPUT.format(
+                command=cmd_args.command
+            ),
+            file_type=sys.stderr,
         )
-        LOG.warning(msg)
-        event.info(msg, file_type=sys.stderr)
 
 
 def setup_logging(log_level, log_file=None, logger=None):
@@ -1968,12 +1964,9 @@ def main_error_handler(func):
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
             else:
-                msg_args = {"url": exc.url, "error": exc}
-                if exc.url:
-                    msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
-                else:
-                    msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
-                LOG.exception(msg_tmpl.format(**msg_args))
+                LOG.exception(
+                    "Failed to access URL: %s", exc.url, exc_info=exc
+                )
 
                 msg = messages.CONNECTIVITY_ERROR
                 event.error(error_msg=msg.msg, error_code=msg.name)

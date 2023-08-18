@@ -128,7 +128,7 @@ class UAConfig:
                     or state_files.UserConfigData()
                 )
             except Exception as e:
-                LOG.warning("Error loading user config: {}".format(e))
+                LOG.warning("Error loading user config", exc_info=e)
                 LOG.warning("Using default config values")
                 self.user_config = state_files.UserConfigData()
 
@@ -491,7 +491,9 @@ class UAConfig:
         ):
             value = getattr(self, prop)
             if value is None:
-                LOG.debug("No config set for {}, default value will be used.")
+                LOG.debug(
+                    "No config set for %s, default value will be used.", prop
+                )
             elif not isinstance(value, int) or value < 0:
                 error_msg = (
                     "Value for the {} interval must be a positive integer. "

@@ -23,7 +23,7 @@ def start():
             ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
         )
     except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
-        LOG.warning(e)
+        LOG.warning(e, exc_info=e)
 
 
 def stop():
@@ -32,7 +32,7 @@ def stop():
             ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
         )
     except (exceptions.ProcessExecutionError, TimeoutExpired) as e:
-        LOG.warning(e)
+        LOG.warning(e, exc_info=e)
 
 
 def cleanup(cfg: UAConfig):

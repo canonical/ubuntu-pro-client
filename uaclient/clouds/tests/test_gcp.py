@@ -83,11 +83,11 @@ class TestUAAutoAttachGCPInstance:
 
         expected_logs = [
             "GCPProServiceAccount Error 701: "
-            + "funky error msg Retrying 3 more times.",
+            + "funky error msg: Retrying 3 more times.",
             "GCPProServiceAccount Error 702: "
-            + "funky error msg Retrying 2 more times.",
+            + "funky error msg: Retrying 2 more times.",
             "GCPProServiceAccount Error 703: "
-            + "funky error msg Retrying 1 more times.",
+            + "funky error msg: Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:

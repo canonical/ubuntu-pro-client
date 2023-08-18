@@ -48,13 +48,11 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
             try:
                 headers = self._get_imds_v2_token_headers(ip_address=address)
             except Exception as e:
-                msg = (
-                    "Could not reach AWS IMDS at http://{endpoint}:"
-                    " {reason}\n".format(
-                        endpoint=address, reason=getattr(e, "reason", "")
-                    )
+                LOG.warning(
+                    "Could not reach AWS IMDS at http://%s: %s\n",
+                    address,
+                    getattr(e, "reason", ""),
                 )
-                LOG.debug(msg)
             else:
                 self._ip_address = address
                 break

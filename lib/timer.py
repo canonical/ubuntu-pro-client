@@ -64,11 +64,11 @@ class TimedJob:
         if configured_interval is None:
             return self._default_interval_seconds
         if not isinstance(configured_interval, int) or configured_interval < 0:
-            warning_msg = (
-                "Invalid value for {} interval found in config. "
-                "Default value will be used."
-            ).format(self.name)
-            LOG.warning(warning_msg)
+            LOG.warning(
+                "Invalid value for %s interval found in config. "
+                "Default value will be used.",
+                self.name,
+            )
             return self._default_interval_seconds
         return configured_interval
 
@@ -157,9 +157,10 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
         try:
             timer_jobs_state_file.delete()
         except (OSError, PermissionError) as exception:
-            msg = "Error trying to delete invalid jobs-status.json file: {}"
-            msg = msg.format(str(exception))
-            LOG.warning(msg)
+            LOG.warning(
+                "Error trying to delete invalid jobs-status.json file: %s",
+                str(exception),
+            )
             return
 
     if jobs_status_obj is None:

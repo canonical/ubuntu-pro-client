@@ -152,7 +152,7 @@ def get_kernel_info() -> KernelInfo:
     uname_release = uname.release.strip()
     uname_match = re.match(RE_KERNEL_UNAME, uname_release)
     if uname_match is None:
-        LOG.warning(messages.KERNEL_PARSE_ERROR.format(kernel=uname_release))
+        LOG.warning("Failed to parse kernel: %s", uname_release)
         return KernelInfo(
             uname_machine_arch=uname_machine_arch,
             uname_release=uname_release,
@@ -477,8 +477,8 @@ def is_exe(path: str) -> bool:
 
 def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
-    LOG.debug("Reading file: %s", filename)
     with open(filename, "rb") as stream:
+        LOG.debug("Reading file: %s", filename)
         content = stream.read()
     return content.decode("utf-8")
 
@@ -536,10 +536,10 @@ def write_file(
 def ensure_file_absent(file_path: str) -> None:
     """Remove a file if it exists, logging a message about removal."""
     try:
-        LOG.debug("Removing file: %s", file_path)
         os.unlink(file_path)
+        LOG.debug("Removed file: %s", file_path)
     except FileNotFoundError:
-        LOG.debug("File does not exist: %s", file_path)
+        LOG.debug("Tried to remove %s but file does not exist", file_path)
 
 
 def _subp(
@@ -676,22 +676,21 @@ def subp(
         except exceptions.ProcessExecutionError as e:
             if capture:
                 LOG.debug(str(e))
-                msg = "Stderr: {}\nStdout: {}".format(e.stderr, e.stdout)
-                LOG.warning(msg)
+                LOG.warning("Stderr: %s\nStdout: %s", e.stderr, e.stdout)
             if not retry_sleeps:
                 raise
-            retry_msg = " Retrying %d more times." % len(retry_sleeps)
-            LOG.debug(str(e) + retry_msg)
+            LOG.debug(str(e))
+            LOG.debug("Retrying %d more times.", len(retry_sleeps))
             time.sleep(retry_sleeps.pop(0))
     return out, err
 
 
 def ensure_folder_absent(folder_path: str) -> None:
     try:
-        LOG.debug("Removing folder: %s", folder_path)
         rmtree(folder_path)
+        LOG.debug("Removed folder: %s", folder_path)
     except FileNotFoundError:
-        LOG.debug("Folder does not exist: %s", folder_path)
+        LOG.debug("Tried to remove %s but folder does not exist", folder_path)
 
 
 def is_systemd_unit_active(service_name: str) -> bool:
