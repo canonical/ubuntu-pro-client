@@ -12,7 +12,7 @@ from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 
 if __name__ == "__main__":
-    setup_logging(logging.INFO, logging.DEBUG)
+    setup_logging(logging.DEBUG)
     cfg = UAConfig()
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
