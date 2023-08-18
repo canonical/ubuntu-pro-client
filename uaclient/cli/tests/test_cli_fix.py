@@ -4,7 +4,8 @@ import mock
 import pytest
 
 from uaclient import exceptions
-from uaclient.cli import action_fix, main
+from uaclient.cli import main
+from uaclient.cli.fix import action_fix
 from uaclient.security import FixStatus
 
 M_PATH = "uaclient.cli."
