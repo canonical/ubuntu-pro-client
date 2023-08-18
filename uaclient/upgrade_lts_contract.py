@@ -27,7 +27,7 @@ import logging
 import sys
 import time
 
-from uaclient import contract, defaults, system, util
+from uaclient import contract, defaults, messages, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 
@@ -53,20 +53,21 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     if not _is_attached(cfg).is_attached:
         LOG.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
+    LOG.debug("Starting upgrade-lts-contract.")
     out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
-    msg = "Starting upgrade-lts-contract."
     if out:
-        msg += " Retrying every 10 seconds waiting on released apt lock"
-    print(msg)
-    LOG.debug(msg)
+        print(messages.RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT)
 
     current_release = system.get_release_info().series
 
     past_release = current_codename_to_past_codename.get(current_release)
     if past_release is None:
-        msg = "Could not find past release for: {}".format(current_release)
-        print(msg)
-        LOG.warning(msg)
+        print(messages.RELEASE_UPGRADE_NO_PAST_RELEASE.format(current_release))
+        LOG.warning(
+            "Could not find past release for %s. Current known releases: %r.",
+            current_release,
+            current_codename_to_past_codename,
+        )
         sys.exit(1)
 
     past_entitlements = UAConfig(
@@ -79,17 +80,19 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     retry_count = 0
     while out:
         # Loop until apt hold is released at the end of `do-release-upgrade`
+        LOG.debug("Detected that apt lock is held. Sleeping 10 seconds.")
         time.sleep(10)
         out, _err = system.subp(
             ["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1]
         )
         retry_count += 1
 
-    msg = "upgrade-lts-contract processing contract deltas: {} -> {}".format(
-        past_release, current_release
+    LOG.debug(
+        "upgrade-lts-contract processing contract deltas: %s -> %s",
+        past_release,
+        current_release,
     )
-    print(msg)
-    LOG.debug(msg)
+    print(messages.RELEASE_UPGRADE_STARTING)
 
     contract.process_entitlements_delta(
         cfg=cfg,
@@ -98,9 +101,8 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
         allow_enable=True,
         series_overrides=False,
     )
-    msg = "upgrade-lts-contract succeeded after {} retries".format(retry_count)
-    print(msg)
-    LOG.debug(msg)
+    LOG.debug("upgrade-lts-contract succeeded after %s retries", retry_count)
+    print(messages.RELEASE_UPGRADE_SUCCESS)
 
 
 def remove_private_esm_apt_cache():

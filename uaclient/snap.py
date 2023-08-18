@@ -143,7 +143,10 @@ def run_snapd_wait_cmd():
         system.subp([SNAP_CMD, "wait", "system", "seed.loaded"], capture=True)
     except exceptions.ProcessExecutionError as e:
         if re.search(r"unknown command .*wait", str(e).lower()):
-            LOG.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+            LOG.warning(
+                "Detected version of snapd that does not have wait command"
+            )
+            event.info(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
         else:
             raise
 
@@ -183,12 +186,13 @@ def get_snap_info(snap: str) -> SnapPackage:
 
         try:
             data = json.loads(out)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             LOG.warning(
-                messages.JSON_PARSER_ERROR.format(
-                    source="SNAPD API {}".format(url),
-                    out=out,
-                ).msg
+                "JSONDecodeError while parsing result of snap api call to %s, "
+                'returning None. output was: "%s"',
+                url,
+                out,
+                exc_info=e,
             )
             raise exceptions.SnapdInvalidJson(url=url, out=out)
 

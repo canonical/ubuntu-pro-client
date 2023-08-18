@@ -30,7 +30,7 @@ def patch_status_json_schema_0_1(status_file: str):
     try:
         status = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
     except ValueError as e:
-        LOG.debug(
+        LOG.warning(
             "Unable to patch /var/lib/ubuntu-advantage/status.json: %s", str(e)
         )
         return
@@ -57,10 +57,8 @@ def patch_status_json_schema_0_1(status_file: str):
             new_status, cls=util.DatetimeAwareJSONEncoder
         )
     except ValueError as e:
-        LOG.debug(
-            "Unable to patch /var/lib/ubuntu-advantage/status.json: {}".format(
-                str(e)
-            )
+        LOG.warning(
+            "Unable to patch /var/lib/ubuntu-advantage/status.json: %s", str(e)
         )
     system.write_file(status_file, status_content)
 

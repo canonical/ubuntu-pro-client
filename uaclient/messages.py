@@ -265,10 +265,6 @@ REFRESH_MESSAGES_FAILURE = (
     "Unable to update Ubuntu Pro related APT and MOTD messages."
 )
 
-UPDATE_CHECK_CONTRACT_FAILURE = (
-    """Failed to check for change in machine contract. Reason: {reason}"""
-)
-
 INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
@@ -352,9 +348,6 @@ APT_PROXY_CONFIG_HEADER = """\
 """
 
 SETTING_SERVICE_PROXY = "Setting {service} proxy"
-ERROR_USING_PROXY = (
-    'Error trying to use "{proxy}" as proxy to reach "{test_url}": {error}'
-)
 
 PROXY_DETECTED_BUT_NOT_CONFIGURED = """\
 No proxy set in config; however, proxy is configured for: {{services}}.
@@ -838,11 +831,6 @@ GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
     "see https://cloud.google.com/iam/docs/service-accounts",
 )
 
-LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
-LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
-    CONNECTIVITY_ERROR.msg + " Failed to access URL: {url}. {error}"
-)
-
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
 WARNING_APT_PROXY_SETUP = """\
 Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
@@ -863,10 +851,6 @@ ERROR_PROXY_CONFIGURATION = """\
 Error: Setting global apt proxy and pro scoped apt proxy
 at the same time is unsupported.
 Cancelling config process operation.
-"""
-
-AVAILABILITY_FROM_UNKNOWN_SERVICE = """\
-Ignoring availability of unknown service {service} from contract server
 """
 
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
@@ -948,13 +932,20 @@ INVALID_FILE_FORMAT = FormattedNamedMessage(
     name="invalid-file-format", msg="{file_name} is not valid {file_format}"
 )
 
-KERNEL_PARSE_ERROR = "Failed to parse kernel: {kernel}"
-
 WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
     name="new-version-available",
     msg="A new version of the client is available: {version}. \
 Please upgrade to the latest version to get the new features \
 and bug fixes.",
+)
+WARN_NEW_VERSION_AVAILABLE_CLI = (
+    "\n"
+    + BLUE_INFO
+    + """\
+ A new version is available: {version}
+Please run:
+    sudo apt-get install ubuntu-advantage-tools
+to get the latest version with new features and bug fixes."""
 )
 
 INVALID_PRO_IMAGE = FormattedNamedMessage(
@@ -1379,4 +1370,36 @@ USNs should follow the pattern USN-nnnn.""",
 SECURITY_FIX_NOT_FOUND_ISSUE = FormattedNamedMessage(
     "security-fix-not-found-issue",
     "Error: {issue_id} not found.",
+)
+
+DISABLE_DURING_CONTRACT_REFRESH = (
+    "Due to contract refresh, " "'{}' is now disabled."
+)
+UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH = (
+    "Unable to disable '{}' as recommended during contract"
+    " refresh. Service is still active. See"
+    " `pro status`"
+)
+
+FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE = (
+    "Could not determine cloud, defaulting to generic FIPS package."
+)
+
+
+REPO_UPDATING_APT_SOURCES = (
+    "Updating '{}' apt sources list on changed directives."
+)
+REPO_REFRESH_INSTALLING_PACKAGES = (
+    "Installing packages on changed directives: {}"
+)
+
+RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
+    "APT lock is held. Ubuntu Pro configuration will wait until it is released"
+)
+RELEASE_UPGRADE_NO_PAST_RELEASE = "Could not find past release for {}"
+RELEASE_UPGRADE_STARTING = (
+    "Starting upgrade of Ubuntu Pro service configuration"
+)
+RELEASE_UPGRADE_SUCCESS = (
+    "Finished upgrade of Ubuntu Pro service configuration"
 )

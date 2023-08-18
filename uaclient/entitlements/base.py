@@ -544,9 +544,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         apt.run_apt_update_command()
 
         package_names = [package["name"] for package in required_packages]
-        msg = messages.INSTALLING_PACKAGES.format(" ".join(package_names))
-        LOG.debug(msg)
-        event.info(msg)
+        LOG.debug("Installing packages %r", package_names)
+        event.info(
+            messages.INSTALLING_PACKAGES.format(" ".join(package_names))
+        )
         apt.run_apt_install_command(package_names)
 
         return True
@@ -569,10 +570,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             for package in required_packages
             if package.get("removeOnDisable", False)
         ]
+        LOG.debug("Uninstalling packages %r", package_names)
         package_names_str = " ".join(package_names)
-        msg = messages.UNINSTALLING_PACKAGES.format(package_names_str)
-        LOG.debug(msg)
-        event.info(msg)
+        event.info(messages.UNINSTALLING_PACKAGES.format(package_names_str))
         apt.remove_packages(
             package_names,
             messages.UNINSTALLING_PACKAGES_FAILED.format(package_names_str),
@@ -1168,20 +1168,28 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
             if application_status != ApplicationStatus.DISABLED:
                 if self.can_disable():
+                    LOG.info(
+                        "Disabling %s after refresh transition to unentitled"
+                    )
                     self.disable()
                     msg = (
                         "Due to contract refresh, " "'{}' is now disabled."
                     ).format(self.name)
-                    LOG.info(msg)
-                    event.info(msg)
+                    event.info(
+                        messages.DISABLE_DURING_CONTRACT_REFRESH.format(
+                            self.name
+                        )
+                    )
                 else:
-                    msg = (
-                        "Unable to disable '{}' as recommended during contract"
-                        " refresh. Service is still active. See"
-                        " `pro status`"
-                    ).format(self.name)
-                    LOG.warning(msg)
-                    event.info(msg)
+                    LOG.warning(
+                        "Cannot disable %s after refresh transition to "
+                        "unentitled"
+                    )
+                    event.info(
+                        messages.UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH.format(  # noqa: E501
+                            self.name
+                        )
+                    )
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.

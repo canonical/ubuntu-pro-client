@@ -734,8 +734,10 @@ class TestLivepatchEntitlementEnable:
             in fake_stdout.getvalue().strip()
         )
 
-        for msg in messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD.split("\n"):
-            assert msg in caplog_text()
+        assert (
+            "Detected version of snapd that does not have wait command"
+            in caplog_text()
+        )
 
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1

@@ -35,7 +35,7 @@ class TestStart:
                 ["systemctl", "start", "ubuntu-advantage.service"], timeout=2.0
             )
         ] == m_subp.call_args_list
-        assert [mock.call(err)] == m_log_warning.call_args_list
+        assert [mock.call(err, exc_info=err)] == m_log_warning.call_args_list
 
 
 @mock.patch(M_PATH + "system.subp")
@@ -64,4 +64,4 @@ class TestStop:
                 ["systemctl", "stop", "ubuntu-advantage.service"], timeout=2.0
             )
         ] == m_subp.call_args_list
-        assert [mock.call(err)] == m_log_warning.call_args_list
+        assert [mock.call(err, exc_info=err)] == m_log_warning.call_args_list

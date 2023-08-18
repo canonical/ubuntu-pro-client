@@ -139,9 +139,8 @@ service at https://ubuntu.com/security/livepatch"""
             try:
                 process_config_directives(entitlement_cfg)
             except exceptions.ProcessExecutionError as e:
-                msg = "Unable to configure Livepatch: " + str(e)
-                event.info(msg)
-                LOG.error(msg)
+                LOG.error(str(e), exc_info=e)
+                event.info("Unable to configure livepatch: %s", str(e))
                 return False
         if process_token:
             livepatch_token = entitlement_cfg.get("resourceToken")
@@ -154,15 +153,16 @@ service at https://ubuntu.com/security/livepatch"""
                 livepatch_token = self.cfg.machine_token["machineToken"]
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
-                msg = "Disabling {} prior to re-attach with new token".format(
-                    self.title
+                LOG.info("Disabling livepatch before re-enabling")
+                event.info(
+                    "Disabling {} prior to re-attach with new token".format(
+                        self.title
+                    )
                 )
-                LOG.info(msg)
-                event.info(msg)
                 try:
                     system.subp([livepatch.LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
-                    LOG.error(str(e))
+                    LOG.error(str(e), exc_info=e)
                     return False
             try:
                 system.subp(
@@ -288,9 +288,13 @@ service at https://ubuntu.com/security/livepatch"""
         )
         process_token = bool(deltas.get("resourceToken", False))
         if any([process_directives, process_token]):
-            msg = "Updating '{}' on changed directives.".format(self.name)
-            LOG.info(msg)
-            event.info(msg)
+            LOG.info(
+                "New livepatch directives or token. running "
+                "setup_livepatch_config"
+            )
+            event.info(
+                "Updating '{}' on changed directives.".format(self.name)
+            )
             return self.setup_livepatch_config(
                 process_directives=process_directives,
                 process_token=process_token,

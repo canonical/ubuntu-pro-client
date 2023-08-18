@@ -457,12 +457,11 @@ see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
     def _perform_enable(self, silent: bool = False) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
-            msg = (
+            LOG.warning(
                 "Could not determine cloud, "
                 "defaulting to generic FIPS package."
             )
-            LOG.warning(msg)
-            event.info(msg)
+            event.info(messages.FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE)
         if super()._perform_enable(silent=silent):
             notices.remove(
                 Notice.FIPS_INSTALL_OUT_OF_DATE,

@@ -417,7 +417,7 @@ def add_auth_apt_repo(
             continue  # Only enable suites matching this current series
         maybe_comment = ""
         if "-updates" in suite and not updates_enabled:
-            LOG.debug(
+            LOG.warning(
                 'Not enabling apt suite "%s" because "%s-updates" is not'
                 " enabled",
                 suite,

@@ -279,9 +279,9 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
 
         except exceptions.EntitlementNotFoundError:
             LOG.debug(
-                messages.AVAILABILITY_FROM_UNKNOWN_SERVICE.format(
-                    service=resource.get("name", "without a 'name' key")
-                )
+                "Ignoring availability of unknown service %s from contract "
+                "server",
+                resource.get("name", "without a 'name' key"),
             )
             continue
 
