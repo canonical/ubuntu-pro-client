@@ -7,7 +7,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from urllib import error, request
 from urllib.parse import ParseResult, urlparse
 
-from uaclient import defaults, exceptions, messages, util
+from uaclient import defaults, exceptions, util
 
 UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
@@ -73,11 +73,11 @@ def validate_proxy(
         except exceptions.ProxyAuthenticationFailed:
             raise
         except Exception as e:
-            msg = getattr(e, "reason", str(e))
             LOG.error(
-                messages.ERROR_USING_PROXY.format(
-                    proxy=proxy, test_url=test_url, error=msg
-                )
+                'Error trying to use "%s" as pycurl proxy to reach "%s": %s',
+                proxy,
+                test_url,
+                str(e),
             )
             raise exceptions.ProxyNotWorkingError(proxy)
 
@@ -93,11 +93,11 @@ def validate_proxy(
         opener.open(req)
         return proxy
     except (socket.timeout, error.URLError) as e:
-        msg = getattr(e, "reason", str(e))
         LOG.error(
-            messages.ERROR_USING_PROXY.format(
-                proxy=proxy, test_url=test_url, error=msg
-            )
+            'Error trying to use "%s" as urllib proxy to reach "%s": %s',
+            proxy,
+            test_url,
+            getattr(e, "reason", str(e)),
         )
         raise exceptions.ProxyNotWorkingError(proxy)
 

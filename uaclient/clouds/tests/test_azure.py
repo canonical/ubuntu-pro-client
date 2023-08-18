@@ -102,9 +102,9 @@ class TestUAAutoAttachAzureInstance:
         expected_sleep_calls = [mock.call(1), mock.call(1), mock.call(1)]
         assert expected_sleep_calls == sleep.call_args_list
         expected_logs = [
-            "(701, 'funky error msg') Retrying 3 more times.",
-            "(702, 'funky error msg') Retrying 2 more times.",
-            "(703, 'funky error msg') Retrying 1 more times.",
+            "(701, 'funky error msg'): Retrying 3 more times.",
+            "(702, 'funky error msg'): Retrying 2 more times.",
+            "(703, 'funky error msg'): Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:

@@ -106,9 +106,8 @@ def poll_for_pro_license(cfg: UAConfig):
             if end - start < 10:
                 LOG.debug(
                     "wait_for_change returned quickly and no pro license"
-                    " present. Waiting {} seconds before polling again".format(
-                        cfg.polling_error_retry_delay
-                    )
+                    " present. Waiting %d seconds before polling again",
+                    cfg.polling_error_retry_delay,
                 )
                 time.sleep(cfg.polling_error_retry_delay)
                 continue

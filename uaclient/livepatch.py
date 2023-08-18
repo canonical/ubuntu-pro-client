@@ -136,11 +136,12 @@ def status() -> Optional[LivepatchStatusStatus]:
 
     try:
         status_json = json.loads(out)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         LOG.warning(
-            messages.JSON_PARSER_ERROR.format(
-                source="canonical-livepatch status", out=out
-            ).msg
+            "JSONDecodeError while parsing livepatch status, returning None. "
+            'output was: "%s"',
+            out,
+            exc_info=e,
         )
         return None
 
@@ -148,8 +149,8 @@ def status() -> Optional[LivepatchStatusStatus]:
         status_root = LivepatchStatus.from_dict(status_json)
     except IncorrectTypeError:
         LOG.warning(
-            "canonical-livepatch status returned unexpected "
-            "structure: {}".format(out)
+            "canonical-livepatch status returned unexpected structure: %s",
+            out,
         )
         return None
 

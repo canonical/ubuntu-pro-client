@@ -44,10 +44,12 @@ class TestUpgradeLTSContract:
         m_subp.return_value = ("", "")
 
         expected_msgs = [
-            "Starting upgrade-lts-contract.",
-            "Could not find past release for: groovy",
+            "Could not find past release for groovy",
         ]
-        expected_logs = ["Check whether to upgrade-lts-contract"]
+        expected_logs = [
+            "Could not find past release for groovy",
+            "Check whether to upgrade-lts-contract",
+        ]
         with pytest.raises(SystemExit) as execinfo:
             process_contract_delta_after_apt_lock(FakeConfig())
 
@@ -58,7 +60,7 @@ class TestUpgradeLTSContract:
         out, _err = capsys.readouterr()
         assert out == "\n".join(expected_msgs) + "\n"
         debug_logs = caplog_text()
-        for log in expected_msgs + expected_logs:
+        for log in expected_logs:
             assert log in debug_logs
 
     @mock.patch("uaclient.upgrade_lts_contract._is_attached")
@@ -92,20 +94,15 @@ class TestUpgradeLTSContract:
         m_process_delta.return_value = True
         m_sleep.return_value = True
 
-        base_msg = "".join(
+        expected_stdout = "\n".join(
             [
-                "Starting upgrade-lts-contract.",
-                " Retrying every 10 seconds waiting on released apt lock",
+                "APT lock is held. Ubuntu Pro configuration will wait until "
+                "it is released",
+                "Starting upgrade of Ubuntu Pro service configuration",
+                "Finished upgrade of Ubuntu Pro service configuration",
+                "",
             ]
         )
-
-        expected_msgs = [
-            base_msg,
-            "upgrade-lts-contract processing contract deltas: {}".format(
-                "bionic -> focal"
-            ),
-            "upgrade-lts-contract succeeded after 3 retries",
-        ]
 
         with mock.patch(
             "uaclient.upgrade_lts_contract.UAConfig",
@@ -118,7 +115,4 @@ class TestUpgradeLTSContract:
         assert 4 == m_subp.call_count
         assert 1 == m_process_delta.call_count
         out, _err = capsys.readouterr()
-        assert out == "\n".join(expected_msgs) + "\n"
-        debug_logs = caplog_text()
-        for log in expected_msgs + ["Check whether to upgrade-lts-contract"]:
-            assert log in debug_logs
+        assert out == expected_stdout

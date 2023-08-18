@@ -1,6 +1,6 @@
 import logging
 
-from uaclient import contract, messages, util
+from uaclient import contract, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.files import notices
@@ -21,9 +21,10 @@ def update_contract_info(cfg: UAConfig) -> bool:
                     Notice.CONTRACT_REFRESH_WARNING,
                 )
         except Exception as e:
-            err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
-                reason=str(e)
+            LOG.warning(
+                "Failed to check for change in machine contract. Reason: %s",
+                str(e),
+                exc_info=e,
             )
-            LOG.warning(err_msg)
             return False
     return True

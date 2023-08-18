@@ -46,7 +46,7 @@ class TestNotices:
         notice = NoticesManager()
         notice.add(FakeNotice.a, "content")
         assert [] == m_sys_write_file.call_args_list
-        assert "Trying to add a notice as non-root user" in caplog_text()
+        assert "NoticesManager.add(a) called as non-root user" in caplog_text()
 
     @pytest.mark.parametrize(
         "label,content",
@@ -106,7 +106,9 @@ class TestNotices:
         notice = NoticesManager()
         notice.remove(FakeNotice.a)
         assert [] == m_sys_file_absent.call_args_list
-        assert "Trying to remove a notice as non-root user" in caplog_text()
+        assert (
+            "NoticesManager.remove(a) called as non-root user" in caplog_text()
+        )
 
     @mock.patch("uaclient.files.notices.NoticesManager.list")
     @mock.patch("uaclient.files.notices.NoticesManager.remove")

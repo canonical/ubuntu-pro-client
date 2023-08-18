@@ -8,8 +8,8 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 try:
     import yaml
-except ImportError:
-    LOG.error(MISSING_YAML_MODULE.msg)
+except ImportError as e:
+    LOG.exception(e)
     print(MISSING_YAML_MODULE.msg, file=sys.stderr)
     sys.exit(1)
 
@@ -17,20 +17,22 @@ except ImportError:
 def safe_load(stream):
     try:
         return yaml.safe_load(stream)
-    except AttributeError:
-        msg = BROKEN_YAML_MODULE.format(path=yaml.__path__).msg
-        LOG.error(msg)
-        print(msg, file=sys.stderr)
+    except AttributeError as e:
+        LOG.exception(e)
+        print(
+            BROKEN_YAML_MODULE.format(path=yaml.__path__).msg, file=sys.stderr
+        )
         sys.exit(1)
 
 
 def safe_dump(data, stream=None, **kwargs):
     try:
         return yaml.safe_dump(data, stream, **kwargs)
-    except AttributeError:
-        msg = BROKEN_YAML_MODULE.format(path=yaml.__path__).msg
-        LOG.error(msg)
-        print(msg, file=sys.stderr)
+    except AttributeError as e:
+        LOG.exception(e)
+        print(
+            BROKEN_YAML_MODULE.format(path=yaml.__path__).msg, file=sys.stderr
+        )
         sys.exit(1)
 
 

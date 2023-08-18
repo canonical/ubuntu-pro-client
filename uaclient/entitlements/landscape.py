@@ -34,7 +34,7 @@ more. Find out more about Landscape at https://ubuntu.com/landscape"""
         if self.assume_yes and "--silent" not in cmd:
             cmd += ["--silent"]
 
-        LOG.debug(messages.EXECUTING_COMMAND.format(" ".join(cmd)))
+        LOG.debug("Executing: %r", cmd)
         event.info(
             util.redact_sensitive_logs(
                 messages.EXECUTING_COMMAND.format(" ".join(cmd))
@@ -76,12 +76,17 @@ more. Find out more about Landscape at https://ubuntu.com/landscape"""
             event.info(str(e).strip())
             event.warning(str(e), self.name)
 
-        msg = messages.BACKING_UP_FILE.format(
-            original=LANDSCAPE_CLIENT_CONFIG_PATH,
-            backup=LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
+        LOG.debug(
+            "Backing up %s as %s",
+            LANDSCAPE_CLIENT_CONFIG_PATH,
+            LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
         )
-        LOG.debug(msg)
-        event.info(msg)
+        event.info(
+            messages.BACKING_UP_FILE.format(
+                original=LANDSCAPE_CLIENT_CONFIG_PATH,
+                backup=LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
+            )
+        )
         try:
             os.rename(
                 LANDSCAPE_CLIENT_CONFIG_PATH,

@@ -58,7 +58,7 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
     elif isinstance(e, api_exceptions.UserFacingError):
         return '"{}"'.format(e.msg)
     else:
-        LOG.error("Unexpected exception: {}".format(e))
+        LOG.error("Unexpected exception", exc_info=e)
         return str(e) or messages.RETRY_ERROR_DETAIL_UNKNOWN
 
 

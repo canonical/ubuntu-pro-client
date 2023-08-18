@@ -92,8 +92,9 @@ def retry(exception, retry_sleeps):
                 except exception as e:
                     if not sleeps:
                         raise e
-                    retry_msg = " Retrying %d more times." % len(sleeps)
-                    LOG.debug(str(e) + retry_msg)
+                    LOG.debug(
+                        "%s: Retrying %d more times.", str(e), len(sleeps)
+                    )
                     time.sleep(sleeps.pop(0))
 
         return decorator
@@ -119,14 +120,11 @@ def get_dict_deltas(
             else:
                 deltas[key] = DROPPED_KEY
         elif value != new_value:
-            log = (
-                "Contract value for '"
-                + key_path
-                + "' changed to '"
-                + str(new_value)
-                + "'"
+            LOG.debug(
+                "Contract value for '%s' changed to '%s'",
+                key_path,
+                str(new_value),
             )
-            LOG.debug(log)
             deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:

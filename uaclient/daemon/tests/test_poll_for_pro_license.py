@@ -325,7 +325,8 @@ class TestPollForProLicense:
                 [
                     mock.call(
                         "wait_for_change returned quickly and no pro license"
-                        " present. Waiting 123 seconds before polling again"
+                        " present. Waiting %d seconds before polling again",
+                        123,
                     )
                 ],
                 [mock.call(123)],
@@ -343,10 +344,10 @@ class TestPollForProLicense:
                 ],
                 [mock.call(mock.ANY, mock.ANY)],
                 [
-                    mock.call(mock.ANY),
-                    mock.call(mock.ANY),
-                    mock.call(mock.ANY),
-                    mock.call(mock.ANY),
+                    mock.call(mock.ANY, mock.ANY),
+                    mock.call(mock.ANY, mock.ANY),
+                    mock.call(mock.ANY, mock.ANY),
+                    mock.call(mock.ANY, mock.ANY),
                 ],
                 [
                     mock.call(123),
