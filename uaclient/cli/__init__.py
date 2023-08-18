@@ -4,7 +4,6 @@ import argparse
 import json
 import logging
 import pathlib
-import re
 import sys
 import tarfile
 import tempfile
@@ -28,7 +27,7 @@ from uaclient import (
     lock,
 )
 from uaclient import log as pro_log
-from uaclient import messages, security, security_status
+from uaclient import messages, security_status
 from uaclient import status as ua_status
 from uaclient import timer, util, version
 from uaclient.api.api import call_api
@@ -50,6 +49,8 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope, setup_apt_proxy
+from uaclient.cli.constants import NAME, USAGE_TMPL
+from uaclient.cli.fix import set_fix_parser
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import (
@@ -69,9 +70,18 @@ from uaclient.log import JsonArrayFormatter
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
-NAME = "pro"
+EPILOG_TMPL = (
+    "Use {name} {command} --help for more information about a command."
+)
+TRY_HELP = "Try 'pro --help' for more information."
 
-USAGE_TMPL = "{name} {command} [flags]"
+STATUS_HEADER_TMPL = """\
+Account: {account}
+Subscription: {subscription}
+Valid until: {contract_expiry}
+Technical support level: {tech_support_level}
+"""
+UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
@@ -415,25 +425,6 @@ def attach_parser(parser):
     return parser
 
 
-def fix_parser(parser):
-    """Build or extend an arg parser for fix subcommand."""
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
-    )
-    parser.prog = "fix"
-    parser.description = messages.CLI_FIX_DESC
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument("security_issue", help=messages.CLI_FIX_ISSUE)
-    parser.add_argument(
-        "--dry-run", action="store_true", help=messages.CLI_FIX_DRY_RUN
-    )
-    parser.add_argument(
-        "--no-related", action="store_true", help=messages.CLI_FIX_NO_RELATED
-    )
-
-    return parser
-
-
 def security_status_parser(parser):
     """Build or extend an arg parser for security-status subcommand."""
     parser.prog = "security-status"
@@ -520,21 +511,6 @@ def action_security_status(args, *, cfg, **kwargs):
             )
         )
     return 0
-
-
-def action_fix(args, *, cfg, **kwargs):
-    if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
-        raise exceptions.InvalidSecurityIssueIdFormat(
-            issue=args.security_issue
-        )
-
-    fix_status = security.fix_security_issue_id(
-        cfg=cfg,
-        issue_id=args.security_issue,
-        dry_run=args.dry_run,
-        no_related=args.no_related,
-    )
-    return fix_status.exit_code
 
 
 def detach_parser(parser):
@@ -1450,9 +1426,7 @@ def get_parser(cfg: config.UAConfig):
     enable_parser(parser_enable, cfg=cfg)
     parser_enable.set_defaults(action=action_enable)
 
-    parser_fix = subparsers.add_parser("fix", help=messages.CLI_ROOT_FIX)
-    parser_fix.set_defaults(action=action_fix)
-    fix_parser(parser_fix)
+    set_fix_parser(subparsers)
 
     parser_security_status = subparsers.add_parser(
         "security-status", help=messages.CLI_ROOT_SECURITY_STATUS
