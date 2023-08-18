@@ -66,7 +66,7 @@ def patch_status_json_schema_0_1(status_file: str):
 
 
 if __name__ == "__main__":
-    setup_logging(logging.INFO, logging.DEBUG)
+    setup_logging(logging.DEBUG)
     patch_status_json_schema_0_1(
         status_file="/var/lib/ubuntu-advantage/status.json"
     )
