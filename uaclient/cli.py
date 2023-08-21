@@ -75,7 +75,6 @@ USAGE_TMPL = "{name} {command} [flags]"
 EPILOG_TMPL = (
     "Use {name} {command} --help for more information about a command."
 )
-TRY_HELP = "Try 'pro --help' for more information."
 
 STATUS_HEADER_TMPL = """\
 Account: {account}
@@ -124,7 +123,7 @@ class UAArgumentParser(argparse.ArgumentParser):
         # we just suggest the user runs `--help` which should cover most
         # use cases.
         if message == "the following arguments are required: ":
-            message = TRY_HELP
+            message = messages.CLI_TRY_HELP
         self.exit(2, message + "\n")
 
     def print_help(self, file=None, show_all=False):
@@ -1010,10 +1009,7 @@ def action_config_show(args, *, cfg, **kwargs):
     if (cfg.global_apt_http_proxy or cfg.global_apt_https_proxy) and (
         cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy
     ):
-        print(
-            "\nError: Setting global apt proxy and pro scoped apt proxy at the"
-            " same time is unsupported. No apt proxy is set."
-        )
+        print(messages.CLI_CONFIG_GLOBAL_XOR_UA_PROXY)
 
 
 @assert_root
@@ -1952,7 +1948,7 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             LOG.error("KeyboardInterrupt")
-            print("Interrupt received; exiting.", file=sys.stderr)
+            print(messages.CLI_INTERRUPT_RECEIVED, file=sys.stderr)
             lock.clear_lock_file_if_present()
             sys.exit(1)
         except exceptions.UrlError as exc:
@@ -2029,7 +2025,7 @@ def main(sys_argv=None):
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
-        print(TRY_HELP)
+        print(messages.CLI_TRY_HELP)
         sys.exit(1)
 
     # Grab everything after a "--" if present and handle separately

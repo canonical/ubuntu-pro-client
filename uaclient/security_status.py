@@ -584,7 +584,7 @@ def list_unavailable_packages():
         print(messages.SS_UNAVAILABLE)
         print("")
 
-        print("Packages:")
+        print(messages.SS_PACKAGES_HEADER)
         _print_package_list(package_names)
         print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
 
