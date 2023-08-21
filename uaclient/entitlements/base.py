@@ -483,7 +483,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return True
 
         if not snap.is_snapd_installed():
-            event.info("Installing snapd")
+            event.info(messages.INSTALLING_PACKAGES.format("snapd"))
             snap.install_snapd()
 
         snap.run_snapd_wait_cmd()
@@ -687,10 +687,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             ):
                 return False, e_msg
 
-            disable_msg = "Disabling incompatible service: {}".format(
-                ent.title
+            event.info(
+                messages.DISABLING_INCOMPATIBLE_SERVICE.format(ent.title)
             )
-            event.info(disable_msg)
 
             ret = ent.disable(silent=True)
             if not ret:
@@ -731,7 +730,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ):
                     return False, e_msg
 
-                event.info("Enabling required service: {}".format(ent.title))
+                event.info(
+                    messages.ENABLING_REQUIRED_SERVICE.format(ent.title)
+                )
                 ret, fail = ent.enable(silent=True)
                 if not ret:
                     error_msg = ""
