@@ -1048,6 +1048,7 @@ SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
 SS_UPDATES_AVAILABLE = "Installed packages with an available {service} update:"
 SS_UPDATES_INSTALLED = "Installed packages with an {service} update applied:"
 SS_OTHER_PACKAGES = "{prefix} packages covered by {service}:"
+SS_PACKAGES_HEADER = "Packages:"
 
 ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
     "entitlement-not-found",
@@ -1403,3 +1404,10 @@ RELEASE_UPGRADE_STARTING = (
 RELEASE_UPGRADE_SUCCESS = (
     "Finished upgrade of Ubuntu Pro service configuration"
 )
+
+CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
+    "\nError: Setting global apt proxy and pro scoped apt proxy at the"
+    " same time is unsupported. No apt proxy is set."
+)
+CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
+CLI_TRY_HELP = "Try 'pro --help' for more information."
