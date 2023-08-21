@@ -161,7 +161,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         subp_apt_cmds = []
         if prerequisite_pkgs:
-            expected_stdout = "Installing prerequisites: {}\n".format(
+            expected_stdout = "Installing {}\n".format(
                 ", ".join(prerequisite_pkgs)
             )
             subp_apt_cmds.append(

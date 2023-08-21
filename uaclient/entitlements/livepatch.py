@@ -93,7 +93,7 @@ service at https://ubuntu.com/security/livepatch"""
         @return: True on success, False otherwise.
         """
         if not snap.is_snapd_installed():
-            event.info("Installing snapd")
+            event.info(messages.INSTALLING_PACKAGES.format("snapd"))
             snap.install_snapd()
 
         snap.run_snapd_wait_cmd()
@@ -110,7 +110,9 @@ service at https://ubuntu.com/security/livepatch"""
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
         if not livepatch.is_livepatch_installed():
-            event.info("Installing canonical-livepatch snap")
+            event.info(
+                messages.INSTALLING_PACKAGES.format("canonical-livepatch snap")
+            )
             try:
                 snap.install_snap("canonical-livepatch")
             except exceptions.ProcessExecutionError as e:
@@ -140,7 +142,9 @@ service at https://ubuntu.com/security/livepatch"""
                 process_config_directives(entitlement_cfg)
             except exceptions.ProcessExecutionError as e:
                 LOG.error(str(e), exc_info=e)
-                event.info("Unable to configure livepatch: %s", str(e))
+                event.info(
+                    messages.LIVEPATCH_UNABLE_TO_CONFIGURE.format(str(e))
+                )
                 return False
         if process_token:
             livepatch_token = entitlement_cfg.get("resourceToken")
@@ -154,11 +158,7 @@ service at https://ubuntu.com/security/livepatch"""
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
                 LOG.info("Disabling livepatch before re-enabling")
-                event.info(
-                    "Disabling {} prior to re-attach with new token".format(
-                        self.title
-                    )
-                )
+                event.info(messages.LIVEPATCH_DISABLE_REATTACH)
                 try:
                     system.subp([livepatch.LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
@@ -170,16 +170,18 @@ service at https://ubuntu.com/security/livepatch"""
                     capture=True,
                 )
             except exceptions.ProcessExecutionError as e:
-                msg = "Unable to enable Livepatch: "
+                msg = messages.LIVEPATCH_UNABLE_TO_ENABLE
                 for error_message, print_message in ERROR_MSG_MAP.items():
                     if error_message in str(e):
                         msg += print_message
                         break
-                if msg == "Unable to enable Livepatch: ":
+                if msg == messages.LIVEPATCH_UNABLE_TO_ENABLE:
                     msg += str(e)
                 event.info(msg)
                 return False
-            event.info("Canonical livepatch enabled.")
+            event.info(
+                messages.ENABLED_TMPL.format(title="Canonical Livepatch")
+            )
         return True
 
     def _perform_disable(self, silent=False):
@@ -293,7 +295,7 @@ service at https://ubuntu.com/security/livepatch"""
                 "setup_livepatch_config"
             )
             event.info(
-                "Updating '{}' on changed directives.".format(self.name)
+                messages.SERVICE_UPDATING_CHANGED_DIRECTIVES.format(self.name)
             )
             return self.setup_livepatch_config(
                 process_directives=process_directives,

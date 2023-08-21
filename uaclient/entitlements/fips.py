@@ -149,7 +149,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         :param verbose: If true, print messages to stdout
         """
         if verbose:
-            event.info("Installing {title} packages".format(title=self.title))
+            event.info(
+                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
+            )
 
         # We need to guarantee that the metapackage is installed.
         # While the other packages should still be installed, if they
