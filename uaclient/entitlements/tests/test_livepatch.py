@@ -467,7 +467,7 @@ class TestLivepatchEntitlementEnable:
             "Updating package lists\n"
             "Installing canonical-livepatch snap\n"
             "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical livepatch enabled.\n"
+            "Canonical Livepatch enabled\n"
         )
         assert (msg, "") == capsys.readouterr()
         expected_log = (
@@ -522,7 +522,7 @@ class TestLivepatchEntitlementEnable:
         msg = (
             "Installing canonical-livepatch snap\n"
             "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical livepatch enabled.\n"
+            "Canonical Livepatch enabled\n"
         )
         assert (msg, "") == capsys.readouterr()
         assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
@@ -583,7 +583,7 @@ class TestLivepatchEntitlementEnable:
         assert subp_calls == m_subp.call_args_list
         assert (
             "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical livepatch enabled.\n",
+            "Canonical Livepatch enabled\n",
             "",
         ) == capsys.readouterr()
         assert m_validate_proxy.call_count == 2
@@ -638,7 +638,7 @@ class TestLivepatchEntitlementEnable:
             ),
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
-        assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+        assert ("Canonical Livepatch enabled\n", "") == capsys.readouterr()
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1

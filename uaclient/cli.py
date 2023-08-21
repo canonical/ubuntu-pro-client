@@ -1393,9 +1393,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
 
     if to_disable:
         suffix = "s" if len(to_disable) > 1 else ""
-        event.info(
-            "Detach will disable the following service{}:".format(suffix)
-        )
+        event.info(messages.DETACH_WILL_DISABLE.format(suffix))
         for ent in to_disable:
             event.info("    {}".format(ent.name))
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
