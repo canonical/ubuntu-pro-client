@@ -269,11 +269,13 @@ INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
+DISABLING_INCOMPATIBLE_SERVICE = "Disabling incompatible service: {}"
 
 REQUIRED_SERVICE = """\
 {service_being_enabled} cannot be enabled with {required_service} disabled.
 Enable {required_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
+ENABLING_REQUIRED_SERVICE = "Enabling required service: {}"
 
 DEPENDENT_SERVICE = """\
 {dependent_service} depends on {service_being_disabled}.
@@ -1142,6 +1144,11 @@ Either switch to a supported kernel or `pro disable livepatch` to dismiss this w
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
 LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = "Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels"  # noqa: E501
+LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {}"
+LIVEPATCH_UNABLE_TO_ENABLE = "Unable to enable Livepatch: "
+LIVEPATCH_DISABLE_REATTACH = (
+    "Disabling Livepatch prior to re-attach with new token"
+)
 
 ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
     "error-parsing-version-os-release",
@@ -1294,6 +1301,8 @@ For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
 )
 
 INSTALLING_PACKAGES = "Installing {}"
+INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
+SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
 UNINSTALLING_PACKAGES = "Uninstalling {}"
 UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
 
@@ -1387,6 +1396,7 @@ FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE = (
 )
 
 
+SERVICE_UPDATING_CHANGED_DIRECTIVES = "Updating '{}' on changed directives."
 REPO_UPDATING_APT_SOURCES = (
     "Updating '{}' apt sources list on changed directives."
 )
@@ -1411,3 +1421,10 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 CLI_TRY_HELP = "Try 'pro --help' for more information."
+
+APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
+APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
+
+DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
+
+STATUS_TOKEN_NOT_VALID = "This token is not valid."

@@ -492,7 +492,9 @@ def simulate_status(
                 date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
             event.error(error_msg=message.msg, error_code=message.name)
-            event.info("This token is not valid.\n" + message.msg + "\n")
+            event.info(
+                messages.STATUS_TOKEN_NOT_VALID + "\n" + message.msg + "\n"
+            )
             ret = 1
     if contract_info.get("effectiveFrom"):
         response["effective"] = contract_info.get("effectiveFrom")
@@ -504,7 +506,9 @@ def simulate_status(
                 date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
             event.error(error_msg=message.msg, error_code=message.name)
-            event.info("This token is not valid.\n" + message.msg + "\n")
+            event.info(
+                messages.STATUS_TOKEN_NOT_VALID + "\n" + message.msg + "\n"
+            )
             ret = 1
 
     resources = get_available_resources(cfg)

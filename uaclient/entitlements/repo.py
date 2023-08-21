@@ -86,7 +86,9 @@ class RepoEntitlement(base.UAEntitlement):
                 if len(self.packages) > 0
                 else ""
             )
-            event.info("Skipping installing packages{}".format(packages_str))
+            event.info(
+                messages.SKIPPING_INSTALLING_PACKAGES.format(packages_str)
+            )
             event.info(messages.ACCESS_ENABLED_TMPL.format(title=self.title))
         else:
             self.install_packages()
@@ -255,7 +257,9 @@ class RepoEntitlement(base.UAEntitlement):
             return
 
         if verbose:
-            event.info("Installing {title} packages".format(title=self.title))
+            event.info(
+                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
+            )
 
         if self.apt_noninteractive:
             override_env_vars = {"DEBIAN_FRONTEND": "noninteractive"}
@@ -385,7 +389,7 @@ class RepoEntitlement(base.UAEntitlement):
         if prerequisite_pkgs:
             if not silent:
                 event.info(
-                    "Installing prerequisites: {}".format(
+                    messages.INSTALLING_PACKAGES.format(
                         ", ".join(prerequisite_pkgs)
                     )
                 )

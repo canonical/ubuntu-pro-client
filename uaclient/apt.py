@@ -587,13 +587,13 @@ def clean_apt_files(*, _entitlements=None):
         pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
         if os.path.exists(repo_file):
             event.info(
-                "Removing apt source file: {}".format(repo_file),
+                messages.APT_REMOVING_SOURCE_FILE.format(repo_file),
                 file_type=sys.stderr,
             )
             system.ensure_file_absent(repo_file)
         if os.path.exists(pref_file):
             event.info(
-                "Removing apt preferences file: {}".format(pref_file),
+                messages.APT_REMOVING_PREFERENCES_FILE.format(pref_file),
                 file_type=sys.stderr,
             )
             system.ensure_file_absent(pref_file)
