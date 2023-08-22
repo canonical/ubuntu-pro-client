@@ -481,11 +481,9 @@ class UAConfig:
                     "No config set for %s, default value will be used.", prop
                 )
             elif not isinstance(value, int) or value < 0:
-                error_msg = (
-                    "Value for the {} interval must be a positive integer. "
-                    "Default value will be used."
-                ).format(prop)
-                raise exceptions.UserFacingError(error_msg)
+                raise exceptions.UserFacingError(
+                    messages.CONFIG_POS_INT_FAIL_DEFAULT_FALLBACK.format(prop)
+                )
 
         if (self.global_apt_http_proxy or self.global_apt_https_proxy) and (
             self.ua_apt_http_proxy or self.ua_apt_https_proxy
@@ -648,7 +646,7 @@ def parse_config(config_path=None):
                         value = safe_load(system.load_file(value))
                     else:
                         raise exceptions.UserFacingError(
-                            "Could not find yaml file: {}".format(value)
+                            messages.CONFIG_NO_YAML_FILE.format(value)
                         )
 
                 if "features" not in cfg:
@@ -663,7 +661,7 @@ def parse_config(config_path=None):
     for key in ("contract_url", "security_url"):
         if not http.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
-                "Invalid url in config. {}: {}".format(key, cfg[key])
+                messages.CONFIG_INVALID_URL.format(key, cfg[key])
             )
 
     invalid_keys = set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS)

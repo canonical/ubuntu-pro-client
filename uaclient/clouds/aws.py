@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from uaclient import exceptions, http, system, util
+from uaclient import exceptions, http, messages, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
@@ -58,8 +58,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
                 break
         if self._ip_address is None:
             raise exceptions.UserFacingError(
-                "No valid AWS IMDS endpoint discovered at addresses: %s"
-                % ", ".join(IMDS_IP_ADDRESS)
+                messages.AWS_NO_VALID_IMDS.format(", ".join(IMDS_IP_ADDRESS))
             )
         return headers
 

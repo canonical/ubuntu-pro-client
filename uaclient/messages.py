@@ -178,6 +178,10 @@ USNs, please refer to this page:
 
 https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/cves_and_usns_explained.html#what-are-related-usns
 """  # noqa
+SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = (
+    'Error: issue "{}" is not recognized.\n'
+    'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
+)
 
 APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
@@ -1328,6 +1332,7 @@ PROXY_AUTH_FAIL = NamedMessage(
 )
 
 EXECUTING_COMMAND = "Executing `{}`"
+EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
 BACKING_UP_FILE = "Backing up {original} as {backup}"
 
 LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
@@ -1403,6 +1408,11 @@ REPO_UPDATING_APT_SOURCES = (
 REPO_REFRESH_INSTALLING_PACKAGES = (
     "Installing packages on changed directives: {}"
 )
+REPO_NO_APT_KEY = "Ubuntu Pro server provided no aptKey directive for {}"
+REPO_NO_SUITES = "Ubuntu Pro server provided no suites directive for {}"
+REPO_PIN_FAIL_NO_ORIGIN = (
+    "Cannot setup apt pin. Empty apt repo origin value '{}'."
+)
 
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
@@ -1421,10 +1431,36 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 CLI_TRY_HELP = "Try 'pro --help' for more information."
+CLI_VALID_CHOICES = "\n{} must be one of: {}"
+CLI_EXPECTED_FORMAT = "\nExpected {expected} but found: {actual}"
+CLI_CONFIG_VALUE_MUST_BE_POS_INT = (
+    "Cannot set {} to {}: " "<value> for interval must be a positive integer."
+)
+CLI_NO_HELP = "No help available for '{}'"
+CONFIG_POS_INT_FAIL_DEFAULT_FALLBACK = (
+    "Value for the {} interval must be a positive integer. "
+    "Default value will be used."
+)
+CONFIG_NO_YAML_FILE = "Could not find yaml file: {}"
+CONFIG_INVALID_URL = "Invalid url in config. {}: {}"
 
 APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
 APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
+APT_INVALID_CREDENTIALS = "Invalid APT credentials provided for {}"
+APT_TIMEOUT = "Timeout trying to access APT repository at {}"
+APT_UNEXPECTED_ERROR = (
+    "Unexpected APT error. See /var/log/ubuntu-advantage.log"
+)
+APT_COMMAND_TIMEOUT = (
+    "Cannot validate credentials for APT repo."
+    " Timeout after {} seconds trying to reach {}."
+)
+
 
 DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
 
 STATUS_TOKEN_NOT_VALID = "This token is not valid."
+
+AWS_NO_VALID_IMDS = "No valid AWS IMDS endpoint discovered at addresses: {}"
+
+GPG_KEY_NOT_FOUND = "GPG key '{}' not found."

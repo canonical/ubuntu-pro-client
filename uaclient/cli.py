@@ -623,11 +623,11 @@ def action_security_status(args, *, cfg, **kwargs):
 
 def action_fix(args, *, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
-        msg = (
-            'Error: issue "{}" is not recognized.\n'
-            'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
-        ).format(args.security_issue)
-        raise exceptions.UserFacingError(msg)
+        raise exceptions.UserFacingError(
+            messages.SECURITY_FIX_CLI_ISSUE_REGEX_FAIL.format(
+                args.security_issue
+            )
+        )
 
     fix_status = security.fix_security_issue_id(
         cfg=cfg,
@@ -921,7 +921,9 @@ def _print_help_for_subcommand(
     if subcmd_name not in valid_choices:
         parser._get_positional_actions()[0].choices[cmd_name].print_help()
         raise exceptions.UserFacingError(
-            "\n<command> must be one of: {}".format(", ".join(valid_choices))
+            messages.CLI_VALID_CHOICES.format(
+                "<command>", ", ".join(valid_choices)
+            )
         )
 
 
@@ -982,8 +984,8 @@ def action_config_show(args, *, cfg, **kwargs):
     """
     if args.key:  # limit reporting config to a single config key
         if args.key not in config.UA_CONFIGURABLE_KEYS:
-            msg = "\n'{}' must be one of: {}".format(
-                args.key, ", ".join(config.UA_CONFIGURABLE_KEYS)
+            msg = messages.CLI_VALID_CHOICES.format(
+                "'{}'".format(args.key), ", ".join(config.UA_CONFIGURABLE_KEYS)
             )
             indent_position = msg.find(":") + 2
             raise exceptions.UserFacingError(
@@ -1029,15 +1031,15 @@ def action_config_set(args, *, cfg, **kwargs):
     except ValueError:
         subparser.print_help()
         raise exceptions.UserFacingError(
-            "\nExpected <key>=<value> but found: {}".format(
-                args.key_value_pair
+            messages.CLI_EXPECTED_FORMAT.format(
+                expected="<key>=<value>", actual=args.key_value_pair
             )
         )
     if set_key not in config.UA_CONFIGURABLE_KEYS:
         subparser.print_help()
         raise exceptions.UserFacingError(
-            "\n<key> must be one of: {}".format(
-                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            messages.CLI_VALID_CHOICES.format(
+                "<key>", ", ".join(config.UA_CONFIGURABLE_KEYS)
             )
         )
     if set_key in ("http_proxy", "https_proxy"):
@@ -1123,10 +1125,9 @@ def action_config_set(args, *, cfg, **kwargs):
             # More readable in the CLI, without breaking the line in the logs
             print("")
             raise exceptions.UserFacingError(
-                (
-                    "Cannot set {} to {}: "
-                    "<value> for interval must be a positive integer."
-                ).format(set_key, set_value)
+                messages.CLI_CONFIG_VALUE_MUST_BE_POS_INT.format(
+                    set_key, set_value
+                )
             )
     elif set_key == "apt_news":
         set_value = set_value.lower() == "true"
@@ -1154,8 +1155,8 @@ def action_config_unset(args, *, cfg, **kwargs):
         subparser = config_parser._get_positional_actions()[0].choices["unset"]
         subparser.print_help()
         raise exceptions.UserFacingError(
-            "\n<key> must be one of: {}".format(
-                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            messages.CLI_VALID_CHOICES.format(
+                "<key>", ", ".join(config.UA_CONFIGURABLE_KEYS)
             )
         )
     if args.key in ("http_proxy", "https_proxy"):

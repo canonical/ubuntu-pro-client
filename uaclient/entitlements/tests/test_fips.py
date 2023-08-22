@@ -11,7 +11,7 @@ import mock
 import pytest
 
 import uaclient.entitlements.fips as fips
-from uaclient import apt, defaults, exceptions, messages, system, util
+from uaclient import apt, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -496,8 +496,10 @@ class TestFIPSEntitlementEnable:
             with mock.patch("uaclient.util.handle_message_operations"):
                 with pytest.raises(exceptions.UserFacingError) as excinfo:
                     entitlement.enable()
-        error_msg = "Empty {} apt suites directive from {}".format(
-            entitlement.name, defaults.BASE_CONTRACT_URL
+        error_msg = (
+            "Ubuntu Pro server provided no suites directive for {}".format(
+                entitlement.name
+            )
         )
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
@@ -1171,11 +1173,19 @@ class TestFipsSetupAPTConfig:
         run_apt_command.return_value = held_packages
         entitlement.setup_apt_config(silent=False)
         expected_calls = [
-            mock.call(["apt-mark", "showholds"], "apt-mark showholds failed.")
+            mock.call(
+                ["apt-mark", "showholds"],
+                messages.EXECUTING_COMMAND_FAILED.format("apt-mark showholds"),
+            )
         ]
         if unhold_packages:
             cmd = ["apt-mark", "unhold"] + unhold_packages
-            expected_calls.append(mock.call(cmd, " ".join(cmd) + " failed."))
+            expected_calls.append(
+                mock.call(
+                    cmd,
+                    messages.EXECUTING_COMMAND_FAILED.format(" ".join(cmd)),
+                )
+            )
         assert expected_calls == run_apt_command.call_args_list
         assert [mock.call(silent=False)] == setup_apt_config.call_args_list
 
