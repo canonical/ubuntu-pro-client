@@ -818,9 +818,7 @@ def help(cfg, name):
             break
 
     if help_resource is None:
-        raise exceptions.UserFacingError(
-            "No help available for '{}'".format(name)
-        )
+        raise exceptions.UserFacingError(messages.CLI_NO_HELP.format(name))
 
     if _is_attached(cfg).is_attached:
         service_status = _attached_service_status(help_ent, {}, cfg)

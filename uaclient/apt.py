@@ -102,23 +102,16 @@ def assert_valid_apt_credentials(repo_url, username, password):
             stderr = str(e.stderr).lower()
             if re.search(r"401\s+unauthorized|httperror401", stderr):
                 raise exceptions.UserFacingError(
-                    "Invalid APT credentials provided for {}".format(repo_url)
+                    messages.APT_INVALID_CREDENTIALS.format(repo_url)
                 )
             elif re.search(r"connection timed out", stderr):
                 raise exceptions.UserFacingError(
-                    "Timeout trying to access APT repository at {}".format(
-                        repo_url
-                    )
+                    messages.APT_TIMEOUT.format(repo_url)
                 )
-        raise exceptions.UserFacingError(
-            "Unexpected APT error. See /var/log/ubuntu-advantage.log"
-        )
+        raise exceptions.UserFacingError(messages.APT_UNEXPECTED_ERROR)
     except subprocess.TimeoutExpired:
         raise exceptions.UserFacingError(
-            "Cannot validate credentials for APT repo."
-            " Timeout after {} seconds trying to reach {}.".format(
-                APT_HELPER_TIMEOUT, repo_path
-            )
+            messages.APT_COMMAND_TIMEOUT.format(APT_HELPER_TIMEOUT, repo_path)
         )
 
 

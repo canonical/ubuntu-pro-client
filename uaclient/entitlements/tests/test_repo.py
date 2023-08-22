@@ -729,7 +729,7 @@ class TestSetupAptConfig:
                 {},
                 exceptions.UserFacingError,
                 "Ubuntu Pro server provided no aptKey directive for"
-                " repotest.",
+                " repotest",
             ),
             (
                 RepoTestEntitlement,
@@ -741,8 +741,8 @@ class TestSetupAptConfig:
                 RepoTestEntitlement,
                 {"aptKey": "somekey", "aptURL": "someURL"},
                 exceptions.UserFacingError,
-                "Empty repotest apt suites directive from"
-                " https://contracts.canonical.com",
+                "Ubuntu Pro server provided no suites directive for"
+                " repotest",
             ),
         ),
     )

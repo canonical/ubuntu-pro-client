@@ -347,7 +347,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
            configuration
         """
         cmd = ["apt-mark", "showholds"]
-        holds = apt.run_apt_command(cmd, " ".join(cmd) + " failed.")
+        holds = apt.run_apt_command(
+            cmd, messages.EXECUTING_COMMAND_FAILED.format(" ".join(cmd))
+        )
         unholds = []
         for hold in holds.splitlines():
             if hold in self.fips_pro_package_holds:
@@ -355,7 +357,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if unholds:
             unhold_cmd = ["apt-mark", "unhold"] + unholds
             holds = apt.run_apt_command(
-                unhold_cmd, " ".join(unhold_cmd) + " failed."
+                unhold_cmd,
+                messages.EXECUTING_COMMAND_FAILED.format(" ".join(unhold_cmd)),
             )
         super().setup_apt_config(silent=silent)
 
