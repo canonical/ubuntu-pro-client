@@ -350,8 +350,7 @@ class RepoEntitlement(base.UAEntitlement):
         aptKey = directives.get("aptKey")
         if not aptKey:
             raise exceptions.UserFacingError(
-                "Ubuntu Pro server provided no aptKey directive for"
-                " {}.".format(self.name)
+                messages.REPO_NO_APT_KEY.format(self.name)
             )
         repo_url = directives.get("aptURL")
         if not repo_url:
@@ -359,16 +358,13 @@ class RepoEntitlement(base.UAEntitlement):
         repo_suites = directives.get("suites")
         if not repo_suites:
             raise exceptions.UserFacingError(
-                "Empty {} apt suites directive from {}".format(
-                    self.name, self.cfg.contract_url
-                )
+                messages.REPO_NO_SUITES.format(self.name)
             )
         if self.repo_pin_priority:
             if not self.origin:
                 raise exceptions.UserFacingError(
-                    "Cannot setup apt pin. Empty apt repo origin value '{}'.\n"
-                    "{}".format(
-                        self.origin,
+                    "{}\n{}".format(
+                        messages.REPO_PIN_FAIL_NO_ORIGIN.format(self.origin),
                         messages.ENABLED_FAILED.format(title=self.title).msg,
                     )
                 )
