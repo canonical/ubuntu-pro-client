@@ -256,11 +256,11 @@ remove_old_systemd_units() {
             # The failed state is ephemeral and only needs to be cleared if
             # it is there so that the system doesn't say it is degraded.
             # If the old timer was not running, then this is a noop.
-            deb-systemd-invoke --system daemon-reload > /dev/null || true
-            deb-systemd-invoke reset-failed ua-license-check.timer > /dev/null 2>&1 || true
+            systemctl --system daemon-reload > /dev/null || true
+            systemctl reset-failed ua-license-check.timer > /dev/null 2>&1 || true
             # In rare race-condition scenarios, the service can also get into
             # the same failed state.
-            deb-systemd-invoke reset-failed ua-license-check.service > /dev/null 2>&1 || true
+            systemctl reset-failed ua-license-check.service > /dev/null 2>&1 || true
         fi
         deb-systemd-helper purge ua-license-check.path > /dev/null || true
         deb-systemd-helper unmask ua-license-check.path > /dev/null || true

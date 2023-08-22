@@ -6,6 +6,8 @@ ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
 
 ubuntu-advantage-tools (29.2) mantic; urgency=medium
 
+  * d/ubuntu-advantage-tools.postinst:
+    - replace deb-systemd-invoke back to systemctl
   * proxy: alert user if ca-certificates is not installed when using
     a TLS-in-TLS proxy
 
