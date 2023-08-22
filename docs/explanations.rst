@@ -28,6 +28,7 @@ selection of some of the commands -- what they do, and how they work.
 
     explanations/how_to_interpret_the_security_status_command.md
     explanations/how_to_interpret_output_of_unattended_upgrades.md
+    explanations/how_to_interpret_output_of_fix_plan_api.md
     explanations/status_columns.md
     explanations/what_refresh_does.md
 
