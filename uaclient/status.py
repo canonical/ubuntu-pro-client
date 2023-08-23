@@ -37,36 +37,45 @@ ESSENTIAL = "essential"
 STANDARD = "standard"
 ADVANCED = "advanced"
 
-# Colorized status output for terminal
-STATUS_COLOR = {
+# Turns machine-enum value (english) into human value (potentially translated)
+# Also colorizes status output for terminal
+STATUS_HUMANIZE_COLORIZE = {
     UserFacingStatus.ACTIVE.value: (
-        TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC
+        TxtColor.OKGREEN + messages.STATUS_STATUS_ENABLED + TxtColor.ENDC
     ),
     UserFacingStatus.INACTIVE.value: (
-        TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC
+        TxtColor.FAIL + messages.STATUS_STATUS_DISABLED + TxtColor.ENDC
     ),
     UserFacingStatus.INAPPLICABLE.value: (
         TxtColor.DISABLEGREY
-        + UserFacingStatus.INAPPLICABLE.value
+        + messages.STATUS_STATUS_INAPPLICABLE
         + TxtColor.ENDC
-    ),  # noqa: E501
+    ),
     UserFacingStatus.UNAVAILABLE.value: (
         TxtColor.DISABLEGREY
-        + UserFacingStatus.UNAVAILABLE.value
+        + messages.STATUS_STATUS_UNAVAILABLE
         + TxtColor.ENDC
     ),
     UserFacingStatus.WARNING.value: (
-        TxtColor.WARNINGYELLOW + UserFacingStatus.WARNING.value + TxtColor.ENDC
+        TxtColor.WARNINGYELLOW + messages.STATUS_STATUS_WARNING + TxtColor.ENDC
     ),
     ContractStatus.ENTITLED.value: (
-        TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC
+        TxtColor.OKGREEN + messages.STATUS_ENTITLED_ENTITLED + TxtColor.ENDC
     ),
     ContractStatus.UNENTITLED.value: (
-        TxtColor.DISABLEGREY + ContractStatus.UNENTITLED.value + TxtColor.ENDC
-    ),  # noqa: E501
-    ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
-    STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
-    ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC,
+        TxtColor.DISABLEGREY
+        + messages.STATUS_ENTITLED_UNENTITLED
+        + TxtColor.ENDC
+    ),
+    ESSENTIAL: TxtColor.OKGREEN
+    + messages.STATUS_SUPPORT_ESSENTIAL
+    + TxtColor.ENDC,
+    STANDARD: TxtColor.OKGREEN
+    + messages.STATUS_SUPPORT_STANDARD
+    + TxtColor.ENDC,
+    ADVANCED: TxtColor.OKGREEN
+    + messages.STATUS_SUPPORT_ADVANCED
+    + TxtColor.ENDC,
 }
 
 
@@ -75,7 +84,12 @@ STATUS_UNATTACHED_TMPL = "{name: <17}{available: <11}{description}"
 STATUS_SIMULATED_TMPL = """\
 {name: <17}{available: <11}{entitled: <11}{auto_enabled: <14}{description}"""
 
-STATUS_HEADER = "SERVICE          ENTITLED  STATUS    DESCRIPTION"
+STATUS_HEADER = "{name: <17}{entitled: <10}{status: <10}{description}".format(
+    name=messages.STATUS_SERVICE,
+    entitled=messages.STATUS_ENTITLED,
+    status=messages.STATUS_STATUS,
+    description=messages.STATUS_DESCRIPTION,
+)
 # The widths listed below for entitled and status are actually 9 characters
 # less than reality because we colorize the values in entitled and status
 # columns. Colorizing has an opening and closing set of unprintable characters
@@ -562,9 +576,13 @@ def simulate_status(
     return response, ret
 
 
-def colorize(string: str) -> str:
+def for_human_colorized(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
-    return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
+    return (
+        STATUS_HUMANIZE_COLORIZE.get(string, string)
+        if sys.stdout.isatty()
+        else string
+    )
 
 
 def colorize_commands(commands: List[List[str]]) -> str:
@@ -618,7 +636,7 @@ def get_section_column_content(
 
 def format_expires(expires: Optional[datetime]) -> str:
     if expires is None:
-        return "Unknown/Expired"
+        return messages.STATUS_CONTRACT_EXPIRES_UNKNOWN
     try:
         expires = expires.astimezone()
     except Exception:
@@ -635,11 +653,11 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
 
             content = [
                 STATUS_SIMULATED_TMPL.format(
-                    name="SERVICE",
-                    available="AVAILABLE",
-                    entitled="ENTITLED",
-                    auto_enabled="AUTO_ENABLED",
-                    description="DESCRIPTION",
+                    name=messages.STATUS_SERVICE,
+                    available=messages.STATUS_AVAILABLE,
+                    entitled=messages.STATUS_ENTITLED,
+                    auto_enabled=messages.STATUS_AUTO_ENABLED,
+                    description=messages.STATUS_DESCRIPTION,
                 )
             ]
             for service in status.get("services", []):
@@ -652,9 +670,9 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
         else:
             content = [
                 STATUS_UNATTACHED_TMPL.format(
-                    name="SERVICE",
-                    available="AVAILABLE",
-                    description="DESCRIPTION",
+                    name=messages.STATUS_SERVICE,
+                    available=messages.STATUS_AVAILABLE,
+                    description=messages.STATUS_DESCRIPTION,
                 )
             ]
             for service in status.get("services", []):
@@ -674,11 +692,11 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
 
         notices = status.get("notices")
         if notices:
-            content.append("NOTICES")
+            content.append(messages.STATUS_NOTICES)
             content.extend(notices)
 
         if status.get("features"):
-            content.append("\nFEATURES")
+            content.append("\n" + messages.STATUS_FEATURES)
             for key, value in sorted(status.get("features", {}).items()):
                 content.append("{}: {}".format(key, value))
 
@@ -711,8 +729,10 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
             )
             fmt_args = {
                 "name": service_status.get("name", ""),
-                "entitled": colorize(entitled),
-                "status": colorize(service_status.get("status", "")),
+                "entitled": for_human_colorized(entitled),
+                "status": for_human_colorized(
+                    service_status.get("status", "")
+                ),
                 "description": description,
             }
             warning = service_status.get("warning", None)
@@ -733,8 +753,12 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
                         VARIANT_STATUS_TMPL.format(
                             marker=marker,
                             name=variant.get("name"),
-                            entitled=colorize(variant.get("entitled", "")),
-                            status=colorize(variant.get("status", "")),
+                            entitled=for_human_colorized(
+                                variant.get("entitled", "")
+                            ),
+                            status=for_human_colorized(
+                                variant.get("status", "")
+                            ),
                             description=variant.get("description", ""),
                         )
                     )
@@ -745,7 +769,7 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
 
     if status.get("notices") or len(service_warnings) > 0:
         content.append("")
-        content.append("NOTICES")
+        content.append(messages.STATUS_NOTICES)
         notices = status.get("notices")
         if notices:
             content.extend(notices)
@@ -753,7 +777,7 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
             content.extend(service_warnings)
 
     if status.get("features"):
-        content.append("\nFEATURES")
+        content.append("\n" + messages.STATUS_FEATURES)
         for key, value in sorted(status.get("features", {}).items()):
             content.append("{}: {}".format(key, value))
     content.append("")
@@ -764,23 +788,37 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
         else:
             content.append(messages.STATUS_ALL_HINT)
 
-    content.append("Enable services with: pro enable <service>")
+    content.append(
+        messages.STATUS_FOOTER_ENABLE_SERVICES_WITH.format(
+            "pro enable <service>"
+        )
+    )
     pairs = []
 
     account_name = status.get("account", {}).get("name", "unknown")
     if account_name:
-        pairs.append(("Account", account_name))
+        pairs.append((messages.STATUS_FOOTER_ACCOUNT, account_name))
 
     contract_name = status.get("contract", {}).get("name", "unknown")
     if contract_name:
-        pairs.append(("Subscription", contract_name))
+        pairs.append((messages.STATUS_FOOTER_SUBSCRIPTION, contract_name))
 
     if status.get("origin", None) != "free":
-        pairs.append(("Valid until", format_expires(status.get("expires"))))
+        pairs.append(
+            (
+                messages.STATUS_FOOTER_VALID_UNTIL,
+                format_expires(status.get("expires")),
+            )
+        )
         tech_support_level = status.get("contract", {}).get(
             "tech_support_level", "unknown"
         )
-        pairs.append(("Technical support level", colorize(tech_support_level)))
+        pairs.append(
+            (
+                messages.STATUS_FOOTER_SUPPORT_LEVEL,
+                for_human_colorized(tech_support_level),
+            )
+        )
 
     if pairs:
         content.append("")
