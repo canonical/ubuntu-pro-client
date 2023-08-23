@@ -375,15 +375,12 @@ class ProcessExecutionError(IOError):
         self.stderr = stderr
         self.exit_code = exit_code
         if not exit_code:
-            message_tmpl = "Invalid command specified '{cmd}'."
+            message = messages.SUBP_INVALID_COMMAND.format(cmd=cmd)
         else:
-            message_tmpl = (
-                "Failed running command '{cmd}' [exit({exit_code})]."
-                " Message: {stderr}"
+            message = messages.SUBP_COMMAND_FAILED.format(
+                cmd=cmd, exit_code=exit_code, stderr=stderr
             )
-        super().__init__(
-            message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code)
-        )
+        super().__init__(message)
 
 
 class ExternalAPIError(UserFacingError):
