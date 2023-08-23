@@ -33,6 +33,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title=issue_id,
             expected_status="error",
+            affected_packages=None,
             plan=[],
             warnings=[],
             error=FixPlanError(
@@ -50,6 +51,7 @@ class TestFixPlan:
             target_usn_plan=FixPlanResult(
                 title=issue_id,
                 expected_status="error",
+                affected_packages=None,
                 plan=[],
                 warnings=[],
                 error=FixPlanError(
@@ -75,6 +77,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+            affected_packages=None,
             plan=[
                 FixPlanNoOpStep(
                     data=NoOpData(
@@ -115,6 +118,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_NOT_AFFECTED),
+            affected_packages=[],
             plan=[
                 FixPlanNoOpStep(
                     data=NoOpData(
@@ -191,6 +195,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+            affected_packages=["pkg1"],
             plan=[
                 FixPlanAptUpgradeStep(
                     data=AptUpgradeData(
@@ -344,6 +349,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+            affected_packages=["pkg1", "pkg2", "pkg3"],
             plan=[
                 FixPlanAptUpgradeStep(
                     data=AptUpgradeData(
@@ -453,6 +459,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
+            affected_packages=["pkg1"],
             plan=[
                 FixPlanAptUpgradeStep(
                     data=AptUpgradeData(
@@ -547,6 +554,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
+            affected_packages=["pkg1", "pkg2"],
             plan=[
                 FixPlanAptUpgradeStep(
                     data=AptUpgradeData(
@@ -706,6 +714,7 @@ class TestFixPlan:
         expected_plan = FixPlanUSNResult(
             target_usn_plan=FixPlanResult(
                 title="USN-1234-1",
+                affected_packages=["pkg1"],
                 expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
                 plan=[
                     FixPlanAptUpgradeStep(
@@ -723,6 +732,7 @@ class TestFixPlan:
                 FixPlanResult(
                     title="USN-2345-1",
                     expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+                    affected_packages=["pkg2"],
                     plan=[
                         FixPlanAptUpgradeStep(
                             data=AptUpgradeData(
@@ -738,6 +748,7 @@ class TestFixPlan:
                 FixPlanResult(
                     title="USN-3456-8",
                     expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+                    affected_packages=["pkg3"],
                     plan=[
                         FixPlanAptUpgradeStep(
                             data=AptUpgradeData(
@@ -817,6 +828,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
+            affected_packages=["pkg1"],
             plan=[
                 FixPlanNoOpStep(
                     data=NoOpData(

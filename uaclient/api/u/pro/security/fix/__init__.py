@@ -256,6 +256,7 @@ class FixPlanResult(DataObject):
     fields = [
         Field("title", StringDataValue),
         Field("expected_status", StringDataValue),
+        Field("affected_packages", data_list(StringDataValue), required=False),
         Field("plan", data_list(FixPlanStep)),
         Field("warnings", data_list(FixPlanWarning), required=False),
         Field("error", FixPlanError, required=False),
@@ -266,12 +267,14 @@ class FixPlanResult(DataObject):
         *,
         title: str,
         expected_status: str,
+        affected_packages: Optional[List[str]],
         plan: List[FixPlanStep],
         warnings: List[FixPlanWarning],
         error: Optional[FixPlanError]
     ):
         self.title = title
         self.expected_status = expected_status
+        self.affected_packages = affected_packages
         self.plan = plan
         self.warnings = warnings
         self.error = error
@@ -294,9 +297,12 @@ class FixPlanUSNResult(DataObject):
 
 
 class FixPlan:
-    def __init__(self, title: str):
+    def __init__(
+        self, title: str, affected_packages: Optional[List[str]] = None
+    ):
         self.order = 1
         self.title = title
+        self.affected_packages = affected_packages
         self.fix_steps = []  # type: List[FixPlanStep]
         self.fix_warnings = []  # type: List[FixPlanWarning]
         self.error = None  # type: Optional[FixPlanError]
@@ -371,6 +377,7 @@ class FixPlan:
         return FixPlanResult(
             title=self.title,
             expected_status=self._get_status(),
+            affected_packages=self.affected_packages,
             plan=self.fix_steps,
             warnings=self.fix_warnings,
             error=self.error,
@@ -609,9 +616,12 @@ def _generate_fix_plan(
     installed_pkgs: Dict[str, Dict[str, str]],
     cfg: UAConfig,
 ) -> FixPlanResult:
-    fix_plan = FixPlan(title=issue_id)
-
     count = len(affected_pkg_status)
+    fix_plan = FixPlan(
+        title=issue_id,
+        affected_packages=sorted(list(affected_pkg_status.keys())),
+    )
+
     if count == 0:
         fix_plan.register_step(
             operation=FixStepType.NOOP,

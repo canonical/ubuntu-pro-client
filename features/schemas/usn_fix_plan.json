@@ -9,6 +9,12 @@
            "expected_status": {
                "type": "string"
            },
+           "affected_packages": {
+             "type": [ "null", "array" ],
+             "items": {
+                 "type": "string"
+             }
+           },
            "plan": {
                "type": "array",
                "items": {
