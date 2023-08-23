@@ -1,5 +1,6 @@
 from typing import Optional  # noqa: F401
 
+from uaclient import messages
 from uaclient.entitlements import repo
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
@@ -13,13 +14,9 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
     help_doc_url = "https://ubuntu.com/cc-eal"
     name = "cc-eal"
-    title = "CC EAL2"
-    description = "Common Criteria EAL2 Provisioning Packages"
-    help_text = """\
-Common Criteria is an Information Technology Security Evaluation standard
-(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
-evaluated to assurance level EAL2 through CSEC. The evaluation was performed
-on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
+    title = messages.CC_TITLE
+    description = messages.CC_DESCRIPTION
+    help_text = messages.CC_HELP_TEXT
     repo_key_file = "ubuntu-pro-cc-eal.gpg"
     apt_noninteractive = True
     supports_access_only = True
@@ -28,15 +25,8 @@ on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if not self.access_only:
-            post_enable = [
-                "Please follow instructions in {} to configure EAL2".format(
-                    CC_README
-                )
-            ]
+            post_enable = [messages.CC_POST_ENABLE.format(CC_README)]
         return {
-            "pre_install": [
-                "(This will download more than 500MB of packages, so may take"
-                " some time.)"
-            ],
+            "pre_install": [messages.CC_PRE_INSTALL],
             "post_enable": post_enable,
         }

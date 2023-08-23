@@ -365,15 +365,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
 class FIPSEntitlement(FIPSCommonEntitlement):
     name = "fips"
-    title = "FIPS"
-    description = "NIST-certified core packages"
-    help_text = """\
-FIPS 140-2 is a set of publicly announced cryptographic standards developed by
-the National Institute of Standards and Technology applicable for FedRAMP,
-HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
-security patching. For FIPS certified modules with security patches please
-see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
-"""
+    title = messages.FIPS_TITLE
+    description = messages.FIPS_DESCRIPTION
+    help_text = messages.FIPS_HELP_TEXT
     origin = "UbuntuFIPS"
 
     @property
@@ -478,13 +472,10 @@ see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     name = "fips-updates"
-    title = "FIPS Updates"
+    title = messages.FIPS_UPDATES_TITLE
     origin = "UbuntuFIPSUpdates"
-    description = "NIST-certified core packages with priority security updates"
-    help_text = """\
-fips-updates installs fips modules including all security patches for those
-modules that have been provided since their certification date. You can find
-out more at https://ubuntu.com/security/fips"""
+    description = messages.FIPS_UPDATES_DESCRIPTION
+    help_text = messages.FIPS_UPDATES_HELP_TEXT
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
