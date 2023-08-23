@@ -16,15 +16,9 @@ REALTIME_KERNEL_DOCS_URL = "https://ubuntu.com/realtime-kernel"
 
 class RealtimeKernelEntitlement(repo.RepoEntitlement):
     name = "realtime-kernel"
-    title = "Real-time kernel"
-    description = "Ubuntu kernel with PREEMPT_RT patches integrated"
-    help_text = """\
-The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. It
-services latency-dependent use cases by providing deterministic response times.
-The Real-time kernel meets stringent preemption specifications and is suitable
-for telco applications and dedicated devices in industrial automation and
-robotics. The Real-time kernel is currently incompatible with FIPS and
-Livepatch."""
+    title = messages.REALTIME_TITLE
+    description = messages.REALTIME_DESCRIPTION
+    help_text = messages.REALTIME_HELP_TEXT
     help_doc_url = REALTIME_KERNEL_DOCS_URL
     repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True
@@ -136,24 +130,24 @@ class RealtimeVariant(RealtimeKernelEntitlement):
 
 class GenericRealtime(RealtimeVariant):
     variant_name = "generic"
-    title = "Real-time kernel"
-    description = "Generic version of the RT kernel (default)"
+    title = messages.REALTIME_GENERIC_TITLE
+    description = messages.REALTIME_GENERIC_DESCRIPTION
     is_variant = True
     check_packages_are_installed = True
 
 
 class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"
-    title = "Real-time NVIDIA Tegra Kernel"
-    description = "RT kernel optimized for NVIDIA Tegra platform"
+    title = messages.REALTIME_NVIDIA_TITLE
+    description = messages.REALTIME_NVIDIA_DESCRIPTION
     is_variant = True
     check_packages_are_installed = True
 
 
 class IntelIotgRealtime(RealtimeVariant):
     variant_name = "intel-iotg"
-    title = "Real-time Intel IOTG Kernel"
-    description = "RT kernel optimized for Intel IOTG platform"
+    title = messages.REALTIME_INTEL_TITLE
+    description = messages.REALTIME_INTEL_DESCRIPTION
     is_variant = True
     check_packages_are_installed = True
 
