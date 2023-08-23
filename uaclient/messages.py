@@ -1464,3 +1464,8 @@ STATUS_TOKEN_NOT_VALID = "This token is not valid."
 AWS_NO_VALID_IMDS = "No valid AWS IMDS endpoint discovered at addresses: {}"
 
 GPG_KEY_NOT_FOUND = "GPG key '{}' not found."
+
+SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
+SUBP_COMMAND_FAILED = (
+    "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
+)
