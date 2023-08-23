@@ -69,6 +69,10 @@ Expected {expected_value}, found {value}."""
 
 SECURITY_FIX_ATTACH_PROMPT = """\
 Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel"""
+SECURITY_FIX_ENABLE_PROMPT = """\
+Choose: [E]nable {} [C]ancel"""
+SECURITY_FIX_RENEW_PROMPT = """\
+Choose: [R]enew your subscription (at {}) [C]ancel"""
 SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
 SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
