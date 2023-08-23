@@ -1,5 +1,6 @@
 from typing import List
 
+from uaclient import messages
 from uaclient.entitlements import repo
 from uaclient.types import MessagingOperationsDict
 
@@ -11,12 +12,8 @@ class CISEntitlement(repo.RepoEntitlement):
 
     help_doc_url = USG_DOCS_URL
     name = "cis"
-    description = "Security compliance and audit tools"
-    help_text = """\
-Ubuntu Security Guide is a tool for hardening and auditing and allows for
-environment-specific customizations. It enables compliance with profiles such
-as DISA-STIG and the CIS benchmarks. Find out more at
-https://ubuntu.com/security/certifications/docs/usg"""
+    description = messages.CIS_DESCRIPTION
+    help_text = messages.CIS_HELP_TEXT
     repo_key_file = "ubuntu-pro-cis.gpg"
     apt_noninteractive = True
     supports_access_only = True
@@ -26,21 +23,17 @@ https://ubuntu.com/security/certifications/docs/usg"""
         if self._called_name == "usg":
             return {
                 "post_enable": [
-                    "Visit {} for the next steps".format(USG_DOCS_URL)
+                    messages.CIS_USG_POST_ENABLE.format(USG_DOCS_URL)
                 ]
             }
-        messages = {
-            "post_enable": [
-                "Visit {} to learn how to use CIS".format(CIS_DOCS_URL)
-            ]
+        ret = {
+            "post_enable": [messages.CIS_POST_ENABLE.format(CIS_DOCS_URL)]
         }  # type: MessagingOperationsDict
         if "usg" in self.valid_names:
-            messages["pre_can_enable"] = [
-                "From Ubuntu 20.04 and onwards 'pro enable cis' has been",
-                "replaced by 'pro enable usg'. See more information at:",
-                USG_DOCS_URL,
+            ret["pre_can_enable"] = [
+                messages.CIS_IS_NOW_USG.format(USG_DOCS_URL)
             ]
-        return messages
+        return ret
 
     @property
     def packages(self) -> List[str]:
@@ -51,5 +44,5 @@ https://ubuntu.com/security/certifications/docs/usg"""
     @property
     def title(self) -> str:
         if self._called_name == "cis":
-            return "CIS Audit"
-        return "Ubuntu Security Guide"
+            return messages.CIS_TITLE
+        return messages.CIS_USG_TITLE

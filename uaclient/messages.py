@@ -1501,3 +1501,137 @@ STATUS_FOOTER_ACCOUNT = "Account"
 STATUS_FOOTER_SUBSCRIPTION = "Subscription"
 STATUS_FOOTER_VALID_UNTIL = "Valid until"
 STATUS_FOOTER_SUPPORT_LEVEL = "Technical support level"
+
+ANBOX_TITLE = "Anbox Cloud"
+ANBOX_DESCRIPTION = "Scalable Android in the cloud"
+ANBOX_HELP_TEXT = """\
+Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
+letting you focus on your apps. Run Android in system containers on public or
+private clouds with ultra low streaming latency. When the anbox-cloud service
+is enabled, by default, the Appliance variant is enabled. Enabling this service
+allows orchestration to provision a PPA with the Anbox Cloud resources. This
+step also configures the Anbox Management Service (AMS) with the necessary
+image server credentials. To learn more about Anbox Cloud, see
+https://anbox-cloud.io"""
+
+CC_TITLE = "CC EAL2"
+CC_DESCRIPTION = "Common Criteria EAL2 Provisioning Packages"
+CC_HELP_TEXT = """\
+Common Criteria is an Information Technology Security Evaluation standard
+(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
+evaluated to assurance level EAL2 through CSEC. The evaluation was performed
+on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
+CC_PRE_INSTALL = (
+    "(This will download more than 500MB of packages, so may take"
+    " some time.)"
+)
+CC_POST_ENABLE = "Please follow instructions in {} to configure EAL2"
+
+CIS_TITLE = "CIS Audit"
+CIS_USG_TITLE = "Ubuntu Security Guide"
+CIS_DESCRIPTION = "Security compliance and audit tools"
+CIS_HELP_TEXT = """\
+Ubuntu Security Guide is a tool for hardening and auditing and allows for
+environment-specific customizations. It enables compliance with profiles such
+as DISA-STIG and the CIS benchmarks. Find out more at
+https://ubuntu.com/security/certifications/docs/usg"""
+CIS_POST_ENABLE = "Visit {} to learn how to use CIS"
+CIS_USG_POST_ENABLE = "Visit {} for the next steps"
+CIS_IS_NOW_USG = """\
+From Ubuntu 20.04 and onwards 'pro enable cis' has been
+replaced by 'pro enable usg'. See more information at:
+{}"""
+
+ESM_APPS_TITLE = "Ubuntu Pro: ESM Apps"
+ESM_APPS_DESCRIPTION = "Expanded Security Maintenance for Applications"
+ESM_APPS_HELP_TEXT = """\
+Expanded Security Maintenance for Applications is enabled by default on
+entitled workloads. It provides access to a private PPA which includes
+available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
+its end of life. You can find out more about the esm service at
+https://ubuntu.com/security/esm"""
+
+ESM_INFRA_TITLE = "Ubuntu Pro: ESM Infra"
+ESM_INFRA_DESCRIPTION = "Expanded Security Maintenance for Infrastructure"
+ESM_INFRA_HELP_TEXT = """\
+Expanded Security Maintenance for Infrastructure provides access to a private
+PPA which includes available high and critical CVE fixes for Ubuntu LTS
+packages in the Ubuntu Main repository between the end of the standard Ubuntu
+LTS security maintenance and its end of life. It is enabled by default with
+Ubuntu Pro. You can find out more about the service at
+https://ubuntu.com/security/esm"""
+
+FIPS_TITLE = "FIPS"
+FIPS_DESCRIPTION = "NIST-certified core packages"
+FIPS_HELP_TEXT = """\
+FIPS 140-2 is a set of publicly announced cryptographic standards developed by
+the National Institute of Standards and Technology applicable for FedRAMP,
+HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
+security patching. For FIPS certified modules with security patches please
+see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
+"""
+
+FIPS_UPDATES_TITLE = "FIPS Updates"
+FIPS_UPDATES_DESCRIPTION = (
+    "NIST-certified core packages with priority security updates"
+)
+FIPS_UPDATES_HELP_TEXT = """\
+fips-updates installs fips modules including all security patches for those
+modules that have been provided since their certification date. You can find
+out more at https://ubuntu.com/security/fips"""
+
+LANDSCAPE_TITLE = "Landscape"
+LANDSCAPE_DESCRIPTION = "Management and administration tool for Ubuntu"
+LANDSCAPE_HELP_TEXT = """\
+Landscape Client can be installed on this machine and enrolled in Canonical's
+Landscape SaaS: https://landscape.canonical.com or a self-hosted Landscape:
+https://ubuntu.com/landscape/install
+Landscape allows you to manage many machines as easily as one, with an
+intuitive dashboard and API interface for automation, hardening, auditing, and
+more. Find out more about Landscape at https://ubuntu.com/landscape"""
+
+LIVEPATCH_TITLE = "Livepatch"
+LIVEPATCH_DESCRIPTION = "Canonical Livepatch service"
+LIVEPATCH_HELP_TEXT = """\
+Livepatch provides selected high and critical kernel CVE fixes and other
+non-security bug fixes as kernel livepatches. Livepatches are applied without
+rebooting a machine which drastically limits the need for unscheduled system
+reboots. Due to the nature of fips compliance, livepatches cannot be enabled
+on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
+service at https://ubuntu.com/security/livepatch"""
+
+REALTIME_TITLE = "Real-time kernel"
+REALTIME_DESCRIPTION = "Ubuntu kernel with PREEMPT_RT patches integrated"
+REALTIME_HELP_TEXT = """\
+The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. It
+services latency-dependent use cases by providing deterministic response times.
+The Real-time kernel meets stringent preemption specifications and is suitable
+for telco applications and dedicated devices in industrial automation and
+robotics. The Real-time kernel is currently incompatible with FIPS and
+Livepatch."""
+REALTIME_GENERIC_TITLE = "Real-time kernel"
+REALTIME_GENERIC_DESCRIPTION = "Generic version of the RT kernel (default)"
+REALTIME_NVIDIA_TITLE = "Real-time NVIDIA Tegra Kernel"
+REALTIME_NVIDIA_DESCRIPTION = "RT kernel optimized for NVIDIA Tegra platform"
+REALTIME_INTEL_TITLE = "Real-time Intel IOTG Kernel"
+REALTIME_INTEL_DESCRIPTION = "RT kernel optimized for Intel IOTG platform"
+
+ROS_TITLE = "ROS ESM Security Updates"
+ROS_DESCRIPTION = "Security Updates for the Robot Operating System"
+ROS_HELP_TEXT = """\
+ros provides access to a private PPA which includes security-related updates
+for available high and critical CVE fixes for Robot Operating System (ROS)
+packages. For access to ROS ESM and security updates, both esm-infra and
+esm-apps services will also be enabled. To get additional non-security updates,
+enable ros-updates. You can find out more about the ROS ESM service at
+https://ubuntu.com/robotics/ros-esm"""
+
+ROS_UPDATES_TITLE = "ROS ESM All Updates"
+ROS_UPDATES_DESCRIPTION = "All Updates for the Robot Operating System"
+ROS_UPDATES_HELP_TEXT = """\
+ros-updates provides access to a private PPA that includes non-security-related
+updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
+security and non-security updates, the esm-infra, esm-apps, and ros services
+will also be enabled. You can find out more about the ROS ESM service at
+https://ubuntu.com/robotics/ros-esm"""
