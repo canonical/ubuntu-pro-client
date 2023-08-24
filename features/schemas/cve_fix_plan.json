@@ -19,6 +19,9 @@
               "title": {
                 "type": "string"
               },
+              "description": {
+                "type": [ "null", "string" ]
+              },
               "expected_status": {
                 "type": "string"
               },
