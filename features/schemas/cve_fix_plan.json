@@ -13,6 +13,9 @@
           "items": {
             "type": "object",
             "properties": {
+              "additional_data": {
+                "type": "object"
+              },
               "title": {
                 "type": "string"
               },
