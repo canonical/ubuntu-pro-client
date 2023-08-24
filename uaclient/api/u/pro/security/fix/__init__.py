@@ -16,6 +16,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.security import (
+    CVE,
     CVE_OR_USN_REGEX,
     UA_APPS_POCKET,
     UA_INFRA_POCKET,
@@ -276,6 +277,7 @@ class USNAdditionalData(AdditionalData):
 class FixPlanResult(DataObject):
     fields = [
         Field("title", StringDataValue),
+        Field("description", StringDataValue, required=False),
         Field("expected_status", StringDataValue),
         Field("affected_packages", data_list(StringDataValue), required=False),
         Field("plan", data_list(FixPlanStep)),
@@ -289,13 +291,15 @@ class FixPlanResult(DataObject):
         *,
         title: str,
         expected_status: str,
-        affected_packages: Optional[List[str]],
         plan: List[FixPlanStep],
         warnings: List[FixPlanWarning],
         error: Optional[FixPlanError],
-        additional_data: AdditionalData
+        additional_data: AdditionalData,
+        description: Optional[str] = None,
+        affected_packages: Optional[List[str]] = None
     ):
         self.title = title
+        self.description = description
         self.expected_status = expected_status
         self.affected_packages = affected_packages
         self.plan = plan
@@ -322,10 +326,14 @@ class FixPlanUSNResult(DataObject):
 
 class FixPlan:
     def __init__(
-        self, title: str, affected_packages: Optional[List[str]] = None
+        self,
+        title: str,
+        description: Optional[str],
+        affected_packages: Optional[List[str]] = None,
     ):
         self.order = 1
         self.title = title
+        self.description = description
         self.affected_packages = affected_packages
         self.fix_steps = []  # type: List[FixPlanStep]
         self.fix_warnings = []  # type: List[FixPlanWarning]
@@ -404,6 +412,7 @@ class FixPlan:
     def fix_plan(self):
         return FixPlanResult(
             title=self.title,
+            description=self.description,
             expected_status=self._get_status(),
             affected_packages=self.affected_packages,
             plan=self.fix_steps,
@@ -420,19 +429,27 @@ class USNFixPlan(FixPlan):
 
 def get_fix_plan(
     title: str,
+    description: Optional[str] = None,
     affected_packages: Optional[List[str]] = None,
 ):
     if not title or "cve" in title.lower():
-        return FixPlan(title, affected_packages)
+        return FixPlan(
+            title=title,
+            description=description,
+            affected_packages=affected_packages,
+        )
 
-    return USNFixPlan(title, affected_packages)
+    return USNFixPlan(
+        title=title,
+        description=description,
+        affected_packages=affected_packages,
+    )
 
 
 def _get_cve_data(
     issue_id: str,
-    installed_packages: Dict[str, Dict[str, str]],
     client: UASecurityClient,
-) -> Tuple[Dict[str, CVEPackageStatus], Dict[str, Dict[str, Dict[str, str]]]]:
+) -> Tuple[CVE, List[USN]]:
     try:
         cve = client.get_cve(cve_id=issue_id)
         usns = client.get_notices(details=issue_id)
@@ -441,20 +458,11 @@ def _get_cve_data(
             raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
         raise e
 
-    affected_pkg_status = get_cve_affected_source_packages_status(
-        cve=cve, installed_packages=installed_packages
-    )
-    usn_released_pkgs = merge_usn_released_binary_package_versions(
-        usns, beta_pockets={}
-    )
-
-    return affected_pkg_status, usn_released_pkgs
+    return cve, usns
 
 
 def _get_usn_data(
-    issue_id: str,
-    installed_packages: Dict[str, Dict[str, str]],
-    client: UASecurityClient,
+    issue_id: str, client: UASecurityClient
 ) -> Tuple[USN, List[USN]]:
     try:
         usn = client.get_notice(notice_id=issue_id)
@@ -507,14 +515,14 @@ def _get_upgradable_pkgs(
 def _get_upgradable_package_candidates_by_pocket(
     pkg_status_group: List[Tuple[str, CVEPackageStatus]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
-    installed_packages: Dict[str, Dict[str, str]],
+    installed_pkgs: Dict[str, Dict[str, str]],
 ):
     binary_pocket_pkgs = defaultdict(list)
     src_pocket_pkgs = defaultdict(list)
 
     for src_pkg, pkg_status in pkg_status_group:
         src_pocket_pkgs[pkg_status.pocket_source].append((src_pkg, pkg_status))
-        for binary_pkg, version in installed_packages[src_pkg].items():
+        for binary_pkg, version in installed_pkgs[src_pkg].items():
             usn_released_src = usn_released_pkgs.get(src_pkg, {})
             if binary_pkg not in usn_released_src:
                 continue
@@ -548,38 +556,44 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         return fix_plan.fix_plan
 
     client = UASecurityClient(cfg=cfg)
-    installed_packages = query_installed_source_pkg_versions()
+    installed_pkgs = query_installed_source_pkg_versions()
 
     try:
-        affected_pkg_status, usn_released_pkgs = _get_cve_data(
-            issue_id=issue_id,
-            installed_packages=installed_packages,
-            client=client,
-        )
+        cve, usns = _get_cve_data(issue_id=issue_id, client=client)
     except exceptions.SecurityIssueNotFound as e:
         fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
         return fix_plan.fix_plan
 
+    affected_pkg_status = get_cve_affected_source_packages_status(
+        cve=cve, installed_packages=installed_pkgs
+    )
+    usn_released_pkgs = merge_usn_released_binary_package_versions(
+        usns, beta_pockets={}
+    )
+
+    cve_description = cve.description
+    for notice in cve.notices:
+        # Only look at the most recent USN title
+        cve_description = notice.title
+        break
+
     return _generate_fix_plan(
-        issue_id,
-        affected_pkg_status,
-        usn_released_pkgs,
-        installed_packages,
-        cfg,
+        issue_id=issue_id,
+        issue_description=cve_description,
+        affected_pkg_status=affected_pkg_status,
+        usn_released_pkgs=usn_released_pkgs,
+        installed_pkgs=installed_pkgs,
+        cfg=cfg,
     )
 
 
 def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     client = UASecurityClient(cfg=cfg)
-    installed_packages = query_installed_source_pkg_versions()
+    installed_pkgs = query_installed_source_pkg_versions()
 
     try:
-        usn, related_usns = _get_usn_data(
-            issue_id=issue_id,
-            installed_packages=installed_packages,
-            client=client,
-        )
+        usn, related_usns = _get_usn_data(issue_id=issue_id, client=client)
     except exceptions.SecurityIssueNotFound as e:
         fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
@@ -589,7 +603,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         )
 
     affected_pkg_status = get_affected_packages_from_usn(
-        usn=usn, installed_packages=installed_packages
+        usn=usn, installed_packages=installed_pkgs
     )
     usn_released_pkgs = merge_usn_released_binary_package_versions(
         [usn], beta_pockets={}
@@ -602,18 +616,19 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     }
 
     target_usn_plan = _generate_fix_plan(
-        issue_id,
-        affected_pkg_status,
-        usn_released_pkgs,
-        installed_packages,
-        cfg,
+        issue_id=issue_id,
+        issue_description=usn.title,
+        affected_pkg_status=affected_pkg_status,
+        usn_released_pkgs=usn_released_pkgs,
+        installed_pkgs=installed_pkgs,
+        cfg=cfg,
         additional_data=additional_data,
     )
 
     related_usns_plan = []  # type: List[FixPlanResult]
     for usn in related_usns:
         affected_pkg_status = get_affected_packages_from_usn(
-            usn=usn, installed_packages=installed_packages
+            usn=usn, installed_packages=installed_pkgs
         )
         usn_released_pkgs = merge_usn_released_binary_package_versions(
             [usn], beta_pockets={}
@@ -627,11 +642,12 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
         related_usns_plan.append(
             _generate_fix_plan(
-                usn.id,
-                affected_pkg_status,
-                usn_released_pkgs,
-                installed_packages,
-                cfg,
+                issue_id=usn.id,
+                issue_description=usn.title,
+                affected_pkg_status=affected_pkg_status,
+                usn_released_pkgs=usn_released_pkgs,
+                installed_pkgs=installed_pkgs,
+                cfg=cfg,
                 additional_data=additional_data,
             )
         )
@@ -669,6 +685,7 @@ def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
 def _generate_fix_plan(
     issue_id: str,
+    issue_description: str,
     affected_pkg_status: Dict[str, CVEPackageStatus],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_pkgs: Dict[str, Dict[str, str]],
@@ -678,6 +695,7 @@ def _generate_fix_plan(
     count = len(affected_pkg_status)
     fix_plan = get_fix_plan(
         title=issue_id,
+        description=issue_description,
         affected_packages=sorted(list(affected_pkg_status.keys())),
     )
 
