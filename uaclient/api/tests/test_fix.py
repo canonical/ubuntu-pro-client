@@ -2,6 +2,7 @@ import mock
 import pytest
 
 from uaclient.api.u.pro.security.fix import (
+    AdditionalData,
     AptUpgradeData,
     AttachData,
     EnableData,
@@ -17,6 +18,7 @@ from uaclient.api.u.pro.security.fix import (
     NoOpData,
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
+    USNAdditionalData,
     fix_plan_cve,
     fix_plan_usn,
 )
@@ -40,6 +42,7 @@ class TestFixPlan:
                 msg=INVALID_SECURITY_ISSUE.format(issue_id=issue_id).msg,
                 code=INVALID_SECURITY_ISSUE.name,
             ),
+            additional_data=AdditionalData(),
         )
         assert expected_plan == fix_plan_cve(issue_id, cfg=mock.MagicMock())
 
@@ -58,6 +61,7 @@ class TestFixPlan:
                     msg=INVALID_SECURITY_ISSUE.format(issue_id=issue_id).msg,
                     code=INVALID_SECURITY_ISSUE.name,
                 ),
+                additional_data=AdditionalData(),
             ),
             related_usns_plan=[],
         )
@@ -88,6 +92,7 @@ class TestFixPlan:
             ],
             warnings=[],
             error=None,
+            additional_data=AdditionalData(),
         )
 
         assert expected_plan == fix_plan_cve(
@@ -129,6 +134,7 @@ class TestFixPlan:
             ],
             warnings=[],
             error=None,
+            additional_data=AdditionalData(),
         )
 
         assert expected_plan == fix_plan_cve(
@@ -207,6 +213,7 @@ class TestFixPlan:
             ],
             warnings=[],
             error=None,
+            additional_data=AdditionalData(),
         )
 
         assert expected_plan == fix_plan_cve(
@@ -393,6 +400,7 @@ class TestFixPlan:
             ],
             warnings=[],
             error=None,
+            additional_data=AdditionalData(),
         )
 
         assert expected_plan == fix_plan_cve(
@@ -480,6 +488,7 @@ class TestFixPlan:
                 )
             ],
             error=None,
+            additional_data=AdditionalData(),
         )
         assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
@@ -574,6 +583,7 @@ class TestFixPlan:
                 )
             ],
             error=None,
+            additional_data=AdditionalData(),
         )
 
         assert expected_plan == fix_plan_cve(
@@ -614,10 +624,16 @@ class TestFixPlan:
             },
         }
         m_get_usn_data.return_value = (
-            mock.MagicMock(),
+            mock.MagicMock(cves_ids=[], references=[]),
             [
-                mock.MagicMock(id="USN-2345-1"),
-                mock.MagicMock(id="USN-3456-8"),
+                mock.MagicMock(
+                    id="USN-2345-1", cves_ids=["CVE-1234-12345"], references=[]
+                ),
+                mock.MagicMock(
+                    id="USN-3456-8",
+                    cves_ids=[],
+                    references=["https://launchpad.net/bugs/BUG"],
+                ),
             ],
         )
 
@@ -727,6 +743,10 @@ class TestFixPlan:
                 ],
                 warnings=[],
                 error=None,
+                additional_data=USNAdditionalData(
+                    associated_cves=[],
+                    associated_launchpad_bugs=[],
+                ),
             ),
             related_usns_plan=[
                 FixPlanResult(
@@ -744,6 +764,10 @@ class TestFixPlan:
                     ],
                     warnings=[],
                     error=None,
+                    additional_data=USNAdditionalData(
+                        associated_cves=["CVE-1234-12345"],
+                        associated_launchpad_bugs=[],
+                    ),
                 ),
                 FixPlanResult(
                     title="USN-3456-8",
@@ -760,6 +784,12 @@ class TestFixPlan:
                     ],
                     warnings=[],
                     error=None,
+                    additional_data=USNAdditionalData(
+                        associated_cves=[],
+                        associated_launchpad_bugs=[
+                            "https://launchpad.net/bugs/BUG"
+                        ],
+                    ),
                 ),
             ],
         )
@@ -839,6 +869,7 @@ class TestFixPlan:
             ],
             warnings=[],
             error=None,
+            additional_data=AdditionalData(),
         )
         assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()

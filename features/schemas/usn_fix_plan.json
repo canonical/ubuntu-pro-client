@@ -3,11 +3,28 @@
       "fix_plan": {
          "type": "object",
          "properties": {
+           "additional_data": {
+             "type": "object",
+             "properties": {
+                 "associated_cves": {
+                   "type": "array",
+                   "items": {
+                     "type": "string"
+                   }
+                },
+                "associated_launchpad_bugs": {
+                   "type": "array",
+                   "items": {
+                     "type": "string"
+                   }
+                }
+             }
+           },
            "title": {
-               "type": "string"
+             "type": "string"
            },
            "expected_status": {
-               "type": "string"
+             "type": "string"
            },
            "affected_packages": {
              "type": [ "null", "array" ],
