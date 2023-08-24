@@ -39,7 +39,7 @@ complete status on Ubuntu Pro services, run 'pro status'.
 (optional arguments|options):
   -h, --help            show this help message and exit
   --format {json,yaml,text}
-                        Format for the output
+                        output in the specified format \(default: text\)
   --thirdparty          List and present information about third-party
                         packages
   --unavailable         List and present information about unavailable
@@ -74,6 +74,7 @@ class TestActionSecurityStatus:
                 ):
                     main()
         out, _err = capsys.readouterr()
+        print(out)
         assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize("output_format", ("json", "yaml", "text"))

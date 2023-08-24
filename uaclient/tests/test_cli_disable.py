@@ -47,7 +47,7 @@ Flags:
   -h, --help           show this help message and exit
   --assume-yes         do not prompt for confirmation before performing the
                        disable
-  --format {cli,json}  output disable in the specified format (default: cli)
+  --format {cli,json}  output in the specified format (default: cli)
 """
 )
 
