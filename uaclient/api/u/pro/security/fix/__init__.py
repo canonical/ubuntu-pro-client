@@ -252,6 +252,27 @@ class FixPlanError(DataObject):
         self.code = code
 
 
+class AdditionalData(DataObject):
+    pass
+
+
+class USNAdditionalData(AdditionalData):
+
+    fields = [
+        Field("associated_cves", data_list(StringDataValue)),
+        Field("associated_launchpad_bugs", data_list(StringDataValue)),
+    ]
+
+    def __init__(
+        self,
+        *,
+        associated_cves: List[str],
+        associated_launchpad_bugs: List[str]
+    ):
+        self.associated_cves = associated_cves
+        self.associated_launchpad_bugs = associated_launchpad_bugs
+
+
 class FixPlanResult(DataObject):
     fields = [
         Field("title", StringDataValue),
@@ -260,6 +281,7 @@ class FixPlanResult(DataObject):
         Field("plan", data_list(FixPlanStep)),
         Field("warnings", data_list(FixPlanWarning), required=False),
         Field("error", FixPlanError, required=False),
+        Field("additional_data", AdditionalData, required=False),
     ]
 
     def __init__(
@@ -270,7 +292,8 @@ class FixPlanResult(DataObject):
         affected_packages: Optional[List[str]],
         plan: List[FixPlanStep],
         warnings: List[FixPlanWarning],
-        error: Optional[FixPlanError]
+        error: Optional[FixPlanError],
+        additional_data: AdditionalData
     ):
         self.title = title
         self.expected_status = expected_status
@@ -278,6 +301,7 @@ class FixPlanResult(DataObject):
         self.plan = plan
         self.warnings = warnings
         self.error = error
+        self.additional_data = additional_data
 
 
 class FixPlanUSNResult(DataObject):
@@ -306,6 +330,7 @@ class FixPlan:
         self.fix_steps = []  # type: List[FixPlanStep]
         self.fix_warnings = []  # type: List[FixPlanWarning]
         self.error = None  # type: Optional[FixPlanError]
+        self.additional_data = AdditionalData()
 
     def register_step(
         self,
@@ -357,6 +382,9 @@ class FixPlan:
     def register_error(self, error_msg: str, error_code: Optional[str]):
         self.error = FixPlanError(msg=error_msg, code=error_code)
 
+    def register_additional_data(self, additional_data: Dict[str, Any]):
+        self.additional_data = AdditionalData(**additional_data)
+
     def _get_status(self) -> str:
         if self.error:
             return "error"
@@ -381,7 +409,23 @@ class FixPlan:
             plan=self.fix_steps,
             warnings=self.fix_warnings,
             error=self.error,
+            additional_data=self.additional_data,
         )
+
+
+class USNFixPlan(FixPlan):
+    def register_additional_data(self, additional_data: Dict[str, Any]):
+        self.additional_data = USNAdditionalData(**additional_data)
+
+
+def get_fix_plan(
+    title: str,
+    affected_packages: Optional[List[str]] = None,
+):
+    if not title or "cve" in title.lower():
+        return FixPlan(title, affected_packages)
+
+    return USNFixPlan(title, affected_packages)
 
 
 def _get_cve_data(
@@ -496,7 +540,7 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
     )
 
     if livepatch_cve_status:
-        fix_plan = FixPlan(title=issue_id)
+        fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_step(
             operation=FixStepType.NOOP,
             data={"status": FixPlanNoOpStatus.FIXED_BY_LIVEPATCH.value},
@@ -513,7 +557,7 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
             client=client,
         )
     except exceptions.SecurityIssueNotFound as e:
-        fix_plan = FixPlan(title=issue_id)
+        fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
         return fix_plan.fix_plan
 
@@ -537,7 +581,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
             client=client,
         )
     except exceptions.SecurityIssueNotFound as e:
-        fix_plan = FixPlan(title=issue_id)
+        fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
         return FixPlanUSNResult(
             target_usn_plan=fix_plan.fix_plan,
@@ -550,6 +594,12 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     usn_released_pkgs = merge_usn_released_binary_package_versions(
         [usn], beta_pockets={}
     )
+    additional_data = {
+        "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
+        "associated_launchpad_bugs": []
+        if not usn.references
+        else usn.references,
+    }
 
     target_usn_plan = _generate_fix_plan(
         issue_id,
@@ -557,6 +607,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         usn_released_pkgs,
         installed_packages,
         cfg,
+        additional_data=additional_data,
     )
 
     related_usns_plan = []  # type: List[FixPlanResult]
@@ -567,6 +618,12 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         usn_released_pkgs = merge_usn_released_binary_package_versions(
             [usn], beta_pockets={}
         )
+        additional_data = {
+            "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
+            "associated_launchpad_bugs": []
+            if not usn.references
+            else usn.references,
+        }
 
         related_usns_plan.append(
             _generate_fix_plan(
@@ -575,6 +632,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
                 usn_released_pkgs,
                 installed_packages,
                 cfg,
+                additional_data=additional_data,
             )
         )
 
@@ -586,7 +644,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
 def fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
     if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
-        fix_plan = FixPlan(title=issue_id)
+        fix_plan = get_fix_plan(title=issue_id)
         msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
         fix_plan.register_error(error_msg=msg.msg, error_code=msg.name)
         return fix_plan.fix_plan
@@ -597,7 +655,7 @@ def fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
 
 def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
-        fix_plan = FixPlan(title=issue_id)
+        fix_plan = get_fix_plan(title=issue_id)
         msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
         fix_plan.register_error(error_msg=msg.msg, error_code=msg.name)
         return FixPlanUSNResult(
@@ -615,12 +673,16 @@ def _generate_fix_plan(
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_pkgs: Dict[str, Dict[str, str]],
     cfg: UAConfig,
+    additional_data=None,
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
-    fix_plan = FixPlan(
+    fix_plan = get_fix_plan(
         title=issue_id,
         affected_packages=sorted(list(affected_pkg_status.keys())),
     )
+
+    if additional_data:
+        fix_plan.register_additional_data(additional_data)
 
     if count == 0:
         fix_plan.register_step(
