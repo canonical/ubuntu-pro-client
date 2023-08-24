@@ -9,7 +9,6 @@ import pytest
 
 from uaclient import event_logger, http, messages, util
 from uaclient.cli import (
-    UA_AUTH_TOKEN_URL,
     action_attach,
     attach_parser,
     get_parser,
@@ -39,8 +38,7 @@ and prompt you to attach the machine to your Ubuntu Pro account using
 a web browser.
 
 positional arguments:
-  token                 token obtained for Ubuntu Pro authentication:
-                        https://auth.contracts.canonical.com
+  token                 token obtained for Ubuntu Pro authentication
 
 Flags:
   -h, --help            show this help message and exit
@@ -48,7 +46,7 @@ Flags:
   --attach-config ATTACH_CONFIG
                         use the provided attach config file instead of passing
                         the token on the cli
-  --format {cli,json}   output enable in the specified format (default: cli)
+  --format {cli,json}   output in the specified format (default: cli)
 """
 )
 
@@ -691,16 +689,6 @@ class TestParser:
         with mock.patch("sys.argv", ["pro", "attach"]):
             args = full_parser.parse_args()
         assert None is args.token
-
-    def test_attach_parser_help_points_to_ua_contract_dashboard_url(
-        self, _m_resources, capsys, FakeConfig
-    ):
-        """Contracts' dashboard URL is referenced by pro attach --help."""
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "attach", "--help"]):
-            with pytest.raises(SystemExit):
-                full_parser.parse_args()
-        assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
 
     def test_attach_parser_accepts_and_stores_no_auto_enable(
         self, _m_resources, FakeConfig

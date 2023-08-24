@@ -72,17 +72,6 @@ from uaclient.yaml import safe_dump, safe_load
 NAME = "pro"
 
 USAGE_TMPL = "{name} {command} [flags]"
-EPILOG_TMPL = (
-    "Use {name} {command} --help for more information about a command."
-)
-
-STATUS_HEADER_TMPL = """\
-Account: {account}
-Subscription: {subscription}
-Valid until: {contract_expiry}
-Technical support level: {tech_support_level}
-"""
-UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
@@ -275,22 +264,19 @@ def assert_not_attached(f):
 def api_parser(parser):
     """Build or extend an arg parser for the api subcommand."""
     parser.prog = "api"
-    parser.description = "Calls the Client API endpoints."
+    parser.description = messages.CLI_API_DESC
     parser.add_argument(
-        "endpoint_path", metavar="endpoint", help="API endpoint to call"
+        "endpoint_path", metavar="endpoint", help=messages.CLI_API_ENDPOINT
     )
     parser.add_argument(
         "--args",
         dest="options",
         default=[],
         nargs="*",
-        help="Options to pass to the API endpoint, formatted as key=value",
+        help=messages.CLI_API_ARGS,
     )
     parser.add_argument(
-        "--data",
-        dest="data",
-        default="",
-        help="arguments in JSON format to the API endpoint",
+        "--data", dest="data", default="", help=messages.CLI_API_DATA
     )
     return parser
 
@@ -298,28 +284,21 @@ def api_parser(parser):
 def auto_attach_parser(parser):
     """Build or extend an arg parser for auto-attach subcommand."""
     parser.prog = "auto-attach"
-    parser.description = (
-        "Automatically attach on an Ubuntu Pro cloud instance."
-    )
+    parser.description = messages.CLI_AUTO_ATTACH_DESC
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
-    parser._optionals.title = "Flags"
+    parser._optionals.title = messages.CLI_FLAGS
     return parser
 
 
 def collect_logs_parser(parser):
     """Build or extend an arg parser for 'collect-logs' subcommand."""
     parser.prog = "collect-logs"
-    parser.description = (
-        "Collect logs and relevant system information into a tarball."
-    )
+    parser.description = messages.CLI_COLLECT_LOGS_DESC
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser.add_argument(
         "-o",
         "--output",
-        help=(
-            "tarball where the logs will be stored. (Defaults to "
-            "./ua_logs.tar.gz)"
-        ),
+        help=messages.CLI_COLLECT_LOGS_OUTPUT,
     )
     return parser
 
@@ -330,11 +309,11 @@ def config_show_parser(parser, parent_command: str):
         name=NAME, command="{} show [key]".format(parent_command)
     )
     parser.prog = "show"
-    parser.description = "Show customisable configuration settings"
+    parser.description = messages.CLI_CONFIG_SHOW_DESC
     parser.add_argument(
         "key",
         nargs="?",  # action_config_show handles this optional argument
-        help="Optional key or key(s) to show configuration settings.",
+        help=messages.CLI_CONFIG_SHOW_KEY,
     )
     return parser
 
@@ -345,13 +324,12 @@ def config_set_parser(parser, parent_command: str):
         name=NAME, command="{} set <key>=<value>".format(parent_command)
     )
     parser.prog = "aset"
-    parser.description = "Set and apply Ubuntu Pro configuration settings"
-    parser._optionals.title = "Flags"
+    parser.description = messages.CLI_CONFIG_SET_DESC
+    parser._optionals.title = messages.CLI_FLAGS
     parser.add_argument(
         "key_value_pair",
         help=(
-            "key=value pair to configure for Ubuntu Pro services."
-            " Key must be one of: {}".format(
+            messages.CLI_CONFIG_SET_KEY_VALUE.format(
                 ", ".join(config.UA_CONFIGURABLE_KEYS)
             )
         ),
@@ -365,16 +343,17 @@ def config_unset_parser(parser, parent_command: str):
         name=NAME, command="{} unset <key>".format(parent_command)
     )
     parser.prog = "unset"
-    parser.description = "Unset Ubuntu Pro configuration setting"
+    parser.description = messages.CLI_CONFIG_UNSET_DESC
     parser.add_argument(
         "key",
         help=(
-            "configuration key to unset from Ubuntu Pro services."
-            " One of: {}".format(", ".join(config.UA_CONFIGURABLE_KEYS))
+            messages.CLI_CONFIG_UNSET_KEY.format(
+                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            )
         ),
         metavar="key",
     )
-    parser._optionals.title = "Flags"
+    parser._optionals.title = messages.CLI_FLAGS
     return parser
 
 
@@ -385,25 +364,25 @@ def config_parser(parser):
         name=NAME, command="{} <command>".format(command)
     )
     parser.prog = command
-    parser.description = "Manage Ubuntu Pro configuration"
-    parser._optionals.title = "Flags"
+    parser.description = messages.CLI_CONFIG_DESC
+    parser._optionals.title = messages.CLI_FLAGS
     subparsers = parser.add_subparsers(
-        title="Available Commands", dest="command", metavar=""
+        title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
     )
     parser_show = subparsers.add_parser(
-        "show", help="show all Ubuntu Pro configuration setting(s)"
+        "show", help=messages.CLI_CONFIG_SHOW_DESC
     )
     parser_show.set_defaults(action=action_config_show)
     config_show_parser(parser_show, parent_command=command)
 
     parser_set = subparsers.add_parser(
-        "set", help="set Ubuntu Pro configuration setting"
+        "set", help=messages.CLI_CONFIG_SET_DESC
     )
     parser_set.set_defaults(action=action_config_set)
     config_set_parser(parser_set, parent_command=command)
 
     parser_unset = subparsers.add_parser(
-        "unset", help="unset Ubuntu Pro configuration setting"
+        "unset", help=messages.CLI_CONFIG_UNSET_DESC
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset, parent_command=command)
@@ -415,47 +394,26 @@ def attach_parser(parser):
     parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.prog = "attach"
-    base_desc = (
-        "Attach this machine to Ubuntu Pro with a token obtained"
-        " from:\n{}".format(defaults.BASE_UA_URL)
-    )
-    parser.description = (
-        base_desc
-        + "\n\n"
-        + (
-            "When running this command without a token, it will generate "
-            "a short code\nand prompt you to attach the machine to your "
-            "Ubuntu Pro account using\na web browser."
-        )
-    )
-    parser._optionals.title = "Flags"
-    parser.add_argument(
-        "token",
-        nargs="?",  # action_attach asserts this required argument
-        help="token obtained for Ubuntu Pro authentication: {}".format(
-            UA_AUTH_TOKEN_URL
-        ),
-    )
+    parser.description = messages.CLI_ATTACH_DESC
+    parser._optionals.title = messages.CLI_FLAGS
+    parser.add_argument("token", nargs="?", help=messages.CLI_ATTACH_TOKEN)
     parser.add_argument(
         "--no-auto-enable",
         action="store_false",
         dest="auto_enable",
-        help="do not enable any recommended services automatically",
+        help=messages.CLI_ATTACH_NO_AUTO_ENABLE,
     )
     parser.add_argument(
         "--attach-config",
         type=argparse.FileType("r"),
-        help=(
-            "use the provided attach config file instead of passing the token"
-            " on the cli"
-        ),
+        help=messages.CLI_ATTACH_ATTACH_CONFIG,
     )
     parser.add_argument(
         "--format",
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=("output enable in the specified format (default: cli)"),
+        help=messages.CLI_FORMAT_DESC.format("cli"),
     )
     return parser
 
@@ -466,34 +424,14 @@ def fix_parser(parser):
         name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
     )
     parser.prog = "fix"
-    parser.description = (
-        "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this"
-        " machine."
-    )
-    parser._optionals.title = "Flags"
+    parser.description = messages.CLI_FIX_DESC
+    parser._optionals.title = messages.CLI_FLAGS
+    parser.add_argument("security_issue", help=messages.CLI_FIX_ISSUE)
     parser.add_argument(
-        "security_issue",
-        help=(
-            "Security vulnerability ID to inspect and resolve on this system."
-            " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
-        ),
+        "--dry-run", action="store_true", help=messages.CLI_FIX_DRY_RUN
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help=(
-            "If used, fix will not actually run but will display"
-            " everything that will happen on the machine during the"
-            " command."
-        ),
-    )
-    parser.add_argument(
-        "--no-related",
-        action="store_true",
-        help=(
-            "If used, when fixing a USN, the command will not try to"
-            " also fix related USNs to the target USN."
-        ),
+        "--no-related", action="store_true", help=messages.CLI_FIX_NO_RELATED
     )
 
     return parser
@@ -503,30 +441,11 @@ def security_status_parser(parser):
     """Build or extend an arg parser for security-status subcommand."""
     parser.prog = "security-status"
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = textwrap.dedent(
-        """\
-        Show security updates for packages in the system, including all
-        available Expanded Security Maintenance (ESM) related content.
-
-        Shows counts of how many packages are supported for security updates
-        in the system.
-
-        If called with --format json|yaml it shows a summary of the
-        installed packages based on the origin:
-        - main/restricted/universe/multiverse: packages from the Ubuntu archive
-        - esm-infra/esm-apps: packages from the ESM archive
-        - third-party: packages installed from non-Ubuntu sources
-        - unknown: packages which don't have an installation source (like local
-          deb packages or packages for which the source was removed)
-
-        The output contains basic information about Ubuntu Pro. For a
-        complete status on Ubuntu Pro services, run 'pro status'.
-        """
-    )
+    parser.description = messages.CLI_SS_DESC
 
     parser.add_argument(
         "--format",
-        help=("Format for the output"),
+        help=messages.CLI_FORMAT_DESC.format("text"),
         choices=("json", "yaml", "text"),
         default="text",
     )
@@ -535,22 +454,22 @@ def security_status_parser(parser):
 
     group.add_argument(
         "--thirdparty",
-        help=("List and present information about third-party packages"),
+        help=messages.CLI_SS_THIRDPARTY,
         action="store_true",
     )
     group.add_argument(
         "--unavailable",
-        help=("List and present information about unavailable packages"),
+        help=messages.CLI_SS_UNAVAILABLE,
         action="store_true",
     )
     group.add_argument(
         "--esm-infra",
-        help=("List and present information about esm-infra packages"),
+        help=messages.CLI_SS_ESM_INFRA,
         action="store_true",
     )
     group.add_argument(
         "--esm-apps",
-        help=("List and present information about esm-apps packages"),
+        help=messages.CLI_SS_ESM_APPS,
         action="store_true",
     )
     return parser
@@ -559,34 +478,19 @@ def security_status_parser(parser):
 def refresh_parser(parser):
     """Build or extend an arg parser for refresh subcommand."""
     parser.prog = "refresh"
-    parser.description = (
-        "Refresh existing Ubuntu Pro contract and update services."
-    )
     parser.usage = USAGE_TMPL.format(
         name=NAME, command="refresh [contract|config|messages]"
     )
 
-    parser._optionals.title = "Flags"
+    parser._optionals.title = messages.CLI_FLAGS
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = textwrap.dedent(
-        """\
-        Refresh three distinct Ubuntu Pro related artifacts in the system:
-
-        * contract: Update contract details from the server.
-        * config:   Reload the config file.
-        * messages: Update APT and MOTD messages related to UA.
-
-        You can individually target any of the three specific actions,
-        by passing it's target to nome to the command.  If no `target`
-        is specified, all targets are refreshed.
-        """
-    )
+    parser.description = messages.CLI_REFRESH_DESC
     parser.add_argument(
         "target",
         choices=["contract", "config", "messages"],
         nargs="?",
         default=None,
-        help="Target to refresh.",
+        help=messages.CLI_REFRESH_TARGET,
     )
     return parser
 
@@ -643,19 +547,19 @@ def detach_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="detach")
     parser.usage = usage
     parser.prog = "detach"
-    parser.description = "Detach this machine from Ubuntu Pro services."
+    parser.description = messages.CLI_DETACH_DESC
     parser._optionals.title = "Flags"
     parser.add_argument(
         "--assume-yes",
         action="store_true",
-        help="do not prompt for confirmation before performing the detach",
+        help=messages.CLI_ASSUME_YES.format(command="detach"),
     )
     parser.add_argument(
         "--format",
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=("output enable in the specified format (default: cli)"),
+        help=messages.CLI_FORMAT_DESC.format("cli"),
     )
     return parser
 
@@ -665,16 +569,14 @@ def help_parser(parser, cfg: config.UAConfig):
     usage = USAGE_TMPL.format(name=NAME, command="help [service]")
     parser.usage = usage
     parser.prog = "help"
-    parser.description = (
-        "Provide detailed information about Ubuntu Pro services."
-    )
-    parser._positionals.title = "Arguments"
+    parser.description = messages.CLI_HELP_DESC
+    parser._positionals.title = messages.CLI_ARGS
     parser.add_argument(
         "service",
         action="store",
         nargs="?",
-        help="a service to view help output for. One of: {}".format(
-            ", ".join(entitlements.valid_services(cfg=cfg))
+        help=messages.CLI_HELP_SERVICE.format(
+            options=", ".join(entitlements.valid_services(cfg=cfg))
         ),
     )
 
@@ -683,17 +585,11 @@ def help_parser(parser, cfg: config.UAConfig):
         action="store",
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
-        help=(
-            "output help in the specified format (default: {})".format(
-                STATUS_FORMATS[0]
-            )
-        ),
+        help=(messages.CLI_FORMAT_DESC.format(STATUS_FORMATS[0])),
     )
 
     parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Allow the visualization of beta services",
+        "--all", action="store_true", help=messages.CLI_HELP_ALL
     )
 
     return parser
@@ -704,49 +600,43 @@ def enable_parser(parser, cfg: config.UAConfig):
     usage = USAGE_TMPL.format(
         name=NAME, command="enable <service> [<service>]"
     )
-    parser.description = "Enable an Ubuntu Pro service."
+    parser.description = messages.CLI_ENABLE_DESC
     parser.usage = usage
     parser.prog = "enable"
-    parser._positionals.title = "Arguments"
-    parser._optionals.title = "Flags"
+    parser._positionals.title = messages.CLI_ARGS
+    parser._optionals.title = messages.CLI_FLAGS
     parser.add_argument(
         "service",
         action="store",
         nargs="+",
         help=(
-            "the name(s) of the Ubuntu Pro services to enable."
-            " One of: {}".format(
-                ", ".join(entitlements.valid_services(cfg=cfg))
+            messages.CLI_ENABLE_SERVICE.format(
+                options=", ".join(entitlements.valid_services(cfg=cfg))
             )
         ),
     )
     parser.add_argument(
         "--assume-yes",
         action="store_true",
-        help="do not prompt for confirmation before performing the enable",
+        help=messages.CLI_ASSUME_YES.format(command="enable"),
     )
     parser.add_argument(
         "--access-only",
         action="store_true",
-        help=(
-            "do not auto-install packages. Valid for cc-eal, cis and "
-            "realtime-kernel."
-        ),
+        help=messages.CLI_ENABLE_ACCESS_ONLY,
     )
     parser.add_argument(
-        "--beta", action="store_true", help="allow beta service to be enabled"
+        "--beta", action="store_true", help=messages.CLI_ENABLE_BETA
     )
     parser.add_argument(
         "--format",
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=("output enable in the specified format (default: cli)"),
+        help=messages.CLI_FORMAT_DESC.format("cli"),
     )
     parser.add_argument(
-        "--variant",
-        action="store",
-        help=("The name of the variant to use when enabling the service"),
+        "--variant", action="store", help=messages.CLI_ENABLE_VARIANT
     )
     return parser
 
@@ -756,33 +646,32 @@ def disable_parser(parser, cfg: config.UAConfig):
     usage = USAGE_TMPL.format(
         name=NAME, command="disable <service> [<service>]"
     )
-    parser.description = "Disable an Ubuntu Pro service."
+    parser.description = messages.CLI_DISABLE_DESC
     parser.usage = usage
     parser.prog = "disable"
-    parser._positionals.title = "Arguments"
-    parser._optionals.title = "Flags"
+    parser._positionals.title = messages.CLI_ARGS
+    parser._optionals.title = messages.CLI_FLAGS
     parser.add_argument(
         "service",
         action="store",
         nargs="+",
         help=(
-            "the name(s) of the Ubuntu Pro services to disable."
-            " One of: {}".format(
-                ", ".join(entitlements.valid_services(cfg=cfg))
+            messages.CLI_DISABLE_SERVICE.format(
+                options=", ".join(entitlements.valid_services(cfg=cfg))
             )
         ),
     )
     parser.add_argument(
         "--assume-yes",
         action="store_true",
-        help="do not prompt for confirmation before performing the disable",
+        help=messages.CLI_ASSUME_YES.format(command="disable"),
     )
     parser.add_argument(
         "--format",
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=("output disable in the specified format (default: cli)"),
+        help=messages.CLI_FORMAT_DESC.format("cli"),
     )
     return parser
 
@@ -790,16 +679,14 @@ def disable_parser(parser, cfg: config.UAConfig):
 def system_parser(parser):
     """Build or extend an arg parser for system subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="system <command>")
-    parser.description = (
-        "Output system related information related to Pro services"
-    )
+    parser.description = messages.CLI_SYSTEM_DESC
     parser.prog = "system"
-    parser._optionals.title = "Flags"
+    parser._optionals.title = messages.CLI_FLAGS
     subparsers = parser.add_subparsers(
-        title="Available Commands", dest="command", metavar=""
+        title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
     )
     parser_reboot_required = subparsers.add_parser(
-        "reboot-required", help="does the system need to be rebooted"
+        "reboot-required", help=messages.CLI_SYSTEM_REBOOT_REQUIRED
     )
     parser_reboot_required.set_defaults(action=action_system_reboot_required)
     reboot_required_parser(parser_reboot_required)
@@ -814,22 +701,7 @@ def reboot_required_parser(parser):
     )
     parser.pro = "reboot-required"
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = textwrap.dedent(
-        """\
-        Report the current reboot-required status for the machine.
-
-        This command will output one of the three following states
-        for the machine regarding reboot:
-
-        * no: The machine doesn't require a reboot
-        * yes: The machine requires a reboot
-        * yes-kernel-livepatches-applied: There are only kernel related
-          packages that require a reboot, but Livepatch has already provided
-          patches for the current running kernel. The machine still needs a
-          reboot, but you can assess if the reboot can be performed in the
-          nearest maintenance window.
-        """
-    )
+    parser.description = messages.CLI_SYSTEM_REBOOT_REQUIRED_DESC
     return parser
 
 
@@ -837,76 +709,32 @@ def status_parser(parser):
     """Build or extend an arg parser for status subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="status")
     parser.usage = usage
-    parser.description = (
-        "Output the status information for Ubuntu Pro services."
-    )
     parser.prog = "status"
     # This formatter_class ensures that our formatting below isn't lost
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = textwrap.dedent(
-        """\
-        Report current status of Ubuntu Pro services on system.
-
-        This shows whether this machine is attached to an Ubuntu Advantage
-        support contract. When attached, the report includes the specific
-        support contract details including contract name, expiry dates, and the
-        status of each service on this system.
-
-        The attached status output has four columns:
-
-        * SERVICE: name of the service
-        * ENTITLED: whether the contract to which this machine is attached
-          entitles use of this service. Possible values are: yes or no
-        * STATUS: whether the service is enabled on this machine. Possible
-          values are: enabled, disabled, n/a (if your contract entitles
-          you to the service, but it isn't available for this machine) or — (if
-          you aren't entitled to this service)
-        * DESCRIPTION: a brief description of the service
-
-        The unattached status output instead has three columns. SERVICE
-        and DESCRIPTION are the same as above, and there is the addition
-        of:
-
-        * AVAILABLE: whether this service would be available if this machine
-          were attached. The possible values are yes or no.
-
-        If --simulate-with-token is used, then the output has five
-        columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
-        as mentioned above, and AUTO_ENABLED shows whether the service is set
-        to be enabled when that token is attached.
-
-        If the --all flag is set, beta and unavailable services are also
-        listed in the output.
-        """
-    )
+    parser.description = messages.CLI_STATUS_DESC
 
     parser.add_argument(
         "--wait",
         action="store_true",
         default=False,
-        help="Block waiting on pro to complete",
+        help=messages.CLI_STATUS_WAIT,
     )
     parser.add_argument(
         "--format",
         action="store",
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
-        help=(
-            "output status in the specified format (default: {})".format(
-                STATUS_FORMATS[0]
-            )
-        ),
+        help=(messages.CLI_FORMAT_DESC.format(STATUS_FORMATS[0])),
     )
     parser.add_argument(
         "--simulate-with-token",
         metavar="TOKEN",
         action="store",
-        help=("simulate the output status using a provided token"),
+        help=messages.CLI_STATUS_SIMULATE_WITH_TOKEN,
     )
     parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Allow the visualization of beta services",
+        "--all", action="store_true", help=messages.CLI_STATUS_ALL
     )
     parser._optionals.title = "Flags"
     return parser
@@ -1588,118 +1416,102 @@ def get_parser(cfg: config.UAConfig):
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE_TMPL.format(name=NAME, command="<command>"),
-        epilog=EPILOG_TMPL.format(name=NAME, command="<command>"),
+        epilog=messages.CLI_HELP_EPILOG.format(name=NAME, command="<command>"),
         base_desc=base_desc,
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="show all debug log messages to console",
+        "--debug", action="store_true", help=messages.CLI_ROOT_DEBUG
     )
     parser.add_argument(
         "--version",
         action="version",
         version=version.get_version(),
-        help="show version of {}".format(NAME),
+        help=messages.CLI_ROOT_VERSION.format(name=NAME),
     )
-    parser._optionals.title = "Flags"
+    parser._optionals.title = messages.CLI_FLAGS
     subparsers = parser.add_subparsers(
-        title="Available Commands", dest="command", metavar=""
+        title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
     )
     subparsers.required = True
     parser_attach = subparsers.add_parser(
-        "attach",
-        help="attach this machine to an Ubuntu Pro subscription",
+        "attach", help=messages.CLI_ROOT_ATTACH
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
 
-    parser_api = subparsers.add_parser(
-        "api",
-        help="Calls the Client API endpoints.",
-    )
+    parser_api = subparsers.add_parser("api", help=messages.CLI_ROOT_API)
     api_parser(parser_api)
     parser_api.set_defaults(action=action_api)
 
     parser_auto_attach = subparsers.add_parser(
-        "auto-attach", help="automatically attach on supported platforms"
+        "auto-attach", help=messages.CLI_ROOT_AUTO_ATTACH
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
 
     parser_collect_logs = subparsers.add_parser(
-        "collect-logs", help="collect Pro logs and debug information"
+        "collect-logs", help=messages.CLI_ROOT_COLLECT_LOGS
     )
     collect_logs_parser(parser_collect_logs)
     parser_collect_logs.set_defaults(action=action_collect_logs)
 
     parser_config = subparsers.add_parser(
-        "config", help="manage Ubuntu Pro configuration on this machine"
+        "config", help=messages.CLI_ROOT_CONFIG
     )
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
 
     parser_detach = subparsers.add_parser(
-        "detach",
-        help="remove this machine from an Ubuntu Pro subscription",
+        "detach", help=messages.CLI_ROOT_DETACH
     )
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
 
     parser_disable = subparsers.add_parser(
-        "disable",
-        help="disable a specific Ubuntu Pro service on this machine",
+        "disable", help=messages.CLI_ROOT_DISABLE
     )
     disable_parser(parser_disable, cfg=cfg)
     parser_disable.set_defaults(action=action_disable)
 
     parser_enable = subparsers.add_parser(
-        "enable",
-        help="enable a specific Ubuntu Pro service on this machine",
+        "enable", help=messages.CLI_ROOT_ENABLE
     )
     enable_parser(parser_enable, cfg=cfg)
     parser_enable.set_defaults(action=action_enable)
 
-    parser_fix = subparsers.add_parser(
-        "fix",
-        help="check for and mitigate the impact of a CVE/USN on this system",
-    )
+    parser_fix = subparsers.add_parser("fix", help=messages.CLI_ROOT_FIX)
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
 
     parser_security_status = subparsers.add_parser(
-        "security-status",
-        help="list available security updates for the system",
+        "security-status", help=messages.CLI_ROOT_SECURITY_STATUS
     )
     security_status_parser(parser_security_status)
     parser_security_status.set_defaults(action=action_security_status)
 
-    parser_help = subparsers.add_parser(
-        "help",
-        help="show detailed information about Ubuntu Pro services",
-    )
+    parser_help = subparsers.add_parser("help", help=messages.CLI_ROOT_HELP)
     help_parser(parser_help, cfg=cfg)
     parser_help.set_defaults(action=action_help)
 
     parser_refresh = subparsers.add_parser(
-        "refresh", help="refresh Ubuntu Pro services"
+        "refresh", help=messages.CLI_ROOT_REFRESH
     )
     parser_refresh.set_defaults(action=action_refresh)
     refresh_parser(parser_refresh)
 
     parser_status = subparsers.add_parser(
-        "status", help="current status of all Ubuntu Pro services"
+        "status", help=messages.CLI_ROOT_STATUS
     )
     parser_status.set_defaults(action=action_status)
     status_parser(parser_status)
 
     parser_version = subparsers.add_parser(
-        "version", help="show version of {}".format(NAME)
+        "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
     )
     parser_version.set_defaults(action=print_version)
 
     parser_system = subparsers.add_parser(
-        "system", help="show system information related to Pro services"
+        "system", help=messages.CLI_ROOT_SYSTEM
     )
     parser_system.set_defaults(action=action_system)
     system_parser(parser_system)

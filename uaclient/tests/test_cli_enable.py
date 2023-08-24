@@ -31,7 +31,7 @@ Flags:
   --access-only        do not auto-install packages. Valid for cc-eal, cis and
                        realtime-kernel.
   --beta               allow beta service to be enabled
-  --format {cli,json}  output enable in the specified format (default: cli)
+  --format {cli,json}  output in the specified format (default: cli)
   --variant VARIANT    The name of the variant to use when enabling the
                        service
 """
