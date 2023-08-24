@@ -1635,3 +1635,211 @@ updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
 security and non-security updates, the esm-infra, esm-apps, and ros services
 will also be enabled. You can find out more about the ROS ESM service at
 https://ubuntu.com/robotics/ros-esm"""
+
+CLI_HELP_EPILOG = (
+    "Use {name} {command} --help for more information about a command."
+)
+
+CLI_ARGS = "Arguments"
+CLI_FLAGS = "Flags"
+CLI_AVAILABLE_COMMANDS = "Available Commands"
+CLI_FORMAT_DESC = "output in the specified format (default: {})"
+CLI_ASSUME_YES = (
+    "do not prompt for confirmation before performing the {command}"
+)
+
+CLI_API_DESC = "Calls the Client API endpoints."
+CLI_API_ENDPOINT = "API endpoint to call"
+CLI_API_ARGS = "Options to pass to the API endpoint, formatted as key=value"
+CLI_API_DATA = "arguments in JSON format to the API endpoint"
+
+CLI_AUTO_ATTACH_DESC = "Automatically attach on an Ubuntu Pro cloud instance."
+
+CLI_COLLECT_LOGS_DESC = (
+    "Collect logs and relevant system information into a tarball."
+)
+CLI_COLLECT_LOGS_OUTPUT = (
+    "tarball where the logs will be stored. (Defaults to " "./ua_logs.tar.gz)"
+)
+
+CLI_CONFIG_SHOW_DESC = "Show customisable configuration settings"
+CLI_CONFIG_SHOW_KEY = "Optional key or key(s) to show configuration settings."
+CLI_CONFIG_SET_DESC = "Set and apply Ubuntu Pro configuration settings"
+CLI_CONFIG_SET_KEY_VALUE = (
+    "key=value pair to configure for Ubuntu Pro services."
+    " Key must be one of: {}"
+)
+CLI_CONFIG_UNSET_DESC = "Unset Ubuntu Pro configuration setting"
+CLI_CONFIG_UNSET_KEY = (
+    "configuration key to unset from Ubuntu Pro services. One of: {}"
+)
+CLI_CONFIG_DESC = "Manage Ubuntu Pro configuration"
+
+CLI_ATTACH_DESC = """\
+Attach this machine to Ubuntu Pro with a token obtained from:
+{}
+
+When running this command without a token, it will generate a short code
+and prompt you to attach the machine to your Ubuntu Pro account using
+a web browser.""".format(
+    BASE_UA_URL
+)
+CLI_ATTACH_TOKEN = "token obtained for Ubuntu Pro authentication"
+CLI_ATTACH_NO_AUTO_ENABLE = (
+    "do not enable any recommended services automatically"
+)
+CLI_ATTACH_ATTACH_CONFIG = (
+    "use the provided attach config file instead of passing the token on the "
+    "cli"
+)
+CLI_ATTACH_ATTACH_CONFIG
+
+CLI_FIX_DESC = (
+    "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this"
+    " machine."
+)
+CLI_FIX_ISSUE = (
+    "Security vulnerability ID to inspect and resolve on this system."
+    " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
+)
+CLI_FIX_DRY_RUN = (
+    "If used, fix will not actually run but will display"
+    " everything that will happen on the machine during the"
+    " command."
+)
+CLI_FIX_NO_RELATED = (
+    "If used, when fixing a USN, the command will not try to"
+    " also fix related USNs to the target USN."
+)
+
+CLI_SS_DESC = """\
+Show security updates for packages in the system, including all
+available Expanded Security Maintenance (ESM) related content.
+
+Shows counts of how many packages are supported for security updates
+in the system.
+
+If called with --format json|yaml it shows a summary of the
+installed packages based on the origin:
+- main/restricted/universe/multiverse: packages from the Ubuntu archive
+- esm-infra/esm-apps: packages from the ESM archive
+- third-party: packages installed from non-Ubuntu sources
+- unknown: packages which don't have an installation source (like local
+  deb packages or packages for which the source was removed)
+
+The output contains basic information about Ubuntu Pro. For a
+complete status on Ubuntu Pro services, run 'pro status'.
+"""
+CLI_SS_THIRDPARTY = "List and present information about third-party packages"
+CLI_SS_UNAVAILABLE = "List and present information about unavailable packages"
+CLI_SS_ESM_INFRA = "List and present information about esm-infra packages"
+CLI_SS_ESM_APPS = "List and present information about esm-apps packages"
+
+CLI_REFRESH_DESC = """\
+Refresh three distinct Ubuntu Pro related artifacts in the system:
+
+* contract: Update contract details from the server.
+* config:   Reload the config file.
+* messages: Update APT and MOTD messages related to UA.
+
+You can individually target any of the three specific actions,
+by passing it's target to nome to the command.  If no `target`
+is specified, all targets are refreshed.
+"""
+CLI_REFRESH_TARGET = "Target to refresh."
+
+CLI_DETACH_DESC = "Detach this machine from Ubuntu Pro services."
+
+CLI_HELP_DESC = "Provide detailed information about Ubuntu Pro services."
+CLI_HELP_SERVICE = "a service to view help output for. One of: {options}"
+CLI_HELP_ALL = "Include beta services"
+
+CLI_ENABLE_DESC = "Enable an Ubuntu Pro service."
+CLI_ENABLE_SERVICE = (
+    "the name(s) of the Ubuntu Pro services to enable." " One of: {options}"
+)
+CLI_ENABLE_ACCESS_ONLY = (
+    "do not auto-install packages. Valid for cc-eal, cis and "
+    "realtime-kernel."
+)
+CLI_ENABLE_BETA = "allow beta service to be enabled"
+CLI_ENABLE_VARIANT = "The name of the variant to use when enabling the service"
+
+CLI_DISABLE_DESC = "Disable an Ubuntu Pro service."
+CLI_DISABLE_SERVICE = (
+    "the name(s) of the Ubuntu Pro services to disable." " One of: {options}"
+)
+
+CLI_SYSTEM_DESC = "Output system related information related to Pro services"
+CLI_SYSTEM_REBOOT_REQUIRED = "does the system need to be rebooted"
+CLI_SYSTEM_REBOOT_REQUIRED_DESC = """\
+Report the current reboot-required status for the machine.
+
+This command will output one of the three following states
+for the machine regarding reboot:
+
+* no: The machine doesn't require a reboot
+* yes: The machine requires a reboot
+* yes-kernel-livepatches-applied: There are only kernel related
+  packages that require a reboot, but Livepatch has already provided
+  patches for the current running kernel. The machine still needs a
+  reboot, but you can assess if the reboot can be performed in the
+  nearest maintenance window.
+"""
+
+CLI_STATUS_DESC = """\
+Report current status of Ubuntu Pro services on system.
+
+This shows whether this machine is attached to an Ubuntu Advantage
+support contract. When attached, the report includes the specific
+support contract details including contract name, expiry dates, and the
+status of each service on this system.
+
+The attached status output has four columns:
+
+* SERVICE: name of the service
+* ENTITLED: whether the contract to which this machine is attached
+  entitles use of this service. Possible values are: yes or no
+* STATUS: whether the service is enabled on this machine. Possible
+  values are: enabled, disabled, n/a (if your contract entitles
+  you to the service, but it isn't available for this machine) or — (if
+  you aren't entitled to this service)
+* DESCRIPTION: a brief description of the service
+
+The unattached status output instead has three columns. SERVICE
+and DESCRIPTION are the same as above, and there is the addition
+of:
+
+* AVAILABLE: whether this service would be available if this machine
+  were attached. The possible values are yes or no.
+
+If --simulate-with-token is used, then the output has five
+columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
+as mentioned above, and AUTO_ENABLED shows whether the service is set
+to be enabled when that token is attached.
+
+If the --all flag is set, beta and unavailable services are also
+listed in the output.
+"""
+CLI_STATUS_WAIT = "Block waiting on pro to complete"
+CLI_STATUS_SIMULATE_WITH_TOKEN = (
+    "simulate the output status using a provided token"
+)
+CLI_STATUS_ALL = "Include unavailable and beta services"
+
+CLI_ROOT_DEBUG = "show all debug log messages to console"
+CLI_ROOT_VERSION = "show version of {name}"
+CLI_ROOT_ATTACH = "attach this machine to an Ubuntu Pro subscription"
+CLI_ROOT_API = "Calls the Client API endpoints."
+CLI_ROOT_AUTO_ATTACH = "automatically attach on supported platforms"
+CLI_ROOT_COLLECT_LOGS = "collect Pro logs and debug information"
+CLI_ROOT_CONFIG = "manage Ubuntu Pro configuration on this machine"
+CLI_ROOT_DETACH = "remove this machine from an Ubuntu Pro subscription"
+CLI_ROOT_DISABLE = "disable a specific Ubuntu Pro service on this machine"
+CLI_ROOT_ENABLE = "enable a specific Ubuntu Pro service on this machine"
+CLI_ROOT_FIX = "check for and mitigate the impact of a CVE/USN on this system"
+CLI_ROOT_SECURITY_STATUS = "list available security updates for the system"
+CLI_ROOT_HELP = "show detailed information about Ubuntu Pro services"
+CLI_ROOT_REFRESH = "refresh Ubuntu Pro services"
+CLI_ROOT_STATUS = "current status of all Ubuntu Pro services"
+CLI_ROOT_SYSTEM = "show system information related to Pro services"

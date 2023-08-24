@@ -322,11 +322,10 @@ Flags:
   -h, --help            show this help message and exit
   --wait                Block waiting on pro to complete
   --format {tabular,json,yaml}
-                        output status in the specified format (default:
-                        tabular)
+                        output in the specified format (default: tabular)
   --simulate-with-token TOKEN
                         simulate the output status using a provided token
-  --all                 Allow the visualization of beta services
+  --all                 Include unavailable and beta services
 """
 )
 
