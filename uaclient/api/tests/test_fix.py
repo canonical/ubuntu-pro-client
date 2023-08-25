@@ -227,6 +227,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin1", "bin2"],
                         source_packages=["pkg1"],
+                        pocket="Ubuntu standard updates",
                     ),
                     order=1,
                 )
@@ -388,6 +389,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin1", "bin2"],
                         source_packages=["pkg1"],
+                        pocket="Ubuntu standard updates",
                     ),
                     order=1,
                 ),
@@ -407,6 +409,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin3"],
                         source_packages=["pkg2"],
+                        pocket="Ubuntu Pro: ESM Infra",
                     ),
                     order=4,
                 ),
@@ -420,6 +423,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin4"],
                         source_packages=["pkg3"],
+                        pocket="Ubuntu Pro: ESM Apps",
                     ),
                     order=6,
                 ),
@@ -505,6 +509,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin1"],
                         source_packages=["pkg1"],
+                        pocket="Ubuntu standard updates",
                     ),
                     order=2,
                 ),
@@ -607,6 +612,7 @@ class TestFixPlan:
                     data=AptUpgradeData(
                         binary_packages=["bin1", "bin2"],
                         source_packages=["pkg1"],
+                        pocket="Ubuntu standard updates",
                     ),
                     order=2,
                 ),
@@ -774,6 +780,7 @@ class TestFixPlan:
                         data=AptUpgradeData(
                             binary_packages=["bin1", "bin2"],
                             source_packages=["pkg1"],
+                            pocket="Ubuntu standard updates",
                         ),
                         order=1,
                     ),
@@ -796,6 +803,7 @@ class TestFixPlan:
                             data=AptUpgradeData(
                                 binary_packages=["bin3"],
                                 source_packages=["pkg2"],
+                                pocket="Ubuntu standard updates",
                             ),
                             order=1,
                         ),
@@ -817,6 +825,7 @@ class TestFixPlan:
                             data=AptUpgradeData(
                                 binary_packages=["bin4"],
                                 source_packages=["pkg3"],
+                                pocket="Ubuntu standard updates",
                             ),
                             order=1,
                         ),
