@@ -11,7 +11,6 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.entitlements.entitlement_status import UserFacingStatus
 
 
 class EnabledService(DataObject):
@@ -48,6 +47,7 @@ def enabled_services() -> EnabledServicesResult:
 
 def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
     from uaclient.entitlements import ENTITLEMENT_CLASSES
+    from uaclient.entitlements.entitlement_status import UserFacingStatus
 
     if not _is_attached(cfg).is_attached:
         return EnabledServicesResult(enabled_services=[])
