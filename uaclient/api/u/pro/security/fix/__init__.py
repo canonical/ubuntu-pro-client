@@ -87,13 +87,19 @@ class AptUpgradeData(DataObject):
     fields = [
         Field("binary_packages", data_list(StringDataValue)),
         Field("source_packages", data_list(StringDataValue)),
+        Field("pocket", StringDataValue),
     ]
 
     def __init__(
-        self, *, binary_packages: List[str], source_packages: List[str]
+        self,
+        *,
+        binary_packages: List[str],
+        source_packages: List[str],
+        pocket: str
     ):
         self.binary_packages = binary_packages
         self.source_packages = source_packages
+        self.pocket = pocket
 
 
 class FixPlanAptUpgradeStep(FixPlanStep):
@@ -799,6 +805,7 @@ def _generate_fix_plan(
             data={
                 "binary_packages": upgrade_pkgs,
                 "source_packages": [src_pkg for src_pkg, _ in pkg_src_group],
+                "pocket": pocket,
             },
         )
 
