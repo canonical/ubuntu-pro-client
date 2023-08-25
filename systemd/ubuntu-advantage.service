@@ -24,8 +24,7 @@ ConditionPathExists=|/run/cloud-init/cloud-id-azure
 ConditionPathExists=|/run/ubuntu-advantage/flags/auto-attach-failed
 
 [Service]
-Type=notify
-NotifyAccess=main
+Type=exec
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/daemon.py
 WorkingDirectory=/var/lib/ubuntu-advantage/
 
