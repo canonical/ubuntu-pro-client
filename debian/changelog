@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (29.3) mantic; urgency=medium
+
+  * api: fix circular import that prevents enabled_services
+    endpoint from being imported
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 25 Aug 2023 14:26:37 -0300
+
 ubuntu-advantage-tools (29.2) mantic; urgency=medium
 
   * d/ubuntu-advantage-tools.postinst:
