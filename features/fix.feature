@@ -339,12 +339,12 @@ Feature: Ua fix command behaviour
         The update is not installed because this system is not attached to a
         subscription.
 
-        Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
-        > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
+        Choose: \[S\]ubscribe at https://ubuntu.com/pro/subscribe \[A\]ttach existing token \[C\]ancel
+        > Enter your token \(from https://ubuntu.com/pro/dashboard\) to attach this system:
         > .*\{ pro attach .*\}.*
         Attach denied:
         Contract ".*" expired on .*
-        Visit https://ubuntu.com/pro to manage contract tokens.
+        Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
         1 package is still affected: curl
         .*✘.* USN-5079-2 is not resolved.
@@ -364,8 +364,8 @@ Feature: Ua fix command behaviour
         The update is not installed because this system is not attached to a
         subscription.
 
-        Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
-        > Enter your token \(from https://ubuntu.com/pro\) to attach this system:
+        Choose: \[S\]ubscribe at https://ubuntu.com/pro/subscribe \[A\]ttach existing token \[C\]ancel
+        > Enter your token \(from https://ubuntu.com/pro/dashboard\) to attach this system:
         > .*\{ pro attach .*\}.*
         Updating package lists
         Ubuntu Pro: ESM Apps enabled

@@ -10,7 +10,7 @@ from uaclient.entitlements.entitlement_status import CanDisableFailure
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
-    help_doc_url = "https://ubuntu.com/security/esm"
+    help_doc_url = messages.urls.ESM_HOME_PAGE
 
     @property
     def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:

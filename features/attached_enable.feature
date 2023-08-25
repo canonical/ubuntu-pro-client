@@ -304,7 +304,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             One moment, checking your subscription first
             This subscription is not entitled to Ubuntu Pro: ESM Apps
-            For more information see: https://ubuntu.com/pro.
+            View your subscription at: https://ubuntu.com/pro/dashboard
             """
 
         Examples: not entitled services
