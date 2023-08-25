@@ -16,8 +16,8 @@ Feature: MOTD Messages
         [\w\d.]+
 
         CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
+        continued security coverage for your applications.
 
         [\w\d.]+
         """
@@ -29,8 +29,8 @@ Feature: MOTD Messages
         [\w\d.]+
 
         CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
+        continued security coverage for your applications.
         Your grace period will expire in 11 days.
 
         [\w\d.]+
@@ -44,7 +44,7 @@ Feature: MOTD Messages
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         \d+ additional security update\(s\) require Ubuntu Pro with '<service>' enabled.
-        Renew your service at https:\/\/ubuntu.com\/pro
+        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         [\w\d.]+
         """
@@ -75,8 +75,8 @@ Feature: MOTD Messages
         [\w\d.]+
 
         CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
+        continued security coverage for your applications.
 
         """
         When I set the machine token overlay to the following yaml
@@ -92,8 +92,8 @@ Feature: MOTD Messages
         [\w\d.]+
 
         CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
-        Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued security
-        coverage for your applications.
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
+        continued security coverage for your applications.
         Your grace period will expire in 11 days.
 
         """
@@ -111,7 +111,7 @@ Feature: MOTD Messages
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         \d+ additional security update\(s\) require Ubuntu Pro with '<service>' enabled.
-        Renew your service at https:\/\/ubuntu.com\/pro
+        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         When I run `apt-get upgrade -y` with sudo
@@ -122,7 +122,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro
+        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -143,7 +143,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro
+        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         Examples: ubuntu release

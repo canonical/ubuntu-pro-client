@@ -15,7 +15,7 @@ class AnboxEntitlement(RepoEntitlement):
     name = "anbox-cloud"
     title = messages.ANBOX_TITLE
     description = messages.ANBOX_DESCRIPTION
-    help_doc_url = "https://anbox-cloud.io"
+    help_doc_url = messages.urls.ANBOX_HOME_PAGE
     help_text = messages.ANBOX_HELP_TEXT
     repo_key_file = "ubuntu-pro-anbox-cloud.gpg"
     repo_url_tmpl = "{}"

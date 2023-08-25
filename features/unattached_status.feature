@@ -313,7 +313,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
             """
-            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
@@ -321,7 +321,7 @@ Feature: Unattached status
             """
             environment_vars: []
             errors:
-            - message: Invalid token. See https://ubuntu.com/pro
+            - message: Invalid token. See https://ubuntu.com/pro/dashboard
               message_code: attach-invalid-token
               service: null
               type: system
@@ -376,7 +376,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
         """
-        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
         """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
@@ -384,7 +384,7 @@ Feature: Unattached status
         """
         environment_vars: []
         errors:
-        - message: Invalid token. See https://ubuntu.com/pro
+        - message: Invalid token. See https://ubuntu.com/pro/dashboard
           message_code: attach-invalid-token
           service: null
           type: system
@@ -438,7 +438,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
         """
-        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+        {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
         """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
@@ -446,7 +446,7 @@ Feature: Unattached status
         """
         environment_vars: []
         errors:
-        - message: Invalid token. See https://ubuntu.com/pro
+        - message: Invalid token. See https://ubuntu.com/pro/dashboard
           message_code: attach-invalid-token
           service: null
           type: system

@@ -20,7 +20,7 @@ class LandscapeEntitlement(UAEntitlement):
     name = "landscape"
     title = messages.LANDSCAPE_TITLE
     description = messages.LANDSCAPE_DESCRIPTION
-    help_doc_url = "https://ubuntu.com/landscape"
+    help_doc_url = messages.urls.LANDSCAPE_HOME_PAGE
     help_text = messages.LANDSCAPE_HELP_TEXT
 
     def _perform_enable(self, silent: bool = False) -> bool:

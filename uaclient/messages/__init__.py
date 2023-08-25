@@ -1,6 +1,6 @@
 from typing import Dict, Optional  # noqa: F401
 
-from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL, PRO_ATTACH_URL
+from uaclient.messages import urls
 
 
 class NamedMessage:
@@ -68,11 +68,15 @@ Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
 
 SECURITY_FIX_ATTACH_PROMPT = """\
-Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel"""
+Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
+    url=urls.PRO_SUBSCRIBE
+)
 SECURITY_FIX_ENABLE_PROMPT = """\
 Choose: [E]nable {} [C]ancel"""
 SECURITY_FIX_RENEW_PROMPT = """\
-Choose: [R]enew your subscription (at {}) [C]ancel"""
+Choose: [R]enew your subscription (at {url}) [C]ancel""".format(
+    url=urls.PRO_DASHBOARD
+)
 SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
 SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
@@ -88,10 +92,10 @@ The update is not installed because this system does not have
 {service} enabled.
 """
 SECURITY_UPDATE_INSTALLED = "The update is already installed."
-SECURITY_USE_PRO_TMPL = (
-    "For easiest security on {title}, use Ubuntu Pro."
-    " https://ubuntu.com/{cloud}/pro."
-)
+SECURITY_USE_PRO_TMPL = """\
+For easiest security on {title}, use Ubuntu Pro instances.
+Learn more at {cloud_specific_url}"""
+
 SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
 SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
@@ -109,7 +113,6 @@ CVE_FIXED_BY_LIVEPATCH = (
     OKGREEN_CHECK
     + " {issue} is resolved by livepatch patch version: {version}."
 )
-SECURITY_URL = "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
 SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED = """\
 {bold}Ubuntu Pro service: {{service}} is not enabled.
 To proceed with the fix, a prompt would ask permission to automatically enable
@@ -176,12 +179,14 @@ SECURITY_USN_SUMMARY = """\
 Summary:"""
 SECURITY_RELATED_USN_ERROR = """\
 Even though a related USN failed to be fixed, note
-that {issue_id} was fixed. Related USNs do not
+that {{issue_id}} was fixed. Related USNs do not
 affect the original USN. Learn more about the related
 USNs, please refer to this page:
 
-https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/cves_and_usns_explained.html#what-are-related-usns
-"""  # noqa
+{url}
+""".format(
+    url=urls.PRO_CLIENT_DOCS_RELATED_USNS
+)
 SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = (
     'Error: issue "{}" is not recognized.\n'
     'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
@@ -191,24 +196,17 @@ APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
-UNABLE_TO_DETERMINE_CLOUD_TYPE = (
-    """\
-Unable to determine auto-attach platform support
-For more information see: """
-    + BASE_UA_URL
-    + "."
+UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
+Unable to determine cloud platform."""
+UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = """\
+Auto-attach image support is not available on {{cloud_type}}
+See: {url}""".format(
+    url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
 )
-UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = (
-    """\
-Auto-attach image support is not available on {cloud_type}
-See: """
-    + BASE_UA_URL
-)
-UNSUPPORTED_AUTO_ATTACH = (
-    """\
+UNSUPPORTED_AUTO_ATTACH = """\
 Auto-attach image support is not available on this image
-See: """
-    + BASE_UA_URL
+See: {url}""".format(
+    url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
 )
 
 CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
@@ -217,7 +215,7 @@ CLI_MAGIC_ATTACH_SIGN_IN = """\
 Please sign in to your Ubuntu Pro account at this link:
 {url}
 And provide the following code: {bold}{{user_code}}{end_bold}""".format(
-    url=PRO_ATTACH_URL,
+    url=urls.PRO_ATTACH,
     bold=TxtColor.BOLD,
     end_bold=TxtColor.ENDC,
 )
@@ -300,45 +298,59 @@ To install them, run this command as root (try using sudo)"""
 # BEGIN MOTD and APT command messaging
 
 CONTRACT_EXPIRES_SOON_MOTD = """\
-CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
-Renew your subscription at https://ubuntu.com/pro to ensure continued security
-coverage for your applications.
+CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.
 
-"""
+""".format(
+    url=urls.PRO_DASHBOARD
+)
 
 CONTRACT_EXPIRED_GRACE_PERIOD_MOTD = """\
-CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
-Renew your subscription at https://ubuntu.com/pro to ensure continued security
-coverage for your applications.
-Your grace period will expire in {remaining_days} days.
+CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.
+Your grace period will expire in {{remaining_days}} days.
 
-"""
+""".format(
+    url=urls.PRO_DASHBOARD
+)
 
 CONTRACT_EXPIRED_MOTD_PKGS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
-{pkg_num} additional security update(s) require Ubuntu Pro with '{service}' enabled.
-Renew your service at https://ubuntu.com/pro
+{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
+Renew your service at {url}
 
-"""  # noqa: E501
+""".format(  # noqa: E501
+    url=urls.PRO_DASHBOARD
+)  # noqa: E501
 
 CONTRACT_EXPIRED_MOTD_NO_PKGS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
-Renew your service at https://ubuntu.com/pro
+Renew your service at {url}
 
-"""
+""".format(
+    url=urls.PRO_DASHBOARD
+)
 
 CONTRACT_EXPIRES_SOON_APT_NEWS = """\
-CAUTION: Your Ubuntu Pro subscription will expire in {remaining_days} days.
-Renew your subscription at https://ubuntu.com/pro to ensure continued
-security coverage for your applications."""
+CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.""".format(
+    url=urls.PRO_DASHBOARD
+)
 CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS = """\
-CAUTION: Your Ubuntu Pro subscription expired on {expired_date}.
-Renew your subscription at https://ubuntu.com/pro to ensure continued
-security coverage for your applications.
-Your grace period will expire in {remaining_days} days."""
+CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.
+Your grace period will expire in {{remaining_days}} days.""".format(
+    url=urls.PRO_DASHBOARD
+)
 CONTRACT_EXPIRED_APT_NEWS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
-Renew your service at https://ubuntu.com/pro"""
+Renew your service at {url}""".format(
+    url=urls.PRO_DASHBOARD
+)
 
 # END MOTD and APT command messaging
 
@@ -361,35 +373,36 @@ SETTING_SERVICE_PROXY = "Setting {service} proxy"
 
 PROXY_DETECTED_BUT_NOT_CONFIGURED = """\
 No proxy set in config; however, proxy is configured for: {{services}}.
-See {docs_url} for more information on pro proxy configuration.
+See {url} for more information on pro proxy configuration.
 """.format(
-    docs_url=DOCUMENTATION_URL
+    url=urls.PRO_CLIENT_DOCS_PROXY_CONFIG
 )
 
 FIPS_BLOCK_ON_CLOUD = FormattedNamedMessage(
     "cloud-non-optimized-fips-kernel",
     """\
-Ubuntu {series} does not provide {cloud} optimized FIPS kernel
-For help see: """
-    + BASE_UA_URL
-    + ".",
+Ubuntu {{series}} does not provide {{cloud}} optimized FIPS kernel
+For help see: {url}""".format(
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
 )
-
 UNATTACHED = NamedMessage(
     "unattached",
     """\
 This machine is not attached to an Ubuntu Pro subscription.
-See """
-    + BASE_UA_URL,
+See {url}""".format(
+        url=urls.PRO_HOME_PAGE
+    ),
 )
 
 VALID_SERVICE_FAILURE_UNATTACHED = FormattedNamedMessage(
     "valid-service-failure-unattached",
     """\
-To use '{valid_service}' you need an Ubuntu Pro subscription
+To use '{{valid_service}}' you need an Ubuntu Pro subscription
 Personal and community subscriptions are available at no charge
-See """
-    + BASE_UA_URL,
+See {url}""".format(
+        url=urls.PRO_HOME_PAGE
+    ),
 )
 
 INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
@@ -469,10 +482,10 @@ ENABLED_FAILED = FormattedNamedMessage(
 UNENTITLED = FormattedNamedMessage(
     "subscription-not-entitled-to-service",
     """\
-This subscription is not entitled to {title}
-For more information see: """
-    + BASE_UA_URL
-    + ".",
+This subscription is not entitled to {{title}}
+View your subscription at: {url}""".format(
+        url=urls.PRO_DASHBOARD
+    ),
 )
 
 SERVICE_NOT_ENTITLED = FormattedNamedMessage(
@@ -527,9 +540,7 @@ NOT_SETTING_PROXY_NOT_WORKING = FormattedNamedMessage(
 
 ATTACH_INVALID_TOKEN = NamedMessage(
     "attach-invalid-token",
-    """\
-Invalid token. See """
-    + BASE_UA_URL,
+    "Invalid token. See {url}".format(url=urls.PRO_DASHBOARD),
 )
 
 MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED = NamedMessage(
@@ -661,15 +672,16 @@ ATTACH_FORBIDDEN = FormattedNamedMessage(
 Attach denied:
 {{reason}}
 Visit {url} to manage contract tokens.""".format(
-        url=BASE_UA_URL
+        url=urls.PRO_DASHBOARD
     ),
 )
 
 ATTACH_EXPIRED_TOKEN = NamedMessage(
     "attach-experied-token",
     """\
-Expired token or contract. To obtain a new token visit: """
-    + BASE_UA_URL,
+Expired token or contract. To obtain a new token visit: {url}""".format(
+        url=urls.PRO_DASHBOARD
+    ),
 )
 
 ATTACH_TOKEN_ARG_XOR_CONFIG = NamedMessage(
@@ -682,9 +694,7 @@ Include the token in the attach-config file instead.
 
 ATTACH_FAILURE = NamedMessage(
     "attach-failure",
-    """\
-Failed to attach machine. See """
-    + BASE_UA_URL,
+    "Failed to attach machine. See {url}".format(url=urls.PRO_DASHBOARD),
 )
 
 ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
@@ -835,10 +845,12 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
 
 GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
     "gcp-pro-service-account-not-enabled",
-    "Failed to attach machine\n"
-    "{error_msg}\n"
-    "For more information, "
-    "see https://cloud.google.com/iam/docs/service-accounts",
+    """\
+Failed to attach machine
+{{error_msg}}
+For more information, see {url}""".format(
+        url=urls.GCP_SERVICE_ACCOUNT_DOCS
+    ),
 )
 
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
@@ -865,8 +877,10 @@ Cancelling config process operation.
 
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
-  To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
-"""
+  To manually remove fips kernel: {url}
+""".format(
+    url=urls.PRO_CLIENT_DOCS_REMOVE_FIPS
+)
 NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
 Warning: FIPS kernel is not optimized for your specific cloud.
 To fix it, run the following commands:
@@ -911,8 +925,8 @@ This will disable the FIPS entitlement but the FIPS packages will remain install
 )
 
 PROMPT_ENTER_TOKEN = """\
-Enter your token (from {}) to attach this system:""".format(
-    BASE_UA_URL
+Enter your token (from {url}) to attach this system:""".format(
+    url=urls.PRO_DASHBOARD
 )
 PROMPT_EXPIRED_ENTER_TOKEN = """\
 Enter your new token to renew Ubuntu Pro subscription on this system:"""
@@ -1039,7 +1053,7 @@ SS_LEARN_MORE = """\
 Try Ubuntu Pro with a free personal subscription on up to 5 machines.
 Learn more at {url}
 """.format(
-    url=BASE_UA_URL
+    url=urls.PRO_HOME_PAGE
 )
 
 SS_SHOW_HINT = """\
@@ -1139,19 +1153,27 @@ Please upgrade the kernel with apt and reboot for continued livepatch support.""
 LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
     name="livepatch-kernel-eol",
     msg="""\
-The current kernel ({version}, {arch}) has reached the end of its livepatch support.
-Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""",  # noqa: E501
+The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch support.
+Supported kernels are listed here: {url}
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    ),  # noqa: E501
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
     name="livepatch-kernel-not-supported",
     msg="""\
-The current kernel ({version}, {arch}) is not supported by livepatch.
-Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""",  # noqa: E501
+The current kernel ({{version}}, {{arch}}) is not supported by livepatch.
+Supported kernels are listed here: {url}
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    ),  # noqa: E501
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
-LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = "Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels"  # noqa: E501
+LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = (
+    "Supported livepatch kernels are listed here: {url}".format(
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    )
+)
 LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {}"
 LIVEPATCH_UNABLE_TO_ENABLE = "Unable to enable Livepatch: "
 LIVEPATCH_DISABLE_REATTACH = (
@@ -1304,8 +1326,10 @@ $ sudo anbox-cloud-appliance init
 
 You can accept the default answers if you do not have any specific
 configuration changes.
-For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
-""",
+For more information, see {url}
+""".format(
+        url=urls.ANBOX_DOCS_APPLIANCE_INITIALIZE
+    ),
 )
 
 INSTALLING_PACKAGES = "Installing {}"
@@ -1512,7 +1536,9 @@ is enabled, by default, the Appliance variant is enabled. Enabling this service
 allows orchestration to provision a PPA with the Anbox Cloud resources. This
 step also configures the Anbox Management Service (AMS) with the necessary
 image server credentials. To learn more about Anbox Cloud, see
-https://anbox-cloud.io"""
+{url}""".format(
+    url=urls.ANBOX_HOME_PAGE
+)
 
 CC_TITLE = "CC EAL2"
 CC_DESCRIPTION = "Common Criteria EAL2 Provisioning Packages"
@@ -1534,13 +1560,21 @@ CIS_HELP_TEXT = """\
 Ubuntu Security Guide is a tool for hardening and auditing and allows for
 environment-specific customizations. It enables compliance with profiles such
 as DISA-STIG and the CIS benchmarks. Find out more at
-https://ubuntu.com/security/certifications/docs/usg"""
-CIS_POST_ENABLE = "Visit {} to learn how to use CIS"
-CIS_USG_POST_ENABLE = "Visit {} for the next steps"
+{url}""".format(
+    url=urls.USG_DOCS
+)
+CIS_POST_ENABLE = "Visit {url} to learn how to use CIS".format(
+    url=urls.CIS_HOME_PAGE
+)
+CIS_USG_POST_ENABLE = "Visit {url} for the next steps".format(
+    url=urls.USG_DOCS
+)
 CIS_IS_NOW_USG = """\
 From Ubuntu 20.04 and onwards 'pro enable cis' has been
 replaced by 'pro enable usg'. See more information at:
-{}"""
+{url}""".format(
+    url=urls.USG_DOCS
+)
 
 ESM_APPS_TITLE = "Ubuntu Pro: ESM Apps"
 ESM_APPS_DESCRIPTION = "Expanded Security Maintenance for Applications"
@@ -1550,7 +1584,9 @@ entitled workloads. It provides access to a private PPA which includes
 available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
 Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
 its end of life. You can find out more about the esm service at
-https://ubuntu.com/security/esm"""
+{url}""".format(
+    url=urls.ESM_HOME_PAGE
+)
 
 ESM_INFRA_TITLE = "Ubuntu Pro: ESM Infra"
 ESM_INFRA_DESCRIPTION = "Expanded Security Maintenance for Infrastructure"
@@ -1560,7 +1596,9 @@ PPA which includes available high and critical CVE fixes for Ubuntu LTS
 packages in the Ubuntu Main repository between the end of the standard Ubuntu
 LTS security maintenance and its end of life. It is enabled by default with
 Ubuntu Pro. You can find out more about the service at
-https://ubuntu.com/security/esm"""
+{url}""".format(
+    url=urls.ESM_HOME_PAGE
+)
 
 FIPS_TITLE = "FIPS"
 FIPS_DESCRIPTION = "NIST-certified core packages"
@@ -1569,8 +1607,9 @@ FIPS 140-2 is a set of publicly announced cryptographic standards developed by
 the National Institute of Standards and Technology applicable for FedRAMP,
 HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
 security patching. For FIPS certified modules with security patches please
-see "fips-updates". You can find out more at https://ubuntu.com/security/fips\
-"""
+see "fips-updates". You can find out more at {url}""".format(
+    url=urls.FIPS_HOME_PAGE
+)
 
 FIPS_UPDATES_TITLE = "FIPS Updates"
 FIPS_UPDATES_DESCRIPTION = (
@@ -1579,17 +1618,23 @@ FIPS_UPDATES_DESCRIPTION = (
 FIPS_UPDATES_HELP_TEXT = """\
 fips-updates installs fips modules including all security patches for those
 modules that have been provided since their certification date. You can find
-out more at https://ubuntu.com/security/fips"""
+out more at {url}""".format(
+    url=urls.FIPS_HOME_PAGE
+)
 
 LANDSCAPE_TITLE = "Landscape"
 LANDSCAPE_DESCRIPTION = "Management and administration tool for Ubuntu"
 LANDSCAPE_HELP_TEXT = """\
 Landscape Client can be installed on this machine and enrolled in Canonical's
-Landscape SaaS: https://landscape.canonical.com or a self-hosted Landscape:
-https://ubuntu.com/landscape/install
+Landscape SaaS: {saas_url} or a self-hosted Landscape:
+{install_url}
 Landscape allows you to manage many machines as easily as one, with an
 intuitive dashboard and API interface for automation, hardening, auditing, and
-more. Find out more about Landscape at https://ubuntu.com/landscape"""
+more. Find out more about Landscape at {home_url}""".format(
+    saas_url=urls.LANDSCAPE_SAAS,
+    install_url=urls.LANDSCAPE_DOCS_INSTALL,
+    home_url=urls.LANDSCAPE_HOME_PAGE,
+)
 
 LIVEPATCH_TITLE = "Livepatch"
 LIVEPATCH_DESCRIPTION = "Canonical Livepatch service"
@@ -1599,7 +1644,9 @@ non-security bug fixes as kernel livepatches. Livepatches are applied without
 rebooting a machine which drastically limits the need for unscheduled system
 reboots. Due to the nature of fips compliance, livepatches cannot be enabled
 on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
-service at https://ubuntu.com/security/livepatch"""
+service at {url}""".format(
+    url=urls.LIVEPATCH_HOME_PAGE
+)
 
 REALTIME_TITLE = "Real-time kernel"
 REALTIME_DESCRIPTION = "Ubuntu kernel with PREEMPT_RT patches integrated"
@@ -1625,7 +1672,9 @@ for available high and critical CVE fixes for Robot Operating System (ROS)
 packages. For access to ROS ESM and security updates, both esm-infra and
 esm-apps services will also be enabled. To get additional non-security updates,
 enable ros-updates. You can find out more about the ROS ESM service at
-https://ubuntu.com/robotics/ros-esm"""
+{url}""".format(
+    url=urls.ROS_HOME_PAGE
+)
 
 ROS_UPDATES_TITLE = "ROS ESM All Updates"
 ROS_UPDATES_DESCRIPTION = "All Updates for the Robot Operating System"
@@ -1634,7 +1683,9 @@ ros-updates provides access to a private PPA that includes non-security-related
 updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
 security and non-security updates, the esm-infra, esm-apps, and ros services
 will also be enabled. You can find out more about the ROS ESM service at
-https://ubuntu.com/robotics/ros-esm"""
+{url}""".format(
+    url=urls.ROS_HOME_PAGE
+)
 
 CLI_HELP_EPILOG = (
     "Use {name} {command} --help for more information about a command."
@@ -1677,12 +1728,12 @@ CLI_CONFIG_DESC = "Manage Ubuntu Pro configuration"
 
 CLI_ATTACH_DESC = """\
 Attach this machine to Ubuntu Pro with a token obtained from:
-{}
+{url}
 
 When running this command without a token, it will generate a short code
 and prompt you to attach the machine to your Ubuntu Pro account using
 a web browser.""".format(
-    BASE_UA_URL
+    url=urls.PRO_DASHBOARD
 )
 CLI_ATTACH_TOKEN = "token obtained for Ubuntu Pro authentication"
 CLI_ATTACH_NO_AUTO_ENABLE = (

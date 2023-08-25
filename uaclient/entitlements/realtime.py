@@ -11,15 +11,13 @@ from uaclient.types import (  # noqa: F401
 
 event = event_logger.get_event_logger()
 
-REALTIME_KERNEL_DOCS_URL = "https://ubuntu.com/realtime-kernel"
-
 
 class RealtimeKernelEntitlement(repo.RepoEntitlement):
     name = "realtime-kernel"
     title = messages.REALTIME_TITLE
     description = messages.REALTIME_DESCRIPTION
     help_text = messages.REALTIME_HELP_TEXT
-    help_doc_url = REALTIME_KERNEL_DOCS_URL
+    help_doc_url = messages.urls.REALTIME_HOME_PAGE
     repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True
     supports_access_only = True
