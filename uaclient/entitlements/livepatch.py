@@ -27,7 +27,7 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class LivepatchEntitlement(UAEntitlement):
-    help_doc_url = "https://ubuntu.com/security/livepatch"
+    help_doc_url = messages.urls.LIVEPATCH_HOME_PAGE
     name = "livepatch"
     title = messages.LIVEPATCH_TITLE
     description = messages.LIVEPATCH_DESCRIPTION

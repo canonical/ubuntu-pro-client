@@ -12,7 +12,7 @@ CC_README = "/usr/share/doc/ubuntu-commoncriteria/README"
 
 class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
-    help_doc_url = "https://ubuntu.com/cc-eal"
+    help_doc_url = messages.urls.COMMON_CRITERIA_HOME_PAGE
     name = "cc-eal"
     title = messages.CC_TITLE
     description = messages.CC_DESCRIPTION

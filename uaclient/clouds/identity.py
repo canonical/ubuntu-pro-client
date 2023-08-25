@@ -3,7 +3,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import clouds, exceptions, system, util
+from uaclient import clouds, exceptions, messages, system, util
 from uaclient.config import apply_config_settings_override
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -13,10 +13,14 @@ CLOUD_TYPE_TO_TITLE = {
     "aws-china": "AWS China",
     "aws-gov": "AWS Gov",
     "azure": "Azure",
-    "gcp": "GCP",
+    "gce": "GCP",
 }
 
-PRO_CLOUDS = ["aws", "azure", "gcp"]
+PRO_CLOUD_URLS = {
+    "aws": messages.urls.PRO_ON_AWS_HOME_PAGE,
+    "azure": messages.urls.PRO_ON_AZURE_HOME_PAGE,
+    "gce": messages.urls.PRO_ON_GCP_HOME_PAGE,
+}
 
 
 class NoCloudTypeReason(Enum):

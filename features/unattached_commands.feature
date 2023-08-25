@@ -19,7 +19,7 @@ Feature: Command behaviour when unattached
         Then stderr matches regexp:
             """
             Auto-attach image support is not available on lxd
-            See: https://ubuntu.com/pro
+            See: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances.html
             """
 
         Examples: ubuntu release
@@ -140,13 +140,12 @@ Feature: Command behaviour when unattached
         Then I will see the following on stderr:
           """
           Cannot <command> unknown service 'unknown'.
-          See https://ubuntu.com/pro
           """
         When I verify that running `pro <command> unknown --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\nSee https://ubuntu.com/pro", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
         When I verify that running `pro <command> esm-infra unknown` `as non-root` exits `1`
         Then I will see the following on stderr:

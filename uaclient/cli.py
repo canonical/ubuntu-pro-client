@@ -1039,7 +1039,7 @@ def _create_enable_disable_unattached_msg(command, service_names, cfg):
         msg = messages.INVALID_SERVICE_OP_FAILURE.format(
             operation=command,
             invalid_service=", ".join(entitlements_not_found),
-            service_msg="See {}".format(defaults.BASE_UA_URL),
+            service_msg="",
         )
     return msg
 
