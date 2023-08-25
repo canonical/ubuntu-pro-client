@@ -2,8 +2,6 @@ import logging
 import os
 import sys
 
-from systemd.daemon import notify  # type: ignore
-
 from uaclient import http
 from uaclient.config import UAConfig
 from uaclient.daemon import poll_for_pro_license, retry_auto_attach
@@ -23,8 +21,6 @@ def main() -> int:
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
     LOG.debug("daemon starting")
-
-    notify("READY=1")
 
     is_correct_cloud = any(
         os.path.exists("/run/cloud-init/cloud-id-{}".format(cloud))
