@@ -48,7 +48,7 @@ AVAILABLE_RESOURCES = [
 SERVICES_WRAPPED_HELP = """\
 Client to manage Ubuntu Pro services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
-   (https://ubuntu.com/cc-eal)
+   (https://ubuntu.com/security/cc)
  - cis: Security compliance and audit tools
    (https://ubuntu.com/security/certifications/docs/usg)
  - esm-apps: Expanded Security Maintenance for Applications

@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from uaclient import apt, messages, system
-from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
+from uaclient.entitlements.cis import CISEntitlement
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
@@ -120,6 +120,8 @@ class TestCISEntitlementEnable:
             "Updating package lists\n"
             "Installing CIS Audit packages\n"
             "CIS Audit enabled\n"
-            "Visit {} to learn how to use CIS\n".format(CIS_DOCS_URL)
+            "Visit {} to learn how to use CIS\n".format(
+                messages.urls.CIS_HOME_PAGE
+            )
         )
         assert (expected_stdout, "") == capsys.readouterr()

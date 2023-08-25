@@ -23,17 +23,10 @@ DEFAULT_UPGRADE_CONTRACT_FLAG_FILE = UAC_ETC_PATH + "request-update-contract"
 BASE_CONTRACT_URL = "https://contracts.canonical.com"
 BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_LIVEPATCH_URL = "https://livepatch.canonical.com"
-BASE_UA_URL = "https://ubuntu.com/pro"
-EOL_UA_URL_TMPL = "https://ubuntu.com/{hyphenatedrelease}"
-BASE_ESM_URL = "https://ubuntu.com/esm"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
 CLOUD_BUILD_INFO = "/etc/cloud/build.info"
 ESM_APT_ROOTDIR = DEFAULT_DATA_DIR + "/apt-esm/"
-PRO_ATTACH_URL = BASE_UA_URL + "/attach"
 
-DOCUMENTATION_URL = (
-    "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
-)
 PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
 CONTRACT_EXPIRY_PENDING_DAYS = 20

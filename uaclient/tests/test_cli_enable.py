@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import defaults, entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, messages
 from uaclient.cli import action_enable, main, main_error_handler
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
@@ -287,7 +287,7 @@ class TestActionEnable:
             )
         else:
             cfg = FakeConfig()
-            service_msg = "See {}".format(defaults.BASE_UA_URL)
+            service_msg = ""
 
         args = mock.MagicMock()
         args.service = ["bogus"]

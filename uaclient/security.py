@@ -18,11 +18,11 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
 )
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
-    PRO_CLOUDS,
+    PRO_CLOUD_URLS,
     get_cloud_type,
 )
 from uaclient.config import UAConfig
-from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
+from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -342,7 +342,9 @@ class CVE:
             break
         lines = [
             "{issue}: {title}".format(issue=self.id, title=title),
-            " - https://ubuntu.com/security/{}".format(self.id),
+            " - {}".format(
+                messages.urls.SECURITY_CVE_PAGE.format(cve=self.id)
+            ),
         ]
         return "\n".join(lines)
 
@@ -444,7 +446,11 @@ class USN:
         if self.cves_ids:
             lines.append("Found CVEs:")
             for cve in self.cves_ids:
-                lines.append(" - https://ubuntu.com/security/{}".format(cve))
+                lines.append(
+                    " - {}".format(
+                        messages.urls.SECURITY_CVE_PAGE.format(cve=cve)
+                    )
+                )
         elif self.references:
             lines.append("Found Launchpad bugs:")
             for reference in self.references:
@@ -1397,10 +1403,11 @@ def prompt_for_affected_packages(
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
     """Alert the user when running Pro on cloud with PRO support."""
     cloud_type, _ = get_cloud_type()
-    if cloud_type in PRO_CLOUDS:
+    if cloud_type in PRO_CLOUD_URLS:
         print(
             messages.SECURITY_USE_PRO_TMPL.format(
-                title=CLOUD_TYPE_TO_TITLE.get(cloud_type), cloud=cloud_type
+                title=CLOUD_TYPE_TO_TITLE.get(cloud_type),
+                cloud_specific_url=PRO_CLOUD_URLS.get(cloud_type),
             )
         )
 
@@ -1575,7 +1582,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     _inform_ubuntu_pro_existence_if_applicable()
     print(messages.SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
     choice = util.prompt_choices(
-        messages.SECURITY_FIX_RENEW_PROMPT.format(BASE_UA_URL),
+        messages.SECURITY_FIX_RENEW_PROMPT,
         valid_choices=["r", "c"],
     )
     if choice == "r":

@@ -475,7 +475,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
          - esm-apps: Expanded Security Maintenance for Applications
@@ -496,7 +496,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
          - esm-apps: Expanded Security Maintenance for Applications
@@ -517,7 +517,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
          - esm-apps: Expanded Security Maintenance for Applications
@@ -588,7 +588,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - esm-apps: Expanded Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
@@ -615,7 +615,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - esm-apps: Expanded Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
@@ -642,7 +642,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Client to manage Ubuntu Pro services on a machine.
          - anbox-cloud: .*
          - cc-eal: Common Criteria EAL2 Provisioning Packages
-           \(https://ubuntu.com/cc-eal\)
+           \(https://ubuntu.com/security/cc\)
          - esm-apps: Expanded Security Maintenance for Applications
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure

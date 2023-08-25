@@ -4,13 +4,10 @@ from uaclient import messages
 from uaclient.entitlements import repo
 from uaclient.types import MessagingOperationsDict
 
-CIS_DOCS_URL = "https://ubuntu.com/security/cis"
-USG_DOCS_URL = "https://ubuntu.com/security/certifications/docs/usg"
-
 
 class CISEntitlement(repo.RepoEntitlement):
 
-    help_doc_url = USG_DOCS_URL
+    help_doc_url = messages.urls.USG_DOCS
     name = "cis"
     description = messages.CIS_DESCRIPTION
     help_text = messages.CIS_HELP_TEXT
@@ -21,18 +18,12 @@ class CISEntitlement(repo.RepoEntitlement):
     @property
     def messaging(self) -> MessagingOperationsDict:
         if self._called_name == "usg":
-            return {
-                "post_enable": [
-                    messages.CIS_USG_POST_ENABLE.format(USG_DOCS_URL)
-                ]
-            }
+            return {"post_enable": [messages.CIS_USG_POST_ENABLE]}
         ret = {
-            "post_enable": [messages.CIS_POST_ENABLE.format(CIS_DOCS_URL)]
+            "post_enable": [messages.CIS_POST_ENABLE]
         }  # type: MessagingOperationsDict
         if "usg" in self.valid_names:
-            ret["pre_can_enable"] = [
-                messages.CIS_IS_NOW_USG.format(USG_DOCS_URL)
-            ]
+            ret["pre_can_enable"] = [messages.CIS_IS_NOW_USG]
         return ret
 
     @property

@@ -31,7 +31,7 @@ HELP_OUTPUT = textwrap.dedent(
 usage: pro attach <token> [flags]
 
 Attach this machine to Ubuntu Pro with a token obtained from:
-https://ubuntu.com/pro
+https://ubuntu.com/pro/dashboard
 
 When running this command without a token, it will generate a short code
 and prompt you to attach the machine to your Ubuntu Pro account using

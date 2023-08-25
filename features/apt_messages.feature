@@ -591,15 +591,15 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
-        # Renew your subscription at https://ubuntu.com/pro to ensure continued
-        # security coverage for your applications.
+        # Renew your subscription at https://ubuntu.com/pro/dashboard to ensure
+        # continued security coverage for your applications.
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
-        "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro to ensure continued\nsecurity coverage for your applications."
+        "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro/dashboard to ensure\ncontinued security coverage for your applications."
         """
         When I set the machine token overlay to the following yaml
         """
@@ -617,8 +617,8 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
-        # Renew your subscription at https:\/\/ubuntu.com\/pro to ensure continued
-        # security coverage for your applications.
+        # Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
+        # continued security coverage for your applications.
         # Your grace period will expire in 11 days.
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -626,7 +626,7 @@ Feature: APT Messages
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then stdout matches regexp:
         """
-        "CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.\\nRenew your subscription at https:\/\/ubuntu.com\/pro to ensure continued\\nsecurity coverage for your applications.\\nYour grace period will expire in 11 days."
+        "CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.\\nRenew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure\\ncontinued security coverage for your applications.\\nYour grace period will expire in 11 days."
         """
         When I set the machine token overlay to the following yaml
         """
@@ -644,14 +644,14 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # *Your Ubuntu Pro subscription has EXPIRED*
-        # Renew your service at https://ubuntu.com/pro
+        # Renew your service at https://ubuntu.com/pro/dashboard
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
-        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro/dashboard"
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
@@ -673,14 +673,14 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # *Your Ubuntu Pro subscription has EXPIRED*
-        # Renew your service at https://ubuntu.com/pro
+        # Renew your service at https://ubuntu.com/pro/dashboard
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
-        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro"
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro/dashboard"
         """
         Examples: ubuntu release
           | release | machine_type  |

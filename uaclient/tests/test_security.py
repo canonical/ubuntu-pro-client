@@ -1094,7 +1094,8 @@ class TestPromptForAffectedPackages:
                 + "\n".join(
                     [
                         SECURITY_USE_PRO_TMPL.format(
-                            title="Azure", cloud="azure"
+                            title="Azure",
+                            cloud_specific_url="https://ubuntu.com/azure/pro",
                         ),
                         SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
@@ -1123,7 +1124,10 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        SECURITY_USE_PRO_TMPL.format(title="AWS", cloud="aws"),
+                        SECURITY_USE_PRO_TMPL.format(
+                            title="AWS",
+                            cloud_specific_url="https://ubuntu.com/aws/pro",
+                        ),
                         SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 ),
@@ -1149,7 +1153,7 @@ class TestPromptForAffectedPackages:
                     "slsrc": {"sl": {"version": "2.1"}},
                     "curl": {"curl": {"version": "2.1"}},
                 },
-                ("gcp", None),
+                ("gce", None),
                 textwrap.dedent(
                     """\
                     2 affected source packages are installed: curl, slsrc
@@ -1169,7 +1173,10 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        SECURITY_USE_PRO_TMPL.format(title="GCP", cloud="gcp"),
+                        SECURITY_USE_PRO_TMPL.format(
+                            title="GCP",
+                            cloud_specific_url="https://ubuntu.com/gcp/pro",
+                        ),
                         SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 )
@@ -1227,7 +1234,7 @@ class TestPromptForAffectedPackages:
                     "pkg14": {"pkg14": {"version": "2.1"}},
                     "pkg15": {"pkg15": {"version": "2.1"}},
                 },
-                ("gcp", None),
+                ("gce", None),
                 textwrap.dedent(
                     """\
                     15 affected source packages are installed: {}
@@ -1266,7 +1273,10 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        SECURITY_USE_PRO_TMPL.format(title="GCP", cloud="gcp"),
+                        SECURITY_USE_PRO_TMPL.format(
+                            title="GCP",
+                            cloud_specific_url="https://ubuntu.com/gcp/pro",
+                        ),
                         SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 )
