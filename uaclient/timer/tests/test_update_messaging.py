@@ -191,9 +191,8 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRES_SOON_MOTD.format(
-                            remaining_days=3
-                        ),
+                        messages.CONTRACT_EXPIRES_SOON.format(remaining_days=3)
+                        + "\n\n",
                     )
                 ],
             ),
@@ -215,9 +214,10 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_GRACE_PERIOD_MOTD.format(
+                        messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
                             remaining_days=11, expired_date="21 Dec 2012"
-                        ),
+                        )
+                        + "\n\n",
                     )
                 ],
             ),
@@ -236,7 +236,7 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
-                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED_MOTD_NO_PKGS)],
+                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
             ),
             (
                 # expired, lts release, esm-apps not enabled
@@ -253,7 +253,7 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
-                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED_MOTD_NO_PKGS)],
+                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
             ),
             (
                 # expired, interim release
@@ -270,7 +270,7 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
-                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED_MOTD_NO_PKGS)],
+                [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
             ),
             (
                 # expired, eol release, esm-infra enabled
@@ -290,9 +290,10 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_MOTD_PKGS.format(
+                        messages.CONTRACT_EXPIRED_WITH_PKGS.format(
                             service="esm-infra", pkg_num=4
-                        ),
+                        )
+                        + "\n\n",
                     )
                 ],
             ),
@@ -314,9 +315,10 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_MOTD_PKGS.format(
+                        messages.CONTRACT_EXPIRED_WITH_PKGS.format(
                             service="esm-apps", pkg_num=5
-                        ),
+                        )
+                        + "\n\n",
                     )
                 ],
             ),

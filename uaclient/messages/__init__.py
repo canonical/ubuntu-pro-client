@@ -297,56 +297,27 @@ To install them, run this command as root (try using sudo)"""
 
 # BEGIN MOTD and APT command messaging
 
-CONTRACT_EXPIRES_SOON_MOTD = """\
-CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
-Renew your subscription at {url} to ensure
-continued security coverage for your applications.
-
-""".format(
-    url=urls.PRO_DASHBOARD
-)
-
-CONTRACT_EXPIRED_GRACE_PERIOD_MOTD = """\
-CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
-Renew your subscription at {url} to ensure
-continued security coverage for your applications.
-Your grace period will expire in {{remaining_days}} days.
-
-""".format(
-    url=urls.PRO_DASHBOARD
-)
-
-CONTRACT_EXPIRED_MOTD_PKGS = """\
+CONTRACT_EXPIRED_WITH_PKGS = """\
 *Your Ubuntu Pro subscription has EXPIRED*
 {{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
-Renew your service at {url}
-
-""".format(  # noqa: E501
-    url=urls.PRO_DASHBOARD
-)  # noqa: E501
-
-CONTRACT_EXPIRED_MOTD_NO_PKGS = """\
-*Your Ubuntu Pro subscription has EXPIRED*
-Renew your service at {url}
-
-""".format(
+Renew your service at {url}""".format(  # noqa: E501
     url=urls.PRO_DASHBOARD
 )
 
-CONTRACT_EXPIRES_SOON_APT_NEWS = """\
+CONTRACT_EXPIRES_SOON = """\
 CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
 Renew your subscription at {url} to ensure
 continued security coverage for your applications.""".format(
     url=urls.PRO_DASHBOARD
 )
-CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS = """\
+CONTRACT_EXPIRED_GRACE_PERIOD = """\
 CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
 Renew your subscription at {url} to ensure
 continued security coverage for your applications.
 Your grace period will expire in {{remaining_days}} days.""".format(
     url=urls.PRO_DASHBOARD
 )
-CONTRACT_EXPIRED_APT_NEWS = """\
+CONTRACT_EXPIRED = """\
 *Your Ubuntu Pro subscription has EXPIRED*
 Renew your service at {url}""".format(
     url=urls.PRO_DASHBOARD
