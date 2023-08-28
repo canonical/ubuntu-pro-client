@@ -17,6 +17,7 @@ from uaclient.apt import (
     APT_HELPER_TIMEOUT,
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
+    APT_PROXY_CONFIG_HEADER,
     APT_RETRIES,
     KEYRINGS_DIR,
     PreserveAptCfg,
@@ -965,7 +966,7 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        messages.APT_PROXY_CONFIG_HEADER
+                        APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_GLOBAL_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         ),
@@ -979,7 +980,7 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        messages.APT_PROXY_CONFIG_HEADER
+                        APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_GLOBAL_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
@@ -996,7 +997,7 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        messages.APT_PROXY_CONFIG_HEADER
+                        APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_GLOBAL_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         )
