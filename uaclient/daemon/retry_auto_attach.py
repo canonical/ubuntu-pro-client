@@ -114,7 +114,8 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             next_run_datestring=next_attempt.isoformat(),
         )
         system.write_file(
-            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n\n"
+            AUTO_ATTACH_STATUS_MOTD_FILE,
+            "\n" + auto_attach_status_msg + "\n\n",
         )
         try:
             with lock.SpinLock(
@@ -175,7 +176,8 @@ def retry_auto_attach(cfg: UAConfig) -> None:
             )
         )
         system.write_file(
-            AUTO_ATTACH_STATUS_MOTD_FILE, auto_attach_status_msg + "\n\n"
+            AUTO_ATTACH_STATUS_MOTD_FILE,
+            "\n" + auto_attach_status_msg + "\n\n",
         )
         notices.add(
             notices.Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE,

@@ -635,7 +635,8 @@ class TestRetryAutoAttach:
                 [mock.call(mock.ANY)],
                 mock.call(
                     AUTO_ATTACH_STATUS_MOTD_FILE,
-                    messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE.format(
+                    "\n"
+                    + messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE.format(
                         num_attempts=19, reason="an unknown error"
                     )
                     + "\n\n",
