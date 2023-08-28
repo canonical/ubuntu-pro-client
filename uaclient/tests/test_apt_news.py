@@ -479,25 +479,21 @@ class TestAptNews:
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
-                messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
-                    remaining_days=10
-                ),
+                messages.CONTRACT_EXPIRES_SOON.format(remaining_days=10),
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
-                messages.CONTRACT_EXPIRES_SOON_APT_NEWS.format(
-                    remaining_days=15
-                ),
+                messages.CONTRACT_EXPIRES_SOON.format(remaining_days=15),
             ),
             (
                 (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
-                messages.CONTRACT_EXPIRED_GRACE_PERIOD_APT_NEWS.format(
+                messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
                     remaining_days=10, expired_date="21 Dec 2012"
                 ),
             ),
             (
                 (ContractExpiryStatus.EXPIRED, -15),
-                messages.CONTRACT_EXPIRED_APT_NEWS,
+                messages.CONTRACT_EXPIRED,
             ),
         ],
     )
