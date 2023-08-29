@@ -28,14 +28,8 @@ __all__ = [
 
 
 class AutoAttachDisabledError(UserFacingError):
-    def __init__(self):
-        super().__init__(
-            messages.AUTO_ATTACH_DISABLED_ERROR.msg,
-            messages.AUTO_ATTACH_DISABLED_ERROR.name,
-        )
+    _msg = messages.AUTO_ATTACH_DISABLED_ERROR
 
 
 class UnattendedUpgradesError(APIError):
-    def __init__(self, msg):
-        self.msg = msg
-        self.msg_code = "unable-to-determine-unattended-upgrade-status"
+    _formatted_msg = messages.UNATTENDED_UPGRADES_ERROR

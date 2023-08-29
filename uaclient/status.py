@@ -466,10 +466,7 @@ def simulate_status(
         contract_information = get_contract_information(cfg, token)
     except exceptions.ContractAPIError as e:
         if hasattr(e, "code") and e.code == 401:
-            raise exceptions.UserFacingError(
-                msg=messages.ATTACH_INVALID_TOKEN.msg,
-                msg_code=messages.ATTACH_INVALID_TOKEN.name,
-            )
+            raise exceptions.AttachInvalidTokenError()
         raise e
 
     contract_info = contract_information.get("contractInfo", {})
@@ -856,7 +853,7 @@ def help(cfg, name):
             break
 
     if help_resource is None:
-        raise exceptions.UserFacingError(messages.CLI_NO_HELP.format(name))
+        raise exceptions.NoHelpContent(name=name)
 
     if _is_attached(cfg).is_attached:
         service_status = _attached_service_status(help_ent, {}, cfg)

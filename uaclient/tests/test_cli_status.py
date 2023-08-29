@@ -1028,11 +1028,11 @@ class TestActionStatus:
             ),
             (
                 exceptions.ContractAPIError(
-                    "url",
-                    401,
-                    json.dumps({"message": "unauthorized"}),
+                    url="url",
+                    code=401,
+                    body=json.dumps({"message": "unauthorized"}),
                 ),
-                exceptions.UserFacingError,
+                exceptions.AttachInvalidTokenError,
                 "Invalid token. See https://ubuntu.com/pro",
             ),
         ),
@@ -1071,13 +1071,24 @@ class TestActionStatus:
         (
             (
                 "expired_token",
-                'Contract "some_id" expired on December 31, 2019',
+                (
+                    "Attach denied:\n"
+                    'Contract "some_id" expired on December 31, 2019\n'
+                    "Visit https://ubuntu.com/pro/dashboard to manage "
+                    "contract tokens."
+                ),
                 "effectiveTo",
                 util.parse_rfc3339_date("2019-12-31T00:00:00Z"),
             ),
             (
                 "token_not_valid_yet",
-                'Contract "some_id" is not effective until December 31, 9999',
+                (
+                    "Attach denied:\n"
+                    'Contract "some_id" is not effective until December 31, '
+                    "9999\n"
+                    "Visit https://ubuntu.com/pro/dashboard to manage "
+                    "contract tokens."
+                ),
                 "effectiveFrom",
                 util.parse_rfc3339_date("9999-12-31T00:00:00Z"),
             ),

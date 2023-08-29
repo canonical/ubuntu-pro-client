@@ -11,8 +11,8 @@ from uaclient.contract import (
     API_V1_AVAILABLE_RESOURCES,
     API_V1_GET_CONTRACT_USING_TOKEN,
     UAContractClient,
-    _create_attach_forbidden_message,
     _get_override_weight,
+    _raise_attach_forbidden_message,
     _support_old_machine_info,
     apply_contract_overrides,
     get_available_resources,
@@ -343,7 +343,7 @@ class TestUAContractClient:
             "machine_id",
             "request_url_side_effect",
             "expected_machine_id",
-            "expected_create_attach_forbidden_message_call_args",
+            "expected_raise_attach_forbidden_message_call_args",
             "expected_raises",
             "expected_result",
         ],
@@ -430,7 +430,7 @@ class TestUAContractClient:
             ),
         ],
     )
-    @mock.patch("uaclient.contract._create_attach_forbidden_message")
+    @mock.patch("uaclient.contract._raise_attach_forbidden_message")
     @mock.patch("uaclient.contract._support_old_machine_info")
     @mock.patch("uaclient.contract.UAContractClient._get_activity_info")
     @mock.patch("uaclient.contract.UAContractClient.headers")
@@ -439,13 +439,13 @@ class TestUAContractClient:
         m_headers,
         m_get_activity_info,
         m_support_old_machine_info,
-        m_create_attach_forbidden_message,
+        m_raise_attach_forbidden_message,
         m_get_machine_id,
         m_request_url,
         machine_id,
         request_url_side_effect,
         expected_machine_id,
-        expected_create_attach_forbidden_message_call_args,
+        expected_raise_attach_forbidden_message_call_args,
         expected_raises,
         expected_result,
     ):
@@ -494,8 +494,8 @@ class TestUAContractClient:
             )
         ] == m_request_url.call_args_list
         assert (
-            expected_create_attach_forbidden_message_call_args
-            == m_create_attach_forbidden_message.call_args_list
+            expected_raise_attach_forbidden_message_call_args
+            == m_raise_attach_forbidden_message.call_args_list
         )
 
     def test_new_magic_attach_token_successfull(
@@ -1015,6 +1015,7 @@ class TestCreateAttachForbiddenMessage:
         [
             "http_response",
             "expected_message",
+            "expected_info",
         ],
         [
             (
@@ -1022,6 +1023,7 @@ class TestCreateAttachForbiddenMessage:
                     code=403, headers={}, body="", json_list=[], json_dict={}
                 ),
                 messages.ATTACH_EXPIRED_TOKEN,
+                {},
             ),
             (
                 http.HTTPResponse(
@@ -1050,16 +1052,15 @@ class TestCreateAttachForbiddenMessage:
                 ),
                 messages.NamedMessage(
                     name=messages.ATTACH_FORBIDDEN_EXPIRED.name,
-                    msg=messages.ATTACH_FORBIDDEN.format(
-                        reason=messages.ATTACH_FORBIDDEN_EXPIRED.format(
-                            contract_id="contract-id", date="May 07, 2021"
-                        ).msg
+                    msg=messages.ATTACH_FORBIDDEN_EXPIRED.format(
+                        contract_id="contract-id", date="May 07, 2021"
                     ).msg,
-                    additional_info={
-                        "contract_expiry_date": "05-07-2021",
-                        "contract_id": "contract-id",
-                    },
                 ),
+                {
+                    "contract_expiry_date": "05-07-2021",
+                    "contract_id": "contract-id",
+                    "date": "May 07, 2021",
+                },
             ),
             (
                 http.HTTPResponse(
@@ -1088,16 +1089,15 @@ class TestCreateAttachForbiddenMessage:
                 ),
                 messages.NamedMessage(
                     name=messages.ATTACH_FORBIDDEN_NOT_YET.name,
-                    msg=messages.ATTACH_FORBIDDEN.format(
-                        reason=messages.ATTACH_FORBIDDEN_NOT_YET.format(
-                            contract_id="contract-id", date="May 07, 2021"
-                        ).msg
+                    msg=messages.ATTACH_FORBIDDEN_NOT_YET.format(
+                        contract_id="contract-id", date="May 07, 2021"
                     ).msg,
-                    additional_info={
-                        "contract_effective_date": "05-07-2021",
-                        "contract_id": "contract-id",
-                    },
                 ),
+                {
+                    "contract_effective_date": "05-07-2021",
+                    "contract_id": "contract-id",
+                    "date": "May 07, 2021",
+                },
             ),
             (
                 http.HTTPResponse(
@@ -1117,21 +1117,21 @@ class TestCreateAttachForbiddenMessage:
                 ),
                 messages.NamedMessage(
                     name=messages.ATTACH_FORBIDDEN_NEVER.name,
-                    msg=messages.ATTACH_FORBIDDEN.format(
-                        reason=messages.ATTACH_FORBIDDEN_NEVER.format(
-                            contract_id="contract-id"
-                        ).msg
+                    msg=messages.ATTACH_FORBIDDEN_NEVER.format(
+                        contract_id="contract-id"
                     ).msg,
                 ),
+                {"contract_id": "contract-id"},
             ),
         ],
     )
-    def test_create_attach_forbidden_message(
-        self, http_response, expected_message
+    def test_raise_attach_forbidden_message(
+        self, http_response, expected_message, expected_info
     ):
-        assert expected_message == _create_attach_forbidden_message(
-            http_response
-        )
+        with pytest.raises(exceptions.UserFacingError) as exc:
+            _raise_attach_forbidden_message(http_response)
+        assert exc.value.named_msg == expected_message
+        assert exc.value.additional_info == expected_info
 
 
 class TestGetAvailableResources:
@@ -1595,7 +1595,7 @@ class TestRequestAutoAttach:
             )
 
         expected_message = messages.INVALID_PRO_IMAGE.format(
-            msg=error_response["message"]
+            error_msg=error_response["message"]
         )
         expected_args = [mock.call(error_response["message"])]
         assert expected_message.msg == exc_error.value.msg

@@ -63,9 +63,12 @@ OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
-ERROR_INVALID_CONFIG_VALUE = """\
+ERROR_INVALID_BOOLEAN_CONFIG_VALUE = FormattedNamedMessage(
+    "invalid-boolean-config-value",
+    """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
-Expected {expected_value}, found {value}."""
+Expected {expected_value}, found {value}.""",
+)
 
 SECURITY_FIX_ATTACH_PROMPT = """\
 Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
@@ -100,6 +103,12 @@ SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
 SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
+)
+SECURITY_API_INVALID_METADATA = FormattedNamedMessage(
+    "security-api-invalid-metadata",
+    "Metadata for {issue} is invalid. Error: {error_msg}."
+    + "\n"
+    + SECURITY_ISSUE_NOT_RESOLVED,
 )
 SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
     "security-pkg-still-affected",
@@ -187,9 +196,10 @@ USNs, please refer to this page:
 """.format(
     url=urls.PRO_CLIENT_DOCS_RELATED_USNS
 )
-SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = (
-    'Error: issue "{}" is not recognized.\n'
-    'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
+SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
+    "invalid-security-issue-id-format",
+    'Error: issue "{issue}" is not recognized.\n'
+    'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"',
 )
 
 APT_UPDATING_LISTS = "Updating package lists"
@@ -270,14 +280,19 @@ DETACH_SUCCESS = "This machine is now detached."
 
 REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
 REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
-REFRESH_CONTRACT_FAILURE = "Unable to refresh your subscription"
+REFRESH_CONTRACT_FAILURE = NamedMessage(
+    "refresh-contract-failure", "Unable to refresh your subscription"
+)
 REFRESH_CONFIG_SUCCESS = "Successfully processed your pro configuration."
-REFRESH_CONFIG_FAILURE = "Unable to process uaclient.conf"
+REFRESH_CONFIG_FAILURE = NamedMessage(
+    "refresh-config-failure", "Unable to process uaclient.conf"
+)
 REFRESH_MESSAGES_SUCCESS = (
     "Successfully updated Ubuntu Pro related APT and MOTD messages."
 )
-REFRESH_MESSAGES_FAILURE = (
-    "Unable to update Ubuntu Pro related APT and MOTD messages."
+REFRESH_MESSAGES_FAILURE = NamedMessage(
+    "refresh-messages-failure",
+    "Unable to update Ubuntu Pro related APT and MOTD messages.",
 )
 
 INCOMPATIBLE_SERVICE = """\
@@ -534,10 +549,9 @@ APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
 
 APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
     "apt-update-invalid-url-config",
-    (
-        "APT update failed to read APT config for the following "
-        "URL{plural}:\n{failed_repos}."
-    ),
+    """\
+APT update failed to read APT config for the following:
+{failed_repos}""",
 )
 
 APT_PROCESS_CONFLICT = NamedMessage(
@@ -549,15 +563,17 @@ APT_UPDATE_PROCESS_CONFLICT = NamedMessage(
     "APT update failed. " + APT_PROCESS_CONFLICT.msg,
 )
 
-APT_UPDATE_FAILED = NamedMessage("apt-update-failed", "APT Update failed")
+APT_UPDATE_FAILED = FormattedNamedMessage(
+    "apt-update-failed", "APT Update failed\n{detail}"
+)
 
-APT_INSTALL_PROCESS_CONFLICT = FormattedNamedMessage(
+APT_INSTALL_PROCESS_CONFLICT = NamedMessage(
     "apt-install-failed-process-conflict",
-    "{header_msg}APT install failed. " + APT_PROCESS_CONFLICT.msg,
+    "APT install failed. " + APT_PROCESS_CONFLICT.msg,
 )
 
 APT_INSTALL_INVALID_REPO = FormattedNamedMessage(
-    "apt-install-invalid-repo", "{header_msg}APT install failed.{repo_msg}"
+    "apt-install-invalid-repo", "APT install failed. {repo_msg}"
 )
 
 CANNOT_INSTALL_SNAPD = NamedMessage(
@@ -617,29 +633,32 @@ APT_POLICY_FAILED = NamedMessage(
 ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
     "attach-forbidden-expired",
     """\
-Contract \"{contract_id}\" expired on {date}""",
+Attach denied:
+Contract "{{contract_id}}" expired on {{date}}
+Visit {url} to manage contract tokens.""".format(
+        url=urls.PRO_DASHBOARD
+    ),
 )
 
 ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
     "attach-forbidden-not-yet",
     """\
-Contract \"{contract_id}\" is not effective until {date}""",
-)
-ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
-    "attach-forbidden-never",
-    """\
-Contract \"{contract_id}\" has never been effective""",
-)
-
-ATTACH_FORBIDDEN = FormattedNamedMessage(
-    "attach-forbidden",
-    """\
 Attach denied:
-{{reason}}
+Contract "{{contract_id}}" is not effective until {{date}}
 Visit {url} to manage contract tokens.""".format(
         url=urls.PRO_DASHBOARD
     ),
 )
+ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
+    "attach-forbidden-never",
+    """\
+Attach denied:
+Contract "{{contract_id}}" has never been effective
+Visit {url} to manage contract tokens.""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+
 
 ATTACH_EXPIRED_TOKEN = NamedMessage(
     "attach-experied-token",
@@ -666,6 +685,11 @@ ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
     "attach-failure-default-service",
     """\
 Failed to enable default services, check: sudo pro status""",
+)
+ATTACH_FAILURE_UNEXPECTED = NamedMessage(
+    "attach-failure-unexpected-error",
+    """\
+Something went wrong during the attach process. Check the logs.""",
 )
 
 INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
@@ -694,7 +718,7 @@ To file a bug run: ubuntu-bug ubuntu-advantage-tools""",
 )
 
 ATTACH_CONFIG_READ_ERROR = FormattedNamedMessage(
-    "attach-config-read-error", "Error while reading {config_name}: {error}"
+    "attach-config-read-error", "Error while reading {config_name}:\n{error}"
 )
 
 JSON_FORMAT_REQUIRE_ASSUME_YES = NamedMessage(
@@ -808,11 +832,11 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     "Cannot install Real-time kernel on a container.",
 )
 
-GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
+GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = FormattedNamedMessage(
     "gcp-pro-service-account-not-enabled",
     """\
 Failed to attach machine
-{{error_msg}}
+{{status_code}}: {{error_msg}}
 For more information, see {url}""".format(
         url=urls.GCP_SERVICE_ACCOUNT_DOCS
     ),
@@ -834,11 +858,14 @@ Using deprecated "apt_https_proxy" config field.
 Please migrate to using "global_apt_https_proxy"
 """
 
-ERROR_PROXY_CONFIGURATION = """\
+ERROR_INVALID_PROXY_COMBINATION = NamedMessage(
+    "invalid-proxy-combination-config",
+    """\
 Error: Setting global apt proxy and pro scoped apt proxy
 at the same time is unsupported.
 Cancelling config process operation.
-"""
+""",
+)
 
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
@@ -916,6 +943,13 @@ API_MISSING_ARG = FormattedNamedMessage(
 API_NO_ARG_FOR_ENDPOINT = FormattedNamedMessage(
     name="api-no-argument-for-endpoint", msg="{endpoint} accepts no arguments"
 )
+API_VERSION_ERROR = FormattedNamedMessage(
+    "unable-to-determine-version", "Unable to determine version: {error_msg}"
+)
+UNATTENDED_UPGRADES_ERROR = FormattedNamedMessage(
+    "unable-to-determine-unattended-upgrade-status",
+    "Unable to determine unattended-upgrades status: {error_msg}",
+)
 
 INVALID_FILE_FORMAT = FormattedNamedMessage(
     name="invalid-file-format", msg="{file_name} is not valid {file_format}"
@@ -938,7 +972,7 @@ to get the latest version with new features and bug fixes."""
 )
 
 INVALID_PRO_IMAGE = FormattedNamedMessage(
-    name="invalid-pro-image", msg="Error on Pro Image:\n{msg}"
+    name="invalid-pro-image", msg="Error on Pro Image:\n{error_msg}"
 )
 
 ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
@@ -946,9 +980,12 @@ ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
     msg="{title} does not support being enabled with --access-only",
 )
 
-MISSING_DISTRO_INFO_FILE = "Can't load the distro-info database."
-MISSING_SERIES_IN_DISTRO_INFO_FILE = (
-    "Can't find series {} in the distro-info database."
+MISSING_DISTRO_INFO_FILE = NamedMessage(
+    "missing-distro-info-file", "Can't load the distro-info database."
+)
+MISSING_SERIES_IN_DISTRO_INFO_FILE = FormattedNamedMessage(
+    "missing-series-in-distro-info-file",
+    "Can't find series {series} in the distro-info database.",
 )
 
 # Security Status output
@@ -1041,7 +1078,7 @@ SS_PACKAGES_HEADER = "Packages:"
 
 ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
     "entitlement-not-found",
-    'could not find entitlement named "{name}"',
+    'could not find entitlement named "{entitlement_name}"',
 )
 
 ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
@@ -1098,11 +1135,11 @@ INCORRECT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
 )
 INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-list-element-type",
-    "Got value with incorrect type at index {index}: {nested_msg}",
+    "Got value with incorrect type at index {index}:\n{nested_msg}",
 )
 INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-field-type",
-    'Got value with incorrect type for field "{key}": {nested_msg}',
+    'Got value with incorrect type for field "{key}":\n{nested_msg}',
 )
 INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-enum-value",
@@ -1401,10 +1438,19 @@ REPO_UPDATING_APT_SOURCES = (
 REPO_REFRESH_INSTALLING_PACKAGES = (
     "Installing packages on changed directives: {}"
 )
-REPO_NO_APT_KEY = "Ubuntu Pro server provided no aptKey directive for {}"
-REPO_NO_SUITES = "Ubuntu Pro server provided no suites directive for {}"
-REPO_PIN_FAIL_NO_ORIGIN = (
-    "Cannot setup apt pin. Empty apt repo origin value '{}'."
+REPO_NO_APT_KEY = FormattedNamedMessage(
+    "repo-no-apt-key",
+    "Ubuntu Pro server provided no aptKey directive for {entitlement_name}",
+)
+REPO_NO_SUITES = FormattedNamedMessage(
+    "repo-no-suites",
+    "Ubuntu Pro server provided no suites directive for {entitlement_name}",
+)
+REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
+    "repo-pin-fail-no-origin",
+    "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
+    + "\n"
+    + ENABLED_FAILED.tmpl_msg,
 )
 
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
@@ -1424,29 +1470,50 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 CLI_TRY_HELP = "Try 'pro --help' for more information."
-CLI_VALID_CHOICES = "\n{} must be one of: {}"
-CLI_EXPECTED_FORMAT = "\nExpected {expected} but found: {actual}"
-CLI_CONFIG_VALUE_MUST_BE_POS_INT = (
-    "Cannot set {} to {}: " "<value> for interval must be a positive integer."
+CLI_VALID_CHOICES = FormattedNamedMessage(
+    "invalid-arg-choice", "\n{arg} must be one of: {choices}"
 )
-CLI_NO_HELP = "No help available for '{}'"
-CONFIG_POS_INT_FAIL_DEFAULT_FALLBACK = (
-    "Value for the {} interval must be a positive integer. "
-    "Default value will be used."
+CLI_EXPECTED_FORMAT = FormattedNamedMessage(
+    "generic-invalid-format", "\nExpected {expected} but found: {actual}"
 )
-CONFIG_NO_YAML_FILE = "Could not find yaml file: {}"
-CONFIG_INVALID_URL = "Invalid url in config. {}: {}"
+CLI_CONFIG_VALUE_MUST_BE_POS_INT = FormattedNamedMessage(
+    "invalid-posint-config-value",
+    (
+        "Cannot set {key} to {value}: "
+        "<value> for interval must be a positive integer."
+    ),
+)
+CLI_NO_HELP = FormattedNamedMessage(
+    "no-help-content", "No help available for '{name}'"
+)
+CONFIG_NO_YAML_FILE = FormattedNamedMessage(
+    "invalid-feature-yaml-config-value", "Could not find yaml file: {filepath}"
+)
+CONFIG_INVALID_URL = FormattedNamedMessage(
+    "invalid-url-config-value", "Invalid url in config. {key}: {value}"
+)
 
 APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
 APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
-APT_INVALID_CREDENTIALS = "Invalid APT credentials provided for {}"
-APT_TIMEOUT = "Timeout trying to access APT repository at {}"
-APT_UNEXPECTED_ERROR = (
-    "Unexpected APT error. See /var/log/ubuntu-advantage.log"
+APT_INVALID_CREDENTIALS = FormattedNamedMessage(
+    "apt-invalid-credentials", "Invalid APT credentials provided for {repo}"
 )
-APT_COMMAND_TIMEOUT = (
-    "Cannot validate credentials for APT repo."
-    " Timeout after {} seconds trying to reach {}."
+APT_TIMEOUT = FormattedNamedMessage(
+    "apt-timeout", "Timeout trying to access APT repository at {repo}"
+)
+APT_UNEXPECTED_ERROR = FormattedNamedMessage(
+    "apt-unexpected-error",
+    """\
+Unexpected APT error.
+{detail}
+See /var/log/ubuntu-advantage.log""",
+)
+APT_COMMAND_TIMEOUT = FormattedNamedMessage(
+    "apt-command-timeout",
+    (
+        "Cannot validate credentials for APT repo."
+        " Timeout after {seconds} seconds trying to reach {repo}."
+    ),
 )
 
 
@@ -1454,9 +1521,14 @@ DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
 
 STATUS_TOKEN_NOT_VALID = "This token is not valid."
 
-AWS_NO_VALID_IMDS = "No valid AWS IMDS endpoint discovered at addresses: {}"
+AWS_NO_VALID_IMDS = FormattedNamedMessage(
+    "aws-no-valid-imds",
+    "No valid AWS IMDS endpoint discovered at addresses: {addresses}",
+)
 
-GPG_KEY_NOT_FOUND = "GPG key '{}' not found."
+GPG_KEY_NOT_FOUND = FormattedNamedMessage(
+    "gpg-key-not-found", "GPG key '{keyfile}' not found."
+)
 
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (

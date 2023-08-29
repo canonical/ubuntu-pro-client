@@ -28,6 +28,7 @@ from uaclient.entitlements.fips import (
     FIPSUpdatesEntitlement,
 )
 from uaclient.files.notices import Notice, NoticesManager
+from uaclient.testing import fakes
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
@@ -541,8 +542,11 @@ class TestFIPSEntitlementEnable:
                 entitlement.enable()
 
         error_msg = (
-            "Cannot setup apt pin. Empty apt repo origin value 'None'.\n"
-            "Could not enable {}.".format(entitlement.title)
+            "Cannot setup apt pin. Empty apt repo origin value for {}\n"
+            "Could not enable {}."
+        ).format(
+            entitlement.name,
+            entitlement.title,
         )
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
@@ -875,7 +879,10 @@ class TestFIPSEntitlementRemovePackages:
     ):
         m_get_installed_packages.return_value = ["ubuntu-fips"]
         m_subp.side_effect = exceptions.ProcessExecutionError(cmd="test")
-        expected_msg = "Could not disable {}.".format(entitlement.title)
+        expected_msg = (
+            "Unexpected APT error.\nCould not disable {}.\nSee "
+            "/var/log/ubuntu-advantage.log"
+        ).format(entitlement.title)
 
         with pytest.raises(exceptions.UserFacingError) as exc_info:
             entitlement.remove_packages()
@@ -1078,7 +1085,7 @@ class TestFipsEntitlementInstallPackages:
     def test_install_packages_fail_if_metapackage_not_installed(
         self, m_run_apt, entitlement
     ):
-        m_run_apt.side_effect = exceptions.UserFacingError("error")
+        m_run_apt.side_effect = fakes.FakeUserFacingError()
         with mock.patch.object(entitlement, "remove_apt_config"):
             with pytest.raises(exceptions.UserFacingError):
                 entitlement.install_packages()
@@ -1100,8 +1107,8 @@ class TestFipsEntitlementInstallPackages:
 
         m_run_apt_install.side_effect = [
             True,
-            exceptions.UserFacingError("error"),
-            exceptions.UserFacingError("error"),
+            fakes.FakeUserFacingError(),
+            fakes.FakeUserFacingError(),
         ]
 
         fake_stdout = io.StringIO()
@@ -1122,7 +1129,6 @@ class TestFipsEntitlementInstallPackages:
                         '-o Dpkg::Options::="--force-confdef"',
                         '-o Dpkg::Options::="--force-confold"',
                     ],
-                    error_msg="Could not enable {}.".format(entitlement.title),
                     override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
                 )
             )
@@ -1130,9 +1136,11 @@ class TestFipsEntitlementInstallPackages:
         expected_msg = "\n".join(
             [
                 "Installing {} packages".format(entitlement.title),
+                "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"
                 ),
+                "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="c"
                 ),

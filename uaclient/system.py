@@ -12,7 +12,7 @@ from functools import lru_cache
 from shutil import rmtree
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple
 
-from uaclient import defaults, exceptions, messages, util
+from uaclient import defaults, exceptions, util
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -381,7 +381,7 @@ def get_distro_info(series: str) -> DistroInfo:
     try:
         lines = load_file(DISTRO_INFO_CSV).splitlines()
     except FileNotFoundError:
-        raise exceptions.UserFacingError(messages.MISSING_DISTRO_INFO_FILE)
+        raise exceptions.MissingDistroInfoFile()
     for line in lines:
         values = line.split(",")
         if values[2] == series:
@@ -394,9 +394,7 @@ def get_distro_info(series: str) -> DistroInfo:
                 eol_esm=datetime.datetime.strptime(eol_esm, "%Y-%m-%d").date(),
             )
 
-    raise exceptions.UserFacingError(
-        messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format(series)
-    )
+    raise exceptions.MissingSeriesInDistroInfoFile(series=series)
 
 
 def which(program: str) -> Optional[str]:

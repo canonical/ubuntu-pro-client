@@ -99,15 +99,12 @@ class UAContractClient(serviceclient.UAServiceClient):
         if response.code == 401:
             raise exceptions.AttachInvalidTokenError()
         elif response.code == 403:
-            msg = _create_attach_forbidden_message(response)
-            raise exceptions.UserFacingError(
-                msg=msg.msg,
-                msg_code=msg.name,
-                additional_info=msg.additional_info,
-            )
+            _raise_attach_forbidden_message(response)
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_ADD_CONTRACT_MACHINE, response.code, response.body
+                url=API_V1_ADD_CONTRACT_MACHINE,
+                code=response.code,
+                body=response.body,
             )
 
         return response.json_dict
@@ -126,7 +123,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_AVAILABLE_RESOURCES, response.code, response.body
+                url=API_V1_AVAILABLE_RESOURCES,
+                code=response.code,
+                body=response.body,
             )
         return response.json_dict
 
@@ -138,7 +137,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_GET_CONTRACT_USING_TOKEN, response.code, response.body
+                url=API_V1_GET_CONTRACT_USING_TOKEN,
+                code=response.code,
+                body=response.body,
             )
         return response.json_dict
 
@@ -164,9 +165,9 @@ class UAContractClient(serviceclient.UAServiceClient):
                 LOG.debug(msg)
                 raise exceptions.InvalidProImage(error_msg=msg)
             raise exceptions.ContractAPIError(
-                API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE,
-                response.code,
-                response.body,
+                url=API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE,
+                code=response.code,
+                body=response.body,
             )
 
         self.cfg.write_cache("contract-token", response.json_dict)
@@ -200,9 +201,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         response = self.request_url(url, headers=headers)
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_GET_RESOURCE_MACHINE_ACCESS,
-                response.code,
-                response.body,
+                url=API_V1_GET_RESOURCE_MACHINE_ACCESS,
+                code=response.code,
+                body=response.body,
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
@@ -232,7 +233,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         response = self.request_url(url, headers=headers, data=request_data)
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                url, response.code, response.body
+                url=url, code=response.code, body=response.body
             )
 
         # We will update the `machine-token.json` based on the response
@@ -272,9 +273,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise exceptions.MagicAttachUnavailable()
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_GET_MAGIC_ATTACH_TOKEN_INFO,
-                response.code,
-                response.body,
+                url=API_V1_GET_MAGIC_ATTACH_TOKEN_INFO,
+                code=response.code,
+                body=response.body,
             )
 
         return response.json_dict
@@ -296,7 +297,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise exceptions.MagicAttachUnavailable()
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_NEW_MAGIC_ATTACH, response.code, response.body
+                url=API_V1_NEW_MAGIC_ATTACH,
+                code=response.code,
+                body=response.body,
             )
 
         return response.json_dict
@@ -323,7 +326,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             raise exceptions.MagicAttachUnavailable()
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                API_V1_REVOKE_MAGIC_ATTACH, response.code, response.body
+                url=API_V1_REVOKE_MAGIC_ATTACH,
+                code=response.code,
+                body=response.body,
             )
 
     def get_contract_machine(
@@ -363,7 +368,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                url, response.code, response.body
+                url=url, code=response.code, body=response.body
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
@@ -403,7 +408,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         if response.code != 200:
             raise exceptions.ContractAPIError(
-                url, response.code, response.body
+                url=url, code=response.code, body=response.body
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
@@ -589,10 +594,9 @@ def process_entitlement_delta(
         if not name:
             name = deltas.get("entitlement", {}).get("type")
         if not name:
-            msg = messages.INVALID_CONTRACT_DELTAS_SERVICE_TYPE.format(
+            raise exceptions.InvalidContractDeltasServiceType(
                 orig=orig_access, new=new_access
             )
-            raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
 
         variant = (
             new_access.get("entitlements", {})
@@ -614,47 +618,33 @@ def process_entitlement_delta(
     return deltas, ret
 
 
-def _create_attach_forbidden_message(
+def _raise_attach_forbidden_message(
     response: http.HTTPResponse,
 ) -> messages.NamedMessage:
-    msg = messages.ATTACH_EXPIRED_TOKEN
     info = response.json_dict.get("info")
     if info:
         contract_id = info["contractId"]
         reason = info["reason"]
-        reason_msg = None
-
         if reason == "no-longer-effective":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
-            additional_info = {
-                "contract_expiry_date": info["time"].strftime("%m-%d-%Y"),
-                "contract_id": contract_id,
-            }
-            reason_msg = messages.ATTACH_FORBIDDEN_EXPIRED.format(
-                contract_id=contract_id, date=date
+            raise exceptions.AttachForbiddenExpired(
+                contract_id=contract_id,
+                date=date,
+                # keep this extra date for backwards compat
+                contract_expiry_date=info["time"].strftime("%m-%d-%Y"),
             )
-            reason_msg.additional_info = additional_info
         elif reason == "not-effective-yet":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
-            additional_info = {
-                "contract_effective_date": info["time"].strftime("%m-%d-%Y"),
-                "contract_id": contract_id,
-            }
-            reason_msg = messages.ATTACH_FORBIDDEN_NOT_YET.format(
-                contract_id=contract_id, date=date
+            raise exceptions.AttachForbiddenNotYet(
+                contract_id=contract_id,
+                date=date,
+                # keep this extra date for backwards compat
+                contract_effective_date=info["time"].strftime("%m-%d-%Y"),
             )
-            reason_msg.additional_info = additional_info
         elif reason == "never-effective":
-            reason_msg = messages.ATTACH_FORBIDDEN_NEVER.format(
-                contract_id=contract_id
-            )
+            raise exceptions.AttachForbiddenNever(contract_id=contract_id)
 
-        if reason_msg:
-            msg = messages.ATTACH_FORBIDDEN.format(reason=reason_msg.msg)
-            msg.name = reason_msg.name
-            msg.additional_info = reason_msg.additional_info
-
-    return msg
+    raise exceptions.AttachExpiredToken()
 
 
 def refresh(cfg):

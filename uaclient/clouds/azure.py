@@ -34,7 +34,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
             )
             if response.code != 200:
                 raise exceptions.CloudMetadataError(
-                    response.code, response.body
+                    code=response.code, body=response.body
                 )
             if key == "pkcs7":
                 responses[key] = response.json_dict["signature"]

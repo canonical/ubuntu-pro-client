@@ -1,4 +1,4 @@
-from uaclient import http
+from uaclient import exceptions, http, messages
 from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
 
 
@@ -61,3 +61,7 @@ class FakeFile:
 
     def __exit__(self, _exc_type, _exc_value, _traceback):
         pass
+
+
+class FakeUserFacingError(exceptions.UserFacingError):
+    _msg = messages.NamedMessage("test-error", "This is a test")

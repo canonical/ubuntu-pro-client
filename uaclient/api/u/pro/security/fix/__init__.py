@@ -388,7 +388,7 @@ def _get_cve_data(
     except exceptions.SecurityAPIError as e:
         if e.code == 404:
             raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
-        raise exceptions.UserFacingError(str(e))
+        raise e
 
     affected_pkg_status = get_cve_affected_source_packages_status(
         cve=cve, installed_packages=installed_packages
@@ -411,14 +411,15 @@ def _get_usn_data(
     except exceptions.SecurityAPIError as e:
         if e.code == 404:
             raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
-        raise exceptions.UserFacingError(str(e))
+        raise e
 
     if not usn.response["release_packages"]:
         # Since usn.release_packages filters to our current release only
         # check overall metadata and error if empty.
         raise exceptions.SecurityAPIMetadataError(
-            "{} metadata defines no fixed package versions.".format(issue_id),
-            issue_id=issue_id,
+            error_msg="metadata defines no fixed package versions.",
+            issue=issue_id,
+            extra_info="",
         )
 
     return usn, usns

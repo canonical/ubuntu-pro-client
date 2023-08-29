@@ -1274,8 +1274,8 @@ class TestHandleRequiredSnaps:
         entitlement = concrete_entitlement_factory()
         m_base_ent_cfg.return_value = entitlement_cfg
         m_get_snap_info.side_effect = [
-            exceptions.SnapNotInstalledError("snap"),
-            exceptions.SnapNotInstalledError("snap"),
+            exceptions.SnapNotInstalledError(snap="snap"),
+            exceptions.SnapNotInstalledError(snap="snap"),
             mock.MagicMock,
         ]
 

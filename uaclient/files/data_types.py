@@ -48,14 +48,14 @@ class DataObjectFile(Generic[DOFType]):
                 )
             except json.JSONDecodeError:
                 raise exceptions.InvalidFileFormatError(
-                    self.ua_file.path, "json"
+                    file_name=self.ua_file.path, file_format="json"
                 )
         elif self.file_format == DataObjectFileFormat.YAML:
             try:
                 parsed_data = safe_load(raw_data)
             except yaml_parser.ParserError:
                 raise exceptions.InvalidFileFormatError(
-                    self.ua_file.path, "yaml"
+                    file_name=self.ua_file.path, file_format="yaml"
                 )
 
         if parsed_data is None:

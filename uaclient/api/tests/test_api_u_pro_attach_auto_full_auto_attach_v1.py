@@ -14,6 +14,7 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
+from uaclient.testing import fakes
 from uaclient.testing.helpers import does_not_raise
 
 M_PATH = "uaclient.api.u.pro.attach.auto.full_auto_attach.v1."
@@ -71,8 +72,10 @@ class TestEnableServicesByName:
                 False,
                 [
                     (True, None),
-                    exceptions.UserFacingError("msg"),
-                    exceptions.UserFacingError("msg", "code"),
+                    exceptions.EntitlementNotFoundError(
+                        entitlement_name="name"
+                    ),
+                    fakes.FakeUserFacingError(),
                 ],
                 [
                     mock.call(
@@ -92,8 +95,13 @@ class TestEnableServicesByName:
                     ),
                 ],
                 [
-                    ("esm-infra", messages.NamedMessage("unknown", "msg")),
-                    ("livepatch", messages.NamedMessage("code", "msg")),
+                    (
+                        "esm-infra",
+                        messages.ENTITLEMENT_NOT_FOUND.format(
+                            entitlement_name="name"
+                        ),
+                    ),
+                    ("livepatch", fakes.FakeUserFacingError._msg),
                 ],
             ),
             # fail via return
@@ -228,7 +236,9 @@ class TestFullAutoAttachV1:
     @mock.patch(
         "uaclient.lock.SpinLock.__enter__",
         side_effect=[
-            exceptions.LockHeldError("request", "holder", 10),
+            exceptions.LockHeldError(
+                lock_request="request", lock_holder="holder", pid=10
+            ),
         ],
     )
     def test_lock_held(
