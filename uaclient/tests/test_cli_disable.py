@@ -305,6 +305,11 @@ class TestDisable:
                     "type": "service",
                 },
                 {
+                    "additional_info": {
+                        "invalid_service": "ent1",
+                        "operation": "disable",
+                        "service_msg": "Try ent2, ent3.",
+                    },
                     "message": (
                         "Cannot disable unknown service 'ent1'.\n"
                         "Try ent2, ent3."
@@ -351,8 +356,14 @@ class TestDisable:
                 invalid_service="bogus",
                 service_msg=all_service_msg,
             )
+            expected_info = {
+                "operation": "disable",
+                "invalid_service": "bogus",
+                "service_msg": all_service_msg,
+            }
         else:
             expected_error = expected_error_template
+            expected_info = None
 
         with pytest.raises(exceptions.UserFacingError) as err:
             args.service = ["bogus"]
@@ -386,6 +397,8 @@ class TestDisable:
             "processed_services": [],
             "warnings": [],
         }
+        if expected_info is not None:
+            expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
@@ -427,6 +440,11 @@ class TestDisable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "invalid_service": ", ".join(sorted(service)),
+                        "operation": "disable",
+                        "service_msg": all_service_msg,
+                    },
                     "message": expected_error.msg,
                     "message_code": expected_error.name,
                     "service": None,
@@ -466,8 +484,10 @@ class TestDisable:
             expected_error = expected_error_template.format(
                 valid_service="esm-infra"
             )
+            expected_info = {"valid_service": "esm-infra"}
         else:
             expected_error = expected_error_template
+            expected_info = None
 
         with pytest.raises(exceptions.UserFacingError) as err:
             args.service = ["esm-infra"]
@@ -502,6 +522,8 @@ class TestDisable:
             "processed_services": [],
             "warnings": [],
         }
+        if expected_info is not None:
+            expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
     @mock.patch("uaclient.system.subp")
@@ -540,6 +562,11 @@ class TestDisable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "lock_holder": "pro enable",
+                        "lock_request": "pro disable",
+                        "pid": 123,
+                    },
                     "message": expected_error.msg,
                     "message_code": expected_error.name,
                     "service": None,

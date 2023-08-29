@@ -1,26 +1,26 @@
 import mock
 import pytest
 
+from uaclient import exceptions
+from uaclient.api import errors
 from uaclient.api.api import call_api
 from uaclient.api.data_types import APIResponse, ErrorWarningObject
-from uaclient.api.errors import APIError, error_out
 from uaclient.data_types import IncorrectFieldTypeError
-from uaclient.exceptions import UserFacingError
 from uaclient.messages import (
     API_BAD_ARGS_FORMAT,
     API_INVALID_ENDPOINT,
-    API_JSON_DATA_FORMAT_ERROR,
     API_MISSING_ARG,
     API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
     WARN_NEW_VERSION_AVAILABLE,
 )
+from uaclient.testing import fakes
 
 
 class TestAPIErrors:
     @mock.patch("uaclient.api.errors.get_pro_environment")
     def test_error_out_fields(self, _m_environment):
-        error_response = error_out(None)
+        error_response = errors.error_out(None)
         assert isinstance(error_response, APIResponse)
         assert error_response._schema_version == "v1"
         assert error_response.data == {"meta": {"environment_vars": []}}
@@ -31,26 +31,27 @@ class TestAPIErrors:
         "exception,title,code,meta",
         (
             (
-                UserFacingError(
-                    msg="msg",
-                    msg_code="msg_code",
-                    additional_info={"some": "information"},
-                ),
-                "msg",
-                "msg_code",
-                {"some": "information"},
+                exceptions.AttachFailureUnknownError(failed_services=[]),
+                exceptions.AttachFailureUnknownError._msg.msg,
+                exceptions.AttachFailureUnknownError._msg.name,
+                {"services": []},
             ),
             (
-                APIError(msg="msg", additional_info={"some": "information"}),
-                "msg",
-                "api-error",
-                {"some": "information"},
+                errors.APIInvalidEndpoint(
+                    endpoint="endpoint",
+                    some="information",
+                ),
+                errors.APIInvalidEndpoint._formatted_msg.format(
+                    endpoint="endpoint"
+                ).msg,
+                errors.APIInvalidEndpoint._formatted_msg.name,
+                {"some": "information", "endpoint": "endpoint"},
             ),
             (TypeError("msg"), "msg", "generic-TypeError", {}),
         ),
     )
     def test_error_out_response(self, exception, title, code, meta):
-        error_response = error_out(exception)
+        error_response = errors.error_out(exception)
         error = error_response.errors[0]
 
         assert error.title == title
@@ -59,13 +60,13 @@ class TestAPIErrors:
 
 
 class TestAPICall:
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.errors.error_out")
     def test_invalid_endpoint(self, m_error_out, FakeConfig):
         result = call_api("invalid_endpoint", [], "", cfg=FakeConfig())
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
         arg = m_error_out.call_args[0][0]
-        assert isinstance(arg, APIError)
+        assert isinstance(arg, errors.APIError)
         assert (
             arg.msg
             == API_INVALID_ENDPOINT.format(endpoint="invalid_endpoint").msg
@@ -75,7 +76,7 @@ class TestAPICall:
     @pytest.mark.parametrize(
         "arguments", (["badformat"], ["=badformat"], ["badformat="])
     )
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.errors.error_out")
     @mock.patch("uaclient.api.api.import_module")
     def test_bad_formatted_args(
         self, _m_import_module, m_error_out, arguments, FakeConfig
@@ -88,12 +89,12 @@ class TestAPICall:
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
         arg = m_error_out.call_args[0][0]
-        assert isinstance(arg, APIError)
+        assert isinstance(arg, errors.APIError)
         assert arg.msg == API_BAD_ARGS_FORMAT.format(arg=arguments[0]).msg
         assert arg.msg_code == API_BAD_ARGS_FORMAT.name
 
     @pytest.mark.parametrize("options_cls", (None, mock.MagicMock()))
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.errors.error_out")
     @mock.patch("uaclient.api.api.import_module")
     def test_wrong_args(
         self, m_import_module, m_error_out, options_cls, FakeConfig
@@ -118,7 +119,7 @@ class TestAPICall:
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
         arg = m_error_out.call_args[0][0]
-        assert isinstance(arg, APIError)
+        assert isinstance(arg, errors.APIError)
 
         if options_cls:
             assert (
@@ -197,15 +198,13 @@ class TestAPICall:
         else:
             assert mock_endpoint_fn.call_args_list == [mock.call(cfg)]
 
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.errors.error_out")
     @mock.patch("uaclient.api.api.import_module")
     def test_endpoint_function_error(
         self, m_import_module, m_error_out, FakeConfig
     ):
         mock_endpoint = mock.MagicMock(options_cls=None)
-        exception = UserFacingError(
-            "something is wrong", "fn-specific", {"extra": "info"}
-        )
+        exception = fakes.FakeUserFacingError()
         mock_endpoint.fn.side_effect = exception
 
         m_import_module.return_value.endpoint = mock_endpoint
@@ -290,7 +289,7 @@ class TestAPICall:
     ):
         mock_endpoint = mock.MagicMock()
         if api_error:
-            exception = UserFacingError("something is wrong")
+            exception = fakes.FakeUserFacingError()
             mock_endpoint.fn.side_effect = exception
         else:
             mock_endpoint.fn.return_value.warnings = []
@@ -347,7 +346,7 @@ class TestAPICall:
             mock.call(m_options_cls.from_dict.return_value, cfg)
         ]
 
-    @mock.patch("uaclient.api.api.error_out")
+    @mock.patch("uaclient.api.errors.error_out")
     @mock.patch("uaclient.api.api.import_module")
     def test_endpoint_function_error_with_invalid_data(
         self, m_import_module, m_error_out, FakeConfig
@@ -360,10 +359,7 @@ class TestAPICall:
         mock_endpoint = mock.MagicMock(options_cls=m_options_cls)
 
         data = "{"
-        exception = APIError(
-            msg=API_JSON_DATA_FORMAT_ERROR.format(data=data).msg,
-            msg_code=API_JSON_DATA_FORMAT_ERROR.name,
-        )
+        exception = errors.APIJSONDataFormatError(data=data)
         mock_endpoint.fn.side_effect = exception
 
         m_import_module.return_value.endpoint = mock_endpoint
@@ -375,6 +371,8 @@ class TestAPICall:
 
         assert result == m_error_out.return_value
         assert m_error_out.call_count == 1
-        assert isinstance(m_error_out.call_args[0][0], APIError)
+        assert isinstance(
+            m_error_out.call_args[0][0], errors.APIJSONDataFormatError
+        )
         assert m_error_out.call_args[0][0].msg == exception.msg
         assert m_error_out.call_args[0][0].msg_code == exception.msg_code

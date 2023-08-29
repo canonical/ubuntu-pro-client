@@ -142,7 +142,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                exceptions.CloudFactoryError("none"),
+                exceptions.CloudFactoryNoCloudError(),
                 None,
                 None,
                 None,

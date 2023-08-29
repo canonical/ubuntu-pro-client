@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from uaclient import exceptions, http, messages, system, util
+from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
@@ -34,7 +34,9 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         if response.code == 200:
             return response.body
         else:
-            raise exceptions.CloudMetadataError(response.code, response.body)
+            raise exceptions.CloudMetadataError(
+                code=response.code, body=response.body
+            )
 
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
@@ -57,8 +59,8 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
                 self._ip_address = address
                 break
         if self._ip_address is None:
-            raise exceptions.UserFacingError(
-                messages.AWS_NO_VALID_IMDS.format(", ".join(IMDS_IP_ADDRESS))
+            raise exceptions.AWSNoValidIMDS(
+                addresses=", ".join(IMDS_IP_ADDRESS)
             )
         return headers
 
@@ -82,7 +84,9 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
             self._api_token = "IMDSv1"
             return None
 
-        raise exceptions.CloudMetadataError(response.code, response.body)
+        raise exceptions.CloudMetadataError(
+            code=response.code, body=response.body
+        )
 
     @property
     def cloud_type(self) -> str:

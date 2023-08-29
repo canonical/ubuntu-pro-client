@@ -2,19 +2,11 @@ import json
 from importlib import import_module
 from typing import Any, Callable, Dict, List, Tuple
 
+from uaclient.api import errors
 from uaclient.api.data_types import APIData, APIResponse, ErrorWarningObject
-from uaclient.api.errors import APIError, error_out
 from uaclient.config import UAConfig
 from uaclient.data_types import IncorrectFieldTypeError
-from uaclient.messages import (
-    API_BAD_ARGS_FORMAT,
-    API_INVALID_ENDPOINT,
-    API_JSON_DATA_FORMAT_ERROR,
-    API_MISSING_ARG,
-    API_NO_ARG_FOR_ENDPOINT,
-    API_UNKNOWN_ARG,
-    WARN_NEW_VERSION_AVAILABLE,
-)
+from uaclient.messages import API_UNKNOWN_ARG, WARN_NEW_VERSION_AVAILABLE
 from uaclient.version import check_for_new_version
 
 VALID_ENDPOINTS = [
@@ -49,16 +41,10 @@ def _process_options(
         try:
             k, v = option.split("=")
         except ValueError:
-            raise APIError(
-                msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
-                msg_code=API_BAD_ARGS_FORMAT.name,
-            )
+            raise errors.APIBadArgsFormat(arg=option)
 
         if not k or not v:
-            raise APIError(
-                msg=API_BAD_ARGS_FORMAT.format(arg=option).msg,
-                msg_code=API_BAD_ARGS_FORMAT.name,
-            )
+            raise errors.APIBadArgsFormat(arg=option)
 
         if k not in fields:
             warnings.append(
@@ -83,15 +69,11 @@ def _process_data(
     try:
         json_data = json.loads(data)
     except json.decoder.JSONDecodeError:
-        msg = API_JSON_DATA_FORMAT_ERROR.format(data=data)
-        raise APIError(msg=msg.msg, msg_code=msg.name)
+        raise errors.APIJSONDataFormatError(data=data)
 
     for k, v in json_data.items():
         if not k or not v:
-            raise APIError(
-                msg=API_BAD_ARGS_FORMAT.format(arg="{}:{}".format(k, v)).msg,
-                msg_code=API_BAD_ARGS_FORMAT.name,
-            )
+            raise errors.APIBadArgsFormat(arg="{}:{}".format(k, v))
 
         if k not in fields:
             warnings.append(
@@ -112,11 +94,8 @@ def call_api(
 ) -> APIResponse:
 
     if endpoint_path not in VALID_ENDPOINTS:
-        return error_out(
-            APIError(
-                msg=API_INVALID_ENDPOINT.format(endpoint=endpoint_path).msg,
-                msg_code=API_INVALID_ENDPOINT.name,
-            )
+        return errors.error_out(
+            errors.APIInvalidEndpoint(endpoint=endpoint_path)
         )
 
     module = import_module("uaclient.api." + endpoint_path)
@@ -134,40 +113,30 @@ def call_api(
             else:
                 kwargs, warnings = {}, []
             option_warnings.extend(warnings)
-        except APIError as e:
-            return error_out(e)
+        except errors.APIError as e:
+            return errors.error_out(e)
 
         try:
             options = endpoint.options_cls.from_dict(kwargs)
         except IncorrectFieldTypeError as e:
-            return error_out(
-                APIError(
-                    msg=API_MISSING_ARG.format(
-                        arg=e.key, endpoint=endpoint_path
-                    ).msg,
-                    msg_code=API_MISSING_ARG.name,
-                )
+            return errors.error_out(
+                errors.APIMissingArg(arg=e.key, endpoint=endpoint_path)
             )
 
         try:
             result = endpoint.fn(options, cfg)
         except Exception as e:
-            return error_out(e)
+            return errors.error_out(e)
 
     else:
         if options or data:
-            return error_out(
-                APIError(
-                    msg=API_NO_ARG_FOR_ENDPOINT.format(
-                        endpoint=endpoint_path
-                    ).msg,
-                    msg_code=API_NO_ARG_FOR_ENDPOINT.name,
-                )
+            return errors.error_out(
+                errors.APINoArgsForEndpoint(endpoint=endpoint_path)
             )
         try:
             result = endpoint.fn(cfg)
         except Exception as e:
-            return error_out(e)
+            return errors.error_out(e)
 
     new_version = check_for_new_version()
     if new_version:

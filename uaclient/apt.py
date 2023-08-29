@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 from functools import lru_cache
-from typing import Dict, Iterable, List, NamedTuple, Optional, Union
+from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 
 import apt  # type: ignore
 import apt_pkg  # type: ignore
@@ -115,23 +115,19 @@ def assert_valid_apt_credentials(repo_url, username, password):
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
             if re.search(r"401\s+unauthorized|httperror401", stderr):
-                raise exceptions.UserFacingError(
-                    messages.APT_INVALID_CREDENTIALS.format(repo_url)
-                )
+                raise exceptions.APTInvalidCredentials(repo=repo_url)
             elif re.search(r"connection timed out", stderr):
-                raise exceptions.UserFacingError(
-                    messages.APT_TIMEOUT.format(repo_url)
-                )
-        raise exceptions.UserFacingError(messages.APT_UNEXPECTED_ERROR)
+                raise exceptions.APTTimeout(repo=repo_url)
+        raise exceptions.APTUnexpectedError(detail=str(e))
     except subprocess.TimeoutExpired:
-        raise exceptions.UserFacingError(
-            messages.APT_COMMAND_TIMEOUT.format(APT_HELPER_TIMEOUT, repo_path)
+        raise exceptions.APTCommandTimeout(
+            seconds=APT_HELPER_TIMEOUT, repo=repo_path
         )
 
 
 def _parse_apt_update_for_invalid_apt_config(
     apt_error: str,
-) -> Optional[messages.NamedMessage]:
+) -> Set[str]:
     """Parse apt update errors for invalid apt config in user machine.
 
     This functions parses apt update errors regarding the presence of
@@ -149,7 +145,6 @@ def _parse_apt_update_for_invalid_apt_config(
     :param apt_error: The apt error string
     :return: a NamedMessage containing the error message
     """
-    error_msg = None
     failed_repos = set()
 
     for line in apt_error.strip().split("\n"):
@@ -165,13 +160,7 @@ def _parse_apt_update_for_invalid_apt_config(
 
                 failed_repos.add(repo_url_match)
 
-    if failed_repos:
-        error_msg = messages.APT_UPDATE_INVALID_URL_CONFIG.format(
-            plural="s" if len(failed_repos) > 1 else "",
-            failed_repos="\n".join(sorted(failed_repos)),
-        )
-
-    return error_msg
+    return failed_repos
 
 
 def run_apt_command(
@@ -205,14 +194,14 @@ def run_apt_command(
             is invalid or unreachable. In that situation, we alert
             which repository is causing the error
             """
-            repo_error_msg = _parse_apt_update_for_invalid_apt_config(e.stderr)
-            if repo_error_msg:
+            failed_repos = _parse_apt_update_for_invalid_apt_config(e.stderr)
+            if failed_repos:
                 raise exceptions.APTInvalidRepoError(
-                    error_msg=repo_error_msg.msg
+                    failed_repos="\n".join(sorted(failed_repos))
                 )
 
         msg = error_msg if error_msg else str(e)
-        raise exceptions.UserFacingError(msg)
+        raise exceptions.APTUnexpectedError(detail=msg)
     return out
 
 
@@ -341,10 +330,7 @@ def run_apt_update_command(
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
     except exceptions.UserFacingError as e:
-        raise exceptions.UserFacingError(
-            msg=messages.APT_UPDATE_FAILED.msg + "\n" + e.msg,
-            msg_code=messages.APT_UPDATE_FAILED.name,
-        )
+        raise exceptions.APTUpdateFailed(detail=e.msg)
     finally:
         # Whenever we run an apt-get update command, we must invalidate
         # the existing apt-cache policy cache. Otherwise, we could provide
@@ -357,7 +343,6 @@ def run_apt_update_command(
 def run_apt_install_command(
     packages: List[str],
     apt_options: Optional[List[str]] = None,
-    error_msg: Optional[str] = None,
     override_env_vars: Optional[Dict[str, str]] = None,
 ) -> str:
     if apt_options is None:
@@ -368,15 +353,12 @@ def run_apt_install_command(
             cmd=["apt-get", "install", "--assume-yes"]
             + apt_options
             + packages,
-            error_msg=error_msg,
             override_env_vars=override_env_vars,
         )
     except exceptions.APTProcessConflictError:
-        raise exceptions.APTInstallProcessConflictError(header_msg=error_msg)
+        raise exceptions.APTInstallProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
-        raise exceptions.APTInstallInvalidRepoError(
-            repo_msg=e.msg, header_msg=error_msg
-        )
+        raise exceptions.APTInstallInvalidRepoError(repo_msg=e.msg)
 
     return out
 

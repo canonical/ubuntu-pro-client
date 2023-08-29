@@ -10,48 +10,35 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class IncorrectTypeError(exceptions.UserFacingError):
-    def __init__(self, expected_type: str, got_type: str):
-        msg = messages.INCORRECT_TYPE_ERROR_MESSAGE.format(
-            expected_type=expected_type, got_type=got_type
-        )
-        super().__init__(msg.msg, msg.name)
-        self.expected_type = expected_type
-        self.got_type = got_type
+    _formatted_msg = messages.INCORRECT_TYPE_ERROR_MESSAGE
+    expected_type = None  # type: str
+    got_type = None  # type: str
 
 
 class IncorrectListElementTypeError(IncorrectTypeError):
-    def __init__(self, err: IncorrectTypeError, at_index: int):
-        msg = messages.INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE.format(
-            index=at_index, nested_msg=err.msg
-        )
-        self.msg = msg.msg
-        self.msg_code = msg.name
-        self.additional_info = None
+    _formatted_msg = messages.INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE
+
+    def __init__(self, *, err: IncorrectTypeError, at_index: int):
+        super().__init__(index=at_index, nested_msg=err.msg)
         self.expected_type = err.expected_type
         self.got_type = err.got_type
 
 
 class IncorrectFieldTypeError(IncorrectTypeError):
-    def __init__(self, err: IncorrectTypeError, key: str):
-        msg = messages.INCORRECT_FIELD_TYPE_ERROR_MESSAGE.format(
-            key=key, nested_msg=err.msg
-        )
-        self.msg = msg.msg
-        self.msg_code = msg.name
-        self.additional_info = None
-        self.key = key
+    _formatted_msg = messages.INCORRECT_FIELD_TYPE_ERROR_MESSAGE
+    key = None  # type: str
+
+    def __init__(self, *, err: IncorrectTypeError, key: str):
+        super().__init__(key=key, nested_msg=err.msg)
         self.expected_type = err.expected_type
         self.got_type = err.got_type
 
 
 class IncorrectEnumValueError(IncorrectTypeError):
-    def __init__(self, values: List[Union[str, int]], enum_class: Any):
-        msg = messages.INCORRECT_ENUM_VALUE_ERROR_MESSAGE.format(
-            values=values, enum_class=repr(enum_class)
-        )
-        self.msg = msg.msg
-        self.msg_code = msg.name
-        self.additional_info = None
+    _formatted_msg = messages.INCORRECT_ENUM_VALUE_ERROR_MESSAGE
+
+    def __init__(self, *, values: List[Union[str, int]], enum_class: Any):
+        super().__init__(values=values, enum_class=repr(enum_class))
         self.expected_type = "one of: {}".format(
             ", ".join([str(v) for v in values])
         )
@@ -86,7 +73,7 @@ class EnumDataValue(DataValue, Enum):
             return cls(val)
         except ValueError:
             values = [i.value for i in cls]
-            raise IncorrectEnumValueError(values, cls)
+            raise IncorrectEnumValueError(values=values, enum_class=cls)
 
 
 class StringDataValue(DataValue):
@@ -99,7 +86,9 @@ class StringDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> str:
         if not isinstance(val, str):
-            raise IncorrectTypeError("str", type(val).__name__)
+            raise IncorrectTypeError(
+                expected_type="str", got_type=type(val).__name__
+            )
         return val
 
 
@@ -113,7 +102,9 @@ class IntDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> int:
         if not isinstance(val, int) or isinstance(val, bool):
-            raise IncorrectTypeError("int", type(val).__name__)
+            raise IncorrectTypeError(
+                expected_type="int", got_type=type(val).__name__
+            )
         return val
 
 
@@ -127,7 +118,9 @@ class BoolDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> bool:
         if not isinstance(val, bool):
-            raise IncorrectTypeError("bool", type(val).__name__)
+            raise IncorrectTypeError(
+                expected_type="bool", got_type=type(val).__name__
+            )
         return val
 
 
@@ -141,7 +134,9 @@ class DatetimeDataValue(DataValue):
     @staticmethod
     def from_value(val: Any) -> datetime.datetime:
         if not isinstance(val, datetime.datetime):
-            raise IncorrectTypeError("datetime", type(val).__name__)
+            raise IncorrectTypeError(
+                expected_type="datetime", got_type=type(val).__name__
+            )
         return val
 
 
@@ -156,13 +151,15 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
         @staticmethod
         def from_value(val: Any) -> List:
             if not isinstance(val, list):
-                raise IncorrectTypeError("list", type(val).__name__)
+                raise IncorrectTypeError(
+                    expected_type="list", got_type=type(val).__name__
+                )
             new_val = []
             for i, item in enumerate(val):
                 try:
                     new_val.append(data_cls.from_value(item))
                 except IncorrectTypeError as e:
-                    raise IncorrectListElementTypeError(e, i)
+                    raise IncorrectListElementTypeError(err=e, at_index=i)
             return new_val
 
     return _DataList
@@ -283,8 +280,11 @@ class DataObject(DataValue):
             except KeyError:
                 if field.required:
                     raise IncorrectFieldTypeError(
-                        IncorrectTypeError(field.data_cls.__name__, "null"),
-                        field.dict_key,
+                        err=IncorrectTypeError(
+                            expected_type=field.data_cls.__name__,
+                            got_type="null",
+                        ),
+                        key=field.dict_key,
                     )
                 else:
                     val = None
@@ -302,7 +302,9 @@ class DataObject(DataValue):
                         )
                         val = None
                     else:
-                        raise IncorrectFieldTypeError(e, field.dict_key)
+                        raise IncorrectFieldTypeError(
+                            err=e, key=field.dict_key
+                        )
 
             kwargs[field.key] = val
         return cls(**kwargs)
@@ -310,7 +312,9 @@ class DataObject(DataValue):
     @classmethod
     def from_value(cls, val: Any):
         if not isinstance(val, dict):
-            raise IncorrectTypeError("dict", type(val).__name__)
+            raise IncorrectTypeError(
+                expected_type="dict", got_type=type(val).__name__
+            )
         return cls.from_dict(val)
 
 

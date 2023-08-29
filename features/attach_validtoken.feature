@@ -164,8 +164,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stderr matches regexp:
         """
-        Error while reading /tmp/attach.yaml: Got value with incorrect type for field
-        "token": Expected value with type StringDataValue but got type: null
+        Error while reading /tmp/attach.yaml:
+        Got value with incorrect type for field "token":
+        Expected value with type StringDataValue but got type: null
         """
         # other schema error
         When I create the file `/tmp/attach.yaml` with the following
@@ -177,8 +178,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
         Then stderr matches regexp:
         """
-        Error while reading /tmp/attach.yaml: Got value with incorrect type for field
-        "enable_services": Expected value with type list but got type: dict
+        Error while reading /tmp/attach.yaml:
+        Got value with incorrect type for field "enable_services":
+        Expected value with type list but got type: dict
         """
         # invalid service name
         When I create the file `/tmp/attach.yaml` with the following

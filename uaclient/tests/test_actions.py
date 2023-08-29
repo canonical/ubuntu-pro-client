@@ -5,7 +5,7 @@ import pytest
 
 from uaclient import exceptions
 from uaclient.actions import attach_with_token, auto_attach, collect_logs
-from uaclient.testing import helpers
+from uaclient.testing import fakes, helpers
 
 M_PATH = "uaclient.actions."
 
@@ -88,7 +88,7 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                exceptions.UserFacingError("message"),
+                fakes.FakeUserFacingError(),
                 None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -314,7 +314,9 @@ class TestAutoAttach:
         cfg = FakeConfig()
 
         unexpected_error = exceptions.ContractAPIError(
-            "http://me", 500, json.dumps({"message": "something unexpected"})
+            url="http://me",
+            code=500,
+            body=json.dumps({"message": "something unexpected"}),
         )
         m_get_contract_token_for_cloud_instances.side_effect = unexpected_error
 

@@ -1,3 +1,4 @@
+from uaclient import messages
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.errors import APIError
@@ -7,7 +8,7 @@ from uaclient.version import get_version
 
 
 class VersionError(APIError):
-    pass
+    _formatted_msg = messages.API_VERSION_ERROR
 
 
 class VersionResult(DataObject, AdditionalInfo):
@@ -27,7 +28,7 @@ def _version(cfg: UAConfig) -> VersionResult:
     try:
         version = get_version()
     except Exception as e:
-        raise VersionError(msg=str(e), msg_code="unable-to-determine-version")
+        raise VersionError(error_msg=str(e))
     return VersionResult(installed_version=version)
 
 
