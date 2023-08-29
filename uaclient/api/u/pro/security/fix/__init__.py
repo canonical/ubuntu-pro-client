@@ -117,10 +117,12 @@ class FixPlanAptUpgradeStep(FixPlanStep):
 class AttachData(DataObject):
     fields = [
         Field("reason", StringDataValue),
+        Field("source_packages", data_list(StringDataValue)),
     ]
 
-    def __init__(self, *, reason: str):
+    def __init__(self, *, reason: str, source_packages: List[str]):
         self.reason = reason
+        self.source_packages = source_packages
 
 
 class FixPlanAttachStep(FixPlanStep):
@@ -138,10 +140,12 @@ class FixPlanAttachStep(FixPlanStep):
 class EnableData(DataObject):
     fields = [
         Field("service", StringDataValue),
+        Field("source_packages", data_list(StringDataValue)),
     ]
 
-    def __init__(self, *, service: str):
+    def __init__(self, *, service: str, source_packages: List[str]):
         self.service = service
+        self.source_packages = source_packages
 
 
 class FixPlanEnableStep(FixPlanStep):
@@ -758,6 +762,7 @@ def _generate_fix_plan(
             all_already_installed = False
 
         upgrade_pkgs, unfixed_pkgs = _get_upgradable_pkgs(binary_pkgs, pocket)
+        source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
 
         if unfixed_pkgs:
             for unfixed_pkg in unfixed_pkgs:
@@ -774,7 +779,10 @@ def _generate_fix_plan(
             if not _is_attached(cfg).is_attached:
                 fix_plan.register_step(
                     operation=FixStepType.ATTACH,
-                    data={"reason": "required-pro-service"},
+                    data={
+                        "reason": "required-pro-service",
+                        "source_packages": source_pkgs,
+                    },
                 )
             else:
                 contract_expiry_status, _ = get_contract_expiry_status(cfg)
@@ -782,7 +790,8 @@ def _generate_fix_plan(
                     fix_plan.register_step(
                         operation=FixStepType.ATTACH,
                         data={
-                            "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value  # noqa
+                            "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value,  # noqa
+                            "source_packages": source_pkgs,
                         },
                     )
 
@@ -797,6 +806,7 @@ def _generate_fix_plan(
                     operation=FixStepType.ENABLE,
                     data={
                         "service": service_to_check,
+                        "source_packages": source_pkgs,
                     },
                 )
 
@@ -804,7 +814,7 @@ def _generate_fix_plan(
             operation=FixStepType.APT_UPGRADE,
             data={
                 "binary_packages": upgrade_pkgs,
-                "source_packages": [src_pkg for src_pkg, _ in pkg_src_group],
+                "source_packages": source_pkgs,
                 "pocket": pocket,
             },
         )
