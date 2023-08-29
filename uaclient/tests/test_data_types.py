@@ -39,10 +39,10 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            (True, IncorrectTypeError("str", "bool")),
-            (1, IncorrectTypeError("str", "int")),
-            ([], IncorrectTypeError("str", "list")),
-            ({}, IncorrectTypeError("str", "dict")),
+            (True, IncorrectTypeError(expected_type="str", got_type="bool")),
+            (1, IncorrectTypeError(expected_type="str", got_type="int")),
+            ([], IncorrectTypeError(expected_type="str", got_type="list")),
+            ({}, IncorrectTypeError(expected_type="str", got_type="dict")),
         ),
     )
     def test_string_data_value_error(self, val, error):
@@ -59,11 +59,11 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            (True, IncorrectTypeError("int", "bool")),
-            ("hello", IncorrectTypeError("int", "str")),
-            ("1", IncorrectTypeError("int", "str")),
-            ([], IncorrectTypeError("int", "list")),
-            ({}, IncorrectTypeError("int", "dict")),
+            (True, IncorrectTypeError(expected_type="int", got_type="bool")),
+            ("hello", IncorrectTypeError(expected_type="int", got_type="str")),
+            ("1", IncorrectTypeError(expected_type="int", got_type="str")),
+            ([], IncorrectTypeError(expected_type="int", got_type="list")),
+            ({}, IncorrectTypeError(expected_type="int", got_type="dict")),
         ),
     )
     def test_int_data_value_error(self, val, error):
@@ -80,10 +80,13 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            ("hello", IncorrectTypeError("bool", "str")),
-            (1, IncorrectTypeError("bool", "int")),
-            ([], IncorrectTypeError("bool", "list")),
-            ({}, IncorrectTypeError("bool", "dict")),
+            (
+                "hello",
+                IncorrectTypeError(expected_type="bool", got_type="str"),
+            ),
+            (1, IncorrectTypeError(expected_type="bool", got_type="int")),
+            ([], IncorrectTypeError(expected_type="bool", got_type="list")),
+            ({}, IncorrectTypeError(expected_type="bool", got_type="dict")),
         ),
     )
     def test_bool_data_value_error(self, val, error):
@@ -108,11 +111,23 @@ class TestDataValues:
     @pytest.mark.parametrize(
         "val, error",
         (
-            ("hello", IncorrectTypeError("datetime", "str")),
-            (1, IncorrectTypeError("datetime", "int")),
-            (False, IncorrectTypeError("datetime", "bool")),
-            ([], IncorrectTypeError("datetime", "list")),
-            ({}, IncorrectTypeError("datetime", "dict")),
+            (
+                "hello",
+                IncorrectTypeError(expected_type="datetime", got_type="str"),
+            ),
+            (1, IncorrectTypeError(expected_type="datetime", got_type="int")),
+            (
+                False,
+                IncorrectTypeError(expected_type="datetime", got_type="bool"),
+            ),
+            (
+                [],
+                IncorrectTypeError(expected_type="datetime", got_type="list"),
+            ),
+            (
+                {},
+                IncorrectTypeError(expected_type="datetime", got_type="dict"),
+            ),
         ),
     )
     def test_datetime_data_value_error(self, val, error):
@@ -161,7 +176,7 @@ class TestDataValues:
             SEVEN = enum_type(7)
 
         values = [i.value for i in OddNumbers]
-        error = IncorrectEnumValueError(values, OddNumbers)
+        error = IncorrectEnumValueError(values=values, enum_class=OddNumbers)
         with pytest.raises(type(error)) as e:
             OddNumbers.from_value(check_enum_type(val))
         assert e.value.msg == error.msg
@@ -184,7 +199,7 @@ class TestDataValues:
             SEVEN = enum_type(7)
 
         values = [i.value for i in OddNumbers]
-        error = IncorrectEnumValueError(values, OddNumbers)
+        error = IncorrectEnumValueError(values=values, enum_class=OddNumbers)
         with pytest.raises(type(error)) as e:
             OddNumbers.from_value(enum_type(val))
         assert e.value.msg == error.msg
@@ -205,7 +220,7 @@ class TestDataValues:
             SEVEN = "seven"
 
         values = [i.value for i in OddNumbers]
-        error = IncorrectEnumValueError(values, OddNumbers)
+        error = IncorrectEnumValueError(values=values, enum_class=OddNumbers)
         with pytest.raises(type(error)) as e:
             OddNumbers.from_value(val)
         assert e.value.msg == error.msg
@@ -230,38 +245,62 @@ class TestDataList:
     @pytest.mark.parametrize(
         "data_cls, val, error",
         (
-            (IntDataValue, "hello", IncorrectTypeError("list", "str")),
-            (IntDataValue, 1, IncorrectTypeError("list", "int")),
-            (IntDataValue, {}, IncorrectTypeError("list", "dict")),
+            (
+                IntDataValue,
+                "hello",
+                IncorrectTypeError(expected_type="list", got_type="str"),
+            ),
+            (
+                IntDataValue,
+                1,
+                IncorrectTypeError(expected_type="list", got_type="int"),
+            ),
+            (
+                IntDataValue,
+                {},
+                IncorrectTypeError(expected_type="list", got_type="dict"),
+            ),
             (
                 IntDataValue,
                 ["one"],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("int", "str"), 0
+                    err=IncorrectTypeError(
+                        expected_type="int", got_type="str"
+                    ),
+                    at_index=0,
                 ),
             ),
             (
                 IntDataValue,
                 [1, 2, 3, []],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("int", "list"), 3
+                    err=IncorrectTypeError(
+                        expected_type="int", got_type="list"
+                    ),
+                    at_index=3,
                 ),
             ),
             (
                 StringDataValue,
                 ["one", "two", "three", {}],
                 IncorrectListElementTypeError(
-                    IncorrectTypeError("str", "dict"), 3
+                    err=IncorrectTypeError(
+                        expected_type="str", got_type="dict"
+                    ),
+                    at_index=3,
                 ),
             ),
             (
                 data_list(StringDataValue),
                 [["one", "two"], ["three"], ["four", 5]],
                 IncorrectListElementTypeError(
-                    IncorrectListElementTypeError(
-                        IncorrectTypeError("str", "int"), 1
+                    err=IncorrectListElementTypeError(
+                        err=IncorrectTypeError(
+                            expected_type="str", got_type="int"
+                        ),
+                        at_index=1,
                     ),
-                    2,
+                    at_index=2,
                 ),
             ),
         ),
@@ -543,7 +582,10 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectTypeError("datetime", "str"), "dt"
+                    err=IncorrectTypeError(
+                        expected_type="datetime", got_type="str"
+                    ),
+                    key="dt",
                 ),
             ),
             (
@@ -562,7 +604,10 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectTypeError("StringDataValue", "null"), "string"
+                    err=IncorrectTypeError(
+                        expected_type="StringDataValue", got_type="null"
+                    ),
+                    key="string",
                 ),
             ),
             (
@@ -582,10 +627,11 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectEnumValueError(
-                        [i.value for i in ExampleEnum], ExampleEnum
+                    err=IncorrectEnumValueError(
+                        values=[i.value for i in ExampleEnum],
+                        enum_class=ExampleEnum,
                     ),
-                    "enum",
+                    key="enum",
                 ),
             ),
             (
@@ -605,7 +651,10 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectTypeError("int", "str"), "integer"
+                    err=IncorrectTypeError(
+                        expected_type="int", got_type="str"
+                    ),
+                    key="integer",
                 ),
             ),
             (
@@ -625,10 +674,13 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectFieldTypeError(
-                        IncorrectTypeError("str", "int"), "string"
+                    err=IncorrectFieldTypeError(
+                        err=IncorrectTypeError(
+                            expected_type="str", got_type="int"
+                        ),
+                        key="string",
                     ),
-                    "obj",
+                    key="obj",
                 ),
             ),
             (
@@ -648,10 +700,13 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectListElementTypeError(
-                        IncorrectTypeError("str", "int"), 1
+                    err=IncorrectListElementTypeError(
+                        err=IncorrectTypeError(
+                            expected_type="str", got_type="int"
+                        ),
+                        at_index=1,
                     ),
-                    "stringlist",
+                    key="stringlist",
                 ),
             ),
             (
@@ -671,19 +726,25 @@ class TestDataObject:
                     "dtlist": [datetime.datetime(2001, 1, 1, 1, 1, 1)],
                 },
                 IncorrectFieldTypeError(
-                    IncorrectListElementTypeError(
-                        IncorrectFieldTypeError(
-                            IncorrectTypeError("int", "str"), "integer"
+                    err=IncorrectListElementTypeError(
+                        err=IncorrectFieldTypeError(
+                            err=IncorrectTypeError(
+                                expected_type="int", got_type="str"
+                            ),
+                            key="integer",
                         ),
-                        0,
+                        at_index=0,
                     ),
-                    "objlist",
+                    key="objlist",
                 ),
             ),
-            ("string", IncorrectTypeError("dict", "str")),
-            (1, IncorrectTypeError("dict", "int")),
-            (True, IncorrectTypeError("dict", "bool")),
-            ([], IncorrectTypeError("dict", "list")),
+            (
+                "string",
+                IncorrectTypeError(expected_type="dict", got_type="str"),
+            ),
+            (1, IncorrectTypeError(expected_type="dict", got_type="int")),
+            (True, IncorrectTypeError(expected_type="dict", got_type="bool")),
+            ([], IncorrectTypeError(expected_type="dict", got_type="list")),
         ),
     )
     def test_error(self, val, error):

@@ -23,6 +23,7 @@ from uaclient.entitlements.livepatch import (
 )
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.snap import SNAP_CMD
+from uaclient.testing import fakes
 
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
@@ -455,7 +456,7 @@ class TestLivepatchEntitlementEnable:
         def fake_run_apt_update():
             if apt_update_success:
                 return
-            raise exceptions.UserFacingError("Apt go BOOM")
+            raise fakes.FakeUserFacingError()
 
         m_run_apt_update.side_effect = fake_run_apt_update
 
@@ -472,7 +473,7 @@ class TestLivepatchEntitlementEnable:
         assert (msg, "") == capsys.readouterr()
         expected_log = (
             "DEBUG    Trying to install snapd."
-            " Ignoring apt-get update failure: Apt go BOOM"
+            " Ignoring apt-get update failure: This is a test"
         )
         if apt_update_success:
             assert expected_log not in caplog_text()

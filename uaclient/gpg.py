@@ -2,7 +2,7 @@ import logging
 import os
 import shutil
 
-from uaclient import exceptions, messages, util
+from uaclient import exceptions, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -19,8 +19,6 @@ def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:
     """
     LOG.debug("Exporting GPG key %s", source_keyfile)
     if not os.path.exists(source_keyfile):
-        raise exceptions.UserFacingError(
-            messages.GPG_KEY_NOT_FOUND.format(source_keyfile)
-        )
+        raise exceptions.GPGKeyNotFound(keyfile=source_keyfile)
     shutil.copy(source_keyfile, destination_keyfile)
     os.chmod(destination_keyfile, 0o644)

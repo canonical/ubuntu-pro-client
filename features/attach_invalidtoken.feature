@@ -49,7 +49,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"additional_info": {"contract_expiry_date": "08-21-2022", "contract_id": "cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g"}, "message": "Attach denied:\nContract \"cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g\" expired on August 21, 2022\nVisit https://ubuntu.com/pro/dashboard to manage contract tokens.", "message_code": "attach-forbidden-expired", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"additional_info": {"contract_expiry_date": "08-21-2022", "contract_id": "cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g", "date": "August 21, 2022"}, "message": "Attach denied:\nContract \"cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g\" expired on August 21, 2022\nVisit https://ubuntu.com/pro/dashboard to manage contract tokens.", "message_code": "attach-forbidden-expired", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
 
         Examples: ubuntu release

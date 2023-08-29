@@ -61,7 +61,7 @@ def validate_proxy(
         return None
 
     if not is_service_url(proxy):
-        raise exceptions.ProxyInvalidUrl(proxy)
+        raise exceptions.ProxyInvalidUrl(proxy=proxy)
 
     req = request.Request(test_url, method="HEAD")
 
@@ -81,12 +81,12 @@ def validate_proxy(
                 test_url,
                 str(e),
             )
-            raise exceptions.ProxyNotWorkingError(proxy)
+            raise exceptions.ProxyNotWorkingError(proxy=proxy)
 
         if response.code == 200:
             return proxy
         else:
-            raise exceptions.ProxyNotWorkingError(proxy)
+            raise exceptions.ProxyNotWorkingError(proxy=proxy)
 
     proxy_handler = request.ProxyHandler({protocol: proxy})
     opener = request.build_opener(proxy_handler)
@@ -101,7 +101,7 @@ def validate_proxy(
             test_url,
             getattr(e, "reason", str(e)),
         )
-        raise exceptions.ProxyNotWorkingError(proxy)
+        raise exceptions.ProxyNotWorkingError(proxy=proxy)
 
 
 _global_proxy_dict = {}
@@ -226,7 +226,7 @@ def _handle_pycurl_error(
     elif code == ca_certificates_error_code:
         raise exceptions.PycurlCACertificatesError(url)
     else:
-        raise exceptions.PycurlError(error)
+        raise exceptions.PycurlError(e=error)
 
 
 def _readurl_pycurl_https_in_https(

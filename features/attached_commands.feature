@@ -109,7 +109,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "foobar", "operation": "disable", "service_msg": "Try <valid_services>"}, "message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `pro disable livepatch --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
@@ -128,7 +128,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "foobar", "operation": "disable", "service_msg": "Try <valid_services>"}, "message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
         """
 
         Examples: ubuntu release
@@ -684,7 +684,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         One moment, checking your subscription first
         Updating package lists
         APT update failed.
-        APT update failed to read APT config for the following URL:
+        APT update failed to read APT config for the following:
         - http(s)?://ppa.launchpad(content)?.net/cloud-init-dev/daily/ubun
         """
 

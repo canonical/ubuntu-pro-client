@@ -3,6 +3,7 @@ import pytest
 
 from lib.reboot_cmds import fix_pro_pkg_holds, main
 from uaclient import exceptions
+from uaclient.testing import fakes
 from uaclient.testing.helpers import does_not_raise
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
@@ -42,7 +43,7 @@ class TestFixProPkgHolds:
             (
                 "enabled",
                 Exception(),
-                exceptions.UserFacingError(""),
+                fakes.FakeUserFacingError(),
                 [mock.call()],
                 [mock.call(cleanup_on_failure=False)],
                 pytest.raises(exceptions.UserFacingError),
@@ -167,8 +168,13 @@ class TestMain:
         ],
         [
             (Exception(), 1),
-            (exceptions.LockHeldError("", "", 1), 1),
-            (exceptions.UserFacingError(""), 1),
+            (
+                exceptions.LockHeldError(
+                    lock_request="", lock_holder="", pid=1
+                ),
+                1,
+            ),
+            (fakes.FakeUserFacingError(), 1),
         ],
     )
     def test_main_error_cases(

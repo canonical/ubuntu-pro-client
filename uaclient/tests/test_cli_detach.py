@@ -135,6 +135,11 @@ class TestActionDetach:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "lock_holder": "pro enable",
+                        "lock_request": "pro detach",
+                        "pid": 123,
+                    },
                     "message": expected_error_msg.msg,
                     "message_code": expected_error_msg.name,
                     "service": None,

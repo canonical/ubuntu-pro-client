@@ -273,14 +273,13 @@ class RepoEntitlement(base.UAEntitlement):
             apt_options = []
 
         try:
-            msg = messages.ENABLED_FAILED.format(title=self.title)
             apt.run_apt_install_command(
                 packages=package_list,
                 apt_options=apt_options,
-                error_msg=msg.msg,
                 override_env_vars=override_env_vars,
             )
         except exceptions.UserFacingError:
+            event.info(messages.ENABLED_FAILED.format(title=self.title).msg)
             if cleanup_on_failure:
                 self.remove_apt_config()
             raise
@@ -349,24 +348,18 @@ class RepoEntitlement(base.UAEntitlement):
                 )
         aptKey = directives.get("aptKey")
         if not aptKey:
-            raise exceptions.UserFacingError(
-                messages.REPO_NO_APT_KEY.format(self.name)
-            )
+            raise exceptions.RepoNoAptKey(entitlement_name=self.name)
         repo_url = directives.get("aptURL")
         if not repo_url:
-            raise exceptions.MissingAptURLDirective(self.name)
+            raise exceptions.MissingAptURLDirective(entitlement_name=self.name)
         repo_suites = directives.get("suites")
         if not repo_suites:
-            raise exceptions.UserFacingError(
-                messages.REPO_NO_SUITES.format(self.name)
-            )
+            raise exceptions.RepoNoSuites(entitlement_name=self.name)
         if self.repo_pin_priority:
             if not self.origin:
-                raise exceptions.UserFacingError(
-                    "{}\n{}".format(
-                        messages.REPO_PIN_FAIL_NO_ORIGIN.format(self.origin),
-                        messages.ENABLED_FAILED.format(title=self.title).msg,
-                    )
+                raise exceptions.RepoPinFailNoOrigin(
+                    entitlement_name=self.name,
+                    title=self.title,
                 )
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
             apt.add_ppa_pinning(
@@ -429,7 +422,7 @@ class RepoEntitlement(base.UAEntitlement):
         access_directives = entitlement.get("directives", {})
         repo_url = access_directives.get("aptURL")
         if not repo_url:
-            raise exceptions.MissingAptURLDirective(self.name)
+            raise exceptions.MissingAptURLDirective(entitlement_name=self.name)
 
         apt.remove_auth_apt_repo(repo_filename, repo_url, self.repo_key_file)
         apt.remove_apt_list_files(repo_url, series)

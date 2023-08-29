@@ -41,7 +41,7 @@ FLAG_FILE_PATH = "/run/ubuntu-advantage/flags/auto-attach-failed"
 def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
     if isinstance(e, api_exceptions.InvalidProImage):
         return messages.RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE.format(
-            e.contract_server_msg
+            e.error_msg
         )
     elif isinstance(e, api_exceptions.NonAutoAttachImageError):
         return messages.RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE

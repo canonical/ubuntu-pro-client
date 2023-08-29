@@ -560,7 +560,12 @@ class TestRepoEnable:
                         ) as m_rac:
                             entitlement.enable()
 
-        assert "Could not enable Repo Test Class." == excinfo.value.msg
+        assert (
+            "Unexpected APT error.\n"
+            "Invalid command specified '['apt-get', 'install', "
+            "'--assume-yes', 'fake_pkg', 'and_another']'.\n"
+            "See /var/log/ubuntu-advantage.log"
+        ) == excinfo.value.msg
         assert 1 == m_rac.call_count
 
 
@@ -862,7 +867,7 @@ class TestSetupAptConfig:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             entitlement.setup_apt_config()
         assert (
-            "Cannot setup apt pin. Empty apt repo origin value 'None'."
+            "Cannot setup apt pin. Empty apt repo origin value for repotest"
             in str(excinfo.value)
         )
 

@@ -577,8 +577,8 @@ class TestMain:
     @pytest.mark.parametrize(
         "exception,expected_exit_code",
         [
-            (UserFacingError("You need to know about this."), 1),
-            (AlreadyAttachedError(mock.MagicMock()), 2),
+            (UnattachedError(), 1),
+            (AlreadyAttachedError(account_name=mock.MagicMock()), 2),
             (
                 LockHeldError(
                     pid="123",

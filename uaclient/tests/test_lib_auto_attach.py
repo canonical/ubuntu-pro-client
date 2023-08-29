@@ -96,7 +96,7 @@ class TestMain:
         "api_side_effect, log_msg",
         [
             (
-                AlreadyAttachedError("test_account"),
+                AlreadyAttachedError(account_name="test_account"),
                 "This machine is already attached to 'test_account'",
             ),
             (

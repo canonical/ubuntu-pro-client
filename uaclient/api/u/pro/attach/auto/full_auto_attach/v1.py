@@ -95,7 +95,7 @@ def _full_auto_attach_in_lock(
 
     if _is_attached(cfg).is_attached:
         raise exceptions.AlreadyAttachedError(
-            cfg.machine_token_file.account.get("name", "")
+            account_name=cfg.machine_token_file.account.get("name", "")
         )
 
     if util.is_config_value_true(

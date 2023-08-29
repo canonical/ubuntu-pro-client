@@ -3,7 +3,7 @@ import logging
 import mock
 import pytest
 
-from uaclient import http, system
+from uaclient import exceptions, http, system
 from uaclient.clouds.gcp import (
     LAST_ETAG,
     LICENSES_URL,
@@ -11,7 +11,6 @@ from uaclient.clouds.gcp import (
     WAIT_FOR_CHANGE,
     UAAutoAttachGCPInstance,
 )
-from uaclient.exceptions import GCPProAccountError
 
 M_PATH = "uaclient.clouds.gcp."
 
@@ -70,7 +69,7 @@ class TestUAAutoAttachGCPInstance:
 
         instance = UAAutoAttachGCPInstance()
         if exception:
-            with pytest.raises(GCPProAccountError) as excinfo:
+            with pytest.raises(exceptions.CloudMetadataError) as excinfo:
                 instance.identity_doc
             assert 704 == excinfo.value.code
         else:
@@ -82,12 +81,9 @@ class TestUAAutoAttachGCPInstance:
         assert expected_sleep_calls == sleep.call_args_list
 
         expected_logs = [
-            "GCPProServiceAccount Error 701: "
-            + "funky error msg: Retrying 3 more times.",
-            "GCPProServiceAccount Error 702: "
-            + "funky error msg: Retrying 2 more times.",
-            "GCPProServiceAccount Error 703: "
-            + "funky error msg: Retrying 1 more times.",
+            "An error occurred while talking the the cloud metadata service: 701 - funky error msg: Retrying 3 more times.",  # noqa: E501
+            "An error occurred while talking the the cloud metadata service: 702 - funky error msg: Retrying 2 more times.",  # noqa: E501
+            "An error occurred while talking the the cloud metadata service: 703 - funky error msg: Retrying 1 more times.",  # noqa: E501
         ]
         logs = caplog_text()
         for log in expected_logs:
