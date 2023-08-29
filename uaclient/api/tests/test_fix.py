@@ -396,12 +396,14 @@ class TestFixPlan:
                 FixPlanAttachStep(
                     data=AttachData(
                         reason="required-pro-service",
+                        source_packages=["pkg2"],
                     ),
                     order=2,
                 ),
                 FixPlanEnableStep(
                     data=EnableData(
                         service="esm-infra",
+                        source_packages=["pkg2"],
                     ),
                     order=3,
                 ),
@@ -416,6 +418,7 @@ class TestFixPlan:
                 FixPlanEnableStep(
                     data=EnableData(
                         service="esm-apps",
+                        source_packages=["pkg3"],
                     ),
                     order=5,
                 ),
