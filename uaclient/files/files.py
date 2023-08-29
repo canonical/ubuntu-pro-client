@@ -42,9 +42,10 @@ class UAFile:
             else defaults.WORLD_READABLE_MODE
         )
         if not os.path.exists(self._directory):
-            os.makedirs(self._directory)
             if os.path.basename(self._directory) == defaults.PRIVATE_SUBDIR:
-                os.chmod(self._directory, 0o700)
+                os.makedirs(self._directory)
+            else:
+                os.makedirs(self._directory, mode=0o700)
         system.write_file(self.path, content, file_mode)
 
     def read(self) -> Optional[str]:
