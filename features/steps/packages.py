@@ -29,11 +29,11 @@ def when_i_apt_install(context, package_names, machine_name=SUT):
     )
 
 
-@then("apt-cache policy for the following url has permission `{perm_id}`")
-def then_apt_cache_policy_for_the_following_url_has_permission_perm_id(
-    context, perm_id
+@then("apt-cache policy for the following url has priority `{prio_id}`")
+def then_apt_cache_policy_for_the_following_url_has_priority_prio_id(
+    context, prio_id
 ):
-    full_url = "{} {}".format(perm_id, context.text)
+    full_url = "{} {}".format(prio_id, context.text)
     assert_that(context.process.stdout.strip(), matches_regexp(full_url))
 
 

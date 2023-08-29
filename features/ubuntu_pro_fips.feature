@@ -60,23 +60,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `1001`
+        And apt-cache policy for the following url has priority `1001`
         """
         <fips-apt-source> amd64 Packages
         """
@@ -280,23 +280,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `1001`
+        And apt-cache policy for the following url has priority `1001`
         """
         <fips-apt-source> amd64 Packages
         """
@@ -553,23 +553,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         To use a different subscription first run: sudo pro detach.
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `1001`
+        And apt-cache policy for the following url has priority `1001`
         """
         <fips-apt-source> amd64 Packages
         """
