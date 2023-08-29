@@ -233,11 +233,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         See: sudo pro status
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has priority `510`
         """
         <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
@@ -970,7 +970,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
         """
         When I run `apt-cache policy` as non-root
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has priority `500`
         """
         <ros-security-source> amd64 Packages
         """
@@ -984,7 +984,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ros-updates   +yes                enabled            All Updates for the Robot Operating System
         """
         When I run `apt-cache policy` as non-root
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has priority `500`
         """
         <ros-updates-source> amd64 Packages
         """
@@ -1128,11 +1128,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has priority `510`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """

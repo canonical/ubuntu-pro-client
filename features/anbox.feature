@@ -72,7 +72,7 @@ Feature: Enable anbox on Ubuntu
         anbox-cloud +yes +enabled
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has priority `500`
         """
         https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
         """
@@ -113,7 +113,7 @@ Feature: Enable anbox on Ubuntu
         anbox-cloud +yes +enabled
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `500`
+        Then apt-cache policy for the following url has priority `500`
         """
         https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
         """
