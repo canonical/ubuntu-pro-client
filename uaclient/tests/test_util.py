@@ -147,16 +147,16 @@ class TestIsConfigValueTrue:
         path_to_value = "features.allow_beta"
         cfg = FakeConfig()
         cfg.override_features(config_dict)
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.InvalidBooleanConfigValue) as excinfo:
             util.is_config_value_true(
                 config=cfg.cfg, path_to_value=path_to_value
             )
 
-        expected_msg = messages.ERROR_INVALID_CONFIG_VALUE.format(
+        expected_msg = messages.ERROR_INVALID_BOOLEAN_CONFIG_VALUE.format(
             path_to_value=path_to_value,
             expected_value="boolean string: true or false",
             value=key_val,
-        )
+        ).msg
         assert expected_msg == str(excinfo.value)
 
 

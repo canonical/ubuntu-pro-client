@@ -129,7 +129,7 @@ Feature: Command behaviour when unattached
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"additional_info": {"valid_service": "esm-infra"}, "message": "To use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
         When I verify that running `pro <command> unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
@@ -145,7 +145,7 @@ Feature: Command behaviour when unattached
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "unknown", "operation": "<command>", "service_msg": ""}, "message": "Cannot <command> unknown service 'unknown'.\n", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
         When I verify that running `pro <command> esm-infra unknown` `as non-root` exits `1`
         Then I will see the following on stderr:
@@ -165,7 +165,7 @@ Feature: Command behaviour when unattached
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "unknown", "operation": "<command>", "service_msg": "", "valid_service": "esm-infra"}, "message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Pro subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/pro", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
 
         Examples: ubuntu release

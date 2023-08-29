@@ -216,12 +216,10 @@ def is_config_value_true(config: Dict[str, Any], path_to_value: str) -> bool:
     elif value_str.lower() == "false":
         return False
     else:
-        raise exceptions.UserFacingError(
-            messages.ERROR_INVALID_CONFIG_VALUE.format(
-                path_to_value=path_to_value,
-                expected_value="boolean string: true or false",
-                value=value_str,
-            )
+        raise exceptions.InvalidBooleanConfigValue(
+            path_to_value=path_to_value,
+            expected_value="boolean string: true or false",
+            value=value_str,
         )
 
 

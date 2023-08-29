@@ -180,7 +180,7 @@ class TestGetSnapInfo:
         http_response_mock.read.return_value = b"invalid-json"
         m_http_connection.return_value = http_mock
 
-        with pytest.raises(exceptions.SnapdInvalidJson):
+        with pytest.raises(exceptions.InvalidJson):
             get_snap_info(snap="test")
 
         assert 1 == m_http_connection.call_count

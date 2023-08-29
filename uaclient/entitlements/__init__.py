@@ -2,7 +2,7 @@ import enum
 import textwrap
 from typing import Dict, List, Type  # noqa: F401
 
-from uaclient import messages
+from uaclient import exceptions
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
 from uaclient.entitlements.anbox import AnboxEntitlement
@@ -53,8 +53,8 @@ def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
             elif variant in ent.variants:
                 return ent.variants[variant]
             else:
-                raise EntitlementNotFoundError(variant)
-    raise EntitlementNotFoundError(name)
+                raise EntitlementNotFoundError(entitlement_name=variant)
+    raise EntitlementNotFoundError(entitlement_name=name)
 
 
 def valid_services(
@@ -194,9 +194,9 @@ def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
     return entitlements_found, entitlements_not_found
 
 
-def create_enable_entitlements_not_found_message(
+def create_enable_entitlements_not_found_error(
     entitlements_not_found, cfg: UAConfig, *, allow_beta: bool
-) -> messages.NamedMessage:
+) -> exceptions.UserFacingError:
     """
     Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
     based on the attempted services and valid services.
@@ -211,7 +211,7 @@ def create_enable_entitlements_not_found_message(
             break_on_hyphens=False,
         )
     )
-    return messages.INVALID_SERVICE_OP_FAILURE.format(
+    return exceptions.InvalidServiceOpError(
         operation="enable",
         invalid_service=", ".join(entitlements_not_found),
         service_msg=service_msg,

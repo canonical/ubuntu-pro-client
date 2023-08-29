@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional  # noqa: F401
 
-from uaclient import exceptions, http, messages, system, util
+from uaclient import exceptions, http, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -41,7 +41,7 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(exceptions.GCPProAccountError, retry_sleeps=[0.5, 1, 1])
+    @util.retry(exceptions.CloudMetadataError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
         response = http.readurl(
             TOKEN_URL, headers={"Metadata-Flavor": "Google"}, timeout=1
@@ -50,15 +50,12 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
             return {"identityToken": response.body}
 
         error_desc = response.json_dict.get("error_description")
-        msg = error_desc if error_desc else response.body
-        msg_code = None
         if error_desc and "service account" in error_desc.lower():
-            msg = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.msg.format(
-                error_msg=msg
+            raise exceptions.GCPServiceAccountError(
+                status_code=response.code, error_msg=error_desc
             )
-            msg_code = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.name
-        raise exceptions.GCPProAccountError(
-            msg=msg, msg_code=msg_code, code=response.code
+        raise exceptions.CloudMetadataError(
+            code=response.code, body=response.body
         )
 
     @property

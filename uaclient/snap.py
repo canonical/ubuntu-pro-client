@@ -194,7 +194,9 @@ def get_snap_info(snap: str) -> SnapPackage:
                 out,
                 exc_info=e,
             )
-            raise exceptions.SnapdInvalidJson(url=url, out=out)
+            raise exceptions.InvalidJson(
+                source="SNAPD API {}".format(url), out=out
+            )
 
         # This means that the snap doesn't exist or is not installed
         if response.status != 200:
@@ -202,10 +204,10 @@ def get_snap_info(snap: str) -> SnapPackage:
                 response.status == 404
                 and data.get("result", {}).get("kind") == "snap-not-found"
             ):
-                raise exceptions.SnapNotInstalledError(snap)
+                raise exceptions.SnapNotInstalledError(snap=snap)
             else:
                 error_msg = data.get("result", {}).get("message")
-                raise exceptions.UnexpectedSnapdAPIError(error_msg)
+                raise exceptions.UnexpectedSnapdAPIError(error=error_msg)
 
     except ConnectionRefusedError:
         raise exceptions.SnapdAPIConnectionRefused()

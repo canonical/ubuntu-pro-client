@@ -45,6 +45,7 @@ from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
+from uaclient.testing import fakes
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
 -32768 https://esm.ubuntu.com/ubuntu/ {0}-updates/main amd64 Packages
@@ -182,7 +183,12 @@ class TestValidAptCredentials:
             (
                 1,
                 "something broke",
-                "Unexpected APT error. See /var/log/ubuntu-advantage.log",
+                (
+                    "Unexpected APT error.\n"
+                    "Failed running command 'apt-helper ' [exit(1)]. Message: "
+                    "something broke\n"
+                    "See /var/log/ubuntu-advantage.log"
+                ),
             ),
             (
                 100,
@@ -866,7 +872,7 @@ class TestRunAptCommand:
                     "APT update failed.",
                     (
                         "APT update failed to read APT config "
-                        "for the following URLs:"
+                        "for the following:"
                     ),
                     "- t1",
                     "- t2",
@@ -878,7 +884,7 @@ class TestRunAptCommand:
                     "APT update failed.",
                     (
                         "APT update failed to read APT config "
-                        "for the following URL:"
+                        "for the following:"
                     ),
                     "- t1",
                 ),
@@ -892,7 +898,7 @@ class TestRunAptCommand:
                     "APT update failed.",
                     (
                         "APT update failed to read APT config "
-                        "for the following URL:"
+                        "for the following:"
                     ),
                     "- t1",
                 ),
@@ -912,7 +918,7 @@ class TestRunAptCommand:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             run_apt_update_command()
 
-        expected_message = "\n".join(output_list) + "."
+        expected_message = "\n".join(output_list)
         assert expected_message == excinfo.value.msg
 
     @mock.patch("uaclient.apt.system.subp")
@@ -939,7 +945,7 @@ class TestRunAptCommand:
     ):
         m_subp.side_effect = [
             ("policy1", ""),
-            exceptions.UserFacingError("test"),
+            fakes.FakeUserFacingError(),
             ("policy2", ""),
         ]
 

@@ -53,7 +53,7 @@ from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import (
-    create_enable_entitlements_not_found_message,
+    create_enable_entitlements_not_found_error,
     entitlements_disable_order,
     get_valid_entitlement_names,
 )
@@ -212,15 +212,14 @@ def verify_json_format_args(f):
             return f(cmd_args, *args, **kwargs)
 
         if cmd_args.format == "json" and not cmd_args.assume_yes:
-            msg = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
-            raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+            raise exceptions.CLIJSONFormatRequireAssumeYes()
         else:
             return f(cmd_args, *args, **kwargs)
 
     return new_f
 
 
-def assert_attached(msg_function=None):
+def assert_attached(raise_custom_error_function=None):
     """Decorator asserting attached config.
     :param msg_function: Optional function to generate a custom message
     if raising an UnattachedError
@@ -230,16 +229,14 @@ def assert_attached(msg_function=None):
         @wraps(f)
         def new_f(args, cfg, **kwargs):
             if not _is_attached(cfg).is_attached:
-                if msg_function:
+                if raise_custom_error_function:
                     command = getattr(args, "command", "")
                     service_names = getattr(args, "service", "")
-                    msg = msg_function(
+                    raise_custom_error_function(
                         command=command, service_names=service_names, cfg=cfg
                     )
-                    exception = exceptions.UnattachedError(msg)
                 else:
-                    exception = exceptions.UnattachedError()
-                raise exception
+                    raise exceptions.UnattachedError()
             return f(args, cfg=cfg, **kwargs)
 
         return new_f
@@ -254,7 +251,7 @@ def assert_not_attached(f):
     def new_f(args, cfg, **kwargs):
         if _is_attached(cfg).is_attached:
             raise exceptions.AlreadyAttachedError(
-                cfg.machine_token_file.account.get("name", "")
+                account_name=cfg.machine_token_file.account.get("name", "")
             )
         return f(args, cfg=cfg, **kwargs)
 
@@ -527,10 +524,8 @@ def action_security_status(args, *, cfg, **kwargs):
 
 def action_fix(args, *, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
-        raise exceptions.UserFacingError(
-            messages.SECURITY_FIX_CLI_ISSUE_REGEX_FAIL.format(
-                args.security_issue
-            )
+        raise exceptions.InvalidSecurityIssueIdFormat(
+            issue=args.security_issue
         )
 
     fix_status = security.fix_security_issue_id(
@@ -748,10 +743,8 @@ def _print_help_for_subcommand(
     valid_choices = subparser._get_positional_actions()[0].choices.keys()
     if subcmd_name not in valid_choices:
         parser._get_positional_actions()[0].choices[cmd_name].print_help()
-        raise exceptions.UserFacingError(
-            messages.CLI_VALID_CHOICES.format(
-                "<command>", ", ".join(valid_choices)
-            )
+        raise exceptions.InvalidArgChoice(
+            arg="<command>", choices=", ".join(valid_choices)
         )
 
 
@@ -812,16 +805,9 @@ def action_config_show(args, *, cfg, **kwargs):
     """
     if args.key:  # limit reporting config to a single config key
         if args.key not in config.UA_CONFIGURABLE_KEYS:
-            msg = messages.CLI_VALID_CHOICES.format(
-                "'{}'".format(args.key), ", ".join(config.UA_CONFIGURABLE_KEYS)
-            )
-            indent_position = msg.find(":") + 2
-            raise exceptions.UserFacingError(
-                textwrap.fill(
-                    msg,
-                    width=PRINT_WRAP_WIDTH,
-                    subsequent_indent=" " * indent_position,
-                )
+            raise exceptions.InvalidArgChoice(
+                arg="'{}'".format(args.key),
+                choices=", ".join(config.UA_CONFIGURABLE_KEYS),
             )
         print(
             "{key} {value}".format(
@@ -858,17 +844,13 @@ def action_config_set(args, *, cfg, **kwargs):
         set_key, set_value = args.key_value_pair.split("=")
     except ValueError:
         subparser.print_help()
-        raise exceptions.UserFacingError(
-            messages.CLI_EXPECTED_FORMAT.format(
-                expected="<key>=<value>", actual=args.key_value_pair
-            )
+        raise exceptions.GenericInvalidFormat(
+            expected="<key>=<value>", actual=args.key_value_pair
         )
     if set_key not in config.UA_CONFIGURABLE_KEYS:
         subparser.print_help()
-        raise exceptions.UserFacingError(
-            messages.CLI_VALID_CHOICES.format(
-                "<key>", ", ".join(config.UA_CONFIGURABLE_KEYS)
-            )
+        raise exceptions.InvalidArgChoice(
+            arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)
         )
     if set_key in ("http_proxy", "https_proxy"):
         protocol_type = set_key.split("_")[0]
@@ -952,10 +934,8 @@ def action_config_set(args, *, cfg, **kwargs):
             subparser.print_help()
             # More readable in the CLI, without breaking the line in the logs
             print("")
-            raise exceptions.UserFacingError(
-                messages.CLI_CONFIG_VALUE_MUST_BE_POS_INT.format(
-                    set_key, set_value
-                )
+            raise exceptions.InvalidPosIntConfigValue(
+                key=set_key, value=set_value
             )
     elif set_key == "apt_news":
         set_value = set_value.lower() == "true"
@@ -982,10 +962,8 @@ def action_config_unset(args, *, cfg, **kwargs):
         config_parser = parser._get_positional_actions()[0].choices["config"]
         subparser = config_parser._get_positional_actions()[0].choices["unset"]
         subparser.print_help()
-        raise exceptions.UserFacingError(
-            messages.CLI_VALID_CHOICES.format(
-                "<key>", ", ".join(config.UA_CONFIGURABLE_KEYS)
-            )
+        raise exceptions.InvalidArgChoice(
+            arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)
         )
     if args.key in ("http_proxy", "https_proxy"):
         protocol_type = args.key.split("_")[0]
@@ -1015,8 +993,8 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
-def _create_enable_disable_unattached_msg(command, service_names, cfg):
-    """Generates a custom message for enable/disable commands when unattached.
+def _raise_enable_disable_unattached_error(command, service_names, cfg):
+    """Raises a custom error for enable/disable commands when unattached.
 
     Takes into consideration if the services exist or not, and notify the user
     accordingly."""
@@ -1024,28 +1002,27 @@ def _create_enable_disable_unattached_msg(command, service_names, cfg):
         names=service_names, cfg=cfg
     )
     if entitlements_found and entitlements_not_found:
-        msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED.format(
+        raise exceptions.UnattachedMixedServicesError(
             valid_service=", ".join(entitlements_found),
             operation=command,
             invalid_service=", ".join(entitlements_not_found),
             service_msg="",
         )
     elif entitlements_found:
-        msg = messages.VALID_SERVICE_FAILURE_UNATTACHED.format(
+        raise exceptions.UnattachedValidServicesError(
             valid_service=", ".join(entitlements_found)
         )
     else:
-        msg = messages.INVALID_SERVICE_OP_FAILURE.format(
+        raise exceptions.UnattachedInvalidServicesError(
             operation=command,
             invalid_service=", ".join(entitlements_not_found),
             service_msg="",
         )
-    return msg
 
 
 @verify_json_format_args
 @assert_root
-@assert_attached(_create_enable_disable_unattached_msg)
+@assert_attached(_raise_enable_disable_unattached_error)
 @assert_lock_file("pro disable")
 def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
@@ -1078,7 +1055,7 @@ def action_disable(args, *, cfg, **kwargs):
                 break_on_hyphens=False,
             )
         )
-        raise exceptions.InvalidServiceToDisableError(
+        raise exceptions.InvalidServiceOpError(
             operation="disable",
             invalid_service=", ".join(entitlements_not_found),
             service_msg=service_msg,
@@ -1093,7 +1070,7 @@ def action_disable(args, *, cfg, **kwargs):
 
 @verify_json_format_args
 @assert_root
-@assert_attached(_create_enable_disable_unattached_msg)
+@assert_attached(_raise_enable_disable_unattached_error)
 @assert_lock_file("pro enable")
 def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
@@ -1164,11 +1141,10 @@ def action_enable(args, *, cfg, **kwargs):
             ret = False
 
     if entitlements_not_found:
-        msg = create_enable_entitlements_not_found_message(
+        event.services_failed(entitlements_not_found)
+        raise create_enable_entitlements_not_found_error(
             entitlements_not_found, cfg=cfg, allow_beta=args.beta
         )
-        event.services_failed(entitlements_not_found)
-        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
 
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()
@@ -1264,8 +1240,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
 def action_api(args, *, cfg, **kwargs):
     if args.options and args.data:
-        msg = messages.API_ERROR_ARGS_AND_DATA_TOGETHER
-        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
+        raise exceptions.CLIAPIOptionsXORData()
 
     result = call_api(args.endpoint_path, args.options, args.data, cfg)
     print(result.to_json())
@@ -1326,10 +1301,7 @@ def _magic_attach(args, *, cfg, **kwargs):
 @assert_lock_file("pro attach")
 def action_attach(args, *, cfg, **kwargs):
     if args.token and args.attach_config:
-        raise exceptions.UserFacingError(
-            msg=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg,
-            msg_code=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.name,
-        )
+        raise exceptions.CLIAttachTokenArgXORConfig()
     elif not args.token and not args.attach_config:
         token = _magic_attach(args, cfg=cfg)
         enable_services_override = None
@@ -1382,11 +1354,11 @@ def action_attach(args, *, cfg, **kwargs):
                     event.service_processed(name)
 
             if not_found:
-                msg = create_enable_entitlements_not_found_message(
+                error = create_enable_entitlements_not_found_error(
                     not_found, cfg=cfg, allow_beta=True
                 )
-                event.info(msg.msg, file_type=sys.stderr)
-                event.error(error_msg=msg.msg, error_code=msg.name)
+                event.info(error.msg, file_type=sys.stderr)
+                event.error(error_msg=error.msg, error_code=error.msg_code)
                 ret = 1
 
         contract_client = contract.UAContractClient(cfg)
@@ -1573,7 +1545,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
         cfg.process_config()
     except RuntimeError as exc:
         LOG.exception(exc)
-        raise exceptions.UserFacingError(messages.REFRESH_CONFIG_FAILURE)
+        raise exceptions.RefreshConfigFailure()
     print(messages.REFRESH_CONFIG_SUCCESS)
 
 
@@ -1583,7 +1555,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
         contract.refresh(cfg)
     except exceptions.UrlError as exc:
         LOG.exception(exc)
-        raise exceptions.UserFacingError(messages.REFRESH_CONTRACT_FAILURE)
+        raise exceptions.RefreshContractFailure()
     print(messages.REFRESH_CONTRACT_SUCCESS)
 
 
@@ -1598,7 +1570,7 @@ def _action_refresh_messages(_args, cfg: config.UAConfig):
             apt_news.update_apt_news(cfg)
     except Exception as exc:
         LOG.exception(exc)
-        raise exceptions.UserFacingError(messages.REFRESH_MESSAGES_FAILURE)
+        raise exceptions.RefreshMessagesFailure()
     else:
         print(messages.REFRESH_MESSAGES_SUCCESS)
 

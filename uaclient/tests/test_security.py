@@ -66,6 +66,7 @@ from uaclient.security import (
     upgrade_packages_and_attach,
 )
 from uaclient.status import colorize_commands
+from uaclient.testing import fakes
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
@@ -475,13 +476,20 @@ class TestUSN:
         (
             (
                 None,
-                "USN-4510-2 metadata does not define release_packages"
-                " source_link for samba2.",
+                (
+                    "Metadata for USN-4510-2 is invalid. "
+                    "Error: USN-4510-2 metadata does not define "
+                    "release_packages source_link for samba2."
+                ),
             ),
             (
                 "unknown format",
-                "USN-4510-2 metadata has unexpected release_packages"
-                " source_link value for samba2: unknown format",
+                (
+                    "Metadata for USN-4510-2 is invalid. "
+                    "Error: USN-4510-2 metadata has unexpected "
+                    "release_packages source_link value for samba2: "
+                    "unknown format."
+                ),
             ),
         ),
     )
@@ -507,7 +515,7 @@ class TestUSN:
         usn = USN(client, sparse_md)
         with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
             usn.release_packages
-        assert error_msg == str(exc.value)
+        assert error_msg in str(exc.value)
 
     @pytest.mark.parametrize(
         "usn_response,expected",
@@ -2428,18 +2436,18 @@ class TestUpgradePackagesAndAttach:
             assert m_subp.call_count == 0
 
     @pytest.mark.parametrize(
-        "exception_cls, expected_error_msg",
+        "exception, expected_error_msg",
         (
-            (Exception, "base-exception"),
-            (exceptions.UserFacingError, "pro-exception"),
+            (Exception("base-exception"), "base-exception"),
+            (fakes.FakeUserFacingError(), "This is a test"),
         ),
     )
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.system.subp")
     def test_upgrade_packages_fail_if_apt_command_fails(
-        self, m_subp, m_os_getuid, exception_cls, expected_error_msg, capsys
+        self, m_subp, m_os_getuid, exception, expected_error_msg, capsys
     ):
-        m_subp.side_effect = exception_cls(expected_error_msg)
+        m_subp.side_effect = exception
         assert (
             upgrade_packages_and_attach(
                 cfg=None,
@@ -2600,7 +2608,10 @@ class TestFixSecurityIssueId:
             expected_message = "Error: {} not found.".format(issue_id)
         else:
             expected_message = (
-                str(error_code) + ": [URL], " + json.dumps({"message": msg})
+                "Error connecting to URL: "
+                + str(error_code)
+                + " "
+                + json.dumps({"message": msg})
             )
 
         assert expected_message == exc.value.msg

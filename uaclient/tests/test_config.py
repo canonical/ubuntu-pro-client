@@ -895,7 +895,7 @@ class TestProcessConfig:
                 exc = True
                 with pytest.raises(
                     exceptions.UserFacingError,
-                    match=messages.ERROR_PROXY_CONFIGURATION,
+                    match=messages.ERROR_INVALID_PROXY_COMBINATION.msg,
                 ):
                     cfg.process_config()
         if exc is False:
@@ -976,8 +976,10 @@ class TestProcessConfig:
 
         with pytest.raises(
             exceptions.UserFacingError,
-            match="Value for the update_messaging_timer interval must be "
-            "a positive integer. Default value will be used.",
+            match=(
+                "Cannot set update_messaging_timer to wrong: <value> for "
+                "interval must be a positive integer."
+            ),
         ):
             cfg.process_config()
 

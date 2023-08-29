@@ -475,20 +475,24 @@ Feature: Unattached status
         """
         And stdout matches regexp:
         """
-        \"message\": \"Contract .* expired on .*\"
+        \"message\": \"Attach denied:\\nContract .* expired on .*\"
         """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
         """
         errors:
-        - message: Contract .* expired on .*
+        - message: 'Attach denied:
+
+            Contract .* expired on .*
         """
         When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
         Then stdout matches regexp:
         """
         This token is not valid.
+        Attach denied:
         Contract \".*\" expired on .*
+        Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         (anbox-cloud     +(yes|no)       +.*)?
@@ -522,20 +526,24 @@ Feature: Unattached status
         """
         And stdout matches regexp:
         """
-        \"message\": \"Contract .* expired on .*\"
+        \"message\": \"Attach denied:\\nContract .* expired on .*\"
         """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
         """
         errors:
-        - message: Contract .* expired on .*
+        - message: 'Attach denied:
+
+            Contract .* expired on .*
         """
         When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
         Then stdout matches regexp:
         """
         This token is not valid.
+        Attach denied:
         Contract \".*\" expired on .*
+        Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         anbox-cloud     +yes       +.*
@@ -565,20 +573,24 @@ Feature: Unattached status
         """
         And stdout matches regexp:
         """
-        \"message\": \"Contract .* expired on .*\"
+        \"message\": \"Attach denied:\\nContract .* expired on .*\"
         """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
         """
         errors:
-        - message: Contract .* expired on .*
+        - message: 'Attach denied:
+
+            Contract .* expired on .*
         """
         When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
         Then stdout matches regexp:
         """
         This token is not valid.
+        Attach denied:
         Contract \".*\" expired on .*
+        Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
         SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
         anbox-cloud     +yes       +.*

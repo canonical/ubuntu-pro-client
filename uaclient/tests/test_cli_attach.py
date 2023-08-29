@@ -23,7 +23,7 @@ from uaclient.exceptions import (
     NonRootUserError,
     UserFacingError,
 )
-from uaclient.testing.fakes import FakeFile
+from uaclient.testing.fakes import FakeFile, FakeUserFacingError
 from uaclient.yaml import safe_dump
 
 HELP_OUTPUT = textwrap.dedent(
@@ -162,6 +162,7 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {"account_name": "test_account"},
                     "message": msg.msg,
                     "message_code": msg.name,
                     "service": None,
@@ -212,6 +213,11 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "lock_holder": "lock_holder",
+                        "lock_request": "pro attach",
+                        "pid": 1,
+                    },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
                     "service": None,
@@ -391,7 +397,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=cfg)
-        assert "Error while reading fakename: " in e.value.msg
+        assert "Error while reading fakename:" in e.value.msg
 
         args.attach_config = FakeFile(
             safe_dump({"token": "something", "enable_services": "cis"}),
@@ -407,7 +413,7 @@ class TestActionAttach:
             config_name="fakename",
             error=(
                 "Got value with "
-                'incorrect type for field\n"enable_services": '
+                'incorrect type for field "enable_services":\n'
                 "Expected value with type list but got type: str"
             ),
         )
@@ -417,6 +423,14 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "config_name": "fakename",
+                        "error": (
+                            "Got value with "
+                            'incorrect type for field "enable_services":\n'
+                            "Expected value with type list but got type: str"
+                        ),
+                    },
                     "message": expected_message.msg,
                     "message_code": expected_message.name,
                     "service": None,
@@ -505,13 +519,18 @@ class TestActionAttach:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize(
-        "expected_exception,expected_msg",
+        "expected_exception,expected_msg,expected_outer_msg",
         (
             (
-                UserFacingError("error"),
+                FakeUserFacingError(),
+                messages.ATTACH_FAILURE_DEFAULT_SERVICES,
                 messages.ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
-            (Exception("error"), messages.UNEXPECTED_ERROR),
+            (
+                Exception("error"),
+                messages.UNEXPECTED_ERROR,
+                messages.ATTACH_FAILURE_UNEXPECTED,
+            ),
         ),
     )
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
@@ -530,6 +549,7 @@ class TestActionAttach:
         _m_attachment_data_file_write,
         expected_exception,
         expected_msg,
+        expected_outer_msg,
         FakeConfig,
         event,
     ):
@@ -600,8 +620,8 @@ class TestActionAttach:
                             }
                         ]
                     },
-                    "message": expected_msg.msg,
-                    "message_code": expected_msg.name,
+                    "message": expected_outer_msg.msg,
+                    "message_code": expected_outer_msg.name,
                     "service": None,
                     "type": "system",
                 }

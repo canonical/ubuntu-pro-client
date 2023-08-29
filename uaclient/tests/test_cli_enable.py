@@ -170,6 +170,11 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "lock_holder": "lock_holder",
+                        "lock_request": "pro enable",
+                        "pid": 1,
+                    },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
                     "service": None,
@@ -214,8 +219,12 @@ class TestActionEnable:
             expected_error = expected_error_template.format(
                 valid_service="esm-infra"
             )
+            expected_info = {
+                "valid_service": "esm-infra",
+            }
         else:
             expected_error = expected_error_template
+            expected_info = None
 
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
@@ -243,6 +252,8 @@ class TestActionEnable:
             "processed_services": [],
             "warnings": [],
         }
+        if expected_info is not None:
+            expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(capsys.readouterr()[0])
 
     @pytest.mark.parametrize("is_attached", (True, False))
@@ -303,8 +314,14 @@ class TestActionEnable:
                 invalid_service="bogus",
                 service_msg=service_msg,
             )
+            expected_info = {
+                "invalid_service": "bogus",
+                "operation": "enable",
+                "service_msg": service_msg,
+            }
         else:
             expected_error = expected_error_template
+            expected_info = None
 
         assert expected_error.msg == err.value.msg
 
@@ -332,6 +349,8 @@ class TestActionEnable:
             "processed_services": [],
             "warnings": [],
         }
+        if expected_info is not None:
+            expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize(
@@ -369,8 +388,15 @@ class TestActionEnable:
                 invalid_service="bogus",
                 service_msg="",
             )
+            expected_info = {
+                "invalid_service": "bogus",
+                "operation": "enable",
+                "service_msg": "",
+                "valid_service": "fips",
+            }
         else:
             expected_error = expected_error_template
+            expected_info = None
 
         assert expected_error.msg == err.value.msg
 
@@ -398,6 +424,8 @@ class TestActionEnable:
             "processed_services": [],
             "warnings": [],
         }
+        if expected_info is not None:
+            expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
@@ -508,14 +536,15 @@ class TestActionEnable:
             with contextlib.redirect_stdout(fake_stdout):
                 action_enable(args_mock, cfg)
 
+        service_msg = (
+            "Try "
+            + ", ".join(entitlements.valid_services(allow_beta=False))
+            + "."
+        )
         expected_error = expected_error_tmpl.format(
             operation="enable",
             invalid_service="ent1, ent2",
-            service_msg=(
-                "Try "
-                + ", ".join(entitlements.valid_services(allow_beta=False))
-                + "."
-            ),
+            service_msg=service_msg,
         )
         assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
@@ -552,6 +581,11 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "invalid_service": "ent1, ent2",
+                        "operation": "enable",
+                        "service_msg": service_msg,
+                    },
                     "message": expected_error.msg,
                     "message_code": expected_error.name,
                     "service": None,
@@ -698,6 +732,13 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "invalid_service": ", ".join(
+                            sorted(expected_failed_services)
+                        ),
+                        "operation": "enable",
+                        "service_msg": service_msg,
+                    },
                     "message": expected_error.msg,
                     "message_code": expected_error.name,
                     "service": None,
@@ -846,6 +887,11 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
+                    "additional_info": {
+                        "invalid_service": ", ".join(sorted(service)),
+                        "operation": "enable",
+                        "service_msg": service_msg,
+                    },
                     "message": expected_error.msg,
                     "message_code": expected_error.name,
                     "service": None,

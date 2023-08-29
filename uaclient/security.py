@@ -181,7 +181,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
         response = self.request_url(API_V1_CVES, query_params=query_params)
         if response.code != 200:
             raise exceptions.SecurityAPIError(
-                API_V1_CVES, response.code, response.body
+                url=API_V1_CVES, code=response.code, body=response.body
             )
         return [
             CVE(client=self, response=cve_md) for cve_md in response.json_list
@@ -196,7 +196,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
         response = self.request_url(url)
         if response.code != 200:
             raise exceptions.SecurityAPIError(
-                url, response.code, response.body
+                url=url, code=response.code, body=response.body
             )
         return CVE(client=self, response=response.json_dict)
 
@@ -222,7 +222,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
         response = self.request_url(API_V1_NOTICES, query_params=query_params)
         if response.code != 200:
             raise exceptions.SecurityAPIError(
-                API_V1_NOTICES, response.code, response.body
+                url=API_V1_NOTICES, code=response.code, body=response.body
             )
         return sorted(
             [
@@ -242,7 +242,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
         response = self.request_url(url)
         if response.code != 200:
             raise exceptions.SecurityAPIError(
-                url, response.code, response.body
+                url=url, code=response.code, body=response.body
             )
         return USN(client=self, response=response.json_dict)
 
@@ -484,9 +484,12 @@ class USN:
                 if pkg["name"] in self._release_packages:
                     if "source" in self._release_packages[pkg["name"]]:
                         raise exceptions.SecurityAPIMetadataError(
-                            "{usn} metadata defines duplicate source packages"
-                            " {pkg}".format(usn=self.id, pkg=pkg["name"]),
-                            issue_id=self.id,
+                            error_msg=(
+                                "{usn} metadata defines duplicate source"
+                                " packages {pkg}"
+                            ).format(usn=self.id, pkg=pkg["name"]),
+                            issue=self.id,
+                            extra_info="",
                         )
                     self._release_packages[pkg["name"]]["source"] = pkg
                 else:
@@ -498,21 +501,25 @@ class USN:
                 # TODO(GH: 1465: determine if this is expected on kern pkgs)
                 if not pkg.get("source_link"):
                     raise exceptions.SecurityAPIMetadataError(
-                        "{issue} metadata does not define release_packages"
-                        " source_link for {bin_pkg}.".format(
-                            issue=self.id, bin_pkg=pkg["name"]
-                        ),
-                        issue_id=self.id,
+                        error_msg=(
+                            "{issue} metadata does not define release_packages"
+                            " source_link for {bin_pkg}."
+                        ).format(issue=self.id, bin_pkg=pkg["name"]),
+                        issue=self.id,
+                        extra_info="",
                     )
                 elif "/" not in pkg["source_link"]:
                     raise exceptions.SecurityAPIMetadataError(
-                        "{issue} metadata has unexpected release_packages"
-                        " source_link value for {bin_pkg}: {link}".format(
+                        error_msg=(
+                            "{issue} metadata has unexpected release_packages"
+                            " source_link value for {bin_pkg}: {link}"
+                        ).format(
                             issue=self.id,
                             bin_pkg=pkg["name"],
                             link=pkg["source_link"],
                         ),
-                        issue_id=self.id,
+                        issue=self.id,
+                        extra_info="",
                     )
                 source_pkg_name = pkg["source_link"].split("/")[-1]
                 if source_pkg_name not in self._release_packages:
@@ -822,12 +829,9 @@ def fix_security_issue_id(
             cve = client.get_cve(cve_id=issue_id)
             usns = client.get_notices(details=issue_id)
         except exceptions.SecurityAPIError as e:
-            msg = str(e)
             if e.code == 404:
-                msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
-                    issue_id=issue_id
-                ).msg
-            raise exceptions.UserFacingError(msg)
+                raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
+            raise e
 
         print(cve.get_url_header())
         return _fix_cve(
@@ -845,22 +849,20 @@ def fix_security_issue_id(
             usn = client.get_notice(notice_id=issue_id)
             usns = get_related_usns(usn, client)
         except exceptions.SecurityAPIError as e:
-            msg = str(e)
             if e.code == 404:
-                msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
-                    issue_id=issue_id
-                ).msg
-            raise exceptions.UserFacingError(msg)
+                raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
+            raise e
 
         print(usn.get_url_header())
         if not usn.response["release_packages"]:
             # Since usn.release_packages filters to our current release only
             # check overall metadata and error if empty.
             raise exceptions.SecurityAPIMetadataError(
-                "{} metadata defines no fixed package versions.".format(
-                    issue_id
-                ),
-                issue_id=issue_id,
+                error_msg=(
+                    "{} metadata defines no fixed package versions."
+                ).format(issue_id),
+                issue=issue_id,
+                extra_info="",
             )
 
         return _fix_usn(
@@ -910,12 +912,13 @@ def get_affected_packages_from_usn(usn, installed_packages):
             if pkg_bin_info.get("pocket")
         }
         if not all_pockets:
-            msg = (
-                "{} metadata defines no pocket information for "
-                "any release packages."
-            )
             raise exceptions.SecurityAPIMetadataError(
-                msg.format(usn.id), issue_id=usn.id
+                error_msg=(
+                    "{} metadata defines no pocket information for "
+                    "any release packages."
+                ).format(usn.id),
+                issue=usn.id,
+                extra_info="",
             )
         cve_response["pocket"] = all_pockets.pop()
 

@@ -172,7 +172,9 @@ class TestTimer:
         now = now - datetime.timedelta(microseconds=now.microsecond)
 
         fake_file = mock.MagicMock()
-        fake_file.read.side_effect = InvalidFileFormatError("file", "json")
+        fake_file.read.side_effect = InvalidFileFormatError(
+            file_name="file", file_format="json"
+        )
         fake_file.delete.side_effect = delete_side_effect
 
         with mock.patch.object(timer, "timer_jobs_state_file", fake_file):

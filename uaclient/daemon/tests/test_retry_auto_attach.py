@@ -13,6 +13,7 @@ from uaclient.daemon.retry_auto_attach import (
     retry_auto_attach,
 )
 from uaclient.files import state_files
+from uaclient.testing import fakes
 
 M_PATH = "uaclient.daemon.retry_auto_attach."
 
@@ -22,19 +23,23 @@ class TestFullAutoAttachToFailureReason:
         "e, expected_reason",
         [
             (
-                exceptions.InvalidProImage("invalid pro"),
+                exceptions.InvalidProImage(error_msg="invalid pro"),
                 'Canonical servers did not recognize this machine as Ubuntu Pro: "invalid pro"',  # noqa: E501
             ),
             (
-                exceptions.NonAutoAttachImageError("msg"),
+                exceptions.NonAutoAttachImageError(cloud_type="msg"),
                 "Canonical servers did not recognize this image as Ubuntu Pro",
             ),
             (
-                exceptions.LockHeldError("request", "holder", 123),
+                exceptions.LockHeldError(
+                    lock_request="request", lock_holder="holder", pid=123
+                ),
                 "the pro lock was held by pid 123",
             ),
             (
-                exceptions.ContractAPIError("url", 123, "response"),
+                exceptions.ContractAPIError(
+                    url="url", code=123, body="response"
+                ),
                 'an error from Canonical servers: "response"',
             ),
             (
@@ -45,7 +50,7 @@ class TestFullAutoAttachToFailureReason:
                 exceptions.UrlError(error.URLError("urlerror"), "url"),
                 'an error while reaching url: "urlerror"',
             ),
-            (exceptions.UserFacingError("msg"), '"msg"'),
+            (fakes.FakeUserFacingError(), '"This is a test"'),
             (Exception("hello"), "hello"),
             (Exception(), "an unknown error"),
         ],
@@ -523,7 +528,7 @@ class TestRetryAutoAttach:
     ):
         cfg = FakeConfig()
         m_full_auto_attach.side_effect = exceptions.AlreadyAttachedError(
-            "test_account"
+            account_name="test_account"
         )
         retry_auto_attach(cfg)
         assert [mock.call(mock.ANY)] == m_full_auto_attach.call_args_list

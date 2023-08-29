@@ -116,8 +116,12 @@ class TestSpinLock:
     @mock.patch(
         M_PATH + "SingleAttemptLock.__enter__",
         side_effect=[
-            LockHeldError("request", "holder", 10),
-            LockHeldError("request", "holder", 10),
+            LockHeldError(
+                lock_request="request", lock_holder="holder", pid=10
+            ),
+            LockHeldError(
+                lock_request="request", lock_holder="holder", pid=10
+            ),
             None,
         ],
     )
@@ -142,8 +146,12 @@ class TestSpinLock:
     @mock.patch(
         M_PATH + "SingleAttemptLock.__enter__",
         side_effect=[
-            LockHeldError("request", "holder", 10),
-            LockHeldError("request", "holder", 10),
+            LockHeldError(
+                lock_request="request", lock_holder="holder", pid=10
+            ),
+            LockHeldError(
+                lock_request="request", lock_holder="holder", pid=10
+            ),
             None,
         ],
     )

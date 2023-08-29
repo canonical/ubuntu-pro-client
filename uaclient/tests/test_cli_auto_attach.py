@@ -15,6 +15,7 @@ from uaclient.cli import (
     main,
     main_error_handler,
 )
+from uaclient.testing import fakes
 
 M_PATH = "uaclient.cli."
 M_ID_PATH = "uaclient.clouds.identity."
@@ -113,9 +114,9 @@ class TestActionAutoAttach:
     @pytest.mark.parametrize(
         "api_side_effect,expected_err,expected_ret",
         [
-            (exceptions.UserFacingError("foo"), "foo\n", 1),
+            (fakes.FakeUserFacingError(), "This is a test\n", 1),
             (
-                exceptions.AlreadyAttachedError("foo"),
+                exceptions.AlreadyAttachedError(account_name="foo"),
                 "This machine is already attached to 'foo'\n"
                 "To use a different subscription first run: sudo pro"
                 " detach.\n",

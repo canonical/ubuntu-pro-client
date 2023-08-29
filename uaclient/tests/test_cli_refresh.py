@@ -106,7 +106,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
-        assert messages.REFRESH_CONTRACT_FAILURE == excinfo.value.msg
+        assert messages.REFRESH_CONTRACT_FAILURE.msg == excinfo.value.msg
         assert [
             mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
         ] != m_remove_notice.call_args_list
@@ -142,7 +142,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="messages"), cfg=FakeConfig())
 
-        assert messages.REFRESH_MESSAGES_FAILURE == excinfo.value.msg
+        assert messages.REFRESH_MESSAGES_FAILURE.msg == excinfo.value.msg
 
     @mock.patch("uaclient.apt_news.update_apt_news")
     @mock.patch("uaclient.timer.update_messaging.exists", return_value=True)
@@ -211,7 +211,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
-        assert messages.REFRESH_CONFIG_FAILURE == excinfo.value.msg
+        assert messages.REFRESH_CONFIG_FAILURE.msg == excinfo.value.msg
 
     @mock.patch("uaclient.config.UAConfig.process_config")
     def test_refresh_config_happy_path(

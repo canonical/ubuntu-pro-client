@@ -100,7 +100,7 @@ def _get_apt_daily_job_status() -> bool:
             apt_daily_job_enabled and apt_daily_upgrade_job_enabled
         )
     except exceptions.ProcessExecutionError as e:
-        raise UnattendedUpgradesError(msg=str(e))
+        raise UnattendedUpgradesError(error_msg=str(e))
 
     return systemd_apt_timer_enabled
 

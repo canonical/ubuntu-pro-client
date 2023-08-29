@@ -832,8 +832,10 @@ version,codename,series,created,release,eol,eol-server,eol-esm
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             system.get_distro_info.__wrapped__("nonexistent")
         assert (
-            messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format("nonexistent")
-            == excinfo.value.msg
+            messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format(
+                series="nonexistent"
+            )
+            == excinfo.value.named_msg
         )
 
     def test_no_csv_file(self, m_load_file):
@@ -841,7 +843,7 @@ version,codename,series,created,release,eol,eol-server,eol-esm
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             system.get_distro_info.__wrapped__("focal")
-        assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.msg
+        assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.named_msg
 
 
 class TestGetReleaseInfo:
