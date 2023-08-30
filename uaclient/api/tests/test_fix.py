@@ -10,12 +10,14 @@ from uaclient.api.u.pro.security.fix import (
     FixPlanAttachStep,
     FixPlanEnableStep,
     FixPlanError,
+    FixPlanNoOpLivepatchFixStep,
     FixPlanNoOpStep,
     FixPlanResult,
     FixPlanUSNResult,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
     NoOpData,
+    NoOpLivepatchFixData,
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
     USNAdditionalData,
@@ -80,7 +82,7 @@ class TestFixPlan:
     ):
         m_check_cve_fixed_by_livepatch.return_value = (
             FixStatus.SYSTEM_NON_VULNERABLE,
-            None,
+            "1.0",
         )
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
@@ -88,9 +90,10 @@ class TestFixPlan:
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=None,
             plan=[
-                FixPlanNoOpStep(
-                    data=NoOpData(
+                FixPlanNoOpLivepatchFixStep(
+                    data=NoOpLivepatchFixData(
                         status="cve-fixed-by-livepatch",
+                        patch_version="1.0",
                     ),
                     order=1,
                 )

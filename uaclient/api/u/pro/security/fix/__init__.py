@@ -181,6 +181,28 @@ class FixPlanNoOpStep(FixPlanStep):
         self.data = data
 
 
+class NoOpLivepatchFixData(NoOpData):
+    fields = [
+        Field("status", StringDataValue),
+        Field("patch_version", StringDataValue),
+    ]
+
+    def __init__(self, *, status: str, patch_version: str):
+        super().__init__(status=status)
+        self.patch_version = patch_version
+
+
+class FixPlanNoOpLivepatchFixStep(FixPlanNoOpStep):
+    fields = [
+        Field("operation", StringDataValue),
+        Field("data", NoOpLivepatchFixData),
+        Field("order", IntDataValue),
+    ]
+
+    def __init__(self, *, data: NoOpLivepatchFixData, order: int):
+        super().__init__(data=data, order=order)
+
+
 class FixPlanWarning(DataObject):
     fields = [
         Field("warning_type", StringDataValue),
@@ -367,9 +389,14 @@ class FixPlan:
                 order=self.order, data=EnableData.from_dict(data)
             )
         elif operation == FixStepType.NOOP:
-            fix_step = FixPlanNoOpStep(
-                order=self.order, data=NoOpData.from_dict(data)
-            )
+            if "patch_version" in data:
+                fix_step = FixPlanNoOpLivepatchFixStep(
+                    order=self.order, data=NoOpLivepatchFixData.from_dict(data)
+                )
+            else:
+                fix_step = FixPlanNoOpStep(
+                    order=self.order, data=NoOpData.from_dict(data)
+                )
         else:
             fix_step = FixPlanAptUpgradeStep(
                 order=self.order, data=AptUpgradeData.from_dict(data)
@@ -561,7 +588,10 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_step(
             operation=FixStepType.NOOP,
-            data={"status": FixPlanNoOpStatus.FIXED_BY_LIVEPATCH.value},
+            data={
+                "status": FixPlanNoOpStatus.FIXED_BY_LIVEPATCH.value,
+                "patch_version": patch_version,
+            },
         )
         return fix_plan.fix_plan
 
