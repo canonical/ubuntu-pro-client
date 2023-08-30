@@ -10,12 +10,14 @@ from uaclient.api.u.pro.security.fix import (
     FixPlanAttachStep,
     FixPlanEnableStep,
     FixPlanError,
+    FixPlanNoOpAlreadyFixedStep,
     FixPlanNoOpLivepatchFixStep,
     FixPlanNoOpStep,
     FixPlanResult,
     FixPlanUSNResult,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
+    NoOpAlreadyFixedData,
     NoOpData,
     NoOpLivepatchFixData,
     PackageCannotBeInstalledData,
@@ -920,9 +922,11 @@ class TestFixPlan:
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=["pkg1"],
             plan=[
-                FixPlanNoOpStep(
-                    data=NoOpData(
+                FixPlanNoOpAlreadyFixedStep(
+                    data=NoOpAlreadyFixedData(
                         status="cve-already-fixed",
+                        source_packages=["pkg1"],
+                        pocket="Ubuntu standard updates",
                     ),
                     order=1,
                 ),
