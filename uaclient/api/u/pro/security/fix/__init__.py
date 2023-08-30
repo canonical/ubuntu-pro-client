@@ -203,6 +203,32 @@ class FixPlanNoOpLivepatchFixStep(FixPlanNoOpStep):
         super().__init__(data=data, order=order)
 
 
+class NoOpAlreadyFixedData(NoOpData):
+    fields = [
+        Field("status", StringDataValue),
+        Field("source_packages", data_list(StringDataValue)),
+        Field("pocket", StringDataValue),
+    ]
+
+    def __init__(
+        self, *, status: str, source_packages: List[str], pocket: str
+    ):
+        super().__init__(status=status)
+        self.source_packages = source_packages
+        self.pocket = pocket
+
+
+class FixPlanNoOpAlreadyFixedStep(FixPlanNoOpStep):
+    fields = [
+        Field("operation", StringDataValue),
+        Field("data", NoOpLivepatchFixData),
+        Field("order", IntDataValue),
+    ]
+
+    def __init__(self, *, data: NoOpAlreadyFixedData, order: int):
+        super().__init__(data=data, order=order)
+
+
 class FixPlanWarning(DataObject):
     fields = [
         Field("warning_type", StringDataValue),
@@ -392,6 +418,10 @@ class FixPlan:
             if "patch_version" in data:
                 fix_step = FixPlanNoOpLivepatchFixStep(
                     order=self.order, data=NoOpLivepatchFixData.from_dict(data)
+                )
+            elif "source_packages" in data:
+                fix_step = FixPlanNoOpAlreadyFixedStep(
+                    order=self.order, data=NoOpAlreadyFixedData.from_dict(data)
                 )
             else:
                 fix_step = FixPlanNoOpStep(
@@ -777,7 +807,6 @@ def _generate_fix_plan(
     if not src_pocket_pkgs:
         return fix_plan.fix_plan
 
-    all_already_installed = True
     for pocket in [
         UBUNTU_STANDARD_UPDATES_POCKET,
         UA_INFRA_POCKET,
@@ -785,14 +814,21 @@ def _generate_fix_plan(
     ]:
         pkg_src_group = src_pocket_pkgs[pocket]
         binary_pkgs = binary_pocket_pkgs[pocket]
+        source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
 
         if not binary_pkgs:
+            if source_pkgs:
+                fix_plan.register_step(
+                    operation=FixStepType.NOOP,
+                    data={
+                        "status": FixPlanNoOpStatus.ALREADY_FIXED.value,
+                        "source_packages": source_pkgs,
+                        "pocket": pocket,
+                    },
+                )
             continue
-        else:
-            all_already_installed = False
 
         upgrade_pkgs, unfixed_pkgs = _get_upgradable_pkgs(binary_pkgs, pocket)
-        source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
 
         if unfixed_pkgs:
             for unfixed_pkg in unfixed_pkgs:
@@ -847,12 +883,6 @@ def _generate_fix_plan(
                 "source_packages": source_pkgs,
                 "pocket": pocket,
             },
-        )
-
-    if all_already_installed:
-        fix_plan.register_step(
-            operation=FixStepType.NOOP,
-            data={"status": FixPlanNoOpStatus.ALREADY_FIXED.value},
         )
 
     return fix_plan.fix_plan
