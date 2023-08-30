@@ -75,7 +75,7 @@ class MachineTokenFile:
     ):
         file_name = defaults.MACHINE_TOKEN_FILE
         self.private_file = UAFile(
-            file_name, directory + defaults.PRIVATE_SUBDIR
+            file_name, directory + "/" + defaults.PRIVATE_SUBDIR
         )
         self.public_file = UAFile(file_name, directory, False)
         self.machine_token_overlay_path = machine_token_overlay_path

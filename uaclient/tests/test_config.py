@@ -10,7 +10,6 @@ import pytest
 
 from uaclient import apt, exceptions, http, messages
 from uaclient.config import (
-    PRIVATE_SUBDIR,
     UA_CONFIGURABLE_KEYS,
     VALID_UA_CONFIG_KEYS,
     DataPath,
@@ -18,7 +17,7 @@ from uaclient.config import (
     parse_config,
 )
 from uaclient.conftest import FakeNotice
-from uaclient.defaults import DEFAULT_CONFIG_FILE
+from uaclient.defaults import DEFAULT_CONFIG_FILE, PRIVATE_SUBDIR
 from uaclient.entitlements import valid_services
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices
