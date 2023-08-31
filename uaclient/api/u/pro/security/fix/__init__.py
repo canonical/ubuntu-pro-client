@@ -275,6 +275,7 @@ class PackageCannotBeInstalledData(DataObject):
         Field("binary_package", StringDataValue),
         Field("binary_package_version", StringDataValue),
         Field("source_package", StringDataValue),
+        Field("pocket", StringDataValue),
     ]
 
     def __init__(
@@ -282,11 +283,13 @@ class PackageCannotBeInstalledData(DataObject):
         *,
         binary_package: str,
         binary_package_version: str,
-        source_package: str
+        source_package: str,
+        pocket: str
     ):
         self.source_package = source_package
         self.binary_package = binary_package
         self.binary_package_version = binary_package_version
+        self.pocket = pocket
 
 
 class FixPlanWarningPackageCannotBeInstalled(FixPlanWarning):
@@ -842,6 +845,7 @@ def _generate_fix_plan(
                         "binary_package": unfixed_pkg.binary_package,
                         "binary_package_version": unfixed_pkg.version,
                         "source_package": unfixed_pkg.source_package,
+                        "pocket": pocket,
                     },
                 )
 
