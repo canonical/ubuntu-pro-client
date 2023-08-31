@@ -46,7 +46,7 @@ Security patching
 =================
 
 Livepatch is the tool that provides patching for critical and high security
-vulnerabilities in the Ubuntu kernel. It can also be used in an airgapped
+vulnerabilities in the Ubuntu kernel. It can also be used in a firewalled
 setup using Livepatch on-prem, which our `Customer Support teams`_ can help you
 to set up.
 
