@@ -108,7 +108,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         One moment, checking your subscription first
         Disabling incompatible service: FIPS
-        Updating package lists
+        Updating FIPS Updates package list
         Installing FIPS Updates packages
         FIPS Updates enabled
         A reboot is required to complete install.
@@ -328,7 +328,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         One moment, checking your subscription first
         Disabling incompatible service: FIPS
-        Updating package lists
+        Updating FIPS Updates package list
         Installing FIPS Updates packages
         FIPS Updates enabled
         A reboot is required to complete install.
@@ -468,7 +468,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         One moment, checking your subscription first
         Disabling incompatible service: FIPS
-        Updating package lists
+        Updating FIPS Updates package list
         Installing FIPS Updates packages
         FIPS Updates enabled
         A reboot is required to complete install.
@@ -601,7 +601,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         One moment, checking your subscription first
         Disabling incompatible service: FIPS
-        Updating package lists
+        Updating FIPS Updates package list
         Installing FIPS Updates packages
         FIPS Updates enabled
         A reboot is required to complete install.

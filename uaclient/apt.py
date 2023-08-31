@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from functools import lru_cache
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 
@@ -338,6 +339,27 @@ def run_apt_update_command(
         get_apt_cache_policy.cache_clear()
 
     return out
+
+
+def update_sources_list(sources_list: str):
+    retry_sleeps = APT_RETRIES.copy()
+    try:
+        while True:
+            try:
+                apt.cache.Cache().update(sources_list=sources_list)
+                break
+            except (apt.LockFailedException, apt.FetchFailedException) as e:
+                if not retry_sleeps:
+                    raise
+                LOG.debug(str(e))
+                LOG.debug("Retrying %d more times.", len(retry_sleeps))
+                time.sleep(retry_sleeps.pop(0))
+    except apt.LockFailedException:
+        raise exceptions.APTProcessConflictError()
+    except apt.FetchFailedException as e:
+        raise exceptions.UserFacingError(str(e))
+    finally:
+        get_apt_cache_policy.cache_clear()
 
 
 def run_apt_install_command(

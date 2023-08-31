@@ -21,7 +21,7 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Landscape package list
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         """
@@ -84,7 +84,7 @@ Feature: Enable landscape on Ubuntu
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Landscape package list
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         Landscape enabled
@@ -101,7 +101,7 @@ Feature: Enable landscape on Ubuntu
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Landscape package list
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --silent`
         Created symlink /etc/systemd/system/multi-user.target.wants/landscape-client.service → /lib/systemd/system/landscape-client.service.
@@ -196,7 +196,7 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Landscape package list
         Installing landscape-client
         Executing `landscape-config`
         """
@@ -228,7 +228,7 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Landscape package list
         Installing landscape-client
         Executing `landscape-config`
         """

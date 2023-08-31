@@ -416,7 +416,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
         """
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package list
         Ubuntu Pro: ESM Infra enabled
         """
         And stdout does not match regexp:
@@ -682,7 +682,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package lists
         APT update failed.
         APT update failed to read APT config for the following:
         - http(s)?://ppa.launchpad(content)?.net/cloud-init-dev/daily/ubun

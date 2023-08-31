@@ -421,6 +421,7 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.should_reboot")
     @mock.patch(M_PATH + "system.subp", return_value=("", ""))
@@ -439,6 +440,7 @@ class TestRepoEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
+        m_update_sources_list,
         entitlement,
         capsys,
         caplog_text,
@@ -461,19 +463,15 @@ class TestRepoEnable:
         else:
             messaging_patch = mock.MagicMock()
 
-        expected_apt_calls = [
-            mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
-            )
-        ]
+        expected_apt_calls = []
 
         reboot_msg = "A reboot is required to complete install."
         expected_output = (
             "\n".join(
-                ["Updating package lists", "Repo Test Class enabled"]
+                [
+                    "Updating Repo Test Class package list",
+                    "Repo Test Class enabled",
+                ]
                 + ([reboot_msg] if should_reboot else [])
             )
             + "\n"
@@ -496,7 +494,7 @@ class TestRepoEnable:
                 )
                 expected_output = (
                     "\n".join(
-                        ["Updating package lists"]
+                        ["Updating Repo Test Class package list"]
                         + (pre_install_msgs if with_pre_install_msg else [])
                         + [
                             "Installing Repo Test Class packages",
@@ -520,6 +518,7 @@ class TestRepoEnable:
         ]
         assert expected_calls in m_exists.call_args_list
         assert expected_apt_calls == m_subp.call_args_list
+        assert 1 == m_update_sources_list.call_count
         add_apt_calls = [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-repotest.list",
@@ -871,6 +870,7 @@ class TestSetupAptConfig:
             in str(excinfo.value)
         )
 
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_update_command")
@@ -884,6 +884,7 @@ class TestSetupAptConfig:
         m_add_ppa_pinning,
         m_run_apt_update_command,
         m_add_auth_repo,
+        m_update_sources_list,
         _m_setup_apt_proxy,
         entitlement_factory,
     ):
@@ -908,7 +909,8 @@ class TestSetupAptConfig:
                 entitlement.repo_pin_priority,
             )
         ] == m_add_ppa_pinning.call_args_list
-        assert [mock.call()] == m_run_apt_update_command.call_args_list
+        assert [] == m_run_apt_update_command.call_args_list
+        assert 1 == m_update_sources_list.call_count
 
 
 class TestCheckAptURLIsApplied:

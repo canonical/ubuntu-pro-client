@@ -399,9 +399,9 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows pro status to report correct info
         if not silent:
-            event.info(messages.APT_UPDATING_LISTS)
+            event.info(messages.APT_UPDATING_LIST.format(self.title))
         try:
-            apt.run_apt_update_command()
+            apt.update_sources_list(repo_filename)
         except exceptions.UbuntuProError:
             self.remove_apt_config(run_apt_update=False)
             raise

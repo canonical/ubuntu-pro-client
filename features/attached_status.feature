@@ -58,7 +58,7 @@ Feature: Attached status
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating CIS Audit package list
         Installing CIS Audit packages
         CIS Audit enabled
         Visit https://ubuntu.com/security/cis to learn how to use CIS

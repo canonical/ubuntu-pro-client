@@ -82,6 +82,7 @@ class TestCommonCriteriaEntitlementEnable:
         itertools.product([False, True], repeat=2),
     )
     @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.system.should_reboot")
     @mock.patch("uaclient.system.subp")
@@ -98,6 +99,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
+        m_update_sources_list,
         m_get_kernel_info,
         capsys,
         event,
@@ -178,12 +180,6 @@ class TestCommonCriteriaEntitlementEnable:
         subp_apt_cmds.extend(
             [
                 mock.call(
-                    ["apt-get", "update"],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                    override_env_vars=None,
-                ),
-                mock.call(
                     [
                         "apt-get",
                         "install",
@@ -208,9 +204,10 @@ class TestCommonCriteriaEntitlementEnable:
         assert 1 == m_apt_cache_policy.call_count
         assert apt_cache_policy_cmds == m_apt_cache_policy.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
+        assert 1 == m_update_sources_list.call_count
         expected_stdout += "\n".join(
             [
-                "Updating package lists",
+                "Updating CC EAL2 package list",
                 "(This will download more than 500MB of packages, so may take"
                 " some time.)",
                 "Installing CC EAL2 packages",

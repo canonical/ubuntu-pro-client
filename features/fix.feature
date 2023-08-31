@@ -367,9 +367,9 @@ Feature: Ua fix command behaviour
         Choose: \[S\]ubscribe at https://ubuntu.com/pro/subscribe \[A\]ttach existing token \[C\]ancel
         > Enter your token \(from https://ubuntu.com/pro/dashboard\) to attach this system:
         > .*\{ pro attach .*\}.*
-        Updating package lists
+        Updating Ubuntu Pro: ESM Apps package list
         Ubuntu Pro: ESM Apps enabled
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package list
         Ubuntu Pro: ESM Infra enabled
         """
         And stdout matches regexp:
@@ -484,7 +484,7 @@ Feature: Ua fix command behaviour
 
         Choose: \[E\]nable esm-infra \[C\]ancel
         > .*\{ pro enable esm-infra \}.*
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package list
         Ubuntu Pro: ESM Infra enabled
         .*\{ apt update && apt install --only-upgrade -y gzip \}.*
 

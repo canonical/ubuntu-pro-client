@@ -378,7 +378,7 @@ class TestLivepatchProcessContractDeltas:
 @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
 
-    mocks_apt_update = [mock.call()]
+    mocks_apt_update = []
     mocks_snapd_install = [
         mock.call(
             ["apt-get", "install", "--assume-yes", "snapd"],
@@ -421,6 +421,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.system.get_release_info")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.contract.apply_contract_overrides")
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.run_apt_install_command")
     @mock.patch("uaclient.apt.run_apt_update_command")
     @mock.patch("uaclient.system.which", return_value=None)
@@ -435,6 +436,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_run_apt_update,
         m_run_apt_install,
+        m_update_sources_list,
         _m_contract_overrides,
         m_subp,
         _m_get_release_info,
@@ -453,19 +455,20 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = application_status, "enabled"
         m_is_snapd_installed.return_value = False
 
-        def fake_run_apt_update():
+        def fake_update_sources_list(sources_list):
             if apt_update_success:
                 return
             raise fakes.FakeUbuntuProError()
 
-        m_run_apt_update.side_effect = fake_run_apt_update
+        m_update_sources_list.side_effect = fake_update_sources_list
 
         assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
         assert self.mocks_apt_update == m_run_apt_update.call_args_list
+        assert 1 == m_update_sources_list.call_count
         msg = (
             "Installing snapd\n"
-            "Updating package lists\n"
+            "Updating main package list\n"
             "Installing canonical-livepatch snap\n"
             "Disabling Livepatch prior to re-attach with new token\n"
             "Canonical Livepatch enabled\n"

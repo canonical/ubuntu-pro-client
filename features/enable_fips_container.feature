@@ -21,7 +21,7 @@ Feature: FIPS enablement in lxd containers
             """
         And stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package list
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install.
