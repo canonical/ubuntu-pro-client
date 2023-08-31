@@ -117,12 +117,16 @@ class FixPlanAptUpgradeStep(FixPlanStep):
 class AttachData(DataObject):
     fields = [
         Field("reason", StringDataValue),
+        Field("required_service", StringDataValue),
         Field("source_packages", data_list(StringDataValue)),
     ]
 
-    def __init__(self, *, reason: str, source_packages: List[str]):
+    def __init__(
+        self, *, reason: str, source_packages: List[str], required_service: str
+    ):
         self.reason = reason
         self.source_packages = source_packages
+        self.required_service = required_service
 
 
 class FixPlanAttachStep(FixPlanStep):
@@ -842,12 +846,18 @@ def _generate_fix_plan(
                 )
 
         if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
+            if pocket == UA_INFRA_POCKET:
+                service_to_check = "esm-infra"
+            else:
+                service_to_check = "esm-apps"
+
             if not _is_attached(cfg).is_attached:
                 fix_plan.register_step(
                     operation=FixStepType.ATTACH,
                     data={
                         "reason": "required-pro-service",
                         "source_packages": source_pkgs,
+                        "required_service": service_to_check,
                     },
                 )
             else:
@@ -862,11 +872,6 @@ def _generate_fix_plan(
                     )
 
             enabled_services = _enabled_services(cfg).enabled_services or []
-            if pocket == UA_INFRA_POCKET:
-                service_to_check = "esm-infra"
-            else:
-                service_to_check = "esm-apps"
-
             if service_to_check not in enabled_services:
                 fix_plan.register_step(
                     operation=FixStepType.ENABLE,
