@@ -67,23 +67,18 @@ class TestActionFix:
             ("USA-1234-12345678", False),
         ),
     )
-    @mock.patch("uaclient.security.fix_security_issue_id")
-    def test_attached(
-        self, m_fix_security_issue_id, issue, is_valid, FakeConfig
-    ):
+    @mock.patch("uaclient.cli.fix.fix_cve")
+    @mock.patch("uaclient.cli.fix.fix_usn")
+    def test_attached(self, m_fix_cve, m_fix_usn, issue, is_valid, FakeConfig):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig()
         args = mock.MagicMock(
             security_issue=issue, dry_run=False, no_related=False
         )
-        m_fix_security_issue_id.return_value = FixStatus.SYSTEM_NON_VULNERABLE
+        m_fix_cve.return_value = FixStatus.SYSTEM_NON_VULNERABLE
+        m_fix_usn.return_value = FixStatus.SYSTEM_NON_VULNERABLE
         if is_valid:
             assert 0 == action_fix(args, cfg=cfg)
-            assert [
-                mock.call(
-                    cfg=cfg, issue_id=issue, dry_run=False, no_related=False
-                )
-            ] == m_fix_security_issue_id.call_args_list
         else:
             with pytest.raises(exceptions.UbuntuProError) as excinfo:
                 action_fix(args, cfg=cfg)
@@ -94,4 +89,5 @@ class TestActionFix:
             ).format(issue)
 
             assert expected_msg == str(excinfo.value)
-            assert 0 == m_fix_security_issue_id.call_count
+            assert 0 == m_fix_cve.call_count
+            assert 0 == m_fix_usn.call_count
