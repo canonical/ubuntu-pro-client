@@ -39,12 +39,8 @@ airgapped use-cases. You can keep up to date with these developments in the
 Mirror snaps with Snap store proxy
 ----------------------------------
 
-The Snap store proxy is the equivalent tool for hosting the snap packages that
+The `Snap-store-proxy`_ is the equivalent tool for hosting the snap packages that
 your organisation is consuming.
-
-`Snap-store-proxy`_ is a snap that provides an edge proxy to the Snap store, so
-that after your device has been registered with the proxy, all communications
-with the Snap store will be sent via the proxy.
  
 Security patching
 =================
