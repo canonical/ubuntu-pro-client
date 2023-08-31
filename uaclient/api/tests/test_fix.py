@@ -529,6 +529,7 @@ class TestFixPlan:
                         binary_package="bin2",
                         source_package="pkg1",
                         binary_package_version="1.2",
+                        pocket="Ubuntu standard updates",
                     ),
                     order=1,
                 )
