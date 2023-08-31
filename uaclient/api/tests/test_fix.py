@@ -401,6 +401,7 @@ class TestFixPlan:
                 FixPlanAttachStep(
                     data=AttachData(
                         reason="required-pro-service",
+                        required_service="esm-infra",
                         source_packages=["pkg2"],
                     ),
                     order=2,
