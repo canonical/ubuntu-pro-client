@@ -77,11 +77,11 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
 
     cloud_type, _ = get_cloud_type()
     if not cloud_type:
-        raise exceptions.CloudFactoryNoCloudError(cloud_type)
+        raise exceptions.CloudFactoryNoCloudError()
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
-        raise exceptions.CloudFactoryUnsupportedCloudError(cloud_type)
+        raise exceptions.NonAutoAttachImageError(cloud_type=cloud_type)
     instance = cls()
     if not instance.is_viable:
-        raise exceptions.CloudFactoryNonViableCloudError(cloud_type)
+        raise exceptions.CloudFactoryNonViableCloudError()
     return instance

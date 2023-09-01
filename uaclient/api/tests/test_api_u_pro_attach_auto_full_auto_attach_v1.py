@@ -166,12 +166,12 @@ class TestFullAutoAttachV1:
     @mock.patch(
         "uaclient.actions.enable_entitlement_by_name",
     )
-    @mock.patch("uaclient.actions.get_cloud_instance")
+    @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.actions.auto_attach")
     def test_error_invalid_ent_names(
         self,
         _auto_attach,
-        _get_cloud_instance,
+        _cloud_instance_factory,
         m_enable_ent_by_name,
         _m_update_activity_token,
         _notice_remove,
@@ -203,12 +203,12 @@ class TestFullAutoAttachV1:
         "uaclient.actions.enable_entitlement_by_name",
         return_value=(False, None),
     )
-    @mock.patch("uaclient.actions.get_cloud_instance")
+    @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.actions.auto_attach")
     def test_error_full_auto_attach_fail(
         self,
         _auto_attach,
-        _get_cloud_instance,
+        _cloud_instance_factory,
         enable_ent_by_name,
         _m_update_activity_token,
         _notice_remove,
@@ -364,12 +364,12 @@ class TestFullAutoAttachV1:
     )
     @mock.patch(M_PATH + "_enable_services_by_name")
     @mock.patch(M_PATH + "actions.auto_attach")
-    @mock.patch(M_PATH + "actions.get_cloud_instance")
+    @mock.patch(M_PATH + "identity.cloud_instance_factory")
     @mock.patch(M_PATH + "util.is_config_value_true")
     def test_full_auto_attach_v1(
         self,
         m_is_config_value_true,
-        m_get_cloud_instance,
+        m_cloud_instance_factory,
         m_auto_attach,
         m_enable_services_by_name,
         m_update_activity_token,
