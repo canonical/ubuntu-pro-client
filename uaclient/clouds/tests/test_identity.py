@@ -102,7 +102,7 @@ class TestCloudInstanceFactory:
     def test_raise_error_when_not_supported(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
         m_get_cloud_type.return_value = ("unsupported-cloud", None)
-        with pytest.raises(exceptions.CloudFactoryUnsupportedCloudError):
+        with pytest.raises(exceptions.NonAutoAttachImageError):
             cloud_instance_factory()
 
     @pytest.mark.parametrize("cloud_type", ("aws", "azure"))

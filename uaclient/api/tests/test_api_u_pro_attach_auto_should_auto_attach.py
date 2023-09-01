@@ -33,9 +33,9 @@ class TestShouldAutoAttachV1:
     @pytest.mark.parametrize(
         "cloud_exception",
         (
-            (exceptions.CloudFactoryNoCloudError),
-            (exceptions.CloudFactoryUnsupportedCloudError),
-            (exceptions.CloudFactoryNonViableCloudError),
+            (exceptions.CloudFactoryNoCloudError()),
+            (exceptions.NonAutoAttachImageError(cloud_type="test")),
+            (exceptions.CloudFactoryNonViableCloudError()),
         ),
     )
     @mock.patch(M_PATH + ".cloud_instance_factory")
@@ -45,5 +45,5 @@ class TestShouldAutoAttachV1:
         cloud_exception,
         FakeConfig,
     ):
-        m_cloud_factory.side_effect = cloud_exception(cloud_type="test")
+        m_cloud_factory.side_effect = cloud_exception
         assert False is _should_auto_attach(FakeConfig()).should_auto_attach

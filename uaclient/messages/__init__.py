@@ -196,17 +196,26 @@ APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
-UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
-Unable to determine cloud platform."""
-UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = """\
+UNABLE_TO_DETERMINE_CLOUD_TYPE = NamedMessage(
+    "auto-attach-cloud-type-error",
+    """\
+Unable to determine cloud platform.""",
+)
+UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = FormattedNamedMessage(
+    "auto-attach-unsupported-cloud-type-error",
+    """\
 Auto-attach image support is not available on {{cloud_type}}
 See: {url}""".format(
-    url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
 )
-UNSUPPORTED_AUTO_ATTACH = """\
+UNSUPPORTED_AUTO_ATTACH = NamedMessage(
+    "auto-attach-image-not-viable",
+    """\
 Auto-attach image support is not available on this image
 See: {url}""".format(
-    url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
 )
 
 CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
