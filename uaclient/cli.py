@@ -1024,8 +1024,7 @@ def _create_enable_disable_unattached_msg(command, service_names, cfg):
         names=service_names, cfg=cfg
     )
     if entitlements_found and entitlements_not_found:
-        msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED
-        msg = msg.format(
+        msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED.format(
             valid_service=", ".join(entitlements_found),
             operation=command,
             invalid_service=", ".join(entitlements_not_found),
