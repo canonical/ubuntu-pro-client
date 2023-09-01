@@ -13,7 +13,6 @@ from uaclient import (
     livepatch,
 )
 from uaclient import log as pro_log
-from uaclient import messages
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -284,37 +283,3 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             system.write_file(
                 os.path.join(output_dir, os.path.basename(f)), content
             )
-
-
-def get_cloud_instance(
-    cfg: config.UAConfig,
-) -> AutoAttachCloudInstance:
-    instance = None  # type: Optional[AutoAttachCloudInstance]
-    try:
-        instance = identity.cloud_instance_factory()
-    except exceptions.CloudFactoryError as e:
-        if isinstance(e, exceptions.CloudFactoryNoCloudError):
-            raise exceptions.UserFacingError(
-                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
-                msg_code="auto-attach-cloud-type-error",
-            )
-        if isinstance(e, exceptions.CloudFactoryNonViableCloudError):
-            raise exceptions.UserFacingError(messages.UNSUPPORTED_AUTO_ATTACH)
-        if isinstance(e, exceptions.CloudFactoryUnsupportedCloudError):
-            raise exceptions.NonAutoAttachImageError(
-                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-                    cloud_type=e.cloud_type
-                ),
-                msg_code="auto-attach-unsupported-cloud-type-error",
-            )
-        # we shouldn't get here, but this is a reasonable default just in case
-        raise exceptions.UserFacingError(
-            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
-        )
-
-    if not instance:
-        # we shouldn't get here, but this is a reasonable default just in case
-        raise exceptions.UserFacingError(
-            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
-        )
-    return instance

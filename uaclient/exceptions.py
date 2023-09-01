@@ -119,12 +119,6 @@ class ProxyInvalidUrl(UserFacingError):
         )
 
 
-class NonAutoAttachImageError(UserFacingError):
-    """Raised when machine isn't running an auto-attach enabled image"""
-
-    exit_code = 0
-
-
 class AlreadyAttachedError(UserFacingError):
     """An exception to be raised when a command needs an unattached system."""
 
@@ -287,21 +281,33 @@ class GCPProAccountError(UserFacingError):
         )
 
 
-class CloudFactoryError(Exception):
-    def __init__(self, cloud_type: Optional[str]) -> None:
-        self.cloud_type = cloud_type
+class CloudFactoryError(UserFacingError):
+    pass
 
 
 class CloudFactoryNoCloudError(CloudFactoryError):
-    pass
+    def __init__(self) -> None:
+        msg = messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
-class CloudFactoryUnsupportedCloudError(CloudFactoryError):
-    pass
+class NonAutoAttachImageError(CloudFactoryError):
+    """Raised when machine isn't running an auto-attach enabled image"""
+
+    exit_code = 0
+
+    def __init__(self, cloud_type: str) -> None:
+        self.cloud_type = cloud_type
+        msg = messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+            cloud_type=cloud_type
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class CloudFactoryNonViableCloudError(CloudFactoryError):
-    pass
+    def __init__(self) -> None:
+        msg = messages.UNSUPPORTED_AUTO_ATTACH
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class EntitlementNotFoundError(UserFacingError):
