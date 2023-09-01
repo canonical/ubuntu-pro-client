@@ -285,7 +285,7 @@ Feature: FIPS enablement in lxd VMs
             """
         Then stdout matches regexp:
             """
-            livepatch +yes                enabled
+            livepatch +yes +<livepatch_status>
             """
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then stdout matches regexp:
@@ -302,7 +302,7 @@ Feature: FIPS enablement in lxd VMs
             """
         Then stdout matches regexp:
             """
-            livepatch +yes                enabled
+            livepatch +yes +<livepatch_status>
             """
         When I reboot the machine
         And  I run `uname -r` as non-root
@@ -322,12 +322,12 @@ Feature: FIPS enablement in lxd VMs
             """
         Then stdout matches regexp:
             """
-            livepatch +yes                enabled
+            livepatch +yes +enabled
             """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | livepatch_status |
+           | xenial  | warning          |
+           | bionic  | enabled          |
 
     @slow
     @series.focal
