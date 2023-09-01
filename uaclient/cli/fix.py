@@ -600,7 +600,7 @@ def execute_fix_plan(
             if print_pkg_header:
                 print(
                     _format_packages_message(
-                        pkg_list=[step.data.source_package],
+                        pkg_list=step.data.related_source_packages,
                         status="released",
                         pkg_index=pkg_index,
                         num_pkgs=len(affected_pkgs),
