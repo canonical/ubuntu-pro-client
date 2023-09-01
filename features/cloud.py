@@ -327,9 +327,9 @@ class EC2(Cloud):
             An AWS cloud provider instance
         """
         if not image_name:
-            if series == "xenial" and "pro" not in machine_type:
+            if series in ("xenial", "bionic") and "pro" not in machine_type:
                 logging.debug(
-                    "defaulting to non-daily image for awsgeneric-16.04"
+                    "defaulting to non-daily image for awsgeneric-[16|18].04"
                 )
                 daily = False
             else:
