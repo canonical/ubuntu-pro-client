@@ -32,12 +32,12 @@ class NamedMessage:
         )
 
 
-class FormattedNamedMessage(NamedMessage):
+class FormattedNamedMessage:
     def __init__(self, name: str, msg: str):
         self.name = name
         self.tmpl_msg = msg
 
-    def format(self, **msg_params):
+    def format(self, **msg_params) -> NamedMessage:
         return NamedMessage(
             name=self.name, msg=self.tmpl_msg.format(**msg_params)
         )
