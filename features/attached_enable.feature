@@ -573,7 +573,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
-        livepatch    +yes      +enabled  +Canonical Livepatch service
+        livepatch    +yes      +<livepatch_status>  +Canonical Livepatch service
         """
         When I run `pro disable livepatch` with sudo
         Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
@@ -599,9 +599,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | livepatch_status |
+           | xenial  | warning          |
+           | bionic  | enabled          |
 
     @series.xenial
     @series.bionic
@@ -661,7 +661,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status` with sudo
         Then stdout matches regexp:
             """
-            livepatch +yes +enabled
+            livepatch +yes +<livepatch_status>
             """
         When I run `canonical-livepatch status` with sudo
         Then stdout matches regexp:
@@ -670,9 +670,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | livepatch_status |
+           | xenial  | warning          |
+           | bionic  | enabled          |
 
     @series.xenial
     @uses.config.machine_type.lxd-vm
@@ -687,12 +687,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        livepatch +yes +enabled
+        livepatch +yes +warning
         """
         When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "no", "reboot_required_packages": {"kernel_packages": null, "standard_packages": null}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "no", "reboot_required_packages": {"kernel_packages": null, "standard_packages": null}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
@@ -703,7 +703,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \[\], "standard_packages": \["libc6"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \[\], "standard_packages": \["libc6"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
@@ -720,18 +720,18 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes-kernel-livepatches-applied", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \[\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \[\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
         """
-        yes-kernel-livepatches-applied
+        yes
         """
         When I run `apt-get install dbus -y` with sudo
         And I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "supported", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \["dbus"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \["dbus"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `pro system reboot-required` as non-root
         Then I will see the following on stdout:
