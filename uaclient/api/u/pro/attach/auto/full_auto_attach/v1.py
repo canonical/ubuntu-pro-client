@@ -5,6 +5,7 @@ from uaclient.api import exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.clouds import identity
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.entitlements import order_entitlements_for_enabling
@@ -102,7 +103,7 @@ def _full_auto_attach_in_lock(
     ):
         raise exceptions.AutoAttachDisabledError()
 
-    instance = actions.get_cloud_instance(cfg)
+    instance = identity.cloud_instance_factory()
     enable_default_services = (
         options.enable is None and options.enable_beta is None
     )
