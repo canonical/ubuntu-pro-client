@@ -8,6 +8,8 @@ Feature: Livepatch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change config key `livepatch_url` to use value `<livepatch_url>`
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
+        # This is needed because `apt update` creates this file before, and we need to make sure it is created correctly later
+        When I delete the file `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
         When I run `pro status` as non-root
         Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/livepatch-kernel-support-cache.json`
         Then I verify that no files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
