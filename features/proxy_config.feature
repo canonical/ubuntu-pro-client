@@ -123,6 +123,7 @@ Feature: Proxy configuration
         """
         \"http://host:port\" is not a valid url. Not setting as proxy
         """
+        When I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro config set ua_apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -231,6 +232,7 @@ Feature: Proxy configuration
           "https_proxy": "invalidurls"
         }
         """
+        And I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -509,6 +511,7 @@ Feature: Proxy configuration
           "ua_apt_https_proxy": "https://localhost:12345"
         }
         """
+        And I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -604,6 +607,7 @@ Feature: Proxy configuration
           "ua_apt_https_proxy": "http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128"
         }
         """
+        And I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -745,6 +749,7 @@ Feature: Proxy configuration
         """
         \"http://host:port\" is not a valid url. Not setting as proxy
         """
+        When I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro config set global_apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -1151,6 +1156,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy \".*:3128\";
         Acquire::https::Proxy \".*:3128\";
         """
+        When I run `apt install python3-pycurl -y` with sudo
         And I verify that running `pro config set apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stdout matches regexp:
         """
