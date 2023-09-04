@@ -74,20 +74,6 @@ Feature: Enable anbox on Ubuntu
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         And I run `snap remove lxd` with sudo
-        And I set the machine token overlay to the following yaml
-        """
-        machineTokenInfo:
-          contractInfo:
-            resourceEntitlements:
-              - type: anbox-cloud
-                directives:
-                  requiredSnaps:
-                  - name: lxd
-                    channel: 5.0/stable
-                  - name: amc
-                  - name: anbox-cloud-appliance
-                    classicConfinementSupport: true
-        """
         And I run `pro enable anbox-cloud --access-only --assume-yes` with sudo
         Then I will see the following on stdout:
         """
