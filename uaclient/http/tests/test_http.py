@@ -34,7 +34,7 @@ class TestValidateProxy:
         Check that invalid urls are rejected with the correct message
         and that we don't even attempt to use them
         """
-        with pytest.raises(exceptions.UserFacingError) as e:
+        with pytest.raises(exceptions.UbuntuProError) as e:
             http.validate_proxy("http", proxy, "http://example.com")
 
         assert (
@@ -107,7 +107,7 @@ class TestValidateProxy:
         Check that we return the appropriate error when the proxy doesn't work
         """
         m_open.side_effect = open_side_effect
-        with pytest.raises(exceptions.UserFacingError) as e:
+        with pytest.raises(exceptions.UbuntuProError) as e:
             http.validate_proxy(
                 "http", "http://localhost:1234", "http://example.com"
             )

@@ -1,12 +1,12 @@
 from uaclient import messages
 from uaclient.api.data_types import APIResponse, ErrorWarningObject
-from uaclient.exceptions import UserFacingError
+from uaclient.exceptions import UbuntuProError
 from uaclient.util import get_pro_environment
 from uaclient.version import check_for_new_version
 
 
 def error_out(exception: Exception) -> APIResponse:
-    if isinstance(exception, (UserFacingError, APIError)):
+    if isinstance(exception, (UbuntuProError, APIError)):
         error = ErrorWarningObject(
             title=exception.msg,
             code=exception.msg_code
@@ -49,7 +49,7 @@ def error_out(exception: Exception) -> APIResponse:
     )
 
 
-class APIError(UserFacingError):
+class APIError(UbuntuProError):
     pass
 
 

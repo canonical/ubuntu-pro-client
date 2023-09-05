@@ -42,7 +42,7 @@ def _enable_services_by_name(
             ent_ret, reason = actions.enable_entitlement_by_name(
                 cfg, name, assume_yes=True, allow_beta=allow_beta
             )
-        except exceptions.UserFacingError as e:
+        except exceptions.UbuntuProError as e:
             failed_services.append(
                 (name, messages.NamedMessage(e.msg_code or "unknown", e.msg))
             )

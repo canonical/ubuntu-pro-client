@@ -63,5 +63,5 @@ class FakeFile:
         pass
 
 
-class FakeUserFacingError(exceptions.UserFacingError):
+class FakeUbuntuProError(exceptions.UbuntuProError):
     _msg = messages.NamedMessage("test-error", "This is a test")
