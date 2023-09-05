@@ -193,7 +193,7 @@ def is_config_value_true(config: Dict[str, Any], path_to_value: str) -> bool:
                           extracted.
     @return: A boolean value indicating if the value paramater corresponds
              to a 'True' boolean value.
-    @raises exceptions.UserFacingError when the value provide by the
+    @raises exceptions.UbuntuProError when the value provide by the
             path_to_value parameter can not be translated into either
             a 'False' or 'True' boolean value.
     """

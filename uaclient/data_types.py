@@ -9,7 +9,7 @@ from uaclient import exceptions, messages, util
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
-class IncorrectTypeError(exceptions.UserFacingError):
+class IncorrectTypeError(exceptions.UbuntuProError):
     _formatted_msg = messages.INCORRECT_TYPE_ERROR_MESSAGE
     expected_type = None  # type: str
     got_type = None  # type: str

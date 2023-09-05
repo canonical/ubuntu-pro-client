@@ -88,7 +88,7 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                fakes.FakeUserFacingError(),
+                fakes.FakeUbuntuProError(),
                 None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -101,7 +101,7 @@ class TestAttachWithToken:
                 [mock.call()],
                 [],
                 [],
-                pytest.raises(exceptions.UserFacingError),
+                pytest.raises(exceptions.UbuntuProError),
             ),
             (
                 "token",

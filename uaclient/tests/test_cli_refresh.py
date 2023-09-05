@@ -103,7 +103,7 @@ class TestActionRefresh:
 
         cfg = FakeConfig.for_attached_machine()
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
         assert messages.REFRESH_CONTRACT_FAILURE.msg == excinfo.value.msg
@@ -139,7 +139,7 @@ class TestActionRefresh:
         """On failure in update_motd_messages emit an error."""
         m_update_motd.side_effect = Exception("test")
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             action_refresh(mock.MagicMock(target="messages"), cfg=FakeConfig())
 
         assert messages.REFRESH_MESSAGES_FAILURE.msg == excinfo.value.msg
@@ -208,7 +208,7 @@ class TestActionRefresh:
 
         cfg = FakeConfig.for_attached_machine()
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
         assert messages.REFRESH_CONFIG_FAILURE.msg == excinfo.value.msg

@@ -409,7 +409,7 @@ class TestUAContractClient:
                 ],
                 mock.sentinel.get_machine_id,
                 [mock.call(mock.ANY)],
-                pytest.raises(exceptions.UserFacingError),
+                pytest.raises(exceptions.UbuntuProError),
                 None,
             ),
             (
@@ -937,7 +937,7 @@ class TestProcessEntitlementDeltas:
             "Could not determine contract delta service type"
             " {{}} {}".format(new_access)
         )
-        with pytest.raises(exceptions.UserFacingError) as exc:
+        with pytest.raises(exceptions.UbuntuProError) as exc:
             process_entitlement_delta(
                 cfg=FakeConfig(), orig_access={}, new_access=new_access
             )
@@ -1128,7 +1128,7 @@ class TestCreateAttachForbiddenMessage:
     def test_raise_attach_forbidden_message(
         self, http_response, expected_message, expected_info
     ):
-        with pytest.raises(exceptions.UserFacingError) as exc:
+        with pytest.raises(exceptions.UbuntuProError) as exc:
             _raise_attach_forbidden_message(http_response)
         assert exc.value.named_msg == expected_message
         assert exc.value.additional_info == expected_info

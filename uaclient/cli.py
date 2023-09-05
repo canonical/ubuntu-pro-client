@@ -801,7 +801,7 @@ def action_config_show(args, *, cfg, **kwargs):
     """Perform the 'config show' action optionally limit output to a single key
 
     :return: 0 on success
-    :raise UserFacingError: on invalid keys
+    :raise UbuntuProError: on invalid keys
     """
     if args.key:  # limit reporting config to a single config key
         if args.key not in config.UA_CONFIGURABLE_KEYS:
@@ -1088,7 +1088,7 @@ def action_enable(args, *, cfg, **kwargs):
     event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.refresh(cfg)
-    except (exceptions.UrlError, exceptions.UserFacingError):
+    except (exceptions.UrlError, exceptions.UbuntuProError):
         # Inability to refresh is not a critical issue during enable
         LOG.warning("Failed to refresh contract", exc_info=True)
         event.warning(warning_msg=messages.REFRESH_CONTRACT_FAILURE)
@@ -1133,7 +1133,7 @@ def action_enable(args, *, cfg, **kwargs):
                 event.service_failed(service=ent_name)
 
             ret &= ent_ret
-        except exceptions.UserFacingError as e:
+        except exceptions.UbuntuProError as e:
             event.info(e.msg)
             event.error(
                 error_msg=e.msg, error_code=e.msg_code, service=ent_name
@@ -1561,7 +1561,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
 
 def _action_refresh_messages(_args, cfg: config.UAConfig):
     # Not performing any exception handling here since both of these
-    # functions should raise UserFacingError exceptions, which are
+    # functions should raise UbuntuProError exceptions, which are
     # covered by the main_error_handler decorator
     try:
         update_motd_messages(cfg)
@@ -1756,7 +1756,7 @@ def main_error_handler(func):
             _warn_about_new_version()
 
             sys.exit(1)
-        except exceptions.UserFacingError as exc:
+        except exceptions.UbuntuProError as exc:
             LOG.error(exc.msg)
 
             event.error(

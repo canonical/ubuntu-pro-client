@@ -61,7 +61,7 @@ class TestActionAPI:
         args.options = ["test=123"]
         args.data = '{"test": ["123"]}'
 
-        with pytest.raises(exceptions.UserFacingError) as e:
+        with pytest.raises(exceptions.UbuntuProError) as e:
             action_api(args, cfg=mock.MagicMock())
 
         assert e.value.msg == messages.API_ERROR_ARGS_AND_DATA_TOGETHER.msg

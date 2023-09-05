@@ -250,7 +250,7 @@ class TestDisable:
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             with mock.patch.object(
                 cfg, "check_lock_info", return_value=(-1, "")
             ):
@@ -365,7 +365,7 @@ class TestDisable:
             expected_error = expected_error_template
             expected_info = None
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             args.service = ["bogus"]
             action_disable(args, cfg)
         assert expected_error.msg == err.value.msg
@@ -418,7 +418,7 @@ class TestDisable:
             invalid_service=", ".join(sorted(service)),
             service_msg=all_service_msg,
         )
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             args.service = service
             action_disable(args, cfg)
 
@@ -489,7 +489,7 @@ class TestDisable:
             expected_error = expected_error_template
             expected_info = None
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
 

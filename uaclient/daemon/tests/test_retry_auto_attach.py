@@ -50,7 +50,7 @@ class TestFullAutoAttachToFailureReason:
                 exceptions.UrlError(error.URLError("urlerror"), "url"),
                 'an error while reaching url: "urlerror"',
             ),
-            (fakes.FakeUserFacingError(), '"This is a test"'),
+            (fakes.FakeUbuntuProError(), '"This is a test"'),
             (Exception("hello"), "hello"),
             (Exception(), "an unknown error"),
         ],

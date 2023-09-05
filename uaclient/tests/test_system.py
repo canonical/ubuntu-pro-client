@@ -829,7 +829,7 @@ version,codename,series,created,release,eol,eol-server,eol-esm
         assert 7 == kinetic_di.eol_esm.month
         assert 2023 == kinetic_di.eol_esm.year
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             system.get_distro_info.__wrapped__("nonexistent")
         assert (
             messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format(
@@ -841,7 +841,7 @@ version,codename,series,created,release,eol,eol-server,eol-esm
     def test_no_csv_file(self, m_load_file):
         m_load_file.side_effect = FileNotFoundError
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             system.get_distro_info.__wrapped__("focal")
         assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.named_msg
 

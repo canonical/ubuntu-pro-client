@@ -9,6 +9,7 @@ from uaclient.exceptions import (
     InvalidProImage,
     LockHeldError,
     NonAutoAttachImageError,
+    UbuntuProError,
     UrlError,
     UserFacingError,
 )
@@ -21,13 +22,14 @@ __all__ = [
     "InvalidProImage",
     "LockHeldError",
     "NonAutoAttachImageError",
+    "UbuntuProError",
     "UrlError",
     "UserFacingError",
     "EntitlementsNotEnabledError",
 ]
 
 
-class AutoAttachDisabledError(UserFacingError):
+class AutoAttachDisabledError(UbuntuProError):
     _msg = messages.AUTO_ATTACH_DISABLED_ERROR
 
 

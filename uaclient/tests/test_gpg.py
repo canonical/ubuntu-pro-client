@@ -26,11 +26,11 @@ def home_dir(tmpdir):
 
 class TestExportGPGKey:
     def test_key_error_on_missing_keyfile(self, home_dir, tmpdir):
-        """Raise UserFacingError when source_keyfile is not found."""
+        """Raise UbuntuProError when source_keyfile is not found."""
         src_keyfile = tmpdir.join("nothere").strpath
         destination_keyfile = tmpdir.join("destination_keyfile").strpath
         # known valid gpg key which will not exist in source_keyring_dir
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             gpg.export_gpg_key(
                 source_keyfile=src_keyfile,
                 destination_keyfile=destination_keyfile,

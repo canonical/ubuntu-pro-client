@@ -114,7 +114,7 @@ class TestActionAutoAttach:
     @pytest.mark.parametrize(
         "api_side_effect,expected_err,expected_ret",
         [
-            (fakes.FakeUserFacingError(), "This is a test\n", 1),
+            (fakes.FakeUbuntuProError(), "This is a test\n", 1),
             (
                 exceptions.AlreadyAttachedError(account_name="foo"),
                 "This machine is already attached to 'foo'\n"

@@ -196,7 +196,7 @@ def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
 
 def create_enable_entitlements_not_found_error(
     entitlements_not_found, cfg: UAConfig, *, allow_beta: bool
-) -> exceptions.UserFacingError:
+) -> exceptions.UbuntuProError:
     """
     Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
     based on the attempted services and valid services.

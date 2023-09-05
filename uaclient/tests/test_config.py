@@ -894,7 +894,7 @@ class TestProcessConfig:
             if ua_https or ua_http:
                 exc = True
                 with pytest.raises(
-                    exceptions.UserFacingError,
+                    exceptions.UbuntuProError,
                     match=messages.ERROR_INVALID_PROXY_COMBINATION.msg,
                 ):
                     cfg.process_config()
@@ -975,7 +975,7 @@ class TestProcessConfig:
         cfg.user_config.update_messaging_timer = "wrong"
 
         with pytest.raises(
-            exceptions.UserFacingError,
+            exceptions.UbuntuProError,
             match=(
                 "Cannot set update_messaging_timer to wrong: <value> for "
                 "interval must be a positive integer."
@@ -1093,7 +1093,7 @@ class TestParseConfig:
     ):
         user_values = {env_var: env_value}  # no acceptable url scheme
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
+            with pytest.raises(exceptions.UbuntuProError) as excinfo:
                 parse_config()
         expected_msg = "Invalid url in config. {}: {}".format(
             env_var.replace("UA_", "").lower(), env_value
@@ -1121,7 +1121,7 @@ class TestParseConfig:
         m_path_exists.return_value = False
         user_values = {"UA_FEATURES_TEST": "test.yaml"}
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
+            with pytest.raises(exceptions.UbuntuProError) as excinfo:
                 parse_config()
 
         expected_msg = "Could not find yaml file: test.yaml"

@@ -554,7 +554,7 @@ class TestRepoEnable:
                 with mock.patch.object(
                     type(entitlement), "packages", packages
                 ):
-                    with pytest.raises(exceptions.UserFacingError) as excinfo:
+                    with pytest.raises(exceptions.UbuntuProError) as excinfo:
                         with mock.patch.object(
                             entitlement, "remove_apt_config"
                         ) as m_rac:
@@ -732,7 +732,7 @@ class TestSetupAptConfig:
             (
                 RepoTestEntitlement,
                 {},
-                exceptions.UserFacingError,
+                exceptions.UbuntuProError,
                 "Ubuntu Pro server provided no aptKey directive for"
                 " repotest",
             ),
@@ -745,7 +745,7 @@ class TestSetupAptConfig:
             (
                 RepoTestEntitlement,
                 {"aptKey": "somekey", "aptURL": "someURL"},
-                exceptions.UserFacingError,
+                exceptions.UbuntuProError,
                 "Ubuntu Pro server provided no suites directive for"
                 " repotest",
             ),
@@ -864,7 +864,7 @@ class TestSetupAptConfig:
         entitlement = entitlement_factory(
             RepoTestEntitlementRepoWithPin, affordances={"series": ["xenial"]}
         )
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             entitlement.setup_apt_config()
         assert (
             "Cannot setup apt pin. Empty apt repo origin value for repotest"

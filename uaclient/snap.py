@@ -124,7 +124,7 @@ def install_snapd():
     event.info(messages.APT_UPDATING_LISTS)
     try:
         apt.run_apt_update_command()
-    except exceptions.UserFacingError as e:
+    except exceptions.UbuntuProError as e:
         LOG.debug(
             "Trying to install snapd." " Ignoring apt-get update failure: %s",
             str(e),

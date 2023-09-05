@@ -58,7 +58,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
 
     try:
         fips.install_packages(cleanup_on_failure=False)
-    except exceptions.UserFacingError:
+    except exceptions.UbuntuProError:
         LOG.warning("Failed to install packages at boot: %r", fips.packages)
         raise
 
@@ -97,7 +97,7 @@ def main(cfg: config.UAConfig) -> int:
         LOG.warning("Lock not released. %s", str(e.msg))
         notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 1
-    except exceptions.UserFacingError as e:
+    except exceptions.UbuntuProError as e:
         LOG.error(
             "Error while running commands on reboot: %s, %s", e.msg_code, e.msg
         )

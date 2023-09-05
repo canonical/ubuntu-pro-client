@@ -75,7 +75,7 @@ class TestEnableServicesByName:
                     exceptions.EntitlementNotFoundError(
                         entitlement_name="name"
                     ),
-                    fakes.FakeUserFacingError(),
+                    fakes.FakeUbuntuProError(),
                 ],
                 [
                     mock.call(
@@ -101,7 +101,7 @@ class TestEnableServicesByName:
                             entitlement_name="name"
                         ),
                     ),
-                    ("livepatch", fakes.FakeUserFacingError._msg),
+                    ("livepatch", fakes.FakeUbuntuProError._msg),
                 ],
             ),
             # fail via return

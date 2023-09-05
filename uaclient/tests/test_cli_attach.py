@@ -21,9 +21,9 @@ from uaclient.exceptions import (
     MagicAttachInvalidParam,
     MagicAttachTokenError,
     NonRootUserError,
-    UserFacingError,
+    UbuntuProError,
 )
-from uaclient.testing.fakes import FakeFile, FakeUserFacingError
+from uaclient.testing.fakes import FakeFile, FakeUbuntuProError
 from uaclient.yaml import safe_dump
 
 HELP_OUTPUT = textwrap.dedent(
@@ -354,7 +354,7 @@ class TestActionAttach:
             token="something", attach_config=FakeFile("something")
         )
         cfg = FakeConfig()
-        with pytest.raises(UserFacingError) as e:
+        with pytest.raises(UbuntuProError) as e:
             action_attach(args, cfg=cfg)
         assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg
 
@@ -395,7 +395,7 @@ class TestActionAttach:
             ),
         )
         cfg = FakeConfig()
-        with pytest.raises(UserFacingError) as e:
+        with pytest.raises(UbuntuProError) as e:
             action_attach(args, cfg=cfg)
         assert "Error while reading fakename:" in e.value.msg
 
@@ -522,7 +522,7 @@ class TestActionAttach:
         "expected_exception,expected_msg,expected_outer_msg",
         (
             (
-                FakeUserFacingError(),
+                FakeUbuntuProError(),
                 messages.ATTACH_FAILURE_DEFAULT_SERVICES,
                 messages.ATTACH_FAILURE_DEFAULT_SERVICES,
             ),

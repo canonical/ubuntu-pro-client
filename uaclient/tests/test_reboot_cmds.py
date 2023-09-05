@@ -43,10 +43,10 @@ class TestFixProPkgHolds:
             (
                 "enabled",
                 Exception(),
-                fakes.FakeUserFacingError(),
+                fakes.FakeUbuntuProError(),
                 [mock.call()],
                 [mock.call(cleanup_on_failure=False)],
-                pytest.raises(exceptions.UserFacingError),
+                pytest.raises(exceptions.UbuntuProError),
             ),
         ],
     )
@@ -174,7 +174,7 @@ class TestMain:
                 ),
                 1,
             ),
-            (fakes.FakeUserFacingError(), 1),
+            (fakes.FakeUbuntuProError(), 1),
         ],
     )
     def test_main_error_cases(

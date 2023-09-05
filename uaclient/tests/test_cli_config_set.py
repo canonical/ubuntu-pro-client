@@ -4,7 +4,7 @@ import pytest
 from uaclient import apt, http, messages
 from uaclient.cli import action_config_set, configure_apt_proxy, main
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.exceptions import NonRootUserError, UserFacingError
+from uaclient.exceptions import NonRootUserError, UbuntuProError
 
 HELP_OUTPUT = """\
 usage: pro config set <key>=<value> [flags]
@@ -532,6 +532,6 @@ class TestActionConfigSet:
             key_value_pair="update_messaging_timer={}".format(invalid_value)
         )
         cfg = FakeConfig()
-        with pytest.raises(UserFacingError):
+        with pytest.raises(UbuntuProError):
             action_config_set(args, cfg=cfg)
             assert cfg.update_messaging_timer is None

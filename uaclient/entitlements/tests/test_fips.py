@@ -495,7 +495,7 @@ class TestFIPSEntitlementEnable:
             entitlement, "can_enable", return_value=(True, None)
         ):
             with mock.patch("uaclient.util.handle_message_operations"):
-                with pytest.raises(exceptions.UserFacingError) as excinfo:
+                with pytest.raises(exceptions.UbuntuProError) as excinfo:
                     entitlement.enable()
         error_msg = (
             "Ubuntu Pro server provided no suites directive for {}".format(
@@ -538,7 +538,7 @@ class TestFIPSEntitlementEnable:
             )
             stack.enter_context(mock.patch(M_REPOPATH + "exists"))
 
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
+            with pytest.raises(exceptions.UbuntuProError) as excinfo:
                 entitlement.enable()
 
         error_msg = (
@@ -884,7 +884,7 @@ class TestFIPSEntitlementRemovePackages:
             "/var/log/ubuntu-advantage.log"
         ).format(entitlement.title)
 
-        with pytest.raises(exceptions.UserFacingError) as exc_info:
+        with pytest.raises(exceptions.UbuntuProError) as exc_info:
             entitlement.remove_packages()
 
         assert exc_info.value.msg.strip() == expected_msg
@@ -1085,9 +1085,9 @@ class TestFipsEntitlementInstallPackages:
     def test_install_packages_fail_if_metapackage_not_installed(
         self, m_run_apt, entitlement
     ):
-        m_run_apt.side_effect = fakes.FakeUserFacingError()
+        m_run_apt.side_effect = fakes.FakeUbuntuProError()
         with mock.patch.object(entitlement, "remove_apt_config"):
-            with pytest.raises(exceptions.UserFacingError):
+            with pytest.raises(exceptions.UbuntuProError):
                 entitlement.install_packages()
 
     @mock.patch(M_PATH + "apt.get_installed_packages_names")
@@ -1107,8 +1107,8 @@ class TestFipsEntitlementInstallPackages:
 
         m_run_apt_install.side_effect = [
             True,
-            fakes.FakeUserFacingError(),
-            fakes.FakeUserFacingError(),
+            fakes.FakeUbuntuProError(),
+            fakes.FakeUbuntuProError(),
         ]
 
         fake_stdout = io.StringIO()

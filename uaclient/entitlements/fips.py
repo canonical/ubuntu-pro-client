@@ -179,7 +179,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 super().install_packages(
                     package_list=[pkg], cleanup_on_failure=False, verbose=False
                 )
-            except exceptions.UserFacingError:
+            except exceptions.UbuntuProError:
                 event.info(
                     messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                         service=self.title, pkg=pkg
@@ -343,7 +343,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         FIPS-specifically handle apt-mark unhold
 
-        :raise UserFacingError: on failure to setup any aspect of this apt
+        :raise UbuntuProError: on failure to setup any aspect of this apt
            configuration
         """
         cmd = ["apt-mark", "showholds"]

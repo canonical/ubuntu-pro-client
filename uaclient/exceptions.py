@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 from uaclient import messages
 
 
-class UserFacingError(Exception):
+class UbuntuProError(Exception):
     """
     Base class for all of our custom errors.
     All possible exceptions from our API should extend this class.
@@ -39,129 +39,135 @@ class UserFacingError(Exception):
         return self.named_msg.msg
 
 
-class APTProcessConflictError(UserFacingError):
+# UserFacingError is the old name of our base exception class.
+# Other systems may import and rely on this name.
+# Leave this here for backwards compatibility.
+UserFacingError = UbuntuProError
+
+
+class APTProcessConflictError(UbuntuProError):
     _msg = messages.APT_PROCESS_CONFLICT
 
 
-class APTInvalidRepoError(UserFacingError):
+class APTInvalidRepoError(UbuntuProError):
     _formatted_msg = messages.APT_UPDATE_INVALID_URL_CONFIG
 
 
-class APTUpdateProcessConflictError(UserFacingError):
+class APTUpdateProcessConflictError(UbuntuProError):
     _msg = messages.APT_UPDATE_PROCESS_CONFLICT
 
 
-class APTUpdateInvalidRepoError(UserFacingError):
+class APTUpdateInvalidRepoError(UbuntuProError):
     _formatted_msg = messages.APT_UPDATE_INVALID_REPO
 
 
-class APTUpdateFailed(UserFacingError):
+class APTUpdateFailed(UbuntuProError):
     _formatted_msg = messages.APT_UPDATE_FAILED
 
 
-class APTInstallProcessConflictError(UserFacingError):
+class APTInstallProcessConflictError(UbuntuProError):
     _msg = messages.APT_INSTALL_PROCESS_CONFLICT
 
 
-class APTInstallInvalidRepoError(UserFacingError):
+class APTInstallInvalidRepoError(UbuntuProError):
     _formatted_msg = messages.APT_INSTALL_INVALID_REPO
 
 
-class APTInvalidCredentials(UserFacingError):
+class APTInvalidCredentials(UbuntuProError):
     _formatted_msg = messages.APT_INVALID_CREDENTIALS
 
 
-class APTTimeout(UserFacingError):
+class APTTimeout(UbuntuProError):
     _formatted_msg = messages.APT_TIMEOUT
 
 
-class APTUnexpectedError(UserFacingError):
+class APTUnexpectedError(UbuntuProError):
     _formatted_msg = messages.APT_UNEXPECTED_ERROR
 
 
-class APTCommandTimeout(UserFacingError):
+class APTCommandTimeout(UbuntuProError):
     _formatted_msg = messages.APT_COMMAND_TIMEOUT
 
 
-class CannotInstallSnapdError(UserFacingError):
+class CannotInstallSnapdError(UbuntuProError):
     _msg = messages.CANNOT_INSTALL_SNAPD
 
 
-class ErrorInstallingLivepatch(UserFacingError):
+class ErrorInstallingLivepatch(UbuntuProError):
     _formatted_msg = messages.ERROR_INSTALLING_LIVEPATCH
 
 
-class InvalidServiceOpError(UserFacingError):
+class InvalidServiceOpError(UbuntuProError):
     _formatted_msg = messages.INVALID_SERVICE_OP_FAILURE
 
 
-class ProxyNotWorkingError(UserFacingError):
+class ProxyNotWorkingError(UbuntuProError):
     _formatted_msg = messages.NOT_SETTING_PROXY_NOT_WORKING
 
 
-class ProxyInvalidUrl(UserFacingError):
+class ProxyInvalidUrl(UbuntuProError):
     _formatted_msg = messages.NOT_SETTING_PROXY_INVALID_URL
 
 
-class AlreadyAttachedError(UserFacingError):
+class AlreadyAttachedError(UbuntuProError):
     """An exception to be raised when a command needs an unattached system."""
 
     exit_code = 2
     _formatted_msg = messages.ALREADY_ATTACHED
 
 
-class AttachError(UserFacingError):
+class AttachError(UbuntuProError):
     """An exception to be raised when we detect a generic attach error."""
 
     exit_code = 1
     _msg = messages.ATTACH_FAILURE
 
 
-class AttachInvalidConfigFileError(UserFacingError):
+class AttachInvalidConfigFileError(UbuntuProError):
     _formatted_msg = messages.ATTACH_CONFIG_READ_ERROR
 
 
-class AttachInvalidTokenError(UserFacingError):
+class AttachInvalidTokenError(UbuntuProError):
     _msg = messages.ATTACH_INVALID_TOKEN
 
 
-class AttachForbiddenExpired(UserFacingError):
+class AttachForbiddenExpired(UbuntuProError):
     _formatted_msg = messages.ATTACH_FORBIDDEN_EXPIRED
 
 
-class AttachForbiddenNotYet(UserFacingError):
+class AttachForbiddenNotYet(UbuntuProError):
     _formatted_msg = messages.ATTACH_FORBIDDEN_NOT_YET
 
 
-class AttachForbiddenNever(UserFacingError):
+class AttachForbiddenNever(UbuntuProError):
     _formatted_msg = messages.ATTACH_FORBIDDEN_NEVER
 
 
-class AttachExpiredToken(UserFacingError):
+class AttachExpiredToken(UbuntuProError):
     _msg = messages.ATTACH_EXPIRED_TOKEN
 
 
-class ConnectivityError(UserFacingError):
+class ConnectivityError(UbuntuProError):
     _msg = messages.CONNECTIVITY_ERROR
 
 
-class MagicAttachTokenAlreadyActivated(UserFacingError):
+class MagicAttachTokenAlreadyActivated(UbuntuProError):
     _msg = messages.MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED
 
 
-class MagicAttachTokenError(UserFacingError):
+class MagicAttachTokenError(UbuntuProError):
     _msg = messages.MAGIC_ATTACH_TOKEN_ERROR
 
 
-class MagicAttachUnavailable(UserFacingError):
+class MagicAttachUnavailable(UbuntuProError):
     _msg = messages.MAGIC_ATTACH_UNAVAILABLE
 
 
-class MagicAttachInvalidParam(UserFacingError):
+class MagicAttachInvalidParam(UbuntuProError):
     _formatted_msg = messages.MAGIC_ATTACH_INVALID_PARAM
 
 
-class LockHeldError(UserFacingError):
+class LockHeldError(UbuntuProError):
     """An exception for when another pro operation is in progress
 
     :param lock_request: String of the command requesting the lock
@@ -173,48 +179,48 @@ class LockHeldError(UserFacingError):
     pid = None  # type: int
 
 
-class MissingAptURLDirective(UserFacingError):
+class MissingAptURLDirective(UbuntuProError):
     """An exception for when the contract server doesn't include aptURL"""
 
     _formatted_msg = messages.MISSING_APT_URL_DIRECTIVE
 
 
-class NonRootUserError(UserFacingError):
+class NonRootUserError(UbuntuProError):
     """An exception to be raised when a user needs to be root."""
 
     _msg = messages.NONROOT_USER
 
 
-class UnattachedError(UserFacingError):
+class UnattachedError(UbuntuProError):
     """An exception to be raised when a machine needs to be attached."""
 
     _msg = messages.UNATTACHED
 
 
-class UnattachedMixedServicesError(UserFacingError):
+class UnattachedMixedServicesError(UbuntuProError):
     _formatted_msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED
 
 
-class UnattachedValidServicesError(UserFacingError):
+class UnattachedValidServicesError(UbuntuProError):
     _formatted_msg = messages.VALID_SERVICE_FAILURE_UNATTACHED
 
 
-class UnattachedInvalidServicesError(UserFacingError):
+class UnattachedInvalidServicesError(UbuntuProError):
     _formatted_msg = messages.INVALID_SERVICE_OP_FAILURE
 
 
-class SecurityAPIMetadataError(UserFacingError):
+class SecurityAPIMetadataError(UbuntuProError):
     """An exception raised with Security API metadata returns invalid data."""
 
     _formatted_msg = messages.SECURITY_API_INVALID_METADATA
 
 
-class InvalidProImage(UserFacingError):
+class InvalidProImage(UbuntuProError):
     _formatted_msg = messages.INVALID_PRO_IMAGE
     error_msg = None  # type: str
 
 
-class CloudMetadataError(UserFacingError):
+class CloudMetadataError(UbuntuProError):
     _formatted_msg = messages.CLOUD_METADATA_ERROR
 
 
@@ -224,11 +230,11 @@ class GCPServiceAccountError(CloudMetadataError):
     _formatted_msg = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR
 
 
-class AWSNoValidIMDS(UserFacingError):
+class AWSNoValidIMDS(UbuntuProError):
     _formatted_msg = messages.AWS_NO_VALID_IMDS
 
 
-class CloudFactoryError(UserFacingError):
+class CloudFactoryError(UbuntuProError):
     pass
 
 
@@ -247,11 +253,11 @@ class NonAutoAttachImageError(CloudFactoryError):
     _formatted_msg = messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE
 
 
-class EntitlementNotFoundError(UserFacingError):
+class EntitlementNotFoundError(UbuntuProError):
     _formatted_msg = messages.ENTITLEMENT_NOT_FOUND
 
 
-class EntitlementsNotEnabledError(UserFacingError):
+class EntitlementsNotEnabledError(UbuntuProError):
 
     exit_code = 4
     _msg = messages.ENTITLEMENTS_NOT_ENABLED_ERROR
@@ -308,7 +314,7 @@ class ProcessExecutionError(IOError):
         super().__init__(message)
 
 
-class ExternalAPIError(UserFacingError):
+class ExternalAPIError(UbuntuProError):
     _formatted_msg = messages.EXTERNAL_API_ERROR
     code = None  # type: int
     url = None  # type: str
@@ -342,141 +348,141 @@ class DelayProLicensePolling(IsProLicensePresentError):
     pass
 
 
-class InvalidFileFormatError(UserFacingError):
+class InvalidFileFormatError(UbuntuProError):
     _formatted_msg = messages.INVALID_FILE_FORMAT
 
 
-class ParsingErrorOnOSReleaseFile(UserFacingError):
+class ParsingErrorOnOSReleaseFile(UbuntuProError):
     _formatted_msg = messages.ERROR_PARSING_VERSION_OS_RELEASE
 
 
-class MissingSeriesOnOSReleaseFile(UserFacingError):
+class MissingSeriesOnOSReleaseFile(UbuntuProError):
     _formatted_msg = messages.MISSING_SERIES_ON_OS_RELEASE
 
 
-class InvalidLockFile(UserFacingError):
+class InvalidLockFile(UbuntuProError):
     _formatted_msg = messages.INVALID_LOCK_FILE
 
 
-class InvalidOptionCombination(UserFacingError):
+class InvalidOptionCombination(UbuntuProError):
     _formatted_msg = messages.INVALID_OPTION_COMBINATION
 
 
-class SnapNotInstalledError(UserFacingError):
+class SnapNotInstalledError(UbuntuProError):
     _formatted_msg = messages.SNAP_NOT_INSTALLED_ERROR
 
 
-class UnexpectedSnapdAPIError(UserFacingError):
+class UnexpectedSnapdAPIError(UbuntuProError):
     _formatted_msg = messages.UNEXPECTED_SNAPD_API_ERROR
 
 
-class SnapdAPIConnectionRefused(UserFacingError):
+class SnapdAPIConnectionRefused(UbuntuProError):
     _msg = messages.SNAPD_CONNECTION_REFUSED
 
 
-class InvalidJson(UserFacingError):
+class InvalidJson(UbuntuProError):
     _formatted_msg = messages.JSON_PARSER_ERROR
 
 
-class PycurlRequiredError(UserFacingError):
+class PycurlRequiredError(UbuntuProError):
     _msg = messages.PYCURL_REQUIRED
 
 
-class PycurlError(UserFacingError):
+class PycurlError(UbuntuProError):
     _formatted_msg = messages.PYCURL_ERROR
 
 
-class ProxyAuthenticationFailed(UserFacingError):
+class ProxyAuthenticationFailed(UbuntuProError):
     _msg = messages.PROXY_AUTH_FAIL
 
 
-class SecurityIssueNotFound(UserFacingError):
+class SecurityIssueNotFound(UbuntuProError):
     _formatted_msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE
 
 
-class InvalidBooleanConfigValue(UserFacingError):
+class InvalidBooleanConfigValue(UbuntuProError):
     _formatted_msg = messages.ERROR_INVALID_BOOLEAN_CONFIG_VALUE
 
 
-class InvalidPosIntConfigValue(UserFacingError):
+class InvalidPosIntConfigValue(UbuntuProError):
     _formatted_msg = messages.CLI_CONFIG_VALUE_MUST_BE_POS_INT
 
 
-class InvalidURLConfigValue(UserFacingError):
+class InvalidURLConfigValue(UbuntuProError):
     _formatted_msg = messages.CONFIG_INVALID_URL
 
 
-class InvalidFeatureYamlConfigValue(UserFacingError):
+class InvalidFeatureYamlConfigValue(UbuntuProError):
     _formatted_msg = messages.CONFIG_NO_YAML_FILE
 
 
-class InvalidProxyCombinationConfig(UserFacingError):
+class InvalidProxyCombinationConfig(UbuntuProError):
     _msg = messages.ERROR_INVALID_PROXY_COMBINATION
 
 
-class GPGKeyNotFound(UserFacingError):
+class GPGKeyNotFound(UbuntuProError):
     _formatted_msg = messages.GPG_KEY_NOT_FOUND
 
 
-class MissingDistroInfoFile(UserFacingError):
+class MissingDistroInfoFile(UbuntuProError):
     _msg = messages.MISSING_DISTRO_INFO_FILE
 
 
-class MissingSeriesInDistroInfoFile(UserFacingError):
+class MissingSeriesInDistroInfoFile(UbuntuProError):
     _formatted_msg = messages.MISSING_SERIES_IN_DISTRO_INFO_FILE
 
 
-class RepoNoAptKey(UserFacingError):
+class RepoNoAptKey(UbuntuProError):
     _formatted_msg = messages.REPO_NO_APT_KEY
 
 
-class RepoNoSuites(UserFacingError):
+class RepoNoSuites(UbuntuProError):
     _formatted_msg = messages.REPO_NO_SUITES
 
 
-class RepoPinFailNoOrigin(UserFacingError):
+class RepoPinFailNoOrigin(UbuntuProError):
     _formatted_msg = messages.REPO_PIN_FAIL_NO_ORIGIN
 
 
-class NoHelpContent(UserFacingError):
+class NoHelpContent(UbuntuProError):
     _formatted_msg = messages.CLI_NO_HELP
 
 
-class InvalidSecurityIssueIdFormat(UserFacingError):
+class InvalidSecurityIssueIdFormat(UbuntuProError):
     _formatted_msg = messages.SECURITY_FIX_CLI_ISSUE_REGEX_FAIL
 
 
-class InvalidArgChoice(UserFacingError):
+class InvalidArgChoice(UbuntuProError):
     _formatted_msg = messages.CLI_VALID_CHOICES
 
 
-class GenericInvalidFormat(UserFacingError):
+class GenericInvalidFormat(UbuntuProError):
     _formatted_msg = messages.CLI_EXPECTED_FORMAT
 
 
-class RefreshConfigFailure(UserFacingError):
+class RefreshConfigFailure(UbuntuProError):
     _msg = messages.REFRESH_CONFIG_FAILURE
 
 
-class RefreshContractFailure(UserFacingError):
+class RefreshContractFailure(UbuntuProError):
     _msg = messages.REFRESH_CONTRACT_FAILURE
 
 
-class RefreshMessagesFailure(UserFacingError):
+class RefreshMessagesFailure(UbuntuProError):
     _msg = messages.REFRESH_MESSAGES_FAILURE
 
 
-class InvalidContractDeltasServiceType(UserFacingError):
+class InvalidContractDeltasServiceType(UbuntuProError):
     _formatted_msg = messages.INVALID_CONTRACT_DELTAS_SERVICE_TYPE
 
 
-class CLIJSONFormatRequireAssumeYes(UserFacingError):
+class CLIJSONFormatRequireAssumeYes(UbuntuProError):
     _msg = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
 
 
-class CLIAttachTokenArgXORConfig(UserFacingError):
+class CLIAttachTokenArgXORConfig(UbuntuProError):
     _msg = messages.ATTACH_TOKEN_ARG_XOR_CONFIG
 
 
-class CLIAPIOptionsXORData(UserFacingError):
+class CLIAPIOptionsXORData(UbuntuProError):
     _msg = messages.API_ERROR_ARGS_AND_DATA_TOGETHER

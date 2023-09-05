@@ -91,7 +91,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
     @param username: PPA login username.
     @param password: PPA login password or resource token.
 
-    @raises: UserFacingError for invalid credentials, timeout or unexpected
+    @raises: UbuntuProError for invalid credentials, timeout or unexpected
         errors.
     """
     protocol, repo_path = repo_url.split("://")
@@ -171,12 +171,12 @@ def run_apt_command(
     """Run an apt command, retrying upon failure APT_RETRIES times.
 
     :param cmd: List containing the apt command to run, passed to subp.
-    :param error_msg: The string to raise as UserFacingError when all retries
+    :param error_msg: The string to raise as UbuntuProError when all retries
        are exhausted in failure.
     :param override_env_vars: Passed directly as subp's override_env_vars arg
 
     :return: stdout from successful run of the apt command.
-    :raise UserFacingError: on issues running apt-cache policy.
+    :raise UbuntuProError: on issues running apt-cache policy.
     """
     try:
         out, _err = system.subp(
@@ -329,7 +329,7 @@ def run_apt_update_command(
         raise exceptions.APTUpdateProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
-    except exceptions.UserFacingError as e:
+    except exceptions.UbuntuProError as e:
         raise exceptions.APTUpdateFailed(detail=e.msg)
     finally:
         # Whenever we run an apt-get update command, we must invalidate

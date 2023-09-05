@@ -519,7 +519,7 @@ def process_entitlements_delta(
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
-        except exceptions.UserFacingError as e:
+        except exceptions.UbuntuProError as e:
             LOG.exception(e)
             delta_error = True
             failed_services.append(name)
@@ -578,7 +578,7 @@ def process_entitlement_delta(
     :param series_overrides: Boolean set True if series overrides should be
         applied to the new_access dict.
 
-    :raise UserFacingError: on failure to process deltas.
+    :raise UbuntuProError: on failure to process deltas.
     :return: A tuple containing a dict of processed deltas and a
              boolean indicating if the service was fully processed
     """
@@ -652,7 +652,7 @@ def refresh(cfg):
 
     :param cfg: Instance of UAConfig for this machine.
 
-    :raise UserFacingError: on failure to update contract or error processing
+    :raise UbuntuProError: on failure to update contract or error processing
         contract deltas
     :raise UrlError: On failure during a connection
     """
