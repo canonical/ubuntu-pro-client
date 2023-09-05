@@ -55,7 +55,7 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
         return messages.RETRY_ERROR_DETAIL_URL_ERROR_URL.format(
             url=e.url
         ) + ': "{}"'.format(str(e))
-    elif isinstance(e, api_exceptions.UserFacingError):
+    elif isinstance(e, api_exceptions.UbuntuProError):
         return '"{}"'.format(e.msg)
     else:
         LOG.error("Unexpected exception", exc_info=e)

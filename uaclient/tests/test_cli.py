@@ -25,8 +25,8 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
     NonRootUserError,
+    UbuntuProError,
     UnattachedError,
-    UserFacingError,
 )
 from uaclient.files.notices import Notice
 
@@ -345,7 +345,7 @@ class TestCLIParser:
 
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
-            with pytest.raises(UserFacingError) as excinfo:
+            with pytest.raises(UbuntuProError) as excinfo:
                 action_help(m_args, cfg=None)
 
         assert "No help available for 'test'" == str(excinfo.value)

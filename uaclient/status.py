@@ -829,7 +829,7 @@ def help(cfg, name):
 
     :param name: Name of the service for which to return help data.
 
-    :raises: UserFacingError when no help is available.
+    :raises: UbuntuProError when no help is available.
     """
     resources = get_available_resources(cfg)
     help_resource = None

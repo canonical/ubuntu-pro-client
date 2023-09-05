@@ -1433,7 +1433,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
             cfg,
         )
         return ret_code == 0
-    except exceptions.UserFacingError as err:
+    except exceptions.UbuntuProError as err:
         print(err.msg)
         return False
 

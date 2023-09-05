@@ -84,7 +84,7 @@ def attach_with_token(
             cfg.machine_token_file.entitlements,
             allow_enable,
         )
-    except (exceptions.UrlError, exceptions.UserFacingError) as exc:
+    except (exceptions.UrlError, exceptions.UbuntuProError) as exc:
         # Persist updated status in the event of partial attach
         attachment_data_file.write(AttachmentData(attached_at=attached_at))
         ua_status.status(cfg=cfg)

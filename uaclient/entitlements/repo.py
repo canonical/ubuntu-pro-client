@@ -76,7 +76,7 @@ class RepoEntitlement(base.UAEntitlement):
         """Enable specific entitlement.
 
         @return: True on success, False otherwise.
-        @raises: UserFacingError on failure to install suggested packages
+        @raises: UbuntuProError on failure to install suggested packages
         """
         self.setup_apt_config(silent=silent)
 
@@ -278,7 +278,7 @@ class RepoEntitlement(base.UAEntitlement):
                 apt_options=apt_options,
                 override_env_vars=override_env_vars,
             )
-        except exceptions.UserFacingError:
+        except exceptions.UbuntuProError:
             event.info(messages.ENABLED_FAILED.format(title=self.title).msg)
             if cleanup_on_failure:
                 self.remove_apt_config()
@@ -288,7 +288,7 @@ class RepoEntitlement(base.UAEntitlement):
         """Setup apt config based on the resourceToken and directives.
         Also sets up apt proxy if necessary.
 
-        :raise UserFacingError: on failure to setup any aspect of this apt
+        :raise UbuntuProError: on failure to setup any aspect of this apt
            configuration
         """
         http_proxy = None  # type: Optional[str]
@@ -384,7 +384,7 @@ class RepoEntitlement(base.UAEntitlement):
                 )
             try:
                 apt.run_apt_install_command(packages=prerequisite_pkgs)
-            except exceptions.UserFacingError:
+            except exceptions.UbuntuProError:
                 self.remove_apt_config()
                 raise
         apt.add_auth_apt_repo(
@@ -402,7 +402,7 @@ class RepoEntitlement(base.UAEntitlement):
             event.info(messages.APT_UPDATING_LISTS)
         try:
             apt.run_apt_update_command()
-        except exceptions.UserFacingError:
+        except exceptions.UbuntuProError:
             self.remove_apt_config(run_apt_update=False)
             raise
 

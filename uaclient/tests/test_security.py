@@ -2439,7 +2439,7 @@ class TestUpgradePackagesAndAttach:
         "exception, expected_error_msg",
         (
             (Exception("base-exception"), "base-exception"),
-            (fakes.FakeUserFacingError(), "This is a test"),
+            (fakes.FakeUbuntuProError(), "This is a test"),
         ),
     )
     @mock.patch("os.getuid", return_value=0)
@@ -2601,7 +2601,7 @@ class TestFixSecurityIssueId:
                 url="URL", code=error_code, body=json.dumps({"message": msg})
             )
 
-            with pytest.raises(exceptions.UserFacingError) as exc:
+            with pytest.raises(exceptions.UbuntuProError) as exc:
                 fix_security_issue_id(FakeConfig(), issue_id)
 
         if error_code == 404:

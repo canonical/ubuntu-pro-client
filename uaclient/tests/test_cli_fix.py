@@ -84,7 +84,7 @@ class TestActionFix:
                 )
             ] == m_fix_security_issue_id.call_args_list
         else:
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
+            with pytest.raises(exceptions.UbuntuProError) as excinfo:
                 action_fix(args, cfg=cfg)
 
             expected_msg = (

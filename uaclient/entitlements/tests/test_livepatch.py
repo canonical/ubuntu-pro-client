@@ -456,7 +456,7 @@ class TestLivepatchEntitlementEnable:
         def fake_run_apt_update():
             if apt_update_success:
                 return
-            raise fakes.FakeUserFacingError()
+            raise fakes.FakeUbuntuProError()
 
         m_run_apt_update.side_effect = fake_run_apt_update
 

@@ -204,7 +204,7 @@ class TestAPICall:
         self, m_import_module, m_error_out, FakeConfig
     ):
         mock_endpoint = mock.MagicMock(options_cls=None)
-        exception = fakes.FakeUserFacingError()
+        exception = fakes.FakeUbuntuProError()
         mock_endpoint.fn.side_effect = exception
 
         m_import_module.return_value.endpoint = mock_endpoint
@@ -289,7 +289,7 @@ class TestAPICall:
     ):
         mock_endpoint = mock.MagicMock()
         if api_error:
-            exception = fakes.FakeUserFacingError()
+            exception = fakes.FakeUbuntuProError()
             mock_endpoint.fn.side_effect = exception
         else:
             mock_endpoint.fn.return_value.warnings = []
