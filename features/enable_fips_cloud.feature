@@ -389,3 +389,53 @@ Feature: FIPS enablement in cloud based machines
            | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
            | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
            | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+
+    @slow
+    @series.lts
+    @uses.config.machine_type.any
+    @uses.config.machine_type.aws.generic
+    Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `touch /etc/cloud/cloud-init.disabled` with sudo
+        And I reboot the machine
+        And I verify that running `cloud-id` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        File not found '/run/cloud-init/instance-data.json'. Provide a path to instance data json file using --instance-data
+        """
+        When I attach `contract_token` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        Installing FIPS packages
+        FIPS enabled
+        A reboot is required to complete install
+        """
+        When I run `apt-cache policy ubuntu-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the machine
+        And  I run `uname -r` as non-root
+        Then stdout does not match regexp:
+        """
+        aws-fips
+        """
+        And stdout matches regexp:
+        """
+        fips
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
