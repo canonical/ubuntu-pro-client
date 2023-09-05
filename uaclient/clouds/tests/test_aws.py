@@ -318,7 +318,7 @@ class TestUAAutoAttachAWSInstance:
             "addresses: {}, {}".format(IMDS_IPV4_ADDRESS, IMDS_IPV6_ADDRESS)
         )
         with pytest.raises(
-            exceptions.UserFacingError, match=re.escape(expected_error)
+            exceptions.UbuntuProError, match=re.escape(expected_error)
         ):
             instance.identity_doc
 

@@ -231,7 +231,7 @@ class TestValidAptCredentials:
             stderr=stderr,
         )
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             assert_valid_apt_credentials(
                 repo_url="http://fakerepo", username="user", password="pwd"
             )
@@ -268,7 +268,7 @@ class TestValidAptCredentials:
         m_subp.side_effect = subprocess.TimeoutExpired(
             "something timed out", timeout=1000000
         )
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             assert_valid_apt_credentials(
                 repo_url="http://fakerepo", username="user", password="pwd"
             )
@@ -915,7 +915,7 @@ class TestRunAptCommand:
             cmd="apt update", stderr=error_msg
         )
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exceptions.UbuntuProError) as excinfo:
             run_apt_update_command()
 
         expected_message = "\n".join(output_list)
@@ -945,7 +945,7 @@ class TestRunAptCommand:
     ):
         m_subp.side_effect = [
             ("policy1", ""),
-            fakes.FakeUserFacingError(),
+            fakes.FakeUbuntuProError(),
             ("policy2", ""),
         ]
 
@@ -953,7 +953,7 @@ class TestRunAptCommand:
         # Confirming that caching is happening
         assert "policy1" == get_apt_cache_policy()
 
-        with pytest.raises(exceptions.UserFacingError):
+        with pytest.raises(exceptions.UbuntuProError):
             run_apt_update_command()
 
         # Confirm cache was cleared

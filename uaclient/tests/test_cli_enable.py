@@ -226,7 +226,7 @@ class TestActionEnable:
             expected_error = expected_error_template
             expected_info = None
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             action_enable(args, cfg)
         assert expected_error.msg == err.value.msg
 
@@ -305,7 +305,7 @@ class TestActionEnable:
         args.command = "enable"
         args.access_only = False
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             action_enable(args, cfg)
 
         if root:
@@ -378,7 +378,7 @@ class TestActionEnable:
         args = mock.MagicMock()
         args.service = ["bogus", "fips"]
         args.command = "enable"
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             action_enable(args, cfg)
 
         if root:
@@ -531,7 +531,7 @@ class TestActionEnable:
 
         expected_msg = "One moment, checking your subscription first\n"
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
                 action_enable(args_mock, cfg)
@@ -683,7 +683,7 @@ class TestActionEnable:
             )
         )
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
                 action_enable(args_mock, cfg)
@@ -850,7 +850,7 @@ class TestActionEnable:
         args_mock.beta = beta
         args_mock.access_only = False
 
-        with pytest.raises(exceptions.UserFacingError) as err:
+        with pytest.raises(exceptions.UbuntuProError) as err:
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
                 action_enable(args_mock, cfg)

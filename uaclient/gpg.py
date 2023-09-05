@@ -14,7 +14,7 @@ def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:
     :param destination_keyfile: The filename created with the single exported
         key.
 
-    :raise UserFacingError: Any GPG errors or if specific key does not exist in
+    :raise UbuntuProError: Any GPG errors or if specific key does not exist in
         the source_keyring_file.
     """
     LOG.debug("Exporting GPG key %s", source_keyfile)

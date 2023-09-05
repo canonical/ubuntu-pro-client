@@ -14,7 +14,7 @@ class TestVersionV1:
 
     @mock.patch("uaclient.api.u.pro.version.v1.get_version")
     def test_version_error(self, m_get_version, FakeConfig):
-        m_get_version.side_effect = fakes.FakeUserFacingError()
+        m_get_version.side_effect = fakes.FakeUbuntuProError()
 
         with pytest.raises(VersionError) as excinfo:
             _version(FakeConfig())
