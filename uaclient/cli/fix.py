@@ -1,6 +1,14 @@
 import re
 import textwrap
-from typing import Dict, List, NamedTuple, Optional, Set, Tuple, Union  # noqa
+from typing import (  # noqa: F401
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from uaclient import apt, exceptions, messages, security, system, util
 from uaclient.actions import attach_with_token, enable_entitlement_by_name
@@ -13,7 +21,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
-from uaclient.api.u.pro.security.fix import (  # noqa
+from uaclient.api.u.pro.security.fix import (  # noqa: F401
     ESM_APPS_POCKET,
     ESM_INFRA_POCKET,
     STANDARD_UPDATES_POCKET,
