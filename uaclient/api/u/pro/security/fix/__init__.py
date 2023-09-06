@@ -35,6 +35,10 @@ from uaclient.security import (
     query_installed_source_pkg_versions,
 )
 
+STANDARD_UPDATES_POCKET = "standard-updates"
+ESM_INFRA_POCKET = "esm-infra"
+ESM_APPS_POCKET = "esm-apps"
+
 UnfixedPackage = NamedTuple(
     "UnfixedPackage",
     [
@@ -763,6 +767,17 @@ def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     return _fix_plan_usn(issue_id, cfg)
 
 
+def get_pocket_short_name(pocket: str):
+    if pocket == UBUNTU_STANDARD_UPDATES_POCKET:
+        return STANDARD_UPDATES_POCKET
+    elif pocket == UA_INFRA_POCKET:
+        return ESM_INFRA_POCKET
+    elif pocket == UA_APPS_POCKET:
+        return ESM_APPS_POCKET
+    else:
+        return pocket
+
+
 def _generate_fix_plan(
     *,
     issue_id: str,
@@ -771,7 +786,7 @@ def _generate_fix_plan(
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_pkgs: Dict[str, Dict[str, str]],
     cfg: UAConfig,
-    additional_data=None,
+    additional_data=None
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
     fix_plan = get_fix_plan(
@@ -826,6 +841,7 @@ def _generate_fix_plan(
         pkg_src_group = src_pocket_pkgs[pocket]
         binary_pkgs = binary_pocket_pkgs[pocket]
         source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
+        pocket_name = get_pocket_short_name(pocket)
 
         if not binary_pkgs:
             if source_pkgs:
@@ -834,7 +850,7 @@ def _generate_fix_plan(
                     data={
                         "status": FixPlanNoOpStatus.ALREADY_FIXED.value,
                         "source_packages": source_pkgs,
-                        "pocket": pocket,
+                        "pocket": pocket_name,
                     },
                 )
             continue
@@ -850,7 +866,7 @@ def _generate_fix_plan(
                         "binary_package_version": unfixed_pkg.version,
                         "source_package": unfixed_pkg.source_package,
                         "related_source_packages": source_pkgs,
-                        "pocket": pocket,
+                        "pocket": pocket_name,
                     },
                 )
 
@@ -895,7 +911,7 @@ def _generate_fix_plan(
             data={
                 "binary_packages": upgrade_pkgs,
                 "source_packages": source_pkgs,
-                "pocket": pocket,
+                "pocket": pocket_name,
             },
         )
 
