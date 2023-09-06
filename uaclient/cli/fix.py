@@ -66,6 +66,74 @@ from uaclient.security import (
 from uaclient.status import colorize_commands
 
 
+class FixContext:
+    def __init__(
+        self,
+        title: str,
+        dry_run: bool,
+        affected_pkgs: List[str],
+        cfg: UAConfig,
+    ):
+        self.pkg_index = 0
+        self.unfixed_pkgs = []  # type: List[security.UnfixedPackage]
+        self.installed_pkgs = set()  # type: Set[str]
+        self.fix_status = FixStatus.SYSTEM_NON_VULNERABLE
+        self.title = title
+        self.affected_pkgs = affected_pkgs
+        self.dry_run = dry_run
+        self.cfg = cfg
+        self.should_print_pkg_header = True
+        self.warn_package_cannot_be_installed = False
+
+    def print_fix_header(self):
+        if self.affected_pkgs:
+            if len(self.affected_pkgs) == 1:
+                plural_str = " is"
+            else:
+                plural_str = "s are"
+
+            msg = (
+                messages.SECURITY_AFFECTED_PKGS.format(
+                    count=len(self.affected_pkgs), plural_str=plural_str
+                )
+                + ": "
+                + ", ".join(sorted(self.affected_pkgs))
+            )
+            print(
+                textwrap.fill(
+                    msg,
+                    width=PRINT_WRAP_WIDTH,
+                    subsequent_indent="    ",
+                    replace_whitespace=False,
+                )
+            )
+
+    def print_pkg_header(
+        self,
+        source_pkgs: List[str],
+        status: str,
+        pocket: Optional[str] = None,
+    ):
+        if self.should_print_pkg_header:
+            print(
+                _format_packages_message(
+                    pkg_list=source_pkgs,
+                    status=status,
+                    pkg_index=self.pkg_index,
+                    num_pkgs=len(self.affected_pkgs),
+                    pocket_source=get_pocket_description(pocket)
+                    if pocket
+                    else None,
+                )
+            )
+
+    def add_unfixed_packages(self, pkgs: List[str], unfixed_reason: str):
+        for pkg in pkgs:
+            self.unfixed_pkgs.append(
+                security.UnfixedPackage(pkg=pkg, unfixed_reason=unfixed_reason)
+            )
+
+
 def set_fix_parser(subparsers):
     parser_fix = subparsers.add_parser(
         "fix",
@@ -563,6 +631,232 @@ def get_pocket_description(pocket: str):
         return pocket
 
 
+def _execute_package_cannot_be_installed_step(
+    fix_context: FixContext,
+    step: FixPlanWarningPackageCannotBeInstalled,
+):
+    fix_context.print_pkg_header(
+        source_pkgs=step.data.related_source_packages,
+        status="released",
+        pocket=step.data.pocket,
+    )
+    fix_context.should_print_pkg_header = False
+
+    warn_msg = messages.FIX_CANNOT_INSTALL_PACKAGE.format(
+        package=step.data.binary_package,
+        version=step.data.binary_package_version,
+    )
+    print("- " + warn_msg.msg)
+
+    fix_context.add_unfixed_packages(
+        pkgs=[step.data.source_package], unfixed_reason=warn_msg.msg
+    )
+
+    fix_context.warn_package_cannot_be_installed = True
+    fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+
+
+def _execute_security_issue_not_fixed_step(
+    fix_context: FixContext, step: FixPlanWarningSecurityIssueNotFixed
+):
+    fix_context.print_pkg_header(
+        source_pkgs=step.data.source_packages,
+        status=step.data.status,
+    )
+    fix_context.pkg_index += len(step.data.source_packages)
+
+    fix_context.add_unfixed_packages(
+        pkgs=step.data.source_packages,
+        unfixed_reason=status_message(step.data.status),
+    )
+    fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+
+
+def _execute_apt_upgrade_step(
+    fix_context: FixContext,
+    step: FixPlanAptUpgradeStep,
+):
+    fix_context.print_pkg_header(
+        source_pkgs=step.data.source_packages,
+        status="released",
+        pocket=step.data.pocket,
+    )
+    fix_context.pkg_index += len(step.data.source_packages)
+
+    if not step.data.binary_packages:
+        if not fix_context.warn_package_cannot_be_installed:
+            print(messages.SECURITY_UPDATE_INSTALLED)
+        fix_context.fix_status = FixStatus.SYSTEM_NON_VULNERABLE
+        return
+
+    if not util.we_are_currently_root() and not fix_context.dry_run:
+        print(messages.SECURITY_APT_NON_ROOT)
+        fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+        fix_context.add_unfixed_packages(
+            pkgs=step.data.source_packages,
+            unfixed_reason=messages.SECURITY_APT_NON_ROOT,
+        )
+        return
+
+    print(
+        colorize_commands(
+            [
+                ["apt", "update", "&&"]
+                + ["apt", "install", "--only-upgrade", "-y"]
+                + sorted(step.data.binary_packages)
+            ]
+        )
+    )
+
+    if fix_context.dry_run:
+        fix_context.fix_status = FixStatus.SYSTEM_NON_VULNERABLE
+        return
+
+    try:
+        apt.run_apt_update_command()
+        apt.run_apt_command(
+            cmd=["apt-get", "install", "--only-upgrade", "-y"]
+            + step.data.binary_packages,
+            override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+        )
+    except Exception as e:
+        msg = getattr(e, "msg", str(e))
+        print(msg)
+        fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+        fix_context.add_unfixed_packages(
+            pkgs=step.data.source_packages,
+            unfixed_reason=msg,
+        )
+        return
+
+    fix_context.fix_status = FixStatus.SYSTEM_NON_VULNERABLE
+    fix_context.should_print_pkg_header = True
+    fix_context.installed_pkgs.update(step.data.binary_packages)
+
+
+def _execute_attach_step(
+    fix_context: FixContext,
+    step: FixPlanAttachStep,
+):
+    pocket = (
+        ESM_INFRA_POCKET
+        if step.data.required_service == "esm-infra"
+        else ESM_APPS_POCKET
+    )
+    fix_context.print_pkg_header(
+        source_pkgs=step.data.source_packages,
+        status="released",
+        pocket=pocket,
+    )
+
+    fix_context.should_print_pkg_header = False
+    if not _is_attached(fix_context.cfg).is_attached:
+        if fix_context.dry_run:
+            print("\n" + messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
+        else:
+            if not _prompt_for_attach(fix_context.cfg):
+                fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+                fix_context.add_unfixed_packages(
+                    pkgs=step.data.source_packages,
+                    unfixed_reason=messages.SECURITY_UA_SERVICE_REQUIRED.format(  # noqa
+                        service=step.data.required_service
+                    ),
+                )
+                return
+    elif _check_subscription_is_expired(
+        cfg=fix_context.cfg, dry_run=fix_context.dry_run
+    ):
+        if fix_context.dry_run:
+            print(messages.SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION)
+        elif not _prompt_for_new_token(fix_context.cfg):
+            fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+            fix_context.add_unfixed_packages(
+                pkgs=step.data.source_packages,
+                unfixed_reason=messages.SECURITY_UA_SERVICE_WITH_EXPIRED_SUB.format(  # noqa
+                    service=step.data.required_service
+                ),
+            )
+            return
+
+    fix_context.fix_status = FixStatus.SYSTEM_NON_VULNERABLE
+
+
+def _execute_enable_step(
+    fix_context: FixContext,
+    step: FixPlanEnableStep,
+):
+    pocket = (
+        ESM_INFRA_POCKET
+        if step.data.service == "esm-infra"
+        else ESM_APPS_POCKET
+    )
+    fix_context.print_pkg_header(
+        source_pkgs=step.data.source_packages,
+        status="released",
+        pocket=pocket,
+    )
+    fix_context.should_print_pkg_header = False
+
+    if not _handle_subscription_for_required_service(  # noqa
+        step.data.service,
+        fix_context.cfg,
+        fix_context.dry_run,
+    ):
+        print(
+            messages.SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                service=step.data.service
+            )
+        )
+        fix_context.add_unfixed_packages(
+            pkgs=step.data.source_packages,
+            unfixed_reason=messages.SECURITY_UA_SERVICE_NOT_ENABLED_SHORT.format(  # noqa
+                service=step.data.service
+            ),
+        )
+        fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+        return
+
+    return FixStatus.SYSTEM_NON_VULNERABLE
+
+
+def _execute_noop_not_affected_step(
+    fix_context: FixContext, step: FixPlanNoOpStep
+):
+    if step.data.status == FixPlanNoOpStatus.NOT_AFFECTED.value:
+        print(
+            messages.SECURITY_AFFECTED_PKGS.format(
+                count="No", plural_str="s are"
+            )
+            + "."
+        )
+        fix_context.fix_status = FixStatus.SYSTEM_NOT_AFFECTED
+
+
+def _execute_noop_fixed_by_livepatch_step(
+    fix_context: FixContext, step: FixPlanNoOpLivepatchFixStep
+):
+    if isinstance(step.data, NoOpLivepatchFixData):
+        print(
+            messages.CVE_FIXED_BY_LIVEPATCH.format(
+                issue=fix_context.title,
+                version=step.data.patch_version,
+            )
+        )
+
+
+def _execute_noop_already_fixed_step(
+    fix_context: FixContext, step: FixPlanNoOpAlreadyFixedStep
+):
+    if isinstance(step.data, NoOpAlreadyFixedData):
+        fix_context.print_pkg_header(
+            source_pkgs=step.data.source_packages,
+            status="released",
+            pocket=step.data.pocket,
+        )
+        print(messages.SECURITY_UPDATE_INSTALLED)
+        fix_context.pkg_index += len(step.data.source_packages)
+
+
 def execute_fix_plan(
     fix_plan: FixPlanResult, dry_run: bool, cfg: UAConfig
 ) -> Tuple[FixStatus, List[security.UnfixedPackage]]:
@@ -571,273 +865,63 @@ def execute_fix_plan(
         *fix_plan.warnings,
     ]  # type: List[Union[FixPlanStep, FixPlanWarning]]
 
-    pkg_index = 0
-    unfixed_pkgs = []  # type: List[security.UnfixedPackage]
-    installed_pkgs = set()  # type: Set[str]
-    fix_status = FixStatus.SYSTEM_NON_VULNERABLE
-    affected_pkgs = fix_plan.affected_packages or []
-    print_pkg_header = True
-    warn_package_cannot_be_installed = False
-
-    if affected_pkgs:
-        if len(affected_pkgs) == 1:
-            plural_str = " is"
-        else:
-            plural_str = "s are"
-
-        msg = (
-            messages.SECURITY_AFFECTED_PKGS.format(
-                count=len(affected_pkgs), plural_str=plural_str
-            )
-            + ": "
-            + ", ".join(sorted(affected_pkgs))
-        )
-        print(
-            textwrap.fill(
-                msg,
-                width=PRINT_WRAP_WIDTH,
-                subsequent_indent="    ",
-                replace_whitespace=False,
-            )
-        )
+    fix_context = FixContext(
+        title=fix_plan.title,
+        dry_run=dry_run,
+        affected_pkgs=fix_plan.affected_packages or [],
+        cfg=cfg,
+    )
+    fix_context.print_fix_header()
 
     for step in sorted(full_plan, key=lambda x: x.order):
         if isinstance(step, FixPlanWarningPackageCannotBeInstalled):
-            if print_pkg_header:
-                print(
-                    _format_packages_message(
-                        pkg_list=step.data.related_source_packages,
-                        status="released",
-                        pkg_index=pkg_index,
-                        num_pkgs=len(affected_pkgs),
-                        pocket_source=get_pocket_description(step.data.pocket),
-                    )
-                )
-                print_pkg_header = False
-
-            warn_msg = messages.FIX_CANNOT_INSTALL_PACKAGE.format(
-                package=step.data.binary_package,
-                version=step.data.binary_package_version,
-            )
-            print("- " + warn_msg.msg)
-            unfixed_pkgs.append(
-                security.UnfixedPackage(
-                    pkg=step.data.source_package, unfixed_reason=warn_msg.msg
-                )
-            )
-            fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
-            warn_package_cannot_be_installed = True
+            _execute_package_cannot_be_installed_step(fix_context, step)
         if isinstance(step, FixPlanWarningSecurityIssueNotFixed):
-            print(
-                _format_packages_message(
-                    pkg_list=step.data.source_packages,
-                    status=step.data.status,
-                    pkg_index=pkg_index,
-                    num_pkgs=len(affected_pkgs),
-                )
-            )
-
-            pkg_index += len(step.data.source_packages)
-            for source_pkg in step.data.source_packages:
-                unfixed_pkgs.append(
-                    security.UnfixedPackage(
-                        pkg=source_pkg,
-                        unfixed_reason=status_message(step.data.status),
-                    )
-                )
-            fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+            _execute_security_issue_not_fixed_step(fix_context, step)
         if isinstance(step, FixPlanAptUpgradeStep):
-            if print_pkg_header:
-                print(
-                    _format_packages_message(
-                        pkg_list=step.data.source_packages,
-                        status="released",
-                        pkg_index=pkg_index,
-                        num_pkgs=len(affected_pkgs),
-                        pocket_source=get_pocket_description(step.data.pocket),
-                    )
-                )
+            _execute_apt_upgrade_step(fix_context, step)
 
-            pkg_index += len(step.data.source_packages)
-            if not step.data.binary_packages:
-                if not warn_package_cannot_be_installed:
-                    print(messages.SECURITY_UPDATE_INSTALLED)
-                continue
-
-            if not util.we_are_currently_root() and not dry_run:
-                print(messages.SECURITY_APT_NON_ROOT)
-                fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
-                for source_pkg in step.data.source_packages:
-                    unfixed_pkgs.append(
-                        security.UnfixedPackage(
-                            pkg=source_pkg,
-                            unfixed_reason=messages.SECURITY_APT_NON_ROOT,
-                        )
-                    )
-                continue
-
-            print(
-                colorize_commands(
-                    [
-                        ["apt", "update", "&&"]
-                        + ["apt", "install", "--only-upgrade", "-y"]
-                        + sorted(step.data.binary_packages)
-                    ]
-                )
-            )
-
-            if dry_run:
-                print_pkg_header = True
-                continue
-
-            try:
-                apt.run_apt_update_command()
-                apt.run_apt_command(
-                    cmd=["apt-get", "install", "--only-upgrade", "-y"]
-                    + step.data.binary_packages,
-                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-                )
-                installed_pkgs.update(step.data.binary_packages)
-                print_pkg_header = True
-            except Exception as e:
-                print(getattr(e, "msg", str(e)))
-                fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
-
+            if fix_context.fix_status != FixStatus.SYSTEM_NON_VULNERABLE:
+                break
         if isinstance(step, FixPlanAttachStep):
-            pocket = (
-                security.UA_INFRA_POCKET
-                if step.data.required_service == "esm-infra"
-                else security.UA_APPS_POCKET
-            )
-            if print_pkg_header:
-                print(
-                    _format_packages_message(
-                        pkg_list=step.data.source_packages,
-                        status="released",
-                        pkg_index=pkg_index,
-                        num_pkgs=len(affected_pkgs),
-                        pocket_source=pocket,
-                    )
-                )
-                print_pkg_header = False
+            _execute_attach_step(fix_context, step)
 
-            if not _is_attached(cfg).is_attached:
-                if dry_run:
-                    print("\n" + messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
-                else:
-                    if not _prompt_for_attach(cfg):
-                        for source_pkg in step.data.source_packages:
-                            unfixed_pkgs.append(
-                                security.UnfixedPackage(
-                                    pkg=source_pkg,
-                                    unfixed_reason=messages.SECURITY_UA_SERVICE_REQUIRED.format(  # noqa
-                                        service=step.data.required_service,
-                                    ),
-                                )
-                            )
-                        fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
-                        break
-            elif _check_subscription_is_expired(cfg=cfg, dry_run=dry_run):
-                if dry_run:
-                    print(messages.SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION)
-                elif not _prompt_for_new_token(cfg):
-                    for source_pkg in step.data.source_packages:
-                        unfixed_pkgs.append(
-                            security.UnfixedPackage(
-                                pkg=source_pkg,
-                                unfixed_reason=messages.SECURITY_UA_SERVICE_WITH_EXPIRED_SUB.format(  # noqa
-                                    service=step.data.required_service,
-                                ),
-                            )
-                        )
-                    fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
-                    break
-
+            if fix_context.fix_status != FixStatus.SYSTEM_NON_VULNERABLE:
+                break
         if isinstance(step, FixPlanEnableStep):
-            pocket = (
-                security.UA_INFRA_POCKET
-                if step.data.service == "esm-infra"
-                else security.UA_APPS_POCKET
-            )
-            if print_pkg_header:
-                print(
-                    _format_packages_message(
-                        pkg_list=step.data.source_packages,
-                        status="released",
-                        pkg_index=pkg_index,
-                        num_pkgs=len(affected_pkgs),
-                        pocket_source=pocket,
-                    )
-                )
-                print_pkg_header = False
+            _execute_enable_step(fix_context, step)
 
-            if not _handle_subscription_for_required_service(  # noqa
-                step.data.service,
-                cfg,
-                dry_run,
-            ):
-                print(
-                    messages.SECURITY_UA_SERVICE_NOT_ENABLED.format(
-                        service=step.data.service
-                    )
-                )
-                for source_pkg in step.data.source_packages:
-                    unfixed_pkgs.append(
-                        security.UnfixedPackage(
-                            pkg=source_pkg,
-                            unfixed_reason=messages.SECURITY_UA_SERVICE_NOT_ENABLED_SHORT.format(  # noqa
-                                service=step.data.service
-                            ),
-                        )
-                    )
-                fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+            if fix_context.fix_status != FixStatus.SYSTEM_NON_VULNERABLE:
                 break
 
         if isinstance(step, FixPlanNoOpStep):
-            if step.data.status == FixPlanNoOpStatus.NOT_AFFECTED.value:
-                print(
-                    messages.SECURITY_AFFECTED_PKGS.format(
-                        count="No", plural_str="s are"
-                    )
-                    + "."
-                )
-                fix_status = FixStatus.SYSTEM_NOT_AFFECTED
+            _execute_noop_not_affected_step(fix_context, step)
         if isinstance(step, FixPlanNoOpLivepatchFixStep):
-            if isinstance(step.data, NoOpLivepatchFixData):
-                print(
-                    messages.CVE_FIXED_BY_LIVEPATCH.format(
-                        issue=fix_plan.title,
-                        version=step.data.patch_version,
-                    )
-                )
-
+            _execute_noop_fixed_by_livepatch_step(fix_context, step)
         if isinstance(step, FixPlanNoOpAlreadyFixedStep):
-            if isinstance(step.data, NoOpAlreadyFixedData):
-                print(
-                    _format_packages_message(
-                        pkg_list=step.data.source_packages,
-                        status="released",
-                        pkg_index=pkg_index,
-                        num_pkgs=len(affected_pkgs),
-                        pocket_source=get_pocket_description(step.data.pocket),
-                    )
-                )
-                print(messages.SECURITY_UPDATE_INSTALLED)
-                pkg_index += len(step.data.source_packages)
+            _execute_noop_already_fixed_step(fix_context, step)
 
     print()
-    if unfixed_pkgs:
+    if fix_context.unfixed_pkgs:
         print(
             _format_unfixed_packages_msg(
-                list(set([unfixed_pkg.pkg for unfixed_pkg in unfixed_pkgs]))
+                list(
+                    set(
+                        [
+                            unfixed_pkg.pkg
+                            for unfixed_pkg in fix_context.unfixed_pkgs
+                        ]
+                    )
+                )
             )
         )
-        fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
+        fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
 
-    if fix_status == FixStatus.SYSTEM_NON_VULNERABLE and system.should_reboot(
-        installed_pkgs=installed_pkgs
+    if (
+        fix_context.fix_status == FixStatus.SYSTEM_NON_VULNERABLE
+        and system.should_reboot(installed_pkgs=fix_context.installed_pkgs)
     ):
-        fix_status = FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
+        fix_context.fix_status = FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
         reboot_msg = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation="fix operation"
         )
@@ -847,8 +931,8 @@ def execute_fix_plan(
             operation="fix operation",
         )
 
-    _handle_fix_status_message(fix_status, fix_plan.title)
-    return (fix_status, unfixed_pkgs)
+    _handle_fix_status_message(fix_context.fix_status, fix_plan.title)
+    return (fix_context.fix_status, fix_context.unfixed_pkgs)
 
 
 def action_fix(args, *, cfg, **kwargs):
