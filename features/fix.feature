@@ -484,7 +484,6 @@ Feature: Ua fix command behaviour
 
         Choose: \[E\]nable esm-infra \[C\]ancel
         > .*\{ pro enable esm-infra \}.*
-        One moment, checking your subscription first
         Updating package lists
         Ubuntu Pro: ESM Infra enabled
         .*\{ apt update && apt install --only-upgrade -y gzip \}.*
