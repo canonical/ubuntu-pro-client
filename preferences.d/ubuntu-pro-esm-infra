@@ -1,8 +1,3 @@
-# This file was created by ubuntu-advantage-tools
-
-# Pin esm-infra packages to a slightly higher value than the archive,
-# so those are preferred when the service is enabled
-
 Package: *
 Pin: release o=UbuntuESM
 Pin-Priority: 510
