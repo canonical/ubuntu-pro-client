@@ -233,20 +233,16 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         See: sudo pro status
         """
         When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has permission `500`
         """
         <esm-infra-url> <release>-infra-updates/main amd64 Packages
-        """
-        And apt-cache policy for the following url has permission `510`
-        """
-        <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt install -y <infra-pkg>` with sudo, retrying exit [100]
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
-        \s*510 <esm-infra-url> <release>-infra-security/main amd64 Packages
+        \s*500 <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
 
         Examples: ubuntu release
@@ -1128,11 +1124,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root
-        Then apt-cache policy for the following url has permission `510`
+        Then apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And apt-cache policy for the following url has permission `510`
+        And apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
@@ -1142,8 +1138,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Version table:
-        \s*\*\*\* .* 510
-        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        \s*\*\*\* .* 500
+        \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         When I verify that running `pro enable esm-apps` `with sudo` exits `1`
         Then stdout matches regexp
