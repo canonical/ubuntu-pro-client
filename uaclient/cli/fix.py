@@ -3,6 +3,7 @@ import textwrap
 from typing import Dict, List, NamedTuple, Optional, Set, Tuple, Union  # noqa
 
 from uaclient import apt, exceptions, messages, security, system, util
+from uaclient.actions import attach_with_token, enable_entitlement_by_name
 from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
 from uaclient.api.u.pro.attach.magic.revoke.v1 import (
     MagicAttachRevokeOptions,
@@ -50,6 +51,7 @@ from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
+    CanEnableFailure,
     UserFacingStatus,
 )
 from uaclient.files import notices
@@ -308,19 +310,10 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
 
     :return: True if attach performed without errors.
     """
-    import argparse
-
-    from uaclient import cli
-
     print(colorize_commands([["pro", "attach", token]]))
     try:
-        ret_code = cli.action_attach(
-            argparse.Namespace(
-                token=token, auto_enable=True, format="cli", attach_config=None
-            ),
-            cfg,
-        )
-        return ret_code == 0
+        attach_with_token(cfg, token=token, allow_enable=True)
+        return True
     except exceptions.UserFacingError as err:
         print(err.msg)
         return False
@@ -455,10 +448,6 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
     :return: True if enable performed.
     """
-    import argparse
-
-    from uaclient import cli
-
     print(messages.SECURITY_SERVICE_DISABLED.format(service=service))
     choice = util.prompt_choices(
         "Choose: [E]nable {} [C]ancel".format(service),
@@ -467,19 +456,19 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
     if choice == "e":
         print(colorize_commands([["pro", "enable", service]]))
-        return bool(
-            0
-            == cli.action_enable(
-                argparse.Namespace(
-                    service=[service],
-                    assume_yes=True,
-                    beta=False,
-                    format="cli",
-                    access_only=False,
-                ),
-                cfg,
-            )
+        ret, reason = enable_entitlement_by_name(
+            cfg=cfg, name=service, assume_yes=True
         )
+
+        if (
+            not ret
+            and reason is not None
+            and isinstance(reason, CanEnableFailure)
+        ):
+            if reason.message is not None:
+                print(reason.message.msg)
+
+        return ret
 
     return False
 
