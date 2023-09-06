@@ -70,17 +70,6 @@ from uaclient.log import JsonArrayFormatter
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
-EPILOG_TMPL = (
-    "Use {name} {command} --help for more information about a command."
-)
-TRY_HELP = "Try 'pro --help' for more information."
-
-STATUS_HEADER_TMPL = """\
-Account: {account}
-Subscription: {subscription}
-Valid until: {contract_expiry}
-Technical support level: {tech_support_level}
-"""
 UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
