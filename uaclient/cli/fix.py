@@ -13,6 +13,9 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     _wait,
 )
 from uaclient.api.u.pro.security.fix import (  # noqa
+    ESM_APPS_POCKET,
+    ESM_INFRA_POCKET,
+    STANDARD_UPDATES_POCKET,
     FixPlanAptUpgradeStep,
     FixPlanAttachStep,
     FixPlanEnableStep,
@@ -52,7 +55,12 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 from uaclient.messages.urls import PRO_HOME_PAGE
-from uaclient.security import FixStatus
+from uaclient.security import (
+    UA_APPS_POCKET,
+    UA_INFRA_POCKET,
+    UBUNTU_STANDARD_UPDATES_POCKET,
+    FixStatus,
+)
 from uaclient.status import colorize_commands
 
 
@@ -557,6 +565,17 @@ def _handle_fix_status_message(
         )
 
 
+def get_pocket_description(pocket: str):
+    if pocket == STANDARD_UPDATES_POCKET:
+        return UBUNTU_STANDARD_UPDATES_POCKET
+    elif pocket == ESM_INFRA_POCKET:
+        return UA_INFRA_POCKET
+    elif pocket == ESM_APPS_POCKET:
+        return UA_APPS_POCKET
+    else:
+        return pocket
+
+
 def execute_fix_plan(
     fix_plan: FixPlanResult, dry_run: bool, cfg: UAConfig
 ) -> Tuple[FixStatus, List[security.UnfixedPackage]]:
@@ -604,7 +623,7 @@ def execute_fix_plan(
                         status="released",
                         pkg_index=pkg_index,
                         num_pkgs=len(affected_pkgs),
-                        pocket_source=step.data.pocket,
+                        pocket_source=get_pocket_description(step.data.pocket),
                     )
                 )
                 print_pkg_header = False
@@ -648,7 +667,7 @@ def execute_fix_plan(
                         status="released",
                         pkg_index=pkg_index,
                         num_pkgs=len(affected_pkgs),
-                        pocket_source=step.data.pocket,
+                        pocket_source=get_pocket_description(step.data.pocket),
                     )
                 )
 
@@ -813,7 +832,7 @@ def execute_fix_plan(
                         status="released",
                         pkg_index=pkg_index,
                         num_pkgs=len(affected_pkgs),
-                        pocket_source=step.data.pocket,
+                        pocket_source=get_pocket_description(step.data.pocket),
                     )
                 )
                 print(messages.SECURITY_UPDATE_INSTALLED)
