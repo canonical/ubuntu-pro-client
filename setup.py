@@ -40,7 +40,6 @@ def _get_data_files():
             "/etc/update-manager/release-upgrades.d/",
             ["release-upgrades.d/ubuntu-advantage-upgrades.cfg"],
         ),
-        ("/etc/apt/preferences.d", glob.glob("preferences.d/*")),
         (defaults.CONFIG_DEFAULTS["data_dir"], []),
         ("/lib/systemd/system", glob.glob("systemd/*")),
         (
