@@ -426,9 +426,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     _inform_ubuntu_pro_existence_if_applicable()
     print(messages.SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
     choice = util.prompt_choices(
-        "Choose: [R]enew your subscription (at {}) [C]ancel".format(
-            PRO_HOME_PAGE
-        ),
+        messages.SECURITY_FIX_RENEW_PROMPT.format(url=PRO_HOME_PAGE),
         valid_choices=["r", "c"],
     )
     if choice == "r":
@@ -450,7 +448,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     """
     print(messages.SECURITY_SERVICE_DISABLED.format(service=service))
     choice = util.prompt_choices(
-        "Choose: [E]nable {} [C]ancel".format(service),
+        messages.SECURITY_FIX_ENABLE_PROMPT.format(service),
         valid_choices=["e", "c"],
     )
 
