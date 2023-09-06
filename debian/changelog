@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (29.4) mantic; urgency=medium
+
+  * esm: remove static config file that pin packages from esm-infra
+    and esm-apps
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Wed, 06 Sep 2023 10:50:50 -0300
+
 ubuntu-advantage-tools (29.3) mantic; urgency=medium
 
   * api: fix circular import that prevents enabled_services
