@@ -1,9 +1,10 @@
 Feature: Client behaviour for the API endpoints
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: API invalid endpoint or args
-    Given a `<release>` machine with ubuntu-advantage-tools installed
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api invalid.endpoint` `with sudo` exits `1`
     Then stdout matches regexp:
     """
@@ -16,18 +17,19 @@ Feature: Client behaviour for the API endpoints
     """
 
     Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Basic endpoints
-    Given a `<release>` machine with ubuntu-advantage-tools installed
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.version.v1` with sudo
     Then stdout matches regexp:
     """
@@ -55,10 +57,10 @@ Feature: Client behaviour for the API endpoints
     """
 
     Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
