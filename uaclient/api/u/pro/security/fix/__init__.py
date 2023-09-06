@@ -764,6 +764,7 @@ def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
 
 def _generate_fix_plan(
+    *,
     issue_id: str,
     issue_description: str,
     affected_pkg_status: Dict[str, CVEPackageStatus],
