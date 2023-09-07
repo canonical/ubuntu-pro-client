@@ -39,7 +39,7 @@ class TestValidateProxy:
 
         assert (
             e.value.msg
-            == messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy).msg
+            == messages.E_NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy).msg
         )
 
     @pytest.mark.parametrize(
@@ -114,7 +114,7 @@ class TestValidateProxy:
 
         assert (
             e.value.msg
-            == messages.NOT_SETTING_PROXY_NOT_WORKING.format(
+            == messages.E_NOT_SETTING_PROXY_NOT_WORKING.format(
                 proxy="http://localhost:1234"
             ).msg
         )

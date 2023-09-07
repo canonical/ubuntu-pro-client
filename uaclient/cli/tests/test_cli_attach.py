@@ -125,8 +125,8 @@ def test_non_root_users_are_rejected(
         "result": "failure",
         "errors": [
             {
-                "message": messages.NONROOT_USER.msg,
-                "message_code": messages.NONROOT_USER.name,
+                "message": messages.E_NONROOT_USER.msg,
+                "message_code": messages.E_NONROOT_USER.name,
                 "service": None,
                 "type": "system",
             }
@@ -156,7 +156,7 @@ class TestActionAttach:
             ):
                 main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
-        msg = messages.ALREADY_ATTACHED.format(account_name=account_name)
+        msg = messages.E_ALREADY_ATTACHED.format(account_name=account_name)
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -205,7 +205,7 @@ class TestActionAttach:
                     m_check_lock_info.return_value = (1, "lock_holder")
                     main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
-        expected_msg = messages.LOCK_HELD_ERROR.format(
+        expected_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro attach", lock_holder="lock_holder", pid=1
         )
         expected = {
@@ -356,7 +356,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UbuntuProError) as e:
             action_attach(args, cfg=cfg)
-        assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg
+        assert e.value.msg == messages.E_ATTACH_TOKEN_ARG_XOR_CONFIG.msg
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
@@ -409,7 +409,7 @@ class TestActionAttach:
             ):
                 main_error_handler(action_attach)(args, cfg)
 
-        expected_message = messages.ATTACH_CONFIG_READ_ERROR.format(
+        expected_message = messages.E_ATTACH_CONFIG_READ_ERROR.format(
             config_name="fakename",
             error=(
                 "Got value with "
@@ -523,13 +523,13 @@ class TestActionAttach:
         (
             (
                 FakeUbuntuProError(),
-                messages.ATTACH_FAILURE_DEFAULT_SERVICES,
-                messages.ATTACH_FAILURE_DEFAULT_SERVICES,
+                messages.E_ATTACH_FAILURE_DEFAULT_SERVICES,
+                messages.E_ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
             (
                 Exception("error"),
                 messages.UNEXPECTED_ERROR,
-                messages.ATTACH_FAILURE_UNEXPECTED,
+                messages.E_ATTACH_FAILURE_UNEXPECTED,
             ),
         ),
     )

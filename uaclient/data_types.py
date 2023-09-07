@@ -10,13 +10,13 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class IncorrectTypeError(exceptions.UbuntuProError):
-    _formatted_msg = messages.INCORRECT_TYPE_ERROR_MESSAGE
+    _formatted_msg = messages.E_INCORRECT_TYPE_ERROR_MESSAGE
     expected_type = None  # type: str
     got_type = None  # type: str
 
 
 class IncorrectListElementTypeError(IncorrectTypeError):
-    _formatted_msg = messages.INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE
+    _formatted_msg = messages.E_INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE
 
     def __init__(self, *, err: IncorrectTypeError, at_index: int):
         super().__init__(index=at_index, nested_msg=err.msg)
@@ -25,7 +25,7 @@ class IncorrectListElementTypeError(IncorrectTypeError):
 
 
 class IncorrectFieldTypeError(IncorrectTypeError):
-    _formatted_msg = messages.INCORRECT_FIELD_TYPE_ERROR_MESSAGE
+    _formatted_msg = messages.E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE
     key = None  # type: str
 
     def __init__(self, *, err: IncorrectTypeError, key: str):
@@ -35,7 +35,7 @@ class IncorrectFieldTypeError(IncorrectTypeError):
 
 
 class IncorrectEnumValueError(IncorrectTypeError):
-    _formatted_msg = messages.INCORRECT_ENUM_VALUE_ERROR_MESSAGE
+    _formatted_msg = messages.E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE
 
     def __init__(self, *, values: List[Union[str, int]], enum_class: Any):
         super().__init__(values=values, enum_class=repr(enum_class))

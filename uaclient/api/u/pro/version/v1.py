@@ -8,7 +8,7 @@ from uaclient.version import get_version
 
 
 class VersionError(APIError):
-    _formatted_msg = messages.API_VERSION_ERROR
+    _formatted_msg = messages.E_API_VERSION_ERROR
 
 
 class VersionResult(DataObject, AdditionalInfo):

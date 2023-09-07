@@ -63,12 +63,6 @@ OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
-ERROR_INVALID_BOOLEAN_CONFIG_VALUE = FormattedNamedMessage(
-    "invalid-boolean-config-value",
-    """\
-Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
-Expected {expected_value}, found {value}.""",
-)
 
 SECURITY_FIX_ATTACH_PROMPT = """\
 Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
@@ -103,12 +97,6 @@ SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
 SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
-)
-SECURITY_API_INVALID_METADATA = FormattedNamedMessage(
-    "security-api-invalid-metadata",
-    "Metadata for {issue} is invalid. Error: {error_msg}."
-    + "\n"
-    + SECURITY_ISSUE_NOT_RESOLVED,
 )
 SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
     "security-pkg-still-affected",
@@ -196,11 +184,6 @@ USNs, please refer to this page:
 """.format(
     url=urls.PRO_CLIENT_DOCS_RELATED_USNS
 )
-SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
-    "invalid-security-issue-id-format",
-    'Error: issue "{issue}" is not recognized.\n'
-    'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"',
-)
 SECURITY_UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
 SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
 SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
@@ -210,27 +193,6 @@ APT_UPDATING_LIST = "Updating {} package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"
-UNABLE_TO_DETERMINE_CLOUD_TYPE = NamedMessage(
-    "auto-attach-cloud-type-error",
-    """\
-Unable to determine cloud platform.""",
-)
-UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = FormattedNamedMessage(
-    "auto-attach-unsupported-cloud-type-error",
-    """\
-Auto-attach image support is not available on {{cloud_type}}
-See: {url}""".format(
-        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
-    ),
-)
-UNSUPPORTED_AUTO_ATTACH = NamedMessage(
-    "auto-attach-image-not-viable",
-    """\
-Auto-attach image support is not available on this image
-See: {url}""".format(
-        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
-    ),
-)
 
 CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
 CLI_MAGIC_ATTACH_FAILED = "Failed to perform attach..."
@@ -284,19 +246,9 @@ DETACH_SUCCESS = "This machine is now detached."
 
 REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
 REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
-REFRESH_CONTRACT_FAILURE = NamedMessage(
-    "refresh-contract-failure", "Unable to refresh your subscription"
-)
 REFRESH_CONFIG_SUCCESS = "Successfully processed your pro configuration."
-REFRESH_CONFIG_FAILURE = NamedMessage(
-    "refresh-config-failure", "Unable to process uaclient.conf"
-)
 REFRESH_MESSAGES_SUCCESS = (
     "Successfully updated Ubuntu Pro related APT and MOTD messages."
-)
-REFRESH_MESSAGES_FAILURE = NamedMessage(
-    "refresh-messages-failure",
-    "Unable to update Ubuntu Pro related APT and MOTD messages.",
 )
 
 INCOMPATIBLE_SERVICE = """\
@@ -370,38 +322,7 @@ For help see: {url}""".format(
         url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
     ),
 )
-UNATTACHED = NamedMessage(
-    "unattached",
-    """\
-This machine is not attached to an Ubuntu Pro subscription.
-See {url}""".format(
-        url=urls.PRO_HOME_PAGE
-    ),
-)
 
-VALID_SERVICE_FAILURE_UNATTACHED = FormattedNamedMessage(
-    "valid-service-failure-unattached",
-    """\
-To use '{{valid_service}}' you need an Ubuntu Pro subscription
-Personal and community subscriptions are available at no charge
-See {url}""".format(
-        url=urls.PRO_HOME_PAGE
-    ),
-)
-
-INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
-    "invalid-service-or-failure",
-    """\
-Cannot {operation} unknown service '{invalid_service}'.
-{service_msg}""",
-)
-
-MIXED_SERVICES_FAILURE_UNATTACHED = FormattedNamedMessage(
-    "mixed-services-failure-unattached",
-    INVALID_SERVICE_OP_FAILURE.tmpl_msg
-    + "\n"
-    + VALID_SERVICE_FAILURE_UNATTACHED.tmpl_msg,
-)
 
 FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
     "failed-disabling-dependent-service",
@@ -514,75 +435,6 @@ NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
     "no-entitlement-affordances-checked", "no entitlement affordances checked"
 )
 
-NOT_SETTING_PROXY_INVALID_URL = FormattedNamedMessage(
-    "proxy-invalid-url", '"{proxy}" is not a valid url. Not setting as proxy.'
-)
-
-NOT_SETTING_PROXY_NOT_WORKING = FormattedNamedMessage(
-    "proxy-not-working", '"{proxy}" is not working. Not setting as proxy.'
-)
-
-ATTACH_INVALID_TOKEN = NamedMessage(
-    "attach-invalid-token",
-    "Invalid token. See {url}".format(url=urls.PRO_DASHBOARD),
-)
-
-MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED = NamedMessage(
-    "magic-attach-token-already-activated",
-    "The magic attach token is already activated.",
-)
-
-MAGIC_ATTACH_TOKEN_ERROR = NamedMessage(
-    "magic-attach-token-error",
-    "The magic attach token is invalid, has expired or never existed",
-)
-
-MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
-    "magic-attach-service-unavailable",
-    "Service unavailable, please try again later.",
-)
-
-MAGIC_ATTACH_INVALID_PARAM = FormattedNamedMessage(
-    "magic-attach-invalid-param",
-    "This attach flow does not support {param} with value: {value}",
-)
-
-APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
-    "apt-update-invalid-repo", "APT update failed.\n{repo_msg}"
-)
-
-APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
-    "apt-update-invalid-url-config",
-    """\
-APT update failed to read APT config for the following:
-{failed_repos}""",
-)
-
-APT_PROCESS_CONFLICT = NamedMessage(
-    "apt-process-conflict", "Another process is running APT."
-)
-
-APT_UPDATE_PROCESS_CONFLICT = NamedMessage(
-    "apt-update-failed-process-conflict",
-    "APT update failed. " + APT_PROCESS_CONFLICT.msg,
-)
-
-APT_UPDATE_FAILED = FormattedNamedMessage(
-    "apt-update-failed", "APT Update failed\n{detail}"
-)
-
-APT_INSTALL_PROCESS_CONFLICT = NamedMessage(
-    "apt-install-failed-process-conflict",
-    "APT install failed. " + APT_PROCESS_CONFLICT.msg,
-)
-
-APT_INSTALL_INVALID_REPO = FormattedNamedMessage(
-    "apt-install-invalid-repo", "APT install failed. {repo_msg}"
-)
-
-CANNOT_INSTALL_SNAPD = NamedMessage(
-    "cannot-install-snapd", "Failed to install snapd on the system"
-)
 
 SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
     "ssl-verification-error-ca-certificate",
@@ -600,118 +452,16 @@ Cannot verify certificate of server
 Please check your openssl configuration.""",
 )
 
-MISSING_APT_URL_DIRECTIVE = FormattedNamedMessage(
-    "missing-apt-url-directive",
-    """\
-Ubuntu Pro server provided no aptURL directive for {entitlement_name}""",
-)
-
-ALREADY_ATTACHED = FormattedNamedMessage(
-    name="already-attached",
-    msg=(
-        "This machine is already attached to '{account_name}'\n"
-        "To use a different subscription first run: sudo pro detach."
-    ),
-)
-
-CONNECTIVITY_ERROR = NamedMessage(
-    "connectivity-error",
-    """\
-Failed to connect to authentication server
-Check your Internet connection and try again.""",
-)
-
-NONROOT_USER = NamedMessage(
-    "nonroot-user", "This command must be run as root (try using sudo)."
-)
-
-ERROR_INSTALLING_LIVEPATCH = FormattedNamedMessage(
-    "error-installing-livepatch",
-    "Unable to install Livepatch client: {error_msg}",
-)
 
 APT_POLICY_FAILED = NamedMessage(
     "apt-policy-failed", "Failure checking APT policy."
 )
 
-ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
-    "attach-forbidden-expired",
-    """\
-Attach denied:
-Contract "{{contract_id}}" expired on {{date}}
-Visit {url} to manage contract tokens.""".format(
-        url=urls.PRO_DASHBOARD
-    ),
-)
-
-ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
-    "attach-forbidden-not-yet",
-    """\
-Attach denied:
-Contract "{{contract_id}}" is not effective until {{date}}
-Visit {url} to manage contract tokens.""".format(
-        url=urls.PRO_DASHBOARD
-    ),
-)
-ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
-    "attach-forbidden-never",
-    """\
-Attach denied:
-Contract "{{contract_id}}" has never been effective
-Visit {url} to manage contract tokens.""".format(
-        url=urls.PRO_DASHBOARD
-    ),
-)
-
-
-ATTACH_EXPIRED_TOKEN = NamedMessage(
-    "attach-experied-token",
-    """\
-Expired token or contract. To obtain a new token visit: {url}""".format(
-        url=urls.PRO_DASHBOARD
-    ),
-)
-
-ATTACH_TOKEN_ARG_XOR_CONFIG = NamedMessage(
-    "attach-token-xor-config",
-    """\
-Do not pass the TOKEN arg if you are using --attach-config.
-Include the token in the attach-config file instead.
-    """,
-)
-
-ATTACH_FAILURE = NamedMessage(
-    "attach-failure",
-    "Failed to attach machine. See {url}".format(url=urls.PRO_DASHBOARD),
-)
-
-ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
-    "attach-failure-default-service",
-    """\
-Failed to enable default services, check: sudo pro status""",
-)
-ATTACH_FAILURE_UNEXPECTED = NamedMessage(
-    "attach-failure-unexpected-error",
-    """\
-Something went wrong during the attach process. Check the logs.""",
-)
-
-INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
-    "invalid-contract-deltas-service-type",
-    "Could not determine contract delta service type {orig} {new}",
-)
 
 LOCK_HELD = FormattedNamedMessage(
     "lock-held", """Operation in progress: {lock_holder} (pid:{pid})"""
 )
 
-LOCK_HELD_ERROR = FormattedNamedMessage(
-    "lock-held-error",
-    """\
-Unable to perform: {lock_request}.
-"""
-    + LOCK_HELD.tmpl_msg,
-)
 
 UNEXPECTED_ERROR = NamedMessage(
     "unexpected-error",
@@ -719,16 +469,6 @@ UNEXPECTED_ERROR = NamedMessage(
 Unexpected error(s) occurred.
 For more details, see the log: /var/log/ubuntu-advantage.log
 To file a bug run: ubuntu-bug ubuntu-advantage-tools""",
-)
-
-ATTACH_CONFIG_READ_ERROR = FormattedNamedMessage(
-    "attach-config-read-error", "Error while reading {config_name}:\n{error}"
-)
-
-JSON_FORMAT_REQUIRE_ASSUME_YES = NamedMessage(
-    "json-format-require-assume-yes",
-    """\
-json formatted response requires --assume-yes flag.""",
 )
 
 LIVEPATCH_NOT_ENABLED = NamedMessage(
@@ -836,15 +576,6 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     "Cannot install Real-time kernel on a container.",
 )
 
-GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = FormattedNamedMessage(
-    "gcp-pro-service-account-not-enabled",
-    """\
-Failed to attach machine
-{{status_code}}: {{error_msg}}
-For more information, see {url}""".format(
-        url=urls.GCP_SERVICE_ACCOUNT_DOCS
-    ),
-)
 
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
 WARNING_APT_PROXY_SETUP = """\
@@ -862,14 +593,6 @@ Using deprecated "apt_https_proxy" config field.
 Please migrate to using "global_apt_https_proxy"
 """
 
-ERROR_INVALID_PROXY_COMBINATION = NamedMessage(
-    "invalid-proxy-combination-config",
-    """\
-Error: Setting global apt proxy and pro scoped apt proxy
-at the same time is unsupported.
-Cancelling config process operation.
-""",
-)
 
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
@@ -931,33 +654,10 @@ NOTICE_REFRESH_CONTRACT_WARNING = """\
 A change has been detected in your contract.
 Please run `sudo pro refresh`."""
 
-API_BAD_ARGS_FORMAT = FormattedNamedMessage(
-    name="api-args-wrong-format", msg="'{arg}' is not formatted as 'key=value'"
-)
-API_INVALID_ENDPOINT = FormattedNamedMessage(
-    name="api-invalid-endpoint", msg="'{endpoint}' is not a valid endpoint"
-)
 API_UNKNOWN_ARG = FormattedNamedMessage(
     name="api-unknown-argument", msg="Ignoring unknown argument '{arg}'"
 )
-API_MISSING_ARG = FormattedNamedMessage(
-    name="api-missing-argument",
-    msg="Missing argument '{arg}' for endpoint {endpoint}",
-)
-API_NO_ARG_FOR_ENDPOINT = FormattedNamedMessage(
-    name="api-no-argument-for-endpoint", msg="{endpoint} accepts no arguments"
-)
-API_VERSION_ERROR = FormattedNamedMessage(
-    "unable-to-determine-version", "Unable to determine version: {error_msg}"
-)
-UNATTENDED_UPGRADES_ERROR = FormattedNamedMessage(
-    "unable-to-determine-unattended-upgrade-status",
-    "Unable to determine unattended-upgrades status: {error_msg}",
-)
 
-INVALID_FILE_FORMAT = FormattedNamedMessage(
-    name="invalid-file-format", msg="{file_name} is not valid {file_format}"
-)
 
 WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
     name="new-version-available",
@@ -975,22 +675,12 @@ Please run:
 to get the latest version with new features and bug fixes."""
 )
 
-INVALID_PRO_IMAGE = FormattedNamedMessage(
-    name="invalid-pro-image", msg="Error on Pro Image:\n{error_msg}"
-)
 
 ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
     name="enable-access-only-not-supported",
     msg="{title} does not support being enabled with --access-only",
 )
 
-MISSING_DISTRO_INFO_FILE = NamedMessage(
-    "missing-distro-info-file", "Can't load the distro-info database."
-)
-MISSING_SERIES_IN_DISTRO_INFO_FILE = FormattedNamedMessage(
-    "missing-series-in-distro-info-file",
-    "Can't find series {series} in the distro-info database.",
-)
 
 # Security Status output
 
@@ -1080,20 +770,6 @@ SS_UPDATES_INSTALLED = "Installed packages with an {service} update applied:"
 SS_OTHER_PACKAGES = "{prefix} packages covered by {service}:"
 SS_PACKAGES_HEADER = "Packages:"
 
-ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
-    "entitlement-not-found",
-    'could not find entitlement named "{entitlement_name}"',
-)
-
-ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
-    "entitlements-not-enabled",
-    "failed to enable some services",
-)
-
-AUTO_ATTACH_DISABLED_ERROR = NamedMessage(
-    "auto-attach-disabled",
-    "features.disable_auto_attach set in config",
-)
 
 AUTO_ATTACH_RUNNING = (
     "Currently attempting to automatically attach this machine to "
@@ -1133,22 +809,6 @@ RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
 RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
-INCORRECT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
-    "incorrect-type",
-    "Expected value with type {expected_type} but got type: {got_type}",
-)
-INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
-    "incorrect-list-element-type",
-    "Got value with incorrect type at index {index}:\n{nested_msg}",
-)
-INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
-    "incorrect-field-type",
-    'Got value with incorrect type for field "{key}":\n{nested_msg}',
-)
-INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
-    "incorrect-enum-value",
-    "Value provided was not found in {enum_class}'s allowed: value: {values}",
-)
 
 LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
     name="livepatch-kernel-upgrade-required",
@@ -1186,28 +846,6 @@ LIVEPATCH_DISABLE_REATTACH = (
     "Disabling Livepatch prior to re-attach with new token"
 )
 
-ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
-    "error-parsing-version-os-release",
-    """\
-Could not parse /etc/os-release VERSION: {orig_ver} (modified to {mod_ver})""",
-)
-
-MISSING_SERIES_ON_OS_RELEASE = FormattedNamedMessage(
-    "missing-series-on-os-release",
-    """\
-Could not extract series information from /etc/os-release.
-The VERSION filed does not have version information: {version}
-and the VERSION_CODENAME information is not present""",
-)
-
-INVALID_LOCK_FILE = FormattedNamedMessage(
-    "invalid-lock-file",
-    """\
-There is a corrupted lock file in the system. To continue, please remove it
-from the system by running:
-
-$ sudo rm {lock_file_path}""",
-)
 
 MISSING_YAML_MODULE = NamedMessage(
     "missing-yaml-module",
@@ -1282,10 +920,6 @@ The {service} service is not enabled because the {package} package is
 not installed.""",
 )
 
-INVALID_OPTION_COMBINATION = FormattedNamedMessage(
-    "invalid-option-combination",
-    "Error: Cannot use {option1} together with {option2}.",
-)
 
 PRO_HELP_SERVICE_INFO = NamedMessage(
     "pro-help-service-info",
@@ -1298,30 +932,6 @@ In scripts, prefer using machine readable data from the `pro api` command,
 or use `pro {command} --format json`.
 """
 
-CLOUD_METADATA_ERROR = FormattedNamedMessage(
-    "cloud-metadata-error",
-    "An error occurred while talking the the cloud metadata service: {code} - {body}",  # noqa: E501
-)
-
-EXTERNAL_API_ERROR = FormattedNamedMessage(
-    "external-api-error", "Error connecting to {url}: {code} {body}"
-)
-
-JSON_PARSER_ERROR = FormattedNamedMessage(
-    "json-parser-error", "{source} returned invalid json: {out}"
-)
-
-SNAP_NOT_INSTALLED_ERROR = FormattedNamedMessage(
-    "snap-not-installed-error", "snap {snap} is not installed or doesn't exist"
-)
-
-UNEXPECTED_SNAPD_API_ERROR = FormattedNamedMessage(
-    "unexpected-snapd-api-error", "Unexpected SNAPD API error\n{error}"
-)
-
-SNAPD_CONNECTION_REFUSED = NamedMessage(
-    "snapd-connection-refused", "Could not reach the SNAPD API"
-)
 
 ANBOX_RUN_INIT_CMD = NamedMessage(
     "anbox-run-init-cmd",
@@ -1352,18 +962,6 @@ INSTALLING_REQUIRED_SNAP_PACKAGE = FormattedNamedMessage(
     "installing-required-snap-package", "Installing required snap: {snap}"
 )
 
-PYCURL_REQUIRED = NamedMessage(
-    "pycurl-required",
-    (
-        "To use an HTTPS proxy for HTTPS connections, please install "
-        "pycurl with `apt install python3-pycurl`"
-    ),
-)
-PYCURL_ERROR = FormattedNamedMessage("pycurl-error", "PycURL Error: {e}")
-
-PROXY_AUTH_FAIL = NamedMessage(
-    "proxy-auth-fail", "Proxy authentication failed"
-)
 
 EXECUTING_COMMAND = "Executing `{}`"
 EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
@@ -1398,15 +996,6 @@ LANDSCAPE_CONFIG_FAILED = NamedMessage(
     """landscape-config command failed""",
 )
 
-API_ERROR_ARGS_AND_DATA_TOGETHER = NamedMessage(
-    "api-error-args-and-data-together",
-    "Cannot provide both --args and --data at the same time",
-)
-
-API_JSON_DATA_FORMAT_ERROR = FormattedNamedMessage(
-    "api-json-data-format-error",
-    "Error parsing API json data parameter:\n{data}",
-)
 
 INVALID_SECURITY_ISSUE = FormattedNamedMessage(
     "invalid-security-issue",
@@ -1416,10 +1005,6 @@ CVEs should follow the pattern CVE-yyyy-nnn.\n
 USNs should follow the pattern USN-nnnn.""",
 )
 
-SECURITY_FIX_NOT_FOUND_ISSUE = FormattedNamedMessage(
-    "security-fix-not-found-issue",
-    "Error: {issue_id} not found.",
-)
 
 DISABLE_DURING_CONTRACT_REFRESH = (
     "Due to contract refresh, " "'{}' is now disabled."
@@ -1442,20 +1027,6 @@ REPO_UPDATING_APT_SOURCES = (
 REPO_REFRESH_INSTALLING_PACKAGES = (
     "Installing packages on changed directives: {}"
 )
-REPO_NO_APT_KEY = FormattedNamedMessage(
-    "repo-no-apt-key",
-    "Ubuntu Pro server provided no aptKey directive for {entitlement_name}",
-)
-REPO_NO_SUITES = FormattedNamedMessage(
-    "repo-no-suites",
-    "Ubuntu Pro server provided no suites directive for {entitlement_name}",
-)
-REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
-    "repo-pin-fail-no-origin",
-    "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
-    + "\n"
-    + ENABLED_FAILED.tmpl_msg,
-)
 
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
@@ -1474,65 +1045,15 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 CLI_TRY_HELP = "Try 'pro --help' for more information."
-CLI_VALID_CHOICES = FormattedNamedMessage(
-    "invalid-arg-choice", "\n{arg} must be one of: {choices}"
-)
-CLI_EXPECTED_FORMAT = FormattedNamedMessage(
-    "generic-invalid-format", "\nExpected {expected} but found: {actual}"
-)
-CLI_CONFIG_VALUE_MUST_BE_POS_INT = FormattedNamedMessage(
-    "invalid-posint-config-value",
-    (
-        "Cannot set {key} to {value}: "
-        "<value> for interval must be a positive integer."
-    ),
-)
-CLI_NO_HELP = FormattedNamedMessage(
-    "no-help-content", "No help available for '{name}'"
-)
-CONFIG_NO_YAML_FILE = FormattedNamedMessage(
-    "invalid-feature-yaml-config-value", "Could not find yaml file: {filepath}"
-)
-CONFIG_INVALID_URL = FormattedNamedMessage(
-    "invalid-url-config-value", "Invalid url in config. {key}: {value}"
-)
 
 APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
 APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
-APT_INVALID_CREDENTIALS = FormattedNamedMessage(
-    "apt-invalid-credentials", "Invalid APT credentials provided for {repo}"
-)
-APT_TIMEOUT = FormattedNamedMessage(
-    "apt-timeout", "Timeout trying to access APT repository at {repo}"
-)
-APT_UNEXPECTED_ERROR = FormattedNamedMessage(
-    "apt-unexpected-error",
-    """\
-Unexpected APT error.
-{detail}
-See /var/log/ubuntu-advantage.log""",
-)
-APT_COMMAND_TIMEOUT = FormattedNamedMessage(
-    "apt-command-timeout",
-    (
-        "Cannot validate credentials for APT repo."
-        " Timeout after {seconds} seconds trying to reach {repo}."
-    ),
-)
 
 
 DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
 
 STATUS_TOKEN_NOT_VALID = "This token is not valid."
 
-AWS_NO_VALID_IMDS = FormattedNamedMessage(
-    "aws-no-valid-imds",
-    "No valid AWS IMDS endpoint discovered at addresses: {addresses}",
-)
-
-GPG_KEY_NOT_FOUND = FormattedNamedMessage(
-    "gpg-key-not-found", "GPG key '{keyfile}' not found."
-)
 
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
@@ -1935,3 +1456,541 @@ CLI_ROOT_HELP = "show detailed information about Ubuntu Pro services"
 CLI_ROOT_REFRESH = "refresh Ubuntu Pro services"
 CLI_ROOT_STATUS = "current status of all Ubuntu Pro services"
 CLI_ROOT_SYSTEM = "show system information related to Pro services"
+
+
+###############################################################################
+#                              ERROR MESSAGES                                 #
+###############################################################################
+
+E_APT_PROCESS_CONFLICT = NamedMessage(
+    "apt-process-conflict", "Another process is running APT."
+)
+
+E_APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
+    "apt-update-invalid-url-config",
+    """\
+APT update failed to read APT config for the following:
+{failed_repos}""",
+)
+
+E_APT_UPDATE_PROCESS_CONFLICT = NamedMessage(
+    "apt-update-failed-process-conflict",
+    "APT update failed. " + E_APT_PROCESS_CONFLICT.msg,
+)
+
+E_APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
+    "apt-update-invalid-repo", "APT update failed.\n{repo_msg}"
+)
+
+E_APT_UPDATE_FAILED = FormattedNamedMessage(
+    "apt-update-failed", "APT Update failed\n{detail}"
+)
+
+E_APT_INSTALL_PROCESS_CONFLICT = NamedMessage(
+    "apt-install-failed-process-conflict",
+    "APT install failed. " + E_APT_PROCESS_CONFLICT.msg,
+)
+
+E_APT_INSTALL_INVALID_REPO = FormattedNamedMessage(
+    "apt-install-invalid-repo", "APT install failed. {repo_msg}"
+)
+
+E_APT_INVALID_CREDENTIALS = FormattedNamedMessage(
+    "apt-invalid-credentials", "Invalid APT credentials provided for {repo}"
+)
+
+E_APT_TIMEOUT = FormattedNamedMessage(
+    "apt-timeout", "Timeout trying to access APT repository at {repo}"
+)
+
+E_APT_UNEXPECTED_ERROR = FormattedNamedMessage(
+    "apt-unexpected-error",
+    """\
+Unexpected APT error.
+{detail}
+See /var/log/ubuntu-advantage.log""",
+)
+
+E_APT_COMMAND_TIMEOUT = FormattedNamedMessage(
+    "apt-command-timeout",
+    (
+        "Cannot validate credentials for APT repo."
+        " Timeout after {seconds} seconds trying to reach {repo}."
+    ),
+)
+
+E_SNAP_NOT_INSTALLED_ERROR = FormattedNamedMessage(
+    "snap-not-installed-error", "snap {snap} is not installed or doesn't exist"
+)
+
+E_UNEXPECTED_SNAPD_API_ERROR = FormattedNamedMessage(
+    "unexpected-snapd-api-error", "Unexpected SNAPD API error\n{error}"
+)
+
+E_SNAPD_CONNECTION_REFUSED = NamedMessage(
+    "snapd-connection-refused", "Could not reach the SNAPD API"
+)
+
+E_CANNOT_INSTALL_SNAPD = NamedMessage(
+    "cannot-install-snapd", "Failed to install snapd on the system"
+)
+
+E_ERROR_INSTALLING_LIVEPATCH = FormattedNamedMessage(
+    "error-installing-livepatch",
+    "Unable to install Livepatch client: {error_msg}",
+)
+
+E_NOT_SETTING_PROXY_NOT_WORKING = FormattedNamedMessage(
+    "proxy-not-working", '"{proxy}" is not working. Not setting as proxy.'
+)
+
+E_NOT_SETTING_PROXY_INVALID_URL = FormattedNamedMessage(
+    "proxy-invalid-url", '"{proxy}" is not a valid url. Not setting as proxy.'
+)
+
+E_PYCURL_REQUIRED = NamedMessage(
+    "pycurl-required",
+    (
+        "To use an HTTPS proxy for HTTPS connections, please install "
+        "pycurl with `apt install python3-pycurl`"
+    ),
+)
+
+E_PYCURL_ERROR = FormattedNamedMessage("pycurl-error", "PycURL Error: {e}")
+
+E_PROXY_AUTH_FAIL = NamedMessage(
+    "proxy-auth-fail", "Proxy authentication failed"
+)
+
+E_CONNECTIVITY_ERROR = NamedMessage(
+    "connectivity-error",
+    """\
+Failed to connect to authentication server
+Check your Internet connection and try again.""",
+)
+
+E_EXTERNAL_API_ERROR = FormattedNamedMessage(
+    "external-api-error", "Error connecting to {url}: {code} {body}"
+)
+
+E_INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
+    "invalid-service-or-failure",
+    """\
+Cannot {operation} unknown service '{invalid_service}'.
+{service_msg}""",
+)
+
+E_ALREADY_ATTACHED = FormattedNamedMessage(
+    name="already-attached",
+    msg=(
+        "This machine is already attached to '{account_name}'\n"
+        "To use a different subscription first run: sudo pro detach."
+    ),
+)
+
+E_ATTACH_FAILURE = NamedMessage(
+    "attach-failure",
+    "Failed to attach machine. See {url}".format(url=urls.PRO_DASHBOARD),
+)
+
+E_ATTACH_CONFIG_READ_ERROR = FormattedNamedMessage(
+    "attach-config-read-error", "Error while reading {config_name}:\n{error}"
+)
+
+E_ATTACH_INVALID_TOKEN = NamedMessage(
+    "attach-invalid-token",
+    "Invalid token. See {url}".format(url=urls.PRO_DASHBOARD),
+)
+
+E_ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
+    "attach-forbidden-expired",
+    """\
+Attach denied:
+Contract "{{contract_id}}" expired on {{date}}
+Visit {url} to manage contract tokens.""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+
+E_ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
+    "attach-forbidden-not-yet",
+    """\
+Attach denied:
+Contract "{{contract_id}}" is not effective until {{date}}
+Visit {url} to manage contract tokens.""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+
+E_ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
+    "attach-forbidden-never",
+    """\
+Attach denied:
+Contract "{{contract_id}}" has never been effective
+Visit {url} to manage contract tokens.""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+
+E_ATTACH_EXPIRED_TOKEN = NamedMessage(
+    "attach-experied-token",
+    """\
+Expired token or contract. To obtain a new token visit: {url}""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+
+E_MAGIC_ATTACH_TOKEN_ALREADY_ACTIVATED = NamedMessage(
+    "magic-attach-token-already-activated",
+    "The magic attach token is already activated.",
+)
+
+E_MAGIC_ATTACH_TOKEN_ERROR = NamedMessage(
+    "magic-attach-token-error",
+    "The magic attach token is invalid, has expired or never existed",
+)
+
+E_MAGIC_ATTACH_UNAVAILABLE = NamedMessage(
+    "magic-attach-service-unavailable",
+    "Service unavailable, please try again later.",
+)
+
+E_MAGIC_ATTACH_INVALID_PARAM = FormattedNamedMessage(
+    "magic-attach-invalid-param",
+    "This attach flow does not support {param} with value: {value}",
+)
+
+E_MISSING_APT_URL_DIRECTIVE = FormattedNamedMessage(
+    "missing-apt-url-directive",
+    """\
+Ubuntu Pro server provided no aptURL directive for {entitlement_name}""",
+)
+
+E_UNATTACHED = NamedMessage(
+    "unattached",
+    """\
+This machine is not attached to an Ubuntu Pro subscription.
+See {url}""".format(
+        url=urls.PRO_HOME_PAGE
+    ),
+)
+
+E_VALID_SERVICE_FAILURE_UNATTACHED = FormattedNamedMessage(
+    "valid-service-failure-unattached",
+    """\
+To use '{{valid_service}}' you need an Ubuntu Pro subscription
+Personal and community subscriptions are available at no charge
+See {url}""".format(
+        url=urls.PRO_HOME_PAGE
+    ),
+)
+
+E_MIXED_SERVICES_FAILURE_UNATTACHED = FormattedNamedMessage(
+    "mixed-services-failure-unattached",
+    E_INVALID_SERVICE_OP_FAILURE.tmpl_msg
+    + "\n"
+    + E_VALID_SERVICE_FAILURE_UNATTACHED.tmpl_msg,
+)
+
+E_ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
+    "entitlement-not-found",
+    'could not find entitlement named "{entitlement_name}"',
+)
+
+E_ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
+    "entitlements-not-enabled",
+    "failed to enable some services",
+)
+
+E_ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
+    "attach-failure-default-service",
+    """\
+Failed to enable default services, check: sudo pro status""",
+)
+
+E_ATTACH_FAILURE_UNEXPECTED = NamedMessage(
+    "attach-failure-unexpected-error",
+    """\
+Something went wrong during the attach process. Check the logs.""",
+)
+
+E_REPO_NO_APT_KEY = FormattedNamedMessage(
+    "repo-no-apt-key",
+    "Ubuntu Pro server provided no aptKey directive for {entitlement_name}",
+)
+
+E_REPO_NO_SUITES = FormattedNamedMessage(
+    "repo-no-suites",
+    "Ubuntu Pro server provided no suites directive for {entitlement_name}",
+)
+
+E_REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
+    "repo-pin-fail-no-origin",
+    "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
+    + "\n"
+    + ENABLED_FAILED.tmpl_msg,
+)
+
+E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
+    "invalid-contract-deltas-service-type",
+    "Could not determine contract delta service type {orig} {new}",
+)
+
+E_INVALID_PRO_IMAGE = FormattedNamedMessage(
+    name="invalid-pro-image", msg="Error on Pro Image:\n{error_msg}"
+)
+
+E_CLOUD_METADATA_ERROR = FormattedNamedMessage(
+    "cloud-metadata-error",
+    "An error occurred while talking the the cloud metadata service: {code} - {body}",  # noqa: E501
+)
+
+E_GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = FormattedNamedMessage(
+    "gcp-pro-service-account-not-enabled",
+    """\
+Failed to attach machine
+{{status_code}}: {{error_msg}}
+For more information, see {url}""".format(
+        url=urls.GCP_SERVICE_ACCOUNT_DOCS
+    ),
+)
+
+E_AWS_NO_VALID_IMDS = FormattedNamedMessage(
+    "aws-no-valid-imds",
+    "No valid AWS IMDS endpoint discovered at addresses: {addresses}",
+)
+
+E_UNABLE_TO_DETERMINE_CLOUD_TYPE = NamedMessage(
+    "auto-attach-cloud-type-error",
+    """\
+Unable to determine cloud platform.""",
+)
+
+E_UNSUPPORTED_AUTO_ATTACH = NamedMessage(
+    "auto-attach-image-not-viable",
+    """\
+Auto-attach image support is not available on this image
+See: {url}""".format(
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
+)
+
+E_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = FormattedNamedMessage(
+    "auto-attach-unsupported-cloud-type-error",
+    """\
+Auto-attach image support is not available on {{cloud_type}}
+See: {url}""".format(
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
+)
+
+E_INVALID_FILE_FORMAT = FormattedNamedMessage(
+    name="invalid-file-format", msg="{file_name} is not valid {file_format}"
+)
+
+E_ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
+    "error-parsing-version-os-release",
+    """\
+Could not parse /etc/os-release VERSION: {orig_ver} (modified to {mod_ver})""",
+)
+
+E_MISSING_SERIES_ON_OS_RELEASE = FormattedNamedMessage(
+    "missing-series-on-os-release",
+    """\
+Could not extract series information from /etc/os-release.
+The VERSION filed does not have version information: {version}
+and the VERSION_CODENAME information is not present""",
+)
+
+E_INVALID_LOCK_FILE = FormattedNamedMessage(
+    "invalid-lock-file",
+    """\
+There is a corrupted lock file in the system. To continue, please remove it
+from the system by running:
+
+$ sudo rm {lock_file_path}""",
+)
+
+E_JSON_PARSER_ERROR = FormattedNamedMessage(
+    "json-parser-error", "{source} returned invalid json: {out}"
+)
+
+E_INVALID_BOOLEAN_CONFIG_VALUE = FormattedNamedMessage(
+    "invalid-boolean-config-value",
+    """\
+Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
+Expected {expected_value}, found {value}.""",
+)
+
+E_CLI_CONFIG_VALUE_MUST_BE_POS_INT = FormattedNamedMessage(
+    "invalid-posint-config-value",
+    (
+        "Cannot set {key} to {value}: "
+        "<value> for interval must be a positive integer."
+    ),
+)
+
+E_CONFIG_INVALID_URL = FormattedNamedMessage(
+    "invalid-url-config-value", "Invalid url in config. {key}: {value}"
+)
+
+E_CONFIG_NO_YAML_FILE = FormattedNamedMessage(
+    "invalid-feature-yaml-config-value", "Could not find yaml file: {filepath}"
+)
+
+E_INVALID_PROXY_COMBINATION = NamedMessage(
+    "invalid-proxy-combination-config",
+    """\
+Error: Setting global apt proxy and pro scoped apt proxy
+at the same time is unsupported.
+Cancelling config process operation.
+""",
+)
+
+E_MISSING_DISTRO_INFO_FILE = NamedMessage(
+    "missing-distro-info-file", "Can't load the distro-info database."
+)
+
+E_MISSING_SERIES_IN_DISTRO_INFO_FILE = FormattedNamedMessage(
+    "missing-series-in-distro-info-file",
+    "Can't find series {series} in the distro-info database.",
+)
+
+E_INVALID_OPTION_COMBINATION = FormattedNamedMessage(
+    "invalid-option-combination",
+    "Error: Cannot use {option1} together with {option2}.",
+)
+
+E_CLI_NO_HELP = FormattedNamedMessage(
+    "no-help-content", "No help available for '{name}'"
+)
+
+E_SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
+    "invalid-security-issue-id-format",
+    'Error: issue "{issue}" is not recognized.\n'
+    'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"',
+)
+
+E_CLI_VALID_CHOICES = FormattedNamedMessage(
+    "invalid-arg-choice", "\n{arg} must be one of: {choices}"
+)
+
+E_CLI_EXPECTED_FORMAT = FormattedNamedMessage(
+    "generic-invalid-format", "\nExpected {expected} but found: {actual}"
+)
+
+E_REFRESH_CONFIG_FAILURE = NamedMessage(
+    "refresh-config-failure", "Unable to process uaclient.conf"
+)
+
+E_REFRESH_CONTRACT_FAILURE = NamedMessage(
+    "refresh-contract-failure", "Unable to refresh your subscription"
+)
+
+E_REFRESH_MESSAGES_FAILURE = NamedMessage(
+    "refresh-messages-failure",
+    "Unable to update Ubuntu Pro related APT and MOTD messages.",
+)
+
+E_JSON_FORMAT_REQUIRE_ASSUME_YES = NamedMessage(
+    "json-format-require-assume-yes",
+    """\
+json formatted response requires --assume-yes flag.""",
+)
+
+E_ATTACH_TOKEN_ARG_XOR_CONFIG = NamedMessage(
+    "attach-token-xor-config",
+    """\
+Do not pass the TOKEN arg if you are using --attach-config.
+Include the token in the attach-config file instead.
+    """,
+)
+
+E_API_ERROR_ARGS_AND_DATA_TOGETHER = NamedMessage(
+    "api-error-args-and-data-together",
+    "Cannot provide both --args and --data at the same time",
+)
+
+E_LOCK_HELD_ERROR = FormattedNamedMessage(
+    "lock-held-error",
+    """\
+Unable to perform: {lock_request}.
+"""
+    + LOCK_HELD.tmpl_msg,
+)
+
+E_NONROOT_USER = NamedMessage(
+    "nonroot-user", "This command must be run as root (try using sudo)."
+)
+
+E_SECURITY_API_INVALID_METADATA = FormattedNamedMessage(
+    "security-api-invalid-metadata",
+    "Metadata for {issue} is invalid. Error: {error_msg}."
+    + "\n"
+    + SECURITY_ISSUE_NOT_RESOLVED,
+)
+
+E_SECURITY_FIX_NOT_FOUND_ISSUE = FormattedNamedMessage(
+    "security-fix-not-found-issue",
+    "Error: {issue_id} not found.",
+)
+
+E_GPG_KEY_NOT_FOUND = FormattedNamedMessage(
+    "gpg-key-not-found", "GPG key '{keyfile}' not found."
+)
+
+E_API_INVALID_ENDPOINT = FormattedNamedMessage(
+    name="api-invalid-endpoint", msg="'{endpoint}' is not a valid endpoint"
+)
+
+E_API_MISSING_ARG = FormattedNamedMessage(
+    name="api-missing-argument",
+    msg="Missing argument '{arg}' for endpoint {endpoint}",
+)
+
+E_API_NO_ARG_FOR_ENDPOINT = FormattedNamedMessage(
+    name="api-no-argument-for-endpoint", msg="{endpoint} accepts no arguments"
+)
+
+E_API_JSON_DATA_FORMAT_ERROR = FormattedNamedMessage(
+    "api-json-data-format-error",
+    "Error parsing API json data parameter:\n{data}",
+)
+
+E_API_BAD_ARGS_FORMAT = FormattedNamedMessage(
+    name="api-args-wrong-format", msg="'{arg}' is not formatted as 'key=value'"
+)
+
+E_API_VERSION_ERROR = FormattedNamedMessage(
+    "unable-to-determine-version", "Unable to determine version: {error_msg}"
+)
+
+E_AUTO_ATTACH_DISABLED_ERROR = NamedMessage(
+    "auto-attach-disabled",
+    "features.disable_auto_attach set in config",
+)
+
+E_UNATTENDED_UPGRADES_ERROR = FormattedNamedMessage(
+    "unable-to-determine-unattended-upgrade-status",
+    "Unable to determine unattended-upgrades status: {error_msg}",
+)
+
+E_INCORRECT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-type",
+    "Expected value with type {expected_type} but got type: {got_type}",
+)
+
+E_INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-list-element-type",
+    "Got value with incorrect type at index {index}:\n{nested_msg}",
+)
+
+E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-field-type",
+    'Got value with incorrect type for field "{key}":\n{nested_msg}',
+)
+
+E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-enum-value",
+    "Value provided was not found in {enum_class}'s allowed: value: {values}",
+)

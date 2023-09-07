@@ -832,7 +832,7 @@ version,codename,series,created,release,eol,eol-server,eol-esm
         with pytest.raises(exceptions.UbuntuProError) as excinfo:
             system.get_distro_info.__wrapped__("nonexistent")
         assert (
-            messages.MISSING_SERIES_IN_DISTRO_INFO_FILE.format(
+            messages.E_MISSING_SERIES_IN_DISTRO_INFO_FILE.format(
                 series="nonexistent"
             )
             == excinfo.value.named_msg
@@ -843,7 +843,7 @@ version,codename,series,created,release,eol,eol-server,eol-esm
 
         with pytest.raises(exceptions.UbuntuProError) as excinfo:
             system.get_distro_info.__wrapped__("focal")
-        assert messages.MISSING_DISTRO_INFO_FILE == excinfo.value.named_msg
+        assert messages.E_MISSING_DISTRO_INFO_FILE == excinfo.value.named_msg
 
 
 class TestGetReleaseInfo:

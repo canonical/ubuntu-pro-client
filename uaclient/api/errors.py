@@ -54,20 +54,20 @@ class APIError(UbuntuProError):
 
 
 class APIInvalidEndpoint(APIError):
-    _formatted_msg = messages.API_INVALID_ENDPOINT
+    _formatted_msg = messages.E_API_INVALID_ENDPOINT
 
 
 class APIMissingArg(APIError):
-    _formatted_msg = messages.API_MISSING_ARG
+    _formatted_msg = messages.E_API_MISSING_ARG
 
 
 class APINoArgsForEndpoint(APIError):
-    _formatted_msg = messages.API_NO_ARG_FOR_ENDPOINT
+    _formatted_msg = messages.E_API_NO_ARG_FOR_ENDPOINT
 
 
 class APIJSONDataFormatError(APIError):
-    _formatted_msg = messages.API_JSON_DATA_FORMAT_ERROR
+    _formatted_msg = messages.E_API_JSON_DATA_FORMAT_ERROR
 
 
 class APIBadArgsFormat(APIError):
-    _formatted_msg = messages.API_BAD_ARGS_FORMAT
+    _formatted_msg = messages.E_API_BAD_ARGS_FORMAT

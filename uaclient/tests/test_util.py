@@ -152,7 +152,7 @@ class TestIsConfigValueTrue:
                 config=cfg.cfg, path_to_value=path_to_value
             )
 
-        expected_msg = messages.ERROR_INVALID_BOOLEAN_CONFIG_VALUE.format(
+        expected_msg = messages.E_INVALID_BOOLEAN_CONFIG_VALUE.format(
             path_to_value=path_to_value,
             expected_value="boolean string: true or false",
             value=key_val,
