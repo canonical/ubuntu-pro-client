@@ -895,7 +895,7 @@ class TestProcessConfig:
                 exc = True
                 with pytest.raises(
                     exceptions.UbuntuProError,
-                    match=messages.ERROR_INVALID_PROXY_COMBINATION.msg,
+                    match=messages.E_INVALID_PROXY_COMBINATION.msg,
                 ):
                     cfg.process_config()
         if exc is False:
@@ -1330,7 +1330,7 @@ class TestCheckLockInfo:
         cfg = FakeConfig()
         m_load_file.return_value = lock_content
 
-        expected_msg = messages.INVALID_LOCK_FILE.format(
+        expected_msg = messages.E_INVALID_LOCK_FILE.format(
             lock_file_path=cfg.data_dir + "/lock"
         )
 

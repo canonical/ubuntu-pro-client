@@ -81,7 +81,7 @@ class TestEntitlementFactory:
                 )
 
         assert (
-            messages.ENTITLEMENT_NOT_FOUND.format(
+            messages.E_ENTITLEMENT_NOT_FOUND.format(
                 entitlement_name="nonexistent"
             ).msg
             == excinfo.value.msg
