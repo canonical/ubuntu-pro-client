@@ -530,7 +530,7 @@ class TestUAContractClient:
             (
                 exceptions.UrlError("cause", "url"),
                 exceptions.ConnectivityError,
-                messages.CONNECTIVITY_ERROR,
+                messages.E_CONNECTIVITY_ERROR,
             ),
             (
                 [
@@ -543,7 +543,7 @@ class TestUAContractClient:
                     )
                 ],
                 exceptions.MagicAttachUnavailable,
-                messages.MAGIC_ATTACH_UNAVAILABLE,
+                messages.E_MAGIC_ATTACH_UNAVAILABLE,
             ),
         ),
     )
@@ -609,8 +609,8 @@ class TestUAContractClient:
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.get_magic_attach_token_info(magic_token=magic_token)
 
-        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
-        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+        assert messages.E_CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert messages.E_CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
     @pytest.mark.parametrize(
         "error_code,expected_exception",
@@ -656,8 +656,8 @@ class TestUAContractClient:
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.revoke_magic_attach_token(magic_token=magic_token)
 
-        assert messages.CONNECTIVITY_ERROR.msg == exc_error.value.msg
-        assert messages.CONNECTIVITY_ERROR.name == exc_error.value.msg_code
+        assert messages.E_CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert messages.E_CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
     @pytest.mark.parametrize(
         [
@@ -1022,7 +1022,7 @@ class TestCreateAttachForbiddenMessage:
                 http.HTTPResponse(
                     code=403, headers={}, body="", json_list=[], json_dict={}
                 ),
-                messages.ATTACH_EXPIRED_TOKEN,
+                messages.E_ATTACH_EXPIRED_TOKEN,
                 {},
             ),
             (
@@ -1051,8 +1051,8 @@ class TestCreateAttachForbiddenMessage:
                     },
                 ),
                 messages.NamedMessage(
-                    name=messages.ATTACH_FORBIDDEN_EXPIRED.name,
-                    msg=messages.ATTACH_FORBIDDEN_EXPIRED.format(
+                    name=messages.E_ATTACH_FORBIDDEN_EXPIRED.name,
+                    msg=messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
                         contract_id="contract-id", date="May 07, 2021"
                     ).msg,
                 ),
@@ -1088,8 +1088,8 @@ class TestCreateAttachForbiddenMessage:
                     },
                 ),
                 messages.NamedMessage(
-                    name=messages.ATTACH_FORBIDDEN_NOT_YET.name,
-                    msg=messages.ATTACH_FORBIDDEN_NOT_YET.format(
+                    name=messages.E_ATTACH_FORBIDDEN_NOT_YET.name,
+                    msg=messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
                         contract_id="contract-id", date="May 07, 2021"
                     ).msg,
                 ),
@@ -1116,8 +1116,8 @@ class TestCreateAttachForbiddenMessage:
                     },
                 ),
                 messages.NamedMessage(
-                    name=messages.ATTACH_FORBIDDEN_NEVER.name,
-                    msg=messages.ATTACH_FORBIDDEN_NEVER.format(
+                    name=messages.E_ATTACH_FORBIDDEN_NEVER.name,
+                    msg=messages.E_ATTACH_FORBIDDEN_NEVER.format(
                         contract_id="contract-id"
                     ).msg,
                 ),
@@ -1594,7 +1594,7 @@ class TestRequestAutoAttach:
                 instance=mock.MagicMock()
             )
 
-        expected_message = messages.INVALID_PRO_IMAGE.format(
+        expected_message = messages.E_INVALID_PRO_IMAGE.format(
             error_msg=error_response["message"]
         )
         expected_args = [mock.call(error_response["message"])]

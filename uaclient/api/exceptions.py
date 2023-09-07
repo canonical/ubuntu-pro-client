@@ -30,8 +30,8 @@ __all__ = [
 
 
 class AutoAttachDisabledError(UbuntuProError):
-    _msg = messages.AUTO_ATTACH_DISABLED_ERROR
+    _msg = messages.E_AUTO_ATTACH_DISABLED_ERROR
 
 
 class UnattendedUpgradesError(APIError):
-    _formatted_msg = messages.UNATTENDED_UPGRADES_ERROR
+    _formatted_msg = messages.E_UNATTENDED_UPGRADES_ERROR

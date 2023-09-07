@@ -86,7 +86,7 @@ class TestActionAutoAttach:
         (
             (
                 exceptions.UrlError("does-not-matter", "url"),
-                messages.ATTACH_FAILURE.msg,
+                messages.E_ATTACH_FAILURE.msg,
                 1,
             ),
         ),
@@ -135,7 +135,7 @@ class TestActionAutoAttach:
                         ("livepatch", messages.NamedMessage("test", "test")),
                     ]
                 ),
-                messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg + "\n",
+                messages.E_ENTITLEMENTS_NOT_ENABLED_ERROR.msg + "\n",
                 4,
             ),
         ],

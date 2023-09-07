@@ -48,7 +48,7 @@ class TestActionDetach:
             ):
                 main_error_handler(action_detach)(args, cfg)
 
-        expected_message = messages.NONROOT_USER
+        expected_message = messages.E_NONROOT_USER
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -76,7 +76,7 @@ class TestActionDetach:
         args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(args, cfg=cfg)
-        assert messages.UNATTACHED.msg == err.value.msg
+        assert messages.E_UNATTACHED.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -84,7 +84,7 @@ class TestActionDetach:
             ):
                 main_error_handler(action_detach)(args, cfg)
 
-        expected_message = messages.UNATTACHED
+        expected_message = messages.E_UNATTACHED
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -119,7 +119,7 @@ class TestActionDetach:
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        expected_error_msg = messages.LOCK_HELD_ERROR.format(
+        expected_error_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro detach", lock_holder="pro enable", pid="123"
         )
         assert expected_error_msg.msg == err.value.msg

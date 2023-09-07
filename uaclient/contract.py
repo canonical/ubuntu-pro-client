@@ -552,7 +552,7 @@ def process_entitlements_delta(
     elif delta_error:
         raise exceptions.AttachFailureDefaultServices(
             failed_services=[
-                (name, messages.ATTACH_FAILURE_DEFAULT_SERVICES)
+                (name, messages.E_ATTACH_FAILURE_DEFAULT_SERVICES)
                 for name in failed_services
             ]
         )

@@ -224,7 +224,7 @@ def _handle_pycurl_error(
     ):
         raise exceptions.ProxyAuthenticationFailed()
     elif code == ca_certificates_error_code:
-        raise exceptions.PycurlCACertificatesError(url)
+        raise exceptions.PycurlCACertificatesError(url=url)
     else:
         raise exceptions.PycurlError(e=error)
 

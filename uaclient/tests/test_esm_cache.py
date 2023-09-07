@@ -2,7 +2,7 @@ import mock
 
 from lib.esm_cache import main
 from uaclient.exceptions import MissingSeriesOnOSReleaseFile
-from uaclient.messages import MISSING_SERIES_ON_OS_RELEASE
+from uaclient.messages import E_MISSING_SERIES_ON_OS_RELEASE
 
 
 @mock.patch("lib.esm_cache.update_esm_caches")
@@ -22,7 +22,7 @@ class TestUpdateEsmCaches:
         expected_log_args = [
             mock.call(
                 "Error updating the cache: %s",
-                MISSING_SERIES_ON_OS_RELEASE.format(version="version").msg,
+                E_MISSING_SERIES_ON_OS_RELEASE.format(version="version").msg,
             )
         ]
 
