@@ -657,7 +657,7 @@ class TestMain:
 
         assert [
             mock.call(
-                info_msg=messages.CONNECTIVITY_ERROR.msg, file_type=mock.ANY
+                info_msg=messages.E_CONNECTIVITY_ERROR.msg, file_type=mock.ANY
             )
         ] == m_event_info.call_args_list
         assert [expected_log_call] == m_log_exception.call_args_list

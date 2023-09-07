@@ -202,7 +202,7 @@ class TestDisable:
         event,
         FakeConfig,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
+        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
         num_calls = 2
 
         m_ent1_cls = mock.Mock()
@@ -330,8 +330,8 @@ class TestDisable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.INVALID_SERVICE_OP_FAILURE),
-            (False, messages.NONROOT_USER),
+            (True, messages.E_INVALID_SERVICE_OP_FAILURE),
+            (False, messages.E_NONROOT_USER),
         ],
     )
     @mock.patch("uaclient.util.we_are_currently_root")
@@ -409,7 +409,7 @@ class TestDisable:
         event,
         all_service_msg,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
+        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -461,8 +461,8 @@ class TestDisable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.VALID_SERVICE_FAILURE_UNATTACHED),
-            (False, messages.NONROOT_USER),
+            (True, messages.E_VALID_SERVICE_FAILURE_UNATTACHED),
+            (False, messages.E_NONROOT_USER),
         ],
     )
     @mock.patch("uaclient.util.we_are_currently_root")
@@ -536,7 +536,7 @@ class TestDisable:
         """Check inability to disable if operation in progress holds lock."""
         cfg = FakeConfig().for_attached_machine()
         args = mock.MagicMock()
-        expected_error = messages.LOCK_HELD_ERROR.format(
+        expected_error = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro disable", lock_holder="pro enable", pid="123"
         )
         cfg.write_cache("lock", "123:pro enable")
@@ -594,7 +594,7 @@ class TestDisable:
                 with contextlib.redirect_stdout(fake_stdout):
                     main_error_handler(action_disable)(args_mock, cfg)
 
-        expected_message = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
+        expected_message = messages.E_JSON_FORMAT_REQUIRE_ASSUME_YES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",

@@ -112,7 +112,7 @@ class TestActionEnable:
                         ):
                             main()
 
-        expected_message = messages.NONROOT_USER
+        expected_message = messages.E_NONROOT_USER
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -149,7 +149,7 @@ class TestActionEnable:
             action_enable(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
 
-        expected_message = messages.LOCK_HELD_ERROR.format(
+        expected_message = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro enable", lock_holder="pro disable", pid="123"
         )
         assert expected_message.msg == err.value.msg
@@ -164,7 +164,7 @@ class TestActionEnable:
                     m_check_lock_info.return_value = (1, "lock_holder")
                     main_error_handler(action_enable)(args, cfg)
 
-        expected_msg = messages.LOCK_HELD_ERROR.format(
+        expected_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro enable", lock_holder="lock_holder", pid=1
         )
         expected = {
@@ -193,8 +193,8 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.VALID_SERVICE_FAILURE_UNATTACHED),
-            (False, messages.NONROOT_USER),
+            (True, messages.E_VALID_SERVICE_FAILURE_UNATTACHED),
+            (False, messages.E_NONROOT_USER),
         ],
     )
     @mock.patch("uaclient.util.we_are_currently_root")
@@ -262,8 +262,8 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.INVALID_SERVICE_OP_FAILURE),
-            (False, messages.NONROOT_USER),
+            (True, messages.E_INVALID_SERVICE_OP_FAILURE),
+            (False, messages.E_NONROOT_USER),
         ],
     )
     @mock.patch("uaclient.util.we_are_currently_root")
@@ -358,8 +358,8 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.MIXED_SERVICES_FAILURE_UNATTACHED),
-            (False, messages.NONROOT_USER),
+            (True, messages.E_MIXED_SERVICES_FAILURE_UNATTACHED),
+            (False, messages.E_NONROOT_USER),
         ],
     )
     @mock.patch("uaclient.util.we_are_currently_root")
@@ -489,7 +489,7 @@ class TestActionEnable:
         event,
         FakeConfig,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
+        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -615,7 +615,7 @@ class TestActionEnable:
         event,
         FakeConfig,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
+        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -843,7 +843,7 @@ class TestActionEnable:
         event,
         FakeConfig,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
+        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
         expected_msg = "One moment, checking your subscription first\n"
 
         cfg = FakeConfig.for_attached_machine()
@@ -1005,7 +1005,7 @@ class TestActionEnable:
                 with contextlib.redirect_stdout(fake_stdout):
                     main_error_handler(action_enable)(args_mock, cfg)
 
-        expected_message = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
+        expected_message = messages.E_JSON_FORMAT_REQUIRE_ASSUME_YES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",

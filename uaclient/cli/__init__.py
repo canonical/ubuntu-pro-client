@@ -1056,7 +1056,7 @@ def action_enable(args, *, cfg, **kwargs):
     except (exceptions.UrlError, exceptions.UbuntuProError):
         # Inability to refresh is not a critical issue during enable
         LOG.warning("Failed to refresh contract", exc_info=True)
-        event.warning(warning_msg=messages.REFRESH_CONTRACT_FAILURE)
+        event.warning(warning_msg=messages.E_REFRESH_CONTRACT_FAILURE)
 
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
@@ -1221,7 +1221,7 @@ def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
             mode=event_logger.EventLoggerMode.CLI,
         )
     except exceptions.UrlError:
-        event.info(messages.ATTACH_FAILURE.msg)
+        event.info(messages.E_ATTACH_FAILURE.msg)
         return 1
     else:
         _post_cli_attach(cfg)
@@ -1709,7 +1709,7 @@ def main_error_handler(func):
                     "Failed to access URL: %s", exc.url, exc_info=exc
                 )
 
-                msg = messages.CONNECTIVITY_ERROR
+                msg = messages.E_CONNECTIVITY_ERROR
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
 

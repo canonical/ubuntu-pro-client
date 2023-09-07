@@ -498,7 +498,7 @@ def simulate_status(
         expiration_datetime = response["expires"]
         delta = expiration_datetime - now
         if delta.total_seconds() <= 0:
-            message = messages.ATTACH_FORBIDDEN_EXPIRED.format(
+            message = messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
                 contract_id=response["contract"]["id"],
                 date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
@@ -512,7 +512,7 @@ def simulate_status(
         effective_datetime = response["effective"]
         delta = now - effective_datetime
         if delta.total_seconds() <= 0:
-            message = messages.ATTACH_FORBIDDEN_NOT_YET.format(
+            message = messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
                 contract_id=response["contract"]["id"],
                 date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
@@ -700,7 +700,7 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
         if not show_all:
             content.extend(["", messages.STATUS_ALL_HINT])
 
-        content.extend(["", messages.UNATTACHED.msg])
+        content.extend(["", messages.E_UNATTACHED.msg])
         if (
             livepatch.on_supported_kernel()
             == livepatch.LivepatchSupport.UNSUPPORTED

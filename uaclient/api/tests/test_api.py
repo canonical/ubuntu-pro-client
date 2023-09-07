@@ -7,11 +7,11 @@ from uaclient.api.api import call_api
 from uaclient.api.data_types import APIResponse, ErrorWarningObject
 from uaclient.data_types import IncorrectFieldTypeError
 from uaclient.messages import (
-    API_BAD_ARGS_FORMAT,
-    API_INVALID_ENDPOINT,
-    API_MISSING_ARG,
-    API_NO_ARG_FOR_ENDPOINT,
     API_UNKNOWN_ARG,
+    E_API_BAD_ARGS_FORMAT,
+    E_API_INVALID_ENDPOINT,
+    E_API_MISSING_ARG,
+    E_API_NO_ARG_FOR_ENDPOINT,
     WARN_NEW_VERSION_AVAILABLE,
 )
 from uaclient.testing import fakes
@@ -69,9 +69,9 @@ class TestAPICall:
         assert isinstance(arg, errors.APIError)
         assert (
             arg.msg
-            == API_INVALID_ENDPOINT.format(endpoint="invalid_endpoint").msg
+            == E_API_INVALID_ENDPOINT.format(endpoint="invalid_endpoint").msg
         )
-        assert arg.msg_code == API_INVALID_ENDPOINT.name
+        assert arg.msg_code == E_API_INVALID_ENDPOINT.name
 
     @pytest.mark.parametrize(
         "arguments", (["badformat"], ["=badformat"], ["badformat="])
@@ -90,8 +90,8 @@ class TestAPICall:
         assert m_error_out.call_count == 1
         arg = m_error_out.call_args[0][0]
         assert isinstance(arg, errors.APIError)
-        assert arg.msg == API_BAD_ARGS_FORMAT.format(arg=arguments[0]).msg
-        assert arg.msg_code == API_BAD_ARGS_FORMAT.name
+        assert arg.msg == E_API_BAD_ARGS_FORMAT.format(arg=arguments[0]).msg
+        assert arg.msg_code == E_API_BAD_ARGS_FORMAT.name
 
     @pytest.mark.parametrize("options_cls", (None, mock.MagicMock()))
     @mock.patch("uaclient.api.errors.error_out")
@@ -124,19 +124,19 @@ class TestAPICall:
         if options_cls:
             assert (
                 arg.msg
-                == API_MISSING_ARG.format(
+                == E_API_MISSING_ARG.format(
                     arg="k", endpoint="example_endpoint"
                 ).msg
             )
-            assert arg.msg_code == API_MISSING_ARG.name
+            assert arg.msg_code == E_API_MISSING_ARG.name
         else:
             assert (
                 arg.msg
-                == API_NO_ARG_FOR_ENDPOINT.format(
+                == E_API_NO_ARG_FOR_ENDPOINT.format(
                     endpoint="example_endpoint"
                 ).msg
             )
-            assert arg.msg_code == API_NO_ARG_FOR_ENDPOINT.name
+            assert arg.msg_code == E_API_NO_ARG_FOR_ENDPOINT.name
 
     @mock.patch("uaclient.api.api.check_for_new_version", return_value=None)
     @mock.patch("uaclient.api.api.import_module")

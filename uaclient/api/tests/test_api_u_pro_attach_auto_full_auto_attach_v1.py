@@ -97,7 +97,7 @@ class TestEnableServicesByName:
                 [
                     (
                         "esm-infra",
-                        messages.ENTITLEMENT_NOT_FOUND.format(
+                        messages.E_ENTITLEMENT_NOT_FOUND.format(
                             entitlement_name="name"
                         ),
                     ),
@@ -275,7 +275,7 @@ class TestFullAutoAttachV1:
                 [],
                 pytest.raises(exceptions.AlreadyAttachedError),
                 False,
-                messages.ALREADY_ATTACHED.format(
+                messages.E_ALREADY_ATTACHED.format(
                     account_name="test_account"
                 ).msg,
                 None,
@@ -290,7 +290,7 @@ class TestFullAutoAttachV1:
                 [],
                 pytest.raises(exceptions.AutoAttachDisabledError),
                 False,
-                messages.AUTO_ATTACH_DISABLED_ERROR.msg,
+                messages.E_AUTO_ATTACH_DISABLED_ERROR.msg,
                 None,
             ),
             # success no options
@@ -364,7 +364,7 @@ class TestFullAutoAttachV1:
                 ],
                 pytest.raises(exceptions.EntitlementsNotEnabledError),
                 True,
-                messages.ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
+                messages.E_ENTITLEMENTS_NOT_ENABLED_ERROR.msg,
                 None,
             ),
         ],
