@@ -115,7 +115,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        Updating Ubuntu Pro: ESM package list
+        Updating Ubuntu Pro: ESM Infra package list
         Ubuntu Pro: ESM Infra enabled
         """
         Examples: ubuntu release
@@ -412,6 +412,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
             Updating CIS Audit package list
+            Updating main package list
             Installing CIS Audit packages
             CIS Audit enabled
             Visit https://ubuntu.com/security/cis to learn how to use CIS

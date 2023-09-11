@@ -752,6 +752,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Run timer script to valid machine activity endpoint
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
         And I run `apt install jq -y` with sudo
         And I save the `activityInfo.activityToken` value from the contract
         And I save the `activityInfo.activityID` value from the contract
