@@ -45,6 +45,18 @@ class UbuntuProError(Exception):
 UserFacingError = UbuntuProError
 
 
+class AnonymousUbuntuProError(UbuntuProError):
+    """
+    For cases where we have a NamedMessage of an Error already but it isn't in
+    exception form, and we need to raise it as an exception. This generally
+    should only be used in cli-only code.
+    """
+
+    def __init__(self, named_msg: messages.NamedMessage, **kwargs):
+        super().__init__(**kwargs)
+        self.named_msg = named_msg
+
+
 class APTProcessConflictError(UbuntuProError):
     _msg = messages.APT_PROCESS_CONFLICT
 
