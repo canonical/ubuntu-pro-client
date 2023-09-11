@@ -42,10 +42,6 @@ API_V1_CVE_TMPL = "cves/{cve}.json"
 API_V1_NOTICES = "notices.json"
 API_V1_NOTICE_TMPL = "notices/{notice}.json"
 
-UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
-UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
-UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
-
 
 UnfixedPackage = NamedTuple(
     "UnfixedPackage",
@@ -297,23 +293,26 @@ class CVEPackageStatus:
     @property
     def requires_ua(self) -> bool:
         """Return True if the package requires an active Pro subscription."""
-        return bool(self.pocket_source != UBUNTU_STANDARD_UPDATES_POCKET)
+        return bool(
+            self.pocket_source
+            != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+        )
 
     @property
     def pocket_source(self):
         """Human-readable string representing where the fix is published."""
         if self.pocket == "esm-infra":
-            fix_source = UA_INFRA_POCKET
+            fix_source = messages.SECURITY_UA_INFRA_POCKET
         elif self.pocket == "esm-apps":
-            fix_source = UA_APPS_POCKET
+            fix_source = messages.SECURITY_UA_APPS_POCKET
         elif self.pocket in ("updates", "security"):
-            fix_source = UBUNTU_STANDARD_UPDATES_POCKET
+            fix_source = messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
         else:
             # TODO(GH: #1376 drop this when esm* pockets supplied by API)
             if "esm" in self.fixed_version:
-                fix_source = UA_INFRA_POCKET
+                fix_source = messages.SECURITY_UA_INFRA_POCKET
             else:
-                fix_source = UBUNTU_STANDARD_UPDATES_POCKET
+                fix_source = messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
         return fix_source
 
 
@@ -807,8 +806,12 @@ def fix_security_issue_id(
 
     # Used to filter out beta pockets during merge_usns
     beta_pockets = {
-        "esm-apps": _is_pocket_used_by_beta_service(UA_APPS_POCKET, cfg),
-        "esm-infra": _is_pocket_used_by_beta_service(UA_INFRA_POCKET, cfg),
+        "esm-apps": _is_pocket_used_by_beta_service(
+            messages.SECURITY_UA_APPS_POCKET, cfg
+        ),
+        "esm-infra": _is_pocket_used_by_beta_service(
+            messages.SECURITY_UA_INFRA_POCKET, cfg
+        ),
     }
 
     if "CVE" in issue_id:
@@ -1080,9 +1083,9 @@ def _format_packages_message(
 
 def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     service_to_check = "no-service-needed"
-    if pocket == UA_INFRA_POCKET:
+    if pocket == messages.SECURITY_UA_INFRA_POCKET:
         service_to_check = "esm-infra"
-    elif pocket == UA_APPS_POCKET:
+    elif pocket == messages.SECURITY_UA_APPS_POCKET:
         service_to_check = "esm-apps"
 
     ent_cls = entitlement_factory(cfg=cfg, name=service_to_check)
@@ -1163,9 +1166,9 @@ def _handle_released_package_fixes(
     installed_pkgs = set()  # type: Set[str]
     if src_pocket_pkgs:
         for pocket in [
-            UBUNTU_STANDARD_UPDATES_POCKET,
-            UA_INFRA_POCKET,
-            UA_APPS_POCKET,
+            messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
+            messages.SECURITY_UA_INFRA_POCKET,
+            messages.SECURITY_UA_APPS_POCKET,
         ]:
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
@@ -1194,7 +1197,10 @@ def _handle_released_package_fixes(
 
                 upgrade_pkgs = []
                 for binary_pkg in sorted(binary_pkgs):
-                    check_esm_cache = pocket != UBUNTU_STANDARD_UPDATES_POCKET
+                    check_esm_cache = (
+                        pocket
+                        != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+                    )
                     candidate_version = apt.get_pkg_candidate_version(
                         binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
                     )
@@ -1646,7 +1652,7 @@ def upgrade_packages_and_attach(
         print(msg)
         return UpgradeResult(status=False, failure_reason=msg)
 
-    if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
+    if pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
         # We are now using status-cache because non-root users won't
         # have access to the private machine_token.json file. We
         # can use the status-cache as a proxy for the attached
