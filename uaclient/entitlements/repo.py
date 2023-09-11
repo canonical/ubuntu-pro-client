@@ -256,6 +256,14 @@ class RepoEntitlement(base.UAEntitlement):
         if not util.handle_message_operations(msg_ops):
             return
 
+        try:
+            event.info(messages.APT_UPDATING_LIST.format("main"))
+            apt.update_sources_list("/etc/apt/sources.list")
+        except exceptions.UserFacingError:
+            if cleanup_on_failure:
+                self.remove_apt_config()
+            raise
+
         if verbose:
             event.info(
                 messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)

@@ -477,8 +477,10 @@ class TestRepoEnable:
             + "\n"
         )
 
+        update_sources_list_call_count = 1
         if packages is not None:
             if len(packages) > 0:
+                update_sources_list_call_count += 1
                 expected_apt_calls.append(
                     mock.call(
                         [
@@ -496,6 +498,7 @@ class TestRepoEnable:
                     "\n".join(
                         ["Updating Repo Test Class package list"]
                         + (pre_install_msgs if with_pre_install_msg else [])
+                        + ["Updating main package list"]
                         + [
                             "Installing Repo Test Class packages",
                             "Repo Test Class enabled",
@@ -518,7 +521,9 @@ class TestRepoEnable:
         ]
         assert expected_calls in m_exists.call_args_list
         assert expected_apt_calls == m_subp.call_args_list
-        assert 1 == m_update_sources_list.call_count
+        assert (
+            update_sources_list_call_count == m_update_sources_list.call_count
+        )
         add_apt_calls = [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-repotest.list",

@@ -109,12 +109,13 @@ class TestCISEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert subp_apt_cmds == m_subp.call_args_list
-        assert 1 == m_update_sources_list.call_count
+        assert 2 == m_update_sources_list.call_count
         assert 1 == m_apt_policy.call_count
         assert m_apt_policy_cmds == m_apt_policy.call_args_list
         assert 1 == m_should_reboot.call_count
         expected_stdout = (
             "Updating CIS Audit package list\n"
+            "Updating main package list\n"
             "Installing CIS Audit packages\n"
             "CIS Audit enabled\n"
             "Visit {} to learn how to use CIS\n".format(

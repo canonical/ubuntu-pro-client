@@ -204,12 +204,13 @@ class TestCommonCriteriaEntitlementEnable:
         assert 1 == m_apt_cache_policy.call_count
         assert apt_cache_policy_cmds == m_apt_cache_policy.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
-        assert 1 == m_update_sources_list.call_count
+        assert 2 == m_update_sources_list.call_count
         expected_stdout += "\n".join(
             [
                 "Updating CC EAL2 package list",
                 "(This will download more than 500MB of packages, so may take"
                 " some time.)",
+                "Updating main package list",
                 "Installing CC EAL2 packages",
                 "CC EAL2 enabled",
                 "Please follow instructions in {} to configure EAL2\n".format(

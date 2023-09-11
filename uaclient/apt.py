@@ -357,7 +357,7 @@ def update_sources_list(sources_list: str):
     except apt.LockFailedException:
         raise exceptions.APTProcessConflictError()
     except apt.FetchFailedException as e:
-        raise exceptions.UserFacingError(str(e))
+        raise exceptions.APTUpdateFailed(detail=str(e))
     finally:
         get_apt_cache_policy.cache_clear()
 
