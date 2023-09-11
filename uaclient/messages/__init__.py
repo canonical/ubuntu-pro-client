@@ -201,6 +201,9 @@ SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
     'Error: issue "{issue}" is not recognized.\n'
     'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"',
 )
+SECURITY_UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
+SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
+SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
 APT_UPDATING_LISTS = "Updating package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."

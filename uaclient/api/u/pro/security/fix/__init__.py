@@ -18,9 +18,6 @@ from uaclient.data_types import (
 from uaclient.security import (
     CVE,
     CVE_OR_USN_REGEX,
-    UA_APPS_POCKET,
-    UA_INFRA_POCKET,
-    UBUNTU_STANDARD_UPDATES_POCKET,
     USN,
     BinaryPackageFix,
     CVEPackageStatus,
@@ -573,7 +570,9 @@ def _get_upgradable_pkgs(
     unfixed_pkgs = []
 
     for binary_pkg in sorted(binary_pkgs):
-        check_esm_cache = pocket != UBUNTU_STANDARD_UPDATES_POCKET
+        check_esm_cache = (
+            pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+        )
         candidate_version = apt.get_pkg_candidate_version(
             binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
         )
@@ -768,11 +767,11 @@ def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
 
 def get_pocket_short_name(pocket: str):
-    if pocket == UBUNTU_STANDARD_UPDATES_POCKET:
+    if pocket == messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
         return STANDARD_UPDATES_POCKET
-    elif pocket == UA_INFRA_POCKET:
+    elif pocket == messages.SECURITY_UA_INFRA_POCKET:
         return ESM_INFRA_POCKET
-    elif pocket == UA_APPS_POCKET:
+    elif pocket == messages.SECURITY_UA_APPS_POCKET:
         return ESM_APPS_POCKET
     else:
         return pocket
@@ -834,9 +833,9 @@ def _generate_fix_plan(
         return fix_plan.fix_plan
 
     for pocket in [
-        UBUNTU_STANDARD_UPDATES_POCKET,
-        UA_INFRA_POCKET,
-        UA_APPS_POCKET,
+        messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
+        messages.SECURITY_UA_INFRA_POCKET,
+        messages.SECURITY_UA_APPS_POCKET,
     ]:
         pkg_src_group = src_pocket_pkgs[pocket]
         binary_pkgs = binary_pocket_pkgs[pocket]
@@ -870,8 +869,8 @@ def _generate_fix_plan(
                     },
                 )
 
-        if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
-            if pocket == UA_INFRA_POCKET:
+        if pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
+            if pocket == messages.SECURITY_UA_INFRA_POCKET:
                 service_to_check = "esm-infra"
             else:
                 service_to_check = "esm-apps"

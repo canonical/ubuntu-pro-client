@@ -65,12 +65,7 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.files import notices
 from uaclient.files.notices import Notice
 from uaclient.messages.urls import PRO_HOME_PAGE
-from uaclient.security import (
-    UA_APPS_POCKET,
-    UA_INFRA_POCKET,
-    UBUNTU_STANDARD_UPDATES_POCKET,
-    FixStatus,
-)
+from uaclient.security import FixStatus
 from uaclient.status import colorize_commands
 
 
@@ -638,11 +633,11 @@ def _handle_fix_status_message(
 
 def get_pocket_description(pocket: str):
     if pocket == STANDARD_UPDATES_POCKET:
-        return UBUNTU_STANDARD_UPDATES_POCKET
+        return messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
     elif pocket == ESM_INFRA_POCKET:
-        return UA_INFRA_POCKET
+        return messages.SECURITY_UA_INFRA_POCKET
     elif pocket == ESM_APPS_POCKET:
-        return UA_APPS_POCKET
+        return messages.SECURITY_UA_APPS_POCKET
     else:
         return pocket
 
