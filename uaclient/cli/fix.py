@@ -229,8 +229,12 @@ def fix_cve(security_issue: str, dry_run: bool, cfg: UAConfig):
     )
 
     error = fix_plan.cves_data.cves[0].error
-    if error:
-        raise exceptions.UserFacingError(error.msg)
+    if error and error.msg:
+        raise exceptions.AnonymousUbuntuProError(
+            named_msg=messages.NamedMessage(
+                error.code or "unexpected-error", error.msg
+            )
+        )
     print_cve_header(fix_plan.cves_data.cves[0])
     print()
 
@@ -245,8 +249,12 @@ def fix_usn(
         options=USNFixPlanOptions(usns=[security_issue]), cfg=cfg
     )
     error = fix_plan.usns_data.usns[0].target_usn_plan.error
-    if error:
-        raise exceptions.UserFacingError(error.msg)
+    if error and error.msg:
+        raise exceptions.AnonymousUbuntuProError(
+            named_msg=messages.NamedMessage(
+                error.code or "unexpected-error", error.msg
+            )
+        )
     print_usn_header(fix_plan.usns_data.usns[0])
 
     print(
@@ -390,7 +398,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     try:
         attach_with_token(cfg, token=token, allow_enable=True)
         return True
-    except exceptions.UserFacingError as err:
+    except exceptions.UbuntuProError as err:
         print(err.msg)
         return False
 
