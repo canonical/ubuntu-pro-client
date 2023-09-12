@@ -3,52 +3,6 @@ from typing import Dict, Optional  # noqa: F401
 from uaclient.messages import urls
 
 
-class NamedMessage:
-    def __init__(
-        self,
-        name: str,
-        msg: str,
-        additional_info: Optional[Dict[str, str]] = None,
-    ):
-        self.name = name
-        self.msg = msg
-        # we should use this field whenever we want to provide
-        # extra information to the message. This is specially
-        # useful if the message represents an error.
-        self.additional_info = additional_info
-
-    def __eq__(self, other):
-        return (
-            self.msg == other.msg
-            and self.name == other.name
-            and self.additional_info == other.additional_info
-        )
-
-    def __repr__(self):
-        return "NamedMessage({}, {}, {})".format(
-            self.name.__repr__(),
-            self.msg.__repr__(),
-            self.additional_info.__repr__(),
-        )
-
-
-class FormattedNamedMessage:
-    def __init__(self, name: str, msg: str):
-        self.name = name
-        self.tmpl_msg = msg
-
-    def format(self, **msg_params) -> NamedMessage:
-        return NamedMessage(
-            name=self.name, msg=self.tmpl_msg.format(**msg_params)
-        )
-
-    def __repr__(self):
-        return "FormattedNamedMessage({}, {})".format(
-            self.name.__repr__(),
-            self.tmpl_msg.__repr__(),
-        )
-
-
 class TxtColor:
     OKGREEN = "\033[92m"
     DISABLEGREY = "\033[37m"
@@ -313,141 +267,8 @@ See {url} for more information on pro proxy configuration.
     url=urls.PRO_CLIENT_DOCS_PROXY_CONFIG
 )
 
-FIPS_BLOCK_ON_CLOUD = FormattedNamedMessage(
-    "cloud-non-optimized-fips-kernel",
-    """\
-Ubuntu {{series}} does not provide {{cloud}} optimized FIPS kernel
-For help see: {url}""".format(
-        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
-    ),
-)
-
-
-FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
-    "failed-disabling-dependent-service",
-    """\
-Cannot disable dependent service: {required_service}{error}""",
-)
-
-DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
-    "depedent-service-stops-disable",
-    """\
-Cannot disable {service_being_disabled} when {dependent_service} is enabled.
-""",
-)
-
-ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
-    "error-enabling-required-service",
-    "Cannot enable required service: {service}{error}",
-)
-
-REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "required-service-stops-enable",
-    """\
-Cannot enable {service_being_enabled} when {required_service} is disabled.
-""",
-)
-
-INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "incompatible-service-stops-enable",
-    """\
-Cannot enable {service_being_enabled} when \
-{incompatible_service} is enabled.""",
-)
-
-SERVICE_NOT_CONFIGURED = FormattedNamedMessage(
-    "service-not-configured", "{title} is not configured"
-)
-
-SERVICE_IS_ACTIVE = FormattedNamedMessage(
-    "service-is-active", "{title} is active"
-)
-
-NO_APT_URL_FOR_SERVICE = FormattedNamedMessage(
-    "no-apt-url-for-service", "{title} does not have an aptURL directive"
-)
-
-ALREADY_DISABLED = FormattedNamedMessage(
-    "service-already-disabled",
-    """\
-{title} is not currently enabled\nSee: sudo pro status""",
-)
-
-ALREADY_ENABLED = FormattedNamedMessage(
-    "service-already-enabled",
-    """\
-{title} is already enabled.\nSee: sudo pro status""",
-)
 
 ENABLED_FAILED = "Could not enable {title}."
-
-UNENTITLED = FormattedNamedMessage(
-    "subscription-not-entitled-to-service",
-    """\
-This subscription is not entitled to {{title}}
-View your subscription at: {url}""".format(
-        url=urls.PRO_DASHBOARD
-    ),
-)
-
-SERVICE_NOT_ENTITLED = FormattedNamedMessage(
-    "service-not-entitled", "{title} is not entitled"
-)
-
-INAPPLICABLE_KERNEL_VER = FormattedNamedMessage(
-    "inapplicable-kernel-version",
-    """\
-{title} is not available for kernel {kernel}.
-Minimum kernel version required: {min_kernel}.""",
-)
-
-INAPPLICABLE_KERNEL = FormattedNamedMessage(
-    "inapplicable-kernel",
-    """\
-{title} is not available for kernel {kernel}.
-Supported flavors are: {supported_kernels}.""",
-)
-
-INAPPLICABLE_SERIES = FormattedNamedMessage(
-    "inapplicable-series",
-    """\
-{title} is not available for Ubuntu {series}.""",
-)
-
-INAPPLICABLE_ARCH = FormattedNamedMessage(
-    "inapplicable-arch",
-    """\
-{title} is not available for platform {arch}.
-Supported platforms are: {supported_arches}.""",
-)
-
-INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
-    "inapplicable-vendor-name",
-    """\
-{title} is not available for CPU vendor {vendor}.
-Supported CPU vendors are: {supported_vendors}.""",
-)
-
-NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
-    "no-entitlement-affordances-checked", "no entitlement affordances checked"
-)
-
-
-SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
-    "ssl-verification-error-ca-certificate",
-    """\
-Failed to access URL: {url}
-Cannot verify certificate of server
-Please install "ca-certificates" and try again.""",
-)
-
-SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = FormattedNamedMessage(
-    "ssl-verification-error-openssl-config",
-    """\
-Failed to access URL: {url}
-Cannot verify certificate of server
-Please check your openssl configuration.""",
-)
 
 
 APT_POLICY_FAILED = "Failure checking APT policy."
@@ -456,87 +277,10 @@ APT_POLICY_FAILED = "Failure checking APT policy."
 LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
 
-UNEXPECTED_ERROR = NamedMessage(
-    "unexpected-error",
-    """\
-Unexpected error(s) occurred.
-For more details, see the log: /var/log/ubuntu-advantage.log
-To file a bug run: ubuntu-bug ubuntu-advantage-tools""",
-)
-
-LIVEPATCH_NOT_ENABLED = NamedMessage(
-    "livepatch-not-enabled", "canonical-livepatch snap is not installed."
-)
-
-SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
-    "service-error-install-on-container",
-    "Cannot install {title} on a container.",
-)
-
-LIVEPATCH_ERROR_WHEN_FIPS_ENABLED = NamedMessage(
-    "livepatch-error-when-fips-enabled",
-    "Cannot enable Livepatch when FIPS is enabled.",
-)
-
-FIPS_REBOOT_REQUIRED = NamedMessage(
-    "fips-reboot-required", "Reboot to FIPS kernel required"
-)
-
 FIPS_SYSTEM_REBOOT_REQUIRED = (
     "FIPS support requires system reboot to complete configuration."
 )
 
-FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED = FormattedNamedMessage(
-    "fips-enable-when-fips-updates-enabled",
-    "Cannot enable {fips} when {fips_updates} is enabled.",
-)
-
-FIPS_PROC_FILE_ERROR = FormattedNamedMessage(
-    "fips-proc-file-error", "{file_name} is not set to 1"
-)
-
-FIPS_ERROR_WHEN_FIPS_UPDATES_ONCE_ENABLED = FormattedNamedMessage(
-    "fips-enable-when-fips-updates-once-enabled",
-    "Cannot enable {fips} because {fips_updates} was once enabled.",
-)
-
-FIPS_UPDATES_INVALIDATES_FIPS = NamedMessage(
-    "fips-updates-invalidates-fips",
-    "FIPS cannot be enabled if FIPS Updates has ever been enabled because"
-    " FIPS Updates installs security patches that aren't officially"
-    " certified.",
-)
-FIPS_INVALIDATES_FIPS_UPDATES = NamedMessage(
-    "fips-invalidates-fips-updates",
-    "FIPS Updates cannot be enabled if FIPS is enabled."
-    " FIPS Updates installs security patches that aren't officially"
-    " certified.",
-)
-LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
-    "livepatch-invalidates-fips",
-    "Livepatch cannot be enabled while running the official FIPS"
-    " certified kernel. If you would like a FIPS compliant kernel"
-    " with additional bug fixes and security updates, you can use"
-    " the FIPS Updates service with Livepatch.",
-)
-REALTIME_FIPS_INCOMPATIBLE = NamedMessage(
-    "realtime-fips-incompatible",
-    "Realtime and FIPS require different kernels, so you cannot enable"
-    " both at the same time.",
-)
-REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
-    "realtime-fips-updates-incompatible",
-    "Realtime and FIPS Updates require different kernels, so you cannot enable"
-    " both at the same time.",
-)
-REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
-    "realtime-livepatch-incompatible",
-    "Livepatch is not currently supported for the Real-time kernel.",
-)
-REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
-    "realtime-variant-incompatible",
-    "{service} cannot be enabled together with {variant}",
-)
 REALTIME_PROMPT = """\
 The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
@@ -562,11 +306,6 @@ After this operation is complete you must:
         but you must ensure this is correct before running it.
 
 Are you sure? (y/N) """
-
-REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
-    "realtime-error-install-on-container",
-    "Cannot install Real-time kernel on a container.",
-)
 
 
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
@@ -646,17 +385,6 @@ NOTICE_REFRESH_CONTRACT_WARNING = """\
 A change has been detected in your contract.
 Please run `sudo pro refresh`."""
 
-API_UNKNOWN_ARG = FormattedNamedMessage(
-    name="api-unknown-argument", msg="Ignoring unknown argument '{arg}'"
-)
-
-
-WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
-    name="new-version-available",
-    msg="A new version of the client is available: {version}. \
-Please upgrade to the latest version to get the new features \
-and bug fixes.",
-)
 WARN_NEW_VERSION_AVAILABLE_CLI = (
     "\n"
     + BLUE_INFO
@@ -665,12 +393,6 @@ WARN_NEW_VERSION_AVAILABLE_CLI = (
 Please run:
     sudo apt-get install ubuntu-advantage-tools
 to get the latest version with new features and bug fixes."""
-)
-
-
-ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
-    name="enable-access-only-not-supported",
-    msg="{title} does not support being enabled with --access-only",
 )
 
 
@@ -802,30 +524,6 @@ RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
 
-LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
-    name="livepatch-kernel-upgrade-required",
-    msg="""\
-The running kernel has reached the end of its active livepatch window.
-Please upgrade the kernel with apt and reboot for continued livepatch support.""",  # noqa: E501
-)
-LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
-    name="livepatch-kernel-eol",
-    msg="""\
-The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch support.
-Supported kernels are listed here: {url}
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
-        url=urls.LIVEPATCH_SUPPORTED_KERNELS
-    ),  # noqa: E501
-)
-LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
-    name="livepatch-kernel-not-supported",
-    msg="""\
-The current kernel ({{version}}, {{arch}}) is not supported by livepatch.
-Supported kernels are listed here: {url}
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
-        url=urls.LIVEPATCH_SUPPORTED_KERNELS
-    ),  # noqa: E501
-)
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
 LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = (
     "Supported livepatch kernels are listed here: {url}".format(
@@ -852,20 +550,6 @@ FIX_CANNOT_INSTALL_PACKAGE = (
     "Cannot install package {package} version {version}"
 )
 
-UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
-    "unattended-upgrades-systemd-job-disabled",
-    "apt-daily.timer jobs are not running",
-)
-
-UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY = FormattedNamedMessage(
-    "unattended-upgrades-cfg-list-value-empty",
-    "{cfg_name} is empty",
-)
-
-UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF = FormattedNamedMessage(
-    "unattended-upgrades-cfg-value-turned-off",
-    "{cfg_name} is turned off",
-)
 
 USER_CONFIG_MIGRATION_MIGRATING = (
     "Migrating /etc/ubuntu-advantage/uaclient.conf"
@@ -883,10 +567,6 @@ USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = """\
 Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
          Please add following to uaclient.conf to keep your config:"""
 
-LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE = NamedMessage(
-    "livepatch-client-failure",
-    "canonical-livepatch status didn't finish successfully",
-)
 
 STATUS_NO_SERVICES_AVAILABLE = (
     """No Ubuntu Pro services are available to this system."""
@@ -899,13 +579,6 @@ STATUS_SERVICE_HAS_VARIANTS = " * Service has variants"
 
 STATUS_ALL_HINT_WITH_VARIANTS = """\
 For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
-
-SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
-    "service-disabled-missing-package",
-    """\
-The {service} service is not enabled because the {package} package is
-not installed.""",
-)
 
 
 PRO_HELP_SERVICE_INFO = (
@@ -951,44 +624,6 @@ INSTALLING_REQUIRED_SNAP_PACKAGE = "Installing required snap: {snap}"
 EXECUTING_COMMAND = "Executing `{}`"
 EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
 BACKING_UP_FILE = "Backing up {original} as {backup}"
-
-LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
-    "landscape-client-not-installed", "lanscape-client is not installed"
-)
-LANDSCAPE_NOT_CONFIGURED = NamedMessage(
-    "landscape-not-configured",
-    """\
-Landscape is installed but not configured.
-Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`\
-""",
-)
-LANDSCAPE_NOT_REGISTERED = NamedMessage(
-    "landscape-not-registered",
-    """\
-Landscape is installed and configured but not registered.
-Run `sudo landscape-config` to register, or run `sudo pro disable landscape`\
-""",
-)
-LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
-    "landscape-service-not-active",
-    """\
-Landscape is installed and configured and registered but not running.
-Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`\
-""",
-)
-LANDSCAPE_CONFIG_FAILED = NamedMessage(
-    "landscape-config-failed",
-    """landscape-config command failed""",
-)
-
-
-INVALID_SECURITY_ISSUE = FormattedNamedMessage(
-    "invalid-security-issue",
-    """\
-Error: issue "{issue_id}" is not recognized.\n
-CVEs should follow the pattern CVE-yyyy-nnn.\n
-USNs should follow the pattern USN-nnnn.""",
-)
 
 
 DISABLE_DURING_CONTRACT_REFRESH = (
@@ -1441,6 +1076,351 @@ CLI_ROOT_HELP = "show detailed information about Ubuntu Pro services"
 CLI_ROOT_REFRESH = "refresh Ubuntu Pro services"
 CLI_ROOT_STATUS = "current status of all Ubuntu Pro services"
 CLI_ROOT_SYSTEM = "show system information related to Pro services"
+
+
+###############################################################################
+#                              NAMED MESSAGES                                 #
+###############################################################################
+# These are mostly used in json output of cli commands for errors or warnings
+
+
+class NamedMessage:
+    def __init__(
+        self,
+        name: str,
+        msg: str,
+        additional_info: Optional[Dict[str, str]] = None,
+    ):
+        self.name = name
+        self.msg = msg
+        # we should use this field whenever we want to provide
+        # extra information to the message. This is specially
+        # useful if the message represents an error.
+        self.additional_info = additional_info
+
+    def __eq__(self, other):
+        return (
+            self.msg == other.msg
+            and self.name == other.name
+            and self.additional_info == other.additional_info
+        )
+
+    def __repr__(self):
+        return "NamedMessage({}, {}, {})".format(
+            self.name.__repr__(),
+            self.msg.__repr__(),
+            self.additional_info.__repr__(),
+        )
+
+
+class FormattedNamedMessage:
+    def __init__(self, name: str, msg: str):
+        self.name = name
+        self.tmpl_msg = msg
+
+    def format(self, **msg_params) -> NamedMessage:
+        return NamedMessage(
+            name=self.name, msg=self.tmpl_msg.format(**msg_params)
+        )
+
+    def __repr__(self):
+        return "FormattedNamedMessage({}, {})".format(
+            self.name.__repr__(),
+            self.tmpl_msg.__repr__(),
+        )
+
+
+UNEXPECTED_ERROR = NamedMessage(
+    "unexpected-error",
+    """\
+Unexpected error(s) occurred.
+For more details, see the log: /var/log/ubuntu-advantage.log
+To file a bug run: ubuntu-bug ubuntu-advantage-tools""",
+)
+
+SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
+    "ssl-verification-error-ca-certificate",
+    """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please install "ca-certificates" and try again.""",
+)
+
+SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = FormattedNamedMessage(
+    "ssl-verification-error-openssl-config",
+    """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please check your openssl configuration.""",
+)
+
+API_UNKNOWN_ARG = FormattedNamedMessage(
+    name="api-unknown-argument", msg="Ignoring unknown argument '{arg}'"
+)
+
+WARN_NEW_VERSION_AVAILABLE = FormattedNamedMessage(
+    name="new-version-available",
+    msg="A new version of the client is available: {version}. \
+Please upgrade to the latest version to get the new features \
+and bug fixes.",
+)
+ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
+    name="enable-access-only-not-supported",
+    msg="{title} does not support being enabled with --access-only",
+)
+
+FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
+    "failed-disabling-dependent-service",
+    """\
+Cannot disable dependent service: {required_service}{error}""",
+)
+DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
+    "depedent-service-stops-disable",
+    """\
+Cannot disable {service_being_disabled} when {dependent_service} is enabled.
+""",
+)
+ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
+    "error-enabling-required-service",
+    "Cannot enable required service: {service}{error}",
+)
+REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "required-service-stops-enable",
+    """\
+Cannot enable {service_being_enabled} when {required_service} is disabled.
+""",
+)
+INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "incompatible-service-stops-enable",
+    """\
+Cannot enable {service_being_enabled} when \
+{incompatible_service} is enabled.""",
+)
+
+SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
+    "service-error-install-on-container",
+    "Cannot install {title} on a container.",
+)
+SERVICE_NOT_CONFIGURED = FormattedNamedMessage(
+    "service-not-configured", "{title} is not configured"
+)
+SERVICE_DISABLED_MISSING_PACKAGE = FormattedNamedMessage(
+    "service-disabled-missing-package",
+    """\
+The {service} service is not enabled because the {package} package is
+not installed.""",
+)
+SERVICE_IS_ACTIVE = FormattedNamedMessage(
+    "service-is-active", "{title} is active"
+)
+NO_APT_URL_FOR_SERVICE = FormattedNamedMessage(
+    "no-apt-url-for-service", "{title} does not have an aptURL directive"
+)
+ALREADY_DISABLED = FormattedNamedMessage(
+    "service-already-disabled",
+    """\
+{title} is not currently enabled\nSee: sudo pro status""",
+)
+ALREADY_ENABLED = FormattedNamedMessage(
+    "service-already-enabled",
+    """\
+{title} is already enabled.\nSee: sudo pro status""",
+)
+UNENTITLED = FormattedNamedMessage(
+    "subscription-not-entitled-to-service",
+    """\
+This subscription is not entitled to {{title}}
+View your subscription at: {url}""".format(
+        url=urls.PRO_DASHBOARD
+    ),
+)
+SERVICE_NOT_ENTITLED = FormattedNamedMessage(
+    "service-not-entitled", "{title} is not entitled"
+)
+
+INAPPLICABLE_KERNEL_VER = FormattedNamedMessage(
+    "inapplicable-kernel-version",
+    """\
+{title} is not available for kernel {kernel}.
+Minimum kernel version required: {min_kernel}.""",
+)
+INAPPLICABLE_KERNEL = FormattedNamedMessage(
+    "inapplicable-kernel",
+    """\
+{title} is not available for kernel {kernel}.
+Supported flavors are: {supported_kernels}.""",
+)
+INAPPLICABLE_SERIES = FormattedNamedMessage(
+    "inapplicable-series",
+    """\
+{title} is not available for Ubuntu {series}.""",
+)
+INAPPLICABLE_ARCH = FormattedNamedMessage(
+    "inapplicable-arch",
+    """\
+{title} is not available for platform {arch}.
+Supported platforms are: {supported_arches}.""",
+)
+INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
+    "inapplicable-vendor-name",
+    """\
+{title} is not available for CPU vendor {vendor}.
+Supported CPU vendors are: {supported_vendors}.""",
+)
+NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
+    "no-entitlement-affordances-checked", "no entitlement affordances checked"
+)
+
+FIPS_BLOCK_ON_CLOUD = FormattedNamedMessage(
+    "cloud-non-optimized-fips-kernel",
+    """\
+Ubuntu {{series}} does not provide {{cloud}} optimized FIPS kernel
+For help see: {url}""".format(
+        url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES
+    ),
+)
+FIPS_REBOOT_REQUIRED = NamedMessage(
+    "fips-reboot-required", "Reboot to FIPS kernel required"
+)
+FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED = FormattedNamedMessage(
+    "fips-enable-when-fips-updates-enabled",
+    "Cannot enable {fips} when {fips_updates} is enabled.",
+)
+FIPS_PROC_FILE_ERROR = FormattedNamedMessage(
+    "fips-proc-file-error", "{file_name} is not set to 1"
+)
+FIPS_ERROR_WHEN_FIPS_UPDATES_ONCE_ENABLED = FormattedNamedMessage(
+    "fips-enable-when-fips-updates-once-enabled",
+    "Cannot enable {fips} because {fips_updates} was once enabled.",
+)
+FIPS_UPDATES_INVALIDATES_FIPS = NamedMessage(
+    "fips-updates-invalidates-fips",
+    "FIPS cannot be enabled if FIPS Updates has ever been enabled because"
+    " FIPS Updates installs security patches that aren't officially"
+    " certified.",
+)
+FIPS_INVALIDATES_FIPS_UPDATES = NamedMessage(
+    "fips-invalidates-fips-updates",
+    "FIPS Updates cannot be enabled if FIPS is enabled."
+    " FIPS Updates installs security patches that aren't officially"
+    " certified.",
+)
+
+LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
+    "livepatch-invalidates-fips",
+    "Livepatch cannot be enabled while running the official FIPS"
+    " certified kernel. If you would like a FIPS compliant kernel"
+    " with additional bug fixes and security updates, you can use"
+    " the FIPS Updates service with Livepatch.",
+)
+LIVEPATCH_NOT_ENABLED = NamedMessage(
+    "livepatch-not-enabled", "canonical-livepatch snap is not installed."
+)
+LIVEPATCH_ERROR_WHEN_FIPS_ENABLED = NamedMessage(
+    "livepatch-error-when-fips-enabled",
+    "Cannot enable Livepatch when FIPS is enabled.",
+)
+LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
+    name="livepatch-kernel-upgrade-required",
+    msg="""\
+The running kernel has reached the end of its active livepatch window.
+Please upgrade the kernel with apt and reboot for continued livepatch support.""",  # noqa: E501
+)
+LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
+    name="livepatch-kernel-eol",
+    msg="""\
+The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch support.
+Supported kernels are listed here: {url}
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    ),  # noqa: E501
+)
+LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
+    name="livepatch-kernel-not-supported",
+    msg="""\
+The current kernel ({{version}}, {{arch}}) is not supported by livepatch.
+Supported kernels are listed here: {url}
+Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.""".format(  # noqa: E501
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    ),  # noqa: E501
+)
+LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE = NamedMessage(
+    "livepatch-client-failure",
+    "canonical-livepatch status didn't finish successfully",
+)
+
+REALTIME_FIPS_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-incompatible",
+    "Realtime and FIPS require different kernels, so you cannot enable"
+    " both at the same time.",
+)
+REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-updates-incompatible",
+    "Realtime and FIPS Updates require different kernels, so you cannot enable"
+    " both at the same time.",
+)
+REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
+    "realtime-livepatch-incompatible",
+    "Livepatch is not currently supported for the Real-time kernel.",
+)
+REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
+    "realtime-variant-incompatible",
+    "{service} cannot be enabled together with {variant}",
+)
+REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
+    "realtime-error-install-on-container",
+    "Cannot install Real-time kernel on a container.",
+)
+
+UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
+    "unattended-upgrades-systemd-job-disabled",
+    "apt-daily.timer jobs are not running",
+)
+UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY = FormattedNamedMessage(
+    "unattended-upgrades-cfg-list-value-empty",
+    "{cfg_name} is empty",
+)
+UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF = FormattedNamedMessage(
+    "unattended-upgrades-cfg-value-turned-off",
+    "{cfg_name} is turned off",
+)
+
+LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
+    "landscape-client-not-installed", "lanscape-client is not installed"
+)
+LANDSCAPE_NOT_CONFIGURED = NamedMessage(
+    "landscape-not-configured",
+    """\
+Landscape is installed but not configured.
+Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_NOT_REGISTERED = NamedMessage(
+    "landscape-not-registered",
+    """\
+Landscape is installed and configured but not registered.
+Run `sudo landscape-config` to register, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
+    "landscape-service-not-active",
+    """\
+Landscape is installed and configured and registered but not running.
+Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`\
+""",
+)
+LANDSCAPE_CONFIG_FAILED = NamedMessage(
+    "landscape-config-failed",
+    """landscape-config command failed""",
+)
+
+INVALID_SECURITY_ISSUE = FormattedNamedMessage(
+    "invalid-security-issue",
+    """\
+Error: issue "{issue_id}" is not recognized.\n
+CVEs should follow the pattern CVE-yyyy-nnn.\n
+USNs should follow the pattern USN-nnnn.""",
+)
 
 
 ###############################################################################
