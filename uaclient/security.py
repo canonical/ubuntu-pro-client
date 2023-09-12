@@ -1213,7 +1213,7 @@ def _handle_released_package_fixes(
                             messages.FIX_CANNOT_INSTALL_PACKAGE.format(
                                 package=binary_pkg.binary_pkg,
                                 version=binary_pkg.fixed_version,
-                            ).msg
+                            )
                         )
                         print("- " + unfixed_reason)
                         unfixed_pkgs.append(
@@ -1270,7 +1270,7 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[UnfixedPackage]) -> str:
             s="s" if num_pkgs_unfixed > 1 else "",
             verb="are" if num_pkgs_unfixed > 1 else "is",
             pkgs=", ".join(sorted_pkgs),
-        ).msg,
+        ),
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
     )

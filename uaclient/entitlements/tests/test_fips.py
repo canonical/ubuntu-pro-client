@@ -408,7 +408,7 @@ class TestFIPSEntitlementEnable:
         assert subp_calls == m_subp.call_args_list
         assert 2 == m_update_sources_list.call_count
         assert [
-            messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+            messages.FIPS_SYSTEM_REBOOT_REQUIRED,
         ] == notice_ent_cls.list()
 
     @pytest.mark.parametrize(
@@ -987,7 +987,7 @@ class TestFIPSEntitlementApplicationStatus:
         msg = messages.NamedMessage("test-code", "sure is some status here")
         notice_ent_cls.add(
             Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
-            messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+            messages.FIPS_SYSTEM_REBOOT_REQUIRED,
         )
 
         if path_exists:
@@ -1020,7 +1020,7 @@ class TestFIPSEntitlementApplicationStatus:
         if path_exists and should_reboot and proc_content == "1":
             expected_msg = msg
             assert [
-                messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+                messages.FIPS_SYSTEM_REBOOT_REQUIRED,
                 messages.FIPS_REBOOT_REQUIRED_MSG,
             ] == notice_ent_cls.list()
         elif path_exists and not should_reboot and proc_content == "1":
@@ -1036,7 +1036,7 @@ class TestFIPSEntitlementApplicationStatus:
             assert [
                 messages.FIPS_DISABLE_REBOOT_REQUIRED,
                 messages.NOTICE_FIPS_MANUAL_DISABLE_URL,
-                messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+                messages.FIPS_SYSTEM_REBOOT_REQUIRED,
                 messages.FIPS_REBOOT_REQUIRED_MSG,
             ] == notice_ent_cls.list()
         elif path_exists and not should_reboot and proc_content == "0":

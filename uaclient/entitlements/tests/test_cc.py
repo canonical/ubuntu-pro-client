@@ -151,7 +151,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         apt_cache_policy_cmds = [
             mock.call(
-                error_msg=messages.APT_POLICY_FAILED.msg,
+                error_msg=messages.APT_POLICY_FAILED,
             )
         ]
 
