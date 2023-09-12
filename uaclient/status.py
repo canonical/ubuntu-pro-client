@@ -378,7 +378,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         status_val = userStatus.ACTIVE.value
         status_desc = messages.LOCK_HELD.format(
             pid=lock_pid, lock_holder=lock_holder
-        ).msg
+        )
     elif state_files.reboot_cmd_marker_file.is_present:
         status_val = userStatus.REBOOTREQUIRED.value
         operation = "configuration changes"

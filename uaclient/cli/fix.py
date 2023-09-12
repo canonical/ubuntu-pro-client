@@ -472,7 +472,7 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
             s="s" if num_pkgs_unfixed > 1 else "",
             verb="are" if num_pkgs_unfixed > 1 else "is",
             pkgs=", ".join(sorted(unfixed_pkgs)),
-        ).msg,
+        ),
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
     )
@@ -657,10 +657,10 @@ def _execute_package_cannot_be_installed_step(
         package=step.data.binary_package,
         version=step.data.binary_package_version,
     )
-    print("- " + warn_msg.msg)
+    print("- " + warn_msg)
 
     fix_context.add_unfixed_packages(
-        pkgs=[step.data.source_package], unfixed_reason=warn_msg.msg
+        pkgs=[step.data.source_package], unfixed_reason=warn_msg
     )
 
     fix_context.warn_package_cannot_be_installed = True

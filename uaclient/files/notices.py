@@ -42,7 +42,7 @@ class Notice(NoticeFileDetails, Enum):
         label="fips_system_reboot_required",
         order_id="21",
         is_permanent=False,
-        message=messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
+        message=messages.FIPS_SYSTEM_REBOOT_REQUIRED,
     )
     FIPS_INSTALL_OUT_OF_DATE = NoticeFileDetails(
         label="fips_install_out_of_date",
@@ -60,7 +60,7 @@ class Notice(NoticeFileDetails, Enum):
         label="fips_proc_file_error",
         order_id="24",
         is_permanent=True,
-        message=messages.FIPS_PROC_FILE_ERROR,
+        message=messages.FIPS_PROC_FILE_ERROR.tmpl_msg,
     )
     FIPS_MANUAL_DISABLE_URL = NoticeFileDetails(
         label="fips_manual_disable_url",

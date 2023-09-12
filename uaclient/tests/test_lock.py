@@ -102,7 +102,7 @@ class TestSingleAttemptLock:
 
         assert (
             "Unable to perform: some operation.\n"
-            + LOCK_HELD.format(lock_holder="held", pid=10).msg
+            + LOCK_HELD.format(lock_holder="held", pid=10)
             == exc.value.msg
         )
 
@@ -168,7 +168,7 @@ class TestSpinLock:
 
         assert (
             "Unable to perform: request.\n"
-            + LOCK_HELD.format(lock_holder="holder", pid=10).msg
+            + LOCK_HELD.format(lock_holder="holder", pid=10)
             == exc.value.msg
         )
 

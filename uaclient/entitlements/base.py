@@ -502,7 +502,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         )
 
         if required_snaps:
-            event.info(messages.INSTALLING_REQUIRED_SNAPS.msg)
+            event.info(messages.INSTALLING_REQUIRED_SNAPS)
 
         for snap_pkg in sorted(required_snaps, key=lambda x: x.get("name")):
             # The name field should always be delivered by the contract side
@@ -518,7 +518,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 event.info(
                     messages.INSTALLING_REQUIRED_SNAP_PACKAGE.format(
                         snap=snap_name
-                    ).msg
+                    )
                 )
                 snap.install_snap(
                     snap_name,
