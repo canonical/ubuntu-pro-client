@@ -59,6 +59,7 @@ Feature: Attached status
         """
         One moment, checking your subscription first
         Updating CIS Audit package list
+        Updating main package list
         Installing CIS Audit packages
         CIS Audit enabled
         Visit https://ubuntu.com/security/cis to learn how to use CIS

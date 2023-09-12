@@ -335,6 +335,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         One moment, checking your subscription first
         Updating CIS Audit package list
+        Updating main package list
         Installing CIS Audit packages
         CIS Audit enabled
         Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -537,6 +538,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
             Updating CIS Audit package list
+            Updating main package list
             Installing CIS Audit packages
             CIS Audit enabled
             Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -1005,7 +1007,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ROS ESM All Updates cannot be enabled with ROS ESM Security Updates disabled.
         Enable ROS ESM Security Updates and proceed to enable ROS ESM All Updates\? \(y\/N\) Enabling required service: ROS ESM Security Updates
         ROS ESM Security Updates enabled
-        Updating ROS ESM All package list
+        Updating ROS ESM All Updates package list
         ROS ESM All Updates enabled
         """
         When I run `pro status --all` as non-root

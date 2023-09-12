@@ -23,6 +23,7 @@ Feature: FIPS enablement in lxd containers
             """
             Updating <fips-name> package list
             Installing <fips-name> packages
+            Updating main package list
             <fips-name> enabled
             A reboot is required to complete install.
             Please run `apt upgrade` to ensure all FIPS packages are updated to the correct

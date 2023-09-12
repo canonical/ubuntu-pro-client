@@ -257,9 +257,8 @@ class RepoEntitlement(base.UAEntitlement):
             return
 
         try:
-            event.info(messages.APT_UPDATING_LIST.format("main"))
-            apt.update_sources_list("/etc/apt/sources.list")
-        except exceptions.UserFacingError:
+            self._update_main_repo()
+        except exceptions.UbuntuProError:
             if cleanup_on_failure:
                 self.remove_apt_config()
             raise

@@ -406,7 +406,7 @@ class TestFIPSEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
-        assert 6 == m_update_sources_list.call_count
+        assert 2 == m_update_sources_list.call_count
         assert [
             messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
         ] == notice_ent_cls.list()
@@ -1134,12 +1134,10 @@ class TestFipsEntitlementInstallPackages:
             [
                 "Installing {} packages".format(entitlement.title),
                 "Updating main package list",
-                "Updating main package list",
                 "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"
                 ),
-                "Updating main package list",
                 "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="c"

@@ -330,6 +330,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         Disabling incompatible service: FIPS
         Updating FIPS Updates package list
         Installing FIPS Updates packages
+        Updating main package list
         FIPS Updates enabled
         A reboot is required to complete install.
         """
