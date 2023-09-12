@@ -404,7 +404,7 @@ def add_auth_apt_repo(
     # Does this system have updates suite enabled?
     updates_enabled = False
     policy = run_apt_command(
-        ["apt-cache", "policy"], messages.APT_POLICY_FAILED.msg
+        ["apt-cache", "policy"], messages.APT_POLICY_FAILED
     )
     for line in policy.splitlines():
         # We only care about $suite-updates lines
