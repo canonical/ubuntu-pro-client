@@ -98,9 +98,8 @@ SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
 SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
 )
-SECURITY_PKG_STILL_AFFECTED = FormattedNamedMessage(
-    "security-pkg-still-affected",
-    "{num_pkgs} package{s} {verb} still affected: {pkgs}",
+SECURITY_PKG_STILL_AFFECTED = (
+    "{num_pkgs} package{s} {verb} still affected: {pkgs}"
 )
 SECURITY_AFFECTED_PKGS = (
     "{count} affected source package{plural_str} installed"
@@ -380,9 +379,7 @@ ALREADY_ENABLED = FormattedNamedMessage(
 {title} is already enabled.\nSee: sudo pro status""",
 )
 
-ENABLED_FAILED = FormattedNamedMessage(
-    "enable-failed", "Could not enable {title}."
-)
+ENABLED_FAILED = "Could not enable {title}."
 
 UNENTITLED = FormattedNamedMessage(
     "subscription-not-entitled-to-service",
@@ -453,14 +450,10 @@ Please check your openssl configuration.""",
 )
 
 
-APT_POLICY_FAILED = NamedMessage(
-    "apt-policy-failed", "Failure checking APT policy."
-)
+APT_POLICY_FAILED = "Failure checking APT policy."
 
 
-LOCK_HELD = FormattedNamedMessage(
-    "lock-held", """Operation in progress: {lock_holder} (pid:{pid})"""
-)
+LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
 
 UNEXPECTED_ERROR = NamedMessage(
@@ -489,9 +482,8 @@ FIPS_REBOOT_REQUIRED = NamedMessage(
     "fips-reboot-required", "Reboot to FIPS kernel required"
 )
 
-FIPS_SYSTEM_REBOOT_REQUIRED = NamedMessage(
-    "fips-system-reboot-required",
-    "FIPS support requires system reboot to complete configuration.",
+FIPS_SYSTEM_REBOOT_REQUIRED = (
+    "FIPS support requires system reboot to complete configuration."
 )
 
 FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED = FormattedNamedMessage(
@@ -847,22 +839,17 @@ LIVEPATCH_DISABLE_REATTACH = (
 )
 
 
-MISSING_YAML_MODULE = NamedMessage(
-    "missing-yaml-module",
-    """\
+MISSING_YAML_MODULE = """\
 Couldn't import the YAML module.
 Make sure the 'python3-yaml' package is installed correctly
-and /usr/lib/python3/dist-packages is in yout PYTHONPATH.""",
+and /usr/lib/python3/dist-packages is in yout PYTHONPATH."""
+
+BROKEN_YAML_MODULE = (
+    "Error while trying to parse a yaml file using 'yaml' from {path}"
 )
 
-BROKEN_YAML_MODULE = FormattedNamedMessage(
-    "broken-yaml-module",
-    "Error while trying to parse a yaml file using 'yaml' from {path}",
-)
-
-FIX_CANNOT_INSTALL_PACKAGE = FormattedNamedMessage(
-    "fix-cannot-install-package",
-    "Cannot install package {package} version {version}" "",
+FIX_CANNOT_INSTALL_PACKAGE = (
+    "Cannot install package {package} version {version}"
 )
 
 UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
@@ -921,9 +908,8 @@ not installed.""",
 )
 
 
-PRO_HELP_SERVICE_INFO = NamedMessage(
-    "pro-help-service-info",
-    "Use pro help <service> to get more details about each service",
+PRO_HELP_SERVICE_INFO = (
+    "Use pro help <service> to get more details about each service"
 )
 
 WARNING_HUMAN_READABLE_OUTPUT = """\
@@ -933,9 +919,7 @@ or use `pro {command} --format json`.
 """
 
 
-ANBOX_RUN_INIT_CMD = NamedMessage(
-    "anbox-run-init-cmd",
-    """\
+ANBOX_RUN_INIT_CMD = """\
 To finish setting up the Anbox Cloud Appliance, run:
 
 $ sudo anbox-cloud-appliance init
@@ -944,8 +928,7 @@ You can accept the default answers if you do not have any specific
 configuration changes.
 For more information, see {url}
 """.format(
-        url=urls.ANBOX_DOCS_APPLIANCE_INITIALIZE
-    ),
+    url=urls.ANBOX_DOCS_APPLIANCE_INITIALIZE
 )
 
 ANBOX_FAIL_TO_ENABLE_ON_CONTAINER = NamedMessage(
@@ -961,13 +944,9 @@ SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
 UNINSTALLING_PACKAGES = "Uninstalling {}"
 UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
 
-INSTALLING_REQUIRED_SNAPS = NamedMessage(
-    "installing-required-snaps", "Installing required snaps"
-)
+INSTALLING_REQUIRED_SNAPS = "Installing required snaps"
 
-INSTALLING_REQUIRED_SNAP_PACKAGE = FormattedNamedMessage(
-    "installing-required-snap-package", "Installing required snap: {snap}"
-)
+INSTALLING_REQUIRED_SNAP_PACKAGE = "Installing required snap: {snap}"
 
 EXECUTING_COMMAND = "Executing `{}`"
 EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
@@ -1738,7 +1717,7 @@ E_REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
     "repo-pin-fail-no-origin",
     "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
     + "\n"
-    + ENABLED_FAILED.tmpl_msg,
+    + ENABLED_FAILED,
 )
 
 E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
@@ -1926,7 +1905,7 @@ E_LOCK_HELD_ERROR = FormattedNamedMessage(
     """\
 Unable to perform: {lock_request}.
 """
-    + LOCK_HELD.tmpl_msg,
+    + LOCK_HELD,
 )
 
 E_NONROOT_USER = NamedMessage(

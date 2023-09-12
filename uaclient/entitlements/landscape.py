@@ -49,9 +49,7 @@ class LandscapeEntitlement(UAEntitlement):
                     },
                 )
                 event.info(e.stderr.strip())
-                event.info(
-                    messages.ENABLED_FAILED.format(title=self.title).msg
-                )
+                event.info(messages.ENABLED_FAILED.format(title=self.title))
             return False
 
         if self.assume_yes:

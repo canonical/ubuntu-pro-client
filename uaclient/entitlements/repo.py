@@ -120,9 +120,7 @@ class RepoEntitlement(base.UAEntitlement):
                 ApplicationStatus.DISABLED,
                 messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
-        policy = apt.get_apt_cache_policy(
-            error_msg=messages.APT_POLICY_FAILED.msg
-        )
+        policy = apt.get_apt_cache_policy(error_msg=messages.APT_POLICY_FAILED)
         match = re.search(self.repo_url_tmpl.format(repo_url), policy)
         if match:
             current_status = (
@@ -286,7 +284,7 @@ class RepoEntitlement(base.UAEntitlement):
                 override_env_vars=override_env_vars,
             )
         except exceptions.UbuntuProError:
-            event.info(messages.ENABLED_FAILED.format(title=self.title).msg)
+            event.info(messages.ENABLED_FAILED.format(title=self.title))
             if cleanup_on_failure:
                 self.remove_apt_config()
             raise

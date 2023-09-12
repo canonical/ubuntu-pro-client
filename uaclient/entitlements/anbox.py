@@ -29,7 +29,7 @@ class AnboxEntitlement(RepoEntitlement):
     @property
     def messaging(self) -> MessagingOperationsDict:
         if not self.access_only:
-            return {"post_enable": [messages.ANBOX_RUN_INIT_CMD.msg]}
+            return {"post_enable": [messages.ANBOX_RUN_INIT_CMD]}
         else:
             return {}
 
