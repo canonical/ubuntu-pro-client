@@ -475,16 +475,6 @@ STATUS_ALL_HINT_WITH_VARIANTS = """\
 For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
 
 
-PRO_HELP_SERVICE_INFO = (
-    "Use pro help <service> to get more details about each service"
-)
-
-WARNING_HUMAN_READABLE_OUTPUT = """\
-WARNING: this output is intended to be human readable, and subject to change.
-In scripts, prefer using machine readable data from the `pro api` command,
-or use `pro {command} --format json`.
-"""
-
 
 INSTALLING_PACKAGES = "Installing {}"
 INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
@@ -536,7 +526,6 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
     " same time is unsupported. No apt proxy is set."
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
-CLI_TRY_HELP = "Try 'pro --help' for more information."
 
 APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
 APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
@@ -581,8 +570,18 @@ STATUS_FOOTER_VALID_UNTIL = "Valid until"
 STATUS_FOOTER_SUPPORT_LEVEL = "Technical support level"
 
 
+###############################################################################
+#                        CLI HELP TEXT                                        #
+###############################################################################
+# This encompasses help text for subcommands, flags, and arguments for the CLI
+# Also, any generic strings about the CLI itself go here.
+
+CLI_TRY_HELP = "Try 'pro --help' for more information."
 CLI_HELP_EPILOG = (
     "Use {name} {command} --help for more information about a command."
+)
+PRO_HELP_SERVICE_INFO = (
+    "Use pro help <service> to get more details about each service"
 )
 
 CLI_ARGS = "Arguments"
@@ -789,6 +788,11 @@ CLI_ROOT_REFRESH = "refresh Ubuntu Pro services"
 CLI_ROOT_STATUS = "current status of all Ubuntu Pro services"
 CLI_ROOT_SYSTEM = "show system information related to Pro services"
 
+WARNING_HUMAN_READABLE_OUTPUT = """\
+WARNING: this output is intended to be human readable, and subject to change.
+In scripts, prefer using machine readable data from the `pro api` command,
+or use `pro {command} --format json`.
+"""
 
 ###############################################################################
 #                        SERVICE-SPECIFIC MESSAGES                            #
