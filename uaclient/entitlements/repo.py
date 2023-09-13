@@ -284,7 +284,7 @@ class RepoEntitlement(base.UAEntitlement):
                 override_env_vars=override_env_vars,
             )
         except exceptions.UbuntuProError:
-            event.info(messages.ENABLED_FAILED.format(title=self.title))
+            event.info(messages.ENABLE_FAILED.format(title=self.title))
             if cleanup_on_failure:
                 self.remove_apt_config()
             raise
