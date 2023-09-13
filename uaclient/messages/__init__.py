@@ -141,8 +141,6 @@ SECURITY_UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
 SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
 SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
-APT_UPDATING_LISTS = "Updating package lists"
-APT_UPDATING_LIST = "Updating {} package lists"
 
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
@@ -163,8 +161,6 @@ REFRESH_MESSAGES_SUCCESS = (
 SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
 To install them, run this command as root (try using sudo)"""
-
-APT_POLICY_FAILED = "Failure checking APT policy."
 
 
 LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
@@ -201,26 +197,6 @@ BROKEN_YAML_MODULE = (
     "Error while trying to parse a yaml file using 'yaml' from {path}"
 )
 
-FIX_CANNOT_INSTALL_PACKAGE = (
-    "Cannot install package {package} version {version}"
-)
-
-
-INSTALLING_PACKAGES = "Installing {}"
-INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
-SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
-UNINSTALLING_PACKAGES = "Uninstalling {}"
-UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
-
-INSTALLING_REQUIRED_SNAPS = "Installing required snaps"
-
-INSTALLING_REQUIRED_SNAP_PACKAGE = "Installing required snap: {snap}"
-
-EXECUTING_COMMAND = "Executing `{}`"
-EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
-BACKING_UP_FILE = "Backing up {original} as {backup}"
-
-
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
 )
@@ -235,10 +211,33 @@ RELEASE_UPGRADE_SUCCESS = (
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 
 
+###############################################################################
+#                      GENERIC SYSTEM OPERATIONS                              #
+###############################################################################
+
+EXECUTING_COMMAND = "Executing `{}`"
+EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
 )
+
+INSTALLING_PACKAGES = "Installing {}"
+INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
+INSTALLING_REQUIRED_SNAPS = "Installing required snaps"
+INSTALLING_REQUIRED_SNAP_PACKAGE = "Installing required snap: {snap}"
+SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
+UNINSTALLING_PACKAGES = "Uninstalling {}"
+UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
+FIX_CANNOT_INSTALL_PACKAGE = (
+    "Cannot install package {package} version {version}"
+)
+
+APT_POLICY_FAILED = "Failure checking APT policy."
+APT_UPDATING_LISTS = "Updating package lists"
+APT_UPDATING_LIST = "Updating {} package lists"
+
+BACKING_UP_FILE = "Backing up {original} as {backup}"
 
 ###############################################################################
 #                   MOTD/APTNEWS CONTRACT STATUS                              #
