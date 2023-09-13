@@ -18,130 +18,6 @@ FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
 
-SECURITY_FIX_ATTACH_PROMPT = """\
-Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
-    url=urls.PRO_SUBSCRIBE
-)
-SECURITY_FIX_ENABLE_PROMPT = """\
-Choose: [E]nable {} [C]ancel"""
-SECURITY_FIX_RENEW_PROMPT = """\
-Choose: [R]enew your subscription (at {url}) [C]ancel""".format(
-    url=urls.PRO_DASHBOARD
-)
-SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
-SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
-SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
-The update is not installed because this system is not attached to a
-subscription.
-"""
-SECURITY_UPDATE_NOT_INSTALLED_EXPIRED = """\
-The update is not installed because this system is attached to an
-expired subscription.
-"""
-SECURITY_SERVICE_DISABLED = """\
-The update is not installed because this system does not have
-{service} enabled.
-"""
-SECURITY_UPDATE_INSTALLED = "The update is already installed."
-SECURITY_USE_PRO_TMPL = """\
-For easiest security on {title}, use Ubuntu Pro instances.
-Learn more at {cloud_specific_url}"""
-
-SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
-SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
-SECURITY_ISSUE_UNAFFECTED = (
-    OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
-)
-SECURITY_PKG_STILL_AFFECTED = (
-    "{num_pkgs} package{s} {verb} still affected: {pkgs}"
-)
-SECURITY_AFFECTED_PKGS = (
-    "{count} affected source package{plural_str} installed"
-)
-CVE_FIXED = "{issue} is resolved."
-CVE_FIXED_BY_LIVEPATCH = (
-    OKGREEN_CHECK
-    + " {issue} is resolved by livepatch patch version: {version}."
-)
-SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED = """\
-{bold}Ubuntu Pro service: {{service}} is not enabled.
-To proceed with the fix, a prompt would ask permission to automatically enable
-this service.
-{{{{ pro enable {{service}} }}}}{end_bold}""".format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
-SECURITY_DRY_RUN_UA_NOT_ATTACHED = """\
-{bold}The machine is not attached to an Ubuntu Pro subscription.
-To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-{{ pro attach TOKEN }}{end_bold}""".format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
-SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION = """\
-{bold}The machine has an expired subscription.
-To proceed with the fix, a prompt would ask for a new Ubuntu Pro
-token to renew the subscription.
-{{ pro detach --assume-yes }}
-{{ pro attach NEW_TOKEN }}{end_bold}""".format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
-SECURITY_DRY_RUN_WARNING = """\
-{bold}WARNING: The option --dry-run is being used.
-No packages will be installed when running this command.{end_bold}""".format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
-SECURITY_UA_SERVICE_NOT_ENABLED = """\
-Error: Ubuntu Pro service: {service} is not enabled.
-Without it, we cannot fix the system."""
-SECURITY_UA_SERVICE_NOT_ENTITLED = """\
-Error: The current Ubuntu Pro subscription is not entitled to: {service}.
-Without it, we cannot fix the system."""
-SECURITY_UA_SERVICE_REQUIRED = """\
-{service} is required for upgrade."""
-SECURITY_UA_SERVICE_WITH_EXPIRED_SUB = """\
-{service} is required for upgrade, but current subscription is expired."""
-SECURITY_UA_SERVICE_NOT_ENABLED_SHORT = """\
-{service} is required for upgrade, but it is not enabled."""
-SECURITY_UA_APT_FAILURE = """\
-APT failed to install the package.
-"""
-SECURITY_CVE_STATUS_NEEDED = """\
-Sorry, no fix is available yet."""
-SECURITY_CVE_STATUS_TRIAGE = """\
-Ubuntu security engineers are investigating this issue."""
-SECURITY_CVE_STATUS_PENDING = """\
-A fix is coming soon. Try again tomorrow."""
-SECURITY_CVE_STATUS_IGNORED = """\
-Sorry, no fix is available."""
-SECURITY_CVE_STATUS_DNE = """\
-Source package does not exist on this release."""
-SECURITY_CVE_STATUS_NOT_AFFECTED = """\
-Source package is not affected on this release."""
-SECURITY_CVE_STATUS_UNKNOWN = """\
-UNKNOWN: {status}"""
-
-SECURITY_FIXING_REQUESTED_USN = """\
-Fixing requested {issue_id}"""
-SECURITY_FIXING_RELATED_USNS = """\
-Fixing related USNs:"""
-SECURITY_RELATED_USNS = """\
-Found related USNs:\n- {related_usns}"""
-SECURITY_USN_SUMMARY = """\
-Summary:"""
-SECURITY_RELATED_USN_ERROR = """\
-Even though a related USN failed to be fixed, note
-that {{issue_id}} was fixed. Related USNs do not
-affect the original USN. Learn more about the related
-USNs, please refer to this page:
-
-{url}
-""".format(
-    url=urls.PRO_CLIENT_DOCS_RELATED_USNS
-)
-SECURITY_UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
-SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
-SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
-
-
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
@@ -158,23 +34,10 @@ REFRESH_MESSAGES_SUCCESS = (
 )
 
 
-SECURITY_APT_NON_ROOT = """\
-Package fixes cannot be installed.
-To install them, run this command as root (try using sudo)"""
-
-
 LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
-
-
-PROMPT_ENTER_TOKEN = """\
-Enter your token (from {url}) to attach this system:""".format(
-    url=urls.PRO_DASHBOARD
-)
-PROMPT_EXPIRED_ENTER_TOKEN = """\
-Enter your new token to renew Ubuntu Pro subscription on this system:"""
 
 
 WARN_NEW_VERSION_AVAILABLE_CLI = (
@@ -427,6 +290,144 @@ REPO_UPDATING_APT_SOURCES = (
 REPO_REFRESH_INSTALLING_PACKAGES = (
     "Installing packages on changed directives: {}"
 )
+
+###############################################################################
+#                           FIX SUBCOMMAND                                    #
+###############################################################################
+
+SECURITY_FIX_ATTACH_PROMPT = """\
+Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
+    url=urls.PRO_SUBSCRIBE
+)
+SECURITY_FIX_ENABLE_PROMPT = """\
+Choose: [E]nable {} [C]ancel"""
+SECURITY_FIX_RENEW_PROMPT = """\
+Choose: [R]enew your subscription (at {url}) [C]ancel""".format(
+    url=urls.PRO_DASHBOARD
+)
+SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
+SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
+SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
+The update is not installed because this system is not attached to a
+subscription.
+"""
+SECURITY_UPDATE_NOT_INSTALLED_EXPIRED = """\
+The update is not installed because this system is attached to an
+expired subscription.
+"""
+SECURITY_SERVICE_DISABLED = """\
+The update is not installed because this system does not have
+{service} enabled.
+"""
+SECURITY_UPDATE_INSTALLED = "The update is already installed."
+SECURITY_USE_PRO_TMPL = """\
+For easiest security on {title}, use Ubuntu Pro instances.
+Learn more at {cloud_specific_url}"""
+
+SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
+SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
+SECURITY_ISSUE_UNAFFECTED = (
+    OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
+)
+SECURITY_PKG_STILL_AFFECTED = (
+    "{num_pkgs} package{s} {verb} still affected: {pkgs}"
+)
+SECURITY_AFFECTED_PKGS = (
+    "{count} affected source package{plural_str} installed"
+)
+CVE_FIXED = "{issue} is resolved."
+CVE_FIXED_BY_LIVEPATCH = (
+    OKGREEN_CHECK
+    + " {issue} is resolved by livepatch patch version: {version}."
+)
+SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED = """\
+{bold}Ubuntu Pro service: {{service}} is not enabled.
+To proceed with the fix, a prompt would ask permission to automatically enable
+this service.
+{{{{ pro enable {{service}} }}}}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_UA_NOT_ATTACHED = """\
+{bold}The machine is not attached to an Ubuntu Pro subscription.
+To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
+{{ pro attach TOKEN }}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION = """\
+{bold}The machine has an expired subscription.
+To proceed with the fix, a prompt would ask for a new Ubuntu Pro
+token to renew the subscription.
+{{ pro detach --assume-yes }}
+{{ pro attach NEW_TOKEN }}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_WARNING = """\
+{bold}WARNING: The option --dry-run is being used.
+No packages will be installed when running this command.{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_UA_SERVICE_NOT_ENABLED = """\
+Error: Ubuntu Pro service: {service} is not enabled.
+Without it, we cannot fix the system."""
+SECURITY_UA_SERVICE_NOT_ENTITLED = """\
+Error: The current Ubuntu Pro subscription is not entitled to: {service}.
+Without it, we cannot fix the system."""
+SECURITY_UA_SERVICE_REQUIRED = """\
+{service} is required for upgrade."""
+SECURITY_UA_SERVICE_WITH_EXPIRED_SUB = """\
+{service} is required for upgrade, but current subscription is expired."""
+SECURITY_UA_SERVICE_NOT_ENABLED_SHORT = """\
+{service} is required for upgrade, but it is not enabled."""
+SECURITY_UA_APT_FAILURE = """\
+APT failed to install the package.
+"""
+SECURITY_CVE_STATUS_NEEDED = """\
+Sorry, no fix is available yet."""
+SECURITY_CVE_STATUS_TRIAGE = """\
+Ubuntu security engineers are investigating this issue."""
+SECURITY_CVE_STATUS_PENDING = """\
+A fix is coming soon. Try again tomorrow."""
+SECURITY_CVE_STATUS_IGNORED = """\
+Sorry, no fix is available."""
+SECURITY_CVE_STATUS_DNE = """\
+Source package does not exist on this release."""
+SECURITY_CVE_STATUS_NOT_AFFECTED = """\
+Source package is not affected on this release."""
+SECURITY_CVE_STATUS_UNKNOWN = """\
+UNKNOWN: {status}"""
+
+SECURITY_FIXING_REQUESTED_USN = """\
+Fixing requested {issue_id}"""
+SECURITY_FIXING_RELATED_USNS = """\
+Fixing related USNs:"""
+SECURITY_RELATED_USNS = """\
+Found related USNs:\n- {related_usns}"""
+SECURITY_USN_SUMMARY = """\
+Summary:"""
+SECURITY_RELATED_USN_ERROR = """\
+Even though a related USN failed to be fixed, note
+that {{issue_id}} was fixed. Related USNs do not
+affect the original USN. Learn more about the related
+USNs, please refer to this page:
+
+{url}
+""".format(
+    url=urls.PRO_CLIENT_DOCS_RELATED_USNS
+)
+SECURITY_UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
+SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
+SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
+
+SECURITY_APT_NON_ROOT = """\
+Package fixes cannot be installed.
+To install them, run this command as root (try using sudo)"""
+
+PROMPT_ENTER_TOKEN = """\
+Enter your token (from {url}) to attach this system:""".format(
+    url=urls.PRO_DASHBOARD
+)
+PROMPT_EXPIRED_ENTER_TOKEN = """\
+Enter your new token to renew Ubuntu Pro subscription on this system:"""
 
 ###############################################################################
 #                      SECURITYSTATUS SUBCOMMAND                              #
