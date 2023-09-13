@@ -159,7 +159,6 @@ And provide the following code: {bold}{{user_code}}{end_bold}""".format(
 )
 CLI_MAGIC_ATTACH_PROCESSING = "Attaching the machine..."
 
-NO_ACTIVE_OPERATIONS = """No Ubuntu Pro operations are running"""
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
@@ -288,9 +287,6 @@ Enter your token (from {url}) to attach this system:""".format(
 PROMPT_EXPIRED_ENTER_TOKEN = """\
 Enter your new token to renew Ubuntu Pro subscription on this system:"""
 
-NOTICE_REFRESH_CONTRACT_WARNING = """\
-A change has been detected in your contract.
-Please run `sudo pro refresh`."""
 
 WARN_NEW_VERSION_AVAILABLE_CLI = (
     "\n"
@@ -462,19 +458,6 @@ Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
          Please add following to uaclient.conf to keep your config:"""
 
 
-STATUS_NO_SERVICES_AVAILABLE = (
-    """No Ubuntu Pro services are available to this system."""
-)
-
-STATUS_ALL_HINT = (
-    "For a list of all Ubuntu Pro services, run 'pro status --all'"
-)
-STATUS_SERVICE_HAS_VARIANTS = " * Service has variants"
-
-STATUS_ALL_HINT_WITH_VARIANTS = """\
-For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
-
-
 INSTALLING_PACKAGES = "Installing {}"
 INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
 SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
@@ -531,13 +514,15 @@ APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
 
 DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
 
-STATUS_TOKEN_NOT_VALID = "This token is not valid."
-
 
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
 )
+
+###############################################################################
+#                           STATUS SUBCOMMAND                                 #
+###############################################################################
 
 STATUS_SERVICE = "SERVICE"
 STATUS_AVAILABLE = "AVAILABLE"
@@ -567,6 +552,22 @@ STATUS_FOOTER_SUBSCRIPTION = "Subscription"
 STATUS_FOOTER_VALID_UNTIL = "Valid until"
 STATUS_FOOTER_SUPPORT_LEVEL = "Technical support level"
 
+STATUS_TOKEN_NOT_VALID = "This token is not valid."
+NO_ACTIVE_OPERATIONS = """No Ubuntu Pro operations are running"""
+
+STATUS_NO_SERVICES_AVAILABLE = (
+    """No Ubuntu Pro services are available to this system."""
+)
+STATUS_ALL_HINT = (
+    "For a list of all Ubuntu Pro services, run 'pro status --all'"
+)
+STATUS_SERVICE_HAS_VARIANTS = " * Service has variants"
+STATUS_ALL_HINT_WITH_VARIANTS = """\
+For a list of all Ubuntu Pro services and variants, run 'pro status --all'"""
+
+NOTICE_REFRESH_CONTRACT_WARNING = """\
+A change has been detected in your contract.
+Please run `sudo pro refresh`."""
 
 ###############################################################################
 #                        CLI HELP TEXT                                        #
