@@ -163,26 +163,11 @@ NO_ACTIVE_OPERATIONS = """No Ubuntu Pro operations are running"""
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
-LIVEPATCH_LTS_REBOOT_REQUIRED = (
-    "Livepatch support requires a system reboot across LTS upgrade."
-)
-FIPS_REBOOT_REQUIRED_MSG = "Reboot to FIPS kernel required"
 SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
     "snapd does not have wait command.\n"
     "Enabling Livepatch can fail under this scenario\n"
     "Please, upgrade snapd if Livepatch enable fails and try again."
 )
-FIPS_INSTALL_OUT_OF_DATE = (
-    "This FIPS install is out of date, run: sudo pro enable fips"
-)
-FIPS_DISABLE_REBOOT_REQUIRED = (
-    "Disabling FIPS requires system reboot to complete operation."
-)
-FIPS_PACKAGE_NOT_AVAILABLE = "{service} {pkg} package could not be installed"
-FIPS_RUN_APT_UPGRADE = """\
-Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
-version.
-"""
 ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'
 """
@@ -277,37 +262,6 @@ APT_POLICY_FAILED = "Failure checking APT policy."
 LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
 
-FIPS_SYSTEM_REBOOT_REQUIRED = (
-    "FIPS support requires system reboot to complete configuration."
-)
-
-REALTIME_PROMPT = """\
-The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
-
-{bold}\
-This will change your kernel. To revert to your original kernel, you will need
-to make the change manually.\
-{end_bold}
-
-Do you want to continue? [ default = Yes ]: (Y/n) """.format(
-    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
-)
-REALTIME_PRE_DISABLE_PROMPT = """\
-This will remove the boot order preference for the Real-time kernel and
-disable updates to the Real-time kernel.
-
-This will NOT fully remove the kernel from your system.
-
-After this operation is complete you must:
-  - Ensure a different kernel is installed and configured to boot
-  - Reboot into that kernel
-  - Fully remove the realtime kernel packages from your system
-      - This might look something like `apt remove linux*realtime`,
-        but you must ensure this is correct before running it.
-
-Are you sure? (y/N) """
-
-
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
 WARNING_APT_PROXY_SETUP = """\
 Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
@@ -324,55 +278,8 @@ Using deprecated "apt_https_proxy" config field.
 Please migrate to using "global_apt_https_proxy"
 """
 
-
-NOTICE_FIPS_MANUAL_DISABLE_URL = """\
-FIPS kernel is running in a disabled state.
-  To manually remove fips kernel: {url}
-""".format(
-    url=urls.PRO_CLIENT_DOCS_REMOVE_FIPS
-)
-NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
-Warning: FIPS kernel is not optimized for your specific cloud.
-To fix it, run the following commands:
-
-    1. sudo pro disable fips
-    2. sudo apt-get remove ubuntu-fips
-    3. sudo pro enable fips --assume-yes
-    4. sudo reboot
-"""
-
 PROMPT_YES_NO = """Are you sure? (y/N) """
-PROMPT_FIPS_PRE_ENABLE = (
-    """\
-This will install the FIPS packages. The Livepatch service will be unavailable.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
-PROMPT_FIPS_UPDATES_PRE_ENABLE = (
-    """\
-This will install the FIPS packages including security updates.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
-PROMPT_FIPS_CONTAINER_PRE_ENABLE = (
-    """\
-Warning: Enabling {title} in a container.
-         This will install the FIPS packages but not the kernel.
-         This container must run on a host with {title} enabled to be
-         compliant.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
 
-PROMPT_FIPS_PRE_DISABLE = (
-    """\
-This will disable the FIPS entitlement but the FIPS packages will remain installed.
-"""  # noqa
-    + PROMPT_YES_NO
-)
 
 PROMPT_ENTER_TOKEN = """\
 Enter your token (from {url}) to attach this system:""".format(
@@ -524,19 +431,6 @@ RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
 
-LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
-LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = (
-    "Supported livepatch kernels are listed here: {url}".format(
-        url=urls.LIVEPATCH_SUPPORTED_KERNELS
-    )
-)
-LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {}"
-LIVEPATCH_UNABLE_TO_ENABLE = "Unable to enable Livepatch: "
-LIVEPATCH_DISABLE_REATTACH = (
-    "Disabling Livepatch prior to re-attach with new token"
-)
-
-
 MISSING_YAML_MODULE = """\
 Couldn't import the YAML module.
 Make sure the 'python3-yaml' package is installed correctly
@@ -592,18 +486,6 @@ or use `pro {command} --format json`.
 """
 
 
-ANBOX_RUN_INIT_CMD = """\
-To finish setting up the Anbox Cloud Appliance, run:
-
-$ sudo anbox-cloud-appliance init
-
-You can accept the default answers if you do not have any specific
-configuration changes.
-For more information, see {url}
-""".format(
-    url=urls.ANBOX_DOCS_APPLIANCE_INITIALIZE
-)
-
 INSTALLING_PACKAGES = "Installing {}"
 INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
 SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
@@ -627,10 +509,6 @@ UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH = (
     "Unable to disable '{}' as recommended during contract"
     " refresh. Service is still active. See"
     " `pro status`"
-)
-
-FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE = (
-    "Could not determine cloud, defaulting to generic FIPS package."
 )
 
 
@@ -702,166 +580,6 @@ STATUS_FOOTER_SUBSCRIPTION = "Subscription"
 STATUS_FOOTER_VALID_UNTIL = "Valid until"
 STATUS_FOOTER_SUPPORT_LEVEL = "Technical support level"
 
-ANBOX_TITLE = "Anbox Cloud"
-ANBOX_DESCRIPTION = "Scalable Android in the cloud"
-ANBOX_HELP_TEXT = """\
-Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
-letting you focus on your apps. Run Android in system containers on public or
-private clouds with ultra low streaming latency. When the anbox-cloud service
-is enabled, by default, the Appliance variant is enabled. Enabling this service
-allows orchestration to provision a PPA with the Anbox Cloud resources. This
-step also configures the Anbox Management Service (AMS) with the necessary
-image server credentials. To learn more about Anbox Cloud, see
-{url}""".format(
-    url=urls.ANBOX_HOME_PAGE
-)
-
-CC_TITLE = "CC EAL2"
-CC_DESCRIPTION = "Common Criteria EAL2 Provisioning Packages"
-CC_HELP_TEXT = """\
-Common Criteria is an Information Technology Security Evaluation standard
-(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
-evaluated to assurance level EAL2 through CSEC. The evaluation was performed
-on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
-CC_PRE_INSTALL = (
-    "(This will download more than 500MB of packages, so may take"
-    " some time.)"
-)
-CC_POST_ENABLE = "Please follow instructions in {} to configure EAL2"
-
-CIS_TITLE = "CIS Audit"
-CIS_USG_TITLE = "Ubuntu Security Guide"
-CIS_DESCRIPTION = "Security compliance and audit tools"
-CIS_HELP_TEXT = """\
-Ubuntu Security Guide is a tool for hardening and auditing and allows for
-environment-specific customizations. It enables compliance with profiles such
-as DISA-STIG and the CIS benchmarks. Find out more at
-{url}""".format(
-    url=urls.USG_DOCS
-)
-CIS_POST_ENABLE = "Visit {url} to learn how to use CIS".format(
-    url=urls.CIS_HOME_PAGE
-)
-CIS_USG_POST_ENABLE = "Visit {url} for the next steps".format(
-    url=urls.USG_DOCS
-)
-CIS_IS_NOW_USG = """\
-From Ubuntu 20.04 and onwards 'pro enable cis' has been
-replaced by 'pro enable usg'. See more information at:
-{url}""".format(
-    url=urls.USG_DOCS
-)
-
-ESM_APPS_TITLE = "Ubuntu Pro: ESM Apps"
-ESM_APPS_DESCRIPTION = "Expanded Security Maintenance for Applications"
-ESM_APPS_HELP_TEXT = """\
-Expanded Security Maintenance for Applications is enabled by default on
-entitled workloads. It provides access to a private PPA which includes
-available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
-Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
-its end of life. You can find out more about the esm service at
-{url}""".format(
-    url=urls.ESM_HOME_PAGE
-)
-
-ESM_INFRA_TITLE = "Ubuntu Pro: ESM Infra"
-ESM_INFRA_DESCRIPTION = "Expanded Security Maintenance for Infrastructure"
-ESM_INFRA_HELP_TEXT = """\
-Expanded Security Maintenance for Infrastructure provides access to a private
-PPA which includes available high and critical CVE fixes for Ubuntu LTS
-packages in the Ubuntu Main repository between the end of the standard Ubuntu
-LTS security maintenance and its end of life. It is enabled by default with
-Ubuntu Pro. You can find out more about the service at
-{url}""".format(
-    url=urls.ESM_HOME_PAGE
-)
-
-FIPS_TITLE = "FIPS"
-FIPS_DESCRIPTION = "NIST-certified core packages"
-FIPS_HELP_TEXT = """\
-FIPS 140-2 is a set of publicly announced cryptographic standards developed by
-the National Institute of Standards and Technology applicable for FedRAMP,
-HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
-security patching. For FIPS certified modules with security patches please
-see "fips-updates". You can find out more at {url}""".format(
-    url=urls.FIPS_HOME_PAGE
-)
-
-FIPS_UPDATES_TITLE = "FIPS Updates"
-FIPS_UPDATES_DESCRIPTION = (
-    "NIST-certified core packages with priority security updates"
-)
-FIPS_UPDATES_HELP_TEXT = """\
-fips-updates installs fips modules including all security patches for those
-modules that have been provided since their certification date. You can find
-out more at {url}""".format(
-    url=urls.FIPS_HOME_PAGE
-)
-
-LANDSCAPE_TITLE = "Landscape"
-LANDSCAPE_DESCRIPTION = "Management and administration tool for Ubuntu"
-LANDSCAPE_HELP_TEXT = """\
-Landscape Client can be installed on this machine and enrolled in Canonical's
-Landscape SaaS: {saas_url} or a self-hosted Landscape:
-{install_url}
-Landscape allows you to manage many machines as easily as one, with an
-intuitive dashboard and API interface for automation, hardening, auditing, and
-more. Find out more about Landscape at {home_url}""".format(
-    saas_url=urls.LANDSCAPE_SAAS,
-    install_url=urls.LANDSCAPE_DOCS_INSTALL,
-    home_url=urls.LANDSCAPE_HOME_PAGE,
-)
-
-LIVEPATCH_TITLE = "Livepatch"
-LIVEPATCH_DESCRIPTION = "Canonical Livepatch service"
-LIVEPATCH_HELP_TEXT = """\
-Livepatch provides selected high and critical kernel CVE fixes and other
-non-security bug fixes as kernel livepatches. Livepatches are applied without
-rebooting a machine which drastically limits the need for unscheduled system
-reboots. Due to the nature of fips compliance, livepatches cannot be enabled
-on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
-service at {url}""".format(
-    url=urls.LIVEPATCH_HOME_PAGE
-)
-
-REALTIME_TITLE = "Real-time kernel"
-REALTIME_DESCRIPTION = "Ubuntu kernel with PREEMPT_RT patches integrated"
-REALTIME_HELP_TEXT = """\
-The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. It
-services latency-dependent use cases by providing deterministic response times.
-The Real-time kernel meets stringent preemption specifications and is suitable
-for telco applications and dedicated devices in industrial automation and
-robotics. The Real-time kernel is currently incompatible with FIPS and
-Livepatch."""
-REALTIME_GENERIC_TITLE = "Real-time kernel"
-REALTIME_GENERIC_DESCRIPTION = "Generic version of the RT kernel (default)"
-REALTIME_NVIDIA_TITLE = "Real-time NVIDIA Tegra Kernel"
-REALTIME_NVIDIA_DESCRIPTION = "RT kernel optimized for NVIDIA Tegra platform"
-REALTIME_INTEL_TITLE = "Real-time Intel IOTG Kernel"
-REALTIME_INTEL_DESCRIPTION = "RT kernel optimized for Intel IOTG platform"
-
-ROS_TITLE = "ROS ESM Security Updates"
-ROS_DESCRIPTION = "Security Updates for the Robot Operating System"
-ROS_HELP_TEXT = """\
-ros provides access to a private PPA which includes security-related updates
-for available high and critical CVE fixes for Robot Operating System (ROS)
-packages. For access to ROS ESM and security updates, both esm-infra and
-esm-apps services will also be enabled. To get additional non-security updates,
-enable ros-updates. You can find out more about the ROS ESM service at
-{url}""".format(
-    url=urls.ROS_HOME_PAGE
-)
-
-ROS_UPDATES_TITLE = "ROS ESM All Updates"
-ROS_UPDATES_DESCRIPTION = "All Updates for the Robot Operating System"
-ROS_UPDATES_HELP_TEXT = """\
-ros-updates provides access to a private PPA that includes non-security-related
-updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
-security and non-security updates, the esm-infra, esm-apps, and ros services
-will also be enabled. You can find out more about the ROS ESM service at
-{url}""".format(
-    url=urls.ROS_HOME_PAGE
-)
 
 CLI_HELP_EPILOG = (
     "Use {name} {command} --help for more information about a command."
@@ -1071,6 +789,285 @@ CLI_ROOT_REFRESH = "refresh Ubuntu Pro services"
 CLI_ROOT_STATUS = "current status of all Ubuntu Pro services"
 CLI_ROOT_SYSTEM = "show system information related to Pro services"
 
+
+###############################################################################
+#                        SERVICE-SPECIFIC MESSAGES                            #
+###############################################################################
+
+ANBOX_TITLE = "Anbox Cloud"
+ANBOX_DESCRIPTION = "Scalable Android in the cloud"
+ANBOX_HELP_TEXT = """\
+Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
+letting you focus on your apps. Run Android in system containers on public or
+private clouds with ultra low streaming latency. When the anbox-cloud service
+is enabled, by default, the Appliance variant is enabled. Enabling this service
+allows orchestration to provision a PPA with the Anbox Cloud resources. This
+step also configures the Anbox Management Service (AMS) with the necessary
+image server credentials. To learn more about Anbox Cloud, see
+{url}""".format(
+    url=urls.ANBOX_HOME_PAGE
+)
+ANBOX_RUN_INIT_CMD = """\
+To finish setting up the Anbox Cloud Appliance, run:
+
+$ sudo anbox-cloud-appliance init
+
+You can accept the default answers if you do not have any specific
+configuration changes.
+For more information, see {url}
+""".format(
+    url=urls.ANBOX_DOCS_APPLIANCE_INITIALIZE
+)
+
+CC_TITLE = "CC EAL2"
+CC_DESCRIPTION = "Common Criteria EAL2 Provisioning Packages"
+CC_HELP_TEXT = """\
+Common Criteria is an Information Technology Security Evaluation standard
+(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
+evaluated to assurance level EAL2 through CSEC. The evaluation was performed
+on Intel x86_64, IBM Power8 and IBM Z hardware platforms."""
+CC_PRE_INSTALL = (
+    "(This will download more than 500MB of packages, so may take"
+    " some time.)"
+)
+CC_POST_ENABLE = "Please follow instructions in {} to configure EAL2"
+
+CIS_TITLE = "CIS Audit"
+CIS_USG_TITLE = "Ubuntu Security Guide"
+CIS_DESCRIPTION = "Security compliance and audit tools"
+CIS_HELP_TEXT = """\
+Ubuntu Security Guide is a tool for hardening and auditing and allows for
+environment-specific customizations. It enables compliance with profiles such
+as DISA-STIG and the CIS benchmarks. Find out more at
+{url}""".format(
+    url=urls.USG_DOCS
+)
+CIS_POST_ENABLE = "Visit {url} to learn how to use CIS".format(
+    url=urls.CIS_HOME_PAGE
+)
+CIS_USG_POST_ENABLE = "Visit {url} for the next steps".format(
+    url=urls.USG_DOCS
+)
+CIS_IS_NOW_USG = """\
+From Ubuntu 20.04 and onwards 'pro enable cis' has been
+replaced by 'pro enable usg'. See more information at:
+{url}""".format(
+    url=urls.USG_DOCS
+)
+
+ESM_APPS_TITLE = "Ubuntu Pro: ESM Apps"
+ESM_APPS_DESCRIPTION = "Expanded Security Maintenance for Applications"
+ESM_APPS_HELP_TEXT = """\
+Expanded Security Maintenance for Applications is enabled by default on
+entitled workloads. It provides access to a private PPA which includes
+available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
+its end of life. You can find out more about the esm service at
+{url}""".format(
+    url=urls.ESM_HOME_PAGE
+)
+
+ESM_INFRA_TITLE = "Ubuntu Pro: ESM Infra"
+ESM_INFRA_DESCRIPTION = "Expanded Security Maintenance for Infrastructure"
+ESM_INFRA_HELP_TEXT = """\
+Expanded Security Maintenance for Infrastructure provides access to a private
+PPA which includes available high and critical CVE fixes for Ubuntu LTS
+packages in the Ubuntu Main repository between the end of the standard Ubuntu
+LTS security maintenance and its end of life. It is enabled by default with
+Ubuntu Pro. You can find out more about the service at
+{url}""".format(
+    url=urls.ESM_HOME_PAGE
+)
+
+FIPS_TITLE = "FIPS"
+FIPS_DESCRIPTION = "NIST-certified core packages"
+FIPS_HELP_TEXT = """\
+FIPS 140-2 is a set of publicly announced cryptographic standards developed by
+the National Institute of Standards and Technology applicable for FedRAMP,
+HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
+security patching. For FIPS certified modules with security patches please
+see "fips-updates". You can find out more at {url}""".format(
+    url=urls.FIPS_HOME_PAGE
+)
+FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE = (
+    "Could not determine cloud, defaulting to generic FIPS package."
+)
+NOTICE_FIPS_MANUAL_DISABLE_URL = """\
+FIPS kernel is running in a disabled state.
+  To manually remove fips kernel: {url}
+""".format(
+    url=urls.PRO_CLIENT_DOCS_REMOVE_FIPS
+)
+NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
+Warning: FIPS kernel is not optimized for your specific cloud.
+To fix it, run the following commands:
+
+    1. sudo pro disable fips
+    2. sudo apt-get remove ubuntu-fips
+    3. sudo pro enable fips --assume-yes
+    4. sudo reboot
+"""
+PROMPT_FIPS_PRE_ENABLE = (
+    """\
+This will install the FIPS packages. The Livepatch service will be unavailable.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_UPDATES_PRE_ENABLE = (
+    """\
+This will install the FIPS packages including security updates.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_CONTAINER_PRE_ENABLE = (
+    """\
+Warning: Enabling {title} in a container.
+         This will install the FIPS packages but not the kernel.
+         This container must run on a host with {title} enabled to be
+         compliant.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_PRE_DISABLE = (
+    """\
+This will disable the FIPS entitlement but the FIPS packages will remain installed.
+"""  # noqa
+    + PROMPT_YES_NO
+)
+FIPS_SYSTEM_REBOOT_REQUIRED = (
+    "FIPS support requires system reboot to complete configuration."
+)
+FIPS_REBOOT_REQUIRED_MSG = "Reboot to FIPS kernel required"
+FIPS_INSTALL_OUT_OF_DATE = (
+    "This FIPS install is out of date, run: sudo pro enable fips"
+)
+FIPS_DISABLE_REBOOT_REQUIRED = (
+    "Disabling FIPS requires system reboot to complete operation."
+)
+FIPS_PACKAGE_NOT_AVAILABLE = "{service} {pkg} package could not be installed"
+FIPS_RUN_APT_UPGRADE = """\
+Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
+version.
+"""
+
+
+FIPS_UPDATES_TITLE = "FIPS Updates"
+FIPS_UPDATES_DESCRIPTION = (
+    "NIST-certified core packages with priority security updates"
+)
+FIPS_UPDATES_HELP_TEXT = """\
+fips-updates installs fips modules including all security patches for those
+modules that have been provided since their certification date. You can find
+out more at {url}""".format(
+    url=urls.FIPS_HOME_PAGE
+)
+
+LANDSCAPE_TITLE = "Landscape"
+LANDSCAPE_DESCRIPTION = "Management and administration tool for Ubuntu"
+LANDSCAPE_HELP_TEXT = """\
+Landscape Client can be installed on this machine and enrolled in Canonical's
+Landscape SaaS: {saas_url} or a self-hosted Landscape:
+{install_url}
+Landscape allows you to manage many machines as easily as one, with an
+intuitive dashboard and API interface for automation, hardening, auditing, and
+more. Find out more about Landscape at {home_url}""".format(
+    saas_url=urls.LANDSCAPE_SAAS,
+    install_url=urls.LANDSCAPE_DOCS_INSTALL,
+    home_url=urls.LANDSCAPE_HOME_PAGE,
+)
+
+LIVEPATCH_TITLE = "Livepatch"
+LIVEPATCH_DESCRIPTION = "Canonical Livepatch service"
+LIVEPATCH_HELP_TEXT = """\
+Livepatch provides selected high and critical kernel CVE fixes and other
+non-security bug fixes as kernel livepatches. Livepatches are applied without
+rebooting a machine which drastically limits the need for unscheduled system
+reboots. Due to the nature of fips compliance, livepatches cannot be enabled
+on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
+service at {url}""".format(
+    url=urls.LIVEPATCH_HOME_PAGE
+)
+LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = "Current kernel is not supported"
+LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = (
+    "Supported livepatch kernels are listed here: {url}".format(
+        url=urls.LIVEPATCH_SUPPORTED_KERNELS
+    )
+)
+LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {}"
+LIVEPATCH_UNABLE_TO_ENABLE = "Unable to enable Livepatch: "
+LIVEPATCH_DISABLE_REATTACH = (
+    "Disabling Livepatch prior to re-attach with new token"
+)
+LIVEPATCH_LTS_REBOOT_REQUIRED = (
+    "Livepatch support requires a system reboot across LTS upgrade."
+)
+
+REALTIME_TITLE = "Real-time kernel"
+REALTIME_DESCRIPTION = "Ubuntu kernel with PREEMPT_RT patches integrated"
+REALTIME_HELP_TEXT = """\
+The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. It
+services latency-dependent use cases by providing deterministic response times.
+The Real-time kernel meets stringent preemption specifications and is suitable
+for telco applications and dedicated devices in industrial automation and
+robotics. The Real-time kernel is currently incompatible with FIPS and
+Livepatch."""
+REALTIME_GENERIC_TITLE = "Real-time kernel"
+REALTIME_GENERIC_DESCRIPTION = "Generic version of the RT kernel (default)"
+REALTIME_NVIDIA_TITLE = "Real-time NVIDIA Tegra Kernel"
+REALTIME_NVIDIA_DESCRIPTION = "RT kernel optimized for NVIDIA Tegra platform"
+REALTIME_INTEL_TITLE = "Real-time Intel IOTG Kernel"
+REALTIME_INTEL_DESCRIPTION = "RT kernel optimized for Intel IOTG platform"
+REALTIME_PROMPT = """\
+The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+
+{bold}\
+This will change your kernel. To revert to your original kernel, you will need
+to make the change manually.\
+{end_bold}
+
+Do you want to continue? [ default = Yes ]: (Y/n) """.format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+REALTIME_PRE_DISABLE_PROMPT = """\
+This will remove the boot order preference for the Real-time kernel and
+disable updates to the Real-time kernel.
+
+This will NOT fully remove the kernel from your system.
+
+After this operation is complete you must:
+  - Ensure a different kernel is installed and configured to boot
+  - Reboot into that kernel
+  - Fully remove the realtime kernel packages from your system
+      - This might look something like `apt remove linux*realtime`,
+        but you must ensure this is correct before running it.
+
+Are you sure? (y/N) """
+
+ROS_TITLE = "ROS ESM Security Updates"
+ROS_DESCRIPTION = "Security Updates for the Robot Operating System"
+ROS_HELP_TEXT = """\
+ros provides access to a private PPA which includes security-related updates
+for available high and critical CVE fixes for Robot Operating System (ROS)
+packages. For access to ROS ESM and security updates, both esm-infra and
+esm-apps services will also be enabled. To get additional non-security updates,
+enable ros-updates. You can find out more about the ROS ESM service at
+{url}""".format(
+    url=urls.ROS_HOME_PAGE
+)
+
+ROS_UPDATES_TITLE = "ROS ESM All Updates"
+ROS_UPDATES_DESCRIPTION = "All Updates for the Robot Operating System"
+ROS_UPDATES_HELP_TEXT = """\
+ros-updates provides access to a private PPA that includes non-security-related
+updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
+security and non-security updates, the esm-infra, esm-apps, and ros services
+will also be enabled. You can find out more about the ROS ESM service at
+{url}""".format(
+    url=urls.ROS_HOME_PAGE
+)
 
 ###############################################################################
 #                              NAMED MESSAGES                                 #
