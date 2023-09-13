@@ -42,6 +42,7 @@ from uaclient.api.u.pro.security.fix import (  # noqa: F401
     NoOpLivepatchFixData,
     USNAdditionalData,
 )
+from uaclient.api.u.pro.security.fix.common import status_message
 from uaclient.api.u.pro.security.fix.cve.plan.v1 import CVEFixPlanOptions
 from uaclient.api.u.pro.security.fix.cve.plan.v1 import _plan as cve_plan
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import USNFixPlanOptions
@@ -313,26 +314,6 @@ def fix_usn(
         )
 
     return target_usn_status
-
-
-def status_message(status, pocket_source: Optional[str] = None):
-    if status == "needed":
-        return messages.SECURITY_CVE_STATUS_NEEDED
-    elif status == "needs-triage":
-        return messages.SECURITY_CVE_STATUS_TRIAGE
-    elif status == "pending":
-        return messages.SECURITY_CVE_STATUS_PENDING
-    elif status in ("ignored", "deferred"):
-        return messages.SECURITY_CVE_STATUS_IGNORED
-    elif status == "DNE":
-        return messages.SECURITY_CVE_STATUS_DNE
-    elif status == "not-affected":
-        return messages.SECURITY_CVE_STATUS_NOT_AFFECTED
-    elif status == "released" and pocket_source:
-        return messages.SECURITY_FIX_RELEASE_STREAM.format(
-            fix_stream=pocket_source
-        )
-    return messages.SECURITY_CVE_STATUS_UNKNOWN.format(status=status)
 
 
 def _format_packages_message(
