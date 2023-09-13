@@ -2,6 +2,14 @@ from typing import Dict, Optional  # noqa: F401
 
 from uaclient.messages import urls
 
+###############################################################################
+#                              MISCELLANEOUS                                  #
+###############################################################################
+# Things that don't fit with the others. Some of these are used as pieces in
+# messages below.
+# If one of the groups of messages in this section grows enough, it should get
+# its own section.
+
 
 class TxtColor:
     OKGREEN = "\033[92m"
@@ -17,15 +25,11 @@ OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
+PROMPT_YES_NO = """Are you sure? (y/N) """
 
-REBOOT_SCRIPT_FAILED = (
-    "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
-)
-SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
-    "snapd does not have wait command.\n"
-    "Enabling Livepatch can fail under this scenario\n"
-    "Please, upgrade snapd if Livepatch enable fails and try again."
-)
+CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
+
+LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
 REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
 REFRESH_CONFIG_SUCCESS = "Successfully processed your pro configuration."
@@ -33,33 +37,9 @@ REFRESH_MESSAGES_SUCCESS = (
     "Successfully updated Ubuntu Pro related APT and MOTD messages."
 )
 
-
-LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
-
-
-PROMPT_YES_NO = """Are you sure? (y/N) """
-
-
-WARN_NEW_VERSION_AVAILABLE_CLI = (
-    "\n"
-    + BLUE_INFO
-    + """\
- A new version is available: {version}
-Please run:
-    sudo apt-get install ubuntu-advantage-tools
-to get the latest version with new features and bug fixes."""
+REBOOT_SCRIPT_FAILED = (
+    "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
-
-
-MISSING_YAML_MODULE = """\
-Couldn't import the YAML module.
-Make sure the 'python3-yaml' package is installed correctly
-and /usr/lib/python3/dist-packages is in yout PYTHONPATH."""
-
-BROKEN_YAML_MODULE = (
-    "Error while trying to parse a yaml file using 'yaml' from {path}"
-)
-
 
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
@@ -72,8 +52,29 @@ RELEASE_UPGRADE_SUCCESS = (
     "Finished upgrade of Ubuntu Pro service configuration"
 )
 
-CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
+MISSING_YAML_MODULE = """\
+Couldn't import the YAML module.
+Make sure the 'python3-yaml' package is installed correctly
+and /usr/lib/python3/dist-packages is in yout PYTHONPATH."""
+BROKEN_YAML_MODULE = (
+    "Error while trying to parse a yaml file using 'yaml' from {path}"
+)
 
+SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
+    "snapd does not have wait command.\n"
+    "Enabling Livepatch can fail under this scenario\n"
+    "Please, upgrade snapd if Livepatch enable fails and try again."
+)
+
+WARN_NEW_VERSION_AVAILABLE_CLI = (
+    "\n"
+    + BLUE_INFO
+    + """\
+ A new version is available: {version}
+Please run:
+    sudo apt-get install ubuntu-advantage-tools
+to get the latest version with new features and bug fixes."""
+)
 
 ###############################################################################
 #                      GENERIC SYSTEM OPERATIONS                              #
