@@ -194,37 +194,12 @@ Renew your service at {url}""".format(
 
 # END MOTD and APT command messaging
 
-SETTING_SERVICE_PROXY = "Setting {service} proxy"
-
-PROXY_DETECTED_BUT_NOT_CONFIGURED = """\
-No proxy set in config; however, proxy is configured for: {{services}}.
-See {url} for more information on pro proxy configuration.
-""".format(
-    url=urls.PRO_CLIENT_DOCS_PROXY_CONFIG
-)
-
 
 APT_POLICY_FAILED = "Failure checking APT policy."
 
 
 LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 
-
-SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
-WARNING_APT_PROXY_SETUP = """\
-Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
-WARNING_APT_PROXY_OVERWRITE = """\
-Warning: Setting the {current_proxy} proxy will overwrite the {previous_proxy}
-proxy previously set via `pro config`.
-"""
-WARNING_DEPRECATED_APT_HTTP = """\
-Using deprecated "apt_http_proxy" config field.
-Please migrate to using "global_apt_http_proxy"
-"""
-WARNING_DEPRECATED_APT_HTTPS = """\
-Using deprecated "apt_https_proxy" config field.
-Please migrate to using "global_apt_https_proxy"
-"""
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
 
@@ -262,23 +237,6 @@ FIX_CANNOT_INSTALL_PACKAGE = (
 )
 
 
-USER_CONFIG_MIGRATION_MIGRATING = (
-    "Migrating /etc/ubuntu-advantage/uaclient.conf"
-)
-USER_CONFIG_MIGRATION_WARNING_UACLIENT_CONF_LOAD = """\
-Warning: Failed to load /etc/ubuntu-advantage/uaclient.conf.preinst-backup
-         No automatic migration will occur.
-         You may need to use "pro config set" to re-set your settings."""
-
-USER_CONFIG_MIGRATION_WARNING_NEW_USER_CONFIG_WRITE = """\
-Warning: Failed to migrate user_config from /etc/ubuntu-advantage/uaclient.conf
-         Please run the following to keep your custom settings:"""
-
-USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = """\
-Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
-         Please add following to uaclient.conf to keep your config:"""
-
-
 INSTALLING_PACKAGES = "Installing {}"
 INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
 SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages{}"
@@ -305,10 +263,6 @@ RELEASE_UPGRADE_SUCCESS = (
     "Finished upgrade of Ubuntu Pro service configuration"
 )
 
-CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
-    "\nError: Setting global apt proxy and pro scoped apt proxy at the"
-    " same time is unsupported. No apt proxy is set."
-)
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 
 
@@ -316,6 +270,53 @@ SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
 )
+
+###############################################################################
+#                         CONFIGURATION                                       #
+###############################################################################
+
+SETTING_SERVICE_PROXY = "Setting {service} proxy"
+PROXY_DETECTED_BUT_NOT_CONFIGURED = """\
+No proxy set in config; however, proxy is configured for: {{services}}.
+See {url} for more information on pro proxy configuration.
+""".format(
+    url=urls.PRO_CLIENT_DOCS_PROXY_CONFIG
+)
+SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
+CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
+    "\nError: Setting global apt proxy and pro scoped apt proxy at the"
+    " same time is unsupported. No apt proxy is set."
+)
+WARNING_APT_PROXY_SETUP = """\
+Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
+WARNING_APT_PROXY_OVERWRITE = """\
+Warning: Setting the {current_proxy} proxy will overwrite the {previous_proxy}
+proxy previously set via `pro config`.
+"""
+WARNING_DEPRECATED_APT_HTTP = """\
+Using deprecated "apt_http_proxy" config field.
+Please migrate to using "global_apt_http_proxy"
+"""
+WARNING_DEPRECATED_APT_HTTPS = """\
+Using deprecated "apt_https_proxy" config field.
+Please migrate to using "global_apt_https_proxy"
+"""
+
+USER_CONFIG_MIGRATION_MIGRATING = (
+    "Migrating /etc/ubuntu-advantage/uaclient.conf"
+)
+USER_CONFIG_MIGRATION_WARNING_UACLIENT_CONF_LOAD = """\
+Warning: Failed to load /etc/ubuntu-advantage/uaclient.conf.preinst-backup
+         No automatic migration will occur.
+         You may need to use "pro config set" to re-set your settings."""
+
+USER_CONFIG_MIGRATION_WARNING_NEW_USER_CONFIG_WRITE = """\
+Warning: Failed to migrate user_config from /etc/ubuntu-advantage/uaclient.conf
+         Please run the following to keep your custom settings:"""
+
+USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = """\
+Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
+         Please add following to uaclient.conf to keep your config:"""
 
 ###############################################################################
 #               ATTACH/DETACH/ENABLE/DISABLE SUBCOMMAND                       #
