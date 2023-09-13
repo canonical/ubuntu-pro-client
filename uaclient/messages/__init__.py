@@ -355,7 +355,7 @@ DETACH_SUCCESS = "This machine is now detached."
 REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
 ENABLED_TMPL = "{title} enabled"
 ACCESS_ENABLED_TMPL = "{title} access enabled"
-ENABLED_FAILED = "Could not enable {title}."
+ENABLE_FAILED = "Could not enable {title}."
 INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
@@ -1698,7 +1698,7 @@ E_REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
     "repo-pin-fail-no-origin",
     "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
     + "\n"
-    + ENABLED_FAILED,
+    + ENABLE_FAILED,
 )
 
 E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
