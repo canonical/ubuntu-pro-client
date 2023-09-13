@@ -143,21 +143,6 @@ SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
 APT_UPDATING_LISTS = "Updating package lists"
 APT_UPDATING_LIST = "Updating {} package lists"
-DISABLE_FAILED_TMPL = "Could not disable {title}."
-ACCESS_ENABLED_TMPL = "{title} access enabled"
-ENABLED_TMPL = "{title} enabled"
-
-CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
-CLI_MAGIC_ATTACH_FAILED = "Failed to perform attach..."
-CLI_MAGIC_ATTACH_SIGN_IN = """\
-Please sign in to your Ubuntu Pro account at this link:
-{url}
-And provide the following code: {bold}{{user_code}}{end_bold}""".format(
-    url=urls.PRO_ATTACH,
-    bold=TxtColor.BOLD,
-    end_bold=TxtColor.ENDC,
-)
-CLI_MAGIC_ATTACH_PROCESSING = "Attaching the machine..."
 
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
@@ -167,46 +152,13 @@ SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
     "Enabling Livepatch can fail under this scenario\n"
     "Please, upgrade snapd if Livepatch enable fails and try again."
 )
-ATTACH_SUCCESS_TMPL = """\
-This machine is now attached to '{contract_name}'
-"""
-ATTACH_SUCCESS_NO_CONTRACT_NAME = """\
-This machine is now successfully attached'
-"""
 
-ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
-ENABLE_REBOOT_REQUIRED_TMPL = """\
-A reboot is required to complete {operation}."""
-ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
-Service {name} is recommended by default. Run: sudo pro enable {name}"""
-DETACH_SUCCESS = "This machine is now detached."
-
-REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
 REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
 REFRESH_CONFIG_SUCCESS = "Successfully processed your pro configuration."
 REFRESH_MESSAGES_SUCCESS = (
     "Successfully updated Ubuntu Pro related APT and MOTD messages."
 )
 
-INCOMPATIBLE_SERVICE = """\
-{service_being_enabled} cannot be enabled with {incompatible_service}.
-Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
-(y/N) """
-DISABLING_INCOMPATIBLE_SERVICE = "Disabling incompatible service: {}"
-
-REQUIRED_SERVICE = """\
-{service_being_enabled} cannot be enabled with {required_service} disabled.
-Enable {required_service} and proceed to enable {service_being_enabled}? \
-(y/N) """
-ENABLING_REQUIRED_SERVICE = "Enabling required service: {}"
-
-DEPENDENT_SERVICE = """\
-{dependent_service} depends on {service_being_disabled}.
-Disable {dependent_service} and proceed to disable {service_being_disabled}? \
-(y/N) """
-
-DISABLING_DEPENDENT_SERVICE = """\
-Disabling dependent service: {required_service}"""
 
 SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
@@ -252,9 +204,6 @@ See {url} for more information on pro proxy configuration.
 )
 
 
-ENABLED_FAILED = "Could not enable {title}."
-
-
 APT_POLICY_FAILED = "Failure checking APT policy."
 
 
@@ -297,45 +246,6 @@ Please run:
     sudo apt-get install ubuntu-advantage-tools
 to get the latest version with new features and bug fixes."""
 )
-
-
-AUTO_ATTACH_RUNNING = (
-    "Currently attempting to automatically attach this machine to "
-    "Ubuntu Pro services"
-)
-
-# prefix used for removing notices
-AUTO_ATTACH_RETRY_NOTICE_PREFIX = """\
-Failed to automatically attach to Ubuntu Pro services"""
-AUTO_ATTACH_RETRY_NOTICE = (
-    AUTO_ATTACH_RETRY_NOTICE_PREFIX
-    + """\
- {num_attempts} time(s).
-The failure was due to: {reason}.
-The next attempt is scheduled for {next_run_datestring}.
-You can try manually with `sudo pro auto-attach`."""
-)
-
-AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
-    AUTO_ATTACH_RETRY_NOTICE_PREFIX
-    + """\
- {num_attempts} times.
-The most recent failure was due to: {reason}.
-Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
-You can try manually with `sudo pro auto-attach`."""  # noqa: E501
-)
-
-RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
-    'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'
-)
-RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE = (
-    "Canonical servers did not recognize this image as Ubuntu Pro"
-)
-RETRY_ERROR_DETAIL_LOCK_HELD = "the pro lock was held by pid {pid}"
-RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
-RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
-RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
-RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
 
 MISSING_YAML_MODULE = """\
@@ -385,24 +295,6 @@ EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
 BACKING_UP_FILE = "Backing up {original} as {backup}"
 
 
-DISABLE_DURING_CONTRACT_REFRESH = (
-    "Due to contract refresh, " "'{}' is now disabled."
-)
-UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH = (
-    "Unable to disable '{}' as recommended during contract"
-    " refresh. Service is still active. See"
-    " `pro status`"
-)
-
-
-SERVICE_UPDATING_CHANGED_DIRECTIVES = "Updating '{}' on changed directives."
-REPO_UPDATING_APT_SOURCES = (
-    "Updating '{}' apt sources list on changed directives."
-)
-REPO_REFRESH_INSTALLING_PACKAGES = (
-    "Installing packages on changed directives: {}"
-)
-
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
 )
@@ -420,16 +312,123 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
 )
 CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 
-APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
-APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
-
-
-DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
-
 
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
+)
+
+###############################################################################
+#               ATTACH/DETACH/ENABLE/DISABLE SUBCOMMAND                       #
+###############################################################################
+
+# ATTACH
+AUTO_ATTACH_RUNNING = (
+    "Currently attempting to automatically attach this machine to "
+    "Ubuntu Pro services"
+)
+ATTACH_SUCCESS_TMPL = """\
+This machine is now attached to '{contract_name}'
+"""
+ATTACH_SUCCESS_NO_CONTRACT_NAME = """\
+This machine is now successfully attached'
+"""
+ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
+ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
+Service {name} is recommended by default. Run: sudo pro enable {name}"""
+CLI_MAGIC_ATTACH_INIT = "Initiating attach operation..."
+CLI_MAGIC_ATTACH_FAILED = "Failed to perform attach..."
+CLI_MAGIC_ATTACH_SIGN_IN = """\
+Please sign in to your Ubuntu Pro account at this link:
+{url}
+And provide the following code: {bold}{{user_code}}{end_bold}""".format(
+    url=urls.PRO_ATTACH,
+    bold=TxtColor.BOLD,
+    end_bold=TxtColor.ENDC,
+)
+CLI_MAGIC_ATTACH_PROCESSING = "Attaching the machine..."
+
+# DETACH
+DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
+DETACH_SUCCESS = "This machine is now detached."
+
+# ENABLE
+REFRESH_CONTRACT_ENABLE = "One moment, checking your subscription first"
+ENABLED_TMPL = "{title} enabled"
+ACCESS_ENABLED_TMPL = "{title} access enabled"
+ENABLED_FAILED = "Could not enable {title}."
+INCOMPATIBLE_SERVICE = """\
+{service_being_enabled} cannot be enabled with {incompatible_service}.
+Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
+(y/N) """
+DISABLING_INCOMPATIBLE_SERVICE = "Disabling incompatible service: {}"
+REQUIRED_SERVICE = """\
+{service_being_enabled} cannot be enabled with {required_service} disabled.
+Enable {required_service} and proceed to enable {service_being_enabled}? \
+(y/N) """
+ENABLING_REQUIRED_SERVICE = "Enabling required service: {}"
+ENABLE_REBOOT_REQUIRED_TMPL = """\
+A reboot is required to complete {operation}."""
+
+# DISABLE
+DISABLE_FAILED_TMPL = "Could not disable {title}."
+DEPENDENT_SERVICE = """\
+{dependent_service} depends on {service_being_disabled}.
+Disable {dependent_service} and proceed to disable {service_being_disabled}? \
+(y/N) """
+DISABLING_DEPENDENT_SERVICE = """\
+Disabling dependent service: {required_service}"""
+APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
+APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
+
+# These are for the retry-auto-attach functionality
+AUTO_ATTACH_RETRY_NOTICE_PREFIX = """\
+Failed to automatically attach to Ubuntu Pro services"""
+AUTO_ATTACH_RETRY_NOTICE = (
+    AUTO_ATTACH_RETRY_NOTICE_PREFIX
+    + """\
+ {num_attempts} time(s).
+The failure was due to: {reason}.
+The next attempt is scheduled for {next_run_datestring}.
+You can try manually with `sudo pro auto-attach`."""
+)
+
+AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
+    AUTO_ATTACH_RETRY_NOTICE_PREFIX
+    + """\
+ {num_attempts} times.
+The most recent failure was due to: {reason}.
+Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+You can try manually with `sudo pro auto-attach`."""  # noqa: E501
+)
+
+RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
+    'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'
+)
+RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE = (
+    "Canonical servers did not recognize this image as Ubuntu Pro"
+)
+RETRY_ERROR_DETAIL_LOCK_HELD = "the pro lock was held by pid {pid}"
+RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
+RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
+RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
+RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
+
+# These are related messages but actually occur during a "refresh"
+DISABLE_DURING_CONTRACT_REFRESH = (
+    "Due to contract refresh, '{}' is now disabled."
+)
+UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH = (
+    "Unable to disable '{}' as recommended during contract"
+    " refresh. Service is still active. See"
+    " `pro status`"
+)
+SERVICE_UPDATING_CHANGED_DIRECTIVES = "Updating '{}' on changed directives."
+REPO_UPDATING_APT_SOURCES = (
+    "Updating '{}' apt sources list on changed directives."
+)
+REPO_REFRESH_INSTALLING_PACKAGES = (
+    "Installing packages on changed directives: {}"
 )
 
 ###############################################################################
