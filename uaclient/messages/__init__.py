@@ -164,37 +164,6 @@ SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
 To install them, run this command as root (try using sudo)"""
 
-# BEGIN MOTD and APT command messaging
-
-CONTRACT_EXPIRED_WITH_PKGS = """\
-*Your Ubuntu Pro subscription has EXPIRED*
-{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
-Renew your service at {url}""".format(  # noqa: E501
-    url=urls.PRO_DASHBOARD
-)
-
-CONTRACT_EXPIRES_SOON = """\
-CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
-Renew your subscription at {url} to ensure
-continued security coverage for your applications.""".format(
-    url=urls.PRO_DASHBOARD
-)
-CONTRACT_EXPIRED_GRACE_PERIOD = """\
-CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
-Renew your subscription at {url} to ensure
-continued security coverage for your applications.
-Your grace period will expire in {{remaining_days}} days.""".format(
-    url=urls.PRO_DASHBOARD
-)
-CONTRACT_EXPIRED = """\
-*Your Ubuntu Pro subscription has EXPIRED*
-Renew your service at {url}""".format(
-    url=urls.PRO_DASHBOARD
-)
-
-# END MOTD and APT command messaging
-
-
 APT_POLICY_FAILED = "Failure checking APT policy."
 
 
@@ -270,6 +239,35 @@ CLI_INTERRUPT_RECEIVED = "Interrupt received; exiting."
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
+)
+
+###############################################################################
+#                   MOTD/APTNEWS CONTRACT STATUS                              #
+###############################################################################
+
+CONTRACT_EXPIRED_WITH_PKGS = """\
+*Your Ubuntu Pro subscription has EXPIRED*
+{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
+Renew your service at {url}""".format(  # noqa: E501
+    url=urls.PRO_DASHBOARD
+)
+CONTRACT_EXPIRES_SOON = """\
+CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.""".format(
+    url=urls.PRO_DASHBOARD
+)
+CONTRACT_EXPIRED_GRACE_PERIOD = """\
+CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.
+Your grace period will expire in {{remaining_days}} days.""".format(
+    url=urls.PRO_DASHBOARD
+)
+CONTRACT_EXPIRED = """\
+*Your Ubuntu Pro subscription has EXPIRED*
+Renew your service at {url}""".format(
+    url=urls.PRO_DASHBOARD
 )
 
 ###############################################################################
