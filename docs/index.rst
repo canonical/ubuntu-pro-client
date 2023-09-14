@@ -1,10 +1,11 @@
 Ubuntu Pro Client
 #################
 
-`Ubuntu Pro`_ is a suite of security services provided by Canonical. Whether
-you’re an enterprise customer deploying systems at scale or want security
-patching for your personal Ubuntu LTS at home, the Ubuntu Pro Client (``pro``)
-is the command-line tool that will help you manage the services you need.
+`Ubuntu Pro`_ is a suite of additional services provided by Canonical on top of
+Ubuntu. Whether you’re an enterprise customer deploying systems at scale or
+want security patching for your personal Ubuntu LTS at home, the Ubuntu Pro
+Client (``pro``) is the command-line tool that will help you manage the
+services you need.
 
 The Ubuntu Pro Client comes pre-installed on every Ubuntu system. You can run
 ``pro help`` in your terminal window to see a list of the ``pro``
