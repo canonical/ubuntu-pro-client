@@ -1227,6 +1227,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def _update_main_repo(self):
         if self._is_main_repo_updated:
             return
-        event.info(messages.APT_UPDATING_LIST.format("main"))
+        event.info(messages.APT_UPDATING_LIST.format("standard Ubuntu"))
         apt.update_sources_list("/etc/apt/sources.list")
         self._is_main_repo_updated = True

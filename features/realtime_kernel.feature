@@ -62,7 +62,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         .*This will change your kernel. To revert to your original kernel, you will need
         to make the change manually..*
 
-        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time kernel package list
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time kernel package lists
         Installing Real-time kernel packages
         Real-time kernel enabled
         A reboot is required to complete install.
@@ -217,7 +217,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         .*This will change your kernel. To revert to your original kernel, you will need
         to make the change manually..*
 
-        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra kernel package list
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra kernel package lists
         Installing Real-time NVIDIA Tegra Kernel packages
         Real-time NVIDIA Tegra Kernel enabled
         """

@@ -62,7 +62,7 @@ Feature: Enable anbox on Ubuntu
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating Anbox Cloud package list
+        Updating Anbox Cloud package lists
         Skipping installing packages
         Anbox Cloud access enabled
         """
@@ -97,7 +97,7 @@ Feature: Enable anbox on Ubuntu
         Installing required snap: amc
         Installing required snap: anbox-cloud-appliance
         Installing required snap: lxd
-        Updating Anbox Cloud package list
+        Updating Anbox Cloud package lists
         Anbox Cloud enabled
         To finish setting up the Anbox Cloud Appliance, run:
 

@@ -416,7 +416,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
         """
-        Updating Ubuntu Pro: ESM Infra package list
+        Updating Ubuntu Pro: ESM Infra package lists
         Ubuntu Pro: ESM Infra enabled
         """
         And stdout does not match regexp:

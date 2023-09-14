@@ -469,7 +469,7 @@ class TestRepoEnable:
         expected_output = (
             "\n".join(
                 [
-                    "Updating Repo Test Class package list",
+                    "Updating Repo Test Class package lists",
                     "Repo Test Class enabled",
                 ]
                 + ([reboot_msg] if should_reboot else [])
@@ -496,9 +496,9 @@ class TestRepoEnable:
                 )
                 expected_output = (
                     "\n".join(
-                        ["Updating Repo Test Class package list"]
+                        ["Updating Repo Test Class package lists"]
                         + (pre_install_msgs if with_pre_install_msg else [])
-                        + ["Updating main package list"]
+                        + ["Updating standard Ubuntu package lists"]
                         + [
                             "Installing Repo Test Class packages",
                             "Repo Test Class enabled",

@@ -207,10 +207,10 @@ class TestCommonCriteriaEntitlementEnable:
         assert 2 == m_update_sources_list.call_count
         expected_stdout += "\n".join(
             [
-                "Updating CC EAL2 package list",
+                "Updating CC EAL2 package lists",
                 "(This will download more than 500MB of packages, so may take"
                 " some time.)",
-                "Updating main package list",
+                "Updating standard Ubuntu package lists",
                 "Installing CC EAL2 packages",
                 "CC EAL2 enabled",
                 "Please follow instructions in {} to configure EAL2\n".format(

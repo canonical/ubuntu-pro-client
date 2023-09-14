@@ -114,8 +114,8 @@ class TestCISEntitlementEnable:
         assert m_apt_policy_cmds == m_apt_policy.call_args_list
         assert 1 == m_should_reboot.call_count
         expected_stdout = (
-            "Updating CIS Audit package list\n"
-            "Updating main package list\n"
+            "Updating CIS Audit package lists\n"
+            "Updating standard Ubuntu package lists\n"
             "Installing CIS Audit packages\n"
             "CIS Audit enabled\n"
             "Visit {} to learn how to use CIS\n".format(

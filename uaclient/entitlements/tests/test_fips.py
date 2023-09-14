@@ -1133,7 +1133,7 @@ class TestFipsEntitlementInstallPackages:
         expected_msg = "\n".join(
             [
                 "Installing {} packages".format(entitlement.title),
-                "Updating main package list",
+                "Updating standard Ubuntu package lists",
                 "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"

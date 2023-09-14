@@ -206,7 +206,7 @@ SECURITY_UA_INFRA_POCKET = "Ubuntu Pro: ESM Infra"
 SECURITY_UA_APPS_POCKET = "Ubuntu Pro: ESM Apps"
 
 APT_UPDATING_LISTS = "Updating package lists"
-APT_UPDATING_LIST = "Updating {} package list"
+APT_UPDATING_LIST = "Updating {} package lists"
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ACCESS_ENABLED_TMPL = "{title} access enabled"
 ENABLED_TMPL = "{title} enabled"

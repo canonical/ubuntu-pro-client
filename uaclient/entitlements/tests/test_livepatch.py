@@ -468,7 +468,7 @@ class TestLivepatchEntitlementEnable:
         assert 1 == m_update_sources_list.call_count
         msg = (
             "Installing snapd\n"
-            "Updating main package list\n"
+            "Updating standard Ubuntu package lists\n"
             "Installing canonical-livepatch snap\n"
             "Disabling Livepatch prior to re-attach with new token\n"
             "Canonical Livepatch enabled\n"
