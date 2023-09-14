@@ -637,7 +637,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         One moment, checking your subscription first
         Installing snapd
-        Updating Livepatch package lists
+        Updating main package list
         Failed to install snapd on the system
         """
         Examples: ubuntu release
