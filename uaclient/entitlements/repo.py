@@ -257,7 +257,7 @@ class RepoEntitlement(base.UAEntitlement):
             return
 
         try:
-            self._update_main_repo()
+            self._update_sources_list()
         except exceptions.UbuntuProError:
             if cleanup_on_failure:
                 self.remove_apt_config()
