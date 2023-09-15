@@ -668,12 +668,13 @@ def list_esm_infra_packages(cfg):
         hint_list = available_package_names or installed_package_names
         # Check names because packages may have been already listed
         if remaining_package_names:
-            print(
-                messages.SS_OTHER_PACKAGES.format(
-                    prefix="Further installed" if hint_list else "Installed",
-                    service="esm-infra",
+            if hint_list:
+                msg = messages.SS_FURTHER_OTHER_PACKAGES.format(
+                    service="esm-infra"
                 )
-            )
+            else:
+                msg = messages.SS_OTHER_PACKAGES.format(service="esm-infra")
+            print(msg)
             _print_package_list(remaining_package_names)
 
         if hint_list:
@@ -749,12 +750,13 @@ def list_esm_apps_packages(cfg):
 
         # Check names because packages may have been already listed
         if remaining_package_names:
-            print(
-                messages.SS_OTHER_PACKAGES.format(
-                    prefix="Further installed" if hint_list else "Installed",
-                    service="esm-apps",
+            if hint_list:
+                msg = messages.SS_FURTHER_OTHER_PACKAGES.format(
+                    service="esm-apps"
                 )
-            )
+            else:
+                msg = messages.SS_OTHER_PACKAGES.format(service="esm-apps")
+            print(msg)
             _print_package_list(remaining_package_names)
 
         if hint_list:
