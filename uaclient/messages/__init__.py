@@ -76,7 +76,7 @@ RELEASE_UPGRADE_SUCCESS = (
 MISSING_YAML_MODULE = """\
 Couldn't import the YAML module.
 Make sure the 'python3-yaml' package is installed correctly
-and /usr/lib/python3/dist-packages is in yout PYTHONPATH."""
+and /usr/lib/python3/dist-packages is in your PYTHONPATH."""
 BROKEN_YAML_MODULE = (
     "Error while trying to parse a yaml file using 'yaml' from {path}"
 )
