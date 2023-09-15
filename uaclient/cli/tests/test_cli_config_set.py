@@ -198,8 +198,9 @@ class TestActionConfigSet:
             mock.call(cfg, apt.AptProxyScope.GLOBAL, global_eq, value)
         ] == configure_apt_proxy.call_args_list
         assert (
-            messages.WARNING_APT_PROXY_SETUP.format(
-                protocol_type=protocol_type
+            messages.WARNING_CONFIG_FIELD_RENAME.format(
+                old="apt_{}_proxy".format(protocol_type),
+                new="global_apt_{}_proxy".format(protocol_type),
             )
             in out
         )
