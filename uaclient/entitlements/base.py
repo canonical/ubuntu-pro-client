@@ -144,7 +144,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 for variant_name, variant_cls in self.variants.items()
             ]
 
-            variant_text = "\n".join(["\nVariants:\n"] + variant_items)
+            variant_text = "\n".join(
+                ["\n" + messages.CLI_HELP_VARIANTS_HEADER + "\n"]
+                + variant_items
+            )
             help_text += variant_text
 
         return help_text
