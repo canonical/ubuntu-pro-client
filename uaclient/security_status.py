@@ -565,7 +565,7 @@ def list_third_party_packages():
         print(messages.SS_THIRD_PARTY)
 
         print("")
-        print("Packages:")
+        print(messages.SS_PACKAGES_HEADER)
         _print_package_list(package_names)
         print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
     else:
