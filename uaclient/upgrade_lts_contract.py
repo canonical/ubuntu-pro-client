@@ -62,7 +62,11 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
 
     past_release = current_codename_to_past_codename.get(current_release)
     if past_release is None:
-        print(messages.RELEASE_UPGRADE_NO_PAST_RELEASE.format(current_release))
+        print(
+            messages.RELEASE_UPGRADE_NO_PAST_RELEASE.format(
+                release=current_release
+            )
+        )
         LOG.warning(
             "Could not find past release for %s. Current known releases: %r.",
             current_release,

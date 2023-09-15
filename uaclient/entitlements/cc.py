@@ -25,7 +25,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if not self.access_only:
-            post_enable = [messages.CC_POST_ENABLE.format(CC_README)]
+            post_enable = [messages.CC_POST_ENABLE.format(filename=CC_README)]
         return {
             "pre_install": [messages.CC_PRE_INSTALL],
             "post_enable": post_enable,

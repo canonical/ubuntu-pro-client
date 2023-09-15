@@ -205,7 +205,9 @@ class RepoEntitlement(base.UAEntitlement):
                 self.name,
                 delta_apt_url,
             )
-            event.info(messages.REPO_UPDATING_APT_SOURCES.format(self.name))
+            event.info(
+                messages.REPO_UPDATING_APT_SOURCES.format(service=self.name)
+            )
 
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
@@ -221,7 +223,7 @@ class RepoEntitlement(base.UAEntitlement):
             LOG.info("New additionalPackages, installing %r", delta_packages)
             event.info(
                 messages.REPO_REFRESH_INSTALLING_PACKAGES.format(
-                    ", ".join(delta_packages)
+                    packages=", ".join(delta_packages)
                 )
             )
             self.install_packages(package_list=delta_packages)
@@ -382,7 +384,7 @@ class RepoEntitlement(base.UAEntitlement):
             if not silent:
                 event.info(
                     messages.INSTALLING_PACKAGES.format(
-                        ", ".join(prerequisite_pkgs)
+                        packages=", ".join(prerequisite_pkgs)
                     )
                 )
             try:
@@ -402,7 +404,7 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows pro status to report correct info
         if not silent:
-            event.info(messages.APT_UPDATING_LIST.format(self.title))
+            event.info(messages.APT_UPDATING_LIST.format(name=self.title))
         try:
             apt.update_sources_list(repo_filename)
         except exceptions.UbuntuProError:
