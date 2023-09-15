@@ -1,6 +1,27 @@
-from typing import Dict, Optional  # noqa: F401
+from typing import Callable, Dict, Optional  # noqa: F401
 
 from uaclient.messages import urls
+
+
+class PluralizableString:
+    def __init__(self, pluralize_fn: Callable):
+        self.pluralize_fn = pluralize_fn
+
+    def pluralize(self, n: int) -> str:
+        return self.pluralize_fn(n)
+
+
+P = PluralizableString
+
+
+# This is a placeholder for ngettext
+# all instances of this will be replaced with ngettext
+def pluralize(singular: str, plural: str, n: int):
+    if n == 1:
+        return singular
+    else:
+        return plural
+
 
 ###############################################################################
 #                              MISCELLANEOUS                                  #
@@ -207,7 +228,13 @@ And provide the following code: {bold}{{user_code}}{end_bold}""".format(
 CLI_MAGIC_ATTACH_PROCESSING = "Attaching the machine..."
 
 # DETACH
-DETACH_WILL_DISABLE = "Detach will disable the following service{}:"
+DETACH_WILL_DISABLE = P(
+    lambda n: pluralize(
+        "Detach will disable the following service:",
+        "Detach will disable the following services:",
+        n,
+    )
+)
 DETACH_SUCCESS = "This machine is now detached."
 
 # ENABLE
