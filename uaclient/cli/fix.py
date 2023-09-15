@@ -90,17 +90,11 @@ class FixContext:
 
     def print_fix_header(self):
         if self.affected_pkgs:
-            if len(self.affected_pkgs) == 1:
-                plural_str = " is"
-            else:
-                plural_str = "s are"
-
-            msg = (
-                messages.SECURITY_AFFECTED_PKGS.format(
-                    count=len(self.affected_pkgs), plural_str=plural_str
-                )
-                + ": "
-                + ", ".join(sorted(self.affected_pkgs))
+            msg = messages.SECURITY_AFFECTED_PKGS.pluralize(
+                len(self.affected_pkgs)
+            ).format(
+                count=len(self.affected_pkgs),
+                pkgs=", ".join(sorted(self.affected_pkgs)),
             )
             print(
                 textwrap.fill(
@@ -471,10 +465,10 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
     """
     num_pkgs_unfixed = len(unfixed_pkgs)
     return textwrap.fill(
-        messages.SECURITY_PKG_STILL_AFFECTED.format(
+        messages.SECURITY_PKG_STILL_AFFECTED.pluralize(
+            num_pkgs_unfixed
+        ).format(
             num_pkgs=num_pkgs_unfixed,
-            s="s" if num_pkgs_unfixed > 1 else "",
-            verb="are" if num_pkgs_unfixed > 1 else "is",
             pkgs=", ".join(sorted(unfixed_pkgs)),
         ),
         width=PRINT_WRAP_WIDTH,
@@ -838,12 +832,7 @@ def _execute_noop_not_affected_step(
     fix_context: FixContext, step: FixPlanNoOpStep
 ):
     if step.data.status == FixPlanNoOpStatus.NOT_AFFECTED.value:
-        print(
-            messages.SECURITY_AFFECTED_PKGS.format(
-                count="No", plural_str="s are"
-            )
-            + "."
-        )
+        print(messages.SECURITY_NO_AFFECTED_PKGS)
         fix_context.fix_status = FixStatus.SYSTEM_NOT_AFFECTED
 
 
