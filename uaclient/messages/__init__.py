@@ -341,10 +341,21 @@ SECURITY_USE_PRO_TMPL = """\
 For easiest security on {title}, use Ubuntu Pro instances.
 Learn more at {cloud_specific_url}"""
 
-SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue}{extra_info} is resolved."
-SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue}{extra_info} is not resolved."
+FIX_ISSUE_CONTEXT_REQUESTED = "requested"
+FIX_ISSUE_CONTEXT_RELATED = "related"
+SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
+SECURITY_ISSUE_RESOLVED_ISSUE_CONTEXT = (
+    OKGREEN_CHECK + " {issue} [{context}] is resolved."
+)
+SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue} is not resolved."
+SECURITY_ISSUE_NOT_RESOLVED_ISSUE_CONTEXT = (
+    FAIL_X + " {issue} [{context}] is not resolved."
+)
 SECURITY_ISSUE_UNAFFECTED = (
-    OKGREEN_CHECK + " {issue}{extra_info} does not affect your system."
+    OKGREEN_CHECK + " {issue} does not affect your system."
+)
+SECURITY_ISSUE_UNAFFECTED_ISSUE_CONTEXT = (
+    OKGREEN_CHECK + " {issue} [{context}] does not affect your system."
 )
 SECURITY_PKG_STILL_AFFECTED = (
     "{num_pkgs} package{s} {verb} still affected: {pkgs}"

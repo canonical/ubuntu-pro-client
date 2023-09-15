@@ -297,14 +297,18 @@ def fix_usn(
 
     print(messages.SECURITY_USN_SUMMARY)
     _handle_fix_status_message(
-        target_usn_status, security_issue, extra_info=" [requested]"
+        target_usn_status,
+        security_issue,
+        context=messages.FIX_ISSUE_CONTEXT_REQUESTED,
     )
 
     failure_on_related_usn = False
     for related_usn_plan in related_usns_plan:
         status, unfixed_pkgs = related_usn_status[related_usn_plan.title]
         _handle_fix_status_message(
-            status, related_usn_plan.title, extra_info=" [related]"
+            status,
+            related_usn_plan.title,
+            context=messages.FIX_ISSUE_CONTEXT_RELATED,
         )
 
         if status == FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT:
@@ -595,40 +599,40 @@ def _handle_subscription_for_required_service(
 
 
 def _handle_fix_status_message(
-    status: FixStatus, issue_id: str, extra_info: str = ""
+    status: FixStatus, issue_id: str, context: str = ""
 ):
     if status == FixStatus.SYSTEM_NON_VULNERABLE:
-        print(
-            util.handle_unicode_characters(
-                messages.SECURITY_ISSUE_RESOLVED.format(
-                    issue=issue_id, extra_info=extra_info
-                )
+        if context:
+            msg = messages.SECURITY_ISSUE_RESOLVED_ISSUE_CONTEXT.format(
+                issue=issue_id, context=context
             )
-        )
+        else:
+            msg = messages.SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+        print(util.handle_unicode_characters(msg))
     elif status == FixStatus.SYSTEM_NOT_AFFECTED:
-        print(
-            util.handle_unicode_characters(
-                messages.SECURITY_ISSUE_UNAFFECTED.format(
-                    issue=issue_id, extra_info=extra_info
-                )
+        if context:
+            msg = messages.SECURITY_ISSUE_UNAFFECTED_ISSUE_CONTEXT.format(
+                issue=issue_id, context=context
             )
-        )
+        else:
+            msg = messages.SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id)
+        print(util.handle_unicode_characters(msg))
     elif status == FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT:
-        print(
-            util.handle_unicode_characters(
-                messages.SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id, extra_info=extra_info
-                )
+        if context:
+            msg = messages.SECURITY_ISSUE_NOT_RESOLVED_ISSUE_CONTEXT.format(
+                issue=issue_id, context=context
             )
-        )
+        else:
+            msg = messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+        print(util.handle_unicode_characters(msg))
     else:
-        print(
-            util.handle_unicode_characters(
-                messages.SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id, extra_info=extra_info
-                )
+        if context:
+            msg = messages.SECURITY_ISSUE_NOT_RESOLVED_ISSUE_CONTEXT.format(
+                issue=issue_id, context=context
             )
-        )
+        else:
+            msg = messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+        print(util.handle_unicode_characters(msg))
 
 
 def get_pocket_description(pocket: str):
