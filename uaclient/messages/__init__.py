@@ -267,25 +267,17 @@ APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
 APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
 
 # These are for the retry-auto-attach functionality
-AUTO_ATTACH_RETRY_NOTICE_PREFIX = """\
-Failed to automatically attach to Ubuntu Pro services"""
-AUTO_ATTACH_RETRY_NOTICE = (
-    AUTO_ATTACH_RETRY_NOTICE_PREFIX
-    + """\
- {num_attempts} time(s).
+AUTO_ATTACH_RETRY_NOTICE = """\
+Failed to automatically attach to Ubuntu Pro services {num_attempts} time(s).
 The failure was due to: {reason}.
 The next attempt is scheduled for {next_run_datestring}.
 You can try manually with `sudo pro auto-attach`."""
-)
 
-AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = (
-    AUTO_ATTACH_RETRY_NOTICE_PREFIX
-    + """\
- {num_attempts} times.
+AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = """\
+Failed to automatically attach to Ubuntu Pro services {num_attempts} time(s).
 The most recent failure was due to: {reason}.
 Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
 You can try manually with `sudo pro auto-attach`."""  # noqa: E501
-)
 
 RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
     'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'
