@@ -439,14 +439,14 @@ Feature: Command behaviour when unattached
         """
         Couldn't import the YAML module.
         Make sure the 'python3-yaml' package is installed correctly
-        and \/usr\/lib\/python3\/dist-packages is in yout PYTHONPATH\.
+        and \/usr\/lib\/python3\/dist-packages is in your PYTHONPATH\.
         """
         When I verify that running `python3 /usr/lib/ubuntu-advantage/esm_cache.py` `with sudo` exits `1`
         Then stderr matches regexp:
         """
         Couldn't import the YAML module.
         Make sure the 'python3-yaml' package is installed correctly
-        and \/usr\/lib\/python3\/dist-packages is in yout PYTHONPATH\.
+        and \/usr\/lib\/python3\/dist-packages is in your PYTHONPATH\.
         """
         When I verify that running `systemctl start apt-news.service` `with sudo` exits `1`
         And I verify that running `systemctl start esm-cache.service` `with sudo` exits `1`
