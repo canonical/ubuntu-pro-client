@@ -31,7 +31,7 @@ class LandscapeEntitlement(UAEntitlement):
         LOG.debug("Executing: %r", cmd)
         event.info(
             util.redact_sensitive_logs(
-                messages.EXECUTING_COMMAND.format(" ".join(cmd))
+                messages.EXECUTING_COMMAND.format(command=" ".join(cmd))
             )
         )
         try:
@@ -60,7 +60,7 @@ class LandscapeEntitlement(UAEntitlement):
 
     def _perform_disable(self, silent: bool = False) -> bool:
         cmd = ["landscape-config", "--disable"]
-        event.info(messages.EXECUTING_COMMAND.format(" ".join(cmd)))
+        event.info(messages.EXECUTING_COMMAND.format(command=" ".join(cmd)))
         try:
             system.subp(cmd)
         except exceptions.ProcessExecutionError as e:

@@ -65,7 +65,7 @@ REBOOT_SCRIPT_FAILED = (
 RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = (
     "APT lock is held. Ubuntu Pro configuration will wait until it is released"
 )
-RELEASE_UPGRADE_NO_PAST_RELEASE = "Could not find past release for {}"
+RELEASE_UPGRADE_NO_PAST_RELEASE = "Could not find past release for {release}"
 RELEASE_UPGRADE_STARTING = (
     "Starting upgrade of Ubuntu Pro service configuration"
 )
@@ -101,27 +101,27 @@ to get the latest version with new features and bug fixes."""
 #                      GENERIC SYSTEM OPERATIONS                              #
 ###############################################################################
 
-EXECUTING_COMMAND = "Executing `{}`"
-EXECUTING_COMMAND_FAILED = "Executing `{}` failed."
+EXECUTING_COMMAND = "Executing `{command}`"
+EXECUTING_COMMAND_FAILED = "Executing `{command}` failed."
 SUBP_INVALID_COMMAND = "Invalid command specified '{cmd}'."
 SUBP_COMMAND_FAILED = (
     "Failed running command '{cmd}' [exit({exit_code})]." " Message: {stderr}"
 )
 
-INSTALLING_PACKAGES = "Installing {}"
+INSTALLING_PACKAGES = "Installing {packages}"
 INSTALLING_SERVICE_PACKAGES = "Installing {title} packages"
 INSTALLING_REQUIRED_SNAPS = "Installing required snaps"
 INSTALLING_REQUIRED_SNAP_PACKAGE = "Installing required snap: {snap}"
 SKIPPING_INSTALLING_PACKAGES = "Skipping installing packages: {packages}"
-UNINSTALLING_PACKAGES = "Uninstalling {}"
-UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {}"
+UNINSTALLING_PACKAGES = "Uninstalling {packages}"
+UNINSTALLING_PACKAGES_FAILED = "Failure when uninstalling {packages}"
 FIX_CANNOT_INSTALL_PACKAGE = (
     "Cannot install package {package} version {version}"
 )
 
 APT_POLICY_FAILED = "Failure checking APT policy."
 APT_UPDATING_LISTS = "Updating package lists"
-APT_UPDATING_LIST = "Updating {} package lists"
+APT_UPDATING_LIST = "Updating {name} package lists"
 
 BACKING_UP_FILE = "Backing up {original} as {backup}"
 
@@ -246,12 +246,12 @@ INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
-DISABLING_INCOMPATIBLE_SERVICE = "Disabling incompatible service: {}"
+DISABLING_INCOMPATIBLE_SERVICE = "Disabling incompatible service: {service}"
 REQUIRED_SERVICE = """\
 {service_being_enabled} cannot be enabled with {required_service} disabled.
 Enable {required_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
-ENABLING_REQUIRED_SERVICE = "Enabling required service: {}"
+ENABLING_REQUIRED_SERVICE = "Enabling required service: {service}"
 ENABLE_REBOOT_REQUIRED_TMPL = """\
 A reboot is required to complete {operation}."""
 
@@ -263,8 +263,8 @@ Disable {dependent_service} and proceed to disable {service_being_disabled}? \
 (y/N) """
 DISABLING_DEPENDENT_SERVICE = """\
 Disabling dependent service: {required_service}"""
-APT_REMOVING_SOURCE_FILE = "Removing apt source file: {}"
-APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {}"
+APT_REMOVING_SOURCE_FILE = "Removing apt source file: {filename}"
+APT_REMOVING_PREFERENCES_FILE = "Removing apt preferences file: {filename}"
 
 # These are for the retry-auto-attach functionality
 AUTO_ATTACH_RETRY_NOTICE = """\
@@ -279,33 +279,36 @@ The most recent failure was due to: {reason}.
 Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
 You can try manually with `sudo pro auto-attach`."""  # noqa: E501
 
-RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = (
-    'Canonical servers did not recognize this machine as Ubuntu Pro: "{}"'
-)
+RETRY_ERROR_DETAIL_INVALID_PRO_IMAGE = """\
+Canonical servers did not recognize this machine as Ubuntu Pro: \"{detail}\""""
 RETRY_ERROR_DETAIL_NON_AUTO_ATTACH_IMAGE = (
     "Canonical servers did not recognize this image as Ubuntu Pro"
 )
 RETRY_ERROR_DETAIL_LOCK_HELD = "the pro lock was held by pid {pid}"
-RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = 'an error from Canonical servers: "{}"'
+RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = (
+    'an error from Canonical servers: "{error_msg}"'
+)
 RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = "a connectivity error"
 RETRY_ERROR_DETAIL_URL_ERROR_URL = "an error while reaching {url}"
 RETRY_ERROR_DETAIL_UNKNOWN = "an unknown error"
 
 # These are related messages but actually occur during a "refresh"
 DISABLE_DURING_CONTRACT_REFRESH = (
-    "Due to contract refresh, '{}' is now disabled."
+    "Due to contract refresh, '{service}' is now disabled."
 )
 UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH = (
-    "Unable to disable '{}' as recommended during contract"
+    "Unable to disable '{service}' as recommended during contract"
     " refresh. Service is still active. See"
     " `pro status`"
 )
-SERVICE_UPDATING_CHANGED_DIRECTIVES = "Updating '{}' on changed directives."
+SERVICE_UPDATING_CHANGED_DIRECTIVES = (
+    "Updating '{service}' on changed directives."
+)
 REPO_UPDATING_APT_SOURCES = (
-    "Updating '{}' apt sources list on changed directives."
+    "Updating '{service}' apt sources list on changed directives."
 )
 REPO_REFRESH_INSTALLING_PACKAGES = (
-    "Installing packages on changed directives: {}"
+    "Installing packages on changed directives: {packages}"
 )
 
 ###############################################################################
@@ -317,7 +320,7 @@ Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel""".format(
     url=urls.PRO_SUBSCRIBE
 )
 SECURITY_FIX_ENABLE_PROMPT = """\
-Choose: [E]nable {} [C]ancel"""
+Choose: [E]nable {service} [C]ancel"""
 SECURITY_FIX_RENEW_PROMPT = """\
 Choose: [R]enew your subscription (at {url}) [C]ancel""".format(
     url=urls.PRO_DASHBOARD
@@ -611,7 +614,7 @@ STATUS_SUPPORT_ADVANCED = "advanced"
 
 STATUS_CONTRACT_EXPIRES_UNKNOWN = "Unknown/Expired"
 
-STATUS_FOOTER_ENABLE_SERVICES_WITH = "Enable services with: {}"
+STATUS_FOOTER_ENABLE_SERVICES_WITH = "Enable services with: {command}"
 STATUS_FOOTER_ACCOUNT = "Account"
 STATUS_FOOTER_SUBSCRIPTION = "Subscription"
 STATUS_FOOTER_VALID_UNTIL = "Valid until"
@@ -651,7 +654,7 @@ PRO_HELP_SERVICE_INFO = (
 CLI_ARGS = "Arguments"
 CLI_FLAGS = "Flags"
 CLI_AVAILABLE_COMMANDS = "Available Commands"
-CLI_FORMAT_DESC = "output in the specified format (default: {})"
+CLI_FORMAT_DESC = "output in the specified format (default: {default})"
 CLI_ASSUME_YES = (
     "do not prompt for confirmation before performing the {command}"
 )
@@ -675,11 +678,11 @@ CLI_CONFIG_SHOW_KEY = "Optional key or key(s) to show configuration settings."
 CLI_CONFIG_SET_DESC = "Set and apply Ubuntu Pro configuration settings"
 CLI_CONFIG_SET_KEY_VALUE = (
     "key=value pair to configure for Ubuntu Pro services."
-    " Key must be one of: {}"
+    " Key must be one of: {options}"
 )
 CLI_CONFIG_UNSET_DESC = "Unset Ubuntu Pro configuration setting"
 CLI_CONFIG_UNSET_KEY = (
-    "configuration key to unset from Ubuntu Pro services. One of: {}"
+    "configuration key to unset from Ubuntu Pro services. One of: {options}"
 )
 CLI_CONFIG_DESC = "Manage Ubuntu Pro configuration"
 
@@ -898,7 +901,7 @@ CC_PRE_INSTALL = (
     "(This will download more than 500MB of packages, so may take"
     " some time.)"
 )
-CC_POST_ENABLE = "Please follow instructions in {} to configure EAL2"
+CC_POST_ENABLE = "Please follow instructions in {filename} to configure EAL2"
 
 CIS_TITLE = "CIS Audit"
 CIS_USG_TITLE = "Ubuntu Security Guide"
@@ -1064,7 +1067,7 @@ LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = (
         url=urls.LIVEPATCH_SUPPORTED_KERNELS
     )
 )
-LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {}"
+LIVEPATCH_UNABLE_TO_CONFIGURE = "Unable to configure livepatch: {error_msg}"
 LIVEPATCH_UNABLE_TO_ENABLE = "Unable to enable Livepatch: "
 LIVEPATCH_DISABLE_REATTACH = (
     "Disabling Livepatch prior to re-attach with new token"

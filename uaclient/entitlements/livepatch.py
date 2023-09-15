@@ -87,7 +87,7 @@ class LivepatchEntitlement(UAEntitlement):
         @return: True on success, False otherwise.
         """
         if not snap.is_snapd_installed():
-            event.info(messages.INSTALLING_PACKAGES.format("snapd"))
+            event.info(messages.INSTALLING_PACKAGES.format(packages="snapd"))
             snap.install_snapd()
 
         snap.run_snapd_wait_cmd()
@@ -105,7 +105,9 @@ class LivepatchEntitlement(UAEntitlement):
         )
         if not livepatch.is_livepatch_installed():
             event.info(
-                messages.INSTALLING_PACKAGES.format("canonical-livepatch snap")
+                messages.INSTALLING_PACKAGES.format(
+                    packages="canonical-livepatch snap"
+                )
             )
             try:
                 snap.install_snap("canonical-livepatch")
@@ -137,7 +139,9 @@ class LivepatchEntitlement(UAEntitlement):
             except exceptions.ProcessExecutionError as e:
                 LOG.error(str(e), exc_info=e)
                 event.info(
-                    messages.LIVEPATCH_UNABLE_TO_CONFIGURE.format(str(e))
+                    messages.LIVEPATCH_UNABLE_TO_CONFIGURE.format(
+                        error_msg=str(e)
+                    )
                 )
                 return False
         if process_token:
@@ -289,7 +293,9 @@ class LivepatchEntitlement(UAEntitlement):
                 "setup_livepatch_config"
             )
             event.info(
-                messages.SERVICE_UPDATING_CHANGED_DIRECTIVES.format(self.name)
+                messages.SERVICE_UPDATING_CHANGED_DIRECTIVES.format(
+                    service=self.name
+                )
             )
             return self.setup_livepatch_config(
                 process_directives=process_directives,
