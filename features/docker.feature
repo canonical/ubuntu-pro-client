@@ -3,12 +3,12 @@ Feature: Build docker images with pro services
 
     @slow
     @docker
-    @series.focal
+    @series.mantic
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Build docker images with pro services
-        Given a `focal` machine with ubuntu-advantage-tools installed
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
-        When I run `apt-get install -y docker.io jq` with sudo
+        When I run `apt-get install -y docker.io docker-buildx jq` with sudo
         When I create the file `/home/ubuntu/Dockerfile` with the following:
         """
         FROM ubuntu:<container_release>
@@ -74,6 +74,6 @@ Feature: Build docker images with pro services
 
         Examples: ubuntu release
            | release | container_release |enable_services | test_package_name | test_package_version |
-           | focal   | xenial            | [ esm-infra ]  | curl              | esm                  |
-           | focal   | bionic            | [ fips ]       | openssl           | fips                 |
-           | focal   | focal             | [ esm-apps ]   | hello             | esm                  |
+           | mantic  | xenial            | [ esm-infra ]  | curl              | esm                  |
+           | mantic  | bionic            | [ fips ]       | openssl           | fips                 |
+           | mantic  | focal             | [ esm-apps ]   | hello             | esm                  |
