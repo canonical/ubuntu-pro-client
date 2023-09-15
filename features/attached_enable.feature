@@ -659,7 +659,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
             """
             Installing canonical-livepatch snap
-            Canonical livepatch enabled
+            Canonical Livepatch enabled
             """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -796,7 +796,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
             Installing canonical-livepatch snap
-            Canonical livepatch enabled
+            Canonical Livepatch enabled
             """
         When I append the following on uaclient config:
         """
