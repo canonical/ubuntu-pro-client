@@ -178,11 +178,11 @@ def print_usn_header(fix_plan: FixPlanUSNResult):
     additional_data = target_usn.additional_data
     if isinstance(additional_data, USNAdditionalData):
         if additional_data.associated_cves:
-            lines.append("Found CVEs:")
+            lines.append(messages.SECURITY_FOUND_CVES)
             for cve in additional_data.associated_cves:
                 lines.append(" - https://ubuntu.com/security/{}".format(cve))
         elif additional_data.associated_launchpad_bugs:
-            lines.append("Found Launchpad bugs:")
+            lines.append(messages.SECURITY_FOUND_LAUNCHPAD_BUGS)
             for lp_bug in additional_data.associated_launchpad_bugs:
                 lines.append(" - " + lp_bug)
 
