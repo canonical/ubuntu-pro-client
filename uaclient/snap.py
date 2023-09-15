@@ -121,7 +121,7 @@ def get_installed_snaps() -> List[SnapPackage]:
 
 
 def install_snapd():
-    event.info(messages.APT_UPDATING_LIST.format("standard Ubuntu"))
+    event.info(messages.APT_UPDATING_LIST.format(name="standard Ubuntu"))
     try:
         apt.update_sources_list("/etc/apt/sources.list")
     except exceptions.UbuntuProError as e:

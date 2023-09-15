@@ -787,7 +787,7 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
 
     content.append(
         messages.STATUS_FOOTER_ENABLE_SERVICES_WITH.format(
-            "pro enable <service>"
+            command="pro enable <service>"
         )
     )
     pairs = []

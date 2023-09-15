@@ -506,7 +506,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     """
     print(messages.SECURITY_SERVICE_DISABLED.format(service=service))
     choice = util.prompt_choices(
-        messages.SECURITY_FIX_ENABLE_PROMPT.format(service),
+        messages.SECURITY_FIX_ENABLE_PROMPT.format(service=service),
         valid_choices=["e", "c"],
     )
 
