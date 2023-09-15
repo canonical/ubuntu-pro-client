@@ -597,7 +597,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | warning   | Current kernel is not supported | usg        |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
