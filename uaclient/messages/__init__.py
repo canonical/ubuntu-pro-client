@@ -471,13 +471,26 @@ Enter your new token to renew Ubuntu Pro subscription on this system:"""
 ###############################################################################
 
 SS_SUMMARY_TOTAL = "{count} packages installed:"
-SS_SUMMARY_ARCHIVE = (
-    "{offset}{count} package{plural} from Ubuntu {repository} repository"
+SS_SUMMARY_ARCHIVE = P(
+    lambda n: pluralize(
+        "{offset}{count} package from Ubuntu {repository} repository",
+        "{offset}{count} packages from Ubuntu {repository} repository",
+        n,
+    )
 )
-SS_SUMMARY_THIRD_PARTY_SN = "{offset}{count} package from a third party"
-SS_SUMMARY_THIRD_PARTY_PL = "{offset}{count} packages from third parties"
-SS_SUMMARY_UNAVAILABLE = (
-    "{offset}{count} package{plural} no longer available for download"
+SS_SUMMARY_THIRD_PARTY = P(
+    lambda n: pluralize(
+        "{offset}{count} package from a third party",
+        "{offset}{count} packages from third parties",
+        n,
+    )
+)
+SS_SUMMARY_UNAVAILABLE = P(
+    lambda n: pluralize(
+        "{offset}{count} package no longer available for download",
+        "{offset}{count} packages no longer available for download",
+        n,
+    )
 )
 
 SS_HELP_CALL = """\
@@ -500,8 +513,9 @@ SS_LTS_SUPPORT = """\
 This machine is receiving security patching for Ubuntu Main/Restricted
 repository until {date}."""
 
-SS_IS_ATTACHED = (
-    "This machine is{not_attached} attached to an Ubuntu Pro subscription."
+SS_IS_ATTACHED = "This machine is attached to an Ubuntu Pro subscription."
+SS_IS_NOT_ATTACHED = (
+    "This machine is NOT attached to an Ubuntu Pro subscription."
 )
 
 SS_THIRD_PARTY = """\
@@ -519,16 +533,28 @@ and esm-infra is not enabled."""
 SS_SERVICE_ADVERTISE = """\
 Ubuntu Pro with '{service}' enabled provides security updates for
 {repository} packages until {year}."""
-SS_SERVICE_ADVERTISE_COUNTS = (
-    " There {verb} {updates} pending security update{plural}."
+SS_SERVICE_ADVERTISE_COUNTS = P(
+    lambda n: pluralize(
+        "There is {updates} pending security update.",
+        "There are {updates} pending security updates.",
+        n,
+    )
 )
 
 SS_SERVICE_ENABLED = """\
 {repository} packages are receiving security updates from
 Ubuntu Pro with '{service}' enabled until {year}."""
-SS_SERVICE_ENABLED_COUNTS = """\
- You have received {updates} security
-update{plural}."""
+SS_SERVICE_ENABLED_COUNTS = P(
+    lambda n: pluralize(
+        """\
+You have received {updates} security
+update.""",
+        """\
+You have received {updates} security
+updates.""",
+        n,
+    )
+)
 
 SS_SERVICE_COMMAND = "Enable {service} with: pro enable {service}"
 SS_LEARN_MORE = """\
