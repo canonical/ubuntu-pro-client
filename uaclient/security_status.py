@@ -332,10 +332,9 @@ def _print_package_summary(
             + len(package_lists["esm-infra"])
         )
         print(
-            messages.SS_SUMMARY_ARCHIVE.format(
+            messages.SS_SUMMARY_ARCHIVE.pluralize(packages_mr).format(
                 offset=offset,
                 count=packages_mr,
-                plural="s",
                 repository="Main/Restricted",
             )
         )
@@ -348,10 +347,9 @@ def _print_package_summary(
         )
         if packages_um or always_show:
             print(
-                messages.SS_SUMMARY_ARCHIVE.format(
+                messages.SS_SUMMARY_ARCHIVE.pluralize(packages_um).format(
                     offset=offset,
                     count=packages_um,
-                    plural="s" if packages_um > 1 else "",
                     repository="Universe/Multiverse",
                 )
             )
@@ -359,19 +357,21 @@ def _print_package_summary(
     if show_items in ("all", "third-party"):
         packages_thirdparty = len(package_lists["third-party"])
         if packages_thirdparty or always_show:
-            msg = messages.SS_SUMMARY_THIRD_PARTY_SN
-            if packages_thirdparty > 1:
-                msg = messages.SS_SUMMARY_THIRD_PARTY_PL
-            print(msg.format(offset=offset, count=packages_thirdparty))
+            print(
+                messages.SS_SUMMARY_THIRD_PARTY.pluralize(
+                    packages_thirdparty
+                ).format(offset=offset, count=packages_thirdparty)
+            )
 
     if show_items in ("all", "unknown"):
         packages_unknown = len(package_lists["unknown"])
         if packages_unknown or always_show:
             print(
-                messages.SS_SUMMARY_UNAVAILABLE.format(
+                messages.SS_SUMMARY_UNAVAILABLE.pluralize(
+                    packages_unknown
+                ).format(
                     offset=offset,
                     count=packages_unknown,
-                    plural="s" if packages_unknown > 1 else "",
                 )
             )
 
@@ -420,16 +420,17 @@ def _print_service_support(
         )
 
     if installed_updates:
-        message += messages.SS_SERVICE_ENABLED_COUNTS.format(
+        message += " " + messages.SS_SERVICE_ENABLED_COUNTS.pluralize(
+            installed_updates
+        ).format(
             updates=installed_updates,
-            plural="" if installed_updates == 1 else "s",
         )
 
     if available_updates:
-        message += messages.SS_SERVICE_ADVERTISE_COUNTS.format(
-            verb="is" if available_updates == 1 else "are",
+        message += " " + messages.SS_SERVICE_ADVERTISE_COUNTS.pluralize(
+            available_updates
+        ).format(
             updates=available_updates,
-            plural="s" if available_updates > 1 else "",
         )
     print(message)
 
@@ -516,10 +517,10 @@ def security_status(cfg: UAConfig):
     if esm_infra_status == ApplicationStatus.DISABLED:
         _print_lts_support()
 
-    not_attached = ""
-    if not is_attached:
-        not_attached = " NOT"
-    print(messages.SS_IS_ATTACHED.format(not_attached=not_attached))
+    if is_attached:
+        print(messages.SS_IS_ATTACHED)
+    else:
+        print(messages.SS_IS_NOT_ATTACHED)
     print("")
 
     _print_service_support(
