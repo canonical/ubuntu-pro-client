@@ -651,6 +651,7 @@ PRO_HELP_SERVICE_INFO = (
     "Use pro help <service> to get more details about each service"
 )
 
+CLI_HELP_VARIANTS_HEADER = "Variants:"
 CLI_ARGS = "Arguments"
 CLI_FLAGS = "Flags"
 CLI_AVAILABLE_COMMANDS = "Available Commands"
