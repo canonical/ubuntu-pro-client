@@ -81,14 +81,12 @@ class RepoEntitlement(base.UAEntitlement):
         self.setup_apt_config(silent=silent)
 
         if self.supports_access_only and self.access_only:
-            packages_str = (
-                ": " + " ".join(self.packages)
-                if len(self.packages) > 0
-                else ""
-            )
-            event.info(
-                messages.SKIPPING_INSTALLING_PACKAGES.format(packages_str)
-            )
+            if len(self.packages) > 0:
+                event.info(
+                    messages.SKIPPING_INSTALLING_PACKAGES.format(
+                        packages=" ".join(self.packages)
+                    )
+                )
             event.info(messages.ACCESS_ENABLED_TMPL.format(title=self.title))
         else:
             self.install_packages()
