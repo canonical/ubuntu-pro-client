@@ -433,6 +433,8 @@ Source package is not affected on this release."""
 SECURITY_CVE_STATUS_UNKNOWN = """\
 UNKNOWN: {status}"""
 
+SECURITY_FOUND_CVES = "Found CVEs:"
+SECURITY_FOUND_LAUNCHPAD_BUGS = "Found Launchpad bugs:"
 SECURITY_FIXING_REQUESTED_USN = """\
 Fixing requested {issue_id}"""
 SECURITY_FIXING_RELATED_USNS = """\
