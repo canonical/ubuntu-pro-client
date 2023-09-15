@@ -581,7 +581,8 @@ SS_SERVICE_HELP = "Run 'pro help {service}' to learn more"
 
 SS_UPDATES_AVAILABLE = "Installed packages with an available {service} update:"
 SS_UPDATES_INSTALLED = "Installed packages with an {service} update applied:"
-SS_OTHER_PACKAGES = "{prefix} packages covered by {service}:"
+SS_OTHER_PACKAGES = "Installed packages covered by {service}:"
+SS_FURTHER_OTHER_PACKAGES = "Further installed packages covered by {service}:"
 SS_PACKAGES_HEADER = "Packages:"
 
 ###############################################################################
