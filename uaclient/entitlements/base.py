@@ -484,7 +484,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return True
 
         if not snap.is_snapd_installed():
-            event.info(messages.INSTALLING_PACKAGES.format("snapd"))
+            event.info(messages.INSTALLING_PACKAGES.format(packages="snapd"))
             snap.install_snapd()
 
         snap.run_snapd_wait_cmd()
@@ -546,7 +546,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         package_names = [package["name"] for package in required_packages]
         LOG.debug("Installing packages %r", package_names)
         event.info(
-            messages.INSTALLING_PACKAGES.format(" ".join(package_names))
+            messages.INSTALLING_PACKAGES.format(
+                packages=" ".join(package_names)
+            )
         )
         apt.run_apt_install_command(package_names)
 
@@ -572,10 +574,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         ]
         LOG.debug("Uninstalling packages %r", package_names)
         package_names_str = " ".join(package_names)
-        event.info(messages.UNINSTALLING_PACKAGES.format(package_names_str))
+        event.info(
+            messages.UNINSTALLING_PACKAGES.format(packages=package_names_str)
+        )
         apt.remove_packages(
             package_names,
-            messages.UNINSTALLING_PACKAGES_FAILED.format(package_names_str),
+            messages.UNINSTALLING_PACKAGES_FAILED.format(
+                packages=package_names_str
+            ),
         )
 
         return True
@@ -688,7 +694,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return False, e_msg
 
             event.info(
-                messages.DISABLING_INCOMPATIBLE_SERVICE.format(ent.title)
+                messages.DISABLING_INCOMPATIBLE_SERVICE.format(
+                    service=ent.title
+                )
             )
 
             ret = ent.disable(silent=True)
@@ -731,7 +739,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     return False, e_msg
 
                 event.info(
-                    messages.ENABLING_REQUIRED_SERVICE.format(ent.title)
+                    messages.ENABLING_REQUIRED_SERVICE.format(
+                        service=ent.title
+                    )
                 )
                 ret, fail = ent.enable(silent=True)
                 if not ret:
@@ -1178,7 +1188,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     ).format(self.name)
                     event.info(
                         messages.DISABLE_DURING_CONTRACT_REFRESH.format(
-                            self.name
+                            service=self.name
                         )
                     )
                 else:
@@ -1188,7 +1198,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     )
                     event.info(
                         messages.UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH.format(  # noqa: E501
-                            self.name
+                            service=self.name
                         )
                     )
             # Clean up former entitled machine-access-<name> response cache
@@ -1227,6 +1237,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def _update_sources_list(self):
         if self._is_sources_list_updated:
             return
-        event.info(messages.APT_UPDATING_LIST.format("standard Ubuntu"))
+        event.info(messages.APT_UPDATING_LIST.format(name="standard Ubuntu"))
         apt.update_sources_list("/etc/apt/sources.list")
         self._is_sources_list_updated = True

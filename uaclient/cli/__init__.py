@@ -326,7 +326,7 @@ def config_set_parser(parser, parent_command: str):
         "key_value_pair",
         help=(
             messages.CLI_CONFIG_SET_KEY_VALUE.format(
-                ", ".join(config.UA_CONFIGURABLE_KEYS)
+                options=", ".join(config.UA_CONFIGURABLE_KEYS)
             )
         ),
     )
@@ -344,7 +344,7 @@ def config_unset_parser(parser, parent_command: str):
         "key",
         help=(
             messages.CLI_CONFIG_UNSET_KEY.format(
-                ", ".join(config.UA_CONFIGURABLE_KEYS)
+                options=", ".join(config.UA_CONFIGURABLE_KEYS)
             )
         ),
         metavar="key",
@@ -409,7 +409,7 @@ def attach_parser(parser):
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=messages.CLI_FORMAT_DESC.format("cli"),
+        help=messages.CLI_FORMAT_DESC.format(default="cli"),
     )
     return parser
 
@@ -422,7 +422,7 @@ def security_status_parser(parser):
 
     parser.add_argument(
         "--format",
-        help=messages.CLI_FORMAT_DESC.format("text"),
+        help=messages.CLI_FORMAT_DESC.format(default="text"),
         choices=("json", "yaml", "text"),
         default="text",
     )
@@ -519,7 +519,7 @@ def detach_parser(parser):
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=messages.CLI_FORMAT_DESC.format("cli"),
+        help=messages.CLI_FORMAT_DESC.format(default="cli"),
     )
     return parser
 
@@ -545,7 +545,7 @@ def help_parser(parser, cfg: config.UAConfig):
         action="store",
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
-        help=(messages.CLI_FORMAT_DESC.format(STATUS_FORMATS[0])),
+        help=(messages.CLI_FORMAT_DESC.format(default=STATUS_FORMATS[0])),
     )
 
     parser.add_argument(
@@ -593,7 +593,7 @@ def enable_parser(parser, cfg: config.UAConfig):
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=messages.CLI_FORMAT_DESC.format("cli"),
+        help=messages.CLI_FORMAT_DESC.format(default="cli"),
     )
     parser.add_argument(
         "--variant", action="store", help=messages.CLI_ENABLE_VARIANT
@@ -631,7 +631,7 @@ def disable_parser(parser, cfg: config.UAConfig):
         action="store",
         choices=["cli", "json"],
         default="cli",
-        help=messages.CLI_FORMAT_DESC.format("cli"),
+        help=messages.CLI_FORMAT_DESC.format(default="cli"),
     )
     return parser
 
@@ -685,7 +685,7 @@ def status_parser(parser):
         action="store",
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
-        help=(messages.CLI_FORMAT_DESC.format(STATUS_FORMATS[0])),
+        help=(messages.CLI_FORMAT_DESC.format(default=STATUS_FORMATS[0])),
     )
     parser.add_argument(
         "--simulate-with-token",

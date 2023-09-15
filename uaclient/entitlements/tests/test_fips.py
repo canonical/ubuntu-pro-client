@@ -1181,7 +1181,9 @@ class TestFipsSetupAPTConfig:
         expected_calls = [
             mock.call(
                 ["apt-mark", "showholds"],
-                messages.EXECUTING_COMMAND_FAILED.format("apt-mark showholds"),
+                messages.EXECUTING_COMMAND_FAILED.format(
+                    command="apt-mark showholds"
+                ),
             )
         ]
         if unhold_packages:
@@ -1189,7 +1191,9 @@ class TestFipsSetupAPTConfig:
             expected_calls.append(
                 mock.call(
                     cmd,
-                    messages.EXECUTING_COMMAND_FAILED.format(" ".join(cmd)),
+                    messages.EXECUTING_COMMAND_FAILED.format(
+                        command=" ".join(cmd)
+                    ),
                 )
             )
         assert expected_calls == run_apt_command.call_args_list
