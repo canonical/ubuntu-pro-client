@@ -867,8 +867,9 @@ def action_config_set(args, *, cfg, **kwargs):
 
         if set_key in cfg.deprecated_global_scoped_proxy_options:
             print(
-                messages.WARNING_APT_PROXY_SETUP.format(
-                    protocol_type=protocol_type
+                messages.WARNING_CONFIG_FIELD_RENAME.format(
+                    old="apt_{}_proxy".format(protocol_type),
+                    new="global_apt_{}_proxy".format(protocol_type),
                 )
             )
             set_key = "global_" + set_key
@@ -947,8 +948,9 @@ def action_config_unset(args, *, cfg, **kwargs):
         if args.key in cfg.deprecated_global_scoped_proxy_options:
             protocol_type = "https" if "https" in args.key else "http"
             event.info(
-                messages.WARNING_APT_PROXY_SETUP.format(
-                    protocol_type=protocol_type
+                messages.WARNING_CONFIG_FIELD_RENAME.format(
+                    old="apt_{}_proxy".format(protocol_type),
+                    new="global_apt_{}_proxy".format(protocol_type),
                 )
             )
             args.key = "global_" + args.key

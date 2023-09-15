@@ -209,7 +209,11 @@ class UAConfig:
 
         old_apt_val = self.user_config.apt_http_proxy
         if old_apt_val:
-            event.info(messages.WARNING_DEPRECATED_APT_HTTP)
+            event.info(
+                messages.WARNING_DEPRECATED_FIELD.format(
+                    old="apt_https_proxy", new="global_apt_https_proxy"
+                )
+            )
             return old_apt_val
         return None
 
@@ -229,7 +233,11 @@ class UAConfig:
 
         old_apt_val = self.user_config.apt_https_proxy
         if old_apt_val:
-            event.info(messages.WARNING_DEPRECATED_APT_HTTPS)
+            event.info(
+                messages.WARNING_DEPRECATED_FIELD.format(
+                    old="apt_https_proxy", new="global_apt_https_proxy"
+                )
+            )
             return old_apt_val
         return None
 
