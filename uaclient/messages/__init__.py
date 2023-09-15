@@ -357,12 +357,21 @@ SECURITY_ISSUE_UNAFFECTED = (
 SECURITY_ISSUE_UNAFFECTED_ISSUE_CONTEXT = (
     OKGREEN_CHECK + " {issue} [{context}] does not affect your system."
 )
-SECURITY_PKG_STILL_AFFECTED = (
-    "{num_pkgs} package{s} {verb} still affected: {pkgs}"
+SECURITY_PKG_STILL_AFFECTED = P(
+    lambda n: pluralize(
+        "{num_pkgs} package is still affected: {pkgs}",
+        "{num_pkgs} packages are still affected: {pkgs}",
+        n,
+    )
 )
-SECURITY_AFFECTED_PKGS = (
-    "{count} affected source package{plural_str} installed"
+SECURITY_AFFECTED_PKGS = P(
+    lambda n: pluralize(
+        "{count} affected source package is installed: {pkgs}",
+        "{count} affected source packages are installed: {pkgs}",
+        n,
+    )
 )
+SECURITY_NO_AFFECTED_PKGS = "No affected source packages are installed."
 CVE_FIXED = "{issue} is resolved."
 CVE_FIXED_BY_LIVEPATCH = (
     OKGREEN_CHECK

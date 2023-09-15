@@ -973,12 +973,7 @@ def print_affected_packages_header(
     """
     count = len(affected_pkg_status)
     if count == 0:
-        print(
-            messages.SECURITY_AFFECTED_PKGS.format(
-                count="No", plural_str="s are"
-            )
-            + "."
-        )
+        print(messages.SECURITY_NO_AFFECTED_PKGS)
         print(
             "\n"
             + messages.SECURITY_ISSUE_UNAFFECTED.format(
@@ -987,16 +982,8 @@ def print_affected_packages_header(
         )
         return
 
-    if count == 1:
-        plural_str = " is"
-    else:
-        plural_str = "s are"
-    msg = (
-        messages.SECURITY_AFFECTED_PKGS.format(
-            count=count, plural_str=plural_str
-        )
-        + ": "
-        + ", ".join(sorted(affected_pkg_status.keys()))
+    msg = messages.SECURITY_AFFECTED_PKGS.pluralize(count).format(
+        count=count, pkgs=", ".join(sorted(affected_pkg_status.keys()))
     )
     print(
         textwrap.fill(
@@ -1267,10 +1254,10 @@ def _format_unfixed_packages_msg(unfixed_pkgs: List[UnfixedPackage]) -> str:
     sorted_pkgs = sorted({pkg.pkg for pkg in unfixed_pkgs})
     num_pkgs_unfixed = len(sorted_pkgs)
     return textwrap.fill(
-        messages.SECURITY_PKG_STILL_AFFECTED.format(
+        messages.SECURITY_PKG_STILL_AFFECTED.pluralize(
+            num_pkgs_unfixed
+        ).format(
             num_pkgs=num_pkgs_unfixed,
-            s="s" if num_pkgs_unfixed > 1 else "",
-            verb="are" if num_pkgs_unfixed > 1 else "is",
             pkgs=", ".join(sorted_pkgs),
         ),
         width=PRINT_WRAP_WIDTH,
