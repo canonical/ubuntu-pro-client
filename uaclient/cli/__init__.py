@@ -1163,8 +1163,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
             to_disable.append(ent)
 
     if to_disable:
-        suffix = "s" if len(to_disable) > 1 else ""
-        event.info(messages.DETACH_WILL_DISABLE.format(suffix))
+        event.info(messages.DETACH_WILL_DISABLE.pluralize(len(to_disable)))
         for ent in to_disable:
             event.info("    {}".format(ent.name))
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
