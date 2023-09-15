@@ -149,19 +149,15 @@ CLI_CONFIG_GLOBAL_XOR_UA_PROXY = (
     "\nError: Setting global apt proxy and pro scoped apt proxy at the"
     " same time is unsupported. No apt proxy is set."
 )
-WARNING_APT_PROXY_SETUP = """\
-Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
+WARNING_CONFIG_FIELD_RENAME = """\
+Warning: {old} has been renamed to {new}."""
 WARNING_APT_PROXY_OVERWRITE = """\
 Warning: Setting the {current_proxy} proxy will overwrite the {previous_proxy}
 proxy previously set via `pro config`.
 """
-WARNING_DEPRECATED_APT_HTTP = """\
-Using deprecated "apt_http_proxy" config field.
-Please migrate to using "global_apt_http_proxy"
-"""
-WARNING_DEPRECATED_APT_HTTPS = """\
-Using deprecated "apt_https_proxy" config field.
-Please migrate to using "global_apt_https_proxy"
+WARNING_DEPRECATED_FIELD = """\
+Using deprecated "{old}" config field.
+Please migrate to using "{new}"
 """
 
 USER_CONFIG_MIGRATION_MIGRATING = (
