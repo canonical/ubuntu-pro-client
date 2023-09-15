@@ -132,10 +132,7 @@ class FixContext:
 
 
 def set_fix_parser(subparsers):
-    parser_fix = subparsers.add_parser(
-        "fix",
-        help="check for and mitigate the impact of a CVE/USN on this system",
-    )
+    parser_fix = subparsers.add_parser("fix", help=messages.CLI_ROOT_FIX)
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
 
@@ -146,34 +143,14 @@ def fix_parser(parser):
         name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
     )
     parser.prog = "fix"
-    parser.description = (
-        "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this"
-        " machine."
-    )
-    parser._optionals.title = "Flags"
+    parser.description = messages.CLI_FIX_DESC
+    parser._optionals.title = messages.CLI_FLAGS
+    parser.add_argument("security_issue", help=messages.CLI_FIX_ISSUE)
     parser.add_argument(
-        "security_issue",
-        help=(
-            "Security vulnerability ID to inspect and resolve on this system."
-            " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
-        ),
+        "--dry-run", action="store_true", help=messages.CLI_FIX_DRY_RUN
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help=(
-            "If used, fix will not actually run but will display"
-            " everything that will happen on the machine during the"
-            " command."
-        ),
-    )
-    parser.add_argument(
-        "--no-related",
-        action="store_true",
-        help=(
-            "If used, when fixing a USN, the command will not try to"
-            " also fix related USNs to the target USN."
-        ),
+        "--no-related", action="store_true", help=messages.CLI_FIX_NO_RELATED
     )
 
     return parser
