@@ -21,8 +21,9 @@ Feature: FIPS enablement in lxd containers
             """
         And stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install.
             Please run `apt upgrade` to ensure all FIPS packages are updated to the correct

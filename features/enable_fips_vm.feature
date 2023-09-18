@@ -24,7 +24,7 @@ Feature: FIPS enablement in lxd VMs
             """
         And stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -150,7 +150,7 @@ Feature: FIPS enablement in lxd VMs
             """
         And stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -290,7 +290,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing FIPS Updates packages
             FIPS Updates enabled
             A reboot is required to complete install
@@ -339,7 +339,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -403,7 +403,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -472,7 +472,7 @@ Feature: FIPS enablement in lxd VMs
         And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing FIPS packages
             FIPS enabled
             A reboot is required to complete install
@@ -493,7 +493,7 @@ Feature: FIPS enablement in lxd VMs
             """
             One moment, checking your subscription first
             Disabling incompatible service: FIPS
-            Updating package lists
+            Updating <fips-name> package lists
             Installing FIPS Updates packages
             FIPS Updates enabled
             A reboot is required to complete install.

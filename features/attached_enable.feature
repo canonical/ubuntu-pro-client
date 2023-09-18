@@ -17,7 +17,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Updating package lists
+            Updating CC EAL2 package lists
             (This will download more than 500MB of packages, so may take some time.)
             Installing CC EAL2 packages
             CC EAL2 enabled
@@ -38,7 +38,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating CC EAL2 package lists
         Skipping installing packages: ubuntu-commoncriteria
         CC EAL2 access enabled
         """
@@ -115,7 +115,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package lists
         Ubuntu Pro: ESM Infra enabled
         """
         Examples: ubuntu release
@@ -324,7 +324,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating CIS Audit package lists
         Skipping installing packages: usg-cisbenchmark usg-common
         CIS Audit access enabled
         Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -334,7 +334,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating CIS Audit package lists
+        Updating standard Ubuntu package lists
         Installing CIS Audit packages
         CIS Audit enabled
         Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -411,7 +412,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             From Ubuntu 20.04 and onwards 'pro enable cis' has been
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
-            Updating package lists
+            Updating CIS Audit package lists
+            Updating standard Ubuntu package lists
             Installing CIS Audit packages
             CIS Audit enabled
             Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -509,7 +511,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Updating package lists
+            Updating Ubuntu Security Guide package lists
             Ubuntu Security Guide enabled
             Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
             """
@@ -535,7 +537,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             From Ubuntu 20.04 and onwards 'pro enable cis' has been
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
-            Updating package lists
+            Updating CIS Audit package lists
+            Updating standard Ubuntu package lists
             Installing CIS Audit packages
             CIS Audit enabled
             Visit https://ubuntu.com/security/cis to learn how to use CIS
@@ -634,7 +637,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         One moment, checking your subscription first
         Installing snapd
-        Updating package lists
+        Updating standard Ubuntu package lists
         Failed to install snapd on the system
         """
         Examples: ubuntu release
@@ -751,7 +754,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
             Installing canonical-livepatch snap
             Canonical livepatch enabled
@@ -761,7 +764,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Updating package lists
+            Updating FIPS package lists
             Installing FIPS packages
             FIPS enabled
             A reboot is required to complete install.
@@ -790,7 +793,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
             Installing canonical-livepatch snap
             Canonical livepatch enabled
@@ -822,7 +825,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
             """
         And stdout matches regexp:
@@ -835,7 +838,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             One moment, checking your subscription first
             Disabling incompatible service: Livepatch
-            Updating package lists
+            Updating FIPS package lists
             Installing FIPS packages
             FIPS enabled
             A reboot is required to complete install.
@@ -876,7 +879,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Updating package lists
+            Updating FIPS Updates package lists
             Installing FIPS Updates packages
             FIPS Updates enabled
             A reboot is required to complete install.
@@ -953,7 +956,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
         Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Enabling required service: Ubuntu Pro: ESM Apps
         Ubuntu Pro: ESM Apps enabled
-        Updating package lists
+        Updating ROS ESM Security Updates package lists
         ROS ESM Security Updates enabled
         """
         When I run `pro status --all` as non-root
@@ -1004,7 +1007,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         ROS ESM All Updates cannot be enabled with ROS ESM Security Updates disabled.
         Enable ROS ESM Security Updates and proceed to enable ROS ESM All Updates\? \(y\/N\) Enabling required service: ROS ESM Security Updates
         ROS ESM Security Updates enabled
-        Updating package lists
+        Updating ROS ESM All Updates package lists
         ROS ESM All Updates enabled
         """
         When I run `pro status --all` as non-root

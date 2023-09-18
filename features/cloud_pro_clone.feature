@@ -14,6 +14,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
         """
         When I run `pro auto-attach` with sudo
         Then the machine is attached
+        When I run `apt update` with sudo
         When I run `apt install -y jq` with sudo
         When I save the `activityInfo.activityToken` value from the contract
         When I save the `activityInfo.activityID` value from the contract

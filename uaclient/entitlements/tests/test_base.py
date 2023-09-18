@@ -21,7 +21,6 @@ from uaclient.status import ContractStatus
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
-
     name = "testconcreteentitlement"
     title = "Test Concrete Entitlement"
     description = "Entitlement for testing"
@@ -323,7 +322,6 @@ class TestUaEntitlementCanEnable:
     def test_can_enable_on_beta_service(
         self, allow_beta_cfg, allow_beta, is_beta, concrete_entitlement_factory
     ):
-
         feature_overrides = {"allow_beta": allow_beta_cfg}
         entitlement = concrete_entitlement_factory(
             entitled=True,
@@ -868,7 +866,6 @@ class TestUaEntitlementUserFacingStatus:
     def test_unavailable_when_applicable_but_not_entitled(
         self, concrete_entitlement_factory
     ):
-
         entitlement = concrete_entitlement_factory(
             entitled=False,
             applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
@@ -882,7 +879,6 @@ class TestUaEntitlementUserFacingStatus:
     def test_unavailable_when_applicable_but_no_entitlement_cfg(
         self, concrete_entitlement_factory
     ):
-
         entitlement = concrete_entitlement_factory(
             entitled=False,
             applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
@@ -1326,18 +1322,19 @@ class TestHandleRequiredPackages:
             ),
             (
                 [{"name": "package"}],
-                [mock.call()],
+                [mock.call("/etc/apt/sources.list")],
                 [mock.call(["package"])],
                 True,
             ),
             (
                 [{"name": "package"}, {"name": "package2"}],
-                [mock.call()],
+                [mock.call("/etc/apt/sources.list")],
                 [mock.call(["package", "package2"])],
                 True,
             ),
         ],
     )
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.run_apt_install_command")
     @mock.patch("uaclient.apt.run_apt_update_command")
     @mock.patch(
@@ -1349,6 +1346,7 @@ class TestHandleRequiredPackages:
         m_entitlement_cfg,
         m_apt_update,
         m_apt_install,
+        m_update_sources_list,
         required_packages_directive,
         expected_apt_update_calls,
         expected_apt_install_calls,
@@ -1363,7 +1361,10 @@ class TestHandleRequiredPackages:
         }
 
         assert expected_result == entitlement.handle_required_packages()
-        assert expected_apt_update_calls == m_apt_update.call_args_list
+        assert [] == m_apt_update.call_args_list
+        assert (
+            expected_apt_update_calls == m_update_sources_list.call_args_list
+        )
         assert expected_apt_install_calls == m_apt_install.call_args_list
 
     @pytest.mark.parametrize(

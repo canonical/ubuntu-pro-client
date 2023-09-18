@@ -296,6 +296,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             self.extra_args = []
         self._called_name = called_name
         self._valid_service = None  # type: Optional[bool]
+        self._is_sources_list_updated = False
 
     @property
     def valid_service(self):
@@ -540,8 +541,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not required_packages:
             return True
 
-        event.info(messages.APT_UPDATING_LISTS)
-        apt.run_apt_update_command()
+        self._update_sources_list()
 
         package_names = [package["name"] for package in required_packages]
         LOG.debug("Installing packages %r", package_names)
@@ -1223,3 +1223,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return True
 
         return False
+
+    def _update_sources_list(self):
+        if self._is_sources_list_updated:
+            return
+        event.info(messages.APT_UPDATING_LIST.format("standard Ubuntu"))
+        apt.update_sources_list("/etc/apt/sources.list")
+        self._is_sources_list_updated = True
