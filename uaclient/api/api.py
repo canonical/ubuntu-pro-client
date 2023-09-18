@@ -18,6 +18,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.wait.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
+    "u.pro.security.fix.cve.execute.v1",
     "u.pro.security.fix.cve.plan.v1",
     "u.pro.security.fix.usn.plan.v1",
     "u.pro.security.status.livepatch_cves.v1",
