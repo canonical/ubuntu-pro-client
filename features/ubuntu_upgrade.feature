@@ -68,7 +68,7 @@ Feature: Upgrade between releases when uaclient is attached
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
         """
-        Updating package lists
+        Updating <fips-name> package lists
         Installing <fips-name> packages
         <fips-name> enabled
         A reboot is required to complete install

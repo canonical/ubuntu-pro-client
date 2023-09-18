@@ -256,6 +256,13 @@ class RepoEntitlement(base.UAEntitlement):
         if not util.handle_message_operations(msg_ops):
             return
 
+        try:
+            self._update_sources_list()
+        except exceptions.UbuntuProError:
+            if cleanup_on_failure:
+                self.remove_apt_config()
+            raise
+
         if verbose:
             event.info(
                 messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
@@ -399,9 +406,9 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows pro status to report correct info
         if not silent:
-            event.info(messages.APT_UPDATING_LISTS)
+            event.info(messages.APT_UPDATING_LIST.format(self.title))
         try:
-            apt.run_apt_update_command()
+            apt.update_sources_list(repo_filename)
         except exceptions.UbuntuProError:
             self.remove_apt_config(run_apt_update=False)
             raise

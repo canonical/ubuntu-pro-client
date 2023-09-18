@@ -62,7 +62,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         .*This will change your kernel. To revert to your original kernel, you will need
         to make the change manually..*
 
-        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time kernel package lists
         Installing Real-time kernel packages
         Real-time kernel enabled
         A reboot is required to complete install.
@@ -217,7 +217,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         .*This will change your kernel. To revert to your original kernel, you will need
         to make the change manually..*
 
-        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra kernel package lists
         Installing Real-time NVIDIA Tegra Kernel packages
         Real-time NVIDIA Tegra Kernel enabled
         """
@@ -268,7 +268,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         It services latency-dependent use cases by providing deterministic response times.
         The Real-time kernel meets stringent preemption specifications and is suitable for
         telco applications and dedicated devices in industrial automation and robotics.
-        The Real-time kernel is currently incompatible with FIPS and Livepatch. 
+        The Real-time kernel is currently incompatible with FIPS and Livepatch.
 
         Variants:
 
@@ -343,7 +343,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         One moment, checking your subscription first
-        Updating package lists
+        Updating Real-time kernel package lists
         Skipping installing packages: ubuntu-realtime
         Real-time kernel access enabled
         """
