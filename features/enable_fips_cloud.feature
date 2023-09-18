@@ -132,7 +132,7 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -197,7 +197,7 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -276,7 +276,7 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install
@@ -338,7 +338,7 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
+            Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled
             A reboot is required to complete install

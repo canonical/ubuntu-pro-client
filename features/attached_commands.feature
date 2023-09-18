@@ -416,7 +416,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
         """
-        Updating package lists
+        Updating Ubuntu Pro: ESM Infra package lists
         Ubuntu Pro: ESM Infra enabled
         """
         And stdout does not match regexp:
@@ -669,32 +669,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   |
            | jammy   |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
-    Scenario Outline: Enable command with invalid repositories in user machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `pro disable esm-infra` with sudo
-        And I run `add-apt-repository ppa:cloud-init-dev/daily -y` with sudo, retrying exit [1]
-        And I run `apt update` with sudo
-        And I run `sed -i 's/ubuntu/ubun/' /etc/apt/sources.list.d/<ppa_file>.list` with sudo
-        And I verify that running `pro enable esm-infra` `with sudo` exits `1`
-        Then stdout matches regexp:
-        """
-        One moment, checking your subscription first
-        Updating package lists
-        APT update failed.
-        APT update failed to read APT config for the following:
-        - http(s)?://ppa.launchpad(content)?.net/cloud-init-dev/daily/ubun
-        """
-
-        Examples: ubuntu release
-           | release | ppa_file                           |
-           | xenial  | cloud-init-dev-ubuntu-daily-xenial |
-           | bionic  | cloud-init-dev-ubuntu-daily-bionic |
-           | focal   | cloud-init-dev-ubuntu-daily-focal  |
-           | jammy   | cloud-init-dev-ubuntu-daily-jammy  |
-
     @series.all
     @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script on an attached machine
@@ -778,6 +752,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Run timer script to valid machine activity endpoint
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
         And I run `apt install jq -y` with sudo
         And I save the `activityInfo.activityToken` value from the contract
         And I save the `activityInfo.activityID` value from the contract

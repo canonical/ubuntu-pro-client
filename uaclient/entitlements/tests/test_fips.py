@@ -262,12 +262,14 @@ class TestFIPSEntitlementCanEnable:
 
 
 class TestFIPSEntitlementEnable:
+    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "get_cloud_type", return_value=("", None))
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_get_cloud_type,
         m_setup_apt_proxy,
+        m_update_sources_list,
         entitlement,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
@@ -395,12 +397,6 @@ class TestFIPSEntitlementEnable:
                 retry_sleeps=apt.APT_RETRIES,
                 override_env_vars=None,
             ),
-            mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
-            ),
         ]
         subp_calls += install_cmd
 
@@ -410,6 +406,7 @@ class TestFIPSEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
+        assert 2 == m_update_sources_list.call_count
         assert [
             messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg,
         ] == notice_ent_cls.list()
@@ -1136,6 +1133,7 @@ class TestFipsEntitlementInstallPackages:
         expected_msg = "\n".join(
             [
                 "Installing {} packages".format(entitlement.title),
+                "Updating standard Ubuntu package lists",
                 "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"

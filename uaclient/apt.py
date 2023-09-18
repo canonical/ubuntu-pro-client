@@ -340,6 +340,22 @@ def run_apt_update_command(
     return out
 
 
+@util.retry(
+    (exceptions.APTProcessConflictError, exceptions.APTUpdateFailed),
+    APT_RETRIES,
+)
+def update_sources_list(sources_list: str):
+    cache = get_apt_cache()
+    try:
+        cache.update(sources_list=sources_list)
+    except apt.cache.LockFailedException:
+        raise exceptions.APTProcessConflictError()
+    except apt.cache.FetchFailedException as e:
+        raise exceptions.APTUpdateFailed(detail=str(e))
+    finally:
+        get_apt_cache_policy.cache_clear()
+
+
 def run_apt_install_command(
     packages: List[str],
     apt_options: Optional[List[str]] = None,
