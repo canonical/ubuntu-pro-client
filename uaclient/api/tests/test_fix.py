@@ -26,6 +26,7 @@ from uaclient.api.u.pro.security.fix import (
     fix_plan_cve,
     fix_plan_usn,
 )
+from uaclient.api.u.pro.status.enabled_services.v1 import EnabledService
 from uaclient.contract import ContractExpiryStatus
 from uaclient.messages import INVALID_SECURITY_ISSUE
 from uaclient.security import CVEPackageStatus, FixStatus
@@ -381,7 +382,11 @@ class TestFixPlan:
         ]
         m_enabled_services.side_effect = [
             mock.MagicMock(enabled_services=None),
-            mock.MagicMock(enabled_services=["esm-infra"]),
+            mock.MagicMock(
+                enabled_services=[
+                    EnabledService(name="esm-infra", variant_enabled=False)
+                ]
+            ),
         ]
 
         expected_plan = FixPlanResult(
