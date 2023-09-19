@@ -59,7 +59,8 @@ your organisation is consuming.
 `Snap-store-proxy`_ is a snap that provides an edge proxy to the Snap store, so
 that after your device has been registered with the proxy, all communications
 with the Snap store will be sent via the proxy. This is part of the "firewalled"
-deployment.
+deployment. Although online mode is the default for the Snap Store Proxy, it
+can also `operate in offline mode`_, for true airgapped deployments.
  
 Security patching with Livepatch on-prem
 ========================================
@@ -78,3 +79,4 @@ greater control over when those patches roll out across your infrastructure.
 .. _Landscape Beta Discourse: https://discourse.ubuntu.com/c/landscape/landscape-beta/115
 .. _Snap-store-proxy: https://snapcraft.io/snap-store-proxy
 .. _Livepatch on-prem: https://ubuntu.com/security/livepatch/docs/livepatch_on_prem
+.. _operate in offline mode: https://docs.ubuntu.com/snap-store-proxy/en/airgap
