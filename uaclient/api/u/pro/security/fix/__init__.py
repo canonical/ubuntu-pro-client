@@ -896,7 +896,12 @@ def _generate_fix_plan(
                     )
 
             enabled_services = _enabled_services(cfg).enabled_services or []
-            if service_to_check not in enabled_services:
+            enabled_services_names = (
+                [service.name for service in enabled_services]
+                if enabled_services
+                else []
+            )
+            if service_to_check not in enabled_services_names:
                 fix_plan.register_step(
                     operation=FixStepType.ENABLE,
                     data={
