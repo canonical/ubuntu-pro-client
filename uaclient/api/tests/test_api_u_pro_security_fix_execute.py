@@ -342,9 +342,4 @@ class TestExecute:
         pkg_version,
     ):
         m_get_pkg_version.return_value = pkg_version
-        actual_result = _execute_fix(security_issue)
-        if actual_result != expected_result:
-            print(expected_result)
-            print(actual_result)
-            breakpoint()
         assert expected_result == _execute_fix(security_issue)

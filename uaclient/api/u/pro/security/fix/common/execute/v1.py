@@ -197,6 +197,7 @@ def _handle_apt_upgrade(
                 ],
             )
         )
+        execute_context.status = "error"
         return
 
     try:
