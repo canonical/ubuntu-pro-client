@@ -25,7 +25,7 @@ class CVEFixExecuteOptions(DataObject):
         self.cves = cves
 
 
-class CVEFixExecuteResult(DataObject):
+class CVEAPIFixExecuteResult(DataObject):
     fields = [
         Field("status", StringDataValue),
         Field("cves", data_list(FixExecuteResult)),
@@ -36,20 +36,20 @@ class CVEFixExecuteResult(DataObject):
         self.cves = cves
 
 
-class CVESFixExecuteResult(DataObject, AdditionalInfo):
-    fields = [Field("cves_data", CVEFixExecuteResult)]
+class CVESAPIFixExecuteResult(DataObject, AdditionalInfo):
+    fields = [Field("cves_data", CVEAPIFixExecuteResult)]
 
-    def __init__(self, cves_data: CVEFixExecuteResult):
+    def __init__(self, cves_data: CVEAPIFixExecuteResult):
         self.cves_data = cves_data
 
 
-def execute(options: CVEFixExecuteOptions) -> CVESFixExecuteResult:
+def execute(options: CVEFixExecuteOptions) -> CVESAPIFixExecuteResult:
     return _execute(options, UAConfig())
 
 
 def _execute(
     options: CVEFixExecuteOptions, cfg: UAConfig
-) -> CVESFixExecuteResult:
+) -> CVESAPIFixExecuteResult:
     fix_plan = _plan(CVEFixPlanOptions(cves=options.cves), cfg=cfg)
     cves_result = []  # type: List[FixExecuteResult]
     all_cves_status = FixStatus.SYSTEM_NOT_AFFECTED.value.msg
@@ -62,8 +62,10 @@ def _execute(
         )
         cves_result.append(cve_result)
 
-    return CVESFixExecuteResult(
-        cves_data=CVEFixExecuteResult(status=all_cves_status, cves=cves_result)
+    return CVESAPIFixExecuteResult(
+        cves_data=CVEAPIFixExecuteResult(
+            status=all_cves_status, cves=cves_result
+        )
     )
 
 
