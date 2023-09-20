@@ -240,6 +240,33 @@ class PreserveAptCfg:
         apt_pkg.init_system()
 
 
+def get_apt_pkg_cache():
+    for key in apt_pkg.config.keys():
+        apt_pkg.config.clear(key)
+    apt_pkg.init()
+    cache = apt_pkg.Cache(None)
+    return cache
+
+
+def get_esm_apt_pkg_cache():
+    try:
+        # Take care to initialize the cache with only the
+        # Acquire configuration preserved
+        for key in apt_pkg.config.keys():
+            if not re.search("^Acquire", key):
+                apt_pkg.config.clear(key)
+        apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
+        apt_pkg.init()
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        # If the structure in the rootdir folder does not exist or is
+        # incorrect, an exception will be raised
+        return apt_pkg.Cache(None)
+    except Exception:
+        # The empty dictionary will act as an empty cache
+        return {}
+
+
 def get_apt_cache():
     for key in apt_pkg.config.keys():
         apt_pkg.config.clear(key)
