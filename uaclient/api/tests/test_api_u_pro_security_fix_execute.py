@@ -195,7 +195,7 @@ class TestExecute:
                             reason=messages.FIX_CANNOT_INSTALL_PACKAGE.format(
                                 package="bin1",
                                 version="ver1",
-                            ).msg,
+                            ),
                             failed_upgrades=[
                                 FailedUpgrade(
                                     name="bin1", pocket=STANDARD_UPDATES_POCKET
@@ -277,7 +277,7 @@ class TestExecute:
                     warnings=[],
                     error=FixPlanError(
                         code="security-issue-not-found-issue",
-                        msg=messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
+                        msg=messages.E_SECURITY_FIX_NOT_FOUND_ISSUE.format(
                             issue_id="CVE-"
                         ),
                     ),
@@ -291,7 +291,7 @@ class TestExecute:
                     errors=[
                         FixExecuteError(
                             error_type="security-issue-not-found-issue",
-                            reason=messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(  # noqa
+                            reason=messages.E_SECURITY_FIX_NOT_FOUND_ISSUE.format(  # noqa
                                 issue_id="CVE-"
                             ),
                         )
