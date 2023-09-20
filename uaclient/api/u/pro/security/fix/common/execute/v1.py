@@ -130,7 +130,7 @@ def _handle_package_cannot_be_installed(
             reason=messages.FIX_CANNOT_INSTALL_PACKAGE.format(
                 package=warning.data.binary_package,
                 version=warning.data.binary_package_version,
-            ).msg,
+            ),
             failed_upgrades=[
                 FailedUpgrade(
                     name=warning.data.binary_package,
