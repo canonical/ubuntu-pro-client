@@ -384,16 +384,40 @@ def run_apt_update_command(
     (exceptions.APTProcessConflictError, exceptions.APTUpdateFailed),
     APT_RETRIES,
 )
-def update_sources_list(sources_list: str):
-    cache = get_apt_cache()
-    try:
-        cache.update(sources_list=sources_list)
-    except apt.cache.LockFailedException:
-        raise exceptions.APTProcessConflictError()
-    except apt.cache.FetchFailedException as e:
-        raise exceptions.APTUpdateFailed(detail=str(e))
-    finally:
-        get_apt_cache_policy.cache_clear()
+def update_sources_list(sources_list_path: str):
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        # Configure the sources_list to be updated
+        apt_pkg.config.set(
+            "Dir::Etc::sourcelist", os.path.abspath(sources_list_path)
+        )
+        # When going for a specific sourcelist, we don't care about sourceparts
+        # and thus we set it to NOFOLDER. We hope that users don't have a
+        # directory called N.O.F.O.L.D.E.R in /etc/apt/ or wherever their
+        # apt config is defined
+        apt_pkg.config.set("Dir::Etc::sourceparts", "N.O.F.O.L.D.E.R")
+        apt_pkg.config.set("APT::List-Cleanup", "0")
+        sources_list = apt_pkg.SourceList()
+        sources_list.read_main_list()
+
+        # We need a fetch progress monitor, so we create an empty one
+        # No way to run from apt here, as apt_pkg itself uses this class
+        fetch_progress = apt.progress.base.AcquireProgress()
+
+        # Configure the apt lock
+        lock_file = os.path.join(
+            apt_pkg.config.find_dir("Dir::State::Lists"), "lock"
+        )
+        lock = apt_pkg.FileLock(lock_file)
+
+        try:
+            with lock:
+                cache.update(fetch_progress, sources_list, 0)
+        except apt_pkg.Error:
+            raise exceptions.APTProcessConflictError()
+        except SystemError as e:
+            raise exceptions.APTUpdateFailed(detail=str(e))
+        finally:
+            get_apt_cache_policy.cache_clear()
 
 
 def run_apt_install_command(
