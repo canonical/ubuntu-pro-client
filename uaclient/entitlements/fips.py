@@ -1,7 +1,8 @@
 import logging
 import os
+import re
 from itertools import groupby
-from typing import List, Optional, Tuple  # noqa: F401
+from typing import Callable, List, Optional, Tuple, Union  # noqa: F401
 
 from uaclient import apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
@@ -154,6 +155,56 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return FIPS_CONDITIONAL_PACKAGES.get(series, [])
 
+    def prompt_if_kernel_downgrade(
+        self,
+        assume_yes: bool = False,
+    ) -> bool:
+        """Check if installing a FIPS kernel will downgrade the kernel
+        and prompt for confirmation if it will.
+        """
+        # Prior to installing packages, check if the kernel is being downgraded
+        # and if so verify that the user wants to continue
+        our_full_kernel_str = (
+            system.get_kernel_info().proc_version_signature_version
+        )
+        if our_full_kernel_str is None:
+            LOG.warning("Cannot gather kernel information")
+            return False
+        our_m = re.search(
+            r"(?P<kernel_version>\d+\.\d+\.\d+)", our_full_kernel_str
+        )
+        fips_kernel_version_str = apt.get_pkg_candidate_version("linux-fips")
+        if our_m is not None and fips_kernel_version_str is not None:
+            our_kernel_version_str = our_m.group("kernel_version")
+            LOG.debug(
+                "Kernel information: cur='%s' and fips='%s'",
+                our_full_kernel_str,
+                fips_kernel_version_str,
+            )
+            if (
+                apt.version_compare(
+                    fips_kernel_version_str, our_kernel_version_str
+                )
+                < 0
+            ):
+                event.info(
+                    messages.KERNEL_DOWNGRADE_WARNING.format(
+                        current_version=our_kernel_version_str,
+                        new_version=fips_kernel_version_str,
+                    )
+                )
+                return util.prompt_for_confirmation(
+                    msg=messages.PROMPT_YES_NO,
+                    assume_yes=self.assume_yes,
+                )
+        else:
+            LOG.warning(
+                "Cannot gather kernel information for '%s' and '%s'",
+                our_full_kernel_str,
+                fips_kernel_version_str,
+            )
+        return True
+
     def install_packages(
         self,
         package_list: Optional[List[str]] = None,
@@ -167,6 +218,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         :param cleanup_on_failure: Cleanup apt files if apt install fails.
         :param verbose: If true, print messages to stdout
         """
+
         if verbose:
             event.info(
                 messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
@@ -195,8 +247,14 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         for pkg in desired_packages:
             try:
-                super().install_packages(
-                    package_list=[pkg], cleanup_on_failure=False, verbose=False
+                apt.run_apt_install_command(
+                    packages=[pkg],
+                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+                    apt_options=[
+                        "--allow-downgrades",
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                    ],
                 )
             except exceptions.UbuntuProError:
                 event.info(
@@ -478,6 +536,14 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                     {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
                 )
             ],
+            "pre_install": [
+                (
+                    self.prompt_if_kernel_downgrade,
+                    {
+                        "assume_yes": self.assume_yes,
+                    },
+                )
+            ],
             "post_enable": post_enable,
             "pre_disable": pre_disable,
         }
@@ -552,6 +618,14 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
+                )
+            ],
+            "pre_install": [
+                (
+                    self.prompt_if_kernel_downgrade,
+                    {
+                        "assume_yes": self.assume_yes,
+                    },
                 )
             ],
             "post_enable": post_enable,

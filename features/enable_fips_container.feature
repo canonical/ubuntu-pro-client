@@ -5,7 +5,7 @@ Feature: FIPS enablement in lxd containers
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I apt install `openssh-client openssh-server strongswan openssl <libssl> libgcrypt20`
-        And I run `pro enable fips<updates>` `with sudo` and stdin `y`
+        And I run `pro enable fips<updates>` `with sudo` and stdin `y\ny`
         Then stdout matches regexp:
         """
         Warning: Enabling <fips-name> in a container.
@@ -16,9 +16,7 @@ Feature: FIPS enablement in lxd containers
         """
         And stdout contains substring:
         """
-        Updating <fips-name> package lists
         Installing <fips-name> packages
-        Updating standard Ubuntu package lists
         <fips-name> enabled
         A reboot is required to complete install.
         Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
