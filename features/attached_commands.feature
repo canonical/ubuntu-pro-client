@@ -824,7 +824,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I apt update
         And I run `pro enable <fips-service> --assume-yes` with sudo
         And I reboot the machine
-        Then I verify that `<fips-service>` is eanbled
+        Then I verify that `<fips-service>` is enabled
         When  I run `uname -r` as non-root
         Then stdout matches regexp:
         """

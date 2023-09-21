@@ -109,6 +109,54 @@ class TestFIPSEntitlementDefaults:
         conditional_packages = entitlement.conditional_packages
         assert expected == conditional_packages
 
+    @pytest.mark.parametrize(
+        "fips_version, assume_yes, expected_continue",
+        (
+            (
+                "0",
+                True,
+                True,
+            ),
+            (
+                "0",
+                False,
+                False,
+            ),
+            (
+                "999",
+                True,
+                True,
+            ),
+            (
+                "999",
+                False,
+                True,
+            ),
+        ),
+    )
+    @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
+    @mock.patch(M_PATH + "util.prompt_for_confirmation")
+    def test_kernel_downgrade(
+        self,
+        m_prompt_for_confirmation,
+        m_pkg_candidate_version,
+        fips_version,
+        assume_yes,
+        expected_continue,
+        entitlement,
+    ):
+        """Test kernel downgrades block install if user denies prompt"""
+        # if user is prompted for confirmation assume they say no
+        if not assume_yes:
+            m_prompt_for_confirmation.return_value = False
+        else:
+            m_prompt_for_confirmation.return_value = True
+        m_pkg_candidate_version.return_value = fips_version
+        install_continues = entitlement.prompt_if_kernel_downgrade(
+            assume_yes=assume_yes
+        )
+        assert install_continues == expected_continue
+
     def test_default_repo_key_file(self, entitlement):
         """GPG keyring file is the same for both FIPS and FIPS with Updates"""
         assert entitlement.repo_key_file == "ubuntu-pro-fips.gpg"
@@ -135,6 +183,14 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
+                "pre_install": [
+                    (
+                        entitlement.prompt_if_kernel_downgrade,
+                        {
+                            "assume_yes": assume_yes,
+                        },
+                    )
+                ],
                 "post_enable": None,
                 "pre_disable": [
                     (
@@ -154,6 +210,14 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "msg": messages.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                            "assume_yes": assume_yes,
+                        },
+                    )
+                ],
+                "pre_install": [
+                    (
+                        entitlement.prompt_if_kernel_downgrade,
+                        {
                             "assume_yes": assume_yes,
                         },
                     )
@@ -198,6 +262,14 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
+                "pre_install": [
+                    (
+                        entitlement.prompt_if_kernel_downgrade,
+                        {
+                            "assume_yes": False,
+                        },
+                    )
+                ],
                 "post_enable": [messages.FIPS_RUN_APT_UPGRADE],
                 "pre_disable": [
                     (
@@ -219,6 +291,14 @@ class TestFIPSEntitlementDefaults:
                             "msg": messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
                                 title="FIPS Updates"
                             ),
+                            "assume_yes": False,
+                        },
+                    )
+                ],
+                "pre_install": [
+                    (
+                        entitlement.prompt_if_kernel_downgrade,
+                        {
                             "assume_yes": False,
                         },
                     )
@@ -1104,7 +1184,6 @@ class TestFipsEntitlementInstallPackages:
         fips_entitlement_factory,
         event,
     ):
-
         conditional_pkgs = ["b", "c"]
         m_installed_pkgs.return_value = conditional_pkgs
         packages = ["a"]
@@ -1142,11 +1221,9 @@ class TestFipsEntitlementInstallPackages:
             [
                 "Installing {} packages".format(entitlement.title),
                 "Updating standard Ubuntu package lists",
-                "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"
                 ),
-                "Could not enable {}.".format(entitlement.title),
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="c"
                 ),
