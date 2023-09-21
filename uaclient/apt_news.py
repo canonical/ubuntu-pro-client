@@ -153,7 +153,7 @@ def fetch_aptnews_json(cfg: UAConfig):
     os.makedirs(defaults.UAC_RUN_PATH, exist_ok=True)
     acq = apt_pkg.Acquire()
     apt_news_file = apt_pkg.AcquireFile(
-        acq, cfg.apt_news_url, destdir=defaults.UAC_RUN_PATH
+        acq, cfg.apt_news_url, hash="", destdir=defaults.UAC_RUN_PATH
     )
     acq.run()
     apt_news_contents = system.load_file(apt_news_file.destfile)

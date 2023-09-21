@@ -6,3 +6,8 @@ pycodestyle
 mock
 pytest
 pytest-cov
+
+# python3-apt
+# We know it is in the distro, but for testing in venvs we need to install it
+# And well, there is no pypi package
+git+https://salsa.debian.org/apt-team/python-apt@main
