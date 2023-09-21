@@ -1780,12 +1780,10 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     def test_messages_for_affected_packages_when_pkg_cannot_be_upgraded(
         self,
         m_apt_pkg_candidate_version,
-        m_apt_compare_versions,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1794,8 +1792,7 @@ A fix is available in Ubuntu standard updates.\n"""
         capsys,
         _subp,
     ):
-        m_apt_pkg_candidate_version.return_value = 1.8
-        m_apt_compare_versions.side_effect = [False, True, False]
+        m_apt_pkg_candidate_version.return_value = "1.8"
 
         cfg = FakeConfig()
         with mock.patch("uaclient.util.sys") as m_sys:
@@ -2940,7 +2937,6 @@ class TestPromptForAttach:
 
 class TestFixUSN:
     @mock.patch("uaclient.security._check_attached", return_value=False)
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
     @mock.patch("uaclient.security.get_affected_packages_from_usn")
@@ -2949,7 +2945,6 @@ class TestFixUSN:
         m_affected_pkgs,
         m_merge_usn,
         _m_get_pkg_cand_ver,
-        m_compare_versions,
         _m_check_attached,
         capsys,
         FakeConfig,
@@ -3027,19 +3022,6 @@ class TestFixUSN:
             {
                 "pkg5": {"pkg5": {"version": "1.2", "name": "pkg5"}},
             },
-        ]
-
-        m_compare_versions.side_effect = [
-            False,
-            True,
-            False,
-            True,
-            False,
-            False,
-            True,
-            True,
-            False,
-            True,
         ]
 
         with mock.patch("uaclient.util.sys") as m_sys:
@@ -3149,7 +3131,6 @@ class TestFixUSN:
         assert expected_msg in out
         assert FixStatus.SYSTEM_NON_VULNERABLE == actual_ret
 
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch("uaclient.apt.get_pkg_candidate_version", return_value="99.9")
     @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
     @mock.patch("uaclient.security.get_affected_packages_from_usn")
@@ -3158,7 +3139,6 @@ class TestFixUSN:
         m_affected_pkgs,
         m_merge_usn,
         _m_get_pkg_cand_ver,
-        m_compare_versions,
         capsys,
         FakeConfig,
     ):
@@ -3225,11 +3205,6 @@ class TestFixUSN:
             {
                 "pkg1": {"pkg1": {"version": "1.2", "name": "pkg1"}},
             },
-        ]
-
-        m_compare_versions.side_effect = [
-            False,
-            True,
         ]
 
         with mock.patch("uaclient.util.sys") as m_sys:
