@@ -164,7 +164,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
@@ -173,7 +172,6 @@ class TestFixPlan:
         m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_cve_data,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
@@ -220,7 +218,6 @@ class TestFixPlan:
                 },
             }
         }
-        m_apt_compare_versions.side_effect = [False, False, True, True]
         m_get_pkg_candidate_version.side_effect = ["1.1", "1.2"]
 
         expected_plan = FixPlanResult(
@@ -253,7 +250,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "_is_attached")
     @mock.patch(M_PATH + "get_contract_expiry_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
@@ -262,7 +258,6 @@ class TestFixPlan:
         m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_cve_data,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
         m_get_contract_expiry_status,
         m_is_attached,
@@ -356,16 +351,6 @@ class TestFixPlan:
                 },
             },
         }
-        m_apt_compare_versions.side_effect = [
-            False,
-            False,
-            False,
-            False,
-            True,
-            True,
-            True,
-            True,
-        ]
         m_get_pkg_candidate_version.side_effect = [
             "1.1",
             "1.2",
@@ -454,7 +439,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
@@ -463,7 +447,6 @@ class TestFixPlan:
         m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_cve_data,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
@@ -510,7 +493,6 @@ class TestFixPlan:
                 },
             },
         }
-        m_apt_compare_versions.side_effect = [False, False, True, False]
         m_get_pkg_candidate_version.side_effect = ["1.1", "1.1"]
 
         expected_plan = FixPlanResult(
@@ -550,7 +532,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
@@ -559,7 +540,6 @@ class TestFixPlan:
         m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_cve_data,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
@@ -615,7 +595,6 @@ class TestFixPlan:
                 },
             }
         }
-        m_apt_compare_versions.side_effect = [False, False, True, True]
         m_get_pkg_candidate_version.side_effect = ["1.1", "1.2"]
 
         expected_plan = FixPlanResult(
@@ -651,7 +630,6 @@ class TestFixPlan:
         )
 
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_affected_packages_from_usn")
     @mock.patch(M_PATH + "_get_usn_data")
@@ -662,7 +640,6 @@ class TestFixPlan:
         m_get_usn_data,
         m_get_affected_packages_from_usn,
         m_merge_usn_released_binary_package,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
     ):
         m_query_installed_pkgs.return_value = {
@@ -773,16 +750,6 @@ class TestFixPlan:
                 }
             },
         ]
-        m_apt_compare_versions.side_effect = [
-            False,
-            False,
-            True,
-            True,
-            False,
-            True,
-            False,
-            True,
-        ]
         m_get_pkg_candidate_version.side_effect = ["1.1", "1.2", "1.3", "1.4"]
 
         expected_plan = FixPlanUSNResult(
@@ -865,7 +832,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.apt.compare_versions")
     @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
@@ -874,7 +840,6 @@ class TestFixPlan:
         m_check_cve_fixed_by_livepatch,
         m_query_installed_pkgs,
         m_get_cve_data,
-        m_apt_compare_versions,
         m_get_pkg_candidate_version,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
@@ -921,7 +886,6 @@ class TestFixPlan:
                 },
             },
         }
-        m_apt_compare_versions.side_effect = [True, True]
         m_get_pkg_candidate_version.side_effect = ["1.1", "1.1"]
 
         expected_plan = FixPlanResult(

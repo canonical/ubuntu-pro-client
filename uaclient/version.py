@@ -7,9 +7,9 @@ from math import inf
 from typing import Optional
 
 from uaclient.apt import (
-    compare_versions,
     get_apt_cache_policy_for_package,
     get_apt_cache_time,
+    version_compare,
 )
 from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
 from uaclient.exceptions import ProcessExecutionError
@@ -17,8 +17,6 @@ from uaclient.system import subp
 
 __VERSION__ = "1:1+devel"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
-
-CANDIDATE_REGEX = r"Candidate: (?P<candidate>.*?)\n"
 
 
 def get_version() -> str:
@@ -79,6 +77,6 @@ def get_last_known_candidate() -> Optional[str]:
 
 def check_for_new_version() -> Optional[str]:
     candidate = get_last_known_candidate()
-    if candidate and compare_versions(candidate, get_version(), "gt"):
+    if candidate and version_compare(candidate, get_version()) > 0:
         return candidate
     return None

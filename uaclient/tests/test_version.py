@@ -90,14 +90,14 @@ class TestGetLastKnownCandidate:
 
 
 class TestCheckForNewVersion:
-    @pytest.mark.parametrize("compare_return", (True, False))
-    @mock.patch("uaclient.version.compare_versions")
+    @pytest.mark.parametrize("compare_return", (-1, 0, 1))
+    @mock.patch("uaclient.version.version_compare")
     @mock.patch("uaclient.version.get_last_known_candidate")
     def test_check_for_new_version(
         self, m_candidate, m_compare, compare_return
     ):
         m_compare.return_value = compare_return
-        if compare_return:
+        if compare_return == 1:
             assert m_candidate.return_value == check_for_new_version()
         else:
             assert None is check_for_new_version()
