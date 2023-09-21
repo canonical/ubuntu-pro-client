@@ -1231,10 +1231,7 @@ class TestGetAptConfigValues:
 
 
 class TestPreserveAptCfg:
-    def test_apt_config_is_preserved(
-        self,
-        apt_pkg,
-    ):
+    def test_apt_config_is_preserved(self):
         class AptDict(dict):
             def set(self, key, value):
                 super().__setitem__(key, value)
@@ -1244,16 +1241,15 @@ class TestPreserveAptCfg:
         apt_cfg["test1"] = [1, 2, 3]
         apt_cfg["test2"] = {"foo": "bar"}
 
-        type(apt_pkg).config = mock.PropertyMock(return_value=apt_cfg)
-
         def apt_func():
             apt_cfg["test"] = 3
             apt_cfg["test1"] = [3, 2, 1]
             apt_cfg["test2"] = {"foo": "test"}
             return apt_cfg
 
-        with PreserveAptCfg(apt_func):
-            pass
+        with mock.patch("apt_pkg.config", apt_cfg):
+            with PreserveAptCfg(apt_func):
+                pass
 
         assert 1 == apt_cfg["test"]
         assert [1, 2, 3] == apt_cfg["test1"]
@@ -1269,9 +1265,7 @@ class TestGetPkgCandidateversion:
         m_esm_cache,
         m_apt_cache,
         check_esm_cache,
-        apt_pkg,
     ):
-        type(apt_pkg).config = mock.PropertyMock(return_value={})
         m_pkg_ver = mock.MagicMock(version="1.2")
         m_pkg = mock.MagicMock(candidate=m_pkg_ver)
         m_apt_cache.return_value = {"pkg1": m_pkg}
@@ -1292,9 +1286,7 @@ class TestGetPkgCandidateversion:
         self,
         m_esm_cache,
         m_apt_cache,
-        apt_pkg,
     ):
-        type(apt_pkg).config = mock.PropertyMock(return_value={})
         m_pkg_ver = mock.MagicMock(version="1.2")
         m_pkg = mock.MagicMock(candidate=m_pkg_ver)
         m_apt_cache.return_value = {"pkg1": m_pkg}
@@ -1307,9 +1299,7 @@ class TestGetPkgCandidateversion:
     def test_get_pkg_candidate_version_when_candidate_doesnt_exist(
         self,
         m_apt_cache,
-        apt_pkg,
     ):
-        type(apt_pkg).config = mock.PropertyMock(return_value={})
         m_pkg = mock.MagicMock(candidate=None)
         m_apt_cache.return_value = {"pkg1": m_pkg}
 

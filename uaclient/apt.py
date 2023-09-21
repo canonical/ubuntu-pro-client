@@ -286,11 +286,9 @@ def get_esm_cache():
         apt_pkg.init()
         # If the rootdir folder doesn't contain any apt source info, the
         # cache will be empty
-        cache = apt.Cache(rootdir=ESM_APT_ROOTDIR)
+        return apt.Cache(rootdir=ESM_APT_ROOTDIR)
     except Exception:
-        cache = {}
-
-    return cache
+        return {}
 
 
 def get_pkg_version(pkg: str) -> Optional[str]:
