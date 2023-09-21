@@ -26,7 +26,6 @@ from uaclient.apt import (
     add_ppa_pinning,
     assert_valid_apt_credentials,
     clean_apt_files,
-    compare_versions,
     find_apt_list_files,
     get_apt_cache_policy,
     get_apt_cache_time,
@@ -1051,29 +1050,6 @@ class TestAptIsInstalled:
     ):
         m_get_installed_pkgs.return_value = installed_pkgs
         assert expected == is_installed("test")
-
-
-class TestCompareVersion:
-    @pytest.mark.parametrize(
-        "ver1,ver2,relation,expected_result",
-        (
-            ("1.0", "2.0", "le", True),
-            ("1.0", "2.0", "gt", False),
-            ("2.0", "2.0", "lt", False),
-            ("2.0", "2.0", "eq", True),
-            ("2.0", "2.0", "gt", False),
-            ("2.1~18.04.1", "2.1", "le", True),
-            ("2.1", "2.1~18.04.1", "le", False),
-            ("2.10", "2.9", "ge", True),
-            ("2.10", "2.9", "lt", False),
-        ),
-    )
-    def test_compare_versions(
-        self, ver1, ver2, relation, expected_result, _subp
-    ):
-        """compare_versions returns True when the comparison is accurate."""
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
-            assert expected_result is compare_versions(ver1, ver2, relation)
 
 
 class TestAptCache:

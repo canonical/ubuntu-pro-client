@@ -72,6 +72,12 @@ APT_RETRIES = [1.0, 5.0, 10.0]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
+# Most parts of the apt_pkg functionality needs the module to be initialized.
+# This call is checking for the 'Dir' configuration - which needs to be there
+# for apt_pkg to be ready - and if it is empty we initialize.
+if apt_pkg.config.get("Dir") == "":
+    apt_pkg.init()
+
 
 @enum.unique
 class AptProxyScope(enum.Enum):
@@ -82,6 +88,8 @@ class AptProxyScope(enum.Enum):
 InstalledAptPackage = NamedTuple(
     "InstalledAptPackage", [("name", str), ("version", str), ("arch", str)]
 )
+
+version_compare = apt_pkg.version_compare
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
@@ -338,7 +346,7 @@ def get_pkg_candidate_version(
             if not esm_pkg_candidate:
                 return pkg_candidate
 
-            if compare_versions(esm_pkg_candidate, pkg_candidate, "ge"):
+            if apt_pkg.version_compare(esm_pkg_candidate, pkg_candidate) >= 0:
                 return esm_pkg_candidate
 
     return pkg_candidate
@@ -745,17 +753,6 @@ def setup_apt_proxy(
         system.ensure_file_absent(APT_PROXY_CONF_FILE)
     else:
         system.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
-
-
-def compare_versions(version1: str, version2: str, relation: str) -> bool:
-    """Return True comparing version1 to version2 with the given relation."""
-    try:
-        system.subp(
-            ["dpkg", "--compare-versions", version1, relation, version2]
-        )
-        return True
-    except exceptions.ProcessExecutionError:
-        return False
 
 
 def get_apt_cache_time() -> Optional[float]:
