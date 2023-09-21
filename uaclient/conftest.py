@@ -1,20 +1,11 @@
 import datetime
 import io
 import logging
-import sys
 from enum import Enum
 from typing import Any, Dict
 
 import mock
 import pytest
-
-# We are doing this because we are sure that python3-apt comes with the distro,
-# but it cannot be installed in a virtual environment to be properly tested.
-# Those need to be mocked here, before importing our modules, so the pytest
-# virtualenv doesn't cry because it can't find the modules
-m_apt_pkg = mock.MagicMock()
-sys.modules["apt"] = mock.MagicMock()
-sys.modules["apt_pkg"] = m_apt_pkg
 
 # Useless try/except to make flake8 happy \_("/)_/
 try:
@@ -53,6 +44,20 @@ def _warn_about_new_version():
 
     original = _warn_about_new_version
     with mock.patch("uaclient.cli._warn_about_new_version"):
+        yield original
+
+
+@pytest.yield_fixture(scope="session", autouse=True)
+def update_sources_list():
+    """
+    A fixture that mocks apt.update_sources_list for all tests.
+    If a test needs the actual update_sources_list, this fixture yields it,
+    so just add an argument to the test named "update_sources_list".
+    """
+    from uaclient.apt import update_sources_list
+
+    original = update_sources_list
+    with mock.patch("uaclient.apt.update_sources_list"):
         yield original
 
 
@@ -291,8 +296,3 @@ def mock_notices_dir(tmpdir_factory):
             temp_dir.strpath,
         ):
             yield
-
-
-@pytest.fixture
-def apt_pkg():
-    return m_apt_pkg
