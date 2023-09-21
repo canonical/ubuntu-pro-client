@@ -82,6 +82,9 @@ def get_origin_for_package(package: apt.package.Package) -> str:
     We check the available versions (installed, candidate) to determine the
     most reasonable origin for the package.
     """
+    if not package.installed:
+        return "unknown"
+
     available_origins = package.installed.origins
 
     # If the installed version for a package has a single origin, it means that
@@ -139,7 +142,7 @@ def filter_security_updates(
     # to access them.
     with PreserveAptCfg(get_esm_cache) as esm_cache:
         for package in packages:
-            if package.is_installed:
+            if package.installed:
                 for version in package.versions:
                     if version > package.installed:
                         counted_as_security = False
