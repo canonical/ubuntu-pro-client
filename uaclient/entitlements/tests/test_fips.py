@@ -405,6 +405,12 @@ class TestFIPSEntitlementEnable:
                 retry_sleeps=apt.APT_RETRIES,
                 override_env_vars=None,
             ),
+            mock.call(
+                ["apt-cache", "policy", "linux-fips"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+                override_env_vars=None,
+            ),
         ]
         subp_calls += install_cmd
 
@@ -1104,7 +1110,6 @@ class TestFipsEntitlementInstallPackages:
         fips_entitlement_factory,
         event,
     ):
-
         conditional_pkgs = ["b", "c"]
         m_installed_pkgs.return_value = conditional_pkgs
         packages = ["a"]

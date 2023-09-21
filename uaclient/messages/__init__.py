@@ -1295,6 +1295,16 @@ This will disable the {title} entitlement but the {title} packages will remain i
     )
     + PROMPT_YES_NO
 )
+PROMPT_KERNEL_DOWNGRADE = (
+    t.gettext(
+    """\
+This will downgrade the kernel from {current_version} to {new_version}.
+Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
+         hardware is compatible with the new kernel version before proceeding.
+"""
+    + PROMPT_YES_NO
+    )
+)
 FIPS_SYSTEM_REBOOT_REQUIRED = t.gettext(
     "FIPS support requires system reboot to complete configuration."
 )

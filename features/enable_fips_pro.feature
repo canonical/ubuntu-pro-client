@@ -118,7 +118,7 @@ Feature: FIPS enablement in PRO cloud based machines
            | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
            | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
-
+    @wip
     @slow
     @series.bionic
     @series.focal
@@ -142,6 +142,10 @@ Feature: FIPS enablement in PRO cloud based machines
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
+            This will downgrade the kernel from X to new_version.
+            Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
+            hardware is compatible with the new kernel version before proceeding.
+            Are you sure? (y/N)
             Updating <fips-name> package lists
             Installing <fips-name> packages
             <fips-name> enabled

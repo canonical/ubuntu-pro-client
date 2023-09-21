@@ -1,7 +1,10 @@
 import logging
 import os
+import re
 from itertools import groupby
-from typing import List, Optional, Tuple  # noqa: F401
+from typing import Callable, List, Optional, Tuple, Union  # noqa: F401
+
+import pkg_resources
 
 from uaclient import apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
@@ -167,6 +170,31 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         :param cleanup_on_failure: Cleanup apt files if apt install fails.
         :param verbose: If true, print messages to stdout
         """
+
+        # Prior to installing packages, check if the kernel is being downgraded
+        # and if so verify that the user wants to continue
+        our_kernel_version_str = (
+            system.get_kernel_info().proc_version_signature_version
+        )
+        fips_kernel_policy = apt.get_apt_cache_policy_for_package("linux-fips")
+        m = re.search(
+            r"Candidate: (?P<kernel_version>\d+\.\d+\.\d+)", fips_kernel_policy
+        )
+        LOG.warning(f"Checking kernel versions: {our_kernel_version_str}")
+        if m is not None:
+            fips_kernel_version_str = m.group("kernel_version")
+            our_version = pkg_resources.parse_version(fips_kernel_version_str)
+            fips_version = pkg_resources.parse_version(our_kernel_version_str)
+            if fips_version < our_version:
+                if not util.prompt_for_confirmation(
+                    msg=messages.PROMPT_KERNEL_DOWNGRADE.format(
+                        current_version=our_kernel_version_str,
+                        new_version=fips_kernel_version_str,
+                    ),
+                    assume_yes=self.assume_yes,
+                ):
+                    return
+
         if verbose:
             event.info(
                 messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
