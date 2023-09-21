@@ -12,11 +12,15 @@ Feature: FIPS enablement in PRO cloud based machines
         Then I verify that `fips` is disabled
         And I verify that `fips-updates` is disabled
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout contains substring:
+        Then stdout matches regexp:
         """
         Updating <fips-name> package lists
         Installing <fips-name> packages
-        Updating standard Ubuntu package lists
+        This will downgrade the kernel from .+ to .+\.
+        Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
+                 hardware is compatible with the new kernel version before proceeding.
+
+        Updating standard Ubuntu package lists(\n.*)?
         <fips-name> enabled
         A reboot is required to complete install
         """
