@@ -576,8 +576,12 @@ def _get_upgradable_pkgs(
         candidate_version = apt.get_pkg_candidate_version(
             binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
         )
-        if candidate_version and apt.compare_versions(
-            binary_pkg.fixed_version, candidate_version, "le"
+        if (
+            candidate_version
+            and apt.version_compare(
+                binary_pkg.fixed_version, candidate_version
+            )
+            <= 0
         ):
             upgrade_pkgs.append(binary_pkg.binary_pkg)
         else:
@@ -610,7 +614,7 @@ def _get_upgradable_package_candidates_by_pocket(
                 "version", ""
             )
 
-            if not apt.compare_versions(fixed_version, version, "le"):
+            if apt.version_compare(fixed_version, version) > 0:
                 binary_pocket_pkgs[pkg_status.pocket_source].append(
                     BinaryPackageFix(
                         source_pkg=src_pkg,
