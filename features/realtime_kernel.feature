@@ -47,7 +47,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Real-time kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo and options `--no-auto-enable`
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
         """
@@ -63,6 +63,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         to make the change manually..*
 
         Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time kernel package lists
+        Updating standard Ubuntu package lists
         Installing Real-time kernel packages
         Real-time kernel enabled
         A reboot is required to complete install.
@@ -74,7 +75,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.staging.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
         """
         When I run `pro api u.pro.status.enabled_services.v1` as non-root
         Then stdout matches regexp:
@@ -217,7 +218,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         .*This will change your kernel. To revert to your original kernel, you will need
         to make the change manually..*
 
-        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra kernel package lists
+        Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra Kernel package lists
+        Updating standard Ubuntu package lists
         Installing Real-time NVIDIA Tegra Kernel packages
         Real-time NVIDIA Tegra Kernel enabled
         """
