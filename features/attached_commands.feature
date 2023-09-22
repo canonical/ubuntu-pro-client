@@ -220,7 +220,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
        realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
        ros           +<ros>      +Security Updates for the Robot Operating System
-       ros-updates   +<ros>      +All Updates for the Robot Operating System
+       ros-updates   +<ros-updates>      +All Updates for the Robot Operating System
        """
        Then stdout matches regexp:
        """
@@ -258,11 +258,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        """
 
        Examples: ubuntu release
-           | release | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
-           | xenial  | no    | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
-           | bionic  | no    | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
-           | focal   | yes   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
-           | jammy   | yes   | yes      | no     | yes | no   | no          | no  | usg        | yes             |
+           | release | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | ros-updates | cis_or_usg | realtime-kernel |
+           | xenial  | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
+           | bionic  | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
+           | focal   | yes   | yes      | no     | yes | yes  | yes         | yes | no          | usg        | no              |
+           | jammy   | yes   | yes      | no     | yes | no   | no          | no  | no          | usg        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd-container
