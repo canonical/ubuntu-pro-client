@@ -342,18 +342,6 @@ def get_pkg_candidate_version(
     return candidate_version
 
 
-def get_apt_cache_policy_for_package(
-    package: str,
-    error_msg: Optional[str] = None,
-    override_env_vars: Optional[Dict[str, str]] = None,
-) -> str:
-    return run_apt_command(
-        cmd=["apt-cache", "policy", package],
-        error_msg=error_msg,
-        override_env_vars=override_env_vars,
-    )
-
-
 def run_apt_update_command(
     override_env_vars: Optional[Dict[str, str]] = None
 ) -> str:
