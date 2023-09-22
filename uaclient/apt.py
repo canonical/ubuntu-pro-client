@@ -11,8 +11,8 @@ import tempfile
 from functools import lru_cache
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 
-import apt  # type: ignore
 import apt_pkg  # type: ignore
+from apt.progress.base import AcquireProgress  # type: ignore
 
 from uaclient import event_logger, exceptions, gpg, messages, system, util
 from uaclient.defaults import ESM_APT_ROOTDIR
@@ -263,8 +263,7 @@ def get_apt_pkg_cache():
     for key in apt_pkg.config.keys():
         apt_pkg.config.clear(key)
     apt_pkg.init()
-    cache = apt_pkg.Cache(None)
-    return cache
+    return apt_pkg.Cache(None)
 
 
 def get_esm_apt_pkg_cache():
@@ -283,30 +282,6 @@ def get_esm_apt_pkg_cache():
         return apt_pkg.Cache(None)
     except Exception:
         # The empty dictionary will act as an empty cache
-        return {}
-
-
-def get_apt_cache():
-    for key in apt_pkg.config.keys():
-        apt_pkg.config.clear(key)
-    apt_pkg.init()
-    cache = apt.Cache()
-    return cache
-
-
-def get_esm_cache():
-    try:
-        # Take care to initialize the cache with only the
-        # Acquire configuration preserved
-        for key in apt_pkg.config.keys():
-            if not re.search("^Acquire", key):
-                apt_pkg.config.clear(key)
-        apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
-        apt_pkg.init()
-        # If the rootdir folder doesn't contain any apt source info, the
-        # cache will be empty
-        return apt.Cache(rootdir=ESM_APT_ROOTDIR)
-    except Exception:
         return {}
 
 
@@ -422,7 +397,7 @@ def update_sources_list(sources_list_path: str):
 
         # We need a fetch progress monitor, so we create an empty one
         # No way to run from apt here, as apt_pkg itself uses this class
-        fetch_progress = apt.progress.base.AcquireProgress()
+        fetch_progress = AcquireProgress()
 
         # Configure the apt lock
         lock_file = os.path.join(
@@ -855,7 +830,7 @@ def update_esm_caches(cfg) -> None:
     with PreserveAptCfg(get_esm_apt_pkg_cache) as cache:
         sources_list = apt_pkg.SourceList()
         sources_list.read_main_list()
-        fetch_progress = apt.progress.base.AcquireProgress()
+        fetch_progress = AcquireProgress()
         try:
             cache.update(fetch_progress, sources_list, 0)
         except (apt_pkg.Error, SystemError) as e:
