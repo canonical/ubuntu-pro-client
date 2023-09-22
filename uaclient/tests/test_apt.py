@@ -1233,22 +1233,30 @@ class TestPreserveAptCfg:
 
 
 class TestGetPkgCandidateversion:
-    @pytest.mark.parametrize("check_esm_cache", ((True), (False)))
-    @mock.patch("uaclient.apt.get_apt_cache")
-    @mock.patch("uaclient.apt.get_esm_cache")
+    @pytest.mark.parametrize("check_esm_cache", (True, False))
+    @mock.patch("uaclient.apt.apt_pkg.DepCache")
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    @mock.patch("uaclient.apt.get_esm_apt_pkg_cache")
     def test_get_pkg_candidate_version(
         self,
         m_esm_cache,
         m_apt_cache,
+        m_dep_cache,
         check_esm_cache,
     ):
-        m_pkg_ver = mock.MagicMock(version="1.2")
-        m_pkg = mock.MagicMock(candidate=m_pkg_ver)
+        m_pkg = mock.MagicMock()
         m_apt_cache.return_value = {"pkg1": m_pkg}
 
-        m_esm_pkg_ver = mock.MagicMock(version="1.3~esm1")
-        m_esm_pkg = mock.MagicMock(candidate=m_esm_pkg_ver)
+        m_esm_pkg = mock.MagicMock()
         m_esm_cache.return_value = {"pkg1": m_esm_pkg}
+
+        def depcache_candidate(package):
+            if package == m_pkg:
+                return mock.MagicMock(ver_str="1.2")
+            if package == m_esm_pkg:
+                return mock.MagicMock(ver_str="1.3~esm1")
+
+        m_dep_cache.return_value.get_candidate_ver = depcache_candidate
 
         actual_value = get_pkg_candidate_version("pkg1", check_esm_cache)
         if not check_esm_cache:
@@ -1256,28 +1264,48 @@ class TestGetPkgCandidateversion:
         else:
             assert "1.3~esm1" == actual_value
 
-    @mock.patch("uaclient.apt.get_apt_cache")
-    @mock.patch("uaclient.apt.get_esm_cache")
+    @mock.patch("uaclient.apt.apt_pkg.DepCache")
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    @mock.patch("uaclient.apt.get_esm_apt_pkg_cache")
     def test_get_pkg_candidate_version_when_esm_cache_fails(
         self,
         m_esm_cache,
         m_apt_cache,
+        m_dep_cache,
     ):
-        m_pkg_ver = mock.MagicMock(version="1.2")
-        m_pkg = mock.MagicMock(candidate=m_pkg_ver)
-        m_apt_cache.return_value = {"pkg1": m_pkg}
+        def depcache_candidate(_package):
+            return mock.MagicMock(ver_str="1.2")
+
+        m_dep_cache.return_value.get_candidate_ver = depcache_candidate
+
+        m_apt_cache.return_value = {"pkg1": mock.MagicMock()}
         m_esm_cache.return_value = {}
 
         actual_value = get_pkg_candidate_version("pkg1", check_esm_cache=True)
         assert "1.2" == actual_value
 
-    @mock.patch("uaclient.apt.get_apt_cache")
-    def test_get_pkg_candidate_version_when_candidate_doesnt_exist(
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_get_pkg_candidate_version_when_package_doesnt_exist(
         self,
         m_apt_cache,
     ):
-        m_pkg = mock.MagicMock(candidate=None)
-        m_apt_cache.return_value = {"pkg1": m_pkg}
+        m_apt_cache.return_value = {}
+
+        actual_value = get_pkg_candidate_version("pkg1")
+        assert actual_value is None
+
+    @mock.patch("uaclient.apt.apt_pkg.DepCache")
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_get_pkg_candidate_version_when_candidate_doesnt_exist(
+        self,
+        m_apt_cache,
+        m_dep_cache,
+    ):
+        def depcache_candidate(_package):
+            return None
+
+        m_dep_cache.return_value.get_candidate_ver = depcache_candidate
+        m_apt_cache.return_value = {"pkg1": mock.MagicMock()}
 
         actual_value = get_pkg_candidate_version("pkg1")
         assert actual_value is None
