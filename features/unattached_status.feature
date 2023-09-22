@@ -138,6 +138,7 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
+        ros             +yes       +Security Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
 
         For a list of all Ubuntu Pro services, run 'pro status --all'
@@ -159,7 +160,7 @@ Feature: Unattached status
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
-        ros             +no        +Security Updates for the Robot Operating System
+        ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +no        +All Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
 
@@ -182,6 +183,7 @@ Feature: Unattached status
         fips            +yes       +NIST-certified core packages
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
+        ros             +yes       +Security Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
 
         FEATURES
@@ -349,6 +351,7 @@ Feature: Unattached status
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
         """
         When I do a preflight check for `contract_token` with the all flag
@@ -364,7 +367,7 @@ Feature: Unattached status
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
-        ros             +no        +yes       +no           +Security Updates for the Robot Operating System
+        ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
         ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
         """
@@ -552,6 +555,7 @@ Feature: Unattached status
         fips            +yes       +yes       +no           +NIST-certified core packages
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+        ros             +yes       +no        +no           +Security Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
         """
 

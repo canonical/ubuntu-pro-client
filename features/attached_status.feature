@@ -146,6 +146,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +disabled +NIST-certified core packages
         fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        ros             +yes      +disabled +Security Updates for the Robot Operating System
         usg             +yes      +disabled +Security compliance and audit tools
 
         For a list of all Ubuntu Pro services, run 'pro status --all'
@@ -165,7 +166,7 @@ Feature: Attached status
         landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-        ros             +yes      +n/a      +Security Updates for the Robot Operating System
+        ros             +yes      +disabled +Security Updates for the Robot Operating System
         ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
         usg             +yes      +disabled +Security compliance and audit tools
 
