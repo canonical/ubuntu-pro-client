@@ -2,13 +2,12 @@
 Client version related functions
 """
 import os.path
-import re
 from math import inf
 from typing import Optional
 
 from uaclient.apt import (
-    get_apt_cache_policy_for_package,
     get_apt_cache_time,
+    get_pkg_candidate_version,
     version_compare,
 )
 from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
@@ -52,12 +51,11 @@ def get_last_known_candidate() -> Optional[str]:
         not os.path.exists(CANDIDATE_CACHE_PATH)
         or os.stat(CANDIDATE_CACHE_PATH).st_mtime < last_apt_cache_update
     ):
-        candidate_version = None
         try:
-            policy = get_apt_cache_policy_for_package("ubuntu-advantage-tools")
-            match = re.search(CANDIDATE_REGEX, policy)
-            if match:
-                candidate_version = match.group("candidate")
+            candidate_version = get_pkg_candidate_version(
+                "ubuntu-advantage-tools"
+            )
+            if candidate_version:
                 os.makedirs(UAC_RUN_PATH, exist_ok=True)
                 with open(CANDIDATE_CACHE_PATH, "w") as f:
                     f.write(candidate_version)
