@@ -11,7 +11,7 @@ M_PATH = "uaclient.api.u.pro.packages.updates.v1."
 class TestPackagesUpdatesV1:
     @mock.patch(M_PATH + "get_ua_info")
     @mock.patch(M_PATH + "get_installed_packages_by_origin")
-    @mock.patch(M_PATH + "filter_security_updates")
+    @mock.patch(M_PATH + "filter_updates")
     @mock.patch(M_PATH + "create_updates_list")
     def test_package_updates(
         self, m_updates, m_filter, _m_packages, _m_ua_info, FakeConfig
