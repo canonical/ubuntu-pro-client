@@ -12,7 +12,7 @@ from uaclient.data_types import (
 )
 from uaclient.security_status import (
     create_updates_list,
-    filter_security_updates,
+    filter_updates,
     get_installed_packages_by_origin,
     get_ua_info,
 )
@@ -87,7 +87,7 @@ def updates() -> PackageUpdatesResult:
 def _updates(cfg: UAConfig) -> PackageUpdatesResult:
     ua_info = get_ua_info(cfg)
     packages = get_installed_packages_by_origin()
-    upgradable_versions = filter_security_updates(packages["all"])
+    upgradable_versions = filter_updates(packages["all"])
     update_list = create_updates_list(upgradable_versions, ua_info)
 
     num_esm_apps_updates = len(upgradable_versions["esm-apps"])

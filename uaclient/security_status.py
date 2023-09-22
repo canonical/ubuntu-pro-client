@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from functools import lru_cache
 from random import choice
-from typing import Any, DefaultDict, Dict, List, Tuple, Union  # noqa: F401
+from typing import Any, DefaultDict, Dict, List, Tuple
 
-import apt  # type: ignore
+import apt_pkg  # type: ignore
 
 from uaclient import livepatch, messages
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
@@ -15,9 +15,9 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import (
     PreserveAptCfg,
-    get_apt_cache,
     get_apt_cache_datetime,
-    get_esm_cache,
+    get_apt_pkg_cache,
+    get_esm_apt_pkg_cache,
 )
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
@@ -58,23 +58,29 @@ def get_origin_information_to_service_map():
 
 
 def get_installed_packages_by_origin() -> DefaultDict[
-    "str", List[apt.package.Package]
+    "str", List[apt_pkg.Package]
 ]:
     result = defaultdict(list)
 
-    with PreserveAptCfg(get_apt_cache) as cache:
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
         installed_packages = [
-            package for package in cache if package.is_installed
+            package for package in cache.packages if package.current_ver
         ]
         result["all"] = installed_packages
 
+        dep_cache = apt_pkg.DepCache(cache)
+
         for package in installed_packages:
-            result[get_origin_for_package(package)].append(package)
+            result[
+                get_origin_for_installed_package(package, dep_cache)
+            ].append(package)
 
     return result
 
 
-def get_origin_for_package(package: apt.package.Package) -> str:
+def get_origin_for_installed_package(
+    package: apt_pkg.Package, dep_cache: apt_pkg.DepCache
+) -> str:
     """
     Returns the origin for a package installed in the system.
 
@@ -82,21 +88,22 @@ def get_origin_for_package(package: apt.package.Package) -> str:
     We check the available versions (installed, candidate) to determine the
     most reasonable origin for the package.
     """
-    if not package.installed:
-        return "unknown"
-
-    available_origins = package.installed.origins
+    # We assume that packages we pass are installed
+    if not package.current_ver:
+        return ""
+    available_origins = package.current_ver.file_list
 
     # If the installed version for a package has a single origin, it means that
     # only the local dpkg reference is there. Then, we check if there is a
     # candidate version. No candidate means we don't know anything about the
     # package. Otherwise we check for the origins of the candidate version.
     if len(available_origins) == 1:
-        if package.candidate is None or package.installed == package.candidate:
+        candidate = dep_cache.get_candidate_ver(package)
+        if not candidate or package.current_ver == candidate:
             return "unknown"
-        available_origins = package.candidate.origins
+        available_origins = candidate.file_list
 
-    for origin in available_origins:
+    for origin, _ in available_origins:
         service = get_origin_information_to_service_map().get(
             (origin.origin, origin.archive), ""
         )
@@ -125,9 +132,9 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
     return UpdateStatus.UNAVAILABLE.value
 
 
-def filter_security_updates(
-    packages: List[apt.package.Package],
-) -> DefaultDict[str, List[Tuple[apt.package.Version, str]]]:
+def filter_updates(
+    packages: List[apt_pkg.Package],
+) -> DefaultDict[str, List[Tuple[apt_pkg.Version, str]]]:
     """Filters a list of packages looking for available updates.
 
     All versions greater than the installed one are reported, based on where
@@ -140,13 +147,15 @@ def filter_security_updates(
     # but has be advertised about esm packages. Since those
     # sources live in a private folder, we need a different apt cache
     # to access them.
-    with PreserveAptCfg(get_esm_cache) as esm_cache:
+    with PreserveAptCfg(get_esm_apt_pkg_cache) as esm_cache:
         for package in packages:
-            if package.installed:
-                for version in package.versions:
-                    if version > package.installed:
+            # We only care about installed packages here
+            if package.current_ver:
+                for version in package.version_list:
+                    # Seems mypy cannot understand we can compare these :/
+                    if version > package.current_ver:  # type: ignore
                         counted_as_security = False
-                        for origin in version.origins:
+                        for origin, _ in version.file_list:
                             service = (
                                 get_origin_information_to_service_map().get(
                                     (origin.origin, origin.archive)
@@ -158,7 +167,7 @@ def filter_security_updates(
                                 # No need to loop through all the origins
                                 break
                         # Also no need to report backports at least for now...
-                        expected_origin = version.origins[0]
+                        expected_origin = version.file_list[0][0]
                         if (
                             not counted_as_security
                             and "backports" not in expected_origin.archive
@@ -172,10 +181,10 @@ def filter_security_updates(
                 # previous one
                 if package.name in esm_cache:
                     esm_package = esm_cache[package.name]
-                    for version in esm_package.versions:
-                        if version > package.installed:
-                            for origin in version.origins:
-                                service = get_origin_information_to_service_map().get(  # noqa
+                    for version in esm_package.version_list:
+                        if version > package.current_ver:  # type: ignore
+                            for origin, _ in version.file_list:
+                                service = get_origin_information_to_service_map().get(  # noqa: E501
                                     (origin.origin, origin.archive)
                                 )
                                 if service:
@@ -241,19 +250,17 @@ def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
 
 
 def create_updates_list(
-    security_upgradable_versions: DefaultDict[
-        str, List[Tuple[apt.package.Version, str]]
-    ],
+    upgradable_versions: DefaultDict[str, List[Tuple[apt_pkg.Version, str]]],
     ua_info: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
     updates = []
-    for service, version_list in security_upgradable_versions.items():
+    for service, version_list in upgradable_versions.items():
         status = get_update_status(service, ua_info)
         for version, origin in version_list:
             updates.append(
                 {
-                    "package": version.package.name,
-                    "version": version.version,
+                    "package": version.parent_pkg.name,
+                    "version": version.ver_str,
                     "service_name": service,
                     "status": status,
                     "origin": origin,
@@ -282,11 +289,11 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     installed_packages = packages_by_origin["all"]
     summary["num_installed_packages"] = len(installed_packages)
 
-    security_upgradable_versions = filter_security_updates(installed_packages)
+    upgradable_versions = filter_updates(installed_packages)
     # This version of security-status only cares about security updates
-    security_upgradable_versions["standard-updates"] = []
+    upgradable_versions["standard-updates"] = []
 
-    updates = create_updates_list(security_upgradable_versions, ua_info)
+    updates = create_updates_list(upgradable_versions, ua_info)
 
     summary["num_main_packages"] = len(packages_by_origin["main"])
     summary["num_restricted_packages"] = len(packages_by_origin["restricted"])
@@ -299,14 +306,10 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
     summary["num_esm_infra_packages"] = len(packages_by_origin["esm-infra"])
     summary["num_esm_apps_packages"] = len(packages_by_origin["esm-apps"])
 
-    summary["num_esm_infra_updates"] = len(
-        security_upgradable_versions["esm-infra"]
-    )
-    summary["num_esm_apps_updates"] = len(
-        security_upgradable_versions["esm-apps"]
-    )
+    summary["num_esm_infra_updates"] = len(upgradable_versions["esm-infra"])
+    summary["num_esm_apps_updates"] = len(upgradable_versions["esm-apps"])
     summary["num_standard_security_updates"] = len(
-        security_upgradable_versions["standard-security"]
+        upgradable_versions["standard-security"]
     )
     summary["reboot_required"] = _reboot_required(cfg).reboot_required
 
@@ -319,7 +322,7 @@ def security_status_dict(cfg: UAConfig) -> Dict[str, Any]:
 
 
 def _print_package_summary(
-    package_lists: DefaultDict[str, List[apt.package.Package]],
+    package_lists: DefaultDict[str, List[apt_pkg.Package]],
     show_items: str = "all",
     always_show: bool = False,
 ) -> None:
@@ -492,13 +495,13 @@ def security_status(cfg: UAConfig):
     is_attached = get_ua_info(cfg)["attached"]
 
     packages_by_origin = get_installed_packages_by_origin()
-    security_upgradable_versions_infra = filter_security_updates(
+    security_upgradable_versions_infra = filter_updates(
         packages_by_origin["main"]
         + packages_by_origin["restricted"]
         + packages_by_origin["esm-infra"],
     )["esm-infra"]
 
-    security_upgradable_versions_apps = filter_security_updates(
+    security_upgradable_versions_apps = filter_updates(
         packages_by_origin["universe"]
         + packages_by_origin["multiverse"]
         + packages_by_origin["esm-apps"],
@@ -604,11 +607,11 @@ def list_esm_infra_packages(cfg):
     all_infra_packages = infra_packages + mr_packages
 
     infra_updates = set()
-    security_upgradable_versions = filter_security_updates(all_infra_packages)[
+    security_upgradable_versions = filter_updates(all_infra_packages)[
         "esm-infra"
     ]
     for update, _ in security_upgradable_versions:
-        infra_updates.add(update.package)
+        infra_updates.add(update.parent_pkg)
 
     series = get_release_info().series
     is_lts = is_current_series_lts()
@@ -694,11 +697,11 @@ def list_esm_apps_packages(cfg):
     all_apps_packages = apps_packages + um_packages
 
     apps_updates = set()
-    security_upgradable_versions = filter_security_updates(all_apps_packages)[
+    security_upgradable_versions = filter_updates(all_apps_packages)[
         "esm-apps"
     ]
     for update, _ in security_upgradable_versions:
-        apps_updates.add(update.package)
+        apps_updates.add(update.parent_pkg)
 
     is_lts = is_current_series_lts()
 
