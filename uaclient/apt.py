@@ -63,6 +63,17 @@ deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
 # deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
 """
 
+ESM_BASIC_FILE_STRUCTURE = {
+    "files": [
+        os.path.join(ESM_APT_ROOTDIR, "etc/apt/sources.list"),
+        os.path.join(ESM_APT_ROOTDIR, "var/lib/dpkg/status"),
+    ],
+    "folders": [
+        os.path.join(ESM_APT_ROOTDIR, "var/cache/apt/archives/partial"),
+        os.path.join(ESM_APT_ROOTDIR, "var/lib/apt/lists/partial"),
+    ],
+}
+
 # Since we generally have a person at the command line prompt. Don't loop
 # for 5 minutes like charmhelpers because we expect the human to notice and
 # resolve to apt conflict or try again.
@@ -773,9 +784,30 @@ def get_apt_cache_datetime() -> Optional[datetime.datetime]:
     return datetime.datetime.fromtimestamp(cache_time, datetime.timezone.utc)
 
 
+def _ensure_esm_cache_structure():
+    # make sure all necessary files exist...
+    existing_files = glob.glob(os.path.join(ESM_APT_ROOTDIR, "**/*"))
+    desired_files = (
+        ESM_BASIC_FILE_STRUCTURE["files"] + ESM_BASIC_FILE_STRUCTURE["folders"]
+    )
+    if all((file in existing_files for file in desired_files)):
+        return
+
+    # ...otherwise make sure they do NOT exist...
+    system.ensure_folder_absent(ESM_APT_ROOTDIR)
+
+    # ...and recreate them
+    for file in ESM_BASIC_FILE_STRUCTURE["files"]:
+        system.create_file(file)
+    for folder in ESM_BASIC_FILE_STRUCTURE["folders"]:
+        os.makedirs(folder, exist_ok=True, mode=755)
+
+
 def update_esm_caches(cfg) -> None:
     if not system.is_current_series_lts():
         return
+
+    _ensure_esm_cache_structure()
 
     from uaclient.actions import status
     from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -820,14 +852,14 @@ def update_esm_caches(cfg) -> None:
             infra.disable_local_esm_repo()
 
     # Read the cache and update it
-    cache = get_esm_cache()
-
-    try:
-        cache.update()
-    # Impossible to write a unittest for this because apt is globally mocked
-    # in tests - down the rabbit hole, not worth it
-    except apt.cache.FetchFailedException:
-        LOG.warning("Failed to fetch the ESM Apt Cache")
+    with PreserveAptCfg(get_esm_apt_pkg_cache) as cache:
+        sources_list = apt_pkg.SourceList()
+        sources_list.read_main_list()
+        fetch_progress = apt.progress.base.AcquireProgress()
+        try:
+            cache.update(fetch_progress, sources_list, 0)
+        except (apt_pkg.Error, SystemError) as e:
+            LOG.warning("Failed to fetch the ESM Apt Cache: {}".format(str(e)))
 
 
 def remove_packages(package_names: List[str], error_message: str):
