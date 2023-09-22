@@ -12,9 +12,9 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.security_status import (
     UpdateStatus,
-    filter_security_updates,
+    filter_updates,
     get_livepatch_fixed_cves,
-    get_origin_for_package,
+    get_origin_for_installed_package,
     get_ua_info,
     get_update_status,
     security_status_dict,
@@ -32,7 +32,7 @@ def mock_origin(
     mock_origin.archive = archive
     mock_origin.origin = origin
     mock_origin.site = site
-    return mock_origin
+    return [mock_origin, 0]
 
 
 def mock_version(
@@ -41,9 +41,9 @@ def mock_version(
     size: int = 1,
 ) -> mock.MagicMock:
     mock_version = mock.MagicMock()
-    mock_version.__gt__ = lambda self, other: self.version > other.version
-    mock_version.version = version
-    mock_version.origins = origin_list
+    mock_version.__gt__ = lambda self, other: self.ver_str > other.ver_str
+    mock_version.ver_str = version
+    mock_version.file_list = origin_list
     mock_version.size = size
     return mock_version
 
@@ -55,24 +55,27 @@ def mock_package(
 ):
     mock_package = mock.MagicMock()
     mock_package.name = name
-    mock_package.versions = []
-    mock_package.is_installed = bool(installed_version)
+    mock_package.version_list = []
 
-    mock_package.installed = None
+    mock_package.current_ver = None
     if installed_version:
-        mock_package.installed = installed_version
-        installed_version.package = mock_package
-        mock_package.versions.append(installed_version)
+        mock_package.current_ver = installed_version
+        installed_version.parent_pkg = mock_package
+        mock_package.version_list.append(installed_version)
 
     for version in other_versions:
-        version.package = mock_package
-        mock_package.versions.append(version)
-
-    mock_package.candidate = None
-    if mock_package.versions:
-        mock_package.candidate = max(mock_package.versions)
+        version.parent_pkg = mock_package
+        mock_package.version_list.append(version)
 
     return mock_package
+
+
+class FakeDepCache:
+    def get_candidate_ver(self, package: mock.MagicMock):
+        try:
+            return max(package.version_list)
+        except ValueError:
+            return None
 
 
 MOCK_ORIGINS = {
@@ -237,7 +240,7 @@ class TestSecurityStatus:
             ),
         ),
     )
-    def test_get_origin_for_package(
+    def test_get_origin_for_installed_package(
         self, installed_version, other_versions, expected_output
     ):
         package_mock = mock_package(
@@ -247,23 +250,33 @@ class TestSecurityStatus:
             M_PATH + "get_origin_information_to_service_map",
             return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
-            assert expected_output == get_origin_for_package(package_mock)
+            assert expected_output == get_origin_for_installed_package(
+                package_mock, FakeDepCache()
+            )
 
-    def test_get_origin_for_package_without_candidate(self):
+    def test_get_origin_for_installed_package_without_candidate(self):
         """Packages without candidates are unknown."""
         package_mock = mock_package(
             "example", mock_version("1.0", [MOCK_ORIGINS["now"]]), []
         )
-        package_mock.candidate = None
+        # no candidate will be returned
+        package_mock.version_list = []
+
+        fake_dep_cache = FakeDepCache()
+        assert fake_dep_cache.get_candidate_ver(package_mock) is None
 
         with mock.patch(
             M_PATH + "get_origin_information_to_service_map",
             return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
-            assert "unknown" == get_origin_for_package(package_mock)
+            assert "unknown" == get_origin_for_installed_package(
+                package_mock, fake_dep_cache
+            )
 
-    @mock.patch("uaclient.security_status.get_esm_cache", return_value={})
-    def test_filter_security_updates(self, _m_get_esm_cache):
+    @mock.patch(
+        "uaclient.security_status.get_esm_apt_pkg_cache", return_value={}
+    )
+    def test_filter_updates(self, _m_get_esm_apt_pkgcache):
         expected_return = defaultdict(
             list,
             {
@@ -364,31 +377,31 @@ class TestSecurityStatus:
             M_PATH + "get_origin_information_to_service_map",
             return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
-            filtered_versions = filter_security_updates(package_list)
+            filtered_versions = filter_updates(package_list)
             assert expected_return == filtered_versions
             assert (
-                filtered_versions["esm-infra"][0][0].package.name
+                filtered_versions["esm-infra"][0][0].parent_pkg.name
                 == "infra-update-available"
             )
             assert (
-                filtered_versions["standard-security"][0][0].package.name
+                filtered_versions["standard-security"][0][0].parent_pkg.name
                 == "security-update-available"
             )
             assert (
-                filtered_versions["standard-security"][1][0].package.name
+                filtered_versions["standard-security"][1][0].parent_pkg.name
                 == "more-than-one-update"
             )
             assert (
-                filtered_versions["esm-apps"][0][0].package.name
+                filtered_versions["esm-apps"][0][0].parent_pkg.name
                 == "more-than-one-update"
             )
             assert (
-                filtered_versions["standard-updates"][0][0].package.name
+                filtered_versions["standard-updates"][0][0].parent_pkg.name
                 == "not-a-security-update"
             )
 
-    @mock.patch("uaclient.security_status.get_esm_cache")
-    def test_filter_security_updates_when_esm_disabled(self, m_esm_cache):
+    @mock.patch("uaclient.security_status.get_esm_apt_pkg_cache")
+    def test_filter_updates_when_esm_disabled(self, m_esm_cache):
         expected_return = defaultdict(
             list,
             {
@@ -507,37 +520,40 @@ class TestSecurityStatus:
             M_PATH + "get_origin_information_to_service_map",
             return_value=ORIGIN_TO_SERVICE_MOCK,
         ):
-            filtered_versions = filter_security_updates(package_list)
+            filtered_versions = filter_updates(package_list)
             assert expected_return == filtered_versions
             assert (
-                filtered_versions["esm-infra"][0][0].package.name
+                filtered_versions["esm-infra"][0][0].parent_pkg.name
                 == "infra-update-available"
             )
             assert (
-                filtered_versions["standard-security"][0][0].package.name
+                filtered_versions["standard-security"][0][0].parent_pkg.name
                 == "security-update-available"
             )
             assert (
-                filtered_versions["standard-security"][1][0].package.name
+                filtered_versions["standard-security"][1][0].parent_pkg.name
                 == "update-multiple-caches"
             )
             assert (
-                filtered_versions["esm-apps"][0][0].package.name
+                filtered_versions["esm-apps"][0][0].parent_pkg.name
                 == "update-multiple-caches"
             )
             assert (
-                filtered_versions["standard-updates"][0][0].package.name
+                filtered_versions["standard-updates"][0][0].parent_pkg.name
                 == "not-a-security-update"
             )
 
+    @mock.patch(M_PATH + "apt_pkg.DepCache", return_value=FakeDepCache())
     @mock.patch(M_PATH + "_reboot_required")
     @mock.patch(M_PATH + "get_livepatch_fixed_cves", return_value=[])
     @mock.patch(
         M_PATH + "_is_attached", return_value=mock.MagicMock(is_attached=False)
     )
-    @mock.patch(M_PATH + "get_origin_for_package", return_value="main")
-    @mock.patch(M_PATH + "filter_security_updates")
-    @mock.patch(M_PATH + "get_apt_cache")
+    @mock.patch(
+        M_PATH + "get_origin_for_installed_package", return_value="main"
+    )
+    @mock.patch(M_PATH + "filter_updates")
+    @mock.patch(M_PATH + "get_apt_pkg_cache")
     def test_security_status_dict(
         self,
         m_cache,
@@ -546,6 +562,7 @@ class TestSecurityStatus:
         _m_status,
         _m_livepatch_cves,
         m_reboot_status,
+        _m_dep_cache,
         FakeConfig,
     ):
         """Make sure the output format matches the expected JSON"""
@@ -553,7 +570,7 @@ class TestSecurityStatus:
         m_version = mock_version("1.0", size=123456)
         m_package = mock_package("example_package", m_version)
 
-        m_cache.return_value = [m_package] * 10
+        m_cache.return_value.packages = [m_package] * 10
         m_filter_sec_updates.return_value = {
             "esm-infra": [(m_version, "some.url.for.esm")] * 2,
             "esm-apps": [],
