@@ -435,6 +435,11 @@ class UAContractClient(serviceclient.UAServiceClient):
                 or system.get_machine_id(self.cfg),
                 "activityToken": self.cfg.machine_token_file.activity_token,
                 "resources": [service.name for service in enabled_services],
+                "resourceVariants": {
+                    service.name: service.variant_name
+                    for service in enabled_services
+                    if service.variant_enabled
+                },
                 "lastAttachment": attachment_data.attached_at.isoformat()
                 if attachment_data
                 else None,

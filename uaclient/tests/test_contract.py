@@ -738,7 +738,13 @@ class TestUAContractClient:
                 "8001",
                 IsAttachedResult(is_attached=True),
                 mock.MagicMock(
-                    enabled_services=[helpers.mock_with_name_attr(name="one")]
+                    enabled_services=[
+                        helpers.mock_with_name_attr(
+                            name="one",
+                            variant_enabled=False,
+                            variant_name=None,
+                        )
+                    ]
                 ),
                 AttachmentData(
                     attached_at=datetime.datetime(
@@ -759,6 +765,7 @@ class TestUAContractClient:
                     "activityID": "activity_id",
                     "activityToken": "activity_token",
                     "resources": ["one"],
+                    "resourceVariants": {},
                     "lastAttachment": "2000-01-02T03:04:05+00:00",
                 },
             ),
@@ -786,7 +793,18 @@ class TestUAContractClient:
                 "8001",
                 IsAttachedResult(is_attached=True),
                 mock.MagicMock(
-                    enabled_services=[helpers.mock_with_name_attr(name="one")]
+                    enabled_services=[
+                        helpers.mock_with_name_attr(
+                            name="one",
+                            variant_enabled=False,
+                            variant_name=None,
+                        ),
+                        helpers.mock_with_name_attr(
+                            name="two",
+                            variant_enabled=True,
+                            variant_name="test",
+                        ),
+                    ]
                 ),
                 AttachmentData(
                     attached_at=datetime.datetime(
@@ -806,7 +824,8 @@ class TestUAContractClient:
                     "clientVersion": "8001",
                     "activityID": "machine_id",
                     "activityToken": "activity_token",
-                    "resources": ["one"],
+                    "resources": ["one", "two"],
+                    "resourceVariants": {"two": "test"},
                     "lastAttachment": "2000-01-02T03:04:05+00:00",
                 },
             ),
