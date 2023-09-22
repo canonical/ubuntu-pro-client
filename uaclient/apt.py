@@ -818,7 +818,17 @@ def update_esm_caches(cfg) -> None:
     with PreserveAptCfg(get_esm_apt_pkg_cache) as cache:
         sources_list = apt_pkg.SourceList()
         sources_list.read_main_list()
-        fetch_progress = AcquireProgress()
+
+        class EsmAcquireProgress(AcquireProgress):
+            def done(self, item: apt_pkg.AcquireItemDesc):
+                LOG.debug("Fetched ESM Apt Cache item: {}".format(item.uri))
+
+            def fail(self, item: apt_pkg.AcquireItemDesc):
+                LOG.warning(
+                    "Failed to fetch ESM Apt Cache item: {}".format(item.uri)
+                )
+
+        fetch_progress = EsmAcquireProgress()
         try:
             cache.update(fetch_progress, sources_list, 0)
         except (apt_pkg.Error, SystemError) as e:
