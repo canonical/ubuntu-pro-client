@@ -415,7 +415,7 @@ Feature: Command behaviour when unattached
         When I run `cat /var/log/ubuntu-advantage.log` with sudo
         Then stdout matches regexp:
         """
-        Failed to fetch the ESM Apt Cache
+        Failed to fetch ESM Apt Cache item:
         """
 
         Examples: ubuntu release
