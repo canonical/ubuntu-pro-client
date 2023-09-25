@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     AdditionalData,
     AptUpgradeData,
     AttachData,
@@ -31,7 +31,7 @@ from uaclient.contract import ContractExpiryStatus
 from uaclient.messages import INVALID_SECURITY_ISSUE
 from uaclient.security import CVEPackageStatus, FixStatus
 
-M_PATH = "uaclient.api.u.pro.security.fix."
+M_PATH = "uaclient.api.u.pro.security.fix._common.plan.v1."
 
 
 class TestFixPlan:
@@ -76,9 +76,7 @@ class TestFixPlan:
         )
         assert expected_plan == fix_plan_usn(issue_id, cfg=mock.MagicMock())
 
-    @mock.patch(
-        "uaclient.api.u.pro.security.fix._check_cve_fixed_by_livepatch"
-    )
+    @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
     def test_fix_plan_cve_fixed_by_livepatch(
         self,
         m_check_cve_fixed_by_livepatch,
@@ -439,7 +437,7 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
     def test_fix_plan_for_cve_when_package_cannot_be_installed(
@@ -532,7 +530,7 @@ class TestFixPlan:
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
-    @mock.patch("uaclient.api.u.pro.security.fix._get_cve_data")
+    @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
     def test_fix_plan_for_cve_with_not_released_status(

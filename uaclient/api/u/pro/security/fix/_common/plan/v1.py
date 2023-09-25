@@ -753,7 +753,6 @@ def fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         return fix_plan.fix_plan
 
     issue_id = issue_id.upper()
-    breakpoint()
     return _fix_plan_cve(issue_id, cfg)
 
 
@@ -793,8 +792,6 @@ def _generate_fix_plan(
     additional_data=None
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
-    src_pocket_pkgs = defaultdict(list)
-
     fix_plan = get_fix_plan(
         title=issue_id,
         description=issue_description,
