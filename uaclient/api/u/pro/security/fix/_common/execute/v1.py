@@ -1,7 +1,8 @@
 from typing import List, Optional
 
 from uaclient import apt, messages, util
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common import status_message
+from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanAptUpgradeStep,
     FixPlanAttachStep,
     FixPlanEnableStep,
@@ -11,7 +12,6 @@ from uaclient.api.u.pro.security.fix import (
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
 )
-from uaclient.api.u.pro.security.fix._common import status_message
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.security import FixStatus
 

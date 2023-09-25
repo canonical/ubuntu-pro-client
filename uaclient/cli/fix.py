@@ -21,7 +21,8 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
-from uaclient.api.u.pro.security.fix import (  # noqa: F401
+from uaclient.api.u.pro.security.fix._common import status_message
+from uaclient.api.u.pro.security.fix._common.plan.v1 import (  # noqa: F401
     ESM_APPS_POCKET,
     ESM_INFRA_POCKET,
     STANDARD_UPDATES_POCKET,
@@ -42,7 +43,6 @@ from uaclient.api.u.pro.security.fix import (  # noqa: F401
     NoOpLivepatchFixData,
     USNAdditionalData,
 )
-from uaclient.api.u.pro.security.fix._common import status_message
 from uaclient.api.u.pro.security.fix.cve.plan.v1 import CVEFixPlanOptions
 from uaclient.api.u.pro.security.fix.cve.plan.v1 import _plan as cve_plan
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import USNFixPlanOptions
