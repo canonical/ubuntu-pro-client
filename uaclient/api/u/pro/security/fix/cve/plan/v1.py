@@ -2,8 +2,11 @@ from typing import List
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.security.fix import FixPlanResult, fix_plan_cve
 from uaclient.api.u.pro.security.fix._common import get_expected_overall_status
+from uaclient.api.u.pro.security.fix._common.plan.v1 import (
+    FixPlanResult,
+    fix_plan_cve,
+)
 from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 
