@@ -14,8 +14,8 @@ Feature: APT Messages
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
-        2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard LTS security updates
+        1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        1 standard LTS security update
 
         """
 
@@ -42,8 +42,8 @@ Feature: APT Messages
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
-        4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard LTS security updates and 2 esm-infra security updates
+        3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        1 standard LTS security update and 2 esm-infra security updates
 
         """
 
@@ -52,8 +52,8 @@ Feature: APT Messages
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
-        3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard LTS security updates and 1 esm-apps security update
+        2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        1 standard LTS security update and 1 esm-apps security update
 
         """
 
@@ -73,8 +73,8 @@ Feature: APT Messages
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
-        5 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-        2 standard LTS security updates, 2 esm-infra security updates and 1 esm-apps security update
+        4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+        1 standard LTS security update, 2 esm-infra security updates and 1 esm-apps security update
 
         """
 
@@ -97,8 +97,8 @@ Feature: APT Messages
         """
 
         Examples: ubuntu release
-           | release | machine_type  | standard-pkg                                                          | infra-pkg                                            | apps-pkg     |
-           | xenial  | lxd-container | accountsservice=0.6.40-2ubuntu10 libaccountsservice0=0.6.40-2ubuntu10 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
+           | release | machine_type  | standard-pkg         | infra-pkg                                            | apps-pkg     |
+           | xenial  | lxd-container | wget=1.17.1-1ubuntu1 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
     @series.bionic
     @series.xenial
