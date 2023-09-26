@@ -1,3 +1,4 @@
+(configure_proxies)=
 # How to configure a proxy
 
 The Ubuntu Pro Client can be configured to use an HTTP/HTTPS proxy as needed
