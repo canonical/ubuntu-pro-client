@@ -13,7 +13,8 @@ SHELL_BEFORE=${SHELL_BEFORE:-0}
 series=${1:-jammy}
 build_out=$(./tools/build.sh "$series")
 hash=$(echo "$build_out" | jq -r .state_hash)
-deb=$(echo "$build_out" | jq -r '.debs[]' | grep tools)
+tools_deb=$(echo "$build_out" | jq -r '.debs[]' | grep tools)
+l10n_deb=$(echo "$build_out" | jq -r '.debs[]' | grep l10n)
 name=ua-$series-$hash
 
 flags=
@@ -28,7 +29,8 @@ if [[ "$VM" -ne 0 ]]; then
     echo "vms take a while before the agent is ready"
     sleep 30
 fi
-lxc file push "$deb" "${name}/tmp/ua.deb"
+lxc file push "$tools_deb" "${name}/tmp/ua_tools.deb"
+lxc file push "$l10n_deb" "${name}/tmp/ua_l10n.deb"
 
 if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     set +x
@@ -41,5 +43,6 @@ if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     lxc exec "$name" bash
 fi
 
-lxc exec "$name" -- dpkg -i /tmp/ua.deb
+lxc exec "$name" -- dpkg -i /tmp/ua_tools.deb
+lxc exec "$name" -- dpkg -i /tmp/ua_l10n.deb
 lxc shell "$name"
