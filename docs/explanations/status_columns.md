@@ -5,38 +5,40 @@ depend on whether the Ubuntu Pro subscription is attached or unattached.
 
 ## Pro subscription unattached
 When unattached, users will see the following status table containing only
-three columns:
+three columns (output truncated for brevity):
 
-```
+```text
 SERVICE          AVAILABLE  DESCRIPTION
-cc-eal           no         Common Criteria EAL2 Provisioning Packages
-cis              no         Security compliance and audit tools
+...
+esm-apps         yes        Expanded Security Maintenance for Applications
 esm-infra        yes        Expanded Security Maintenance for Infrastructure
-fips             no         NIST-certified core packages
-fips-updates     no         NIST-certified core packages with priority security updates
+fips             yes        NIST-certified core packages
+fips-updates     yes        NIST-certified core packages with priority security updates
 livepatch        yes        Canonical Livepatch service
+...
 ```
 
 Where:
 
-* **SERVICE**: Is the name of service being offered
+* **SERVICE**: Is the name of service being offered.
 * **AVAILABLE**: Shows if that service is available on that machine. To verify
   if a service is available, we check the machine kernel version, architecture,
-  Ubuntu release being used and the machine type (i.e lxd for LXD containers)
+  Ubuntu release being used and the machine type (i.e lxd for LXD containers).
 * **DESCRIPTION**: A short description of the service.
 
 ## With Pro subscription attached
 
 However, if we run the same command when attached, we have an output with 4
-columns:
+columns (output truncated):
 
-```
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified core packages
-fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-livepatch     yes       n/a       Canonical Livepatch service
+```text
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+fips             yes       disabled  NIST-certified core packages
+fips-updates     yes       disabled  NIST-certified core packages with priority security updates
+livepatch        yes       enabled   Canonical Livepatch service
+...
 ```
 
 You may notice that the column **AVAILABLE** is no longer shown, and instead we
@@ -58,6 +60,9 @@ The **STATUS** column allows for three possible states:
 * **n/a**: This means "not applicable". This will show if the service cannot be
   enabled on the machine due to a non-contract restriction. For example, we
   cannot enable `livepatch` on a container.
+
+  "Not applicable" rows are not shown by default. If you would like to see
+  the full output, use the `pro status --all` command.
 
 ## Notices
 
@@ -103,6 +108,21 @@ listed, even if it is invalid or typed the wrong way. Those appear in `status`
 output for informational and debugging purposes.
 
 ## Machine-readable output
+
+### Status API functions
+
+Some status information can be obtained from API functions. These include:
+
+- Is the machine currently attached to an Ubuntu Pro subscription? See [u.pro.status.is_attached.v1](references/api:u.pro.status.is_attached.v1)
+- Which Ubuntu Pro services are currently enabled on the machine? See [u.pro.status.enabled_services.v1](references/api:u.pro.status.enabled_services.v1)
+
+If you need status-related information for which there is no API function, then `pro status --format=json` (described below) is the recommended machine-readable interface.
+
+```{attention}
+Please let us know what status information you need that is missing from the API by clicking "Give feedback" at the top of this page.
+```
+
+### `pro status --format=json`
 
 The `pro status` command supports a `--format` flag with options including `json` and `yaml`. These result in a machine-readable form of the information presented by the `pro status` command.
 
@@ -183,9 +203,9 @@ For example, running `sudo pro status --format=json` on an attached machine may 
 ```
 
 Some particularly important attributes in the output include:
-* `attached`: This boolean value indicates whether this machine is attached to an Ubuntu Pro account. This does not tell you if any particular service (e.g. `esm-infra`) is enabled. You must check the individual service item in the `services` list for that status (described below).
+* `attached`: This boolean value indicates whether this machine is attached to an Ubuntu Pro account. Starting with version 28.1, we recommend using the [u.pro.status.is_attached.v1](references/api:u.pro.status.is_attached.v1) API instead. This does not tell you if any particular service (e.g. `esm-infra`) is enabled. You must check the individual service item in the `services` list for that status (described below).
 * `expires`: This is the date that the Ubuntu Pro subscription is valid until (in RFC3339 format). After this date has passed the machine should be treated as if not attached and no services are enabled. `attached` may still say `true` and services may still say they are `entitled` and `enabled`, but if the `expires` date has passed, you should assume the services are not functioning.
-* `services`: This is a list of Ubuntu Pro services. Each item has its own attributes. Widely applicable services include those with `name` equal to `esm-infra`, `esm-apps`, and `livepatch`. Some important fields in each service object are:
+* `services`: This is a list of Ubuntu Pro services. Starting with version 28.1, if you are looking for enabled services, we recommend using the [u.pro.status.enabled_services.v1](references/api:u.pro.status.enabled_services.v1) API instead. Each item has its own attributes. Widely applicable services include those with `name` equal to `esm-infra`, `esm-apps`, and `livepatch`. Some important fields in each service object are:
   * `name`: The name of the service.
   * `entitled`: A boolean indicating whether the attached Ubuntu Pro account is allowed to enable this service.
   * `status`: A string indicating the service's current status on the machine. Any value other than `enabled` should be treated as if the service is not enabled and not working properly on the machine. Possible values are:
@@ -199,7 +219,3 @@ For example, if you want to programatically find the status of esm-infra on a pa
 sudo pro status --format=json | jq '.services[] | select(.name == "esm-infra").status'
 ```
 That command will print one of the `status` values defined above.
-
-```{attention}
-In an future version of Ubuntu Pro Client, there will be an [API](../references/api.rst) function to access this information. For now, though, `pro status --format=json` is the recommended machine-readable interface to this data.
-```

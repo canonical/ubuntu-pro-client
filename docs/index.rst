@@ -1,10 +1,11 @@
 Ubuntu Pro Client
 #################
 
-`Ubuntu Pro`_ is a suite of security services provided by Canonical. Whether
-you’re an enterprise customer deploying systems at scale or want security
-patching for your personal Ubuntu LTS at home, the Ubuntu Pro Client (``pro``)
-is the command-line tool that will help you manage the services you need.
+`Ubuntu Pro`_ is a suite of additional services provided by Canonical on top of
+Ubuntu. Whether you’re an enterprise customer deploying systems at scale or
+want security patching for your personal Ubuntu LTS at home, the Ubuntu Pro
+Client (``pro``) is the command-line tool that will help you manage the
+services you need.
 
 The Ubuntu Pro Client comes pre-installed on every Ubuntu system. You can run
 ``pro help`` in your terminal window to see a list of the ``pro``
@@ -298,7 +299,7 @@ constructive feedback.
 .. _real-time kernel: https://ubuntu.com/realtime-kernel
 .. _more information about real-time Ubuntu: https://ubuntu.com/kernel/real-time/contact-us
 .. _Landscape: https://ubuntu.com/landscape
-.. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu-advantage-tools/+filebug
+.. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
 .. _Contribute: https://github.com/canonical/ubuntu-pro-client/blob/main/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server

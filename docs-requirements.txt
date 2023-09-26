@@ -6,3 +6,4 @@ sphinx_autobuild
 sphinx_copybutton
 sphinx_design
 sphinxcontrib-mermaid
+sphinxcontrib-jquery
