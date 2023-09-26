@@ -24,12 +24,6 @@ machine, we will use a Xenial Multipass VM.
 We have chosen [Multipass](https://multipass.run/) for this tutorial because it
 allows us to easily launch VMs without the need for any complicated setup.
 
-## How to use this tutorial
-
-The commands in each code block can be copied and pasted directly into your
-terminal. You can use the "copy code" button to the right-hand side of the block
-and this will copy the code for you (without the command prompt!).
-
 ## Install Multipass
 
 To install Multipass on your computer, please run the following command on your
@@ -87,15 +81,16 @@ $ pro status
 You can expect to see an output similar to this:
 
 ```
-SERVICE       AVAILABLE  DESCRIPTION
-cis           yes        Center for Internet Security Audit Tools
-esm-infra     yes        Expanded Security Maintenance for Infrastructure
-fips          yes        NIST-certified core packages
-fips-updates  yes        NIST-certified core packages with priority security updates
-livepatch     yes        Canonical Livepatch service
-
-This machine is not attached to an Ubuntu Pro subscription.
-See https://ubuntu.com/pro
+SERVICE          AVAILABLE  DESCRIPTION
+cc-eal           yes        Common Criteria EAL2 Provisioning Packages
+cis              yes        Security compliance and audit tools
+esm-apps         yes        Expanded Security Maintenance for Applications
+esm-infra        yes        Expanded Security Maintenance for Infrastructure
+fips             yes        NIST-certified core packages
+fips-updates     yes        NIST-certified core packages with priority security updates
+livepatch        yes        Canonical Livepatch service
+ros              yes        Security Updates for the Robot Operating System
+ros-updates      yes        All Updates for the Robot Operating System
 ```
 
 You can see that the `status` command shows the services available to your
@@ -131,17 +126,27 @@ $ sudo pro attach YOUR_TOKEN
 You should then see output similar to this:
 
 ```
+Enabling default service esm-apps
+Updating package lists
+Ubuntu Pro: ESM Apps enabled
 Enabling default service esm-infra
 Updating package lists
 Ubuntu Pro: ESM Infra enabled
+Enabling default service livepatch
+Installing canonical-livepatch snap
+Canonical livepatch enabled.
 This machine is now attached to 'USER ACCOUNT'
 
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified core packages
-fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-livepatch     yes       n/a       Canonical Livepatch service
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+cc-eal           yes       disabled  Common Criteria EAL2 Provisioning Packages
+cis              yes       disabled  Security compliance and audit tools
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+fips             yes       disabled  NIST-certified core packages
+fips-updates     yes       disabled  NIST-certified core packages with priority security updates
+livepatch        yes       enabled   Canonical Livepatch service
+ros              yes       disabled  Security Updates for the Robot Operating System
+ros-updates      yes       disabled  All Updates for the Robot Operating System
 
 NOTICES
 Operation in progress: pro attach
@@ -183,7 +188,8 @@ Valid until: 9999-12-31 00:00:00+00:00
 ```
 
 The `Valid until` field describes when your contract will expire, so you can be
-aware of when it needs to be renewed.
+aware of when it needs to be renewed. Note that if you are using a free token,
+you will not see this part of the output since free tokens never expire.
 
 ### `refresh`
 
@@ -229,7 +235,7 @@ One moment, checking your subscription first
 Updating package lists
 Installing CIS Audit packages
 CIS Audit enabled
-Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
+Visit https://ubuntu.com/security/cis to learn how to use CIS
 ```
 
 We can then confirm that `cis` is now enabled by using the `status` command
@@ -241,12 +247,16 @@ $ pro status
 
 And you should see:
 ```
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       enabled   Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified core packages
-fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-livepatch     yes       n/a       Canonical Livepatch service
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+cc-eal           yes       disabled  Common Criteria EAL2 Provisioning Packages
+cis              yes       enabled   Security compliance and audit tools
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+fips             yes       disabled  NIST-certified core packages
+fips-updates     yes       disabled  NIST-certified core packages with priority security updates
+livepatch        yes       enabled   Canonical Livepatch service
+ros              yes       disabled  Security Updates for the Robot Operating System
+ros-updates      yes       disabled  All Updates for the Robot Operating System
 ```
 
 You can see now that `cis` is marked as `enabled` under 'status'.
@@ -265,12 +275,16 @@ $ sudo pro disable cis
 Let's now run `pro status` to see what happened to `cis`:
 
 ```
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cis           yes       disabled  Center for Internet Security Audit Tools
-esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-fips          yes       n/a       NIST-certified core packages
-fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-livepatch     yes       n/a       Canonical Livepatch service
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+cc-eal           yes       disabled  Common Criteria EAL2 Provisioning Packages
+cis              yes       disabled  Security compliance and audit tools
+esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+fips             yes       disabled  NIST-certified core packages
+fips-updates     yes       disabled  NIST-certified core packages with priority security updates
+livepatch        yes       enabled   Canonical Livepatch service
+ros              yes       disabled  Security Updates for the Robot Operating System
+ros-updates      yes       disabled  All Updates for the Robot Operating System
 ```
 
 You can see that `cis` status is back to being disabled.

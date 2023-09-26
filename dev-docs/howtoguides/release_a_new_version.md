@@ -60,7 +60,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
       * To structure the changelog you can use the other entries as example. But we basically try to
         keep this order: debian changes, new features/modifications, testing. Within each section, bullet points should be alphabetized.
 
-    c. Create a PR on GitHub into the release branch. Ask in the ~UA channel on Mattermost for review.
+    c. Create a PR on GitHub into the release branch. Ask in the ~Pro channel on Mattermost for review.
 
     d. When reviewing the release PR, please use the following guidelines when reviewing the new changelog entry:
 
@@ -187,6 +187,14 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     h. Tell the SRU team member who performed the pre-SRU review that the packages are in the -proposed release queue. They will need to actually approve the package to move into -proposed.
 
+    i. Release the documentation changes
+      * Open a pull request merging the `docs-devel` branch to the `docs` branch. Ask in the ~Pro channel for a review. Some conflicts may apperar but those should be only content-related and easy enough to fix.
+      * Once the pull request lands, the `latest` documentation will be automatically updated.
+      * Tag the HEAD of the `docs` branch as `v<version>`. Example: `v28`.
+        * The `v` in the tag differentiates the documentation releases as they will appear in readthedocs from the software version tags in the `release` branch.
+      * Go to [the project in readthedocs](https://readthedocs.com/projects/canonical-ubuntu-pro-client/), to the `Versions` tab, look for the tag in the inactive versions list and click `Activate`.
+        * Be sure the `Active` checkbox is checked, and the privacy level is set to `Public`.
+        * *If* there were are any changes applied only to `docs`, open a pull request merging the `docs` branch back to `docs-devel` .
 4. -proposed verification and release to -updates
 
     a. As soon as the SRU vanguard approves the packages, a bot in #ubuntu-release will announce that ubuntu-advantage-tools is accepted into the applicable -proposed pockets, or the [Xenial -proposed release rejection queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejections. Double check the SRU process bug for any actionable review feedback.
