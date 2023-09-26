@@ -1,1 +1,3 @@
+../apt-hook/json-hook.cc
 [type: gettext/rfc822deb] ubuntu-advantage-tools.templates
+../uaclient/messages/__init__.py

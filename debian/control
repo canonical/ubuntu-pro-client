@@ -39,6 +39,7 @@ Depends: ${misc:Depends},
          python3-apt,
          python3-pkg-resources,
          ${extra:Depends}
+Recommends: ubuntu-pro-client-l10n
 Description: management tools for Ubuntu Pro
  Ubuntu Pro is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world
@@ -46,6 +47,13 @@ Description: management tools for Ubuntu Pro
  .
  Subscribers to Ubuntu Pro will find helpful tools for accessing
  services in this package.
+
+Package: ubuntu-pro-client-l10n
+Architecture: any
+Depends: ${misc:Depends}, ubuntu-advantage-tools (>=30~)
+Description: Translations for Ubuntu Pro Client
+ This package delivers translations of Ubuntu Pro Client for various
+ languages.
 
 Package: ubuntu-advantage-pro
 Architecture: all

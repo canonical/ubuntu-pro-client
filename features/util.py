@@ -187,8 +187,10 @@ def build_debs(
     deb_prefix = "{}-{}-{}-".format(series, architecture, repo_state_hash())
     tools_deb_name = "{}ubuntu-advantage-tools.deb".format(deb_prefix)
     pro_deb_name = "{}ubuntu-advantage-pro.deb".format(deb_prefix)
+    l10n_deb_name = "{}ubuntu-pro-client-l10n.deb".format(deb_prefix)
     tools_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, tools_deb_name)
     pro_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, pro_deb_name)
+    l10n_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, l10n_deb_name)
 
     if not os.path.exists(UA_DEB_BUILD_CACHE):
         os.makedirs(UA_DEB_BUILD_CACHE)
@@ -197,11 +199,11 @@ def build_debs(
         pro_deb_cache_path
     ):
         logging.info(
-            "--- Using debs in cache: {} and {}".format(
-                tools_deb_cache_path, pro_deb_cache_path
+            "--- Using debs in cache: {} and {} and {}".format(
+                tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path
             )
         )
-        return [tools_deb_cache_path, pro_deb_cache_path]
+        return [tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path]
 
     logging.info("--- Creating: {}".format(SOURCE_PR_TGZ))
 
@@ -290,7 +292,9 @@ def build_debs(
 
     for f in os.listdir(SBUILD_DIR):
         if f.endswith(".deb"):
-            if "pro" in f:
+            if "l10n" in f:
+                dest = l10n_deb_cache_path
+            elif "pro" in f:
                 dest = pro_deb_cache_path
             elif "tools" in f:
                 dest = tools_deb_cache_path
@@ -298,7 +302,7 @@ def build_debs(
                 continue
             shutil.copy(os.path.join(SBUILD_DIR, f), dest)
 
-    return [tools_deb_cache_path, pro_deb_cache_path]
+    return [tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path]
 
 
 class SafeLoaderWithoutDatetime(yaml.SafeLoader):

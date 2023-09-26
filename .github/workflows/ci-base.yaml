@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev intltool
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Formatting
@@ -29,6 +29,10 @@ jobs:
         run: tox -e mypy
       - name: Version Consistency
         run: python3 ./tools/check-versions-are-consistent.py
+      - name: Translation Template Updated
+        run: |
+          ./tools/update-pos.sh
+          [ $(git diff --ignore-matching-lines="POT-Creation-Date" | wc -c) = "0" ]
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-22.04
