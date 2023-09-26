@@ -1,9 +1,73 @@
 Feature: Pro supports multiple languages
 
+    @series.lts
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-container
+    Scenario Outline: Translation works
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
+        Then stdout contains substring:
+        """
+        Esta máquina NÃO está anexada a uma assinatura do Ubuntu Pro.
+        """
+        When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
+        Then stdout contains substring:
+        """
+        This machine is NOT attached to an Ubuntu Pro subscription.
+        """
+        Examples: ubuntu release
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+
+    @series.xenial
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-container
+    # Note: Translations do work on xenial, but our test environment triggers a bug in python that
+    #       causes it to think we're in an ascii-only environment
+    Scenario Outline: Translation doesn't error when python thinks it's ascii only
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run shell command `env LC_CTYPE=pt_BR.UTF-8 LANGUAGE=pt_BR.UTF-8 python3 -c \"import sys; print(sys.stdout.encoding)\"` as non-root
+        Then I will see the following on stdout:
+        """
+        ANSI_X3.4-1968
+        """
+        When I run shell command `env LC_CTYPE=pt_BR.UTF-8 LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
+        Then stdout contains substring:
+        """
+        This machine is NOT attached to an Ubuntu Pro subscription.
+        """
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | lxd-container |
+
+    @series.focal
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-container
+    Scenario Outline: apt-hook translations work
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `apt-get update` with sudo
+        When I run `apt-get upgrade -y` with sudo
+        When I run `pro detach --assume-yes` with sudo
+        When I run `apt-get update` with sudo
+        When I run `apt-get install hello` with sudo
+        When I attach `contract_token` with sudo
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 apt upgrade -y` with sudo
+        Then stdout matches regexp:
+        """
+        1 atualização de segurança do esm-apps
+        """
+        Examples: ubuntu release
+           | release | machine_type  |
+           | focal   | lxd-container |
+
     @series.all
     @uses.config.machine_type.lxd-container
     @uses.config.contract_token
-    Scenario Outline: Pro client's commands run successfully
+    Scenario Outline: Pro client's commands run successfully in a different locale
         Given a `<release>` machine with ubuntu-advantage-tools installed
         ## Change the locale
         When I run `apt install language-pack-fr -y` with sudo

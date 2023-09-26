@@ -49,3 +49,6 @@ node_modules
 # docs
 docs/build/
 .sphinx
+
+# compiled translations
+debian/po/usr
