@@ -29,21 +29,28 @@ def when_i_install_uat(context, machine_name=SUT):
                 context, "ubuntu-advantage-pro", machine_name=machine_name
             )
     elif context.pro_config.install_from is InstallationSource.PREBUILT:
-        deb_paths = get_debs_for_series(context.pro_config.debs_path, series)
+        deb_paths = sorted(
+            get_debs_for_series(context.pro_config.debs_path, series)
+        )
         logging.info("using debs: {}".format(deb_paths))
         for deb_path in deb_paths:
-            if "pro" not in deb_path or is_pro:
+            if "advantage-pro" not in deb_path or is_pro:
                 instance.push_file(deb_path, "/tmp/behave_ua.deb")
                 when_i_apt_install(
                     context, "/tmp/behave_ua.deb", machine_name=machine_name
                 )
                 instance.execute("sudo rm /tmp/behave_ua.deb")
     elif context.pro_config.install_from is InstallationSource.LOCAL:
-        ua_deb_path, pro_deb_path = build_debs(
+        ua_deb_path, pro_deb_path, l10n_deb_path = build_debs(
             series,
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
         instance.push_file(ua_deb_path, "/tmp/behave_ua.deb")
+        when_i_apt_install(
+            context, "/tmp/behave_ua.deb", machine_name=machine_name
+        )
+        instance.execute("sudo rm /tmp/behave_ua.deb")
+        instance.push_file(l10n_deb_path, "/tmp/behave_ua.deb")
         when_i_apt_install(
             context, "/tmp/behave_ua.deb", machine_name=machine_name
         )
@@ -270,7 +277,7 @@ def when_i_install_pro(context, machine_name=SUT):
         )
 
         for deb_path in deb_paths:
-            if "pro" in deb_path:
+            if "advantage-pro" in deb_path:
                 context.machines[machine_name].instance.push_file(
                     deb_path, "/tmp/pro.deb"
                 )

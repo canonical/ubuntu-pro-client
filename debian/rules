@@ -30,6 +30,7 @@ endif
 override_dh_auto_build:
 	dh_auto_build
 	make -C apt-hook build
+	make -C debian/po build
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
