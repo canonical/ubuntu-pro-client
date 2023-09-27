@@ -1258,7 +1258,7 @@ Warning: This action can take some time and cannot be undone.
 PROMPT_FIPS_PRE_DISABLE = (
     t.gettext(
         """\
-This will disable the FIPS entitlement but the FIPS packages will remain installed.
+This will disable the {title} entitlement but the {title} packages will remain installed.
 """  # noqa: E501
     )
     + PROMPT_YES_NO
@@ -1294,6 +1294,26 @@ fips-updates installs fips modules including all security patches for those
 modules that have been provided since their certification date. You can find
 out more at {url}"""
 ).format(url=urls.FIPS_HOME_PAGE)
+
+FIPS_PREVIEW_TITLE = t.gettext("FIPS Preview")
+FIPS_PREVIEW_DESCRIPTION = t.gettext(
+    "early access for not yet NIST-certified packages"
+)
+FIPS_PREVIEW_HELP_TEXT = t.gettext(
+    """\
+fips-preview install fips modules that are not yet fully certified by NIST.
+The main goal for the service is to provide early access to the fips packages
+for testing purposes."""
+)
+PROMPT_FIPS_PREVIEW_PRE_ENABLE = t.gettext(
+    """\
+This will install not NIST-certified FIPS packages.
+Please use this service only for test purposes.
+Additionally, the Livepatch service will be unavailable after the operation.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
 
 LANDSCAPE_TITLE = t.gettext("Landscape")
 LANDSCAPE_DESCRIPTION = t.gettext(

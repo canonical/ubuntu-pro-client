@@ -141,7 +141,9 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                                title="FIPS"
+                            ),
                         },
                     )
                 ],
@@ -162,7 +164,9 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                                title="FIPS Updates",
+                            ),
                         },
                     )
                 ],
@@ -200,7 +204,9 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": False,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                                title="FIPS"
+                            ),
                         },
                     )
                 ],
@@ -223,7 +229,9 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": False,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                                title="FIPS Updates"
+                            ),
                         },
                     )
                 ],

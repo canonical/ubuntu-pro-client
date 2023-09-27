@@ -56,7 +56,7 @@ Feature: FIPS enablement in lxd containers
         When I run `pro disable fips<updates>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
-            This will disable the FIPS entitlement but the FIPS packages will remain installed.
+            This will disable the <fips-name> entitlement but the <fips-name> packages will remain installed.
             """
         And stdout matches regexp:
             """
@@ -73,7 +73,7 @@ Feature: FIPS enablement in lxd containers
             """
         Then stdout does not match regexp:
             """
-            Disabling FIPS requires system reboot to complete operation
+            Disabling <fips-name> requires system reboot to complete operation
             """
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout does not match regexp:

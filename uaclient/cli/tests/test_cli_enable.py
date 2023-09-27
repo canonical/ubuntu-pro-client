@@ -21,8 +21,8 @@ Enable an Ubuntu Pro service.
 Arguments:
   service              the name(s) of the Ubuntu Pro services to enable. One
                        of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                       fips, fips-updates, landscape, livepatch, realtime-
-                       kernel, ros, ros-updates
+                       fips, fips-preview, fips-updates, landscape, livepatch,
+                       realtime-kernel, ros, ros-updates
 
 Flags:
   -h, --help           show this help message and exit

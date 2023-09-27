@@ -132,11 +132,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                                                    |
-           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | valid_services                                                                                                                             |
+           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -172,11 +172,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release | msg                                                                                                                   |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | msg                                                                                                                                            |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd-container
@@ -215,6 +215,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        esm-apps      +<esm-apps> +Expanded Security Maintenance for Applications
        esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
        fips          +<fips>     +NIST-certified core packages
+       fips-preview  +.* +.*
        fips-updates  +<fips>     +NIST-certified core packages with priority security updates
        landscape     +(yes|no)   +Management and administration tool for Ubuntu
        livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
@@ -425,11 +426,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | msg                                                                                                                   |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-updates, landscape,\nlivepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | msg                                                                                                                                            |
+           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.xenial
     @series.bionic
@@ -482,6 +483,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
+         - fips-preview: .*
+           \(https://ubuntu.com/security/fips\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
@@ -503,6 +506,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
+         - fips-preview: .*
+           \(https://ubuntu.com/security/fips\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
@@ -524,6 +529,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
+         - fips-preview: .*
+           \(https://ubuntu.com/security/fips\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
