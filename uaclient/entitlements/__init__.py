@@ -25,6 +25,7 @@ ENTITLEMENT_CLASSES = [
     ESMInfraEntitlement,
     fips.FIPSEntitlement,
     fips.FIPSUpdatesEntitlement,
+    fips.FIPSPreviewEntitlement,
     LandscapeEntitlement,
     LivepatchEntitlement,
     RealtimeKernelEntitlement,
