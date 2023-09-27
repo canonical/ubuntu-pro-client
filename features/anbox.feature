@@ -28,7 +28,6 @@ Feature: Enable anbox on Ubuntu
         """
         One moment, checking your subscription first
         Updating Anbox Cloud package lists
-        Skipping installing packages
         Anbox Cloud access enabled
         """
         When I run `pro status` as non-root
@@ -79,7 +78,6 @@ Feature: Enable anbox on Ubuntu
         """
         One moment, checking your subscription first
         Updating Anbox Cloud package lists
-        Skipping installing packages
         Anbox Cloud access enabled
         """
         When I run `pro status` as non-root
@@ -121,7 +119,7 @@ Feature: Enable anbox on Ubuntu
 
         You can accept the default answers if you do not have any specific
         configuration changes.
-        For more information, see https://anbox-cloud.io/docs/tut/installing-appliance
+        For more information, see https://anbox-cloud.io/docs/tut/installing-appliance#initialise
         """
         When I run `pro status` as non-root
         Then stdout matches regexp:
