@@ -78,6 +78,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
+        fips-preview  +.* +.*
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
@@ -136,6 +137,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
+        fips-preview    +.* +.*
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
         ros             +yes       +Security Updates for the Robot Operating System
@@ -156,6 +158,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
+        fips-preview    +.* +.*
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
@@ -181,6 +184,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +yes       +NIST-certified core packages
+        fips-preview    +.* +.*
         fips-updates    +yes       +NIST-certified core packages with priority security updates
         livepatch       +yes       +Canonical Livepatch service
         ros             +yes       +Security Updates for the Robot Operating System
@@ -230,6 +234,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +no        +NIST-certified core packages
+        fips-preview    +.* +.*
         fips-updates    +no        +NIST-certified core packages with priority security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
@@ -300,6 +305,7 @@ Feature: Unattached status
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-preview    +.* +.* +.*
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -349,6 +355,7 @@ Feature: Unattached status
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-preview    +.* +.* +.*
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
@@ -363,6 +370,7 @@ Feature: Unattached status
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified core packages
+        fips-preview    +.* +.* +.*
         fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
@@ -425,6 +433,7 @@ Feature: Unattached status
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +no        +yes       +no           +NIST-certified core packages
+        fips-preview    +.* +.* +.*
         fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service

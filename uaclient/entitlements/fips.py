@@ -391,6 +391,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     description = messages.FIPS_DESCRIPTION
     help_text = messages.FIPS_HELP_TEXT
     origin = "UbuntuFIPS"
+    pre_enable_msg = messages.PROMPT_FIPS_PRE_ENABLE
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
@@ -454,7 +455,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             )
             post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
-            pre_enable_prompt = messages.PROMPT_FIPS_PRE_ENABLE
+            pre_enable_prompt = self.pre_enable_msg
 
         return {
             "pre_enable": [
@@ -468,7 +469,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                        "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                            title=self.title
+                        ),
                         "assume_yes": self.assume_yes,
                     },
                 )
@@ -538,7 +541,9 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": messages.PROMPT_FIPS_PRE_DISABLE,
+                        "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                            title=self.title
+                        ),
                         "assume_yes": self.assume_yes,
                     },
                 )
@@ -561,3 +566,20 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             return True
 
         return False
+
+
+class FIPSPreviewEntitlement(FIPSEntitlement):
+    name = "fips-preview"
+    title = messages.FIPS_PREVIEW_TITLE
+    description = messages.FIPS_PREVIEW_DESCRIPTION
+    help_text = messages.FIPS_PREVIEW_HELP_TEXT
+    origin = "UbuntuFIPSPreview"
+    pre_enable_msg = messages.PROMPT_FIPS_PREVIEW_PRE_ENABLE
+
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        return super().incompatible_services + (
+            IncompatibleService(
+                FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
+            ),
+        )

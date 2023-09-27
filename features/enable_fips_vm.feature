@@ -585,3 +585,51 @@ Feature: FIPS enablement in lxd VMs
         Examples: ubuntu release
         | release |
         | focal   |
+
+
+    @slow
+    @series.jammy
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Attached enable fips-preview
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I set the machine token overlay to the following yaml
+        """
+        availableResources:
+          - available: true
+            name: fips-preview
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: fips-preview
+                entitled: true
+        """
+        And I attach `contract_token` with sudo
+        And I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        fips-preview +yes +disabled +.*
+        """
+        When I verify that running `pro enable fips-preview` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp:
+        """
+        FIPS Preview cannot be enabled with Livepatch.
+        """
+        When I run `pro disable livepatch` with sudo
+        And I verify that running `pro enable fips-preview` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp:
+        """
+        This will install not NIST-certified FIPS packages.
+        Please use this service only for test purposes.
+        Additionally, the Livepatch service will be unavailable after the operation.
+        Warning: This action can take some time and cannot be undone.
+        """
+        When I run `pro enable realtime-kernel --assume-yes` with sudo
+        And I verify that running `pro enable fips-preview` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp:
+        """
+        FIPS Preview cannot be enabled with Real-time kernel.
+        """
+
+        Examples: ubuntu release
+           | release |
+           | jammy   |
