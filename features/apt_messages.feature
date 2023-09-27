@@ -180,7 +180,7 @@ Feature: APT Messages
         Building dependency tree...
         Reading state information...
         Calculating upgrade...
-        Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
+        Get <more_msg> through Ubuntu Pro with 'esm-apps' enabled:
           <package>
         <learn_more_msg>
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
@@ -218,10 +218,10 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded\.
         """
         Examples: ubuntu release
-          | release | machine_type  | package | learn_more_msg                                                    |
-          | bionic  | lxd-container | ansible | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
-          | focal   | lxd-container | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
-          | jammy   | lxd-container | hello   | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | release | machine_type  | package | more_msg                | learn_more_msg                                                    |
+          | bionic  | lxd-container | ansible | more security updates   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
+          | focal   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
     @uses.config.machine_type.any
