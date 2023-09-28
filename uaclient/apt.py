@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from functools import lru_cache
+from functools import lru_cache, wraps
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 
 import apt_pkg  # type: ignore
@@ -83,12 +83,6 @@ APT_RETRIES = [1.0, 5.0, 10.0]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-# Most parts of the apt_pkg functionality needs the module to be initialized.
-# This call is checking for the 'Dir' configuration - which needs to be there
-# for apt_pkg to be ready - and if it is empty we initialize.
-if apt_pkg.config.get("Dir") == "":
-    apt_pkg.init()
-
 
 @enum.unique
 class AptProxyScope(enum.Enum):
@@ -100,7 +94,24 @@ InstalledAptPackage = NamedTuple(
     "InstalledAptPackage", [("name", str), ("version", str), ("arch", str)]
 )
 
-version_compare = apt_pkg.version_compare
+
+def ensure_apt_pkg_init(f):
+    """Decorator ensuring apt_pkg is initialized."""
+
+    @wraps(f)
+    def new_f(*args, **kwargs):
+        # This call is checking for the 'Dir' configuration - which needs to be
+        # there for apt_pkg to be ready - and if it is empty we initialize.
+        if apt_pkg.config.get("Dir") == "":
+            apt_pkg.init()
+        return f(*args, **kwargs)
+
+    return new_f
+
+
+@ensure_apt_pkg_init
+def version_compare(a: str, b: str):
+    return apt_pkg.version_compare(a, b)
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
