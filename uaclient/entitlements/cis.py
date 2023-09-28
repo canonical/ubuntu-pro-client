@@ -14,6 +14,7 @@ class CISEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-pro-cis.gpg"
     apt_noninteractive = True
     supports_access_only = True
+    origin = "UbuntuCIS"
 
     @property
     def messaging(self) -> MessagingOperationsDict:

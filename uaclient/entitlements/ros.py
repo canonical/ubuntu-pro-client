@@ -15,6 +15,7 @@ class ROSEntitlement(ROSCommonEntitlement):
     title = messages.ROS_TITLE
     description = messages.ROS_DESCRIPTION
     help_text = messages.ROS_HELP_TEXT
+    origin = "UbuntuROS"
 
     @property
     def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
@@ -38,6 +39,7 @@ class ROSUpdatesEntitlement(ROSCommonEntitlement):
     title = messages.ROS_UPDATES_TITLE
     description = messages.ROS_UPDATES_DESCRIPTION
     help_text = messages.ROS_UPDATES_HELP_TEXT
+    origin = "UbuntuROSUpdates"
 
     @property
     def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
