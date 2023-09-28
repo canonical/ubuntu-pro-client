@@ -11,7 +11,7 @@ from uaclient.api.u.pro.security.fix import (
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
 )
-from uaclient.api.u.pro.security.fix.common import status_message
+from uaclient.api.u.pro.security.fix._common import status_message
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.security import FixStatus
 

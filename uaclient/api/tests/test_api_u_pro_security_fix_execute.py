@@ -22,7 +22,7 @@ from uaclient.api.u.pro.security.fix import (
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
 )
-from uaclient.api.u.pro.security.fix.common.execute.v1 import (
+from uaclient.api.u.pro.security.fix._common.execute.v1 import (
     FailedUpgrade,
     FixExecuteError,
     FixExecuteResult,

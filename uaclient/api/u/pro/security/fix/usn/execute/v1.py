@@ -2,8 +2,8 @@ from typing import List, Optional
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.security.fix.common import get_expected_overall_status
-from uaclient.api.u.pro.security.fix.common.execute.v1 import (
+from uaclient.api.u.pro.security.fix._common import get_expected_overall_status
+from uaclient.api.u.pro.security.fix._common.execute.v1 import (
     FixExecuteResult,
     _execute_fix,
 )
