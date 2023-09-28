@@ -25,6 +25,7 @@ class AnboxEntitlement(RepoEntitlement):
     repo_url_tmpl = "{}"
     affordance_check_series = True
     supports_access_only = True
+    origin = "Anbox"
 
     @property
     def messaging(self) -> MessagingOperationsDict:

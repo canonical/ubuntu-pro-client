@@ -27,7 +27,7 @@ class RepoEntitlement(base.UAEntitlement):
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
 
-    # The repo Origin value for setting pinning
+    # The repo Origin value defined in apt metadata
     origin = None  # type: Optional[str]
 
     # GH: #1084 call apt in noninteractive mode
