@@ -20,6 +20,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-pro-cc-eal.gpg"
     apt_noninteractive = True
     supports_access_only = True
+    origin = "UbuntuCC"
 
     @property
     def messaging(self) -> MessagingOperationsDict:
