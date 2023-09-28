@@ -9,6 +9,7 @@ import apt_pkg
 
 from uaclient import defaults, messages, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.apt import ensure_apt_pkg_init
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
@@ -149,6 +150,7 @@ def select_message(
     return None
 
 
+@ensure_apt_pkg_init
 def fetch_aptnews_json(cfg: UAConfig):
     os.makedirs(defaults.UAC_RUN_PATH, exist_ok=True)
     acq = apt_pkg.Acquire()
@@ -214,7 +216,6 @@ def update_apt_news(cfg: UAConfig):
     try:
         news = local_apt_news(cfg)
         if not news:
-            apt_pkg.init()
             news = fetch_and_process_apt_news(cfg)
         if news:
             state_files.apt_news_raw_file.write(news)
