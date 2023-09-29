@@ -48,6 +48,8 @@ Flags:
   --assume-yes         do not prompt for confirmation before performing the
                        disable
   --format {cli,json}  output in the specified format (default: cli)
+  --purge              disable the service and remove/downgrade related
+                       packages
 """
 )
 
@@ -131,13 +133,14 @@ class TestDisable:
         args_mock = mock.Mock()
         args_mock.service = service
         args_mock.assume_yes = assume_yes
+        args_mock.purge = False
 
         with mock.patch.object(cfg, "check_lock_info", return_value=(-1, "")):
             ret = action_disable(args_mock, cfg=cfg)
 
         for m_entitlement_cls in entitlements_cls:
             assert [
-                mock.call(cfg, assume_yes=assume_yes)
+                mock.call(cfg, assume_yes=assume_yes, purge=False)
             ] == m_entitlement_cls.call_args_list
 
         expected_disable_call = mock.call()
@@ -249,6 +252,7 @@ class TestDisable:
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
+        args_mock.purge = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
             with mock.patch.object(
@@ -267,7 +271,7 @@ class TestDisable:
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
-                mock.call(cfg, assume_yes=assume_yes)
+                mock.call(cfg, assume_yes=assume_yes, purge=False)
             ] == m_ent_cls.call_args_list
 
         expected_disable_call = mock.call()
@@ -349,6 +353,7 @@ class TestDisable:
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
+        args.purge = False
 
         if root:
             expected_error = expected_error_template.format(
@@ -413,6 +418,7 @@ class TestDisable:
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
+        args.purge = False
         expected_error = expected_error_tmpl.format(
             operation="disable",
             invalid_service=", ".join(sorted(service)),
@@ -612,3 +618,25 @@ class TestDisable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
+
+    def test_purge_assume_yes_incompatible(self, capsys):
+        cfg = mock.MagicMock()
+        args_mock = mock.MagicMock()
+        args_mock.service = "test"
+        args_mock.assume_yes = True
+        args_mock.purge = True
+
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                cfg, "check_lock_info", return_value=(-1, "")
+            ):
+                main_error_handler(action_disable)(args_mock, cfg)
+
+        _out, err = capsys.readouterr()
+
+        assert (
+            messages.E_INVALID_OPTION_COMBINATION.format(
+                option1="--purge", option2="--assume-yes"
+            ).msg
+            in err.strip()
+        )
