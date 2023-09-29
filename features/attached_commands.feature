@@ -214,9 +214,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        """
        esm-apps      +<esm-apps> +Expanded Security Maintenance for Applications
        esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
-       fips          +<fips>     +NIST-certified core packages
+       fips          +<fips>     +NIST-certified FIPS crypto packages
        fips-preview  +.* +.*
-       fips-updates  +<fips>     +NIST-certified core packages with priority security updates
+       fips-updates  +<fips>     +FIPS compliant crypto packages with stable security updates
        landscape     +(yes|no)   +Management and administration tool for Ubuntu
        livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
        realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -484,10 +484,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
            \(https://ubuntu.com/security/fips\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
@@ -507,10 +507,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
            \(https://ubuntu.com/security/fips\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
@@ -530,10 +530,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
          - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
            \(https://ubuntu.com/security/fips\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
@@ -600,9 +600,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips-updates: NIST-certified FIPS crypto packages with priority security
+           updates \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
@@ -627,9 +627,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips-updates: NIST-certified FIPS crypto packages with priority security
+           updates \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service
@@ -654,9 +654,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified core packages with priority security updates
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified core packages \(https://ubuntu.com/security/fips\)
+         - fips-updates: NIST-certified FIPS crypto packages with priority security
+           updates \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
          - livepatch: Canonical Livepatch service

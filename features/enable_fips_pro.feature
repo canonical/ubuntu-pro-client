@@ -17,8 +17,8 @@ Feature: FIPS enablement in PRO cloud based machines
         And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
-            fips          +yes +disabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            fips          +yes +disabled +NIST-certified FIPS crypto packages
+            fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
             When I run `pro enable <fips-service> --assume-yes` with sudo
             Then stdout matches regexp:
@@ -76,8 +76,8 @@ Feature: FIPS enablement in PRO cloud based machines
         And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
-            fips          +yes +disabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            fips          +yes +disabled +NIST-certified FIPS crypto packages
+            fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
             When I run `pro enable <fips-service> --assume-yes` with sudo
             Then stdout matches regexp:
@@ -136,8 +136,8 @@ Feature: FIPS enablement in PRO cloud based machines
         And I run `pro status --wait` with sudo
         Then stdout matches regexp:
             """
-            fips          +yes +disabled +NIST-certified core packages
-            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            fips          +yes +disabled +NIST-certified FIPS crypto packages
+            fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:

@@ -56,8 +56,8 @@ Feature: Unattached status
         cis             +yes       +Security compliance and audit tools
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips            +yes       +NIST-certified FIPS crypto packages
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
@@ -77,9 +77,9 @@ Feature: Unattached status
         cis             +yes       +Security compliance and audit tools
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
+        fips            +yes       +NIST-certified FIPS crypto packages
         fips-preview  +.* +.*
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -104,8 +104,8 @@ Feature: Unattached status
         cis             +yes       +Security compliance and audit tools
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips            +yes       +NIST-certified FIPS crypto packages
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes      +(Canonical Livepatch service|Current kernel is not supported)
         ros             +yes       +Security Updates for the Robot Operating System
         ros-updates     +yes       +All Updates for the Robot Operating System
@@ -136,9 +136,9 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
+        fips            +yes       +NIST-certified FIPS crypto packages
         fips-preview    +.* +.*
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +Canonical Livepatch service
         ros             +yes       +Security Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
@@ -157,9 +157,9 @@ Feature: Unattached status
         cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
+        fips            +yes       +NIST-certified FIPS crypto packages
         fips-preview    +.* +.*
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -183,9 +183,9 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +NIST-certified core packages
+        fips            +yes       +NIST-certified FIPS crypto packages
         fips-preview    +.* +.*
-        fips-updates    +yes       +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +Canonical Livepatch service
         ros             +yes       +Security Updates for the Robot Operating System
         usg             +yes       +Security compliance and audit tools
@@ -233,9 +233,9 @@ Feature: Unattached status
         cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-        fips            +no        +NIST-certified core packages
+        fips            +no        +NIST-certified FIPS crypto packages
         fips-preview    +.* +.*
-        fips-updates    +no        +NIST-certified core packages with priority security updates
+        fips-updates    +no        +FIPS compliant crypto packages with stable security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -291,8 +291,8 @@ Feature: Unattached status
         cis             +yes       +yes       +no           +Security compliance and audit tools
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
         When I do a preflight check for `contract_token` with the all flag
@@ -304,9 +304,9 @@ Feature: Unattached status
         cis             +yes       +yes       +no           +Security compliance and audit tools
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +.* +.* +.*
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -354,9 +354,9 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +.* +.* +.*
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
@@ -369,9 +369,9 @@ Feature: Unattached status
         cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +.* +.* +.*
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -432,9 +432,9 @@ Feature: Unattached status
         cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +no        +yes       +no           +NIST-certified core packages
+        fips            +no        +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +.* +.* +.*
-        fips-updates    +no        +yes       +no           +NIST-certified core packages with priority security updates
+        fips-updates    +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -512,8 +512,8 @@ Feature: Unattached status
         cis             +yes       +yes       +no           +Security compliance and audit tools
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +no        +no           +Security Updates for the Robot Operating System
         ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
@@ -561,8 +561,8 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
-        fips-updates    +yes       +yes       +no           +NIST-certified core packages with priority security updates
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +no        +no           +Security Updates for the Robot Operating System
         usg             +yes       +yes       +no           +Security compliance and audit tools
@@ -609,7 +609,7 @@ Feature: Unattached status
         anbox-cloud     +yes       +.*
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-        fips            +yes       +yes       +no           +NIST-certified core packages
+        fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
 
