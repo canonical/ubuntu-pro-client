@@ -570,8 +570,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips         +yes      +disabled +NIST-certified core packages
-        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
+        fips         +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates +yes      +disabled +FIPS compliant crypto packages with stable security updates
         livepatch    +yes      +<livepatch_status>  +Canonical Livepatch service
         """
         When I run `pro disable livepatch` with sudo
@@ -586,8 +586,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips         +yes      +disabled +NIST-certified core packages
-        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
+        fips         +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates +yes      +disabled +FIPS compliant crypto packages with stable security updates
         livepatch    +yes      +disabled +Canonical Livepatch service
         """
         When I verify that running `pro enable livepatch --access-only` `with sudo` exits `1`

@@ -11,7 +11,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro status --format json` with sudo
         Then stdout contains substring
         """
-        {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured", "warning": null}
+        {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured", "warning": null}
         """
         When I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
@@ -170,7 +170,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro status --all --format json` with sudo
         Then stdout contains substring:
         """
-        {"available": "no", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
+        {"available": "no", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
         """
 
         When I reboot the machine
@@ -244,7 +244,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro status --all --format json` with sudo
         Then stdout contains substring:
         """
-        {"available": "no", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}, {"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
+        {"available": "no", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}, {"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
         """
         When I run `pro disable <fips-service> --assume-yes` with sudo
         And I run `pro enable <fips-service> --assume-yes --format json --assume-yes` with sudo

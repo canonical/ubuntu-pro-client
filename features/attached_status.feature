@@ -97,8 +97,8 @@ Feature: Attached status
         cis             +yes      +disabled +Security compliance and audit tools
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips            +yes      +disabled +NIST-certified core packages
-        fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         ros             +yes      +disabled +Security Updates for the Robot Operating System
         ros-updates     +yes      +disabled +All Updates for the Robot Operating System
 
@@ -115,8 +115,8 @@ Feature: Attached status
         cis             +yes      +disabled +Security compliance and audit tools
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips            +yes      +disabled +NIST-certified core packages
-        fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -144,8 +144,8 @@ Feature: Attached status
         anbox-cloud     +yes      +disabled +.*
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips            +yes      +disabled +NIST-certified core packages
-        fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         ros             +yes      +disabled +Security Updates for the Robot Operating System
         usg             +yes      +disabled +Security compliance and audit tools
 
@@ -161,8 +161,8 @@ Feature: Attached status
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips            +yes      +disabled +NIST-certified core packages
-        fips-updates    +yes      +disabled +NIST-certified core packages with priority security updates
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -204,8 +204,8 @@ Feature: Attached status
         cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips            +yes      +n/a      +NIST-certified core packages
-        fips-updates    +yes      +n/a      +NIST-certified core packages with priority security updates
+        fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
         landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
