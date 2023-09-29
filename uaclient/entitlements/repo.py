@@ -16,7 +16,11 @@ from uaclient import (
     util,
 )
 from uaclient.entitlements import base
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.entitlements.entitlement_status import (
+    ApplicationStatus,
+    CanDisableFailure,
+    CanDisableFailureReason,
+)
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -71,6 +75,28 @@ class RepoEntitlement(base.UAEntitlement):
     @abc.abstractmethod
     def repo_key_file(self) -> str:
         pass
+
+    def can_disable(
+        self, ignore_dependent_services: bool = False
+    ) -> Tuple[bool, Optional[CanDisableFailure]]:
+        result, reason = super().can_disable(
+            ignore_dependent_services=ignore_dependent_services
+        )
+        if result is False:
+            return result, reason
+
+        if not self.origin and self.purge:
+            return (
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.NO_PURGE_WITHOUT_ORIGIN,
+                    messages.REPO_PURGE_FAIL_NO_ORIGIN.format(
+                        entitlement_name=self.title, title=self.title
+                    ),
+                ),
+            )
+
+        return result, reason
 
     def _perform_enable(self, silent: bool = False) -> bool:
         """Enable specific entitlement.
