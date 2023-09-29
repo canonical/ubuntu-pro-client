@@ -479,15 +479,19 @@ class TestAptNews:
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
-                messages.CONTRACT_EXPIRES_SOON.format(remaining_days=10),
+                messages.CONTRACT_EXPIRES_SOON.pluralize(10).format(
+                    remaining_days=10
+                ),
             ),
             (
                 (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
-                messages.CONTRACT_EXPIRES_SOON.format(remaining_days=15),
+                messages.CONTRACT_EXPIRES_SOON.pluralize(15).format(
+                    remaining_days=15
+                ),
             ),
             (
                 (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
-                messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
+                messages.CONTRACT_EXPIRED_GRACE_PERIOD.pluralize(10).format(
                     remaining_days=10, expired_date="21 Dec 2012"
                 ),
             ),
