@@ -438,6 +438,21 @@ def run_apt_install_command(
     return out
 
 
+def get_installed_packages_by_origin(origin: str) -> List[apt_pkg.Package]:
+    # Avoiding duplicate entries, which may happen due to version being in
+    # multiple pockets or supporting multiple architectures.
+    result = set()
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        for package in cache.packages:
+            installed_version = package.current_ver
+            if installed_version:
+                for file, _ in installed_version.file_list:
+                    if file.origin == origin:
+                        result.add(package)
+
+    return list(result)
+
+
 def add_auth_apt_repo(
     repo_filename: str,
     repo_url: str,
