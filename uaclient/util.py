@@ -471,6 +471,8 @@ def print_package_list(
                 width=80,
                 break_long_words=False,
                 break_on_hyphens=False,
+                initial_indent="  ",
+                subsequent_indent="  ",
             )
         )
     )
