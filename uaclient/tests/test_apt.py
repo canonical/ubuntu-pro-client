@@ -5,6 +5,7 @@ import os
 import stat
 import subprocess
 from textwrap import dedent
+from typing import List, Optional
 
 import mock
 import pytest
@@ -30,6 +31,7 @@ from uaclient.apt import (
     get_apt_cache_policy,
     get_apt_cache_time,
     get_apt_config_values,
+    get_installed_packages_by_origin,
     get_installed_packages_names,
     get_pkg_candidate_version,
     is_installed,
@@ -57,6 +59,52 @@ APT_LIST_RETURN_STRING = """\
 a/release, now 1.2+3 arch123 [i,a]
 b/release-updates, now 1.2+3 arch123 [i,a]
 """
+
+
+def mock_origin(
+    component: str, archive: str, origin: str, site: str
+) -> mock.MagicMock:
+    mock_origin = mock.MagicMock()
+    mock_origin.component = component
+    mock_origin.archive = archive
+    mock_origin.origin = origin
+    mock_origin.site = site
+    return [mock_origin, 0]
+
+
+def mock_version(
+    version: str,
+    origin_list: List[mock.MagicMock] = [],
+    size: int = 1,
+) -> mock.MagicMock:
+    mock_version = mock.MagicMock()
+    mock_version.__gt__ = lambda self, other: self.ver_str > other.ver_str
+    mock_version.ver_str = version
+    mock_version.file_list = origin_list
+    mock_version.size = size
+    return mock_version
+
+
+def mock_package(
+    name: str,
+    installed_version: Optional[mock.MagicMock] = None,
+    other_versions: List[mock.MagicMock] = [],
+):
+    mock_package = mock.MagicMock()
+    mock_package.name = name
+    mock_package.version_list = []
+
+    mock_package.current_ver = None
+    if installed_version:
+        mock_package.current_ver = installed_version
+        installed_version.parent_pkg = mock_package
+        mock_package.version_list.append(installed_version)
+
+    for version in other_versions:
+        version.parent_pkg = mock_package
+        mock_package.version_list.append(version)
+
+    return mock_package
 
 
 class TestAddPPAPinning:
@@ -1311,3 +1359,46 @@ class TestGetPkgCandidateversion:
 
         actual_value = get_pkg_candidate_version("pkg1")
         assert actual_value is None
+
+
+class TestGetInstalledPackagesByOrigin:
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_packages_by_origin(self, m_apt_cache):
+        origin_a_security = mock_origin(
+            "main", "series-security", "OriginA", ""
+        )
+        origin_a_updates = mock_origin("main", "series-updates", "OriginA", "")
+        origin_b = mock_origin("main", "series", "OriginB", "")
+        m_apt_cache.return_value.packages = [
+            mock_package("not_installed"),
+            mock_package("origin_a", mock_version("1.0", [origin_a_security])),
+            mock_package("origin_b", mock_version("1.0", [origin_b])),
+            mock_package(
+                "both_origins",
+                mock_version("1.0", [origin_a_updates, origin_b]),
+            ),
+            mock_package(
+                "origin_a_multiple_entries",
+                mock_version("1.0", [origin_a_security, origin_a_updates]),
+            ),
+            mock_package(
+                "origin_b_with_origin_a_not_installed",
+                mock_version("1.0", [origin_b]),
+                [mock_version("1.1", [origin_a_security, origin_a_updates])],
+            ),
+        ]
+
+        assert [
+            "both_origins",
+            "origin_a",
+            "origin_a_multiple_entries",
+        ] == sorted(
+            [p.name for p in get_installed_packages_by_origin("OriginA")]
+        )
+        assert [
+            "both_origins",
+            "origin_b",
+            "origin_b_with_origin_a_not_installed",
+        ] == sorted(
+            [p.name for p in get_installed_packages_by_origin("OriginB")]
+        )
