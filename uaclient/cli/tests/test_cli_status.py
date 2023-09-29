@@ -74,8 +74,8 @@ SIMULATED_STATUS_ALL = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
 esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
 esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
-fips             no         no         no            NIST-certified core packages
-fips-updates     no         no         no            NIST-certified core packages with priority security updates
+fips             no         no         no            NIST-certified FIPS crypto packages
+fips-updates     no         no         no            FIPS compliant crypto packages with stable security updates
 livepatch        yes        yes        no            Canonical Livepatch service
 realtime-kernel  no         no         no            Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no         no         no            Security Updates for the Robot Operating System
@@ -93,8 +93,8 @@ UNATTACHED_STATUS_ALL = """\
 SERVICE          AVAILABLE  DESCRIPTION
 esm-apps         yes        Expanded Security Maintenance for Applications
 esm-infra        yes        Expanded Security Maintenance for Infrastructure
-fips             no         NIST-certified core packages
-fips-updates     no         NIST-certified core packages with priority security updates
+fips             no         NIST-certified FIPS crypto packages
+fips-updates     no         FIPS compliant crypto packages with stable security updates
 livepatch        yes        Canonical Livepatch service
 realtime-kernel  no         Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no         Security Updates for the Robot Operating System
@@ -120,8 +120,8 @@ ATTACHED_STATUS_ALL = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
 esm-apps         no        {dash}         Expanded Security Maintenance for Applications
 esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
-fips             no        {dash}         NIST-certified core packages
-fips-updates     no        {dash}         NIST-certified core packages with priority security updates
+fips             no        {dash}         NIST-certified FIPS crypto packages
+fips-updates     no        {dash}         FIPS compliant crypto packages with stable security updates
 livepatch        no        {dash}         Canonical Livepatch service
 realtime-kernel  no        {dash}         Ubuntu kernel with PREEMPT_RT patches integrated
 ros              no        {dash}         Security Updates for the Robot Operating System
@@ -176,7 +176,7 @@ SERVICES_JSON_ALL = [
         "warning": None,
     },
     {
-        "description": "NIST-certified core packages",
+        "description": "NIST-certified FIPS crypto packages",
         "description_override": None,
         "entitled": "no",
         "name": "fips",
@@ -188,7 +188,7 @@ SERVICES_JSON_ALL = [
     },
     {
         "description": (
-            "NIST-certified core packages with priority security updates"
+            "FIPS compliant crypto packages with stable security updates"  # noqa
         ),
         "description_override": None,
         "entitled": "no",
@@ -842,15 +842,15 @@ class TestActionStatus:
             {
                 "auto_enabled": "no",
                 "available": "no",
-                "description": "NIST-certified core packages",
+                "description": "NIST-certified FIPS crypto packages",
                 "entitled": "no",
                 "name": "fips",
             },
             {
                 "auto_enabled": "no",
                 "available": "no",
-                "description": "NIST-certified core packages with priority"
-                " security updates",
+                "description": "FIPS compliant crypto packages "
+                "with stable security updates",
                 "entitled": "no",
                 "name": "fips-updates",
             },

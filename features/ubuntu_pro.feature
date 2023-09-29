@@ -35,8 +35,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         Then stdout matches regexp:
@@ -108,8 +108,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
             """
         Then stdout matches regexp:
@@ -181,8 +181,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified core packages
-            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +<livepatch-s> +<lp-desc>
             """
         Then stdout matches regexp:
@@ -243,8 +243,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
         Then stdout matches regexp:
@@ -262,8 +262,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
         Then stdout matches regexp:
@@ -370,8 +370,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
         Then stdout matches regexp:
@@ -389,8 +389,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
         Then stdout matches regexp:
@@ -496,8 +496,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
         Then stdout matches regexp:
@@ -515,8 +515,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified core packages
-        fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
         Then stdout matches regexp:
