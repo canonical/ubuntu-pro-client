@@ -45,6 +45,7 @@ FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
 
 PROMPT_YES_NO = t.gettext("""Are you sure? (y/N) """)
+PROCEED_YES_NO = t.gettext("Do you want to proceed? (y/N) ")
 
 CLI_INTERRUPT_RECEIVED = t.gettext("Interrupt received; exiting.")
 
@@ -142,6 +143,10 @@ APT_UPDATE_FAILED = t.gettext("APT update failed.")
 APT_INSTALL_FAILED = t.gettext("APT install failed.")
 
 BACKING_UP_FILE = t.gettext("Backing up {original} as {backup}")
+WARN_PACKAGES_REMOVAL = t.gettext("The following package(s) will be REMOVED:")
+WARN_PACKAGES_REINSTALL = t.gettext(
+    "The following package(s) will be reinstalled from the archive:"
+)
 
 
 ###############################################################################
