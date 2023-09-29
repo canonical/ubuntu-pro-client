@@ -85,7 +85,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
     elif expiry_status == contract.ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
         system.write_file(
             motd_contract_status_msg_path,
-            messages.CONTRACT_EXPIRES_SOON.format(
+            messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
                 remaining_days=remaining_days,
             )
             + "\n\n",
@@ -101,7 +101,9 @@ def update_motd_messages(cfg: UAConfig) -> bool:
             exp_dt_str = exp_dt.strftime("%d %b %Y")
         system.write_file(
             motd_contract_status_msg_path,
-            messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
+            messages.CONTRACT_EXPIRED_GRACE_PERIOD.pluralize(
+                remaining_days
+            ).format(
                 expired_date=exp_dt_str,
                 remaining_days=grace_period_remaining,
             )
@@ -134,7 +136,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         else:
             system.write_file(
                 motd_contract_status_msg_path,
-                messages.CONTRACT_EXPIRED_WITH_PKGS.format(
+                messages.CONTRACT_EXPIRED_WITH_PKGS.pluralize(pkg_num).format(
                     pkg_num=pkg_num,
                     service=service,
                 )

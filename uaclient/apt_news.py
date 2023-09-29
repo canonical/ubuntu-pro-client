@@ -181,7 +181,7 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
 
     if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-        return messages.CONTRACT_EXPIRES_SOON.format(
+        return messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
             remaining_days=remaining_days
         )
 
@@ -194,7 +194,9 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
             exp_dt_str = "Unknown"
         else:
             exp_dt_str = exp_dt.strftime("%d %b %Y")
-        return messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
+        return messages.CONTRACT_EXPIRED_GRACE_PERIOD.pluralize(
+            remaining_days
+        ).format(
             expired_date=exp_dt_str, remaining_days=grace_period_remaining
         )
 
