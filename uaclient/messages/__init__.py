@@ -1566,6 +1566,12 @@ Cannot disable {service_being_disabled} when {dependent_service} is enabled.
 """
     ),
 )
+REPO_PURGE_FAIL_NO_ORIGIN = FormattedNamedMessage(
+    "repo-purge-fail-no-origin",
+    "Cannot disable {entitlement_name} with purge: no origin value defined"
+    + "\n"
+    + DISABLE_FAILED_TMPL,
+)
 ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
     "error-enabling-required-service",
     t.gettext("Cannot enable required service: {service}{error}"),
