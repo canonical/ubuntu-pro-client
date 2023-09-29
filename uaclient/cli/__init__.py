@@ -633,6 +633,11 @@ def disable_parser(parser, cfg: config.UAConfig):
         default="cli",
         help=messages.CLI_FORMAT_DESC.format(default="cli"),
     )
+    parser.add_argument(
+        "--purge",
+        action="store_true",
+        help=messages.CLI_PURGE,
+    )
     return parser
 
 
@@ -996,6 +1001,11 @@ def action_disable(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
+    if args.purge and args.assume_yes:
+        raise exceptions.InvalidOptionCombination(
+            option1="--purge", option2="--assume-yes"
+        )
+
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names, cfg
@@ -1004,7 +1014,7 @@ def action_disable(args, *, cfg, **kwargs):
 
     for ent_name in entitlements_found:
         ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
-        ent = ent_cls(cfg, assume_yes=args.assume_yes)
+        ent = ent_cls(cfg, assume_yes=args.assume_yes, purge=args.purge)
 
         ret &= _perform_disable(ent, cfg, assume_yes=args.assume_yes)
 

@@ -998,6 +998,7 @@ CLI_DISABLE_DESC = t.gettext("Disable an Ubuntu Pro service.")
 CLI_DISABLE_SERVICE = t.gettext(
     "the name(s) of the Ubuntu Pro services to disable." " One of: {options}"
 )
+CLI_PURGE = "disable the service and remove/downgrade related packages"
 
 CLI_SYSTEM_DESC = t.gettext(
     "Output system related information related to Pro services"
