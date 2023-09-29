@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sys
+import textwrap
 import time
 from functools import wraps
 from typing import Any, Dict, List, Optional, Union  # noqa: F401
@@ -458,3 +459,19 @@ def deduplicate_arches(arches: List[str]) -> List[str]:
 
 def we_are_currently_root() -> bool:
     return os.getuid() == 0
+
+
+def print_package_list(
+    package_list: List[str],
+):
+    print(
+        "\n".join(
+            textwrap.wrap(
+                " ".join(package_list),
+                width=80,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+        )
+    )
+    print("")
