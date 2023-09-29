@@ -149,25 +149,47 @@ BACKING_UP_FILE = t.gettext("Backing up {original} as {backup}")
 ###############################################################################
 
 
-CONTRACT_EXPIRED_WITH_PKGS = t.gettext(
-    """\
+CONTRACT_EXPIRED_WITH_PKGS = P(
+    lambda n: t.ngettext(
+        """\
 *Your Ubuntu Pro subscription has EXPIRED*
 {{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
-Renew your service at {url}"""  # noqa: E501
-).format(url=urls.PRO_DASHBOARD)
-CONTRACT_EXPIRES_SOON = t.gettext(
-    """\
+Renew your service at {url}""",  # noqa: E501
+        """\
+*Your Ubuntu Pro subscription has EXPIRED*
+{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
+Renew your service at {url}""",  # noqa: E501
+        n,
+    ).format(url=urls.PRO_DASHBOARD)
+)
+CONTRACT_EXPIRES_SOON = P(
+    lambda n: t.ngettext(
+        """\
+CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} day.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.""",
+        """\
 CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} days.
 Renew your subscription at {url} to ensure
-continued security coverage for your applications."""
-).format(url=urls.PRO_DASHBOARD)
-CONTRACT_EXPIRED_GRACE_PERIOD = t.gettext(
-    """\
+continued security coverage for your applications.""",
+        n,
+    ).format(url=urls.PRO_DASHBOARD)
+)
+CONTRACT_EXPIRED_GRACE_PERIOD = P(
+    lambda n: t.ngettext(
+        """\
 CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
 Renew your subscription at {url} to ensure
 continued security coverage for your applications.
-Your grace period will expire in {{remaining_days}} days."""
-).format(url=urls.PRO_DASHBOARD)
+Your grace period will expire in {{remaining_days}} day.""",
+        """\
+CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.
+Renew your subscription at {url} to ensure
+continued security coverage for your applications.
+Your grace period will expire in {{remaining_days}} days.""",
+        n,
+    ).format(url=urls.PRO_DASHBOARD)
+)
 CONTRACT_EXPIRED = t.gettext(
     """\
 *Your Ubuntu Pro subscription has EXPIRED*

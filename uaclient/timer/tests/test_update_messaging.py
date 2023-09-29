@@ -191,7 +191,9 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRES_SOON.format(remaining_days=3)
+                        messages.CONTRACT_EXPIRES_SOON.pluralize(3).format(
+                            remaining_days=3
+                        )
                         + "\n\n",
                     )
                 ],
@@ -214,9 +216,9 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_GRACE_PERIOD.format(
-                            remaining_days=11, expired_date="21 Dec 2012"
-                        )
+                        messages.CONTRACT_EXPIRED_GRACE_PERIOD.pluralize(
+                            11
+                        ).format(remaining_days=11, expired_date="21 Dec 2012")
                         + "\n\n",
                     )
                 ],
@@ -290,9 +292,9 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_WITH_PKGS.format(
-                            service="esm-infra", pkg_num=4
-                        )
+                        messages.CONTRACT_EXPIRED_WITH_PKGS.pluralize(
+                            4
+                        ).format(service="esm-infra", pkg_num=4)
                         + "\n\n",
                     )
                 ],
@@ -315,9 +317,9 @@ class TestUpdateMotdMessages:
                 [
                     mock.call(
                         mock.ANY,
-                        messages.CONTRACT_EXPIRED_WITH_PKGS.format(
-                            service="esm-apps", pkg_num=5
-                        )
+                        messages.CONTRACT_EXPIRED_WITH_PKGS.pluralize(
+                            5
+                        ).format(service="esm-apps", pkg_num=5)
                         + "\n\n",
                     )
                 ],
