@@ -647,6 +647,215 @@ class TestPerformEnable:
             )
 
 
+class TestPerformDisable:
+    @pytest.mark.parametrize("purge_value", (True, False))
+    @mock.patch(M_PATH + "apt.get_installed_packages_by_origin")
+    @mock.patch(M_PATH + "apt.get_alternative_versions_for_package")
+    @mock.patch(M_PATH + "RepoEntitlement.prompt_for_purge")
+    @mock.patch(M_PATH + "RepoEntitlement.execute_purge")
+    @mock.patch(M_PATH + "RepoEntitlement.remove_apt_config")
+    def test_purge_functions_are_called(
+        self,
+        m_remove_apt_config,
+        m_execute_purge,
+        m_prompt_for_purge,
+        m_get_alternative_versions,
+        m_get_installed_packages,
+        purge_value,
+        entitlement_factory,
+    ):
+        m_get_installed_packages.return_value = [1, 2, 3, 4, 5]
+
+        def return_alternatives(p, exclude_origins):
+            if p % 2:
+                return [p]
+            return []
+
+        m_get_alternative_versions.side_effect = return_alternatives
+
+        with mock.patch.object(RepoTestEntitlement, "origin", "TestOrigin"):
+            entitlement = entitlement_factory(
+                RepoTestEntitlement,
+                affordances={"series": ["xenial"]},
+                purge=purge_value,
+            )
+            assert entitlement._perform_disable() is True
+            assert m_remove_apt_config.call_args_list == [
+                mock.call(silent=mock.ANY)
+            ]
+
+            if purge_value:
+                m_get_installed_packages.call_args_list = [
+                    mock.call("TestOrigin")
+                ]
+                m_get_alternative_versions.call_args_list = [
+                    mock.call(1, exclude_origin="TestOrigin"),
+                    mock.call(2, exclude_origin="TestOrigin"),
+                    mock.call(3, exclude_origin="TestOrigin"),
+                    mock.call(4, exclude_origin="TestOrigin"),
+                    mock.call(5, exclude_origin="TestOrigin"),
+                ]
+                m_prompt_for_purge.call_args_list = [
+                    mock.call([1, 3, 5], [(2, 2), (4, 4)])
+                ]
+                m_execute_purge.call_args_list = [
+                    mock.call([1, 3, 5], [(2, 2), (4, 4)])
+                ]
+            else:
+                m_get_installed_packages.call_args_list = []
+                m_get_alternative_versions.call_args_list = []
+                m_prompt_for_purge.call_args_list = []
+                m_execute_purge.call_args_list = []
+
+
+class TestPurge:
+    # This circular import should NOT exist, test_apt needs a refactor.
+    from uaclient.tests.test_apt import mock_package, mock_version
+
+    packages_to_remove = [
+        mock_package("remove1", mock_version("1.0")),
+        mock_package("remove2", mock_version("1.0")),
+    ]
+    packages_to_reinstall = [
+        (mock_package("reinstall1", mock_version("1.0")), mock_version("2.0")),
+        (mock_package("reinstall2", mock_version("1.0")), mock_version("2.0")),
+    ]
+
+    @pytest.mark.parametrize(
+        "remove,reinstall,expected_print,expected_prompt",
+        (
+            (
+                packages_to_remove,
+                packages_to_reinstall,
+                [
+                    mock.call(["remove1", "remove2"]),
+                    mock.call(["reinstall1", "reinstall2"]),
+                ],
+                [mock.call(messages.PROCEED_YES_NO)],
+            ),
+            (
+                packages_to_remove,
+                [],
+                [mock.call(["remove1", "remove2"])],
+                [mock.call(messages.PROCEED_YES_NO)],
+            ),
+            (
+                [],
+                packages_to_reinstall,
+                [mock.call(["reinstall1", "reinstall2"])],
+                [mock.call(messages.PROCEED_YES_NO)],
+            ),
+            ([], [], [], []),
+        ),
+    )
+    @mock.patch(M_PATH + "util.print_package_list")
+    @mock.patch(M_PATH + "util.prompt_for_confirmation")
+    def test_prompt_for_purge(
+        self,
+        m_confirmation,
+        m_print_packages,
+        remove,
+        reinstall,
+        expected_print,
+        expected_prompt,
+        entitlement_factory,
+    ):
+        m_confirmation.return_value = True
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            purge=True,
+        )
+
+        assert entitlement.prompt_for_purge(remove, reinstall) is True
+        assert m_print_packages.call_args_list == expected_print
+        assert m_confirmation.call_args_list == expected_prompt
+
+    @pytest.mark.parametrize(
+        "remove,reinstall,expected_remove,expected_install",
+        (
+            (
+                packages_to_remove,
+                packages_to_reinstall,
+                [
+                    mock.call(
+                        ["remove1", "remove2"],
+                        messages.UNINSTALLING_PACKAGES_FAILED.format(
+                            packages=["remove1", "remove2"]
+                        ),
+                    ),
+                ],
+                [
+                    mock.call(
+                        ["reinstall1=2.0", "reinstall2=2.0"],
+                        apt_options=[
+                            "--allow-downgrades",
+                            '-o Dpkg::Options::="--force-confdef"',
+                            '-o Dpkg::Options::="--force-confold"',
+                        ],
+                        override_env_vars={
+                            "DEBIAN_FRONTEND": "noninteractive"
+                        },
+                    ),
+                ],
+            ),
+            (
+                packages_to_remove,
+                [],
+                [
+                    mock.call(
+                        ["remove1", "remove2"],
+                        messages.UNINSTALLING_PACKAGES_FAILED.format(
+                            packages=["remove1", "remove2"]
+                        ),
+                    )
+                ],
+                [],
+            ),
+            (
+                [],
+                packages_to_reinstall,
+                [],
+                [
+                    mock.call(
+                        ["reinstall1=2.0", "reinstall2=2.0"],
+                        apt_options=[
+                            "--allow-downgrades",
+                            '-o Dpkg::Options::="--force-confdef"',
+                            '-o Dpkg::Options::="--force-confold"',
+                        ],
+                        override_env_vars={
+                            "DEBIAN_FRONTEND": "noninteractive"
+                        },
+                    ),
+                ],
+            ),
+            ([], [], [], []),
+        ),
+    )
+    @mock.patch(M_PATH + "apt.remove_packages")
+    @mock.patch(M_PATH + "apt.run_apt_install_command")
+    def test_execute_purge(
+        self,
+        m_apt_install,
+        m_apt_remove,
+        remove,
+        reinstall,
+        expected_remove,
+        expected_install,
+        entitlement_factory,
+    ):
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            purge=True,
+        )
+        entitlement.execute_purge(remove, reinstall)
+
+        assert m_apt_install.call_args_list == expected_install
+        assert m_apt_remove.call_args_list == expected_remove
+
+
 class TestRemoveAptConfig:
     def test_missing_aptURL(self, entitlement_factory):
         # Make aptURL missing

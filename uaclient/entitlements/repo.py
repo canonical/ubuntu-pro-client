@@ -95,10 +95,90 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def _perform_disable(self, silent=False):
+        if self.purge and self.origin:
+            repo_origin_packages = apt.get_installed_packages_by_origin(
+                self.origin
+            )
+            packages_to_reinstall = []
+            packages_to_remove = []
+            for package in repo_origin_packages:
+                alternatives = apt.get_alternative_versions_for_package(
+                    package, exclude_origin=self.origin
+                )
+                if alternatives:
+                    # We can call max(List[Version]) but mypy doesn't know.
+                    # Or doesn't like it.
+                    packages_to_reinstall.append(
+                        (package, max(alternatives))  # type: ignore
+                    )
+                else:
+                    packages_to_remove.append(package)
+
+            if not self.prompt_for_purge(
+                packages_to_remove, packages_to_reinstall
+            ):
+                return False
+
         if hasattr(self, "remove_packages"):
             self.remove_packages()
         self.remove_apt_config(silent=silent)
+
+        if self.purge and self.origin:
+            self.execute_purge(packages_to_remove, packages_to_reinstall)
         return True
+
+    def prompt_for_purge(self, packages_to_remove, packages_to_reinstall):
+        prompt = False
+        if packages_to_remove:
+            print(messages.WARN_PACKAGES_REMOVAL)
+            util.print_package_list(
+                [package.name for package in packages_to_remove]
+            )
+            prompt = True
+
+        if packages_to_reinstall:
+            print(messages.WARN_PACKAGES_REINSTALL)
+            util.print_package_list(
+                [package.name for (package, _) in packages_to_reinstall]
+            )
+            prompt = True
+
+        if prompt:
+            return util.prompt_for_confirmation(messages.PROCEED_YES_NO)
+        return True
+
+    def execute_purge(self, packages_to_remove, packages_to_reinstall):
+        # We need to check for package.current_ver again, because there is an
+        # intermediate step between listing the packages and acting on them.
+        # Packages may be removed between those operations.
+        to_remove = [
+            package.name
+            for package in packages_to_remove
+            if package.current_ver
+        ]
+        if to_remove:
+            apt.remove_packages(
+                to_remove,
+                messages.UNINSTALLING_PACKAGES_FAILED.format(
+                    packages=to_remove
+                ),
+            )
+
+        to_reinstall = [
+            "{}={}".format(package.name, version.ver_str)
+            for (package, version) in packages_to_reinstall
+            if package.current_ver
+        ]
+        if to_reinstall:
+            apt.run_apt_install_command(
+                to_reinstall,
+                apt_options=[
+                    "--allow-downgrades",
+                    '-o Dpkg::Options::="--force-confdef"',
+                    '-o Dpkg::Options::="--force-confold"',
+                ],
+                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+            )
 
     def application_status(
         self,
