@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List, Optional
 
 import mock
 import pytest
@@ -20,54 +19,9 @@ from uaclient.security_status import (
     security_status_dict,
 )
 from uaclient.system import KernelInfo
+from uaclient.tests.test_apt import mock_origin, mock_package, mock_version
 
 M_PATH = "uaclient.security_status."
-
-
-def mock_origin(
-    component: str, archive: str, origin: str, site: str
-) -> mock.MagicMock:
-    mock_origin = mock.MagicMock()
-    mock_origin.component = component
-    mock_origin.archive = archive
-    mock_origin.origin = origin
-    mock_origin.site = site
-    return [mock_origin, 0]
-
-
-def mock_version(
-    version: str,
-    origin_list: List[mock.MagicMock] = [],
-    size: int = 1,
-) -> mock.MagicMock:
-    mock_version = mock.MagicMock()
-    mock_version.__gt__ = lambda self, other: self.ver_str > other.ver_str
-    mock_version.ver_str = version
-    mock_version.file_list = origin_list
-    mock_version.size = size
-    return mock_version
-
-
-def mock_package(
-    name: str,
-    installed_version: Optional[mock.MagicMock] = None,
-    other_versions: List[mock.MagicMock] = [],
-):
-    mock_package = mock.MagicMock()
-    mock_package.name = name
-    mock_package.version_list = []
-
-    mock_package.current_ver = None
-    if installed_version:
-        mock_package.current_ver = installed_version
-        installed_version.parent_pkg = mock_package
-        mock_package.version_list.append(installed_version)
-
-    for version in other_versions:
-        version.parent_pkg = mock_package
-        mock_package.version_list.append(version)
-
-    return mock_package
 
 
 class FakeDepCache:
