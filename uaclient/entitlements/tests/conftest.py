@@ -96,6 +96,7 @@ def entitlement_factory(tmpdir, FakeConfig):
         allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
+        purge: bool = False,
         assume_yes: Optional[bool] = None,
         suites: List[str] = None,
         additional_packages: List[str] = None,
