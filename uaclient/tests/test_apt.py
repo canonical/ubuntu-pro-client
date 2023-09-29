@@ -28,6 +28,7 @@ from uaclient.apt import (
     assert_valid_apt_credentials,
     clean_apt_files,
     find_apt_list_files,
+    get_alternative_versions_for_package,
     get_apt_cache_policy,
     get_apt_cache_time,
     get_apt_config_values,
@@ -1402,3 +1403,53 @@ class TestGetInstalledPackagesByOrigin:
         ] == sorted(
             [p.name for p in get_installed_packages_by_origin("OriginB")]
         )
+
+
+class TestGetAlternativeVersionsForPackage:
+    def test_get_alternative_versions_for_package(self):
+        assert ["0.9", "1.1"] == [
+            v.ver_str
+            for v in sorted(
+                get_alternative_versions_for_package(
+                    mock_package(
+                        "name",
+                        installed_version=mock_version("1.0"),
+                        other_versions=[
+                            mock_version(
+                                "0.9", [mock_origin("", "", "Origin1", "")]
+                            ),
+                            mock_version(
+                                "1.1", [mock_origin("", "", "Origin2", "")]
+                            ),
+                        ],
+                    )
+                )
+            )
+        ]
+
+    def test_no_alternative_versions(self):
+        assert [] == get_alternative_versions_for_package(
+            mock_package("name", installed_version=mock_version("1.0"))
+        )
+
+    def test_get_alternative_versions_excluding_origin(self):
+        assert ["0.9"] == [
+            v.ver_str
+            for v in sorted(
+                get_alternative_versions_for_package(
+                    mock_package(
+                        "name",
+                        installed_version=mock_version("1.0"),
+                        other_versions=[
+                            mock_version(
+                                "0.9", [mock_origin("", "", "Origin1", "")]
+                            ),
+                            mock_version(
+                                "1.1", [mock_origin("", "", "Origin2", "")]
+                            ),
+                        ],
+                    ),
+                    exclude_origin="Origin2",
+                )
+            )
+        ]
