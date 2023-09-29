@@ -1,4 +1,3 @@
-import textwrap
 from collections import defaultdict
 from datetime import datetime, timezone
 from enum import Enum
@@ -33,6 +32,7 @@ from uaclient.system import (
     is_current_series_lts,
     is_supported,
 )
+from uaclient.util import print_package_list
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
 
@@ -451,23 +451,6 @@ def _print_service_support(
     print("")
 
 
-def _print_package_list(
-    package_list: List[str],
-):
-    package_names = " ".join(package_list)
-    print(
-        "\n".join(
-            textwrap.wrap(
-                package_names,
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
-        )
-    )
-    print("")
-
-
 def _print_apt_update_call():
     last_apt_update = get_apt_cache_datetime()
     if last_apt_update is None:
@@ -572,7 +555,7 @@ def list_third_party_packages():
 
         print("")
         print(messages.SS_PACKAGES_HEADER)
-        _print_package_list(package_names)
+        print_package_list(package_names)
         print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
     else:
         print(messages.SS_NO_THIRD_PARTY)
@@ -592,7 +575,7 @@ def list_unavailable_packages():
         print("")
 
         print(messages.SS_PACKAGES_HEADER)
-        _print_package_list(package_names)
+        print_package_list(package_names)
         print(messages.SS_SHOW_HINT.format(package=choice(package_names)))
 
     else:
@@ -665,11 +648,11 @@ def list_esm_infra_packages(cfg):
     if not is_supported(series):
         if available_package_names:
             print(messages.SS_UPDATES_AVAILABLE.format(service="esm-infra"))
-            _print_package_list(available_package_names)
+            print_package_list(available_package_names)
 
         if installed_package_names:
             print(messages.SS_UPDATES_INSTALLED.format(service="esm-infra"))
-            _print_package_list(installed_package_names)
+            print_package_list(installed_package_names)
 
         hint_list = available_package_names or installed_package_names
         # Check names because packages may have been already listed
@@ -681,7 +664,7 @@ def list_esm_infra_packages(cfg):
             else:
                 msg = messages.SS_OTHER_PACKAGES.format(service="esm-infra")
             print(msg)
-            _print_package_list(remaining_package_names)
+            print_package_list(remaining_package_names)
 
         if hint_list:
             print(messages.SS_SHOW_HINT.format(package=choice(hint_list)))
@@ -746,11 +729,11 @@ def list_esm_apps_packages(cfg):
     if all_apps_packages:
         if available_package_names:
             print(messages.SS_UPDATES_AVAILABLE.format(service="esm-apps"))
-            _print_package_list(available_package_names)
+            print_package_list(available_package_names)
 
         if installed_package_names:
             print(messages.SS_UPDATES_INSTALLED.format(service="esm-apps"))
-            _print_package_list(installed_package_names)
+            print_package_list(installed_package_names)
 
         hint_list = available_package_names or installed_package_names
 
@@ -763,7 +746,7 @@ def list_esm_apps_packages(cfg):
             else:
                 msg = messages.SS_OTHER_PACKAGES.format(service="esm-apps")
             print(msg)
-            _print_package_list(remaining_package_names)
+            print_package_list(remaining_package_names)
 
         if hint_list:
             print(messages.SS_SHOW_HINT.format(package=choice(hint_list)))
