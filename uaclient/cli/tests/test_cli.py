@@ -55,9 +55,9 @@ Client to manage Ubuntu Pro services on a machine.
    (https://ubuntu.com/security/esm)
  - esm-infra: Expanded Security Maintenance for Infrastructure
    (https://ubuntu.com/security/esm)
- - fips-updates: NIST-certified core packages with priority security updates
+ - fips-updates: FIPS compliant crypto packages with stable security updates
    (https://ubuntu.com/security/fips)
- - fips: NIST-certified core packages (https://ubuntu.com/security/fips)
+ - fips: NIST-certified FIPS crypto packages (https://ubuntu.com/security/fips)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
  - ros-updates: All Updates for the Robot Operating System

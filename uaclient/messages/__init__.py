@@ -1196,14 +1196,13 @@ Ubuntu Pro. You can find out more about the service at
 ).format(url=urls.ESM_HOME_PAGE)
 
 FIPS_TITLE = t.gettext("FIPS")
-FIPS_DESCRIPTION = t.gettext("NIST-certified core packages")
+FIPS_DESCRIPTION = t.gettext("NIST-certified FIPS crypto packages")
 FIPS_HELP_TEXT = t.gettext(
     """\
-FIPS 140-2 is a set of publicly announced cryptographic standards developed by
-the National Institute of Standards and Technology applicable for FedRAMP,
-HIPAA, PCI and ISO compliance use cases. Note that "fips" does not provide
-security patching. For FIPS certified modules with security patches please
-see "fips-updates". You can find out more at {url}"""
+Installs FIPS 140 crypto packages for FedRAMP, FISMA and compliance use cases.
+Note that "fips" does not provide security patching. For FIPS certified
+modules with security patches please see "fips-updates". If you are unsure,
+choose "fips-updates" for maximum security. Find out more at {url}"""
 ).format(url=urls.FIPS_HOME_PAGE)
 FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE = t.gettext(
     "Could not determine cloud, defaulting to generic FIPS package."
@@ -1283,33 +1282,33 @@ version.
 """
 )
 
-
 FIPS_UPDATES_TITLE = t.gettext("FIPS Updates")
 FIPS_UPDATES_DESCRIPTION = t.gettext(
-    "NIST-certified core packages with priority security updates"
+    "FIPS compliant crypto packages with stable security updates"
 )
 FIPS_UPDATES_HELP_TEXT = t.gettext(
     """\
-fips-updates installs fips modules including all security patches for those
-modules that have been provided since their certification date. You can find
-out more at {url}"""
+fips-updates installs FIPS 140 crypto packages including all security patches
+for those modules that have been provided since their certification date.
+You can find out more at {url}"""
 ).format(url=urls.FIPS_HOME_PAGE)
 
 FIPS_PREVIEW_TITLE = t.gettext("FIPS Preview")
 FIPS_PREVIEW_DESCRIPTION = t.gettext(
-    "early access for not yet NIST-certified packages"
+    "Preview of FIPS crypto packages undergoing certification with NIST"  # noqa
 )
 FIPS_PREVIEW_HELP_TEXT = t.gettext(
     """\
-fips-preview install fips modules that are not yet fully certified by NIST.
-The main goal for the service is to provide early access to the fips packages
-for testing purposes."""
+Installs FIPS crypto packages that are under certification with NIST,
+for FedRAMP, FISMA and compliance use cases."""
 )
 PROMPT_FIPS_PREVIEW_PRE_ENABLE = t.gettext(
     """\
-This will install not NIST-certified FIPS packages.
-Please use this service only for test purposes.
-Additionally, the Livepatch service will be unavailable after the operation.
+This will install crypto packages that have been submitted to NIST for review
+but do not have FIPS certification yet. Use this for early access to the FIPS
+modules.
+Please note that the Livepatch service will be unavailable after
+this operation.
 Warning: This action can take some time and cannot be undone.
 """
     + PROMPT_YES_NO
