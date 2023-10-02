@@ -8,7 +8,7 @@ Feature: Pro supports multiple languages
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
         Then stdout contains substring:
         """
-        Esta máquina NÃO está anexada a uma assinatura do Ubuntu Pro.
+        Esta máquina NÃO está vinculada a uma assinatura do Ubuntu Pro.
         """
         When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
