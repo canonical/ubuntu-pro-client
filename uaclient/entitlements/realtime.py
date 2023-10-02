@@ -86,9 +86,10 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                     },
                 )
             ]
-        return {
-            "pre_enable": pre_enable,
-            "pre_disable": [
+
+        pre_disable = None  # type: Optional[MessagingOperations]
+        if not self.purge:
+            pre_disable = [
                 (
                     util.prompt_for_confirmation,
                     {
@@ -96,7 +97,11 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                         "assume_yes": self.assume_yes,
                     },
                 )
-            ],
+            ]
+
+        return {
+            "pre_enable": pre_enable,
+            "pre_disable": pre_disable,
         }
 
     def remove_packages(self) -> None:

@@ -457,15 +457,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         else:
             pre_enable_prompt = self.pre_enable_msg
 
-        return {
-            "pre_enable": [
-                (
-                    util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
-                )
-            ],
-            "post_enable": post_enable,
-            "pre_disable": [
+        pre_disable = None  # type: Optional[MessagingOperations]
+        if not self.purge:
+            pre_disable = [
                 (
                     util.prompt_for_confirmation,
                     {
@@ -475,7 +469,17 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                         "assume_yes": self.assume_yes,
                     },
                 )
+            ]
+
+        return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
+                )
             ],
+            "post_enable": post_enable,
+            "pre_disable": pre_disable,
         }
 
     def _perform_enable(self, silent: bool = False) -> bool:
@@ -529,15 +533,9 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
         else:
             pre_enable_prompt = messages.PROMPT_FIPS_UPDATES_PRE_ENABLE
 
-        return {
-            "pre_enable": [
-                (
-                    util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
-                )
-            ],
-            "post_enable": post_enable,
-            "pre_disable": [
+        pre_disable = None  # type: Optional[MessagingOperations]
+        if not self.purge:
+            pre_disable = [
                 (
                     util.prompt_for_confirmation,
                     {
@@ -547,7 +545,17 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                         "assume_yes": self.assume_yes,
                     },
                 )
+            ]
+
+        return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
+                )
             ],
+            "post_enable": post_enable,
+            "pre_disable": pre_disable,
         }
 
     def _perform_enable(self, silent: bool = False) -> bool:
