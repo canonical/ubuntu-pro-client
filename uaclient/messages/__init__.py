@@ -353,6 +353,24 @@ APT_REMOVING_PREFERENCES_FILE = t.gettext(
     "Removing apt preferences file: {filename}"
 )
 
+# Kernel checks for Purge
+PURGE_KERNEL_REMOVAL = (
+    "Purging the {service} packages would uninstall the following kernel(s):"
+)
+PURGE_CURRENT_KERNEL = "{kernel_version} is the current running kernel."
+PURGE_NO_ALTERNATIVE_KERNEL = """\
+No other valid Ubuntu kernel was found in the system.
+Removing the package would potentially make the system unbootable.
+Aborting.
+"""
+PURGE_KERNEL_CONFIRMATION = (
+    """\
+If you cannot guarantee that other kernels in this system are bootable and
+working properly, *do not proceed*. You may end up with an unbootable system.
+"""
+    + PROCEED_YES_NO
+)
+
 # These are for the retry-auto-attach functionality
 AUTO_ATTACH_RETRY_NOTICE = t.gettext(
     """\
