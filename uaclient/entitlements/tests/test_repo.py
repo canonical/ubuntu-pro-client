@@ -720,6 +720,74 @@ class TestPurge:
         (mock_package("reinstall1", mock_version("1.0")), mock_version("2.0")),
         (mock_package("reinstall2", mock_version("1.0")), mock_version("2.0")),
     ]
+    mock_kernel_package = [mock_package("linux-image-1.2.3-4-fake")]
+
+    def test_purge_kernel_check_true_if_no_kernel(self, entitlement_factory):
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            purge=True,
+        )
+
+        assert entitlement.purge_kernel_check(self.packages_to_remove) is True
+
+    @mock.patch(
+        M_PATH + "system.get_installed_ubuntu_kernels", return_value=[]
+    )
+    @mock.patch(M_PATH + "system.get_kernel_info")
+    def test_purge_kernel_check_false_when_no_other_kernels(
+        self, _m_kernel_info, _m_installed_kernels, entitlement_factory, capsys
+    ):
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            purge=True,
+        )
+
+        assert (
+            entitlement.purge_kernel_check(self.mock_kernel_package) is False
+        )
+        out, _err = capsys.readouterr()
+        assert "No other valid Ubuntu kernel was found in the system" in out
+
+    @pytest.mark.parametrize("prompt_answer", (True, False))
+    @pytest.mark.parametrize(
+        "current_kernel", ("1.2.3-4-fake", "2.3.4-5-fake")
+    )
+    @mock.patch(M_PATH + "util.prompt_for_confirmation")
+    @mock.patch(
+        M_PATH + "system.get_installed_ubuntu_kernels",
+        return_value=["2.3.4-5-fake"],
+    )
+    @mock.patch(M_PATH + "system.get_kernel_info")
+    def test_purge_kernel_check_prompts_if_other_kernels(
+        self,
+        m_kernel_info,
+        _m_installed_kernels,
+        m_confirmation,
+        prompt_answer,
+        current_kernel,
+        entitlement_factory,
+        capsys,
+    ):
+        m_kernel_info.return_value.uname_release = current_kernel
+        m_confirmation.return_value = prompt_answer
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            purge=True,
+        )
+
+        assert (
+            entitlement.purge_kernel_check(self.mock_kernel_package)
+            is prompt_answer
+        )
+
+        out, _err = capsys.readouterr()
+        assert "would uninstall the following kernel(s):" in out
+        assert (
+            "{} is the current running kernel.".format(current_kernel) in out
+        )
 
     @pytest.mark.parametrize(
         "remove,reinstall,expected_print,expected_prompt",

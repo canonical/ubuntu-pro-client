@@ -1,4 +1,5 @@
 import datetime
+import glob
 import logging
 import os
 import pathlib
@@ -176,6 +177,43 @@ def get_kernel_info() -> KernelInfo:
             abi=uname_match.group("abi"),
             flavor=uname_match.group("flavor"),
         )
+
+
+# This only works if we are root (because of permissions to 'file' the kernels
+# in /boot), but can't assert_root here due to circular imports.
+def get_installed_ubuntu_kernels():
+    # cursed circular import
+    from uaclient.apt import get_installed_packages_names
+
+    if not util.we_are_currently_root():
+        raise RuntimeError(
+            "get_installed_ubuntu_kernels needs to be executed as root"
+        )
+
+    linux_image = [
+        package
+        for package in get_installed_packages_names()
+        if "linux-image-" in package
+    ]
+    vmlinux_kernel_files = [
+        file
+        for file in glob.glob("/boot/vmlinu[x|z]-*")
+        if "Linux kernel" in subp(["file", file])[0]
+    ]
+
+    linux_image_versions = [
+        package_name[len("linux-image-") :] for package_name in linux_image
+    ]
+    vmlinuz_versions = [
+        file_name[len("/boot/vmlinux-") :]
+        for file_name in vmlinux_kernel_files
+    ]
+
+    return [
+        version
+        for version in vmlinuz_versions
+        if version in linux_image_versions
+    ]
 
 
 @lru_cache(maxsize=None)
