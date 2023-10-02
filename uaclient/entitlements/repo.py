@@ -25,6 +25,8 @@ from uaclient.entitlements.entitlement_status import (
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
+RE_KERNEL_PKG = r"^linux-image-[\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+$"
+
 
 class RepoEntitlement(base.UAEntitlement):
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
@@ -125,6 +127,10 @@ class RepoEntitlement(base.UAEntitlement):
             repo_origin_packages = apt.get_installed_packages_by_origin(
                 self.origin
             )
+
+            if not self.purge_kernel_check(repo_origin_packages):
+                return False
+
             packages_to_reinstall = []
             packages_to_remove = []
             for package in repo_origin_packages:
@@ -151,6 +157,41 @@ class RepoEntitlement(base.UAEntitlement):
 
         if self.purge and self.origin:
             self.execute_purge(packages_to_remove, packages_to_reinstall)
+        return True
+
+    def purge_kernel_check(self, package_list):
+        linux_image_versions = [
+            package.name[len("linux-image-") :]
+            for package in package_list
+            if re.match(RE_KERNEL_PKG, package.name)
+        ]
+        if linux_image_versions:
+            print(messages.PURGE_KERNEL_REMOVAL.format(service=self.title))
+            print(" ".join(linux_image_versions))
+
+            current_kernel = system.get_kernel_info().uname_release
+            print(
+                messages.PURGE_CURRENT_KERNEL.format(
+                    kernel_version=current_kernel
+                )
+            )
+
+            installed_kernels = system.get_installed_ubuntu_kernels()
+            alternative_kernels = [
+                version
+                for version in installed_kernels
+                if version not in linux_image_versions
+            ]
+
+            if not alternative_kernels:
+                print(messages.PURGE_NO_ALTERNATIVE_KERNEL)
+                return False
+
+            if not util.prompt_for_confirmation(
+                messages.PURGE_KERNEL_CONFIRMATION
+            ):
+                return False
+
         return True
 
     def prompt_for_purge(self, packages_to_remove, packages_to_reinstall):
