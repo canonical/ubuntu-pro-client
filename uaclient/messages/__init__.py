@@ -354,6 +354,9 @@ APT_REMOVING_PREFERENCES_FILE = t.gettext(
 )
 
 # Kernel checks for Purge
+PURGE_EXPERIMENTAL = t.gettext(
+    "(The --purge flag is still experimental - use at your own discretion)"
+)
 PURGE_KERNEL_REMOVAL = t.gettext(
     "Purging the {service} packages would uninstall the following kernel(s):"
 )
@@ -1021,7 +1024,7 @@ CLI_DISABLE_SERVICE = t.gettext(
     "the name(s) of the Ubuntu Pro services to disable." " One of: {options}"
 )
 CLI_PURGE = t.gettext(
-    "disable the service and remove/downgrade related packages"
+    "disable the service and remove/downgrade related packages (experimental)"
 )
 
 CLI_SYSTEM_DESC = t.gettext(
