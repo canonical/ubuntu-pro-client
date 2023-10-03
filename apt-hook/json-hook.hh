@@ -9,9 +9,9 @@ struct jsonrpc_request {
     json_object *params;
 };
 struct security_package_counts {
-    int64_t standard;
-    int64_t esm_infra;
-    int64_t esm_apps;
+    long unsigned int standard;
+    long unsigned int esm_infra;
+    long unsigned int esm_apps;
 };
 
 enum ESMType {APPS, INFRA};
