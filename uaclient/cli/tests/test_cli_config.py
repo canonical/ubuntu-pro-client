@@ -15,7 +15,7 @@ Flags:
 
 Available Commands:
   
-    show      Show customisable configuration settings
+    show      Show customizable configuration settings
     set       Set and apply Ubuntu Pro configuration settings
     unset     Unset Ubuntu Pro configuration setting
 """  # noqa

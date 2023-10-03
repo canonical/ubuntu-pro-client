@@ -898,7 +898,7 @@ CLI_COLLECT_LOGS_OUTPUT = t.gettext(
     "tarball where the logs will be stored. (Defaults to " "./ua_logs.tar.gz)"
 )
 
-CLI_CONFIG_SHOW_DESC = t.gettext("Show customisable configuration settings")
+CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings")
 CLI_CONFIG_SHOW_KEY = t.gettext(
     "Optional key or key(s) to show configuration settings."
 )
@@ -993,7 +993,7 @@ Refresh three distinct Ubuntu Pro related artifacts in the system:
 * messages: Update APT and MOTD messages related to UA.
 
 You can individually target any of the three specific actions,
-by passing it's target to nome to the command.  If no `target`
+by passing the target name to the command.  If no `target`
 is specified, all targets are refreshed.
 """
 )
@@ -1198,7 +1198,7 @@ CIS_USG_POST_ENABLE = t.gettext("Visit {url} for the next steps").format(
 )
 CIS_IS_NOW_USG = t.gettext(
     """\
-From Ubuntu 20.04 and onwards 'pro enable cis' has been
+From Ubuntu 20.04 onward 'pro enable cis' has been
 replaced by 'pro enable usg'. See more information at:
 {url}"""
 ).format(url=urls.USG_DOCS)
@@ -1860,7 +1860,7 @@ UNATTENDED_UPGRADES_UNINSTALLED = NamedMessage(
 
 LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
     "landscape-client-not-installed",
-    t.gettext("lanscape-client is not installed"),
+    t.gettext("landscape-client is not installed"),
 )
 LANDSCAPE_NOT_CONFIGURED = NamedMessage(
     "landscape-not-configured",
