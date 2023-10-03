@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev intltool
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev intltool hunspell
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Formatting
@@ -29,6 +29,11 @@ jobs:
         run: tox -e mypy
       - name: Version Consistency
         run: python3 ./tools/check-versions-are-consistent.py
+      - name: Spellcheck messages
+        run: |
+          hunspell -p ./tools/spellcheck-allowed-words.txt -L ./uaclient/messages/__init__.py
+          hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py
+          [ $(hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py | wc -c) = "0" ]
       - name: Translation Template Updated
         run: |
           ./tools/update-pos.sh
