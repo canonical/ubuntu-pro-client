@@ -364,7 +364,8 @@ def _inform_ubuntu_pro_existence_if_applicable() -> None:
     if cloud_type in PRO_CLOUD_URLS.keys():
         print(
             messages.SECURITY_USE_PRO_TMPL.format(
-                title=CLOUD_TYPE_TO_TITLE.get(cloud_type), cloud=cloud_type
+                title=CLOUD_TYPE_TO_TITLE.get(cloud_type),
+                cloud_specific_url=PRO_CLOUD_URLS.get(cloud_type),
             )
         )
 
