@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-02 18:57-0300\n"
+"POT-Creation-Date: 2023-10-03 17:05-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -226,7 +226,7 @@ msgstr "Saiba mais sobre o Ubuntu Pro na AWS em %s"
 #: ../../apt-hook/json-hook.cc:461
 #, c-format
 msgid "Learn more about Ubuntu Pro on GCP at %s"
-msgstr "Saiba mais sobre o Ubuntu Pro na GCP em %s"
+msgstr "Saiba mais sobre o Ubuntu Pro no GCP em %s"
 
 #: ../../apt-hook/json-hook.cc:472
 #, c-format
@@ -242,7 +242,7 @@ msgstr[0] ""
 "Obtenha mais uma atualização de segurança através do Ubuntu Pro com 'esm-"
 "apps' habilitado:"
 msgstr[1] ""
-"Obtenha atualizações de segurança através do Ubuntu Pro com 'esm-apps' "
+"Obtenha mais atualizações de segurança através do Ubuntu Pro com 'esm-apps' "
 "habilitado:"
 
 #: ../../apt-hook/json-hook.cc:494
@@ -292,7 +292,7 @@ msgstr "Sua assinatura foi atualizada com sucesso."
 
 #: ../../uaclient/messages/__init__.py:57
 msgid "Successfully processed your pro configuration."
-msgstr "Sua configuração pro foi processada com sucesso"
+msgstr "Sua configuração do pro foi processada com sucesso"
 
 #: ../../uaclient/messages/__init__.py:60
 msgid "Successfully updated Ubuntu Pro related APT and MOTD messages."
@@ -324,7 +324,7 @@ msgstr "Começando atualização das configurações de serviço do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:77
 msgid "Finished upgrade of Ubuntu Pro service configuration"
-msgstr "Atualização das configurações de serviço do Ubuntu Pro terminou"
+msgstr "Atualização das configurações de serviço do Ubuntu Pro concluída"
 
 #: ../../uaclient/messages/__init__.py:81
 msgid ""
@@ -332,8 +332,8 @@ msgid ""
 "Make sure the 'python3-yaml' package is installed correctly\n"
 "and /usr/lib/python3/dist-packages is in your PYTHONPATH."
 msgstr ""
-"Não foi possível importar o módulo YAMLCertifique-se que a biblioteca "
-"'python3-yaml' está corretamente instalada\n"
+"Não foi possível importar o módulo YAML. Certifique-se que o pacote 'python3-"
+"yaml' está corretamente instalada\n"
 "e que /usr/lib/python3/dist-packages está no seu PYTHONPATH."
 
 #: ../../uaclient/messages/__init__.py:87
@@ -349,7 +349,7 @@ msgid ""
 msgstr ""
 "snapd não tem o comando wait.\n"
 "Habilitar o Livepatch pode falhar neste cenário\n"
-"Por favor, atualize o snapd caso habilitação do Livepatch falhe e tente "
+"Por favor, atualize o snapd caso a habilitação do Livepatch falhe e tente "
 "novamente."
 
 #: ../../uaclient/messages/__init__.py:100
@@ -427,7 +427,7 @@ msgstr "Falha ao desinstalar {packages}"
 #: ../../uaclient/messages/__init__.py:135
 #, python-brace-format
 msgid "Cannot install package {package} version {version}"
-msgstr "Não foi possível instalar pacote {package} versão {version}"
+msgstr "Não foi possível instalar o pacote {package} versão {version}"
 
 #: ../../uaclient/messages/__init__.py:138
 msgid "Failure checking APT policy."
@@ -516,12 +516,12 @@ msgid_plural ""
 msgstr[0] ""
 "ATENÇÃO: sua assinatura do Ubuntu Pro expirou em {{expired_date}}.\n"
 "Renove sua assinatura em {url} para garantir a\n"
-"continuidade da cobertura de segurança para suas aplicações.Seu período de "
+"continuidade da cobertura de segurança para suas aplicações. Seu período de "
 "carência vai expirar em {{remaining_days}} dias"
 msgstr[1] ""
 "ATENÇÃO: sua assinatura do Ubuntu Pro expirou em {{expired_date}}.\n"
 "Renove sua assinatura em {url} para garantir a\n"
-"continuidade da cobertura de segurança para suas aplicações.Seu período de "
+"continuidade da cobertura de segurança para suas aplicações. Seu período de "
 "carência vai expirar em {{remaining_days}} dias"
 
 #: ../../uaclient/messages/__init__.py:194
@@ -564,7 +564,7 @@ msgid ""
 msgstr ""
 "\n"
 "Erro: A definição do proxy apt em escopo global e no escopo 'pro' ao mesmo "
-"tempo não é suportada.Nenhum proxy apt alterado."
+"tempo não é suportada. Nenhum proxy apt alterado."
 
 #: ../../uaclient/messages/__init__.py:218
 #, python-brace-format
@@ -601,8 +601,8 @@ msgid ""
 msgstr ""
 "Atenção: Falha ao ler /etc/ubuntu-advantage/uaclient.conf.preinst-backup\n"
 "         Nenhuma migração automática irá ocorrer.\n"
-"         Você talvez precisará do comando \"pro config set\" para resetar "
-"suas configurações"
+"         Você talvez precise do comando \"pro config set\" para resetar suas "
+"configurações."
 
 #: ../../uaclient/messages/__init__.py:245
 msgid ""
@@ -629,17 +629,17 @@ msgid ""
 "Currently attempting to automatically attach this machine to Ubuntu Pro "
 "services"
 msgstr ""
-"Atualmente tentando vincular automaticamente essa máquina a serviços  Ubuntu "
+"Tentando agora vincular automaticamente essa máquina aos serviços do Ubuntu "
 "Pro"
 
 #: ../../uaclient/messages/__init__.py:268
 #, python-brace-format
 msgid "This machine is now attached to '{contract_name}'\n"
-msgstr "Essa máquina está agora vinculada a '{contract_name}'\n"
+msgstr "Esta máquina está agora vinculada a '{contract_name}'\n"
 
 #: ../../uaclient/messages/__init__.py:273
 msgid "This machine is now successfully attached'\n"
-msgstr "Esse máquina foi vinculada com sucesso\n"
+msgstr "Esta máquina foi vinculada com sucesso\n"
 
 #: ../../uaclient/messages/__init__.py:277
 #, python-brace-format
@@ -650,7 +650,7 @@ msgstr "Habilitando serviço {name}"
 #, python-brace-format
 msgid "Service {name} is recommended by default. Run: sudo pro enable {name}"
 msgstr ""
-"Serviço {name} é recomendado por padrão. Execute: sudo pro enable {name}"
+"O serviço {name} é recomendado por padrão. Execute: sudo pro enable {name}"
 
 #: ../../uaclient/messages/__init__.py:282
 msgid "Initiating attach operation..."
@@ -667,7 +667,7 @@ msgid ""
 "{url}\n"
 "And provide the following code: {bold}{{user_code}}{end_bold}"
 msgstr ""
-"Por favor, entre na sua conta Ubuntu Pro neste link:\n"
+"Por favor, entre na sua conta do Ubuntu Pro neste link:\n"
 "{url}\n"
 "E forneça o código: {bold}{{user_code}}{end_bold}"
 
@@ -683,11 +683,11 @@ msgstr[1] "Desvincular vai desabilitar os serviços:"
 
 #: ../../uaclient/messages/__init__.py:304
 msgid "This machine is now detached."
-msgstr "Essa máquina está desvinculada"
+msgstr "Esta máquina está desvinculada"
 
 #: ../../uaclient/messages/__init__.py:308
 msgid "One moment, checking your subscription first"
-msgstr "Um momente, checando a sua assinatura"
+msgstr "Um momento, checando a sua assinatura"
 
 #: ../../uaclient/messages/__init__.py:310
 #, python-brace-format
@@ -697,7 +697,7 @@ msgstr "{title} habilitado"
 #: ../../uaclient/messages/__init__.py:311
 #, python-brace-format
 msgid "{title} access enabled"
-msgstr "acess habilitado para {title}"
+msgstr "acesso habilitado para {title}"
 
 #: ../../uaclient/messages/__init__.py:312
 #, python-brace-format
@@ -711,10 +711,10 @@ msgid ""
 "Disable {incompatible_service} and proceed to enable "
 "{service_being_enabled}? (y/N) "
 msgstr ""
-"{service_being_enabled} não pode ser habilitado junto do "
+"{service_being_enabled} não pode ser habilitado ao mesmo tempo que "
 "{incompatible_service}.\n"
-"Desabilite {incompatible_service} e prossiga com habilitação "
-"do{service_being_enabled}? (y/N) "
+"Desabilitar {incompatible_service} e prosseguir com a habilitação do "
+"{service_being_enabled}? (y/N) "
 
 #: ../../uaclient/messages/__init__.py:320
 #, python-brace-format
@@ -730,7 +730,7 @@ msgid ""
 msgstr ""
 "{service_being_enabled} não pode ser habilitado se {required_service} "
 "estiver desabilitado.\n"
-"Habilite {required_service} e prossiga com habilitação do "
+"Habilitar {required_service} e prosseguir com a habilitação do "
 "{service_being_enabled}? (y/N) "
 
 #: ../../uaclient/messages/__init__.py:328
@@ -741,7 +741,7 @@ msgstr "Habilitando serviço necessário: {service}"
 #: ../../uaclient/messages/__init__.py:330
 #, python-brace-format
 msgid "A reboot is required to complete {operation}."
-msgstr "É necessário reiniciar a máquina para completar operação {operation}"
+msgstr "É necessário reiniciar a máquina para completar a operação {operation}"
 
 #. DISABLE
 #: ../../uaclient/messages/__init__.py:335
@@ -757,7 +757,7 @@ msgid ""
 "(y/N) "
 msgstr ""
 "{dependent_service} depende do {service_being_disabled}.\n"
-"Desabilite {dependent_service} e prossiga a desabilitação do "
+"Desabilitar {dependent_service} e prosseguir com a desabilitação do "
 "{service_being_disabled}? (y/N) "
 
 #: ../../uaclient/messages/__init__.py:343
@@ -785,7 +785,7 @@ msgid ""
 "You can try manually with `sudo pro auto-attach`."
 msgstr ""
 "{num_attempts} falha(s) ao vincular automaticamente aos serviços do Ubuntu "
-"Pro {num_attempts}\n"
+"Pro.\n"
 "A falha ocorreu devido a: {reason}.\n"
 "A próxima tentativa está agendada para {next_run_datestring}.\n"
 "Você pode tentar manualmente executando `sudo pro auto-attach`."
@@ -801,7 +801,7 @@ msgid ""
 "You can try manually with `sudo pro auto-attach`."
 msgstr ""
 "{num_attempts} falha(s) ao vincular automaticamente aos serviços do Ubuntu "
-"Pro {num_attempts}\n"
+"Pro.\n"
 "A falha mais recente ocorreu devido a: {reason}.\n"
 "Tenter criar uma nova instância ou reporte esse problema executando `ubuntu-"
 "bug ubuntu-advantage-tools`\n"
@@ -818,8 +818,8 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:373
 msgid "Canonical servers did not recognize this image as Ubuntu Pro"
 msgstr ""
-"Os servidores da Canonical não reconheceram essa máquina como sendo "
-"associada ao Ubuntu Pro"
+"Os servidores da Canonical não reconheceram essa imagem como sendo associada "
+"ao Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:375
 #, python-brace-format
@@ -829,20 +829,20 @@ msgstr "A lock do pro está sendo mantida pelo pid {pid}"
 #: ../../uaclient/messages/__init__.py:377
 #, python-brace-format
 msgid "an error from Canonical servers: \"{error_msg}\""
-msgstr "erro dos servidores da Canonical: \"{error_msg}\""
+msgstr "um erro dos servidores da Canonical: \"{error_msg}\""
 
 #: ../../uaclient/messages/__init__.py:379
 msgid "a connectivity error"
-msgstr "erro de conexão"
+msgstr "um erro de conexão"
 
 #: ../../uaclient/messages/__init__.py:380
 #, python-brace-format
 msgid "an error while reaching {url}"
-msgstr "error ao acessar {url}"
+msgstr "um error ao acessar {url}"
 
 #: ../../uaclient/messages/__init__.py:381
 msgid "an unknown error"
-msgstr "erro desconhecido"
+msgstr "um erro desconhecido"
 
 #: ../../uaclient/messages/__init__.py:385
 #, python-brace-format
@@ -856,7 +856,7 @@ msgid ""
 "Service is still active. See `pro status`"
 msgstr ""
 "Falha ao desabilitar '{service}' conforme esperado após atualização do seu "
-"contratoServiço ainda está ativo. Execute `pro status` para confirmar"
+"contrato. O serviço ainda está ativo. Execute `pro status` para confirmar"
 
 #: ../../uaclient/messages/__init__.py:393
 #, python-brace-format
@@ -878,18 +878,18 @@ msgstr "Instalando pacotes baseado nas novas diretivas: {packages}"
 #, python-brace-format
 msgid "Choose: [S]ubscribe at {url} [A]ttach existing token [C]ancel"
 msgstr ""
-"Escolha: [S]vincular na {url} [A]Vincular usando uma token existente "
-"[C]ancelar"
+"Escolha: [S] para vincular através de {url}; [A] para vincular usando um "
+"token existente; [C] para cancelar:"
 
 #: ../../uaclient/messages/__init__.py:413
 #, python-brace-format
 msgid "Choose: [E]nable {service} [C]ancel"
-msgstr "Esoclha: [E]Habilitar {service} [C]ancelar"
+msgstr "Escolha: [E] para habilitar {service}; [C] para cancelar:"
 
 #: ../../uaclient/messages/__init__.py:417
 #, python-brace-format
 msgid "Choose: [R]enew your subscription (at {url}) [C]ancel"
-msgstr "Escolha: [R]enovar sua assinatura (em {url}) [C]ancelar"
+msgstr "Escolha: [R]enovar sua assinatura (em {url}); [C]ancelar"
 
 #: ../../uaclient/messages/__init__.py:420
 #, python-brace-format
@@ -898,14 +898,14 @@ msgstr "Uma solução está disponível em {fix_stream}."
 
 #: ../../uaclient/messages/__init__.py:421
 msgid "The update is not yet installed."
-msgstr "Atualização ainda não está instalada"
+msgstr "A atualização ainda não está instalada"
 
 #: ../../uaclient/messages/__init__.py:423
 msgid ""
 "The update is not installed because this system is not attached to a\n"
 "subscription.\n"
 msgstr ""
-"Atualização não instalada porque o sistema não está vinculado a\n"
+"A atualização não pode ser instalada porque o sistema não está vinculado a\n"
 "uma assinatura.\n"
 
 #: ../../uaclient/messages/__init__.py:429
@@ -913,7 +913,7 @@ msgid ""
 "The update is not installed because this system is attached to an\n"
 "expired subscription.\n"
 msgstr ""
-"Atualização não instalada porque o sistema está vinculado a uma\n"
+"A atualização não pode ser instalada porque o sistema está vinculado a uma\n"
 "assinatura vencida.\n"
 
 #: ../../uaclient/messages/__init__.py:435
@@ -922,12 +922,13 @@ msgid ""
 "The update is not installed because this system does not have\n"
 "{service} enabled.\n"
 msgstr ""
-"Atualização não instalada porque o sistema não tem o serviço {service}\n"
+"A atualização não pode ser instalada porque o sistema não tem o serviço "
+"{service}\n"
 "habilitado.\n"
 
 #: ../../uaclient/messages/__init__.py:440
 msgid "The update is already installed."
-msgstr "Atualização já instalada"
+msgstr "A atualização já está instalada."
 
 #: ../../uaclient/messages/__init__.py:442
 #, python-brace-format
@@ -935,7 +936,8 @@ msgid ""
 "For easiest security on {title}, use Ubuntu Pro instances.\n"
 "Learn more at {cloud_specific_url}"
 msgstr ""
-"Para segurança mais conveniente em {title}, use instâncias Ubuntu Pro.\n"
+"Para segurança de forma mais conveniente no(a) {title}, use instâncias "
+"Ubuntu Pro.\n"
 "Aprenda mais em {cloud_specific_url}"
 
 #: ../../uaclient/messages/__init__.py:447
@@ -949,7 +951,7 @@ msgstr "relacionado"
 #: ../../uaclient/messages/__init__.py:449
 #, python-brace-format
 msgid " {issue} is resolved."
-msgstr " {issue} não resolvida"
+msgstr " {issue} resolvida"
 
 #: ../../uaclient/messages/__init__.py:451
 #, python-brace-format
@@ -987,8 +989,8 @@ msgstr[1] "{num_pkgs} pacotes ainda estão afetados: {pkgs}"
 #, python-brace-format
 msgid "{count} affected source package is installed: {pkgs}"
 msgid_plural "{count} affected source packages are installed: {pkgs}"
-msgstr[0] "{count} pacote fonte instalado: {pkgs}"
-msgstr[1] "{count} pacotes fonte instalados: {pkgs}"
+msgstr[0] "{count} pacote fonte afetado está instalado: {pkgs}"
+msgstr[1] "{count} pacotes fonte afetados estão instalados: {pkgs}"
 
 #: ../../uaclient/messages/__init__.py:478
 msgid "No affected source packages are installed."
@@ -1002,7 +1004,7 @@ msgstr "{issue} foi resolvida"
 #: ../../uaclient/messages/__init__.py:482
 #, python-brace-format
 msgid " {issue} is resolved by livepatch patch version: {version}."
-msgstr " {issue} for resolvida pelo patch do livepatch versão: {version}."
+msgstr " {issue} for resolvida pelo patch {version} do livepatch."
 
 #: ../../uaclient/messages/__init__.py:485
 #, python-brace-format
@@ -1013,7 +1015,7 @@ msgid ""
 "this service.\n"
 "{{{{ pro enable {{service}} }}}}{end_bold}"
 msgstr ""
-"{bold}Serviço Ubuntu Pro: {{service}} não está habilitado.\n"
+"{bold}O serviço Ubuntu Pro: {{service}} não está habilitado.\n"
 "Para continuar com a correção, um prompt irá te perdir permissão para "
 "automaticamente habilitar\n"
 "este serviço.\n"
@@ -1026,8 +1028,8 @@ msgid ""
 "To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.\n"
 "{{ pro attach TOKEN }}{end_bold}"
 msgstr ""
-"{bold}Essa máquina não está vinculada a uma assinatura Ubuntu Pro.\n"
-"Para continuar com a correção, um prompt irá te requisitar por token válida "
+"{bold}Essa máquina não está vinculada a uma assinatura do Ubuntu Pro.\n"
+"Para continuar com a correção, um prompt irá te requisitar um token válido "
 "para o Ubuntu Pro.\n"
 "{{ pro attach TOKEN }}{end_bold}"
 
@@ -1041,7 +1043,7 @@ msgid ""
 "{{ pro attach NEW_TOKEN }}{end_bold}"
 msgstr ""
 "{bold}A máquina possui uma assinatura vencida.\n"
-"Para continuar com a correção, um prompt irá pedir por uma nova token\n"
+"Para continuar com a correção, um prompt irá pedir por um novo token\n"
 "para renovar a sua assinatura Ubuntu Pro.\n"
 "{{ pro detach --assume-yes }}\n"
 "{{ pro attach NEW_TOKEN }}{end_bold}"
@@ -1053,7 +1055,7 @@ msgid ""
 "No packages will be installed when running this command.{end_bold}"
 msgstr ""
 "{bold}ATENÇÂO: a opção --dry-run está sendo usada.\n"
-"Nenhum pacote será instalado ao rodar este comando.{end_bold}"
+"Nenhum pacote será instalado na execução deste comando.{end_bold}"
 
 #: ../../uaclient/messages/__init__.py:511
 #, python-brace-format
@@ -1061,7 +1063,7 @@ msgid ""
 "Error: Ubuntu Pro service: {service} is not enabled.\n"
 "Without it, we cannot fix the system."
 msgstr ""
-"Erro: serviço Ubuntu Pro: {service} não está habilitado.\n"
+"Erro: o serviço Ubuntu Pro: {service} não está habilitado.\n"
 "Sem o serviço, não podemos corrigir o sistema."
 
 #: ../../uaclient/messages/__init__.py:516
@@ -1070,7 +1072,7 @@ msgid ""
 "Error: The current Ubuntu Pro subscription is not entitled to: {service}.\n"
 "Without it, we cannot fix the system."
 msgstr ""
-"Erro: O serviço {service} não está disponível para atual assinatura do "
+"Erro: O serviço {service} não está disponível para a atual assinatura do "
 "Ubuntu Pro.\n"
 "Sem o serviço, não podemos corrigir o sistema."
 
@@ -1109,15 +1111,15 @@ msgstr "Uma correção será entregue em breve. Tente de novo amanhã."
 
 #: ../../uaclient/messages/__init__.py:550
 msgid "Sorry, no fix is available."
-msgstr "Desculpe, correção ainda não está disponível."
+msgstr "Desculpe, não existe uma correção disponível."
 
 #: ../../uaclient/messages/__init__.py:554
 msgid "Source package does not exist on this release."
-msgstr "Pacote fonte não existe para está versão do Ubuntu"
+msgstr "O pacote fonte não existe para esta versão do Ubuntu."
 
 #: ../../uaclient/messages/__init__.py:558
 msgid "Source package is not affected on this release."
-msgstr "Pacote fonte não é afetado nesta versão do Ubuntu"
+msgstr "O pacote fonte não é afetado nesta versão do Ubuntu."
 
 #: ../../uaclient/messages/__init__.py:562
 #, python-brace-format
@@ -1152,7 +1154,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:581
 msgid "Summary:"
-msgstr "Sumário"
+msgstr "Sumário:"
 
 #: ../../uaclient/messages/__init__.py:585
 #, python-brace-format
@@ -1164,7 +1166,7 @@ msgid ""
 "\n"
 "{url}\n"
 msgstr ""
-"Mesmo que aconteça uma falha ao corrigir uma USN relacionada, note\n"
+"Mesmo que tenha acontecido uma falha ao corrigir uma USN relacionada, note\n"
 "que {{issue_id}} for corrigida. USNs relacionadas não afetam a USN\n"
 "original. Para saber mais sobre USNs relacionadas, por favor entre na "
 "página:\n"
@@ -1173,7 +1175,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:594
 msgid "Ubuntu standard updates"
-msgstr "Atualizações padrões do Ubuntu"
+msgstr "Atualizações padrão do Ubuntu"
 
 #: ../../uaclient/messages/__init__.py:595
 #: ../../uaclient/messages/__init__.py:1184
@@ -1190,18 +1192,18 @@ msgid ""
 "Package fixes cannot be installed.\n"
 "To install them, run this command as root (try using sudo)"
 msgstr ""
-"Atualização de pacotes não podem ser instaladas.\n"
-"Para instalar os pacote, execute esse comando como root (tente usando sudo)"
+"As atualizações de pacotes não podem ser instaladas.\n"
+"Para instalar os pacotes, execute esse comando como root (tente usando sudo)"
 
 #: ../../uaclient/messages/__init__.py:605
 #, python-brace-format
 msgid "Enter your token (from {url}) to attach this system:"
-msgstr "Providencie seu token (da {url}) para vincular seu sistema:"
+msgstr "Insira seu token (da {url}) para vincular seu sistema:"
 
 #: ../../uaclient/messages/__init__.py:609
 msgid "Enter your new token to renew Ubuntu Pro subscription on this system:"
 msgstr ""
-"Providencie sua nova token para renovar sua assinatura Ubuntu Pro neste "
+"Providencie seu novo token para renovar sua assinatura do Ubuntu Pro neste "
 "sistema:"
 
 #. ##############################################################################
@@ -1216,8 +1218,8 @@ msgstr "{count} pacotes instalados:"
 #, python-brace-format
 msgid "{offset}{count} package from Ubuntu {repository} repository"
 msgid_plural "{offset}{count} packages from Ubuntu {repository} repository"
-msgstr[0] "{offset}{count} pacote do repositório Ubuntu {repository}"
-msgstr[1] "{offset}{count} pacotes do repositório Ubuntu {repository}"
+msgstr[0] "{offset}{count} pacote do repositório {repository} do Ubuntu"
+msgstr[1] "{offset}{count} pacotes do repositório {repository} do Ubuntu"
 
 #: ../../uaclient/messages/__init__.py:629
 #, python-brace-format
@@ -1231,7 +1233,7 @@ msgstr[1] "{offset}{count} pacotes de terceiros"
 msgid "{offset}{count} package no longer available for download"
 msgid_plural "{offset}{count} packages no longer available for download"
 msgstr[0] "{offset}{count} pacote não mais disponível para download"
-msgstr[1] "{offset}{count} pacote não mais disponíveis para download"
+msgstr[1] "{offset}{count} pacotes não mais disponíveis para download"
 
 #: ../../uaclient/messages/__init__.py:643
 msgid ""
@@ -1265,7 +1267,7 @@ msgstr "O cache do apt pode estar desatualizado"
 #: ../../uaclient/messages/__init__.py:664
 #, python-brace-format
 msgid "Main/Restricted packages receive updates until {date}."
-msgstr "pacotes Main/Restructed receberam atualizações até {date}."
+msgstr "pacotes Main/Restricted receberão atualizações até {date}."
 
 #: ../../uaclient/messages/__init__.py:667
 #, python-brace-format
@@ -1273,12 +1275,12 @@ msgid ""
 "This machine is receiving security patching for Ubuntu Main/Restricted\n"
 "repository until {date}."
 msgstr ""
-"Está máquina está recebendo patches de segurança para o repositório\n"
-"Ubuntu Main/Restricted até"
+"Esta máquina está recebendo patches de segurança para o repositório\n"
+"Main/Restricted do Ubuntu até"
 
 #: ../../uaclient/messages/__init__.py:673
 msgid "This machine is attached to an Ubuntu Pro subscription."
-msgstr "Está máquina está vinculada a uma assinatura do Ubuntu Pro"
+msgstr "Esta máquina está vinculada a uma assinatura do Ubuntu Pro."
 
 #: ../../uaclient/messages/__init__.py:676
 msgid "This machine is NOT attached to an Ubuntu Pro subscription."
@@ -1289,8 +1291,8 @@ msgid ""
 "Packages from third parties are not provided by the official Ubuntu\n"
 "archive, for example packages from Personal Package Archives in Launchpad."
 msgstr ""
-"Pacotes de terceiros não são providenciados por meios oficiaisn do Ubuntu,\n"
-"por example, pacotes de encontrados em Personal Package Archives(ppa) do "
+"Pacotes de terceiros não são providenciados por meios oficiais do Ubuntu,\n"
+"por examplo, pacotes de encontrados em Personal Package Archives (PPAs) do "
 "Launchpad."
 
 #: ../../uaclient/messages/__init__.py:685
@@ -1299,9 +1301,9 @@ msgid ""
 "previous release of Ubuntu, may have been installed directly from a\n"
 ".deb file, or are from a source which has been disabled."
 msgstr ""
-"Pacotes que não estão disponíveis para download pode ter sobrado de\n"
-"versão anterior do Ubuntu, podem ter sido instalados diretamente por um\n"
-"arquivo .deb, ou tem uma fonte que foi desabilitada."
+"Pacotes que não estão disponíveis para download podem ter sobrado de\n"
+"versões anteriores do Ubuntu, podem ter sido instalados diretamente por um\n"
+"arquivo .deb, ou de uma fonte que foi desabilitada."
 
 #: ../../uaclient/messages/__init__.py:692
 msgid ""
@@ -1309,7 +1311,7 @@ msgid ""
 "ended\n"
 "and esm-infra is not enabled."
 msgstr ""
-"Está máquina NÃO está recebendo patches de segurança, pois o período LTS "
+"Esta máquina NÃO está recebendo patches de segurança, pois o período LTS "
 "acabou\n"
 "e esm-infra não está habilitado."
 
@@ -1319,15 +1321,15 @@ msgid ""
 "Ubuntu Pro with '{service}' enabled provides security updates for\n"
 "{repository} packages until {year}."
 msgstr ""
-"Ubuntu Pro com '{service}' habilitado providencia atualizações de segurança\n"
-"para pacotes do {repository} até {year}"
+"Ubuntu Pro com '{service}' habilitado provê atualizações de segurança\n"
+"para pacotes do {repository} até {year}."
 
 #: ../../uaclient/messages/__init__.py:704
 #, python-brace-format
 msgid "There is {updates} pending security update."
 msgid_plural "There are {updates} pending security updates."
-msgstr[0] "Existe {updates} de segurança pendente."
-msgstr[1] "Existem {updates} de segurança pendentes."
+msgstr[0] "Existe {updates} atualização de segurança pendente."
+msgstr[1] "Existem {updates} atualizações de segurança pendentes."
 
 #: ../../uaclient/messages/__init__.py:711
 #, python-brace-format
@@ -1335,7 +1337,7 @@ msgid ""
 "{repository} packages are receiving security updates from\n"
 "Ubuntu Pro with '{service}' enabled until {year}."
 msgstr ""
-"pacotes do {repository} estão recebendo atualizações de segurança do\n"
+"Pacotes do {repository} estão recebendo atualizações de segurança do\n"
 "Ubuntu Pro com '{service}' habilitado até {year}."
 
 #: ../../uaclient/messages/__init__.py:717
@@ -1364,7 +1366,7 @@ msgid ""
 "Try Ubuntu Pro with a free personal subscription on up to 5 machines.\n"
 "Learn more at {url}\n"
 msgstr ""
-"Experimente Ubuntu Pro com uma assinatura pessoal gratuita para até 5 "
+"Experimente o Ubuntu Pro com uma assinatura pessoal gratuita para até 5 "
 "máquinas.\n"
 "Saiba mais em {url}\n"
 
@@ -1375,7 +1377,7 @@ msgid ""
 "    apt-cache show {package}\n"
 "to learn more about that package."
 msgstr ""
-"Por exemple, execute:\n"
+"Por exemplo, execute:\n"
 "    apt-cache show {package}\n"
 "para saber mais sobre este pacote."
 
@@ -1385,11 +1387,11 @@ msgstr "Você não tem pacotes instalados de terceitos."
 
 #: ../../uaclient/messages/__init__.py:746
 msgid "You have no packages installed that are no longer available."
-msgstr "Você não tem pacotes instalados que não estão mais disponíveis."
+msgstr "Você não tem pacotes instalados que não estejam mais disponíveis."
 
 #: ../../uaclient/messages/__init__.py:749
 msgid "Ubuntu Pro is not available for non-LTS releases."
-msgstr "Ubuntu Pro não está disponível para versões do Ubuntu não LTS"
+msgstr "Ubuntu Pro não está disponível para versões do Ubuntu não LTS."
 
 #: ../../uaclient/messages/__init__.py:752
 #, python-brace-format
@@ -1399,22 +1401,22 @@ msgstr "Execute 'pro help {service}' para saber mais"
 #: ../../uaclient/messages/__init__.py:755
 #, python-brace-format
 msgid "Installed packages with an available {service} update:"
-msgstr "Pacotes instalados com atualizações disponíveis por {service}"
+msgstr "Pacotes instalados com atualizações disponíveis por {service}:"
 
 #: ../../uaclient/messages/__init__.py:758
 #, python-brace-format
 msgid "Installed packages with an {service} update applied:"
-msgstr "Pacotes instalados com atualizações aplicadas por {service}"
+msgstr "Pacotes instalados com atualizações aplicadas por {service}:"
 
 #: ../../uaclient/messages/__init__.py:760
 #, python-brace-format
 msgid "Installed packages covered by {service}:"
-msgstr "Pacotes instalados cobertos por {service}"
+msgstr "Pacotes instalados cobertos por {service}:"
 
 #: ../../uaclient/messages/__init__.py:762
 #, python-brace-format
 msgid "Further installed packages covered by {service}:"
-msgstr "Pacotes adicionais instalados cobertos por {service}"
+msgstr "Pacotes adicionais instalados cobertos por {service}:"
 
 #: ../../uaclient/messages/__init__.py:764
 msgid "Packages:"
@@ -1493,7 +1495,7 @@ msgstr "avançado"
 
 #: ../../uaclient/messages/__init__.py:792
 msgid "Unknown/Expired"
-msgstr "Desconhecido/vencido"
+msgstr "Desconhecido/expirado"
 
 #: ../../uaclient/messages/__init__.py:795
 #, python-brace-format
@@ -1518,7 +1520,7 @@ msgstr "Nível de suporte técnico"
 
 #: ../../uaclient/messages/__init__.py:802
 msgid "This token is not valid."
-msgstr "Esta token não é válida."
+msgstr "Este token não é válido."
 
 #: ../../uaclient/messages/__init__.py:803
 msgid "No Ubuntu Pro operations are running"
@@ -1526,22 +1528,23 @@ msgstr "Nenhuma operação Ubuntu Pro está sendo executada"
 
 #: ../../uaclient/messages/__init__.py:806
 msgid "No Ubuntu Pro services are available to this system."
-msgstr "Nenhum serviço Ubuntu Pro está disponível neste sistema."
+msgstr "Nenhum serviço do Ubuntu Pro está disponível neste sistema."
 
 #: ../../uaclient/messages/__init__.py:809
 msgid "For a list of all Ubuntu Pro services, run 'pro status --all'"
 msgstr ""
-"Para uma lista com todos os serviços Ubuntu Pro, execute 'pro status --all'"
+"Para uma lista com todos os serviços do Ubuntu Pro, execute 'pro status --"
+"all'"
 
 #: ../../uaclient/messages/__init__.py:811
 msgid " * Service has variants"
-msgstr "* Serviço tem variações"
+msgstr "* Serviço tem variantes"
 
 #: ../../uaclient/messages/__init__.py:813
 msgid ""
 "For a list of all Ubuntu Pro services and variants, run 'pro status --all'"
 msgstr ""
-"Para uma lista como todos os serviços e variações do Ubuntu Pro, execute "
+"Para uma lista como todos os serviços e variantes do Ubuntu Pro, execute "
 "'pro status --all'"
 
 #: ../../uaclient/messages/__init__.py:818
@@ -1559,12 +1562,12 @@ msgstr ""
 #. Also, any generic strings about the CLI itself go here.
 #: ../../uaclient/messages/__init__.py:831
 msgid "Try 'pro --help' for more information."
-msgstr "Tente 'pro --help' para mais informações"
+msgstr "Tente 'pro --help' para mais informações."
 
 #: ../../uaclient/messages/__init__.py:833
 #, python-brace-format
 msgid "Use {name} {command} --help for more information about a command."
-msgstr "Use {name} {command} --help para mais informações sobre o comando."
+msgstr "Use {name} {command} --help para mais informações sobre um comando."
 
 #: ../../uaclient/messages/__init__.py:836
 msgid "Use pro help <service> to get more details about each service"
@@ -1572,19 +1575,19 @@ msgstr "Use pro help <service> para obter mais detalhes sobre cada serviço"
 
 #: ../../uaclient/messages/__init__.py:839
 msgid "Variants:"
-msgstr "Variações:"
+msgstr "Variantes:"
 
 #: ../../uaclient/messages/__init__.py:840
 msgid "Arguments"
-msgstr "Parâmetros"
+msgstr "Argumentos"
 
 #: ../../uaclient/messages/__init__.py:841
 msgid "Flags"
-msgstr "Flags"
+msgstr ""
 
 #: ../../uaclient/messages/__init__.py:842
 msgid "Available Commands"
-msgstr "Comandos disponíveis"
+msgstr "Comandos Disponíveis"
 
 #: ../../uaclient/messages/__init__.py:844
 #, python-brace-format
@@ -1594,12 +1597,12 @@ msgstr "saída no formato especificado (default: {default})"
 #: ../../uaclient/messages/__init__.py:847
 #, python-brace-format
 msgid "do not prompt for confirmation before performing the {command}"
-msgstr "não peça por confirmação até executar {command}"
+msgstr "não peça por confirmação antes de executar {command}"
 
 #: ../../uaclient/messages/__init__.py:850
 #: ../../uaclient/messages/__init__.py:1065
 msgid "Calls the Client API endpoints."
-msgstr "Chama os endpoints da API do Client"
+msgstr "Chama os endpoints da API do Cliente."
 
 #: ../../uaclient/messages/__init__.py:851
 msgid "API endpoint to call"
@@ -1607,15 +1610,15 @@ msgstr "API endpoints que podem ser executados"
 
 #: ../../uaclient/messages/__init__.py:853
 msgid "Options to pass to the API endpoint, formatted as key=value"
-msgstr "Opções para passar ao endpoint da API, formatado como chave=valor"
+msgstr "Opções para passar ao endpoint da API, formatadas como chave=valor"
 
 #: ../../uaclient/messages/__init__.py:855
 msgid "arguments in JSON format to the API endpoint"
-msgstr "Parâmetros em format JSON para endpoint da API"
+msgstr "argumentos em formato JSON para o endpoint da API"
 
 #: ../../uaclient/messages/__init__.py:858
 msgid "Automatically attach on an Ubuntu Pro cloud instance."
-msgstr "Automaticamente vincular a uma instância cloud Ubuntu Pro"
+msgstr "Automaticamente vincular em uma instância cloud do Ubuntu Pro."
 
 #: ../../uaclient/messages/__init__.py:862
 msgid "Collect logs and relevant system information into a tarball."
@@ -1627,7 +1630,7 @@ msgstr "tarball onde os logs serão guardados. (Valor padrão ./ua_logs.tar.gz)"
 
 #: ../../uaclient/messages/__init__.py:868
 msgid "Show customisable configuration settings"
-msgstr "Mostre as opções customizáveis da configuração"
+msgstr "Mostre as opções personalizáveis da configuração"
 
 #: ../../uaclient/messages/__init__.py:870
 msgid "Optional key or key(s) to show configuration settings."
@@ -1644,11 +1647,11 @@ msgid ""
 "{options}"
 msgstr ""
 "par chave=valor para configurar serviços Ubuntu Pro. Chave precisa ser uma "
-"de: {options}"
+"dentre: {options}"
 
 #: ../../uaclient/messages/__init__.py:879
 msgid "Unset Ubuntu Pro configuration setting"
-msgstr "desabilite a configuração do Ubuntu Pro"
+msgstr "Desabilitar a configuração do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:881
 #, python-brace-format
@@ -1669,17 +1672,17 @@ msgid ""
 "and prompt you to attach the machine to your Ubuntu Pro account using\n"
 "a web browser."
 msgstr ""
-"Vincule está máquina a uma assinatura Ubuntu Pro com uma token obtidade dê:\n"
+"Vincule esta máquina a uma assinatura Ubuntu Pro com um token obtido de:\n"
 "{url}\n"
 "\n"
-"Ao executar este comando sem uma token, uma código pequeno será gerado\n"
-"e um prompt surgirá pedindo para vincular está máquina usando sua conta "
-"Ubuntu Pro por\n"
+"Ao executar este comando sem um token, um código pequeno será gerado\n"
+"e um prompt surgirá pedindo para vincular esta máquina usando sua conta do "
+"Ubuntu Pro por meio\n"
 "de um web browser."
 
 #: ../../uaclient/messages/__init__.py:894
 msgid "token obtained for Ubuntu Pro authentication"
-msgstr "token obtido por da autenticação do Ubuntu Pro"
+msgstr "token obtido para autenticação do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:896
 msgid "do not enable any recommended services automatically"
@@ -1689,14 +1692,14 @@ msgstr "não habilite nenhum serviço recomendado automaticamente"
 msgid ""
 "use the provided attach config file instead of passing the token on the cli"
 msgstr ""
-"Use para providenciar configuração de vínculo ao invés de passar a token "
-"direto via cli"
+"use para providenciar um arquivo de configuração ao vincular ao invés de "
+"inserir o token via linha de comando"
 
 #: ../../uaclient/messages/__init__.py:904
 msgid ""
 "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this machine."
 msgstr ""
-"Inspecione e corrija CVEs and USNs (Ubuntu Security Notives) nesta máquina."
+"Inspecionar e corrigir CVEs and USNs (Ubuntu Security Notices) nesta máquina."
 
 #: ../../uaclient/messages/__init__.py:908
 msgid ""
@@ -1711,8 +1714,8 @@ msgid ""
 "If used, fix will not actually run but will display everything that will "
 "happen on the machine during the command."
 msgstr ""
-"Se usado, fix não vai ser executado totalmente. Ao invés disso, irá mostrar "
-"tudo que irá acontecer na máquina durante a execução do comando."
+"Se usado, fix não vai executar modificações. Ao invés disso, irá mostrar "
+"tudo que irá acontecer na máquina durante a execução real do comando."
 
 #: ../../uaclient/messages/__init__.py:917
 msgid ""
@@ -1720,7 +1723,7 @@ msgid ""
 "USNs to the target USN."
 msgstr ""
 "Se usado, ao corrigir uma USN, o comando não tentará corrigar as USN "
-"relacionadas a USN principal."
+"relacionadas à USN principal."
 
 #: ../../uaclient/messages/__init__.py:922
 msgid ""
@@ -1741,22 +1744,23 @@ msgid ""
 "The output contains basic information about Ubuntu Pro. For a\n"
 "complete status on Ubuntu Pro services, run 'pro status'.\n"
 msgstr ""
-"Mostra atualizações de segurança para pacotes no sistema, incluindo todos\n"
-"as conteúdos relacionados a Expanded Security Maintenance (ESM)\n"
+"Mostrar atualizações de segurança para pacotes no sistema, incluindo todos\n"
+"os conteúdos relacionados a Expanded Security Maintenance (ESM)\n"
 "\n"
-"Mostre quantos pacotes são suportados para atualizações de segurança\n"
+"Mostrar quantos pacotes são suportados para atualizações de segurança\n"
 "neste sistema.\n"
 "\n"
 "Se executado com --format json|yaml, mostra um sumário dos\n"
-"pacote instalados baseados em usa origem:\n"
-"- main/restricted/univers/multiverse: pacote do arquivo do Ubuntu\n"
+"pacotes instalados baseados em sua origem:\n"
+"- main/restricted/univers/multiverse: pacotes do arquivo do Ubuntu\n"
 "- esm-infra/esm-apps: pacotes dos arquivos de ESM\n"
-"- terceiros: pacotes instalados por fontes que não são do Ubuntu\n"
-"- desconhecidos: pacotes que não tem uma origem de instalação (como pacotes\n"
+"- third-party: pacotes instalados por fontes que não são do Ubuntu\n"
+"- unknown: pacotes que não tem uma origem de instalação (como pacotes\n"
 "deb locais or pacotes cuja origem foi removida)\n"
 "\n"
-"A saída contém informação básica sbore Ubuntu Pro. Para um status completo\n"
-"sobre os serviços Ubuntu Pro, execute 'pro status'.\n"
+"A saída contém informação básica sobre o Ubuntu Pro. Para um status "
+"completo\n"
+"a respeito dos serviços do Ubuntu Pro, execute 'pro status'.\n"
 
 #: ../../uaclient/messages/__init__.py:942
 msgid "List and present information about third-party packages"
@@ -1790,7 +1794,7 @@ msgstr ""
 "Pro:\n"
 "\n"
 "* contract: Atualize detalhes do contratos através do servidor.\n"
-"* config: Recarregue as configurações encontrados no arquivo de "
+"* config: Recarregue as configurações encontradas no arquivo de "
 "configuração.\n"
 "* messages: Atualized as mensagens APT e MOTD relacionados ao Ubuntu Pro.\n"
 "\n"
@@ -1806,16 +1810,16 @@ msgstr "Opção para atualizar"
 
 #: ../../uaclient/messages/__init__.py:969
 msgid "Detach this machine from Ubuntu Pro services."
-msgstr "Desvincule está máquina de uma assinatura Ubuntu Pro"
+msgstr "Desvincule esta máquina de uma assinatura Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:972
 msgid "Provide detailed information about Ubuntu Pro services."
-msgstr "Providencia informação detalhada sobre os serviços Ubuntu Pro"
+msgstr "Providencia informações detalhadas sobre os serviços do Ubuntu Pro."
 
 #: ../../uaclient/messages/__init__.py:975
 #, python-brace-format
 msgid "a service to view help output for. One of: {options}"
-msgstr "serviço para qual informação de ajuda será mostrada. Um dê: {options}"
+msgstr "serviço para qual informação de ajuda será mostrada. Um de: {options}"
 
 #: ../../uaclient/messages/__init__.py:977
 msgid "Include beta services"
@@ -1828,7 +1832,7 @@ msgstr "Habilite um serviço Ubuntu Pro."
 #: ../../uaclient/messages/__init__.py:981
 #, python-brace-format
 msgid "the name(s) of the Ubuntu Pro services to enable. One of: {options}"
-msgstr "os nome(s)n dos serviços Ubuntu Pro para habilitar. Um dê: {options}"
+msgstr "os nome(s)n dos serviços Ubuntu Pro para habilitar. Um de: {options}"
 
 #: ../../uaclient/messages/__init__.py:984
 msgid ""
@@ -1839,28 +1843,29 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:987
 msgid "allow beta service to be enabled"
-msgstr "Permita que serviços beta sejam habilitados"
+msgstr "permita que serviços beta sejam habilitados"
 
 #: ../../uaclient/messages/__init__.py:989
 msgid "The name of the variant to use when enabling the service"
-msgstr "O nome da variação para usar ao habilitar o serviço"
+msgstr "O nome da variante para usar ao habilitar o serviço"
 
 #: ../../uaclient/messages/__init__.py:992
 msgid "Disable an Ubuntu Pro service."
-msgstr "Desabilite o serviço Ubuntu Pro."
+msgstr "Desabilite um serviço do Ubuntu Pro."
 
 #: ../../uaclient/messages/__init__.py:994
 #, python-brace-format
 msgid "the name(s) of the Ubuntu Pro services to disable. One of: {options}"
-msgstr "Os nome(s) do serviços Ubuntu Pro para desabilitar. Um dê: {options}"
+msgstr ""
+"os nome(s) do serviços do Ubuntu Pro para desabilitar. Um de: {options}"
 
 #: ../../uaclient/messages/__init__.py:998
 msgid "Output system related information related to Pro services"
-msgstr "Mostre informações de sistema relacionados aos serviços Ubuntu Pro"
+msgstr "Mostre informações de sistema relacionados aos serviços do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1000
 msgid "does the system need to be rebooted"
-msgstr "se o sistema precisa ser reiniciados"
+msgstr "se o sistema precisa ser reiniciado"
 
 #: ../../uaclient/messages/__init__.py:1002
 msgid ""
@@ -1877,19 +1882,18 @@ msgid ""
 "  reboot, but you can assess if the reboot can be performed in the\n"
 "  nearest maintenance window.\n"
 msgstr ""
-"Reporte o atual status reboot-required para esta máquina.\n"
+"Reporte o atual status de reboot-required para esta máquina.\n"
 "\n"
 "Este comando irá mostrar um dos três estados para a máquina\n"
-"relacionado a operação de reiniciar o sistema:\n"
+"relacionados à operação de reiniciar o sistema:\n"
 "\n"
 "* no: A máquina não precisa ser reiniciada\n"
 "* yes: A máquina precisa ser reiniciada\n"
 "* yes-kernel-livepatches-applied: Só existem pacotes relacionados ao kernel "
 "que necessitam\n"
-"  reiniciar a máquina. Entretanto, o Livepatch já providenciou\n"
-"  patches para kernel atual em execução. A máquina ainda precisa ser\n"
-"  reiniciada, mas você pode averiguar se reiniciar a máquina pode acontecer "
-"no\n"
+"  de reiniciar a máquina. Entretanto, o Livepatch já providenciou\n"
+"  patches para o kernel atual em execução. A máquina ainda precisa ser\n"
+"  reiniciada, mas você pode averiguar se o reinício pode acontecer no\n"
 "  período de manutenção mais próximo.\n"
 
 #: ../../uaclient/messages/__init__.py:1019
@@ -1927,10 +1931,10 @@ msgid ""
 "If the --all flag is set, beta and unavailable services are also\n"
 "listed in the output.\n"
 msgstr ""
-"Reporte o atual status dos serviços Ubuntu Pro no sistema.\n"
+"Reportar o atual status dos serviços do Ubuntu Pro no sistema.\n"
 "\n"
-"Este comando mostar se uma máquina está vinculada a um contrato de suporte\n"
-"Ubuntu Advantage. Quando vinculada, será mostrado detalhes específicos\n"
+"Este comando mostra se uma máquina está vinculada a um contrato de suporte\n"
+"do Ubuntu Pro. Quando vinculada, serão mostrados detalhes específicos\n"
 "do contrato de suporte, incluindo nome do contrato, data de vencimento e o\n"
 "status de cada serviço no sistema.\n"
 "\n"
@@ -1943,25 +1947,25 @@ msgstr ""
 "  são: habilitado, desabilitado, n/d (se o contrato diz que o serviço está\n"
 "  disponível, mas o serviço não pode ser habilitado devido a uma restrição "
 "da máquina)\n"
-"  se — (se o contrato não mostra esse serviço como disponível)\n"
+"  ou — (se o contrato não mostra esse serviço como disponível)\n"
 "* DESCRIÇÃO: uma breve descrição do serviço\n"
 "\n"
-"Caso a máquina esteja desvinculada a um contrato, três colunas serão "
+"Caso a máquina esteja desvinculada de um contrato, três colunas serão "
 "mostradas.\n"
 "SERVIÇO e DESCRIÇÃO são as mesmas informações mostradas acima, com a adição "
 "da\n"
 "coluna:\n"
 "\n"
-"* DISPONÍVEL: se o serviço estaria disponível caso a máquina seja vinculada "
+"* DISPONÍVEL: se o serviço estaria disponível caso a máquina fosse vinculada "
 "a um contrato\n"
 "  Os valores possíveis aqui são sim e não.\n"
 "\n"
-"Se --simulate-with-token for usado, será mostrado cinco colunas.\n"
-"SERVIÇO, DISPONÍVEL, INCLUÍDO, DESCRIÇÂO (os mesmos mencionados acima) e\n"
-"AUTO_HABILITADO mostar se o serviço seria habilitado automaticamente quando\n"
+"Se --simulate-with-token for usado, serão mostradas cinco colunas.\n"
+"SERVIÇO, DISPONÍVEL, INCLUÍDO, DESCRIÇÃO (os mesmos mencionados acima) e\n"
+"AUTO_HABILITADO mostrando se o serviço seria habilitado automaticamente se\n"
 "a máquina for vinculada a um contrato.\n"
 "\n"
-"Se a flag --all for usado, serviços beta e indisponíveis também\n"
+"Se a flag --all for usada, serviços beta e indisponíveis também\n"
 "serão listado.\n"
 
 #: ../../uaclient/messages/__init__.py:1054
@@ -1970,7 +1974,7 @@ msgstr "Espera até o pro completar sua operação"
 
 #: ../../uaclient/messages/__init__.py:1056
 msgid "simulate the output status using a provided token"
-msgstr "Simula a mensagem de status usando um token"
+msgstr "simula a mensagem de status usando um token fornecido"
 
 #: ../../uaclient/messages/__init__.py:1058
 msgid "Include unavailable and beta services"
@@ -1978,12 +1982,12 @@ msgstr "Inclui serviços beta e indisponíveis"
 
 #: ../../uaclient/messages/__init__.py:1060
 msgid "show all debug log messages to console"
-msgstr "Mostra todas os logs de debug na saída do comando"
+msgstr "mostra todas os logs de debug na saída do comando"
 
 #: ../../uaclient/messages/__init__.py:1061
 #, python-brace-format
 msgid "show version of {name}"
-msgstr "Mostra versão de {name}"
+msgstr "mostra versão de {name}"
 
 #: ../../uaclient/messages/__init__.py:1063
 msgid "attach this machine to an Ubuntu Pro subscription"
@@ -1995,23 +1999,23 @@ msgstr "automaticamente vincule está máquina em plataformas suportadas"
 
 #: ../../uaclient/messages/__init__.py:1067
 msgid "collect Pro logs and debug information"
-msgstr "Coleta logs Pro and informações de debug"
+msgstr "coleta logs do Pro e informações de debug"
 
 #: ../../uaclient/messages/__init__.py:1068
 msgid "manage Ubuntu Pro configuration on this machine"
-msgstr "Gerencia configuração do Ubuntu Pro nesta máquina"
+msgstr "gerencia configuração do Ubuntu Pro nesta máquina"
 
 #: ../../uaclient/messages/__init__.py:1070
 msgid "remove this machine from an Ubuntu Pro subscription"
-msgstr "Desvincula está máquina de uma assinatura Ubuntu Pro"
+msgstr "desvincula esta máquina de uma assinatura Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1073
 msgid "disable a specific Ubuntu Pro service on this machine"
-msgstr "desabilita nesta máquina um serviço Ubuntu Pro"
+msgstr "desabilita nesta máquina um serviço do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1076
 msgid "enable a specific Ubuntu Pro service on this machine"
-msgstr "Habilita nesta máquina um serviço Ubuntu Pro"
+msgstr "habilita nesta máquina um serviço Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1079
 msgid "check for and mitigate the impact of a CVE/USN on this system"
@@ -2019,23 +2023,23 @@ msgstr "checa e corrige os problemas de segurança de um CVE/USN na máquina"
 
 #: ../../uaclient/messages/__init__.py:1082
 msgid "list available security updates for the system"
-msgstr "Lista atualizações de segurança disponíveis para o sistema"
+msgstr "lista atualizações de segurança disponíveis para o sistema"
 
 #: ../../uaclient/messages/__init__.py:1085
 msgid "show detailed information about Ubuntu Pro services"
-msgstr "Mostra informações detalhadas sobre os serviços Ubuntu Pro"
+msgstr "mostra informações detalhadas sobre os serviços do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1087
 msgid "refresh Ubuntu Pro services"
-msgstr "atualiza os serviços Ubuntu Pro"
+msgstr "atualiza os serviços do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1088
 msgid "current status of all Ubuntu Pro services"
-msgstr "status atual de todos os serviços Ubuntu Pro"
+msgstr "status atual de todos os serviços do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1089
 msgid "show system information related to Pro services"
-msgstr "mostra informações de sistema relacionados a serviços Ubuntu Pro"
+msgstr "mostra informações de sistema relacionados a serviços do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:1092
 #, python-brace-format
@@ -2046,8 +2050,8 @@ msgid ""
 "or use `pro {command} --format json`.\n"
 msgstr ""
 "ATENÇÃO: a saída deste comando é para ser legível para humanos. Tal saída "
-"esta\n"
-"sujeita a mudanças no futuro.\n"
+"está\n"
+"sujeita à mudanças no futuro.\n"
 "Em scripts, é melhor usar a formatos legíveis para máquinas via comandos "
 "`pro api`,\n"
 "ou usar `pro {command} --format json`.\n"
@@ -2061,7 +2065,7 @@ msgstr "Anbox Cloud"
 
 #: ../../uaclient/messages/__init__.py:1106
 msgid "Scalable Android in the cloud"
-msgstr "Android escalável na cloud"
+msgstr "Android escalável na nuvem"
 
 #: ../../uaclient/messages/__init__.py:1108
 #, python-brace-format
@@ -3097,7 +3101,7 @@ msgid ""
 "The VERSION filed does not have version information: {version}\n"
 "and the VERSION_CODENAME information is not present"
 msgstr ""
-"Não foi possível extrair a série de /etc/os-release.\n"
+"Não foi possível extrair a série a partir de /etc/os-release.\n"
 "o campo VERSION não tem a informação de versão: {version}\n"
 "e o campo VERSION_CODENAME não está presente"
 
@@ -3109,7 +3113,8 @@ msgid ""
 "\n"
 "$ sudo rm {lock_file_path}"
 msgstr ""
-"Existe uma lock corrompida no sistema. Para contunuar, por favor remova-a\n"
+"Existe um arquivo lock corrompido no sistema. Para contunuar, por favor "
+"remova-o\n"
 "do sistema ao executar:\n"
 "\n"
 "$ sudo rm {lock_file_path}"
@@ -3125,8 +3130,8 @@ msgid ""
 "Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. "
 "Expected {expected_value}, found {value}."
 msgstr ""
-"Valor inválido para {path_to_value} em /etc/ubuntu-advantage/uaclint.conf."
-"Esperava {expected_value}, encontrou {value}."
+"Valor inválido para {path_to_value} em /etc/ubuntu-advantage/uaclient.conf."
+"Esperava {expected_value}, mas {value} foi encontrado."
 
 #: ../../uaclient/messages/__init__.py:2253
 #, python-brace-format
@@ -3144,7 +3149,7 @@ msgstr "url inválida no arquivo de configuração. {key}: {value}"
 #: ../../uaclient/messages/__init__.py:2265
 #, python-brace-format
 msgid "Could not find yaml file: {filepath}"
-msgstr "Não foi possível achar o arquivo yaml: {filepath}"
+msgstr "Não foi possível encontrar o arquivo yaml: {filepath}"
 
 #: ../../uaclient/messages/__init__.py:2271
 msgid ""
@@ -3159,13 +3164,13 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2281
 msgid "Can't load the distro-info database."
-msgstr "Não foi possível carregar o banco de dados do distro-info"
+msgstr "Não foi possível carregar o banco de dados do distro-info."
 
 #: ../../uaclient/messages/__init__.py:2286
 #, python-brace-format
 msgid "Can't find series {series} in the distro-info database."
 msgstr ""
-"Não foi possível encontrar a série {series} na banco de dados do distro-info"
+"Não foi possível encontrar a série {series} na banco de dados do distro-info."
 
 #: ../../uaclient/messages/__init__.py:2291
 #, python-brace-format
@@ -3183,8 +3188,8 @@ msgid ""
 "Error: issue \"{issue}\" is not recognized.\n"
 "Usage: \"pro fix CVE-yyyy-nnnn\" or \"pro fix USN-nnnn\""
 msgstr ""
-"Erro: problema de segurnça \"{issue}\" não foi reconhecidoUse: \"pro fix CVE-"
-"yyyy-nnnn\" ou \"pro fix USN-nnnn\""
+"Erro: problema de segurnça \"{issue}\" não foi reconhecido.\n"
+"Use: \"pro fix CVE-yyyy-nnnn\" ou \"pro fix USN-nnnn\""
 
 #: ../../uaclient/messages/__init__.py:2307
 #, python-brace-format
@@ -3194,11 +3199,11 @@ msgstr "{arg} precisa ser um de: {choices}"
 #: ../../uaclient/messages/__init__.py:2312
 #, python-brace-format
 msgid "Expected {expected} but found: {actual}"
-msgstr "Esperando {expected} mas encontrou: {actual}"
+msgstr "Esperava {expected} mas encontrou: {actual}"
 
 #: ../../uaclient/messages/__init__.py:2316
 msgid "Unable to process uaclient.conf"
-msgstr "Falha processando uaclient.conf"
+msgstr "Falha ao processar uaclient.conf"
 
 #: ../../uaclient/messages/__init__.py:2321
 msgid "Unable to refresh your subscription"
@@ -3211,7 +3216,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2332
 msgid "json formatted response requires --assume-yes flag."
-msgstr "respostada formatada em json necessita do paramêtro --assume-yes"
+msgstr "resposta formatada em json necessita do paramêtro --assume-yes"
 
 #: ../../uaclient/messages/__init__.py:2340
 msgid ""
@@ -3219,13 +3224,13 @@ msgid ""
 "Include the token in the attach-config file instead.\n"
 "    "
 msgstr ""
-"Não providencie o parâmetro TOKEN se você está usando --attach-config\n"
+"Não insira o parâmetro TOKEN se você está usando --attach-config.\n"
 "Ao invés disso, inclua o token no arquivo de attach-config.\n"
 "    "
 
 #: ../../uaclient/messages/__init__.py:2349
 msgid "Cannot provide both --args and --data at the same time"
-msgstr "Não é possível usar ambos --args e --data ao mesmo tempo"
+msgstr "Não é possível usar --args e --data ao mesmo tempo"
 
 #: ../../uaclient/messages/__init__.py:2355
 #, python-brace-format
@@ -3239,7 +3244,7 @@ msgstr "Esse comando precisa ser executado como root (tente usando sudo)."
 #: ../../uaclient/messages/__init__.py:2369
 #, python-brace-format
 msgid "Metadata for {issue} is invalid. Error: {error_msg}."
-msgstr "Metadata para {issue} não é válida. Erro: {error_msg}."
+msgstr "Metadados para {issue} não são válidos. Erro: {error_msg}."
 
 #: ../../uaclient/messages/__init__.py:2376
 #, python-brace-format
@@ -3298,7 +3303,7 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:2426
 #, python-brace-format
 msgid "Expected value with type {expected_type} but got type: {got_type}"
-msgstr "Esperado valor com tipo {expected_type}, mas recebeu tipo {got_type}"
+msgstr "Esperava valor com tipo {expected_type}, mas recebeu tipo {got_type}"
 
 #: ../../uaclient/messages/__init__.py:2432
 #, python-brace-format
@@ -3322,4 +3327,5 @@ msgstr ""
 #, python-brace-format
 msgid "Value provided was not found in {enum_class}'s allowed: value: {values}"
 msgstr ""
-"Valor fornecido não está presente nos valores permitidos de {enum_class}"
+"Valor fornecido não está presente nos valores permitidos de {enum_class}: "
+"{values}"
