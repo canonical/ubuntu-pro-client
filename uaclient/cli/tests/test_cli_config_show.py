@@ -8,7 +8,7 @@ M_PATH = "uaclient.cli."
 HELP_OUTPUT = """\
 usage: pro config show [key] [flags]
 
-Show customisable configuration settings
+Show customizable configuration settings
 
 positional arguments:
   key         Optional key or key(s) to show configuration settings.

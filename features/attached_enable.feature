@@ -410,7 +410,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            From Ubuntu 20.04 and onwards 'pro enable cis' has been
+            From Ubuntu 20.04 onward 'pro enable cis' has been
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
             Updating CIS Audit package lists
@@ -441,7 +441,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp
         """
         One moment, checking your subscription first
-        From Ubuntu 20.04 and onwards 'pro enable cis' has been
+        From Ubuntu 20.04 onward 'pro enable cis' has been
         replaced by 'pro enable usg'. See more information at:
         https://ubuntu.com/security/certifications/docs/usg
         CIS Audit is already enabled.
@@ -535,7 +535,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            From Ubuntu 20.04 and onwards 'pro enable cis' has been
+            From Ubuntu 20.04 onward 'pro enable cis' has been
             replaced by 'pro enable usg'. See more information at:
             https://ubuntu.com/security/certifications/docs/usg
             Updating CIS Audit package lists
