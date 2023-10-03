@@ -354,16 +354,20 @@ APT_REMOVING_PREFERENCES_FILE = t.gettext(
 )
 
 # Kernel checks for Purge
-PURGE_KERNEL_REMOVAL = (
+PURGE_KERNEL_REMOVAL = t.gettext(
     "Purging the {service} packages would uninstall the following kernel(s):"
 )
-PURGE_CURRENT_KERNEL = "{kernel_version} is the current running kernel."
-PURGE_NO_ALTERNATIVE_KERNEL = """\
+PURGE_CURRENT_KERNEL = t.gettext(
+    "{kernel_version} is the current running kernel."
+)
+PURGE_NO_ALTERNATIVE_KERNEL = t.gettext(
+    """\
 No other valid Ubuntu kernel was found in the system.
 Removing the package would potentially make the system unbootable.
 Aborting.
 """
-PURGE_KERNEL_CONFIRMATION = (
+)
+PURGE_KERNEL_CONFIRMATION = t.gettext(
     """\
 If you cannot guarantee that other kernels in this system are bootable and
 working properly, *do not proceed*. You may end up with an unbootable system.
@@ -1016,7 +1020,9 @@ CLI_DISABLE_DESC = t.gettext("Disable an Ubuntu Pro service.")
 CLI_DISABLE_SERVICE = t.gettext(
     "the name(s) of the Ubuntu Pro services to disable." " One of: {options}"
 )
-CLI_PURGE = "disable the service and remove/downgrade related packages"
+CLI_PURGE = t.gettext(
+    "disable the service and remove/downgrade related packages"
+)
 
 CLI_SYSTEM_DESC = t.gettext(
     "Output system related information related to Pro services"
@@ -1587,7 +1593,9 @@ Cannot disable {service_being_disabled} when {dependent_service} is enabled.
 )
 REPO_PURGE_FAIL_NO_ORIGIN = FormattedNamedMessage(
     "repo-purge-fail-no-origin",
-    "Cannot disable {entitlement_name} with purge: no origin value defined"
+    t.gettext(
+        "Cannot disable {entitlement_name} with purge: no origin value defined"
+    )
     + "\n"
     + DISABLE_FAILED_TMPL,
 )
