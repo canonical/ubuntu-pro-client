@@ -15,7 +15,7 @@ Refresh three distinct Ubuntu Pro related artifacts in the system:
 * messages: Update APT and MOTD messages related to UA.
 
 You can individually target any of the three specific actions,
-by passing it's target to nome to the command.  If no `target`
+by passing the target name to the command.  If no `target`
 is specified, all targets are refreshed.
 
 positional arguments:
