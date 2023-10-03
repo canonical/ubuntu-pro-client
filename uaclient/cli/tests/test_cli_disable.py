@@ -49,7 +49,7 @@ Flags:
                        disable
   --format {cli,json}  output in the specified format (default: cli)
   --purge              disable the service and remove/downgrade related
-                       packages
+                       packages (experimental)
 """
 )
 
