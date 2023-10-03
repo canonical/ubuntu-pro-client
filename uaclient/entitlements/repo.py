@@ -124,6 +124,9 @@ class RepoEntitlement(base.UAEntitlement):
 
     def _perform_disable(self, silent=False):
         if self.purge and self.origin:
+            print(messages.PURGE_EXPERIMENTAL)
+            print()
+
             repo_origin_packages = apt.get_installed_packages_by_origin(
                 self.origin
             )
