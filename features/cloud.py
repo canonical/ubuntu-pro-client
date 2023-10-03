@@ -193,18 +193,26 @@ class Cloud:
             )
 
         image_type = ImageType.GENERIC
+        include_deprecated = False
         if "pro-fips" in machine_type:
             image_type = ImageType.PRO_FIPS
+            include_deprecated = True
         elif "pro" in machine_type:
             image_type = ImageType.PRO
 
         if daily:
             logging.debug("looking up daily image for {}".format(series))
-            return self.api.daily_image(release=series, image_type=image_type)
+            return self.api.daily_image(
+                release=series,
+                image_type=image_type,
+                include_deprecated=include_deprecated,
+            )
         else:
             logging.debug("looking up released image for {}".format(series))
             return self.api.released_image(
-                release=series, image_type=image_type
+                release=series,
+                image_type=image_type,
+                include_deprecated=include_deprecated,
             )
 
     def manage_ssh_key(
