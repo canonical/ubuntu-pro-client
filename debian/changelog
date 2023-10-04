@@ -4,6 +4,72 @@ ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
 
  -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 20 Jun 2023 14:50:11 -0600
 
+ubuntu-advantage-tools (30) mantic; urgency=medium
+
+  * d/control:
+    - add python3-apt as a build dependency
+    - add the new ubuntu-pro-client-l10n binary package
+    - recommend installing ubuntu-pro-client-l10n
+
+  * d/po/*:
+    - Makefile to build localization files to debian/po/usr/share/locale/
+    - update POTFILES.in to cover all translatable messages
+    - remove old unused pot file
+    - add new complete pot file for "ubuntu-pro" domain
+    - add first Brazilian Portuguese translations
+
+  * d/rules:
+    - add step to build the translations
+
+  * d/tests/control:
+    - mark autopkgtests as superficial (GH: #2609)
+
+  * d/ubuntu-advantage-tools.maintscript
+    - remove /etc/ubuntu-advantage/help_data.yaml
+
+  * d/ubuntu-pro-client-l10n.install
+    - add install file for the new binary package
+
+  * New upstream release 30 (LP: #2038461)
+    - api:
+      + add new backwards compatible plan steps to the v1 fix plan endpoints
+      + improve information returned from the fix plan endpoints
+      + new endpoint: u.pro.security.fix.cve.execute.v1
+      + new endpoint: u.pro.security.fix.usn.execute.v1
+    - apt: improve performance and consistency by refactoring the code to use
+      the apt_pkg module
+    - auto-attach: add newline to the MOTD message to separate it from other
+      MOTD messages
+    - contract: send information about variants to the contracts server
+    - enable: update only service specific apt sources when enabling a service
+      (GH: #1311) (GH: #1482)
+    - esm: create static files to pin packages from esm-infra and esm-apps with
+      higher priority (GH: #2580)
+    - disable:
+      + (experimental) add the --purge flag to the disable command, so users
+        can remove all service related packages when disabling a service 
+      + show extra warnings when kernels are involved in the purge operation
+    - files: Reduce race window when creating new files (LP: #2024204)
+    - fips: add support to Jammy to prepare for when it is available
+    - fips-preview:
+      + add fips-preview as a new entitlement
+    - github: add issue templates (GH: #2646)
+    - internationalization:
+      + add general internationalization support and templates
+      + add initial sentence set for Brazilian Portuguese
+    - logging:
+      + add journald logging for the daemon and systemd timer
+      + remove daemon and timer log files
+      + standardize the logging calls through the codebase (GH: #2632)
+    - systemd: change ubuntu-advantage.service type from 'notify' to 'exec',
+      dropping the dependency on python3-systemd (LP: #2038417) (GH: #2692)
+    - tests:
+      + add scenarios where cloud-init is present but disabled (LP: #1938208)
+      + change 'permission' to 'priority' when checking apt priority in tests
+        (GH: #2719)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Wed, 04 Oct 2023 08:35:37 -0300
+
 ubuntu-advantage-tools (29.4) mantic; urgency=medium
 
   * esm: remove static config file that pin packages from esm-infra
