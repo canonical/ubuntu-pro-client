@@ -25,3 +25,15 @@ jobs:
         id: bug-refs
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+  checklists:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: cd ./.github/actions/checklists && npm install
+      - name: Add context-specific checklists to the PR
+        uses: ./.github/actions/checklists
+        id: checklists
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
