@@ -600,8 +600,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified FIPS crypto packages with priority security
-           updates \(https://ubuntu.com/security/fips\)
+         - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
+           \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
@@ -627,8 +629,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified FIPS crypto packages with priority security
-           updates \(https://ubuntu.com/security/fips\)
+         - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
+           \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)
@@ -654,8 +658,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: Expanded Security Maintenance for Infrastructure
            \(https://ubuntu.com/security/esm\)
-         - fips-updates: NIST-certified FIPS crypto packages with priority security
-           updates \(https://ubuntu.com/security/fips\)
+         - fips-preview: .*
+           .*\(https://ubuntu.com/security/fips\)
+         - fips-updates: FIPS compliant crypto packages with stable security updates
+           \(https://ubuntu.com/security/fips\)
          - fips: NIST-certified FIPS crypto packages \(https://ubuntu.com/security/fips\)
          - landscape: Management and administration tool for Ubuntu
            \(https://ubuntu.com/landscape\)

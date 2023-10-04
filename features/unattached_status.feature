@@ -562,6 +562,7 @@ Feature: Unattached status
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
+        fips-preview    +.* +.* +.*
         fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +no        +no           +Security Updates for the Robot Operating System
