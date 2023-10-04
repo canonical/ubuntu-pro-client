@@ -618,9 +618,11 @@ Feature: FIPS enablement in lxd VMs
         And I verify that running `pro enable fips-preview` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp:
         """
-        This will install not NIST-certified FIPS packages.
-        Please use this service only for test purposes.
-        Additionally, the Livepatch service will be unavailable after the operation.
+        This will install crypto packages that have been submitted to NIST for review
+        but do not have FIPS certification yet. Use this for early access to the FIPS
+        modules.
+        Please note that the Livepatch service will be unavailable after
+        this operation.
         Warning: This action can take some time and cannot be undone.
         """
         When I run `pro enable realtime-kernel --assume-yes` with sudo
