@@ -583,6 +583,7 @@ class FIPSPreviewEntitlement(FIPSEntitlement):
     help_text = messages.FIPS_PREVIEW_HELP_TEXT
     origin = "UbuntuFIPSPreview"
     pre_enable_msg = messages.PROMPT_FIPS_PREVIEW_PRE_ENABLE
+    repo_key_file = "ubuntu-pro-fips-preview.gpg"
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
