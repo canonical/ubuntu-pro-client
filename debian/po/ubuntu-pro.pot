@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 17:43-0300\n"
+"POT-Creation-Date: 2023-10-04 10:41-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1441,7 +1441,7 @@ msgid "tarball where the logs will be stored. (Defaults to ./ua_logs.tar.gz)"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:898
-msgid "Show customisable configuration settings"
+msgid "Show customizable configuration settings"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:900
@@ -1564,7 +1564,7 @@ msgid ""
 "* messages: Update APT and MOTD messages related to UA.\n"
 "\n"
 "You can individually target any of the three specific actions,\n"
-"by passing it's target to nome to the command.  If no `target`\n"
+"by passing the target name to the command.  If no `target`\n"
 "is specified, all targets are refreshed.\n"
 msgstr ""
 
@@ -1871,7 +1871,7 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1197
 #, python-brace-format
 msgid ""
-"From Ubuntu 20.04 and onwards 'pro enable cis' has been\n"
+"From Ubuntu 20.04 onward 'pro enable cis' has been\n"
 "replaced by 'pro enable usg'. See more information at:\n"
 "{url}"
 msgstr ""
@@ -2519,7 +2519,7 @@ msgid "{cfg_name} is turned off"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1851
-msgid "lanscape-client is not installed"
+msgid "landscape-client is not installed"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1856
