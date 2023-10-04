@@ -2006,10 +2006,6 @@ E_PYCURL_ERROR = FormattedNamedMessage(
     "pycurl-error", t.gettext("PycURL Error: {e}")
 )
 
-E_PYCURL_CA_CERTIFICATES = NamedMessage(
-    "pycurl-ca-certificates-error", "Problem reading SSL CA certificates"
-)
-
 E_PROXY_AUTH_FAIL = NamedMessage(
     "proxy-auth-fail", t.gettext("Proxy authentication failed")
 )
@@ -2509,4 +2505,8 @@ E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
         "Value provided was not found in {enum_class}'s allowed: "
         "value: {values}"
     ),
+)
+
+E_PYCURL_CA_CERTIFICATES = NamedMessage(
+    "pycurl-ca-certificates-error", "Problem reading SSL CA certificates"
 )

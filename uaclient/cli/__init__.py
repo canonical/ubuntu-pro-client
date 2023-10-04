@@ -1746,7 +1746,6 @@ def main_error_handler(func):
             sys.exit(1)
         except exceptions.UbuntuProError as exc:
             LOG.error(exc.msg)
-
             event.error(
                 error_msg=exc.msg,
                 error_code=exc.msg_code,

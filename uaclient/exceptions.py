@@ -202,6 +202,10 @@ class PycurlError(UbuntuProError):
     _formatted_msg = messages.E_PYCURL_ERROR
 
 
+class ProxyAuthenticationFailed(UbuntuProError):
+    _msg = messages.E_PROXY_AUTH_FAIL
+
+
 class ConnectivityError(UbuntuProError):
     _msg = messages.E_CONNECTIVITY_ERROR
 
@@ -222,6 +226,14 @@ class ContractAPIError(ExternalAPIError):
 
 class SecurityAPIError(ExternalAPIError):
     pass
+
+
+class PycurlCACertificatesError(UbuntuProError):
+    _msg = messages.E_PYCURL_CA_CERTIFICATES
+
+    def __init__(self, url, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.url = url
 
 
 ###############################################################################
@@ -291,18 +303,6 @@ class MissingAptURLDirective(UbuntuProError):
     """An exception for when the contract server doesn't include aptURL"""
 
     _formatted_msg = messages.E_MISSING_APT_URL_DIRECTIVE
-
-
-class PycurlCACertificatesError(UbuntuProError):
-    _msg = messages.E_PYCURL_CA_CERTIFICATES
-
-    def __init__(self, url, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.url = url
-
-
-class ProxyAuthenticationFailed(UbuntuProError):
-    _msg = messages.E_PROXY_AUTH_FAIL
 
 
 class UnattachedError(UbuntuProError):
