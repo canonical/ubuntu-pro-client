@@ -153,6 +153,7 @@ class Cloud:
             ephemeral=ephemeral,
             inbound_ports=inbound_ports,
         )
+        inst.wait()
         logging.info(
             "--- {} instance launched: {}.".format(self.name, inst.name)
         )
