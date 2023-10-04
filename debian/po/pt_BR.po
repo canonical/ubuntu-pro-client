@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-27 11:01-0400\n"
+"POT-Creation-Date: 2024-01-08 16:16-0500\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -1668,7 +1668,8 @@ msgid "tarball where the logs will be stored. (Defaults to ./ua_logs.tar.gz)"
 msgstr "tarball onde os logs serão guardados. (Valor padrão ./ua_logs.tar.gz)"
 
 #: ../../uaclient/messages/__init__.py:901
-msgid "Show customisable configuration settings"
+#, fuzzy
+msgid "Show customizable configuration settings"
 msgstr "Mostre as opções personalizáveis da configuração"
 
 #: ../../uaclient/messages/__init__.py:903
@@ -1818,6 +1819,7 @@ msgid "List and present information about esm-apps packages"
 msgstr "Lista e mostra informações sobre pacotes esm-apps"
 
 #: ../../uaclient/messages/__init__.py:988
+#, fuzzy
 msgid ""
 "Refresh three distinct Ubuntu Pro related artifacts in the system:\n"
 "\n"
@@ -1826,7 +1828,7 @@ msgid ""
 "* messages: Update APT and MOTD messages related to UA.\n"
 "\n"
 "You can individually target any of the three specific actions,\n"
-"by passing it's target to nome to the command.  If no `target`\n"
+"by passing the target name to the command.  If no `target`\n"
 "is specified, all targets are refreshed.\n"
 msgstr ""
 "Atualize três artefatos distintos no seu sistema relacionados ao Ubuntu "
@@ -2204,7 +2206,7 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1200
 #, python-brace-format
 msgid ""
-"From Ubuntu 20.04 and onwards 'pro enable cis' has been\n"
+"From Ubuntu 20.04 onward 'pro enable cis' has been\n"
 "replaced by 'pro enable usg'. See more information at:\n"
 "{url}"
 msgstr ""
@@ -2864,8 +2866,9 @@ msgid "unattended-upgrades package is not installed"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1863
-msgid "lanscape-client is not installed"
-msgstr ""
+#, fuzzy
+msgid "landscape-client is not installed"
+msgstr "A atualização ainda não está instalada"
 
 #: ../../uaclient/messages/__init__.py:1868
 msgid ""
