@@ -29,6 +29,8 @@ from the architecture of the project to how you should test any code changes.
 ### Explanation
 
 * [How auto-attach works](./dev-docs/explanations/how_auto_attach_works.md)
+* [Translations](./dev-docs/explanations/translations.md)
+* [Policy on string changes](./dev-docs/explanations/string_changes_policy.md)
 
 ### Documentation
 
