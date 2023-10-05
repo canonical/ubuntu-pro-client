@@ -13,6 +13,7 @@ from the architecture of the project to how you should test any code changes.
 * [How to release a new version](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
 * [How to use the contract staging environment](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/use_staging_environment.md)
 * [How to use the magic attach endpoints](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/how_to_use_magic_attach_endpoints.md)
+* [How to spellcheck messages](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/spellcheck.md)
 
 ### Reference
 
@@ -29,6 +30,8 @@ from the architecture of the project to how you should test any code changes.
 ### Explanation
 
 * [How auto-attach works](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/explanations/how_auto_attach_works.md)
+* [Translations](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/explanations/translations.md)
+* [Policy on string changes](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/explanations/string_changes_policy.md)
 
 ### Documentation
 
