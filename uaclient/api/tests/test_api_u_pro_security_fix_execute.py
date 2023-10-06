@@ -2,6 +2,7 @@ import mock
 import pytest
 
 from uaclient import messages
+from uaclient.api.u.pro.security.fix import FixStatus
 from uaclient.api.u.pro.security.fix._common.execute.v1 import (
     FailedUpgrade,
     FixExecuteError,
@@ -24,7 +25,6 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanResult,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
-    FixStatus,
     FixWarningType,
     NoOpData,
     PackageCannotBeInstalledData,

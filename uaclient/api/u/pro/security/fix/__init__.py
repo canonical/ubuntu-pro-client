@@ -1,929 +1,697 @@
+import copy
 import enum
-import re
+import socket
 from collections import defaultdict
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple  # noqa: F401
 
-from uaclient import apt, exceptions, messages
-from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
-from uaclient.data_types import (
-    DataObject,
-    Field,
-    IntDataValue,
-    StringDataValue,
-    data_list,
+from uaclient import apt, exceptions, livepatch, messages, system, util
+from uaclient.http import serviceclient
+
+CVE_OR_USN_REGEX = (
+    r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
 )
-from uaclient.security import (
-    CVE,
-    CVE_OR_USN_REGEX,
-    USN,
-    BinaryPackageFix,
-    CVEPackageStatus,
-    FixStatus,
-    UASecurityClient,
-    _check_cve_fixed_by_livepatch,
-    get_affected_packages_from_usn,
-    get_cve_affected_source_packages_status,
-    get_related_usns,
-    group_by_usn_package_status,
-    merge_usn_released_binary_package_versions,
-    query_installed_source_pkg_versions,
-)
+
+API_V1_CVES = "cves.json"
+API_V1_CVE_TMPL = "cves/{cve}.json"
+API_V1_NOTICES = "notices.json"
+API_V1_NOTICE_TMPL = "notices/{notice}.json"
 
 STANDARD_UPDATES_POCKET = "standard-updates"
 ESM_INFRA_POCKET = "esm-infra"
 ESM_APPS_POCKET = "esm-apps"
 
+BinaryPackageFix = NamedTuple(
+    "BinaryPackageFix",
+    [
+        ("source_pkg", str),
+        ("binary_pkg", str),
+        ("fixed_version", str),
+    ],
+)
+
 UnfixedPackage = NamedTuple(
     "UnfixedPackage",
     [
-        ("source_package", str),
-        ("binary_package", str),
-        ("version", Optional[str]),
+        ("pkg", str),
+        ("unfixed_reason", str),
     ],
 )
 
 
-@enum.unique
-class FixStepType(enum.Enum):
-    ATTACH = "attach"
-    ENABLE = "enable"
-    NOOP = "no-op"
-    APT_UPGRADE = "apt-upgrade"
-
-
-@enum.unique
-class FixPlanNoOpStatus(enum.Enum):
-    ALREADY_FIXED = "cve-already-fixed"
-    NOT_AFFECTED = "system-not-affected"
-    FIXED_BY_LIVEPATCH = "cve-fixed-by-livepatch"
-
-
-@enum.unique
-class FixPlanAttachReason(enum.Enum):
-    EXPIRED_CONTRACT = "expired-contract-token"
-    REQUIRED_PRO_SERVICE = "required-pro-service"
-
-
-@enum.unique
-class FixWarningType(enum.Enum):
-    PACKAGE_CANNOT_BE_INSTALLED = "package-cannot-be-installed"
-    SECURITY_ISSUE_NOT_FIXED = "security-issue-not-fixed"
-
-
-class FixPlanStep(DataObject):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, operation: str, order: int):
-        self.operation = operation
-        self.order = order
-
-
-class AptUpgradeData(DataObject):
-    fields = [
-        Field("binary_packages", data_list(StringDataValue)),
-        Field("source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
-    ]
-
-    def __init__(
-        self,
-        *,
-        binary_packages: List[str],
-        source_packages: List[str],
-        pocket: str
-    ):
-        self.binary_packages = binary_packages
-        self.source_packages = source_packages
-        self.pocket = pocket
-
-
-class FixPlanAptUpgradeStep(FixPlanStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", AptUpgradeData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: AptUpgradeData, order: int):
-        super().__init__(operation=FixStepType.APT_UPGRADE.value, order=order)
-        self.data = data
-
-
-class AttachData(DataObject):
-    fields = [
-        Field("reason", StringDataValue),
-        Field("required_service", StringDataValue),
-        Field("source_packages", data_list(StringDataValue)),
-    ]
-
-    def __init__(
-        self, *, reason: str, source_packages: List[str], required_service: str
-    ):
-        self.reason = reason
-        self.source_packages = source_packages
-        self.required_service = required_service
-
-
-class FixPlanAttachStep(FixPlanStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", AttachData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: AttachData, order: int):
-        super().__init__(operation=FixStepType.ATTACH.value, order=order)
-        self.data = data
-
-
-class EnableData(DataObject):
-    fields = [
-        Field("service", StringDataValue),
-        Field("source_packages", data_list(StringDataValue)),
-    ]
-
-    def __init__(self, *, service: str, source_packages: List[str]):
-        self.service = service
-        self.source_packages = source_packages
-
-
-class FixPlanEnableStep(FixPlanStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", EnableData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: EnableData, order: int):
-        super().__init__(operation=FixStepType.ENABLE.value, order=order)
-        self.data = data
-
-
-class NoOpData(DataObject):
-    fields = [
-        Field("status", StringDataValue),
-    ]
-
-    def __init__(self, *, status: str):
-        self.status = status
-
-
-class FixPlanNoOpStep(FixPlanStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", NoOpData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: NoOpData, order: int):
-        super().__init__(operation=FixStepType.NOOP.value, order=order)
-        self.data = data
-
-
-class NoOpLivepatchFixData(NoOpData):
-    fields = [
-        Field("status", StringDataValue),
-        Field("patch_version", StringDataValue),
-    ]
-
-    def __init__(self, *, status: str, patch_version: str):
-        super().__init__(status=status)
-        self.patch_version = patch_version
-
-
-class FixPlanNoOpLivepatchFixStep(FixPlanNoOpStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", NoOpLivepatchFixData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: NoOpLivepatchFixData, order: int):
-        super().__init__(data=data, order=order)
-
-
-class NoOpAlreadyFixedData(NoOpData):
-    fields = [
-        Field("status", StringDataValue),
-        Field("source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
-    ]
-
-    def __init__(
-        self, *, status: str, source_packages: List[str], pocket: str
-    ):
-        super().__init__(status=status)
-        self.source_packages = source_packages
-        self.pocket = pocket
-
-
-class FixPlanNoOpAlreadyFixedStep(FixPlanNoOpStep):
-    fields = [
-        Field("operation", StringDataValue),
-        Field("data", NoOpLivepatchFixData),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, data: NoOpAlreadyFixedData, order: int):
-        super().__init__(data=data, order=order)
-
-
-class FixPlanWarning(DataObject):
-    fields = [
-        Field("warning_type", StringDataValue),
-        Field("order", IntDataValue),
-    ]
-
-    def __init__(self, *, warning_type: str, order: int):
-        self.warning_type = warning_type
-        self.order = order
-
-
-class SecurityIssueNotFixedData(DataObject):
-    fields = [
-        Field("source_packages", data_list(StringDataValue)),
-        Field("status", StringDataValue),
-    ]
-
-    def __init__(self, *, source_packages: List[str], status: str):
-        self.source_packages = source_packages
-        self.status = status
-
-
-class FixPlanWarningSecurityIssueNotFixed(FixPlanWarning):
-    fields = [
-        Field("warning_type", StringDataValue),
-        Field("order", IntDataValue),
-        Field("data", SecurityIssueNotFixedData),
-    ]
-
-    def __init__(self, *, order: int, data: SecurityIssueNotFixedData):
-        super().__init__(
-            warning_type=FixWarningType.SECURITY_ISSUE_NOT_FIXED.value,
-            order=order,
-        )
-        self.data = data
-
-
-class PackageCannotBeInstalledData(DataObject):
-    fields = [
-        Field("binary_package", StringDataValue),
-        Field("binary_package_version", StringDataValue),
-        Field("source_package", StringDataValue),
-        Field("related_source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
-    ]
-
-    def __init__(
-        self,
-        *,
-        binary_package: str,
-        binary_package_version: str,
-        source_package: str,
-        pocket: str,
-        related_source_packages: List[str]
-    ):
-        self.source_package = source_package
-        self.binary_package = binary_package
-        self.binary_package_version = binary_package_version
-        self.pocket = pocket
-        self.related_source_packages = related_source_packages
-
-
-class FixPlanWarningPackageCannotBeInstalled(FixPlanWarning):
-    fields = [
-        Field("warning_type", StringDataValue),
-        Field("order", IntDataValue),
-        Field("data", SecurityIssueNotFixedData),
-    ]
-
-    def __init__(self, *, order: int, data: PackageCannotBeInstalledData):
-        super().__init__(
-            warning_type=FixWarningType.PACKAGE_CANNOT_BE_INSTALLED.value,
-            order=order,
-        )
-        self.data = data
-
-
-class FixPlanError(DataObject):
-    fields = [
-        Field("msg", StringDataValue),
-        Field("code", StringDataValue, required=False),
-    ]
-
-    def __init__(self, *, msg: str, code: Optional[str]):
-        self.msg = msg
-        self.code = code
-
-
-class AdditionalData(DataObject):
-    pass
-
-
-class USNAdditionalData(AdditionalData):
-
-    fields = [
-        Field("associated_cves", data_list(StringDataValue)),
-        Field("associated_launchpad_bugs", data_list(StringDataValue)),
-    ]
-
-    def __init__(
-        self,
-        *,
-        associated_cves: List[str],
-        associated_launchpad_bugs: List[str]
-    ):
-        self.associated_cves = associated_cves
-        self.associated_launchpad_bugs = associated_launchpad_bugs
-
-
-class FixPlanResult(DataObject):
-    fields = [
-        Field("title", StringDataValue),
-        Field("description", StringDataValue, required=False),
-        Field("expected_status", StringDataValue),
-        Field("affected_packages", data_list(StringDataValue), required=False),
-        Field("plan", data_list(FixPlanStep)),
-        Field("warnings", data_list(FixPlanWarning), required=False),
-        Field("error", FixPlanError, required=False),
-        Field("additional_data", AdditionalData, required=False),
-    ]
-
-    def __init__(
-        self,
-        *,
-        title: str,
-        expected_status: str,
-        plan: List[FixPlanStep],
-        warnings: List[FixPlanWarning],
-        error: Optional[FixPlanError],
-        additional_data: AdditionalData,
-        description: Optional[str] = None,
-        affected_packages: Optional[List[str]] = None
-    ):
-        self.title = title
-        self.description = description
-        self.expected_status = expected_status
-        self.affected_packages = affected_packages
-        self.plan = plan
-        self.warnings = warnings
-        self.error = error
-        self.additional_data = additional_data
-
-
-class FixPlanUSNResult(DataObject):
-    fields = [
-        Field("target_usn_plan", FixPlanResult),
-        Field("related_usns_plan", data_list(FixPlanResult), required=False),
-    ]
-
-    def __init__(
-        self,
-        *,
-        target_usn_plan: FixPlanResult,
-        related_usns_plan: List[FixPlanResult]
-    ):
-        self.target_usn_plan = target_usn_plan
-        self.related_usns_plan = related_usns_plan
-
-
-class FixPlan:
-    def __init__(
-        self,
-        title: str,
-        description: Optional[str],
-        affected_packages: Optional[List[str]] = None,
-    ):
-        self.order = 1
-        self.title = title
-        self.description = description
-        self.affected_packages = affected_packages
-        self.fix_steps = []  # type: List[FixPlanStep]
-        self.fix_warnings = []  # type: List[FixPlanWarning]
-        self.error = None  # type: Optional[FixPlanError]
-        self.additional_data = AdditionalData()
-
-    def register_step(
-        self,
-        operation: FixStepType,
-        data: Dict[str, Any],
-    ):
-        # just to make mypy happy
-        fix_step = None  # type: Optional[FixPlanStep]
-
-        if operation == FixStepType.ATTACH:
-            fix_step = FixPlanAttachStep(
-                order=self.order, data=AttachData.from_dict(data)
-            )
-        elif operation == FixStepType.ENABLE:
-            fix_step = FixPlanEnableStep(
-                order=self.order, data=EnableData.from_dict(data)
-            )
-        elif operation == FixStepType.NOOP:
-            if "patch_version" in data:
-                fix_step = FixPlanNoOpLivepatchFixStep(
-                    order=self.order, data=NoOpLivepatchFixData.from_dict(data)
-                )
-            elif "source_packages" in data:
-                fix_step = FixPlanNoOpAlreadyFixedStep(
-                    order=self.order, data=NoOpAlreadyFixedData.from_dict(data)
-                )
-            else:
-                fix_step = FixPlanNoOpStep(
-                    order=self.order, data=NoOpData.from_dict(data)
-                )
-        else:
-            fix_step = FixPlanAptUpgradeStep(
-                order=self.order, data=AptUpgradeData.from_dict(data)
-            )
-
-        self.fix_steps.append(fix_step)
-        self.order += 1
-
-    def register_warning(
-        self, warning_type: FixWarningType, data: Dict[str, Any]
-    ):
-        fix_warning = None  # type: Optional[FixPlanWarning]
-
-        if warning_type == FixWarningType.SECURITY_ISSUE_NOT_FIXED:
-            fix_warning = FixPlanWarningSecurityIssueNotFixed(
-                order=self.order,
-                data=SecurityIssueNotFixedData.from_dict(data),
-            )
-        else:
-            fix_warning = FixPlanWarningPackageCannotBeInstalled(
-                order=self.order,
-                data=PackageCannotBeInstalledData.from_dict(data),
-            )
-
-        self.fix_warnings.append(fix_warning)
-        self.order += 1
-
-    def register_error(self, error_msg: str, error_code: Optional[str]):
-        self.error = FixPlanError(msg=error_msg, code=error_code)
-
-    def register_additional_data(self, additional_data: Dict[str, Any]):
-        self.additional_data = AdditionalData(**additional_data)
-
-    def _get_status(self) -> str:
-        if self.error:
-            return "error"
-
-        if (
-            len(self.fix_steps) == 1
-            and isinstance(self.fix_steps[0], FixPlanNoOpStep)
-            and self.fix_steps[0].data.status == "system-not-affected"
-        ):
-            return str(FixStatus.SYSTEM_NOT_AFFECTED)
-        elif self.fix_warnings:
-            return str(FixStatus.SYSTEM_STILL_VULNERABLE)
-        else:
-            return str(FixStatus.SYSTEM_NON_VULNERABLE)
+class FixStatus(enum.Enum):
+    """
+    An enum to represent the system status after fix operation
+    """
+
+    class _Value:
+        def __init__(self, value: int, msg: str):
+            self.value = value
+            self.msg = msg
+
+    SYSTEM_NON_VULNERABLE = _Value(0, "fixed")
+    SYSTEM_NOT_AFFECTED = _Value(0, "not-affected")
+    SYSTEM_STILL_VULNERABLE = _Value(1, "still-affected")
+    SYSTEM_VULNERABLE_UNTIL_REBOOT = _Value(2, "affected-until-reboot")
 
     @property
-    def fix_plan(self):
-        return FixPlanResult(
-            title=self.title,
-            description=self.description,
-            expected_status=self._get_status(),
-            affected_packages=self.affected_packages,
-            plan=self.fix_steps,
-            warnings=self.fix_warnings,
-            error=self.error,
-            additional_data=self.additional_data,
+    def exit_code(self):
+        return self.value.value
+
+    def __str__(self):
+        return self.value.msg
+
+
+class UASecurityClient(serviceclient.UAServiceClient):
+
+    url_timeout = 20
+    cfg_url_base_attr = "security_url"
+
+    def _get_query_params(
+        self, query_params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Update query params with data from feature config.
+        """
+        extra_security_params = self.cfg.cfg.get("features", {}).get(
+            "extra_security_params", {}
         )
 
+        if query_params:
+            query_params.update(extra_security_params)
+            return query_params
 
-class USNFixPlan(FixPlan):
-    def register_additional_data(self, additional_data: Dict[str, Any]):
-        self.additional_data = USNAdditionalData(**additional_data)
+        return extra_security_params
 
-
-def get_fix_plan(
-    title: str,
-    description: Optional[str] = None,
-    affected_packages: Optional[List[str]] = None,
-):
-    if not title or "cve" in title.lower():
-        return FixPlan(
-            title=title,
-            description=description,
-            affected_packages=affected_packages,
+    @util.retry(socket.timeout, retry_sleeps=[1, 3, 5])
+    def request_url(
+        self, path, data=None, headers=None, method=None, query_params=None
+    ):
+        query_params = self._get_query_params(query_params)
+        return super().request_url(
+            path=path,
+            data=data,
+            headers=headers,
+            method=method,
+            query_params=query_params,
+            log_response_body=False,
         )
 
-    return USNFixPlan(
-        title=title,
-        description=description,
-        affected_packages=affected_packages,
-    )
+    def get_cves(
+        self,
+        query: Optional[str] = None,
+        priority: Optional[str] = None,
+        package: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        component: Optional[str] = None,
+        version: Optional[str] = None,
+        status: Optional[List[str]] = None,
+    ) -> List["CVE"]:
+        """Query to match multiple-CVEs.
 
-
-def _get_cve_data(
-    issue_id: str,
-    client: UASecurityClient,
-) -> Tuple[CVE, List[USN]]:
-    try:
-        cve = client.get_cve(cve_id=issue_id)
-        usns = client.get_notices(details=issue_id)
-    except exceptions.SecurityAPIError as e:
-        if e.code == 404:
-            raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
-        raise e
-
-    return cve, usns
-
-
-def _get_usn_data(
-    issue_id: str, client: UASecurityClient
-) -> Tuple[USN, List[USN]]:
-    try:
-        usn = client.get_notice(notice_id=issue_id)
-        usns = get_related_usns(usn, client)
-    except exceptions.SecurityAPIError as e:
-        if e.code == 404:
-            raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
-        raise e
-
-    if not usn.response["release_packages"]:
-        # Since usn.release_packages filters to our current release only
-        # check overall metadata and error if empty.
-        raise exceptions.SecurityAPIMetadataError(
-            error_msg="metadata defines no fixed package versions.",
-            issue=issue_id,
-            extra_info="",
-        )
-
-    return usn, usns
-
-
-def _get_upgradable_pkgs(
-    binary_pkgs: List[BinaryPackageFix],
-    pocket: str,
-) -> Tuple[List[str], List[UnfixedPackage]]:
-    upgrade_pkgs = []
-    unfixed_pkgs = []
-
-    for binary_pkg in sorted(binary_pkgs):
-        check_esm_cache = (
-            pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
-        )
-        candidate_version = apt.get_pkg_candidate_version(
-            binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
-        )
-        if (
-            candidate_version
-            and apt.version_compare(
-                binary_pkg.fixed_version, candidate_version
-            )
-            <= 0
-        ):
-            upgrade_pkgs.append(binary_pkg.binary_pkg)
-        else:
-            unfixed_pkgs.append(
-                UnfixedPackage(
-                    source_package=binary_pkg.source_pkg,
-                    binary_package=binary_pkg.binary_pkg,
-                    version=binary_pkg.fixed_version,
-                )
-            )
-
-    return upgrade_pkgs, unfixed_pkgs
-
-
-def _get_upgradable_package_candidates_by_pocket(
-    pkg_status_group: List[Tuple[str, CVEPackageStatus]],
-    usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
-    installed_pkgs: Dict[str, Dict[str, str]],
-):
-    binary_pocket_pkgs = defaultdict(list)
-    src_pocket_pkgs = defaultdict(list)
-
-    for src_pkg, pkg_status in pkg_status_group:
-        src_pocket_pkgs[pkg_status.pocket_source].append((src_pkg, pkg_status))
-        for binary_pkg, version in installed_pkgs[src_pkg].items():
-            usn_released_src = usn_released_pkgs.get(src_pkg, {})
-            if binary_pkg not in usn_released_src:
-                continue
-            fixed_version = usn_released_src.get(binary_pkg, {}).get(
-                "version", ""
-            )
-
-            if apt.version_compare(fixed_version, version) > 0:
-                binary_pocket_pkgs[pkg_status.pocket_source].append(
-                    BinaryPackageFix(
-                        source_pkg=src_pkg,
-                        binary_pkg=binary_pkg,
-                        fixed_version=fixed_version,
-                    )
-                )
-
-    return src_pocket_pkgs, binary_pocket_pkgs
-
-
-def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
-    livepatch_cve_status, patch_version = _check_cve_fixed_by_livepatch(
-        issue_id
-    )
-
-    if livepatch_cve_status:
-        fix_plan = get_fix_plan(title=issue_id)
-        fix_plan.register_step(
-            operation=FixStepType.NOOP,
-            data={
-                "status": FixPlanNoOpStatus.FIXED_BY_LIVEPATCH.value,
-                "patch_version": patch_version,
-            },
-        )
-        return fix_plan.fix_plan
-
-    client = UASecurityClient(cfg=cfg)
-    installed_pkgs = query_installed_source_pkg_versions()
-
-    try:
-        cve, usns = _get_cve_data(issue_id=issue_id, client=client)
-    except exceptions.SecurityIssueNotFound as e:
-        fix_plan = get_fix_plan(title=issue_id)
-        fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
-        return fix_plan.fix_plan
-
-    affected_pkg_status = get_cve_affected_source_packages_status(
-        cve=cve, installed_packages=installed_pkgs
-    )
-    usn_released_pkgs = merge_usn_released_binary_package_versions(
-        usns, beta_pockets={}
-    )
-
-    cve_description = cve.description
-    for notice in cve.notices:
-        # Only look at the most recent USN title
-        cve_description = notice.title
-        break
-
-    return _generate_fix_plan(
-        issue_id=issue_id,
-        issue_description=cve_description,
-        affected_pkg_status=affected_pkg_status,
-        usn_released_pkgs=usn_released_pkgs,
-        installed_pkgs=installed_pkgs,
-        cfg=cfg,
-    )
-
-
-def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
-    client = UASecurityClient(cfg=cfg)
-    installed_pkgs = query_installed_source_pkg_versions()
-
-    try:
-        usn, related_usns = _get_usn_data(issue_id=issue_id, client=client)
-    except exceptions.SecurityIssueNotFound as e:
-        fix_plan = get_fix_plan(title=issue_id)
-        fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
-        return FixPlanUSNResult(
-            target_usn_plan=fix_plan.fix_plan,
-            related_usns_plan=[],
-        )
-
-    affected_pkg_status = get_affected_packages_from_usn(
-        usn=usn, installed_packages=installed_pkgs
-    )
-    usn_released_pkgs = merge_usn_released_binary_package_versions(
-        [usn], beta_pockets={}
-    )
-    additional_data = {
-        "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
-        "associated_launchpad_bugs": []
-        if not usn.references
-        else usn.references,
-    }
-
-    target_usn_plan = _generate_fix_plan(
-        issue_id=issue_id,
-        issue_description=usn.title,
-        affected_pkg_status=affected_pkg_status,
-        usn_released_pkgs=usn_released_pkgs,
-        installed_pkgs=installed_pkgs,
-        cfg=cfg,
-        additional_data=additional_data,
-    )
-
-    related_usns_plan = []  # type: List[FixPlanResult]
-    for usn in related_usns:
-        affected_pkg_status = get_affected_packages_from_usn(
-            usn=usn, installed_packages=installed_pkgs
-        )
-        usn_released_pkgs = merge_usn_released_binary_package_versions(
-            [usn], beta_pockets={}
-        )
-        additional_data = {
-            "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
-            "associated_launchpad_bugs": []
-            if not usn.references
-            else usn.references,
+        @return: List of CVE instances based on the the JSON response.
+        """
+        query_params = {
+            "q": query,
+            "priority": priority,
+            "package": package,
+            "limit": limit,
+            "offset": offset,
+            "component": component,
+            "version": version,
+            "status": status,
         }
-
-        related_usns_plan.append(
-            _generate_fix_plan(
-                issue_id=usn.id,
-                issue_description=usn.title,
-                affected_pkg_status=affected_pkg_status,
-                usn_released_pkgs=usn_released_pkgs,
-                installed_pkgs=installed_pkgs,
-                cfg=cfg,
-                additional_data=additional_data,
+        response = self.request_url(API_V1_CVES, query_params=query_params)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url=API_V1_CVES, code=response.code, body=response.body
             )
-        )
+        return [
+            CVE(client=self, response=cve_md) for cve_md in response.json_list
+        ]
 
-    return FixPlanUSNResult(
-        target_usn_plan=target_usn_plan,
-        related_usns_plan=related_usns_plan,
-    )
+    def get_cve(self, cve_id: str) -> "CVE":
+        """Query to match single-CVE.
 
-
-def fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
-    if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
-        fix_plan = get_fix_plan(title=issue_id)
-        msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
-        fix_plan.register_error(error_msg=msg.msg, error_code=msg.name)
-        return fix_plan.fix_plan
-
-    issue_id = issue_id.upper()
-    breakpoint()
-    return _fix_plan_cve(issue_id, cfg)
-
-
-def fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
-    if not issue_id or not re.match(CVE_OR_USN_REGEX, issue_id):
-        fix_plan = get_fix_plan(title=issue_id)
-        msg = messages.INVALID_SECURITY_ISSUE.format(issue_id=issue_id)
-        fix_plan.register_error(error_msg=msg.msg, error_code=msg.name)
-        return FixPlanUSNResult(
-            target_usn_plan=fix_plan.fix_plan,
-            related_usns_plan=[],
-        )
-
-    issue_id = issue_id.upper()
-    return _fix_plan_usn(issue_id, cfg)
-
-
-def get_pocket_short_name(pocket: str):
-    if pocket == messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
-        return STANDARD_UPDATES_POCKET
-    elif pocket == messages.SECURITY_UA_INFRA_POCKET:
-        return ESM_INFRA_POCKET
-    elif pocket == messages.SECURITY_UA_APPS_POCKET:
-        return ESM_APPS_POCKET
-    else:
-        return pocket
-
-
-def _generate_fix_plan(
-    *,
-    issue_id: str,
-    issue_description: str,
-    affected_pkg_status: Dict[str, CVEPackageStatus],
-    usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
-    installed_pkgs: Dict[str, Dict[str, str]],
-    cfg: UAConfig,
-    additional_data=None
-) -> FixPlanResult:
-    count = len(affected_pkg_status)
-    src_pocket_pkgs = defaultdict(list)
-
-    fix_plan = get_fix_plan(
-        title=issue_id,
-        description=issue_description,
-        affected_packages=sorted(list(affected_pkg_status.keys())),
-    )
-
-    if additional_data:
-        fix_plan.register_additional_data(additional_data)
-
-    if count == 0:
-        fix_plan.register_step(
-            operation=FixStepType.NOOP,
-            data={"status": FixPlanNoOpStatus.NOT_AFFECTED.value},
-        )
-        return fix_plan.fix_plan
-
-    pkg_status_groups = group_by_usn_package_status(
-        affected_pkg_status, usn_released_pkgs
-    )
-
-    for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
-        if status_value != "released":
-            fix_plan.register_warning(
-                warning_type=FixWarningType.SECURITY_ISSUE_NOT_FIXED,
-                data={
-                    "source_packages": [
-                        src_pkg for src_pkg, _ in pkg_status_group
-                    ],
-                    "status": status_value,
-                },
+        @return: CVE instance for JSON response from the Security API.
+        """
+        url = API_V1_CVE_TMPL.format(cve=cve_id)
+        response = self.request_url(url)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url=url, code=response.code, body=response.body
             )
+        return CVE(client=self, response=response.json_dict)
+
+    def get_notices(
+        self,
+        details: Optional[str] = None,
+        release: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[str] = None,
+    ) -> List["USN"]:
+        """Query to match multiple-USNs.
+
+        @return: Sorted list of USN instances based on the the JSON response.
+        """
+        query_params = {
+            "details": details,
+            "release": release,
+            "limit": limit,
+            "offset": offset,
+            "order": order,
+        }
+        response = self.request_url(API_V1_NOTICES, query_params=query_params)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url=API_V1_NOTICES, code=response.code, body=response.body
+            )
+        return sorted(
+            [
+                USN(client=self, response=usn_md)
+                for usn_md in response.json_dict.get("notices", [])
+                if details is None or details in usn_md.get("cves_ids", [])
+            ],
+            key=lambda x: x.id,
+        )
+
+    def get_notice(self, notice_id: str) -> "USN":
+        """Query to match single-USN.
+
+        @return: USN instance representing the JSON response.
+        """
+        url = API_V1_NOTICE_TMPL.format(notice=notice_id)
+        response = self.request_url(url)
+        if response.code != 200:
+            raise exceptions.SecurityAPIError(
+                url=url, code=response.code, body=response.body
+            )
+        return USN(client=self, response=response.json_dict)
+
+
+# Model for Security API responses
+class CVEPackageStatus:
+    """Class representing specific CVE PackageStatus on an Ubuntu series"""
+
+    def __init__(self, cve_response: Dict[str, Any]):
+        self.response = cve_response
+
+    @property
+    def description(self):
+        return self.response["description"]
+
+    @property
+    def fixed_version(self):
+        return self.description
+
+    @property
+    def pocket(self):
+        return self.response["pocket"]
+
+    @property
+    def release_codename(self):
+        return self.response["release_codename"]
+
+    @property
+    def status(self):
+        return self.response["status"]
+
+    @property
+    def status_message(self):
+        if self.status == "needed":
+            return messages.SECURITY_CVE_STATUS_NEEDED
+        elif self.status == "needs-triage":
+            return messages.SECURITY_CVE_STATUS_TRIAGE
+        elif self.status == "pending":
+            return messages.SECURITY_CVE_STATUS_PENDING
+        elif self.status in ("ignored", "deferred"):
+            return messages.SECURITY_CVE_STATUS_IGNORED
+        elif self.status == "DNE":
+            return messages.SECURITY_CVE_STATUS_DNE
+        elif self.status == "not-affected":
+            return messages.SECURITY_CVE_STATUS_NOT_AFFECTED
+        elif self.status == "released":
+            return messages.SECURITY_FIX_RELEASE_STREAM.format(
+                fix_stream=self.pocket_source
+            )
+        return messages.SECURITY_CVE_STATUS_UNKNOWN.format(status=self.status)
+
+    @property
+    def requires_ua(self) -> bool:
+        """Return True if the package requires an active Pro subscription."""
+        return bool(
+            self.pocket_source
+            != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+        )
+
+    @property
+    def pocket_source(self):
+        """Human-readable string representing where the fix is published."""
+        if self.pocket == "esm-infra":
+            fix_source = messages.SECURITY_UA_INFRA_POCKET
+        elif self.pocket == "esm-apps":
+            fix_source = messages.SECURITY_UA_APPS_POCKET
+        elif self.pocket in ("updates", "security"):
+            fix_source = messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
         else:
-            (
-                src_pocket_pkgs,
-                binary_pocket_pkgs,
-            ) = _get_upgradable_package_candidates_by_pocket(
-                pkg_status_group,
-                usn_released_pkgs,
-                installed_pkgs,
+            # TODO(GH: #1376 drop this when esm* pockets supplied by API)
+            if "esm" in self.fixed_version:
+                fix_source = messages.SECURITY_UA_INFRA_POCKET
+            else:
+                fix_source = messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+        return fix_source
+
+
+class CVE:
+    """Class representing CVE response from the SecurityClient"""
+
+    def __init__(self, client: UASecurityClient, response: Dict[str, Any]):
+        self.response = response
+        self.client = client
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, CVE):
+            return False
+        return self.response == other.response
+
+    @property
+    def id(self):
+        return self.response.get("id", "UNKNOWN_CVE_ID").upper()
+
+    @property
+    def notices_ids(self) -> List[str]:
+        return self.response.get("notices_ids", [])
+
+    @property
+    def notices(self) -> List["USN"]:
+        """Return a list of USN instances from API response 'notices'.
+
+        Cache the value to avoid extra work on multiple calls.
+        """
+        if not hasattr(self, "_notices"):
+            self._notices = sorted(
+                [
+                    USN(self.client, notice)
+                    for notice in self.response.get("notices", [])
+                ],
+                key=lambda n: n.id,
+                reverse=True,
             )
+        return self._notices
 
-    if not src_pocket_pkgs:
-        return fix_plan.fix_plan
+    @property
+    def description(self):
+        return self.response.get("description")
 
-    for pocket in [
-        messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
-        messages.SECURITY_UA_INFRA_POCKET,
-        messages.SECURITY_UA_APPS_POCKET,
-    ]:
-        pkg_src_group = src_pocket_pkgs[pocket]
-        binary_pkgs = binary_pocket_pkgs[pocket]
-        source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
-        pocket_name = get_pocket_short_name(pocket)
+    @property
+    def packages_status(self) -> Dict[str, CVEPackageStatus]:
+        """Dict of package status dicts for the current Ubuntu series.
 
-        if not binary_pkgs:
-            if source_pkgs:
-                fix_plan.register_step(
-                    operation=FixStepType.NOOP,
-                    data={
-                        "status": FixPlanNoOpStatus.ALREADY_FIXED.value,
-                        "source_packages": source_pkgs,
-                        "pocket": pocket_name,
-                    },
+        Top-level keys are source packages names and each value is a
+        CVEPackageStatus object
+        """
+        if hasattr(self, "_packages_status"):
+            return self._packages_status  # type: ignore
+        self._packages_status = {}
+        series = system.get_release_info().series
+        for package in self.response["packages"]:
+            for pkg_status in package["statuses"]:
+                if pkg_status["release_codename"] == series:
+                    self._packages_status[package["name"]] = CVEPackageStatus(
+                        pkg_status
+                    )
+        return self._packages_status
+
+
+class USN:
+    """Class representing USN response from the SecurityClient"""
+
+    def __init__(self, client: UASecurityClient, response: Dict[str, Any]):
+        self.response = response
+        self.client = client
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, USN):
+            return False
+        return self.response == other.response
+
+    @property
+    def id(self) -> str:
+        return self.response.get("id", "UNKNOWN_USN_ID").upper()
+
+    @property
+    def cves_ids(self) -> List[str]:
+        """List of CVE IDs related to this USN."""
+        return self.response.get("cves_ids", [])
+
+    @property
+    def cves(self) -> List[CVE]:
+        """List of CVE instances based on API response 'cves' key.
+
+        Cache the values to avoid extra work for multiple call-sites.
+        """
+        if not hasattr(self, "_cves"):
+            self._cves = sorted(
+                [
+                    CVE(self.client, cve)
+                    for cve in self.response.get("cves", [])
+                ],
+                key=lambda n: n.id,
+                reverse=True,
+            )  # type: List[CVE]
+        return self._cves
+
+    @property
+    def title(self):
+        return self.response.get("title")
+
+    @property
+    def references(self):
+        return self.response.get("references")
+
+    @property
+    def release_packages(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+        """Binary package information available for this release.
+
+
+        Reformat the USN.release_packages response to key it based on source
+        package name and related binary package names.
+
+        :return: Dict keyed by source package name. The second-level key will
+            be binary package names generated from that source package and the
+            values will be the dict response from USN.release_packages for
+            that binary package. The binary metadata contains the following
+            keys: name, version.
+            Optional additional keys: pocket and component.
+        """
+        if hasattr(self, "_release_packages"):
+            return self._release_packages
+        series = system.get_release_info().series
+        self._release_packages = {}  # type: Dict[str, Dict[str, Any]]
+        # Organize source and binary packages under a common source package key
+        for pkg in self.response.get("release_packages", {}).get(series, []):
+            if pkg.get("is_source"):
+                # Create a "source" key under src_pkg_name with API response
+                if pkg["name"] in self._release_packages:
+                    if "source" in self._release_packages[pkg["name"]]:
+                        raise exceptions.SecurityAPIMetadataError(
+                            error_msg=(
+                                "{usn} metadata defines duplicate source"
+                                " packages {pkg}"
+                            ).format(usn=self.id, pkg=pkg["name"]),
+                            issue=self.id,
+                            extra_info="",
+                        )
+                    self._release_packages[pkg["name"]]["source"] = pkg
+                else:
+                    self._release_packages[pkg["name"]] = {"source": pkg}
+            else:
+                # is_source == False or None, then this is a binary package.
+                # If processed before a source item, the top-level key will
+                # not exist yet.
+                # TODO(GH: 1465: determine if this is expected on kern pkgs)
+                if not pkg.get("source_link"):
+                    raise exceptions.SecurityAPIMetadataError(
+                        error_msg=(
+                            "{issue} metadata does not define release_packages"
+                            " source_link for {bin_pkg}."
+                        ).format(issue=self.id, bin_pkg=pkg["name"]),
+                        issue=self.id,
+                        extra_info="",
+                    )
+                elif "/" not in pkg["source_link"]:
+                    raise exceptions.SecurityAPIMetadataError(
+                        error_msg=(
+                            "{issue} metadata has unexpected release_packages"
+                            " source_link value for {bin_pkg}: {link}"
+                        ).format(
+                            issue=self.id,
+                            bin_pkg=pkg["name"],
+                            link=pkg["source_link"],
+                        ),
+                        issue=self.id,
+                        extra_info="",
+                    )
+                source_pkg_name = pkg["source_link"].split("/")[-1]
+                if source_pkg_name not in self._release_packages:
+                    self._release_packages[source_pkg_name] = {}
+                self._release_packages[source_pkg_name][pkg["name"]] = pkg
+        return self._release_packages
+
+
+def get_cve_affected_source_packages_status(
+    cve: CVE, installed_packages: Dict[str, Dict[str, str]]
+) -> Dict[str, CVEPackageStatus]:
+    """Get a dict of any CVEPackageStatuses affecting this Ubuntu release.
+
+    :return: Dict of active CVEPackageStatus keyed by source package names.
+    """
+    affected_pkg_versions = {}
+    for source_pkg, package_status in cve.packages_status.items():
+        if package_status.status == "not-affected":
+            continue
+        if source_pkg in installed_packages:
+            affected_pkg_versions[source_pkg] = package_status
+    return affected_pkg_versions
+
+
+def query_installed_source_pkg_versions() -> Dict[str, Dict[str, str]]:
+    """Return a dict of all source packages installed on the system.
+
+    The dict keys will be source package name: "krb5". The value will be a dict
+    with keys binary_pkg and version.
+    """
+    status_field = "${db:Status-Status}"
+    out, _err = system.subp(
+        [
+            "dpkg-query",
+            "-f=${Package},${Source},${Version}," + status_field + "\n",
+            "-W",
+        ]
+    )
+    installed_packages = {}  # type: Dict[str, Dict[str, str]]
+    for pkg_line in out.splitlines():
+        pkg_name, source_pkg_name, pkg_version, status = pkg_line.split(",")
+        if not source_pkg_name:
+            # some package don't define the Source
+            source_pkg_name = pkg_name
+        if "installed" not in status:
+            continue
+        if source_pkg_name in installed_packages:
+            installed_packages[source_pkg_name][pkg_name] = pkg_version
+        else:
+            installed_packages[source_pkg_name] = {pkg_name: pkg_version}
+    return installed_packages
+
+
+def get_related_usns(usn, client):
+    """For a give usn, get the related USNs for it.
+
+    For each CVE associated with the given USN, we capture
+    other USNs that are related to the CVE. We consider those
+    USNs related to the original USN.
+    """
+
+    # If the usn does not have any associated cves on it,
+    # we cannot establish a relation between USNs
+    if not usn.cves:
+        return []
+
+    related_usns = {}
+    for cve in usn.cves:
+        for related_usn_id in cve.notices_ids:
+            # We should ignore any other item that is not a USN
+            # For example, LSNs
+            if not related_usn_id.startswith("USN-"):
+                continue
+            if related_usn_id == usn.id:
+                continue
+            if related_usn_id not in related_usns:
+                related_usns[related_usn_id] = client.get_notice(
+                    notice_id=related_usn_id
                 )
+
+    return list(sorted(related_usns.values(), key=lambda x: x.id))
+
+
+def get_affected_packages_from_cves(cves, installed_packages):
+    affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
+
+    for cve in cves:
+        for pkg_name, pkg_status in get_cve_affected_source_packages_status(
+            cve, installed_packages
+        ).items():
+            if pkg_name not in affected_pkgs:
+                affected_pkgs[pkg_name] = pkg_status
+            else:
+                current_ver = affected_pkgs[pkg_name].fixed_version
+                if (
+                    apt.version_compare(current_ver, pkg_status.fixed_version)
+                    > 0
+                ):
+                    affected_pkgs[pkg_name] = pkg_status
+
+    return affected_pkgs
+
+
+def get_affected_packages_from_usn(usn, installed_packages):
+    affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
+    for pkg_name, pkg_info in usn.release_packages.items():
+        if pkg_name not in installed_packages:
             continue
 
-        upgrade_pkgs, unfixed_pkgs = _get_upgradable_pkgs(binary_pkgs, pocket)
-
-        if unfixed_pkgs:
-            for unfixed_pkg in unfixed_pkgs:
-                fix_plan.register_warning(
-                    warning_type=FixWarningType.PACKAGE_CANNOT_BE_INSTALLED,
-                    data={
-                        "binary_package": unfixed_pkg.binary_package,
-                        "binary_package_version": unfixed_pkg.version,
-                        "source_package": unfixed_pkg.source_package,
-                        "related_source_packages": source_pkgs,
-                        "pocket": pocket_name,
-                    },
-                )
-
-        if pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
-            if pocket == messages.SECURITY_UA_INFRA_POCKET:
-                service_to_check = "esm-infra"
-            else:
-                service_to_check = "esm-apps"
-
-            if not _is_attached(cfg).is_attached:
-                fix_plan.register_step(
-                    operation=FixStepType.ATTACH,
-                    data={
-                        "reason": "required-pro-service",
-                        "source_packages": source_pkgs,
-                        "required_service": service_to_check,
-                    },
-                )
-            else:
-                contract_expiry_status, _ = get_contract_expiry_status(cfg)
-                if contract_expiry_status != ContractExpiryStatus.ACTIVE:
-                    fix_plan.register_step(
-                        operation=FixStepType.ATTACH,
-                        data={
-                            "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value,  # noqa
-                            "source_packages": source_pkgs,
-                        },
-                    )
-
-            enabled_services = _enabled_services(cfg).enabled_services or []
-            enabled_services_names = (
-                [service.name for service in enabled_services]
-                if enabled_services
-                else []
+        cve_response = defaultdict(str)
+        cve_response["status"] = "released"
+        # Here we are assuming that the pocket will be the same one across
+        # all the different binary packages.
+        all_pockets = {
+            pkg_bin_info["pocket"]
+            for _, pkg_bin_info in pkg_info.items()
+            if pkg_bin_info.get("pocket")
+        }
+        if not all_pockets:
+            raise exceptions.SecurityAPIMetadataError(
+                error_msg=(
+                    "{} metadata defines no pocket information for "
+                    "any release packages."
+                ).format(usn.id),
+                issue=usn.id,
+                extra_info="",
             )
-            if service_to_check not in enabled_services_names:
-                fix_plan.register_step(
-                    operation=FixStepType.ENABLE,
-                    data={
-                        "service": service_to_check,
-                        "source_packages": source_pkgs,
-                    },
-                )
+        cve_response["pocket"] = all_pockets.pop()
 
-        fix_plan.register_step(
-            operation=FixStepType.APT_UPGRADE,
-            data={
-                "binary_packages": upgrade_pkgs,
-                "source_packages": source_pkgs,
-                "pocket": pocket_name,
-            },
+        affected_pkgs[pkg_name] = CVEPackageStatus(cve_response=cve_response)
+
+    return affected_pkgs
+
+
+def get_usn_affected_packages_status(
+    usn: USN, installed_packages: Dict[str, Dict[str, str]]
+) -> Dict[str, CVEPackageStatus]:
+    """Walk CVEs related to a USN and return a dict of all affected packages.
+
+    :return: Dict keyed on source package name, with active CVEPackageStatus
+        for the current Ubuntu release.
+    """
+    if usn.cves:
+        return get_affected_packages_from_cves(usn.cves, installed_packages)
+    else:
+        return get_affected_packages_from_usn(usn, installed_packages)
+
+
+def override_usn_release_package_status(
+    pkg_status: CVEPackageStatus,
+    usn_src_released_pkgs: Dict[str, Dict[str, str]],
+) -> CVEPackageStatus:
+    """Parse release status based on both pkg_status and USN.release_packages.
+
+    Since some source packages in universe are not represented in
+    CVEPackageStatus, rely on presence of such source packages in
+    usn_src_released_pkgs to represent package as a "released" status.
+
+    :param pkg_status: the CVEPackageStatus for this source package.
+    :param usn_src_released_pkgs: The USN.release_packages representing only
+       this source package. Normally, release_packages would have data on
+       multiple source packages.
+
+    :return: Tuple of:
+        human-readable status message, boolean whether released,
+        boolean whether the fix requires access to UA
+    """
+
+    usn_pkg_status = copy.deepcopy(pkg_status)
+    if usn_src_released_pkgs and usn_src_released_pkgs.get("source"):
+        usn_pkg_status.response["status"] = "released"
+        usn_pkg_status.response["description"] = usn_src_released_pkgs[
+            "source"
+        ]["version"]
+        for pkg_name, usn_released_pkg in usn_src_released_pkgs.items():
+            # Copy the pocket from any valid binary package
+            pocket = usn_released_pkg.get("pocket")
+            if pocket:
+                usn_pkg_status.response["pocket"] = pocket
+                break
+    return usn_pkg_status
+
+
+def group_by_usn_package_status(affected_pkg_status, usn_released_pkgs):
+    status_groups = {}  # type: Dict[str, List[Tuple[str, CVEPackageStatus]]]
+    for src_pkg, pkg_status in sorted(affected_pkg_status.items()):
+        usn_released_src = usn_released_pkgs.get(src_pkg, {})
+        usn_pkg_status = override_usn_release_package_status(
+            pkg_status, usn_released_src
         )
+        status_group = usn_pkg_status.status.replace("ignored", "deferred")
+        if status_group not in status_groups:
+            status_groups[status_group] = []
+        status_groups[status_group].append((src_pkg, usn_pkg_status))
+    return status_groups
 
-    return fix_plan.fix_plan
+
+def merge_usn_released_binary_package_versions(
+    usns: List[USN], beta_pockets: Dict[str, bool]
+) -> Dict[str, Dict[str, Dict[str, str]]]:
+    """Walk related USNs, merging the released binary package versions.
+
+    For each USN, iterate over release_packages to collect released binary
+        package names and required fix version. If multiple related USNs
+        require different version fixes to the same binary package, track the
+        maximum version required across all USNs.
+
+    :param usns: List of USN response instances from which to calculate merge.
+    :param beta_pockets: Dict keyed on service name: esm-infra, esm-apps
+        the values of which will be true of USN response instances
+        from which to calculate merge.
+
+    :return: Dict keyed by source package name. Under each source package will
+        be a dict with binary package name as keys and binary package metadata
+        as the value.
+    """
+    usn_pkg_versions = {}
+    for usn in usns:
+        # Aggregate USN.release_package binary versions into usn_pkg_versions
+        for src_pkg, binary_pkg_versions in usn.release_packages.items():
+            public_bin_pkg_versions = {
+                bin_pkg_name: bin_pkg_md
+                for bin_pkg_name, bin_pkg_md in binary_pkg_versions.items()
+                if False
+                is beta_pockets.get(bin_pkg_md.get("pocket", "None"), False)
+            }
+            if src_pkg not in usn_pkg_versions and public_bin_pkg_versions:
+                usn_pkg_versions[src_pkg] = public_bin_pkg_versions
+            elif src_pkg in usn_pkg_versions:
+                # Since src_pkg exists, only record this USN's binary version
+                # when it is greater than the previous version in usn_src_pkg.
+                usn_src_pkg = usn_pkg_versions[src_pkg]
+                for bin_pkg, binary_pkg_md in public_bin_pkg_versions.items():
+                    if bin_pkg not in usn_src_pkg:
+                        usn_src_pkg[bin_pkg] = binary_pkg_md
+                    else:
+                        prev_version = usn_src_pkg[bin_pkg]["version"]
+                        current_version = binary_pkg_md["version"]
+                        if (
+                            apt.version_compare(current_version, prev_version)
+                            > 0
+                        ):
+                            # binary_version is greater than prev_version
+                            usn_src_pkg[bin_pkg] = binary_pkg_md
+    return usn_pkg_versions
+
+
+def _check_cve_fixed_by_livepatch(
+    issue_id: str,
+) -> Tuple[Optional[FixStatus], Optional[str]]:
+    # Check livepatch status for CVE in fixes before checking CVE api
+    lp_status = livepatch.status()
+    if (
+        lp_status is not None
+        and lp_status.livepatch is not None
+        and lp_status.livepatch.fixes is not None
+    ):
+        for fix in lp_status.livepatch.fixes:
+            if fix.name == issue_id.lower() and fix.patched:
+                version = lp_status.livepatch.version or "N/A"
+                return (FixStatus.SYSTEM_NON_VULNERABLE, version)
+
+    return (None, None)
