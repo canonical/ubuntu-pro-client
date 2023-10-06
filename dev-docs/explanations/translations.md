@@ -4,8 +4,9 @@ Ubuntu Pro Client is a special package in Ubuntu: it is updated frequently in al
 That makes language packs unsuitable for providing and updating translations for Ubuntu Pro Client.
 
 In addition, Ubuntu Pro Client includes lots of language with potential commercial and contractual
-implications related to Canonical's Ubuntu Pro offering. That means we need to maintain tight control
-over the language used in all messages.
+implications related to Canonical's Ubuntu Pro offering. That means Canonical must be both careful and
+specific about the language used in all messages to ensure that we do not provide misleading or
+incorrect information.
 
 ## How are translations delivered and updated?
 
@@ -16,10 +17,10 @@ old Ubuntu releases. That would cause the translations provided by the language 
 the version of Ubuntu Pro Client installed.
 
 Because of this, Ubuntu Pro Client is not included in the Ubuntu language pack and instead ships all translations
-directly in our own source package. However, translations are kept in a separate binary package so that it is not
-required to be installed with Ubuntu Pro Client (and therefore not required in `ubuntu-minimal`). Translations are
-in a binary package named: `ubuntu-pro-client-l10n`.
-The `ubuntu-advantage-tools` binary package _Recommends_ `ubuntu-pro-client-l10n`, but doesn't require it.
+directly in our own source package. However, translations are kept in a separate binary package so that the translation
+fils are not required to be installed with Ubuntu Pro Client (and therefore not required in `ubuntu-minimal`).
+Translations are in a binary package named: `ubuntu-pro-client-l10n`. The `ubuntu-advantage-tools` binary package
+_Recommends_ `ubuntu-pro-client-l10n`, but doesn't require it.
 
 In order to ship translation files (`.mo` files) in the `ubuntu-pro-client-l10n` binary package, this package is
 explicitly excluded from language pack translation stripping done by the `pkgbinarymangler` package
@@ -38,7 +39,7 @@ Regarding contributions, we will:
   - We’ll get input from a Canonical employee who speaks the language in question.
 - **Not** accept community PRs directly changing translations.
 
-We generally will not support translations to a language that no Canonical-employee understands and is willing to review/help maintain.
+For a language to be supported, there must be at least one Canonical employee who speaks/reads/understands that language and is willing to review/help maintain the translation.
 
 We will set up a project on https://translations.launchpad.net where only Canonical employees have permission to contribute
 translations to Ubuntu Pro Client. Before every release of Ubuntu Pro Client, we will download the latest translations
