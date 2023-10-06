@@ -88,6 +88,7 @@ class FixContext:
         self.cfg = cfg
         self.should_print_pkg_header = True
         self.warn_package_cannot_be_installed = False
+        self.fixed_by_livepatch = False
 
     def print_fix_header(self):
         if self.affected_pkgs:
@@ -809,6 +810,7 @@ def _execute_noop_fixed_by_livepatch_step(
                 version=step.data.patch_version,
             )
         )
+        fix_context.fixed_by_livepatch = True
 
 
 def _execute_noop_already_fixed_step(
@@ -898,7 +900,9 @@ def execute_fix_plan(
             operation="fix operation",
         )
 
-    _handle_fix_status_message(fix_context.fix_status, fix_plan.title)
+    if not fix_context.fixed_by_livepatch:
+        _handle_fix_status_message(fix_context.fix_status, fix_plan.title)
+
     return (fix_context.fix_status, fix_context.unfixed_pkgs)
 
 
