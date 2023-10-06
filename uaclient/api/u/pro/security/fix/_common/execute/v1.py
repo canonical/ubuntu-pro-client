@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from uaclient import apt, messages, util
+from uaclient.api.u.pro.security.fix import FixStatus
 from uaclient.api.u.pro.security.fix._common import status_message
 from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanAptUpgradeStep,
@@ -13,7 +14,6 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanWarningSecurityIssueNotFixed,
 )
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
-from uaclient.security import FixStatus
 
 
 class UpgradedPackage(DataObject):
