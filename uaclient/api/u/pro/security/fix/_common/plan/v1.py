@@ -4,18 +4,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 from uaclient import apt, exceptions, messages
-from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
-from uaclient.data_types import (
-    DataObject,
-    Field,
-    IntDataValue,
-    StringDataValue,
-    data_list,
-)
-from uaclient.security import (
+from uaclient.api.u.pro.security.fix import (
     CVE,
     CVE_OR_USN_REGEX,
     USN,
@@ -30,6 +19,17 @@ from uaclient.security import (
     group_by_usn_package_status,
     merge_usn_released_binary_package_versions,
     query_installed_source_pkg_versions,
+)
+from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.config import UAConfig
+from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
+from uaclient.data_types import (
+    DataObject,
+    Field,
+    IntDataValue,
+    StringDataValue,
+    data_list,
 )
 
 STANDARD_UPDATES_POCKET = "standard-updates"
@@ -798,6 +798,8 @@ def _generate_fix_plan(
     additional_data=None
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
+    src_pocket_pkgs = defaultdict(list)
+
     fix_plan = get_fix_plan(
         title=issue_id,
         description=issue_description,

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from uaclient import messages
-from uaclient.security import FixStatus
+from uaclient.api.u.pro.security.fix import FixStatus
 
 
 def status_message(status, pocket_source: Optional[str] = None):
