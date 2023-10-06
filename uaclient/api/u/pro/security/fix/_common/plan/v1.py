@@ -647,7 +647,10 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
 
     try:
         cve, usns = _get_cve_data(issue_id=issue_id, client=client)
-    except exceptions.SecurityIssueNotFound as e:
+    except (
+        exceptions.SecurityIssueNotFound,
+        exceptions.SecurityAPIError,
+    ) as e:
         fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
         return fix_plan.fix_plan
@@ -681,7 +684,10 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
 
     try:
         usn, related_usns = _get_usn_data(issue_id=issue_id, client=client)
-    except exceptions.SecurityIssueNotFound as e:
+    except (
+        exceptions.SecurityIssueNotFound,
+        exceptions.SecurityAPIError,
+    ) as e:
         fix_plan = get_fix_plan(title=issue_id)
         fix_plan.register_error(error_msg=e.msg, error_code=e.msg_code)
         return FixPlanUSNResult(
