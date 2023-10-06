@@ -54,7 +54,7 @@ complete status on Ubuntu Pro services, run 'pro status'.
 @mock.patch(M_PATH + "security_status.security_status_dict")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestActionSecurityStatus:
-    @mock.patch(M_PATH + "setup_logging")
+    @mock.patch(M_PATH + "log.setup_cli_logging")
     def test_security_status_help(
         self,
         _m_setup_logging,
@@ -121,7 +121,7 @@ class TestActionSecurityStatus:
             assert m_security_status.call_args_list == [mock.call(cfg)]
             assert m_security_status.call_count == 1
 
-    @mock.patch(M_PATH + "setup_logging")
+    @mock.patch(M_PATH + "log.setup_cli_logging")
     def test_error_on_wrong_format(
         self,
         _m_setup_logging,

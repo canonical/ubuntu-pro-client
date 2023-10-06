@@ -18,8 +18,7 @@ import copy
 import json
 import logging
 
-from uaclient import system, util
-from uaclient.cli import setup_logging
+from uaclient import config, defaults, log, system, util
 
 LOG = logging.getLogger("ubuntupro.lib.patch_status_json")
 
@@ -64,7 +63,9 @@ def patch_status_json_schema_0_1(status_file: str):
 
 
 if __name__ == "__main__":
-    setup_logging(logging.DEBUG)
+    log.setup_cli_logging(logging.DEBUG, defaults.CONFIG_DEFAULTS["log_level"])
+    cfg = config.UAConfig()
+    log.setup_cli_logging(cfg.log_level, cfg.log_file)
     patch_status_json_schema_0_1(
         status_file="/var/lib/ubuntu-advantage/status.json"
     )

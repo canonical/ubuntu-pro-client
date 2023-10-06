@@ -11,10 +11,10 @@ import sys
 
 from aptsources.sourceslist import SourceEntry  # type: ignore
 
-from uaclient import entitlements
+from uaclient import defaults, entitlements
 from uaclient.apt import _get_sources_file_content
-from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
+from uaclient.log import setup_cli_logging
 from uaclient.system import (
     ensure_file_absent,
     get_release_info,
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     if series != "noble":
         sys.exit(0)
 
-    setup_logging(logging.DEBUG)
+    setup_cli_logging(logging.DEBUG, defaults.CONFIG_DEFAULTS["log_file"])
     cfg = UAConfig()
 
     for entitlement_class in entitlements.ENTITLEMENT_CLASSES:

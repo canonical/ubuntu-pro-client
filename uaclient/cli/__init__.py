@@ -3,7 +3,6 @@
 import argparse
 import json
 import logging
-import pathlib
 import sys
 import tarfile
 import tempfile
@@ -24,9 +23,10 @@ from uaclient import (
     exceptions,
     http,
     lock,
+    log,
+    messages,
+    security_status,
 )
-from uaclient import log as pro_log
-from uaclient import messages, security_status
 from uaclient import status as ua_status
 from uaclient import timer, util, version
 from uaclient.api.api import call_api
@@ -63,7 +63,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
-from uaclient.log import JsonArrayFormatter, get_user_or_root_log_file_path
+from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
@@ -1403,43 +1403,6 @@ def _warn_about_output_redirection(cmd_args) -> None:
         )
 
 
-def setup_logging(log_level, log_file=None, logger=None):
-    """Setup console logging and debug logging to log_file
-
-    It configures the pro client logger.
-    If run as non_root and cfg.log_file is provided, it is replaced
-    with another non-root log file.
-    """
-    if log_file is None:
-        cfg = config.UAConfig()
-        log_file = cfg.log_file
-    # if we are running as non-root, change log file
-    if not util.we_are_currently_root():
-        log_file = pro_log.get_user_log_file()
-
-    if isinstance(log_level, str):
-        log_level = log_level.upper()
-
-    if not logger:
-        logger = logging.getLogger("ubuntupro")
-    logger.setLevel(log_level)
-
-    # Clear all handlers, so they are replaced for this logger
-    logger.handlers = []
-
-    # Setup file logging
-    log_file_path = pathlib.Path(log_file)
-    if not log_file_path.exists():
-        log_file_path.parent.mkdir(parents=True, exist_ok=True)
-        log_file_path.touch(mode=0o640)
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(JsonArrayFormatter())
-    file_handler.setLevel(log_level)
-    file_handler.set_name("upro-file")
-    file_handler.addFilter(pro_log.RedactionFilter())
-    logger.addHandler(file_handler)
-
-
 def set_event_mode(cmd_args):
     """Set the right event mode based on the args provided"""
     if cmd_args.command in ("attach", "detach", "enable", "disable", "status"):
@@ -1540,12 +1503,12 @@ def main_error_handler(func):
 
 @main_error_handler
 def main(sys_argv=None):
-    setup_logging(
+    log.setup_cli_logging(
         defaults.CONFIG_DEFAULTS["log_level"],
         defaults.CONFIG_DEFAULTS["log_file"],
     )
     cfg = config.UAConfig()
-    setup_logging(cfg.log_level, cfg.log_file)
+    log.setup_cli_logging(cfg.log_level, cfg.log_file)
 
     if not sys_argv:
         sys_argv = sys.argv

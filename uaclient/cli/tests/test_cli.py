@@ -3,14 +3,13 @@ import io
 import json
 import logging
 import socket
-import sys
 import textwrap
 
 import mock
 import pytest
 
 from uaclient import defaults, exceptions, messages, status
-from uaclient.cli import action_help, get_parser, main, setup_logging
+from uaclient.cli import action_help, get_parser, main
 from uaclient.entitlements import get_valid_entitlement_names
 from uaclient.exceptions import (
     AlreadyAttachedError,
@@ -94,7 +93,7 @@ def get_help(request, capsys, FakeConfig):
                     "uaclient.config.UAConfig",
                     return_value=FakeConfig(),
                 ):
-                    with mock.patch("uaclient.cli.setup_logging"):
+                    with mock.patch("uaclient.log.setup_cli_logging"):
                         main()
             out, _err = capsys.readouterr()
 
@@ -361,7 +360,7 @@ class TestMain:
     )
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.LOG.exception")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_errors_handled_gracefully(
         self,
@@ -403,7 +402,7 @@ class TestMain:
         ),
     )
     @mock.patch("uaclient.cli.LOG.error")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_interrupt_errors_handled_gracefully(
         self,
@@ -447,7 +446,7 @@ class TestMain:
     )
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.LOG.error")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
         self,
@@ -489,7 +488,7 @@ class TestMain:
     )
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.LOG.exception")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_url_error_handled_gracefully(
         self,
@@ -524,7 +523,7 @@ class TestMain:
         assert [expected_log_call] == m_log_exception.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_command_line_is_logged(
         self, _m_get_parser, _m_setup_logging, caplog_text
@@ -536,7 +535,7 @@ class TestMain:
         assert "['some', 'args']" in log
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     @mock.patch(
         "uaclient.cli.util.get_pro_environment",
@@ -556,7 +555,7 @@ class TestMain:
         assert "UA_ENV=YES" in log
         assert "UA_FEATURES_WOW=XYZ" in log
 
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
     @mock.patch("uaclient.cli.config.UAConfig")
     @pytest.mark.parametrize("config_error", [True, False])
@@ -632,7 +631,7 @@ class TestMain:
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.action_status")
     @mock.patch("uaclient.cli.action_security_status")
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("sys.stdout.isatty")
     def test_status_human_readable_warning(
         self,
@@ -665,39 +664,6 @@ class TestMain:
             ] == m_event_info.call_args_list
         else:
             assert [] == m_event_info.call_args_list
-
-
-class TestSetupLogging:
-    def test_correct_handlers_added_to_logger(
-        self,
-        FakeConfig,
-    ):
-        log_level = logging.DEBUG
-        logger = logging.getLogger("logger_a")
-
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setLevel(logging.ERROR)
-        handler.set_name("ua-test-console")
-        logger.addHandler(handler)
-
-        with mock.patch(
-            "uaclient.cli.config.UAConfig", return_value=FakeConfig()
-        ):
-            setup_logging(log_level, logger=logger)
-        assert len(logger.handlers) == 1
-        assert logger.handlers[0].name == "upro-file"
-        assert logger.handlers[0].level == log_level
-
-    @mock.patch("pathlib.Path.touch")
-    def test_log_file_created_if_not_present(self, m_path_touch, tmpdir):
-        logger = logging.getLogger("logger_b")
-        log_file = tmpdir.join("log_file").strpath
-        setup_logging(
-            logging.INFO,
-            log_file=log_file,
-            logger=logger,
-        )
-        assert m_path_touch.call_args_list == [mock.call(mode=0o640)]
 
 
 class TestGetValidEntitlementNames:

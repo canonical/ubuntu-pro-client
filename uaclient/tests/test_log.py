@@ -1,12 +1,12 @@
 import json
 import logging
+import sys
 from io import StringIO
 
 import mock
 import pytest
 
-from uaclient import log as pro_log
-from uaclient import util
+from uaclient import log, util
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 LOG_FMT = "%(asctime)s%(name)s%(funcName)s%(lineno)s\
@@ -19,8 +19,8 @@ class TestLogger:
     def test_unredacted_text(self, caplog_text):
         text = "Bearer SEKRET"
         LOG.info(text)
-        log = caplog_text()
-        assert text in log
+        log_text = caplog_text()
+        assert text in log_text
 
     @pytest.mark.parametrize(
         "raw_log,expected",
@@ -118,10 +118,10 @@ class TestLogger:
     )
     @pytest.mark.parametrize("caplog_text", [logging.INFO], indirect=True)
     def test_redacted_text(self, caplog_text, raw_log, expected):
-        LOG.addFilter(pro_log.RedactionFilter())
+        LOG.addFilter(log.RedactionFilter())
         LOG.info(raw_log)
-        log = caplog_text()
-        assert expected in log
+        log_text = caplog_text()
+        assert expected in log_text
 
 
 class TestLoggerFormatter:
@@ -143,7 +143,7 @@ class TestLoggerFormatter:
     def test_valid_json_output(
         self, caplog_text, message, level, log_fn, levelname, extra
     ):
-        formatter = pro_log.JsonArrayFormatter(LOG_FMT, DATE_FMT)
+        formatter = log.JsonArrayFormatter(LOG_FMT, DATE_FMT)
         buffer = StringIO()
         sh = logging.StreamHandler(buffer)
         sh.setLevel(level)
@@ -195,7 +195,7 @@ class TestLogHelpers:
         when the user is root and non-root
         """
         m_we_are_currently_root.return_value = we_are_currently_root
-        result = pro_log.get_user_or_root_log_file_path()
+        result = log.get_user_or_root_log_file_path()
         # ensure mocks are used properly
         assert m_cfg_log_file.call_count + m_get_user_log_file.call_count == 1
         if we_are_currently_root:
@@ -204,3 +204,37 @@ class TestLogHelpers:
             assert m_get_user_log_file.call_count == 1
         # ensure correct log_file path is returned
         assert expected == result
+
+
+@mock.patch("uaclient.log.logging.FileHandler")
+@mock.patch("uaclient.log.pathlib.Path")
+@mock.patch("uaclient.log.logging.getLogger")
+class TestSetupCliLogging:
+    def test_correct_handlers_added_to_logger(
+        self,
+        m_getLogger,
+        m_path,
+        m_FileHandler,
+    ):
+        fake_logger = mock.MagicMock(
+            handlers=[logging.StreamHandler(sys.stderr)]
+        )
+        m_getLogger.return_value = fake_logger
+        fake_file_handler = mock.MagicMock()
+        m_FileHandler.return_value = fake_file_handler
+
+        log.setup_cli_logging(11, "fakefile")
+        assert len(fake_logger.handlers) == 0  # handlers is cleared
+        assert [mock.call(11)] == fake_file_handler.setLevel.call_args_list
+        assert [
+            mock.call(fake_file_handler)
+        ] == fake_logger.addHandler.call_args_list
+
+    def test_log_file_created_if_not_present(
+        self, m_getLogger, m_path, m_FileHandler
+    ):
+        m_path.return_value.exists.return_value = False
+        log.setup_cli_logging(logging.INFO, "fakefile")
+        assert m_path.return_value.touch.call_args_list == [
+            mock.call(mode=0o640)
+        ]
