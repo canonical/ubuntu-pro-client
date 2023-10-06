@@ -340,19 +340,18 @@ Feature: Command behaviour when unattached
       esm-cache\.service
       """
     When I run `journalctl -o cat -u esm-cache.service` with sudo
-    Then stdout does not match regexp:
+    Then stdout does not contain substring:
       """
-      raise FetchFailedException\(\)
+      raise FetchFailedException()
       """
-    When I run `ls /var/crash/` with sudo
-    Then stdout does not match regexp:
-      """
-      _usr_lib_ubuntu-advantage_esm_cache
-      """
-    When I run `cat /var/log/ubuntu-advantage.log` with sudo
     Then stdout matches regexp:
       """
-      Failed to fetch ESM Apt Cache item:
+      "WARNING", "ubuntupro.apt", "fail", \d+, "Failed to fetch ESM Apt Cache item: https://esm.ubuntu.com/apps/ubuntu/dists/<release>-apps-security/InRelease", {}]
+      """
+    When I run `ls /var/crash/` with sudo
+    Then stdout does not contain substring:
+      """
+      _usr_lib_ubuntu-advantage_esm_cache
       """
 
     Examples: ubuntu release

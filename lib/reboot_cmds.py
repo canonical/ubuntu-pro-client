@@ -20,14 +20,13 @@ import sys
 from uaclient import (
     config,
     contract,
-    defaults,
     exceptions,
     http,
     lock,
+    log,
     upgrade_lts_contract,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
 
@@ -47,11 +46,11 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
                 # fips was not enabled, don't do anything
                 return
 
-    LOG.debug("Attempting to remove Ubuntu Pro FIPS package holds")
+    LOG.info("Attempting to remove Ubuntu Pro FIPS package holds")
     fips = FIPSEntitlement(cfg)
     try:
         fips.setup_apt_config()  # Removes package holds
-        LOG.debug("Successfully removed Ubuntu Pro FIPS package holds")
+        LOG.info("Successfully removed Ubuntu Pro FIPS package holds")
     except Exception as e:
         LOG.error(e)
         LOG.warning("Could not remove Ubuntu Pro FIPS package holds")
@@ -73,17 +72,17 @@ def refresh_contract(cfg: config.UAConfig):
 
 def main(cfg: config.UAConfig) -> int:
     if not state_files.reboot_cmd_marker_file.is_present:
-        LOG.debug("Skipping reboot_cmds. Marker file not present")
+        LOG.info("Skipping reboot_cmds. Marker file not present")
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
     if not _is_attached(cfg).is_attached:
-        LOG.debug("Skipping reboot_cmds. Machine is unattached")
+        LOG.info("Skipping reboot_cmds. Machine is unattached")
         state_files.reboot_cmd_marker_file.delete()
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
-    LOG.debug("Running reboot commands...")
+    LOG.info("Running reboot commands...")
     try:
         with lock.RetryLock(lock_holder="pro-reboot-cmds"):
             fix_pro_pkg_holds(cfg)
@@ -108,16 +107,12 @@ def main(cfg: config.UAConfig) -> int:
         notices.add(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 1
 
-    LOG.debug("Successfully ran all commands on reboot.")
+    LOG.info("Successfully ran all commands on reboot.")
     return 0
 
 
 if __name__ == "__main__":
-    setup_logging(
-        logging.DEBUG,
-        defaults.CONFIG_DEFAULTS["log_file"],
-    )
+    log.setup_journald_logging()
     cfg = config.UAConfig()
-    setup_logging(logging.DEBUG, log_file=cfg.log_file)
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     sys.exit(main(cfg=cfg))
