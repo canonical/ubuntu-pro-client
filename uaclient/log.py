@@ -98,10 +98,11 @@ def get_all_user_log_files() -> List[str]:
     return log_files
 
 
-def setup_journald_logging(log_level, logger):
-    logger.setLevel(log_level)
+def setup_journald_logging():
+    logger = logging.getLogger("ubuntupro")
+    logger.setLevel(logging.INFO)
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JsonArrayFormatter())
-    console_handler.setLevel(log_level)
+    console_handler.setLevel(logging.INFO)
     console_handler.addFilter(RedactionFilter())
     logger.addHandler(console_handler)

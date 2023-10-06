@@ -23,26 +23,26 @@ def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
         LOG.info("creating flag file to trigger retries")
         system.create_file(retry_auto_attach.FLAG_FILE_PATH)
         return
-    LOG.debug("Successful auto attach")
+    LOG.info("Successful auto attach")
 
 
 def poll_for_pro_license(cfg: UAConfig):
     if util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
     ):
-        LOG.debug("Configured to not auto attach, shutting down")
+        LOG.info("Configured to not auto attach, shutting down")
         return
     if _is_attached(cfg).is_attached:
-        LOG.debug("Already attached, shutting down")
+        LOG.info("Already attached, shutting down")
         return
     if not system.is_current_series_lts():
-        LOG.debug("Not on LTS, shutting down")
+        LOG.info("Not on LTS, shutting down")
         return
 
     try:
         cloud = cloud_instance_factory()
     except exceptions.CloudFactoryError:
-        LOG.debug("Not on cloud, shutting down")
+        LOG.info("Not on cloud, shutting down")
         return
 
     is_supported_cloud = any(
@@ -53,11 +53,11 @@ def poll_for_pro_license(cfg: UAConfig):
         )
     )
     if not is_supported_cloud:
-        LOG.debug("Not on supported cloud platform, shutting down")
+        LOG.info("Not on supported cloud platform, shutting down")
         return
 
     if not cloud.should_poll_for_pro_license():
-        LOG.debug("Not on supported instance, shutting down")
+        LOG.info("Not on supported instance, shutting down")
         return
 
     try:
@@ -65,7 +65,7 @@ def poll_for_pro_license(cfg: UAConfig):
             wait_for_change=False
         )
     except exceptions.CancelProLicensePolling:
-        LOG.debug("Cancelling polling")
+        LOG.info("Cancelling polling")
         return
     except exceptions.DelayProLicensePolling:
         # Continue to polling loop anyway and handle error there if it occurs
@@ -77,7 +77,7 @@ def poll_for_pro_license(cfg: UAConfig):
             return
 
     if not cfg.poll_for_pro_license:
-        LOG.debug("Configured to not poll for pro license, shutting down")
+        LOG.info("Configured to not poll for pro license, shutting down")
         return
 
     while True:
@@ -88,7 +88,7 @@ def poll_for_pro_license(cfg: UAConfig):
             )
             end = time.time()
         except exceptions.CancelProLicensePolling:
-            LOG.debug("Cancelling polling")
+            LOG.info("Cancelling polling")
             return
         except exceptions.DelayProLicensePolling:
             time.sleep(cfg.polling_error_retry_delay)
@@ -96,13 +96,13 @@ def poll_for_pro_license(cfg: UAConfig):
         else:
             if _is_attached(cfg).is_attached:
                 # This could have changed during the long poll or sleep
-                LOG.debug("Already attached, shutting down")
+                LOG.info("Already attached, shutting down")
                 return
             if pro_license_present:
                 attempt_auto_attach(cfg, cloud)
                 return
             if end - start < 10:
-                LOG.debug(
+                LOG.info(
                     "wait_for_change returned quickly and no pro license"
                     " present. Waiting %d seconds before polling again",
                     cfg.polling_error_retry_delay,
