@@ -33,7 +33,7 @@ Because many of the Pro Client’s messages are commercial in nature, a bad tran
 misleading contractual implications. Because of that, we generally want all translations to come from Canonical employees.
 
 Regarding contributions, we will:
-- Accept Canonical-employee PRs of translations in Github.
+- Accept Canonical-employee PRs of translations in GitHub.
 - Consider community bugs/issues regarding translation wording/suggestions.
   - We’ll get input from a Canonical employee who speaks the language in question.
 - **Not** accept community PRs directly changing translations.

@@ -6,11 +6,11 @@ Whenever a string is changed, added, or deleted, that has an impact on existing 
 therefore an impact on the user experience of `pro` in non-english locales.
 To minimize regressions in translations, we have the following policy in place regarding string changes.
 This policy is implemented in practice via a custom GitHub action that posts a questionnaire and prompt
-for justification on all Github PRs that modify the `messages` module of Ubuntu Pro Client.
+for justification on all GitHub PRs that modify the `messages` module of Ubuntu Pro Client.
 
 ## Changing existing (already translated) strings
 
-All changes to existing strings will require justification in the Github PR that introduces the change.
+All changes to existing strings will require justification in the GitHub PR that introduces the change.
 
 Acceptable justifications:
 - Typos: these will hopefully be minimal after adding spell-check CI, but still could occur.
