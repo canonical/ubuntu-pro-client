@@ -22,7 +22,7 @@ Available Commands:
 
 
 @mock.patch("uaclient.cli.LOG.error")
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("uaclient.log.setup_cli_logging")
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfig:
     @pytest.mark.parametrize("additional_params", ([], ["--help"]))

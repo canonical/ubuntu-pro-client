@@ -1,8 +1,9 @@
 import json
 import logging
 import os
+import pathlib
 from collections import OrderedDict
-from typing import Any, Dict, List  # noqa: F401
+from typing import Any, Dict, List, Union  # noqa: F401
 
 from uaclient import defaults, system, util
 from uaclient.config import UAConfig
@@ -106,3 +107,35 @@ def setup_journald_logging():
     console_handler.setLevel(logging.INFO)
     console_handler.addFilter(RedactionFilter())
     logger.addHandler(console_handler)
+
+
+def setup_cli_logging(log_level: Union[str, int], log_file: str):
+    """Setup logging to log_file
+
+    If run as non-root then log_file is replaced with a user-specific log file.
+    """
+    # support lower-case log_level config value
+    if isinstance(log_level, str):
+        log_level = log_level.upper()
+
+    # if we are running as non-root, change log file
+    if not util.we_are_currently_root():
+        log_file = get_user_log_file()
+
+    logger = logging.getLogger("ubuntupro")
+    logger.setLevel(log_level)
+
+    # Clear all handlers, so they are replaced for this logger
+    logger.handlers = []
+
+    # Setup file logging
+    log_file_path = pathlib.Path(log_file)
+    if not log_file_path.exists():
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file_path.touch(mode=0o640)
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(JsonArrayFormatter())
+    file_handler.setLevel(log_level)
+    file_handler.addFilter(RedactionFilter())
+
+    logger.addHandler(file_handler)

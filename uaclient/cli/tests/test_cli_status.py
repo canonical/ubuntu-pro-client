@@ -348,7 +348,7 @@ Flags:
     return_value=UserConfigData(),
 )
 class TestActionStatus:
-    @mock.patch(M_PATH + "setup_logging")
+    @mock.patch(M_PATH + "log.setup_cli_logging")
     def test_status_help(
         self,
         _m_setup_logging,

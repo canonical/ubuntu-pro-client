@@ -714,7 +714,7 @@ class TestActionAttach:
 
 @mock.patch(M_PATH + "contract.get_available_resources")
 class TestParser:
-    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.log.setup_cli_logging")
     def test_attach_help(
         self, _m_resources, _m_setup_logging, capsys, FakeConfig
     ):

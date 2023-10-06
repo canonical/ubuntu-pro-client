@@ -25,7 +25,7 @@ Flags:
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("uaclient.log.setup_cli_logging")
 class TestMainConfigSet:
     @pytest.mark.parametrize(
         "kv_pair,err_msg",

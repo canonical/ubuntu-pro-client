@@ -24,7 +24,7 @@ Flags:
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 
-@mock.patch("uaclient.cli.setup_logging")
+@mock.patch("uaclient.log.setup_cli_logging")
 @mock.patch("uaclient.cli.contract.get_available_resources")
 class TestMainConfigUnSet:
     @pytest.mark.parametrize(
