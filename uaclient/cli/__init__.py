@@ -26,9 +26,11 @@ from uaclient import (
     log,
     messages,
     security_status,
+    status,
+    timer,
+    util,
+    version,
 )
-from uaclient import status as ua_status
-from uaclient import timer, util, version
 from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
@@ -619,7 +621,7 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
         event.service_processed(entitlement.name)
 
     if update_status:
-        ua_status.status(cfg=cfg)  # Update the status cache
+        status.status(cfg=cfg)  # Update the status cache
 
     return ret
 
@@ -967,8 +969,8 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     daemon.stop()
     daemon.cleanup(cfg)
 
-    status, _ret = actions.status(cfg)
-    output = ua_status.format_tabular(status)
+    status_dict, _ret = actions.status(cfg)
+    output = status.format_tabular(status_dict)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
 
@@ -1223,25 +1225,25 @@ def action_status(args, *, cfg: config.UAConfig, **kwargs):
         cfg = config.UAConfig()
     show_all = args.all if args else False
     token = args.simulate_with_token if args else None
-    active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
-    status, ret = actions.status(
+    active_value = status.UserFacingConfigStatus.ACTIVE.value
+    status_dict, ret = actions.status(
         cfg, simulate_with_token=token, show_all=show_all
     )
-    config_active = bool(status["execution_status"] == active_value)
+    config_active = bool(status_dict["execution_status"] == active_value)
 
     if args and args.wait and config_active:
-        while status["execution_status"] == active_value:
+        while status_dict["execution_status"] == active_value:
             event.info(".", end="")
             time.sleep(1)
-            status, ret = actions.status(
+            status_dict, ret = actions.status(
                 cfg,
                 simulate_with_token=token,
                 show_all=show_all,
             )
         event.info("")
 
-    event.set_output_content(status)
-    output = ua_status.format_tabular(status, show_all=show_all)
+    event.set_output_content(status_dict)
+    output = status.format_tabular(status_dict, show_all=show_all)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
     return ret
@@ -1353,7 +1355,7 @@ def action_help(args, *, cfg, **kwargs):
     if not cfg:
         cfg = config.UAConfig()
 
-    help_response = ua_status.help(cfg, service)
+    help_response = status.help(cfg, service)
 
     if args.format == "json":
         print(json.dumps(help_response))
