@@ -5,7 +5,7 @@ These are maintained in `po` files in the `debian/po` directory of the git repos
 Whenever a string is changed, added, or deleted, that has an impact on existing translations and
 therefore an impact on the user experience of `pro` in non-english locales.
 To minimize regressions in translations, we have the following policy in place regarding string changes.
-This policy is implemented in practice via a custom Github action that posts a questionare and prompt
+This policy is implemented in practice via a custom GitHub action that posts a questionnaire and prompt
 for justification on all Github PRs that modify the `messages` module of Ubuntu Pro Client.
 
 ## Changing existing (already translated) strings
