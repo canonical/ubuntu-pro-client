@@ -13,7 +13,7 @@ their side.
 import logging
 import sys
 
-from uaclient import defaults, http, messages, system
+from uaclient import http, log, messages, system
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
@@ -24,11 +24,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     full_auto_attach,
 )
 from uaclient.config import UAConfig
-from uaclient.daemon import (
-    AUTO_ATTACH_STATUS_MOTD_FILE,
-    retry_auto_attach,
-    setup_logging,
-)
+from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE, retry_auto_attach
 from uaclient.files import state_files
 
 LOG = logging.getLogger("ubuntupro.lib.auto_attach")
@@ -105,16 +101,7 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        defaults.CONFIG_DEFAULTS["log_file"],
-    )
+    log.setup_journald_logging()
     cfg = UAConfig()
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        cfg.log_file,
-    )
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
     sys.exit(main(cfg))

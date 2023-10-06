@@ -1,12 +1,10 @@
 #!/usr/bin/python3
 
-import logging
 from datetime import datetime, timedelta, timezone
 
-from uaclient import apt, defaults
+from uaclient import apt, log
 from uaclient.apt_news import update_apt_news
 from uaclient.config import UAConfig
-from uaclient.daemon import setup_logging
 
 
 def main(cfg: UAConfig):
@@ -22,15 +20,6 @@ def main(cfg: UAConfig):
 
 
 if __name__ == "__main__":
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        defaults.CONFIG_DEFAULTS["log_file"],
-    )
+    log.setup_journald_logging()
     cfg = UAConfig()
-    setup_logging(
-        logging.INFO,
-        logging.DEBUG,
-        cfg.log_file,
-    )
     main(cfg)
