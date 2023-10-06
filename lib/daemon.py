@@ -3,10 +3,9 @@ import os
 import sys
 import time
 
-from uaclient import http, system
+from uaclient import http, log, system
 from uaclient.config import UAConfig
 from uaclient.daemon import poll_for_pro_license, retry_auto_attach
-from uaclient.log import setup_journald_logging
 
 LOG = logging.getLogger("ubuntupro.daemon")
 
@@ -40,16 +39,13 @@ def _wait_for_cloud_config():
 
 
 def main() -> int:
-    setup_journald_logging(logging.DEBUG, LOG)
-    # Make sure the ubuntupro.daemon logger does not generate double logging
-    LOG.propagate = False
-    setup_journald_logging(logging.ERROR, logging.getLogger("ubuntupro"))
+    log.setup_journald_logging()
 
     cfg = UAConfig()
 
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
-    LOG.debug("daemon starting")
+    LOG.info("daemon starting")
 
     _wait_for_cloud_config()
 
@@ -70,7 +66,7 @@ def main() -> int:
         LOG.info("mode: retry auto attach")
         retry_auto_attach.retry_auto_attach(cfg)
 
-    LOG.debug("daemon ending")
+    LOG.info("daemon ending")
     return 0
 
 

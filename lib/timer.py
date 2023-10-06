@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
-from uaclient import http
+from uaclient import http, log
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
 from uaclient.files.state_files import (
@@ -14,7 +14,6 @@ from uaclient.files.state_files import (
     TimerJobState,
     timer_jobs_state_file,
 )
-from uaclient.log import setup_journald_logging
 from uaclient.timer.metering import metering_enabled_resources
 from uaclient.timer.update_contract_info import update_contract_info
 from uaclient.timer.update_messaging import update_motd_messages
@@ -49,9 +48,9 @@ class TimedJob:
             return False
 
         try:
-            LOG.debug("Running job: %s", self.name)
+            LOG.info("Running job: %s", self.name)
             if self._job_func(cfg=cfg):
-                LOG.debug("Executed job: %s", self.name)
+                LOG.info("Executed job: %s", self.name)
         except Exception as e:
             LOG.error("Error executing job %s: %s", self.name, str(e))
             return False
@@ -180,10 +179,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 
 if __name__ == "__main__":
-    setup_journald_logging(logging.DEBUG, LOG)
-    # Make sure the ubuntupro.timer logger does not generate double logging
-    LOG.propagate = False
-    setup_journald_logging(logging.ERROR, logging.getLogger("ubuntupro"))
+    log.setup_journald_logging()
 
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)

@@ -24,13 +24,11 @@ def time_mock_side_effect_increment_by(increment):
     return _time_mock_side_effect
 
 
-@mock.patch(M_PATH + "LOG.debug")
+@mock.patch(M_PATH + "LOG.info")
 @mock.patch(M_PATH + "actions.auto_attach")
 @mock.patch(M_PATH + "lock.RetryLock")
 class TestAttemptAutoAttach:
-    def test_success(
-        self, m_spin_lock, m_auto_attach, m_log_debug, FakeConfig
-    ):
+    def test_success(self, m_spin_lock, m_auto_attach, m_log_info, FakeConfig):
         cfg = FakeConfig()
         cloud = mock.MagicMock()
 
@@ -43,21 +41,19 @@ class TestAttemptAutoAttach:
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [
             mock.call("Successful auto attach")
-        ] == m_log_debug.call_args_list
+        ] == m_log_info.call_args_list
 
     @mock.patch(M_PATH + "system.create_file")
     @mock.patch(M_PATH + "lock.clear_lock_file_if_present")
     @mock.patch(M_PATH + "LOG.error")
-    @mock.patch(M_PATH + "LOG.info")
     def test_exception(
         self,
-        m_log_info,
         m_log_error,
         m_clear_lock,
         m_create_file,
         m_spin_lock,
         m_auto_attach,
-        m_log_debug,
+        m_log_info,
         FakeConfig,
     ):
         err = Exception()
@@ -81,7 +77,7 @@ class TestAttemptAutoAttach:
         ] == m_create_file.call_args_list
 
 
-@mock.patch(M_PATH + "LOG.debug")
+@mock.patch(M_PATH + "LOG.info")
 @mock.patch(M_PATH + "time.sleep")
 @mock.patch(M_PATH + "time.time")
 @mock.patch(M_PATH + "attempt_auto_attach")
@@ -99,7 +95,7 @@ class TestPollForProLicense:
         "should_poll,"
         "is_pro_license_present,"
         "cfg_poll_for_pro_licenses,"
-        "expected_log_debug_calls,"
+        "expected_log_info_calls,"
         "expected_is_pro_license_present_calls,"
         "expected_attempt_auto_attach_calls",
         [
@@ -243,7 +239,7 @@ class TestPollForProLicense:
         m_attempt_auto_attach,
         m_time,
         m_sleep,
-        m_log_debug,
+        m_log_info,
         is_config_value_true,
         is_attached,
         is_current_series_lts,
@@ -251,7 +247,7 @@ class TestPollForProLicense:
         should_poll,
         is_pro_license_present,
         cfg_poll_for_pro_licenses,
-        expected_log_debug_calls,
+        expected_log_info_calls,
         expected_is_pro_license_present_calls,
         expected_attempt_auto_attach_calls,
         FakeConfig,
@@ -270,7 +266,7 @@ class TestPollForProLicense:
 
         poll_for_pro_license(cfg)
 
-        assert expected_log_debug_calls == m_log_debug.call_args_list
+        assert expected_log_info_calls == m_log_info.call_args_list
         assert (
             expected_is_pro_license_present_calls
             == m_is_pro_license_present.call_args_list
@@ -285,7 +281,7 @@ class TestPollForProLicense:
         "time_side_effect,"
         "expected_is_pro_license_present_calls,"
         "expected_attempt_auto_attach_calls,"
-        "expected_log_debug_calls,"
+        "expected_log_info_calls,"
         "expected_sleep_calls",
         [
             (
@@ -403,12 +399,12 @@ class TestPollForProLicense:
         m_attempt_auto_attach,
         m_time,
         m_sleep,
-        m_log_debug,
+        m_log_info,
         is_pro_license_present_side_effect,
         time_side_effect,
         expected_is_pro_license_present_calls,
         expected_attempt_auto_attach_calls,
-        expected_log_debug_calls,
+        expected_log_info_calls,
         expected_sleep_calls,
         FakeConfig,
     ):
@@ -428,7 +424,7 @@ class TestPollForProLicense:
         poll_for_pro_license(cfg)
 
         assert expected_sleep_calls == m_sleep.call_args_list
-        assert expected_log_debug_calls == m_log_debug.call_args_list
+        assert expected_log_info_calls == m_log_info.call_args_list
         assert (
             expected_is_pro_license_present_calls
             == m_is_pro_license_present.call_args_list
