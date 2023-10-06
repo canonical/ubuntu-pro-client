@@ -1,6 +1,14 @@
+import json
+
 import mock
 import pytest
 
+from uaclient import exceptions, messages
+from uaclient.api.u.pro.security.fix import (
+    CVEPackageStatus,
+    FixStatus,
+    UASecurityClient,
+)
 from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     AdditionalData,
     AptUpgradeData,
@@ -29,7 +37,6 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
 from uaclient.api.u.pro.status.enabled_services.v1 import EnabledService
 from uaclient.contract import ContractExpiryStatus
 from uaclient.messages import INVALID_SECURITY_ISSUE
-from uaclient.security import CVEPackageStatus, FixStatus
 
 M_PATH = "uaclient.api.u.pro.security.fix._common.plan.v1."
 
@@ -908,3 +915,97 @@ class TestFixPlan:
         assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
+
+
+class TestGetUsnData:
+    @mock.patch(M_PATH + "query_installed_source_pkg_versions")
+    @mock.patch(
+        "uaclient.api.u.pro.security.fix.get_usn_affected_packages_status"
+    )  # noqa
+    @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
+    def test_error_msg_when_usn_does_not_have_any_related_usns(
+        self,
+        m_merge_usn,
+        m_usn_affected_pkgs,
+        m_query_installed_pkgs,
+        FakeConfig,
+    ):
+        m_query_installed_pkgs.return_value = {}
+        m_usn_affected_pkgs.return_value = {}
+        m_merge_usn.return_value = {}
+        with mock.patch.object(UASecurityClient, "get_notice") as m_notice:
+            with mock.patch.object(
+                UASecurityClient, "get_notices"
+            ) as m_notices:
+                usn_mock = mock.MagicMock()
+                cve_mock = mock.MagicMock()
+
+                type(cve_mock).notices_ids = mock.PropertyMock(
+                    return_value=["USN-123"]
+                )
+                type(usn_mock).cves = mock.PropertyMock(
+                    return_value=[cve_mock]
+                )
+                type(usn_mock).response = mock.PropertyMock(
+                    return_value={"release_packages": {}}
+                )
+                type(usn_mock).cves_ids = mock.PropertyMock(
+                    return_value=["cve-123"]
+                )
+                type(usn_mock).id = mock.PropertyMock(return_value="id")
+
+                m_notice.return_value = usn_mock
+                m_notices.return_value = [usn_mock]
+
+                with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
+                    fix_plan_usn("USN-1235-1", FakeConfig())
+
+        expected_msg = messages.E_SECURITY_API_INVALID_METADATA.format(
+            error_msg="metadata defines no fixed package versions.",
+            issue="USN-1235-1",
+            extra_info="",
+        ).msg
+        assert expected_msg in exc.value.msg
+
+
+class TestSecurityIssueData:
+    @pytest.mark.parametrize("error_code", ((404), (400)))
+    @pytest.mark.parametrize("issue_id", (("CVE-1800-123456"), ("USN-1235-1")))
+    @mock.patch(M_PATH + "query_installed_source_pkg_versions")
+    def test_error_msg_when_issue_id_is_not_found(
+        self, _m_query_versions, issue_id, error_code, FakeConfig
+    ):
+        expected_message = "Error: {} not found.".format(issue_id)
+        if "CVE" in issue_id:
+            mock_func = "get_cve"
+            issue_type = "CVE"
+            call_func = fix_plan_cve
+        else:
+            mock_func = "get_notice"
+            issue_type = "USN"
+            call_func = fix_plan_usn
+
+        with mock.patch.object(UASecurityClient, mock_func) as m_func:
+            msg = "{} with id 'ID' does not exist".format(issue_type)
+
+            m_func.side_effect = exceptions.SecurityAPIError(
+                url="URL", code=error_code, body=json.dumps({"message": msg})
+            )
+
+            cfg = FakeConfig()
+            fix_plan = call_func(issue_id, cfg)
+
+        if error_code == 404:
+            expected_message = "Error: {} not found.".format(issue_id)
+        else:
+            expected_message = (
+                "Error connecting to URL: "
+                + str(error_code)
+                + " "
+                + json.dumps({"message": msg})
+            )
+
+        if "CVE" in issue_id:
+            assert fix_plan.error.msg == expected_message
+        else:
+            assert fix_plan.target_usn_plan.error.msg == expected_message
