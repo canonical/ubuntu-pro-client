@@ -29,36 +29,35 @@ explicitly excluded from language pack translation stripping done by the `pkgbin
 
 Translations live as `.po` files in the `debian/po/` directory.
 
-Because many of the pro-client’s messages are commercial in nature, a bad translation could potentially have odd or
+Because many of the Pro Client’s messages are commercial in nature, a bad translation could potentially have odd or
 misleading contractual implications. Because of that, we generally want all translations to come from Canonical employees.
 
 Regarding contributions, we will:
 - Accept Canonical-employee PRs of translations in Github.
-- Consider community bugs/issues regarding translation wording/suggestions
+- Consider community bugs/issues regarding translation wording/suggestions.
   - We’ll get input from a Canonical employee who speaks the language in question.
-- **Not** accept community PRs directly changing translations
+- **Not** accept community PRs directly changing translations.
 
 We generally will not support translations to a language that no Canonical-employee understands and is willing to review/help maintain.
 
-We will set up a project on https://translations.launchpad.net where only Canonical-employees have permission to contribute
+We will set up a project on https://translations.launchpad.net where only Canonical employees have permission to contribute
 translations to Ubuntu Pro Client. Before every release of Ubuntu Pro Client, we will download the latest translations
-from this launchpad project and integrate them. *Note that this is not done yet.*
+from this Launchpad project and integrate them. *Note that this is not done yet.*
 
-# What parts of pro-client will get translated?
+## What parts of the Pro Client will get translated?
 
 These **do** get translated:
-- Human-readable output of all `pro` cli commands
-  - Including:
-    - help text (called out because this is handled in a special way in pro-client)
+- Human-readable output of all `pro` CLI commands, including:
+    - help text (called out because this is handled in a special way in Pro Client)
     - `pro status` table values including: “enabled”, ”disabled”, “available”, etc
-- Pro-related messages inserted in apt upgrade
-- Messages inserted in MOTD
+- Pro-related messages inserted into `apt upgrade`
+- Messages inserted into the MOTD
 
 These do **not** get translated:
-- JSON output of `pro` cli commands
-  - For example: {“status”: “enabled”} – both “status” and “enabled” should remain english
-  - Exception: some values in the json are messages intended for humans – these should get translated
-- Cli flags
+- JSON output of `pro` CLI commands
+  - For example: {“status”: “enabled”} – both “status” and “enabled” should remain in English
+  - Exception: some values in the JSON are messages intended for humans – these should get translated
+- CLI flags
 - Logs
 - APT News
 
