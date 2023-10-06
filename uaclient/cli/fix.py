@@ -775,11 +775,6 @@ def _execute_enable_step(
         fix_context.cfg,
         fix_context.dry_run,
     ):
-        print(
-            messages.SECURITY_UA_SERVICE_NOT_ENABLED.format(
-                service=step.data.service
-            )
-        )
         fix_context.add_unfixed_packages(
             pkgs=step.data.source_packages,
             unfixed_reason=messages.SECURITY_UA_SERVICE_NOT_ENABLED_SHORT.format(  # noqa
