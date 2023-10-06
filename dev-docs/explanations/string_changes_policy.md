@@ -13,12 +13,12 @@ for justification on all GitHub PRs that modify the `messages` module of Ubuntu 
 All changes to existing strings will require justification in the GitHub PR that introduces the change.
 
 Acceptable justifications:
-- Typos: these will hopefully be minimal after adding spell-check CI, but still could occur.
+- Typos: these will hopefully be minimal because of our spell-check CI, but still could occur.
   - Note: existing translations should be preserved when fixing typos
 - Factual errors: the nature of some features may change which will require us to update the description so that it is not wrong.
-- A Product Manager told us to change it: E.g. Product is renamed or description needs more info.
+- Change requested by a Product Manager due to the product being renamed or service descriptions being updated.
 
-When a change is made to a translated string, a best effort will be made to get Canonicalers to fix the translations of the changed string in the PR that introduces the change. However, a lack of complete translation replacements will not block the release of the changes.
+When a change is made to a translated string, we (Canonical) will endeavour to provide translations for the changed string within the PR that introduces the change. However, these translations are provided on a "best effort" basis and we will not block the release of the changes due to incomplete translations.
 
 ## Adding new (yet to be translated) strings
 
