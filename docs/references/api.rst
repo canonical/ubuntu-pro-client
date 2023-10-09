@@ -153,6 +153,8 @@ The currently available endpoints are:
 - `u.pro.attach.auto.should_auto_attach.v1`_
 - `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.configure_retry_service.v1`_
+- `u.pro.security.fix.cve.execute.v1`_
+- `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.cve.plan.v1`_
 - `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
@@ -628,6 +630,345 @@ like ``systemctl start ubuntu-advantage.service``.
 
         - This endpoint currently has no CLI support. Only the Python-based
           version is available.
+
+u.pro.security.fix.cve.execute.v1
+===================================
+
+This endpoint fix the specified CVEs on the machine.
+
+- Introduced in Ubuntu Pro Client Version: ``30~``
+- Args:
+
+  - ``cves``: A list of CVE (i.e. CVE-2023-2650) titles
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.security.fix.cve.execute.v1 import execute, CVEFixExecuteOptions
+
+           options = CVEFixExecuteOptions(cves=["CVE-1234-1234", "CVE-1234-1235"])
+           result = execute(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.security.fix.cve.execute.v1.CVESAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``cves_data``
+               - *List[CVEAPIFixExecuteResult]*
+               - A list of CVEAPIFixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.cve.execute.v1.CVEAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of fixing the CVEs
+             * - ``cves``
+               - *List[FixExecuteResult]*
+               - A list of FixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``title``
+               - *str*
+               - The title of the CVE
+             * - ``expected_status``
+               - *str*
+               - The status of fixing the CVE
+             * - ``upgraded_packages``
+               - *List[UpgradedPackages]*
+               - A list of UpgradedPackages objects
+             * - ``error``
+               - *Optional[FixExecuteError]*
+               - A FixExecuteError object
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackages``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``version``
+               - *str*
+               - The version that the package was upgraded to
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteError``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``error_type``
+               - *str*
+               - The type of the error
+             * - ``reason``
+               - *str*
+               - The reason why the error occurred
+             * - ``failed_upgrades``
+               - *Optional[List[FailedUpgrade]]*
+               - A list of FailedUpgrade objects
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FailedUpgrade``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-1234-1234", "CVE-1234-1235"]}'
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+              "cves_data": {
+                  "status": "fixed",
+                  "cves": [
+                    {
+                        "title": "CVE-1234-56789",
+                        "status": "fixed",
+                        "upgraded_packages": {
+                            "name": "pkg1",
+                            "version": "1.1",
+                            "pocket": "standard-updates"
+                        },
+                        "error": null
+                    }
+                  ]
+              }
+           }
+
+u.pro.security.fix.usn.execute.v1
+===================================
+
+This endpoint fix the specified USNs on the machine.
+
+- Introduced in Ubuntu Pro Client Version: ``30~``
+- Args:
+
+  - ``usns``: A list of USNs (i.e. USN-6188-1) titles
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute, USNFixExecuteOptions
+
+           options = USNFixExecuteOptions(usns=["USN-1234-1", "USN-1235-1"])
+           result = execute(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNSAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``usns_data``
+               - *List[USNAPIFixExecuteResult]*
+               - A list of USNAPIFixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of fixing the USNs
+             * - ``cves``
+               - *List[FixExecuteUSNResult]*
+               - A list of FixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.FixExecuteUSNResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``target_usn``
+               - *str*
+               - The FixExecuteResult for the target USN
+             * - ``related_usns``
+               - *List[FixExecuteResult]*
+               - A list of FixExecuteResult objects for the related USNs
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``title``
+               - *str*
+               - The title of the USN
+             * - ``expected_status``
+               - *str*
+               - The status of fixing the USN
+             * - ``upgraded_packages``
+               - *List[UpgradedPackages]*
+               - A list of UpgradedPackages objects
+             * - ``error``
+               - *Optional[FixExecuteError]*
+               - A FixExecuteError object
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackages``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``version``
+               - *str*
+               - The version that the package was upgraded to
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteError``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``error_type``
+               - *str*
+               - The type of the error
+             * - ``reason``
+               - *str*
+               - The reason why the error occurred
+             * - ``failed_upgrades``
+               - *Optional[List[FailedUpgrade]]*
+               - A list of FailedUpgrade objects
+
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FailedUpgrade``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+              "usns_data": {
+                  "status": "fixed",
+                  "usns": [
+                    {
+                        "target_usn": {
+                            "title": "CVE-1234-56789",
+                            "status": "fixed",
+                            "upgraded_packages": {
+                                "name": "pkg1",
+                                "version": "1.1",
+                                "pocket": "standard-updates"
+                            },
+                            "error": null
+                        },
+                        "related_usns": []
+                    }
+                  ]
+              }
+           }
+
 
 u.pro.security.fix.cve.plan.v1
 ===============================
