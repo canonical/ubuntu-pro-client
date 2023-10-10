@@ -13,6 +13,7 @@ from the architecture of the project to how you should test any code changes.
 * [How to release a new version](./dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
 * [How to use the contract staging environment](./dev-docs/howtoguides/use_staging_environment.md)
 * [How to use the magic attach endpoints](./dev-docs/howtoguides/how_to_use_magic_attach_endpoints.md)
+* [How to spellcheck messages](./dev-docs/howtoguides/spellcheck.md)
 
 ### Reference
 
