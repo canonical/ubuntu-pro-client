@@ -137,7 +137,7 @@ class RepoEntitlement(base.UAEntitlement):
             packages_to_reinstall = []
             packages_to_remove = []
             for package in repo_origin_packages:
-                alternatives = apt.get_alternative_versions_for_package(
+                alternatives = apt.get_remote_versions_for_package(
                     package, exclude_origin=self.origin
                 )
                 if alternatives:

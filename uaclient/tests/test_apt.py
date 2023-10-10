@@ -27,13 +27,13 @@ from uaclient.apt import (
     add_ppa_pinning,
     assert_valid_apt_credentials,
     find_apt_list_files,
-    get_alternative_versions_for_package,
     get_apt_cache_policy,
     get_apt_cache_time,
     get_apt_config_values,
     get_installed_packages_by_origin,
     get_installed_packages_names,
     get_pkg_candidate_version,
+    get_remote_versions_for_package,
     is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
@@ -1359,12 +1359,12 @@ class TestGetInstalledPackagesByOrigin:
         )
 
 
-class TestGetAlternativeVersionsForPackage:
-    def test_get_alternative_versions_for_package(self):
+class TestGetRemoteVersionsForPackage:
+    def test_get_remote_versions_for_package(self):
         assert ["0.9", "1.1"] == [
             v.ver_str
             for v in sorted(
-                get_alternative_versions_for_package(
+                get_remote_versions_for_package(
                     mock_package(
                         "name",
                         installed_version=mock_version("1.0"),
@@ -1381,16 +1381,16 @@ class TestGetAlternativeVersionsForPackage:
             )
         ]
 
-    def test_no_alternative_versions(self):
-        assert [] == get_alternative_versions_for_package(
+    def test_no_remote_versions(self):
+        assert [] == get_remote_versions_for_package(
             mock_package("name", installed_version=mock_version("1.0"))
         )
 
-    def test_get_alternative_versions_excluding_origin(self):
+    def test_get_remote_versions_excluding_origin(self):
         assert ["0.9"] == [
             v.ver_str
             for v in sorted(
-                get_alternative_versions_for_package(
+                get_remote_versions_for_package(
                     mock_package(
                         "name",
                         installed_version=mock_version("1.0"),
