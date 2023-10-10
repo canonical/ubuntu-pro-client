@@ -1579,6 +1579,11 @@ ENABLE_ACCESS_ONLY_NOT_SUPPORTED = FormattedNamedMessage(
     msg=t.gettext("{title} does not support being enabled with --access-only"),
 )
 
+DISABLE_PURGE_NOT_SUPPORTED = FormattedNamedMessage(
+    name="disable-purge-not-supported",
+    msg=t.gettext("{title} does not support being disabled with --purge"),
+)
+
 FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
     "failed-disabling-dependent-service",
     t.gettext(

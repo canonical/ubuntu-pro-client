@@ -21,6 +21,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True
     supports_access_only = True
+    supports_purge = False
     origin = "UbuntuRealtimeKernel"
 
     def _check_for_reboot(self) -> bool:

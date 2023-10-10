@@ -35,6 +35,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         allow_beta=False,
         supports_access_only=False,
         access_only=False,
+        supports_purge=False,
+        purge=False,
         dependent_services=None,
         required_services=None,
         blocking_incompatible_services=None,
@@ -42,11 +44,10 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         **kwargs
     ):
         super().__init__(
-            cfg,
-            allow_beta=allow_beta,
-            access_only=access_only,
+            cfg, allow_beta=allow_beta, access_only=access_only, purge=purge
         )
         self.supports_access_only = supports_access_only
+        self.supports_purge = supports_purge
         self._disable = disable
         self._enable = enable
         self._applicability_status = applicability_status
@@ -104,6 +105,8 @@ def concrete_entitlement_factory(FakeConfig):
         allow_beta: bool = False,
         supports_access_only: bool = False,
         access_only: bool = False,
+        supports_purge: bool = False,
+        purge: bool = False,
         enable: bool = False,
         disable: bool = False,
         dependent_services: Tuple[Any, ...] = None,
@@ -136,6 +139,8 @@ def concrete_entitlement_factory(FakeConfig):
             allow_beta=allow_beta,
             supports_access_only=supports_access_only,
             access_only=access_only,
+            supports_purge=supports_purge,
+            purge=purge,
             enable=enable,
             disable=disable,
             dependent_services=dependent_services,
@@ -668,6 +673,27 @@ class TestUaEntitlementEnable:
 
 
 class TestUaEntitlementCanDisable:
+    def test_can_disable_false_on_purge_not_supported(
+        self, concrete_entitlement_factory
+    ):
+        """When the entitlement doesn't support purge, can_disable is FALSE."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            supports_purge=False,
+            purge=True,
+            application_status=(ApplicationStatus.ENABLED, ""),
+        )
+
+        can_disable, reason = entitlement.can_disable()
+        assert can_disable is False
+        assert reason.reason == CanDisableFailureReason.PURGE_NOT_SUPPORTED
+        assert (
+            reason.message.msg
+            == messages.DISABLE_PURGE_NOT_SUPPORTED.format(
+                title=ConcreteTestEntitlement.title
+            ).msg
+        )
+
     def test_can_disable_false_on_entitlement_inactive(
         self, concrete_entitlement_factory
     ):
