@@ -650,7 +650,7 @@ class TestPerformEnable:
 class TestPerformDisable:
     @pytest.mark.parametrize("purge_value", (True, False))
     @mock.patch(M_PATH + "apt.get_installed_packages_by_origin")
-    @mock.patch(M_PATH + "apt.get_alternative_versions_for_package")
+    @mock.patch(M_PATH + "apt.get_remote_versions_for_package")
     @mock.patch(M_PATH + "RepoEntitlement.prompt_for_purge")
     @mock.patch(M_PATH + "RepoEntitlement.execute_purge")
     @mock.patch(M_PATH + "RepoEntitlement.remove_apt_config")
@@ -659,19 +659,19 @@ class TestPerformDisable:
         m_remove_apt_config,
         m_execute_purge,
         m_prompt_for_purge,
-        m_get_alternative_versions,
+        m_get_remote_versions,
         m_get_installed_packages,
         purge_value,
         entitlement_factory,
     ):
         m_get_installed_packages.return_value = [1, 2, 3, 4, 5]
 
-        def return_alternatives(p, exclude_origins):
+        def return_alternatives(p, _exclude_origins):
             if p % 2:
                 return [p]
             return []
 
-        m_get_alternative_versions.side_effect = return_alternatives
+        m_get_remote_versions.side_effect = return_alternatives
 
         with mock.patch.object(RepoTestEntitlement, "origin", "TestOrigin"):
             entitlement = entitlement_factory(
@@ -688,7 +688,7 @@ class TestPerformDisable:
                 m_get_installed_packages.call_args_list = [
                     mock.call("TestOrigin")
                 ]
-                m_get_alternative_versions.call_args_list = [
+                m_get_remote_versions.call_args_list = [
                     mock.call(1, exclude_origin="TestOrigin"),
                     mock.call(2, exclude_origin="TestOrigin"),
                     mock.call(3, exclude_origin="TestOrigin"),
@@ -703,7 +703,7 @@ class TestPerformDisable:
                 ]
             else:
                 m_get_installed_packages.call_args_list = []
-                m_get_alternative_versions.call_args_list = []
+                m_get_remote_versions.call_args_list = []
                 m_prompt_for_purge.call_args_list = []
                 m_execute_purge.call_args_list = []
 
