@@ -452,22 +452,20 @@ def get_installed_packages_by_origin(origin: str) -> List[apt_pkg.Package]:
     return list(result)
 
 
-def get_alternative_versions_for_package(
+def get_remote_versions_for_package(
     package: apt_pkg.Package, exclude_origin: Optional[str] = None
 ) -> List[apt_pkg.Version]:
-    alternative_versions = [
-        version
-        for version in package.version_list
-        if version != package.current_ver
-    ]
-    if exclude_origin:
-        for version in alternative_versions:
-            for file, _ in version.file_list:
-                if file.origin == exclude_origin:
-                    alternative_versions.remove(version)
-                    break
+    valid_versions = []
+    for version in package.version_list:
+        valid_origins = [
+            file
+            for file, _ in version.file_list
+            if file.component != "now" and file.origin != exclude_origin
+        ]
+        if valid_origins:
+            valid_versions.append(version)
 
-    return alternative_versions
+    return valid_versions
 
 
 def add_auth_apt_repo(
