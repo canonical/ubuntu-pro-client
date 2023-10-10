@@ -43,6 +43,9 @@ class RepoEntitlement(base.UAEntitlement):
     # the service is enabled or not
     check_packages_are_installed = False
 
+    # RepoEntitlements can be purged, unless specifically stated
+    supports_purge = True
+
     # Optional repo pin priority in subclass
     @property
     def repo_pin_priority(self) -> Union[int, str, None]:

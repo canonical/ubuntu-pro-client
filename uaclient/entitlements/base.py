@@ -58,6 +58,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Whether the entitlement supports the --access-only flag
     supports_access_only = False
 
+    # Whether the entitlement supports the --purge flag
+    supports_purge = False
+
     # Help text for the entitlement
     help_text = ""
 
@@ -789,6 +792,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
                     ),
                 )
+
+        if not self.supports_purge and self.purge:
+            return (
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.PURGE_NOT_SUPPORTED,
+                    messages.DISABLE_PURGE_NOT_SUPPORTED.format(
+                        title=self.title
+                    ),
+                ),
+            )
 
         return True, None
 
