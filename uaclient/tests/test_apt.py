@@ -27,7 +27,6 @@ from uaclient.apt import (
     add_auth_apt_repo,
     add_ppa_pinning,
     assert_valid_apt_credentials,
-    clean_apt_files,
     find_apt_list_files,
     get_apt_cache_policy,
     get_apt_cache_time,
@@ -48,7 +47,6 @@ from uaclient.apt import (
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.entitlements.repo import RepoEntitlement
-from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 from uaclient.testing import fakes
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
@@ -656,51 +654,6 @@ class TestCleanAptFiles:
                 f.write("")
 
         return TestRepo
-
-    @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.ensure_file_absent")
-    def test_removals_for_repo_entitlements(
-        self, m_ensure_file_absent, _m_path_exists
-    ):
-        m_entitlements = mock.Mock()
-        m_entitlements.ENTITLEMENT_CLASSES = [RepoTestEntitlement]
-
-        clean_apt_files(_entitlements=m_entitlements)
-
-        assert 2 == m_ensure_file_absent.call_count
-
-    def test_files_for_all_series_removed(self, mock_apt_entitlement, tmpdir):
-        m_entitlements = mock.Mock()
-        m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
-
-        clean_apt_files(_entitlements=m_entitlements)
-
-        if mock_apt_entitlement.is_repo:
-            assert [] == tmpdir.listdir()
-        else:
-            assert sorted(
-                [tmpdir.join("source-test_ent"), tmpdir.join("pref-test_ent")]
-            ) == sorted(tmpdir.listdir())
-
-    def test_other_files_not_removed(self, mock_apt_entitlement, tmpdir):
-        other_filename = "other_file-acidic"
-        tmpdir.join(other_filename).ensure()
-
-        m_entitlements = mock.Mock()
-        m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
-
-        clean_apt_files(_entitlements=m_entitlements)
-
-        if mock_apt_entitlement.is_repo:
-            assert [tmpdir.join(other_filename)] == tmpdir.listdir()
-        else:
-            assert sorted(
-                [
-                    tmpdir.join("source-test_ent"),
-                    tmpdir.join("pref-test_ent"),
-                    tmpdir.join(other_filename),
-                ]
-            ) == sorted(tmpdir.listdir())
 
 
 @pytest.fixture(params=(mock.sentinel.default, None, "some_string"))
