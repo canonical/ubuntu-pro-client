@@ -407,7 +407,8 @@ def update_sources_list(sources_list_path: str):
         try:
             with lock:
                 cache.update(fetch_progress, sources_list, 0)
-        except apt_pkg.Error:
+        # No apt_pkg.Error on Xenial
+        except getattr(apt_pkg, "Error", ()):
             raise exceptions.APTProcessConflictError()
         except SystemError as e:
             raise exceptions.APTUpdateFailed(detail=str(e))
@@ -873,7 +874,7 @@ def update_esm_caches(cfg) -> None:
         fetch_progress = EsmAcquireProgress()
         try:
             cache.update(fetch_progress, sources_list, 0)
-        except (apt_pkg.Error, SystemError) as e:
+        except (SystemError) as e:
             LOG.warning("Failed to fetch the ESM Apt Cache: {}".format(str(e)))
 
 
