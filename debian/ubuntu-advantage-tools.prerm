@@ -3,12 +3,14 @@
 set -e
 
 remove_apt_files() {
-    /usr/bin/python3 -c '
-from uaclient.apt import clean_apt_files
-
-clean_apt_files()
-'
-
+    # This list should be kept up to date with the list of available apt-repo-based services
+    for service in anbox cc-eal cis esm-apps esm-infra fips fips-preview fips-updates realtime-kernel ros ros-updates; do
+        rm -f /etc/apt/sources.list.d/ubuntu-${service}.list
+    done
+    # preferences are only dynamically created for fips services
+    for fips_service in fips fips-preview fips-updates; do
+        rm -f /etc/apt/preferences.d/ubuntu-${fips_service}
+    done
 }
 
 case "$1" in

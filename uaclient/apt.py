@@ -6,7 +6,6 @@ import logging
 import os
 import re
 import subprocess
-import sys
 import tempfile
 from functools import lru_cache, wraps
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
@@ -661,43 +660,6 @@ def remove_apt_list_files(repo_url, series):
     """Remove any apt list files present for this repo_url and series."""
     for path in find_apt_list_files(repo_url, series):
         system.ensure_file_absent(path)
-
-
-def clean_apt_files(*, _entitlements=None):
-    """
-    Clean apt files written by uaclient
-
-    :param _entitlements:
-        The uaclient.entitlements module to use, defaults to
-        uaclient.entitlements. (This is only present for testing, because the
-        import happens within the function to avoid circular imports.)
-    """
-    from uaclient.entitlements.repo import RepoEntitlement
-
-    if _entitlements is None:
-        from uaclient import entitlements as __entitlements
-
-        _entitlements = __entitlements
-
-    for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
-        if not issubclass(ent_cls, RepoEntitlement):
-            continue
-        repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
-        pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
-        if os.path.exists(repo_file):
-            event.info(
-                messages.APT_REMOVING_SOURCE_FILE.format(filename=repo_file),
-                file_type=sys.stderr,
-            )
-            system.ensure_file_absent(repo_file)
-        if os.path.exists(pref_file):
-            event.info(
-                messages.APT_REMOVING_PREFERENCES_FILE.format(
-                    filename=pref_file
-                ),
-                file_type=sys.stderr,
-            )
-            system.ensure_file_absent(pref_file)
 
 
 def is_installed(pkg: str) -> bool:
