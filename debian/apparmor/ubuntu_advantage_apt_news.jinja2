@@ -1,0 +1,51 @@
+{% if ubuntu_codename not in ["xenial", "bionic", "focal"] %}
+abi <abi/3.0>,
+{% endif %}
+include <tunables/global>
+
+profile ubuntu_advantage_apt_news flags=(attach_disconnected) {
+  include <abstractions/base>
+  include <abstractions/nameservice>
+  include <abstractions/openssl>
+  include <abstractions/python>
+
+  # Needed because apt-news calls apt_pkg.init() which tries to
+  # switch to the _apt system user/group.
+  capability setgid,
+  capability setuid,
+  capability dac_read_search,
+
+  /etc/apt/** r,
+  /etc/default/apport r,
+  /etc/ubuntu-advantage/* r,
+  /usr/bin/python3.{1,}[0-9] mrix,
+{% if ubuntu_codename in ["focal"] %}
+  # "import uuid" in focal triggers an uname call
+  /usr/bin/uname mrix,
+{% endif %}
+  /usr/lib/apt/methods/http mrix,
+  /usr/lib/apt/methods/https mrix,
+  /usr/lib/ubuntu-advantage/apt_news.py r,
+  /usr/share/dpkg/* r,
+  /var/log/ubuntu-advantage.log rw,
+  /var/lib/ubuntu-advantage/** r,
+  /var/lib/ubuntu-advantage/messages/ rw,
+  /var/lib/ubuntu-advantage/messages/* rw,
+  /run/ubuntu-advantage/ rw,
+  /run/ubuntu-advantage/* rw,
+
+  /tmp/** r,
+
+  owner @{PROC}/@{pid}/fd/ r,
+  @{PROC}/@{pid}/cgroup r,
+{% if ubuntu_codename in ["bionic", "xenial"] %}
+  # see https://bugs.python.org/issue40501
+  /sbin/ldconfig rix,
+  /sbin/ldconfig.real rix,
+  @{PROC}/@{pid}/mounts r,
+  /usr/bin/@{multiarch}-gcc-* rix,
+  /usr/bin/@{multiarch}-ld.bfd rix,
+  /usr/lib/gcc/@{multiarch}/*/collect2 rix,
+  /usr/bin/@{multiarch}-objdump rix,
+{% endif %}
+}
