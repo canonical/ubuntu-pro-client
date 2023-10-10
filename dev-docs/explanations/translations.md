@@ -18,7 +18,7 @@ the version of Ubuntu Pro Client installed.
 
 Because of this, Ubuntu Pro Client is not included in the Ubuntu language pack and instead ships all translations
 directly in our own source package. However, translations are kept in a separate binary package so that the translation
-fils are not required to be installed with Ubuntu Pro Client (and therefore not required in `ubuntu-minimal`).
+files are not required to be installed with Ubuntu Pro Client (and therefore not required in `ubuntu-minimal`).
 Translations are in a binary package named: `ubuntu-pro-client-l10n`. The `ubuntu-advantage-tools` binary package
 _Recommends_ `ubuntu-pro-client-l10n`, but doesn't require it.
 
