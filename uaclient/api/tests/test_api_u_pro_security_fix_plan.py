@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from uaclient import exceptions, messages
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common import (
     CVEPackageStatus,
     FixStatus,
     UASecurityClient,
@@ -920,8 +920,8 @@ class TestFixPlan:
 class TestGetUsnData:
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     @mock.patch(
-        "uaclient.api.u.pro.security.fix.get_usn_affected_packages_status"
-    )  # noqa
+        "uaclient.api.u.pro.security.fix._common.get_usn_affected_packages_status"  # noqa
+    )
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     def test_error_msg_when_usn_does_not_have_any_related_usns(
         self,

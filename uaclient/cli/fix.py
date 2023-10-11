@@ -21,12 +21,12 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     MagicAttachWaitOptions,
     _wait,
 )
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common import (
     CVE_OR_USN_REGEX,
     FixStatus,
     UnfixedPackage,
+    status_message,
 )
-from uaclient.api.u.pro.security.fix._common import status_message
 from uaclient.api.u.pro.security.fix._common.plan.v1 import (  # noqa: F401
     ESM_APPS_POCKET,
     ESM_INFRA_POCKET,
