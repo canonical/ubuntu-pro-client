@@ -634,7 +634,7 @@ like ``systemctl start ubuntu-advantage.service``.
 u.pro.security.fix.cve.execute.v1
 ===================================
 
-This endpoint fix the specified CVEs on the machine.
+This endpoint fixes the specified CVEs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
 - Args:
@@ -791,10 +791,101 @@ This endpoint fix the specified CVEs on the machine.
               }
            }
 
+   .. tab-item:: Explanation
+      :sync: explanation
+
+      When using the CVE endpoint, the expected output is as follows:
+
+      .. code-block:: json
+
+         {
+           "_schema_version": "v1",
+           "data": {
+             "attributes": {
+               "cves_data": {
+                 "cves": [
+                   {
+                     "description": "description",
+                     "errors": null,
+                     "status": "fixed",
+                     "title": "CVE-2021-27135",
+                     "upgraded_packages": [
+                       {
+                         "name": "xterm",
+                         "pocket": "standard-updates",
+                         "version": "VERSION"
+                       }
+                     ]
+                   }
+                 ],
+                 "status": "fixed"
+               }
+             },
+             "meta": {
+               "environment_vars": []
+             },
+             "type": "CVEFixExecute"
+           },
+           "errors": [],
+           "result": "success",
+           "version": "30",
+           "warnings": []
+         }
+
+      From this output, we can see that the **cves_data** object contains two attributes:
+
+      * **cves**: A list of CVE objects detailing what happened during the fix operation.
+      * **status**: The status of the fix operation considering **all** CVEs.
+                    This means that if one CVE cannot be fixed, this field will reflect that.
+
+      If we take a look at a CVE object, we will see the following structure:
+
+      * **title**: The title of the CVE.
+      * **description**: The CVE description.
+      * **error**: Any error captured when fixing the CVE will appear here. The error object
+                  will be detailed in a following section.
+      * **status**: The expected status of the CVE after the fix operation. There are
+        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
+        The system is considered **still-affected** if there is something that
+        prevents any required packages from being upgraded. The system
+        is considered **not-affected** if the CVE doesn't affect the system at all.
+      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
+        that was upgraded during the fix operation. The UpgradePackage object always contain
+        the **name** of the package, the **version** it was upgraded to and the **pocket** where
+        the package upgrade came from.
+
+      **What errors can be generated?**
+
+      There some errors that can happen when executing this endpoint. For example, the system
+      might require the user to attach to a Pro subscription to install the upgrades,
+      or the user might run the command as non-root when a package upgrade is needed.
+
+      In those situations, the error JSON error object will follow this representation:
+
+      .. code-block:: json
+
+         {
+           "error_type": "error-type",
+           "reason": "reason",
+           "failed_upgrades": [
+             {
+               "name": "pkg1",
+               "pocket": "esm-infra"
+             }
+           ]
+         }
+
+      We can see that the representation has the following fields:
+
+      * **error_type**: The error type
+      * **reason**: The explanation of why the error happened
+      * **failed_upgrade**: A list of objects that always contain the name of the package
+        that was not upgraded and the pocket where the upgrade would have come from.
+
 u.pro.security.fix.usn.execute.v1
 ===================================
 
-This endpoint fix the specified USNs on the machine.
+This endpoint fixes the specified USNs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
 - Args:
@@ -968,6 +1059,94 @@ This endpoint fix the specified USNs on the machine.
                   ]
               }
            }
+
+   .. tab-item:: Explanation
+      :sync: explanation
+
+      When using the USN endpoint, the expected output is as follows:
+
+      .. code-block:: json
+
+          {
+            "usns_data": {
+                "status": "fixed",
+                "usns": [
+                  {
+                      "target_usn": {
+                          "title": "CVE-1234-56789",
+                          "status": "fixed",
+                          "upgraded_packages": {
+                              "name": "pkg1",
+                              "version": "1.1",
+                              "pocket": "standard-updates"
+                          },
+                          "error": null
+                      },
+                      "related_usns": []
+                  }
+                ]
+            }
+          }
+
+      From this output, we can see that the **usns_data** object contains two attributes:
+
+      * **usns**: A list of USN objects detailing what happened during the fix operation.
+      * **status**: The status of the fix operation considering **all** USNs.
+                    This means that if one USN cannot be fixed, this field will reflect that.
+                    Note that related USNs don't interfere with this attribute, meaning
+                    that a related USN can fail to be fixed without modyfing the **status**
+                    value.
+
+      Each **usn** object contains a reference for both **target_usn** and **related_usns**.
+      The target is the USN requested to be fixed by the user, while related USNs are USNs
+      that are related to the main USN and an attempt to fix them will be performed by the
+      endpoint too. To better understand that distinction, please refer to 
+      `our explanation of CVEs and USNs <../explanations/cves_and_usns_explained.html>`_.
+
+      With that said both **target_usn** object and any object from **related_usns**
+      follow this structure:
+
+      * **title**: The title of the USN.
+      * **description**: The USN description.
+      * **error**: Any error captured when fixing the USN will appear here. The error object
+                  will be detailed in a following section.
+      * **status**: The expected status of the USN after the fix operation. There are
+        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
+        The system is considered **still-affected** if there is something that
+        prevents any required packages from being upgraded. The system
+        is considered **not-affected** if the USN doesn't affect the system at all.
+      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
+        that was upgraded during the fix operation. The UpgradePackage object always contain
+        the **name** of the package, the **version** it was upgraded to and the **pocket** where
+        the package upgrade came from.
+
+      **What errors can be generated?**
+
+      There some errors that can happen when executing this endpoint. For example, the system
+      might require the user to attach to a Pro subscription to install the upgrades,
+      or the user might run the command as non-root when a package upgrade is needed.
+
+      In those situations, the error JSON error object will follow this representation:
+
+      .. code-block:: json
+
+         {
+           "error_type": "error-type",
+           "reason": "reason",
+           "failed_upgrades": [
+             {
+               "name": "pkg1",
+               "pocket": "esm-infra"
+             }
+           ]
+         }
+
+      We can see that the representation has the following fields:
+
+      * **error_type**: The error type
+      * **reason**: The explanation of why the error happened
+      * **failed_upgrade**: A list of objects that always contain the name of the package
+        that was not upgraded and the pocket where the upgrade would have come from.
 
 
 u.pro.security.fix.cve.plan.v1
