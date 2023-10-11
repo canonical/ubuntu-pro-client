@@ -239,12 +239,10 @@ class TestActionAttach:
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
-    @mock.patch("uaclient.actions.status", return_value=("", 0))
-    @mock.patch("uaclient.status.format_tabular")
+    @mock.patch(M_PATH + "_post_cli_attach")
     def test_happy_path_with_token_arg(
         self,
-        m_format_tabular,
-        m_status,
+        m_post_cli,
         contract_machine_attach,
         m_update_apt_and_motd_msgs,
         _m_remove_notice,
@@ -270,46 +268,13 @@ class TestActionAttach:
         ret = action_attach(args, cfg)
 
         assert 0 == ret
-        assert 1 == m_status.call_count
-        assert 1 == m_format_tabular.call_count
         expected_calls = [
             mock.call(contract_token=token, attachment_dt=mock.ANY)
         ]
         assert expected_calls == contract_machine_attach.call_args_list
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
         assert 1 == m_update_activity_token.call_count
-
-        # We need to do that since all config objects in this
-        # test will share the same data dir. Since this will
-        # test a successful attach, in the end we write a machine token
-        # file, which will make all other cfg objects here to report
-        # as attached
-        cfg.delete_cache()
-        cfg.machine_token_file.delete()
-
-        cfg = FakeConfig()
-        args = mock.MagicMock(token=token, attach_config=None)
-        with mock.patch.object(
-            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-        ):
-            with mock.patch.object(
-                cfg, "check_lock_info"
-            ) as m_check_lock_info:
-                m_check_lock_info.return_value = (0, "lock_holder")
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_attach)(args, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "success",
-            "errors": [],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
+        assert [mock.call(cfg)] == m_post_cli.call_args_list
 
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch(
