@@ -57,6 +57,16 @@ def verify_installed_packages_match_version_regexp(context, packages, regex):
         )
 
 
+@then("I verify that `{package}` is not installed")
+def verify_package_not_installed(context, package):
+    when_i_run_command(
+        context, "apt-cache policy {}".format(package), "as non-root"
+    )
+    assert_that(
+        context.process.stdout.strip(), contains_string("Installed: (none)")
+    )
+
+
 @then("I verify that `{package}` is installed from apt source `{apt_source}`")
 def verify_package_is_installed_from_apt_source(context, package, apt_source):
     when_i_run_command(

@@ -825,3 +825,164 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
+
+    @series.lts
+    @uses.config.machine_type.lxd-container
+    Scenario Outline: Disable with purge does not work with assume-yes
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I verify that running `pro disable esm-apps --assume-yes --purge` `with sudo` exits `1`
+        Then stderr contains substring:
+        """
+        Error: Cannot use --purge together with --assume-yes.
+        """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.lxd-container
+    Scenario Outline: Disable with purge works and purges repo services not involving a kernel
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
+        And I apt install `ansible`
+        And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
+        Then stdout matches regexp:
+        """
+        \(The --purge flag is still experimental - use at your own discretion\)
+
+        The following package\(s\) will be reinstalled from the archive:
+        .*ansible.*
+
+        Do you want to proceed\? \(y/N\)
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps   +yes   +disabled   +Expanded Security Maintenance for Applications
+        """
+        And I verify that `ansible` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/universe`
+
+        Examples: ubuntu release
+           | release | pocket           |
+           # This ends up in GH #943 but maybe can be improved?
+           | xenial  | xenial-backports |
+           | bionic  | bionic-updates   |
+           | focal   | focal            |
+           | jammy   | jammy            |
+
+    @series.lts
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Disable with purge unsupported services
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I verify that running `pro disable livepatch --purge` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        Livepatch does not support being disabled with --purge
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | jammy   |
+
+    @slow
+    @series.lts
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Disable and purge fips
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
+        And I run `pro enable <fips-service> --assume-yes` with sudo
+        And I reboot the machine
+        And I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        <fips-service>   +yes   +enabled
+        """
+        When  I run `uname -r` as non-root
+        Then stdout matches regexp:
+        """
+        fips
+        """
+        And I verify that `openssh-server` is installed from apt source `<fips-source>`
+        And I verify that `linux-fips` is installed from apt source `<fips-source>`
+        When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
+        Then stdout matches regexp:
+        """
+        \(The --purge flag is still experimental - use at your own discretion\)
+
+        Purging the <fips-name> packages would uninstall the following kernel\(s\):
+        .*
+        .* is the current running kernel\.
+        If you cannot guarantee that other kernels in this system are bootable and
+        working properly, \*do not proceed\*\. You may end up with an unbootable system\.
+        Do you want to proceed\? \(y/N\)
+        """
+        And stdout matches regexp:
+        """
+        The following package\(s\) will be REMOVED:
+        (.|\n)+
+
+        The following package\(s\) will be reinstalled from the archive:
+        (.|\n)+
+
+        Do you want to proceed\? \(y/N\)
+        """
+        When I reboot the machine
+        And I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        <fips-service>   +yes   +disabled
+        """
+        When  I run `uname -r` as non-root
+        Then stdout does not match regexp:
+        """
+        fips
+        """
+        And I verify that `openssh-server` is installed from apt source `<archive-source>`
+        And I verify that `linux-fips` is not installed
+        Examples: ubuntu release
+           | release | fips-service | fips-name    | fips-source                                                    | archive-source                                                 |
+           | xenial  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu xenial/main                 | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main |
+           | xenial  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main |
+           | bionic  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
+           | bionic  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
+           | focal   | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://archive.ubuntu.com/ubuntu focal-updates/main            |
+           | focal   | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://archive.ubuntu.com/ubuntu focal-updates/main            |
+
+    @slow
+    @series.lts
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Disable does not purge if no other kernel found
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
+        And I reboot the machine
+        And I run shell command `rm -rf $(find /boot -name 'vmlinuz*[^fips]')` with sudo
+        And I verify that running `pro disable fips --purge` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        \(The --purge flag is still experimental - use at your own discretion\)
+
+        Purging the FIPS packages would uninstall the following kernel\(s\):
+        .*
+        .* is the current running kernel\.
+        No other valid Ubuntu kernel was found in the system\.
+        Removing the package would potentially make the system unbootable\.
+        Aborting\.
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
