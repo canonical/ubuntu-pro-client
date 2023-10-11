@@ -2,8 +2,8 @@
 
 As of version 30 of `pro`, we support translations of user-facing strings throughout the program.
 These are maintained in `po` files in the `debian/po` directory of the git repository.
-Whenever a string is changed, added, or deleted, that has an impact on existing translations and
-therefore an impact on the user experience of `pro` in non-english locales.
+Whenever a string is changed, added, or deleted, this has an impact on existing translations and
+therefore an impact on the user experience of `pro` in non-English locales.
 To minimize regressions in translations, we have the following policy in place regarding string changes.
 This policy is implemented in practice via a custom GitHub action that posts a questionnaire and prompt
 for justification on all GitHub PRs that modify the `messages` module of Ubuntu Pro Client.
