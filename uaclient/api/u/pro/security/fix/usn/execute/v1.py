@@ -6,8 +6,15 @@ from uaclient.api.u.pro.security.fix._common import (
     FixStatus,
     get_expected_overall_status,
 )
-from uaclient.api.u.pro.security.fix._common.execute.v1 import (
+
+# Some of these imports are intentionally not used in this module.
+# The rationale is that we want users to import such Data Objects
+# directly from the associated endpoints and not through the _common module
+from uaclient.api.u.pro.security.fix._common.execute.v1 import (  # noqa: F401
+    FailedUpgrade,
+    FixExecuteError,
     FixExecuteResult,
+    UpgradedPackage,
     _execute_fix,
 )
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import (
