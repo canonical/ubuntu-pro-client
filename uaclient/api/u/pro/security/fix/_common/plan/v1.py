@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 from uaclient import apt, exceptions, messages
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common import (
     CVE,
     CVE_OR_USN_REGEX,
     USN,

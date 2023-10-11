@@ -5,7 +5,7 @@ import mock
 import pytest
 
 from uaclient import exceptions, http
-from uaclient.api.u.pro.security.fix import (
+from uaclient.api.u.pro.security.fix._common import (
     API_V1_CVE_TMPL,
     API_V1_CVES,
     API_V1_NOTICE_TMPL,
@@ -21,6 +21,8 @@ from uaclient.api.u.pro.security.fix import (
     override_usn_release_package_status,
     query_installed_source_pkg_versions,
 )
+
+M_PATH = "uaclient.api.u.pro.security.fix._common."
 
 SAMPLE_GET_CVES_QUERY_PARAMS = {
     "query": "vq",
@@ -572,7 +574,7 @@ class TestCVEPackageStatus:
         assert expected == pkg_status.status_message
 
 
-@mock.patch("uaclient.api.u.pro.security.fix.UASecurityClient.request_url")
+@mock.patch(M_PATH + "UASecurityClient.request_url")
 class TestUASecurityClient:
     @pytest.mark.parametrize(
         "m_kwargs,expected_error, extra_security_params",
@@ -858,7 +860,7 @@ class TestQueryInstalledPkgSources:
             ),
         ),
     )
-    @mock.patch("uaclient.api.u.pro.security.fix.system.subp")
+    @mock.patch(M_PATH + "system.subp")
     @mock.patch("uaclient.system.get_release_info")
     def test_result_keyed_by_source_package_name(
         self, m_get_release_info, subp, dpkg_out, results

@@ -2,7 +2,7 @@ import mock
 import pytest
 
 from uaclient import messages
-from uaclient.api.u.pro.security.fix import FixStatus
+from uaclient.api.u.pro.security.fix._common import FixStatus
 from uaclient.api.u.pro.security.fix._common.execute.v1 import (
     FailedUpgrade,
     FixExecuteError,

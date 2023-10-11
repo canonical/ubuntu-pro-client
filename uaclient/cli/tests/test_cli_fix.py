@@ -6,7 +6,7 @@ import mock
 import pytest
 
 from uaclient import exceptions, messages
-from uaclient.api.u.pro.security.fix import FixStatus, UnfixedPackage
+from uaclient.api.u.pro.security.fix._common import FixStatus, UnfixedPackage
 from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     ESM_APPS_POCKET,
     ESM_INFRA_POCKET,
