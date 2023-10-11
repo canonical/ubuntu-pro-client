@@ -10,6 +10,8 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.wait.v1 import wait"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.packages.summary.v1 import summary"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.packages.updates.v1 import updates"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.security.fix.cve.execute.v1 import execute"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.security.fix.cve.plan.v1 import plan"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.security.fix.usn.plan.v1 import plan"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves"` as non-root
