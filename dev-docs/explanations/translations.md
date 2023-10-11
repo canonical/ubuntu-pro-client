@@ -14,7 +14,7 @@ Normally, packages in `main` are translated via language packs; however language
 in stable releases around the time of point releases. If Ubuntu Pro translations were put in the language pack,
 then the language pack wouldn’t get updated as we continue to SRU new Ubuntu Pro Client versions back to
 old Ubuntu releases. That would cause the translations provided by the language pack to drift out of sync with
-the version of Ubuntu Pro Client installed.
+the installed version of Ubuntu Pro Client.
 
 Because of this, Ubuntu Pro Client is not included in the Ubuntu language pack and instead ships all translations
 directly in our own source package. However, translations are kept in a separate binary package so that the translation
