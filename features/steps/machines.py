@@ -51,7 +51,7 @@ def given_a_machine(
         machine_type = context.pro_config.machine_type
 
     cloud = machine_type.split(".")[0]
-    context.pro_config.clouds[cloud].manage_ssh_key()
+    context.pro_config.clouds.get(cloud).manage_ssh_key()
 
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
     instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
@@ -75,7 +75,7 @@ def given_a_machine(
         if user_data is not None:
             user_data_to_use += user_data
 
-    instance = context.pro_config.clouds[cloud].launch(
+    instance = context.pro_config.clouds.get(cloud).launch(
         series=series,
         machine_type=machine_type,
         instance_name=instance_name,
@@ -131,7 +131,7 @@ def when_i_take_a_snapshot(
 
     cloud = machine_type.split(".")[0]
     inst = context.machines[machine_name].instance
-    snapshot = context.pro_config.clouds[cloud].api.snapshot(inst)
+    snapshot = context.pro_config.clouds.get(cloud).api.snapshot(inst)
 
     context.snapshots[machine_name] = snapshot
 
@@ -139,7 +139,7 @@ def when_i_take_a_snapshot(
 
         def cleanup_snapshot() -> None:
             try:
-                context.pro_config.clouds[cloud].api.delete_image(
+                context.pro_config.clouds.get(cloud).api.delete_image(
                     context.snapshots[machine_name]
                 )
             except RuntimeError as e:

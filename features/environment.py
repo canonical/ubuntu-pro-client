@@ -228,40 +228,19 @@ class UAClientBehaveConfig:
             random.choices(string.ascii_lowercase + string.digits, k=8)
         )
         timed_job_tag += "-" + random_suffix
+        self.timed_job_tag = timed_job_tag
 
-        self.clouds = {
-            "aws": cloud.EC2(
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            ),
-            "azure": cloud.Azure(
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            ),
-            "gcp": cloud.GCP(
-                cloud_credentials_path=self.cloud_credentials_path,
-                tag=timed_job_tag,
-                timestamp_suffix=False,
-            ),
-            "lxd-vm": cloud.LXDVirtualMachine(
-                cloud_credentials_path=self.cloud_credentials_path,
-            ),
-            "lxd-container": cloud.LXDContainer(
-                cloud_credentials_path=self.cloud_credentials_path,
-            ),
-        }
+        self.clouds = cloud.CloudManager(self)
         if "aws" in self.machine_type:
-            self.default_cloud = self.clouds["aws"]
+            self.default_cloud = self.clouds.get("aws")
         elif "azure" in self.machine_type:
-            self.default_cloud = self.clouds["azure"]
+            self.default_cloud = self.clouds.get("azure")
         elif "gcp" in self.machine_type:
-            self.default_cloud = self.clouds["gcp"]
+            self.default_cloud = self.clouds.get("gcp")
         elif "lxd-vm" in self.machine_type:
-            self.default_cloud = self.clouds["lxd-vm"]
+            self.default_cloud = self.clouds.get("lxd-vm")
         else:
-            self.default_cloud = self.clouds["lxd-container"]
+            self.default_cloud = self.clouds.get("lxd-container")
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
