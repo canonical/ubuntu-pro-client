@@ -36,7 +36,6 @@ class TestStatus:
         ],
         [
             (False, None, None),
-            (True, exceptions.ProcessExecutionError(""), None),
             (True, [("", None)], None),
             (True, [("{", None)], None),
             (True, [("{}", None)], None),
@@ -196,6 +195,20 @@ class TestStatus:
         m_is_livepatch_installed.return_value = is_installed
         m_subp.side_effect = subp_sideeffect
         assert expected == status()
+
+    @mock.patch(M_PATH + "system.subp")
+    @mock.patch(M_PATH + "is_livepatch_installed")
+    def test_status_when_command_fails(
+        self,
+        m_is_livepatch_installed,
+        m_subp,
+    ):
+
+        m_is_livepatch_installed.return_value = True
+        m_subp.side_effect = exceptions.ProcessExecutionError("")
+
+        with pytest.raises(exceptions.ProcessExecutionError):
+            status()
 
 
 @mock.patch(M_PATH + "serviceclient.UAServiceClient.request_url")

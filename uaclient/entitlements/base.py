@@ -1095,6 +1095,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         if application_status == ApplicationStatus.DISABLED:
             return UserFacingStatus.INACTIVE, explanation
+        elif application_status == ApplicationStatus.WARNING:
+            return UserFacingStatus.WARNING, explanation
 
         warning, warn_msg = self.enabled_warning_status()
 
