@@ -63,13 +63,13 @@ Feature: Upgrade between releases when uaclient is attached
         And I run `apt-get install lsof` with sudo, retrying exit [100]
         And I run `pro disable livepatch` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Updating <fips-name> package lists
         Installing <fips-name> packages
         Updating standard Ubuntu package lists
         <fips-name> enabled
-        A reboot is required to complete install
+        A reboot is required to complete install.
         """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
