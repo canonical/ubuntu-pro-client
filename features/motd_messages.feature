@@ -119,7 +119,7 @@ Feature: MOTD Messages
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
