@@ -7,7 +7,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple
 
 import apt_pkg  # type: ignore
 
-from uaclient import livepatch, messages
+from uaclient import exceptions, livepatch, messages
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -230,7 +230,11 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
 
 # Yeah Any is bad, but so is python<3.8 without TypedDict
 def get_livepatch_fixed_cves() -> List[Dict[str, Any]]:
-    lp_status = livepatch.status()
+    try:
+        lp_status = livepatch.status()
+    except exceptions.ProcessExecutionError:
+        return []
+
     our_kernel_version = get_kernel_info().proc_version_signature_version
     if (
         lp_status is not None

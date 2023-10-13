@@ -12,6 +12,7 @@ class ApplicationStatus(enum.Enum):
 
     ENABLED = object()
     DISABLED = object()
+    WARNING = object()
 
 
 @enum.unique
