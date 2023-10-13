@@ -160,7 +160,7 @@ Feature: Pro supports multiple languages
         Then stdout is a json matching the `ua_status` schema
         When I run `pro status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_status` schema
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
@@ -173,7 +173,7 @@ Feature: Pro supports multiple languages
         And I append the following on uaclient config:
         """
         features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+          machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
         """
         And I run `pro status` with sudo
         Then stdout contains substring:

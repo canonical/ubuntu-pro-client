@@ -124,10 +124,13 @@ def when_i_set_the_machine_token_overlay(context):
         yaml.safe_load(context.text), cls=util.DatetimeAwareJSONEncoder
     )
     when_i_create_file_with_content(
-        context, "/tmp/machine-token-overlay.json", text=json_text
+        context,
+        "/var/lib/ubuntu-advantage/machine-token-overlay.json",
+        text=json_text,
     )
     change_config_key_to_use_value(
         context,
         "features",
-        "{ machine_token_overlay: /tmp/machine-token-overlay.json}",
+        "{ machine_token_overlay: "
+        "/var/lib/ubuntu-advantage/machine-token-overlay.json}",
     )

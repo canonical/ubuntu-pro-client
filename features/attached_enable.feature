@@ -81,7 +81,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         One moment, checking your subscription first
         Ubuntu Pro: ESM Infra is not available for Ubuntu .*
         """
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
