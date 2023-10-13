@@ -18,13 +18,13 @@ Feature: FIPS enablement in PRO cloud based machines
             fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
             When I run `pro enable <fips-service> --assume-yes` with sudo
-            Then stdout matches regexp:
+            Then stdout contains substring:
                 """
                 Updating <fips-name> package lists
                 Installing <fips-name> packages
                 Updating standard Ubuntu package lists
                 <fips-name> enabled
-                A reboot is required to complete install
+                A reboot is required to complete install.
                 """
             When I run `pro status --all` with sudo
             Then stdout matches regexp:
@@ -75,13 +75,13 @@ Feature: FIPS enablement in PRO cloud based machines
             fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
             When I run `pro enable <fips-service> --assume-yes` with sudo
-            Then stdout matches regexp:
+            Then stdout contains substring:
                 """
                 Updating <fips-name> package lists
                 Installing <fips-name> packages
                 Updating standard Ubuntu package lists
                 <fips-name> enabled
-                A reboot is required to complete install
+                A reboot is required to complete install.
                 """
             When I run `pro status --all` with sudo
             Then stdout matches regexp:
@@ -133,13 +133,13 @@ Feature: FIPS enablement in PRO cloud based machines
             fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
             """
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:

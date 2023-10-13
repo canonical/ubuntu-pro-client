@@ -448,7 +448,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         fips-updates  +yes +disabled +FIPS compliant crypto packages with stable security updates
         """
         When I run `pro enable fips-updates --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         One moment, checking your subscription first
         Disabling incompatible service: FIPS

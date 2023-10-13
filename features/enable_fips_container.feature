@@ -14,7 +14,7 @@ Feature: FIPS enablement in lxd containers
                      compliant.
             Warning: This action can take some time and cannot be undone.
             """
-        And stdout matches regexp:
+        And stdout contains substr:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages

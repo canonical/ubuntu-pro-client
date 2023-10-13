@@ -19,13 +19,13 @@ Feature: FIPS enablement in lxd VMs
             This will install the FIPS packages. The Livepatch service will be unavailable.
             Warning: This action can take some time and cannot be undone.
             """
-        And stdout matches regexp:
+        And stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -143,13 +143,13 @@ Feature: FIPS enablement in lxd VMs
             This will install the FIPS packages including security updates.
             Warning: This action can take some time and cannot be undone.
             """
-        And stdout matches regexp:
+        And stdout contains substr:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -281,13 +281,13 @@ Feature: FIPS enablement in lxd VMs
             livepatch +yes +<livepatch_status>
             """
         When I run `pro enable fips-updates --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating FIPS Updates package lists
             Installing FIPS Updates packages
             Updating standard Ubuntu package lists
             FIPS Updates enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -329,13 +329,13 @@ Feature: FIPS enablement in lxd VMs
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -392,13 +392,13 @@ Feature: FIPS enablement in lxd VMs
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -460,13 +460,13 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable fips --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating FIPS package lists
             Installing FIPS packages
             Updating standard Ubuntu package lists
             FIPS enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -480,7 +480,7 @@ Feature: FIPS enablement in lxd VMs
             fips
             """
         When I verify that running `pro enable fips-updates --assume-yes` `with sudo` exits `0`
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             One moment, checking your subscription first
             Disabling incompatible service: FIPS

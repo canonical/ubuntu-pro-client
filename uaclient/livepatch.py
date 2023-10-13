@@ -131,6 +131,11 @@ def status() -> Optional[LivepatchStatusStatus]:
             [LIVEPATCH_CMD, "status", "--verbose", "--format", "json"]
         )
     except exceptions.ProcessExecutionError as e:
+        # only raise an error if there is a legitimate problem, not just lack
+        # of enablement
+        if re.match("Machine is not enabled.", e.stderr):
+            LOG.warning(e.stderr)
+            return None
         LOG.warning(
             "canonical-livepatch returned error when checking status:\n%s",
             exc_info=e,
