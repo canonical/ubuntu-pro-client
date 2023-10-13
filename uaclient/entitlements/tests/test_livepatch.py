@@ -953,3 +953,19 @@ class TestLivepatchApplicationStatus:
         else:
             assert status == ApplicationStatus.ENABLED
             assert details is None
+
+    @mock.patch("uaclient.livepatch.is_livepatch_installed", return_value=True)
+    @mock.patch("uaclient.livepatch.status")
+    def test_application_status_when_canonical_livepatch_fails(
+        self, m_status, _m_livepatch_installed, entitlement
+    ):
+        m_status.side_effect = exceptions.ProcessExecutionError(
+            cmd="test", stdout="", stderr="livepatch error"
+        )
+
+        status, details = entitlement.application_status()
+
+        assert status == ApplicationStatus.WARNING
+        assert details == messages.LIVEPATCH_CLIENT_FAILURE_WARNING.format(
+            livepatch_error="livepatch error"
+        )

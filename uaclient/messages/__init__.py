@@ -1812,6 +1812,15 @@ LIVEPATCH_APPLICATION_STATUS_CLIENT_FAILURE = NamedMessage(
     t.gettext("canonical-livepatch status didn't finish successfully"),
 )
 
+LIVEPATCH_CLIENT_FAILURE_WARNING = FormattedNamedMessage(
+    "livepatch-client-failure-warning",
+    t.gettext(
+        """\
+Error running canonical-livepatch status:
+{livepatch_error}"""
+    ),
+)
+
 REALTIME_FIPS_INCOMPATIBLE = NamedMessage(
     "realtime-fips-incompatible",
     t.gettext(
