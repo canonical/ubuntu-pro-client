@@ -1174,7 +1174,7 @@ Feature: Proxy configuration
         """
         When I run `pro disable livepatch --assume-yes` with sudo
         When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Installing Real-time kernel packages
         Real-time kernel enabled

@@ -118,13 +118,13 @@ Feature: FIPS enablement in cloud based machines
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -182,13 +182,13 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -259,13 +259,13 @@ Feature: FIPS enablement in cloud based machines
         When I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -319,13 +319,13 @@ Feature: FIPS enablement in cloud based machines
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
             Updating standard Ubuntu package lists
             <fips-name> enabled
-            A reboot is required to complete install
+            A reboot is required to complete install.
             """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -386,7 +386,7 @@ Feature: FIPS enablement in cloud based machines
         """
         When I attach `contract_token` with sudo
         And I run `pro enable fips --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Could not determine cloud, defaulting to generic FIPS package.
         Updating FIPS package lists

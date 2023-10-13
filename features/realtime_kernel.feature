@@ -60,7 +60,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Updating standard Ubuntu package lists
         Installing Real-time kernel packages
         Real-time kernel enabled
-        A reboot is required to complete install.
+        A reboot is required to complete install\.
         """
         When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout does not match regexp:
