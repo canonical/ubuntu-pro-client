@@ -640,7 +640,11 @@ def _check_cve_fixed_by_livepatch(
     issue_id: str,
 ) -> Tuple[Optional[FixStatus], Optional[str]]:
     # Check livepatch status for CVE in fixes before checking CVE api
-    lp_status = livepatch.status()
+    try:
+        lp_status = livepatch.status()
+    except exceptions.ProcessExecutionError:
+        return (None, None)
+
     if (
         lp_status is not None
         and lp_status.livepatch is not None
