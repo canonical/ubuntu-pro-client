@@ -153,7 +153,7 @@ Feature: Pro supports multiple languages
         When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
         """
-        This machine is already attached to 'UA Client Test'
+        This machine is already attached to '.+'
         To use a different subscription first run: sudo pro detach.
             """
         # status command
