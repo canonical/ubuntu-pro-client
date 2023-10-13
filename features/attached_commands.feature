@@ -298,7 +298,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     Scenario Outline: Attached status in a ubuntu machine with feature overrides
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
@@ -316,7 +316,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I append the following on uaclient config:
         """
         features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
+          machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
           disable_auto_attach: true
           other: false
         """
@@ -332,7 +332,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         FEATURES
         disable_auto_attach: True
-        machine_token_overlay: /tmp/machine-token-overlay.json
+        machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
         other: False
         """
         When I run `pro status --all` as non-root
@@ -346,7 +346,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         FEATURES
         disable_auto_attach: True
-        machine_token_overlay: /tmp/machine-token-overlay.json
+        machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
         other: False
         """
         When I run `pro detach --assume-yes` with sudo
@@ -745,7 +745,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then I verify that `activityInfo.activityToken` value has been updated on the contract
         And I verify that `activityInfo.activityID` value has been updated on the contract
         # We are keeping this test to guarantee that the activityPingInterval is also updated
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
         {
             "machineTokenInfo": {
@@ -756,7 +756,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             }
         }
         """
-        And I create the file `/tmp/response-overlay.json` with the following:
+        And I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
         {
             "https://contracts.canonical.com/v1/contracts/testCID/machine-activity/testMID": [
@@ -773,8 +773,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I append the following on uaclient config:
         """
         features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
-          serviceclient_url_responses: "/tmp/response-overlay.json"
+          machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
+          serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
         """
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
