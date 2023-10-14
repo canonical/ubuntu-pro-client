@@ -87,8 +87,11 @@ Or the following command to disable ESM-Apps:
 sudo pro disable esm-apps
 ```
 
+Note that this command will only remove the APT sources, but not uninstall the packages installed with the services.
+
+To purge the services, removing the APT packages installed with them, see [how to disable and purge services](../explanations/purging_services.md).
+
 ## Notes
 
 - For more information about ESM-Apps and ESM-Infra, see
 [our explanatory guide](../explanations/about_esm).
-
