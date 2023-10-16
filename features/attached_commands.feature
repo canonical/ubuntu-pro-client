@@ -885,7 +885,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
-        \(The --purge flag is still experimental - use at your own discretion\)
+        \(The --purge flag is still experimental - use with caution\)
 
         The following package\(s\) will be reinstalled from the archive:
         .*ansible.*
@@ -949,7 +949,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
         Then stdout matches regexp:
         """
-        \(The --purge flag is still experimental - use at your own discretion\)
+        \(The --purge flag is still experimental - use with caution\)
 
         Purging the <fips-name> packages would uninstall the following kernel\(s\):
         .*
@@ -1003,7 +1003,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that running `pro disable fips --purge` `with sudo` exits `1`
         Then stdout matches regexp:
         """
-        \(The --purge flag is still experimental - use at your own discretion\)
+        \(The --purge flag is still experimental - use with caution\)
 
         Purging the FIPS packages would uninstall the following kernel\(s\):
         .*
