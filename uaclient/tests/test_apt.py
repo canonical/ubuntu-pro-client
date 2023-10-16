@@ -42,6 +42,7 @@ from uaclient.apt import (
     run_apt_update_command,
     setup_apt_proxy,
     update_esm_caches,
+    update_sources_list,
 )
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -1453,3 +1454,36 @@ class TestGetAlternativeVersionsForPackage:
                 )
             )
         ]
+
+
+class TestUpdateSourcesList:
+    @mock.patch("uaclient.apt.os.path.join")
+    @mock.patch("apt_pkg.FileLock")
+    @mock.patch("uaclient.apt.AcquireProgress")
+    @mock.patch("apt_pkg.SourceList")
+    @mock.patch("apt_pkg.config")
+    @mock.patch("uaclient.apt.PreserveAptCfg")
+    def test_update_sources_list(
+        self,
+        m_preserve_apt_cfg,
+        m_apt_pkg_config,
+        m_apt_pkg_source_list,
+        m_acquire_progress,
+        _m_file_lock,
+        _m_join,
+    ):
+        update_sources_list("/sources.list")
+        assert (
+            mock.call("Dir::Etc::sourcelist", "/sources.list")
+            in m_apt_pkg_config.set.call_args_list
+        )
+        assert (
+            [
+                mock.call(
+                    m_acquire_progress.return_value,
+                    m_apt_pkg_source_list.return_value,
+                    0,
+                )
+            ]
+            == m_preserve_apt_cfg.return_value.__enter__.return_value.update.call_args_list  # noqa: E501
+        )
