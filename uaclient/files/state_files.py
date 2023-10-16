@@ -130,7 +130,7 @@ class AllTimerJobsState(DataObject):
 
 timer_jobs_state_file = DataObjectFile(
     AllTimerJobsState,
-    UAFile("jobs-status.json"),
+    UAFile("jobs-status.json", private=False),
     DataObjectFileFormat.JSON,
 )
 
