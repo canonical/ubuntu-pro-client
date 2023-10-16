@@ -66,11 +66,12 @@ anbox-cloud      yes       enabled   Scalable Android in the cloud
 
 ## Disable the service
 
-If you wish to disable Anbox, you can use the following command to
-disable it:
+If you wish to disable Anbox, you can use the following command:
 
 ```bash
 sudo pro disable anbox-cloud
 ```
 
 Note that this command will only remove the APT sources, but not uninstall the snaps.
+
+To purge the service, removing the APT packages installed with it, see [how to disable and purge services](../explanations/purging_services.md).
