@@ -25,3 +25,15 @@ Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
 Once the feature is enabled please
 [follow the documentation](https://ubuntu.com/security/certifications/docs/usg/cis)
 for the CIS tooling, to run the provided hardening audit scripts.
+
+## Disable the service
+
+If you wish to disable cis/usg, you can use the following command:
+
+```bash
+sudo pro disable cis
+```
+
+Note that this command will only remove the APT sources, but not uninstall the packages installed with the service.
+
+To purge the service, removing the APT packages installed with it, see [how to disable and purge services](../explanations/purging_services.md). This will not remove any configuration, only remove the packages.

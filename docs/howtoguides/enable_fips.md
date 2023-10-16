@@ -14,7 +14,7 @@ install a FIPS-certified kernel and core security-related packages such as
 `openssh-server/client` and `libssl`. 
 
 ```{danger}
-Disabling FIPS is not currently supported: only use it on machines intended
+Disabling FIPS is not recommended: only enable it on machines intended
 expressly for this purpose.
 ```
 
@@ -45,3 +45,14 @@ FIPS enabled
 A reboot is required to complete install.
 ```
 
+## Disable the service
+
+If you wish to disable FIPS, you can use the following command:
+
+```bash
+sudo pro disable fips
+```
+
+Note that this command will only remove the APT sources, but not uninstall the packages installed with the service. Your system will ***still have the FIPS packages installed*** after FIPS is disabled.
+
+To purge the service, removing the APT packages installed with it, potentially removing also the FIPS kernel, see [how to disable and purge services](../explanations/purging_services.md).
