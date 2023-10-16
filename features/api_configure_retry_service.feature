@@ -1,9 +1,10 @@
 Feature: api.u.pro.attach.auto.configure_retry_service
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: v1 successfully triggers retry service when run during startup
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
         When I create the file `/lib/systemd/system/apitest.service` with the following
         """
@@ -52,8 +53,8 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         You can try manually with `sudo pro auto-attach`.
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
