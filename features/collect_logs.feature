@@ -8,9 +8,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
-        When I run `pro collect-logs` with sudo
+        When I run `pro collect-logs` as non-root
         Then I verify that files exist matching `ua_logs.tar.gz`
-        When I run `tar zxf ua_logs.tar.gz` as non-root
+        When I run `tar zxf ua_logs.tar.gz` with sudo
         Then I verify that files exist matching `logs/`
         When I run `sh -c "ls -1 logs/ | sort -d"` as non-root
         # On Xenial, the return value for inexistent services is the same as for dead ones (3).
@@ -55,7 +55,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
         When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
-        When I run `pro collect-logs` with sudo
+        When I run `pro collect-logs` as non-root
         Then I verify that files exist matching `ua_logs.tar.gz`
         When I run `tar zxf ua_logs.tar.gz` as non-root
         Then I verify that files exist matching `logs/`
