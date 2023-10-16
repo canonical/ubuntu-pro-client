@@ -24,10 +24,10 @@ ubuntu-advantage-tools (30) mantic; urgency=medium
   * d/tests/control:
     - mark autopkgtests as superficial (GH: #2609)
 
-  * d/ubuntu-advantage-tools.maintscript
+  * d/ubuntu-advantage-tools.maintscript:
     - remove /etc/ubuntu-advantage/help_data.yaml
 
-  * d/ubuntu-pro-client-l10n.install
+  * d/ubuntu-pro-client-l10n.install:
     - add install file for the new binary package
 
   * New upstream release 30 (LP: #2038461)
@@ -47,7 +47,7 @@ ubuntu-advantage-tools (30) mantic; urgency=medium
       higher priority (GH: #2580)
     - disable:
       + (experimental) add the --purge flag to the disable command, so users
-        can remove all service related packages when disabling a service 
+        can remove all service related packages when disabling a service
       + show extra warnings when kernels are involved in the purge operation
     - files: Reduce race window when creating new files (LP: #2024204)
     - fips: add support to Jammy to prepare for when it is available
