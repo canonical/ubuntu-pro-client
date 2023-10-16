@@ -355,7 +355,7 @@ APT_REMOVING_PREFERENCES_FILE = t.gettext(
 
 # Kernel checks for Purge
 PURGE_EXPERIMENTAL = t.gettext(
-    "(The --purge flag is still experimental - use at your own discretion)"
+    "(The --purge flag is still experimental - use with caution)"
 )
 PURGE_KERNEL_REMOVAL = t.gettext(
     "Purging the {service} packages would uninstall the following kernel(s):"
