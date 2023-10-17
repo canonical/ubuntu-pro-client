@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 09:31-0300\n"
+"POT-Creation-Date: 2023-10-17 19:30-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -294,8 +294,8 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:92
 msgid ""
-"snapd does not have wait command.\n"
-"Enabling Livepatch can fail under this scenario\n"
+"snapd does not have a wait command.\n"
+"Enabling Livepatch can fail under this scenario.\n"
 "Please, upgrade snapd if Livepatch enable fails and try again."
 msgstr ""
 
@@ -305,7 +305,7 @@ msgid ""
 " A new version is available: {version}\n"
 "Please run:\n"
 "    sudo apt-get install ubuntu-advantage-tools\n"
-"to get the latest version with new features and bug fixes."
+"to get the latest bug fixes and new features."
 msgstr ""
 
 #. ##############################################################################
@@ -662,7 +662,7 @@ msgid "Removing apt preferences file: {filename}"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:358
-msgid "(The --purge flag is still experimental - use at your own discretion)"
+msgid "(The --purge flag is still experimental - use with caution)"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:361
@@ -2618,6 +2618,16 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1989
 #, python-brace-format
 msgid "Unable to install Livepatch client: {error_msg}"
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1994
+#, python-brace-format
+msgid "\"{proxy}\" is not working. Not setting as proxy."
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1999
+#, python-brace-format
+msgid "\"{proxy}\" is not a valid url. Not setting as proxy."
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2005
