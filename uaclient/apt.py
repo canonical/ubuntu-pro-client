@@ -864,6 +864,30 @@ def remove_packages(package_names: List[str], error_message: str):
     )
 
 
+def purge_packages(package_names: List[str], error_message: str):
+    """
+    Purge APT packages from the system - remove everything.
+
+    Setting DEBIAN_FRONTEND to noninteractive makes sure no prompts will
+    appear during the operation. In this case, --force-confdef will
+    automatically pick the default option when some debconf should appear.
+    In the absence of a default option, --force-confold will automatically
+    choose to keep the old configuration file.
+    """
+    run_apt_command(
+        [
+            "apt-get",
+            "purge",
+            "--assume-yes",
+            '-o Dpkg::Options::="--force-confdef"',
+            '-o Dpkg::Options::="--force-confold"',
+        ]
+        + list(package_names),
+        error_message,
+        override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+    )
+
+
 def reinstall_packages(package_names: List[str]):
     """
     Install packages, allowing downgrades.
