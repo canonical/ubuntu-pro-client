@@ -27,7 +27,7 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 # See 'What does a specific Ubuntu kernel version number mean?' in
 # https://wiki.ubuntu.com/Kernel/FAQ
-RE_KERNEL_PKG = r"^linux-image-[\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+$"
+RE_KERNEL_PKG = r"^linux-image-([\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+)$"
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -170,7 +170,7 @@ class RepoEntitlement(base.UAEntitlement):
     def purge_kernel_check(self, package_list):
         """
         Checks if the purge operation involves a kernel.
-        
+
         When package called 'linux-image-*' is in the package list, warn the
         user that a kernel is being removed. Then, show the user what the
         current kernel is.
@@ -182,11 +182,11 @@ class RepoEntitlement(base.UAEntitlement):
         If there is another Ubuntu kernel - besides the one installed - then
         prompt the user for confirmation before proceeding.
         """
-        linux_image_versions = [
-            package.name[len("linux-image-") :]
-            for package in package_list
-            if re.match(RE_KERNEL_PKG, package.name)
-        ]
+        linux_image_versions = []
+        for package in package_list:
+            m = re.search(RE_KERNEL_PKG, package.name)
+            if m:
+                linux_image_versions.append(m.group(1))
         if linux_image_versions:
             print(messages.PURGE_KERNEL_REMOVAL.format(service=self.title))
             print(" ".join(linux_image_versions))
