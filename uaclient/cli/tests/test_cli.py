@@ -860,7 +860,7 @@ class TestGetValidEntitlementNames:
 expected_notice = r""".*[info].* A new version is available: 1.2.3
 Please run:
     sudo apt-get install ubuntu-advantage-tools
-to get the latest version with new features and bug fixes.
+to get the latest bug fixes and new features.
 """
 
 

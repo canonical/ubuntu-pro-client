@@ -89,8 +89,8 @@ BROKEN_YAML_MODULE = t.gettext(
 )
 
 SNAPD_DOES_NOT_HAVE_WAIT_CMD = t.gettext(
-    "snapd does not have wait command.\n"
-    "Enabling Livepatch can fail under this scenario\n"
+    "snapd does not have a wait command.\n"
+    "Enabling Livepatch can fail under this scenario.\n"
     "Please, upgrade snapd if Livepatch enable fails and try again."
 )
 
@@ -102,7 +102,7 @@ WARN_NEW_VERSION_AVAILABLE_CLI = (
  A new version is available: {version}
 Please run:
     sudo apt-get install ubuntu-advantage-tools
-to get the latest version with new features and bug fixes."""
+to get the latest bug fixes and new features."""
     )
 )
 
