@@ -25,6 +25,8 @@ from uaclient.entitlements.entitlement_status import (
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
+# See 'What does a specific Ubuntu kernel version number mean?' in
+# https://wiki.ubuntu.com/Kernel/FAQ
 RE_KERNEL_PKG = r"^linux-image-[\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+$"
 
 
@@ -166,6 +168,20 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def purge_kernel_check(self, package_list):
+        """
+        Checks if the purge operation involves a kernel.
+        
+        When package called 'linux-image-*' is in the package list, warn the
+        user that a kernel is being removed. Then, show the user what the
+        current kernel is.
+
+        If the current kernel is to be removed, and there are no other valid
+        Ubuntu Kernels installed in the system, return False to abort the
+        operation.
+
+        If there is another Ubuntu kernel - besides the one installed - then
+        prompt the user for confirmation before proceeding.
+        """
         linux_image_versions = [
             package.name[len("linux-image-") :]
             for package in package_list
@@ -183,6 +199,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
 
             installed_kernels = system.get_installed_ubuntu_kernels()
+            # Any installed Ubuntu Kernel not being touched in this operation
             alternative_kernels = [
                 version
                 for version in installed_kernels
