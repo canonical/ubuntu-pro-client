@@ -164,7 +164,8 @@ class RepoEntitlement(base.UAEntitlement):
         self.remove_apt_config(silent=silent)
 
         if self.purge and self.origin:
-            self.execute_purge(packages_to_remove, packages_to_reinstall)
+            self.execute_removal(packages_to_remove)
+            self.execute_reinstall(packages_to_reinstall)
         return True
 
     def purge_kernel_check(self, package_list):
@@ -237,7 +238,7 @@ class RepoEntitlement(base.UAEntitlement):
             return util.prompt_for_confirmation(messages.PROCEED_YES_NO)
         return True
 
-    def execute_purge(self, packages_to_remove, packages_to_reinstall):
+    def execute_removal(self, packages_to_remove):
         # We need to check for package.current_ver again, because there is an
         # intermediate step between listing the packages and acting on them.
         # Packages may be removed between those operations.
@@ -254,6 +255,10 @@ class RepoEntitlement(base.UAEntitlement):
                 ),
             )
 
+    def execute_reinstall(self, packages_to_reinstall):
+        # We need to check for package.current_ver again, because there is an
+        # intermediate step between listing the packages and acting on them.
+        # Packages may be removed between those operations.
         to_reinstall = [
             "{}={}".format(package.name, version.ver_str)
             for (package, version) in packages_to_reinstall
