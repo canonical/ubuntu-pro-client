@@ -205,7 +205,7 @@ def get_installed_ubuntu_kernels():
         package_name[len("linux-image-") :] for package_name in linux_image
     ]
     vmlinuz_versions = [
-        file_name[len("/boot/vmlinux-") :]
+        file_name[len("/boot/vmlinu?-") :]
         for file_name in vmlinux_kernel_files
     ]
 
