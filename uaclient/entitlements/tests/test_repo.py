@@ -863,10 +863,10 @@ class TestPurge:
             ),
         ),
     )
-    @mock.patch(M_PATH + "apt.remove_packages")
+    @mock.patch(M_PATH + "apt.purge_packages")
     def test_execute_removal(
         self,
-        m_apt_remove,
+        m_apt_purge,
         remove,
         expected_remove,
         entitlement_factory,
@@ -878,7 +878,7 @@ class TestPurge:
         )
         entitlement.execute_removal(remove)
 
-        assert m_apt_remove.call_args_list == expected_remove
+        assert m_apt_purge.call_args_list == expected_remove
 
     @pytest.mark.parametrize(
         "reinstall,expected_install",
