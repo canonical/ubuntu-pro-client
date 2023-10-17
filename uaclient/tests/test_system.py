@@ -1479,3 +1479,96 @@ class TestGetRebootRequiredPkgs:
         assert reboot_required_pkgs is not None
         assert expected_standard_pkgs == reboot_required_pkgs.standard_packages
         assert expected_kernel_pkgs == reboot_required_pkgs.kernel_packages
+
+
+@mock.patch("uaclient.system.util.we_are_currently_root")
+class TestGetInstalledUbuntuKernels:
+    def test_non_root_user_raises_error(self, m_is_root):
+        m_is_root.return_value = False
+
+        with pytest.raises(RuntimeError) as e:
+            system.get_installed_ubuntu_kernels()
+
+        assert "needs to be executed as root" in e.value.args[0]
+
+    @pytest.mark.parametrize(
+        "installed,files_in_boot,valid_file,expected_return",
+        (
+            (
+                ["linux-image-4.4.0-1020-kvm", "other_package"],
+                ["/boot/vmlinuz-4.4.0-1020-kvm"],
+                True,
+                ["4.4.0-1020-kvm"],
+            ),
+            (
+                ["linux-image-4.4.0-1020-kvm", "other_package"],
+                ["/boot/vmlinux-4.4.0-1020-kvm"],
+                True,
+                ["4.4.0-1020-kvm"],
+            ),
+            (
+                [
+                    "linux-image-5.4.0-39-generic",
+                    "linux-image-4.15.0-118-generic",
+                    "other package",
+                ],
+                [
+                    "/boot/vmlinuz-5.4.0-39-generic",
+                    "/boot/vmlinuz-4.15.0-118-generic",
+                ],
+                True,
+                ["5.4.0-39-generic", "4.15.0-118-generic"],
+            ),
+            (
+                ["some package", "other_package"],
+                ["/boot/vmlinuz-4.4.0-1020-kvm"],
+                True,
+                [],
+            ),
+            (
+                ["linux-image-4.4.0-1020-kvm", "other_package"],
+                [],
+                True,
+                [],
+            ),
+            (
+                ["linux-image-4.4.0-1020-kvm", "other_package"],
+                ["/boot/vmlinuz-4.4.0-1020-kvm"],
+                False,
+                [],
+            ),
+            (
+                ["linux-image-5.8.0-63-generic", "linux-image-5.6.0-1056-oem"],
+                [
+                    "/boot/vmlinuz-5.6.0-1056-oem",
+                    "/boot/vmlinuz-5.4.0-77-generic",
+                ],
+                True,
+                ["5.6.0-1056-oem"],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.system.glob.glob")
+    @mock.patch("uaclient.apt.get_installed_packages_names")
+    def test_only_valid_packages_returned(
+        self,
+        m_package_names,
+        m_glob,
+        m_subp,
+        m_is_root,
+        installed,
+        files_in_boot,
+        valid_file,
+        expected_return,
+    ):
+        m_is_root.return_value = True
+        m_package_names.return_value = installed
+        m_glob.return_value = files_in_boot
+        m_subp.return_value = (
+            ("Some Linux kernel here", False)
+            if valid_file
+            else ("no good", False)
+        )
+
+        assert expected_return == system.get_installed_ubuntu_kernels()
