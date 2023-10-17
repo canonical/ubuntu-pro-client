@@ -41,11 +41,15 @@ class UAFile:
             if self.is_private
             else defaults.WORLD_READABLE_MODE
         )
-        if not os.path.exists(self._directory):
+        # try/except-ing here avoids race conditions the best
+        try:
             if os.path.basename(self._directory) == defaults.PRIVATE_SUBDIR:
                 os.makedirs(self._directory, mode=0o700)
             else:
                 os.makedirs(self._directory)
+        except OSError:
+            pass
+
         system.write_file(self.path, content, file_mode)
 
     def read(self) -> Optional[str]:
