@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 09:31-0300\n"
+"POT-Creation-Date: 2023-10-17 19:30-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -347,29 +347,29 @@ msgid "Error while trying to parse a yaml file using 'yaml' from {path}"
 msgstr "Erro ao analisar um arquivo yaml usando 'yaml' em {path}"
 
 #: ../../uaclient/messages/__init__.py:92
+#, fuzzy
 msgid ""
-"snapd does not have wait command.\n"
-"Enabling Livepatch can fail under this scenario\n"
+"snapd does not have a wait command.\n"
+"Enabling Livepatch can fail under this scenario.\n"
 "Please, upgrade snapd if Livepatch enable fails and try again."
 msgstr ""
 "snapd não tem o comando wait.\n"
-"Habilitar o Livepatch pode falhar neste cenário\n"
+"Habilitar o Livepatch pode falhar neste cenário.\n"
 "Por favor, atualize o snapd caso a habilitação do Livepatch falhe e tente "
 "novamente."
 
 #: ../../uaclient/messages/__init__.py:101
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 " A new version is available: {version}\n"
 "Please run:\n"
 "    sudo apt-get install ubuntu-advantage-tools\n"
-"to get the latest version with new features and bug fixes."
+"to get the latest bug fixes and new features."
 msgstr ""
 " Uma nova versão está disponível: {version}\n"
 "Por favor, execute:\n"
 "    sudo apt-get install ubuntu-advantage-tools\n"
-"para obter a última versão disponível com novas funcionalides e correções de "
-"erros"
+"para obter as últimas correções de erros e novas funcionalides."
 
 #. ##############################################################################
 #. GENERIC SYSTEM OPERATIONS                              #
@@ -790,7 +790,7 @@ msgid "Removing apt preferences file: {filename}"
 msgstr "Removendo arquivo de preferência do apt: {filename}"
 
 #: ../../uaclient/messages/__init__.py:358
-msgid "(The --purge flag is still experimental - use at your own discretion)"
+msgid "(The --purge flag is still experimental - use with caution)"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:361
@@ -2955,6 +2955,16 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1989
 #, python-brace-format
 msgid "Unable to install Livepatch client: {error_msg}"
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1994
+#, python-brace-format
+msgid "\"{proxy}\" is not working. Not setting as proxy."
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1999
+#, python-brace-format
+msgid "\"{proxy}\" is not a valid url. Not setting as proxy."
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2005
