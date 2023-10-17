@@ -301,7 +301,7 @@ constructive feedback.
 .. _Landscape: https://ubuntu.com/landscape
 .. _Report bugs on Launchpad: https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
 .. _Code of conduct: https://ubuntu.com/community/code-of-conduct
-.. _Contribute: https://github.com/canonical/ubuntu-pro-client/blob/main/CONTRIBUTING.md
+.. _Contribute: https://github.com/canonical/ubuntu-pro-client/blob/docs/CONTRIBUTING.md
 .. _IRC channel on Libera: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
 .. _our Discourse forum: https://discourse.ubuntu.com/c/ubuntu-pro/116
 .. _in our FAQ: https://discourse.ubuntu.com/t/ubuntu-pro-faq/34042
