@@ -265,15 +265,7 @@ class RepoEntitlement(base.UAEntitlement):
             if package.current_ver
         ]
         if to_reinstall:
-            apt.run_apt_install_command(
-                to_reinstall,
-                apt_options=[
-                    "--allow-downgrades",
-                    '-o Dpkg::Options::="--force-confdef"',
-                    '-o Dpkg::Options::="--force-confold"',
-                ],
-                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-            )
+            apt.reinstall_packages(to_reinstall)
 
     def application_status(
         self,

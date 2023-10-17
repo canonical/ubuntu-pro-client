@@ -841,6 +841,15 @@ def update_esm_caches(cfg) -> None:
 
 
 def remove_packages(package_names: List[str], error_message: str):
+    """
+    Remove APT packages from the system.
+
+    Setting DEBIAN_FRONTEND to noninteractive makes sure no prompts will
+    appear during the operation. In this case, --force-confdef will
+    automatically pick the default option when some debconf should appear.
+    In the absence of a default option, --force-confold will automatically
+    choose to keep the old configuration file.
+    """
     run_apt_command(
         [
             "apt-get",
@@ -851,6 +860,31 @@ def remove_packages(package_names: List[str], error_message: str):
         ]
         + list(package_names),
         error_message,
+        override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+    )
+
+
+def reinstall_packages(package_names: List[str]):
+    """
+    Install packages, allowing downgrades.
+
+    The --allow downgrades flag is needed because sometimes we need to
+    reinstall the packages to a lower version (passed in the package_name
+    string, as package=version).
+
+    Setting DEBIAN_FRONTEND to noninteractive makes sure no prompts will
+    appear during the operation. In this case, --force-confdef will
+    automatically pick the default option when some debconf should appear.
+    In the absence of a default option, --force-confold will automatically
+    choose to keep the old configuration file.
+    """
+    run_apt_install_command(
+        package_names,
+        apt_options=[
+            "--allow-downgrades",
+            '-o Dpkg::Options::="--force-confdef"',
+            '-o Dpkg::Options::="--force-confold"',
+        ],
         override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
     )
 
