@@ -2000,12 +2000,12 @@ E_ERROR_INSTALLING_LIVEPATCH = FormattedNamedMessage(
 
 E_NOT_SETTING_PROXY_NOT_WORKING = FormattedNamedMessage(
     "proxy-not-working",
-    't.gettext("{proxy}") is not working. Not setting as proxy.',
+    t.gettext('"{proxy}" is not working. Not setting as proxy.'),
 )
 
 E_NOT_SETTING_PROXY_INVALID_URL = FormattedNamedMessage(
     "proxy-invalid-url",
-    't.gettext("{proxy}") is not a valid url. Not setting as proxy.',
+    t.gettext('"{proxy}" is not a valid url. Not setting as proxy.'),
 )
 
 E_PYCURL_REQUIRED = NamedMessage(
