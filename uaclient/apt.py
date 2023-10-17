@@ -754,7 +754,9 @@ def get_apt_cache_datetime() -> Optional[datetime.datetime]:
 
 def _ensure_esm_cache_structure():
     # make sure all necessary files exist...
-    existing_files = glob.glob(os.path.join(ESM_APT_ROOTDIR, "**/*"))
+    existing_files = glob.glob(
+        os.path.join(ESM_APT_ROOTDIR, "**/*"), recursive=True
+    )
     desired_files = (
         ESM_BASIC_FILE_STRUCTURE["files"] + ESM_BASIC_FILE_STRUCTURE["folders"]
     )

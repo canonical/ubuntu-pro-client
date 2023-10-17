@@ -22,6 +22,7 @@ from uaclient.apt import (
     APT_RETRIES,
     KEYRINGS_DIR,
     PreserveAptCfg,
+    _ensure_esm_cache_structure,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
@@ -1440,3 +1441,97 @@ class TestUpdateSourcesList:
             ]
             == m_preserve_apt_cfg.return_value.__enter__.return_value.update.call_args_list  # noqa: E501
         )
+
+
+@mock.patch("uaclient.apt.system.ensure_folder_absent")
+@mock.patch("uaclient.apt.system.create_file")
+@mock.patch("uaclient.apt.os.makedirs")
+class TestEsmCacheStructure:
+    def test_noop_when_present(
+        self, m_makedirs, m_create_file, m_folder_absent, tmpdir
+    ):
+        dir_path = tmpdir.strpath
+        # Both mocks because ESM_APT_ROOTDIR can't deal with it
+        with mock.patch("uaclient.apt.ESM_APT_ROOTDIR", dir_path), mock.patch(
+            "uaclient.apt.ESM_BASIC_FILE_STRUCTURE",
+            {
+                "files": [
+                    os.path.join(dir_path, "etc/apt/sources.list"),
+                    os.path.join(dir_path, "var/lib/dpkg/status"),
+                ],
+                "folders": [
+                    os.path.join(dir_path, "var/cache/apt/archives/partial"),
+                    os.path.join(dir_path, "var/lib/apt/lists/partial"),
+                ],
+            },
+        ):
+            # Guess what: cannot use tmp_path because the fixture is not on
+            # Xenial, and tmpdir does *not* support creating directories
+            # including parents (makedirs style)
+            tmpdir.mkdir("var")
+            tmpdir.mkdir("var/cache")
+            tmpdir.mkdir("var/cache/apt")
+            tmpdir.mkdir("var/cache/apt/archives")
+            tmpdir.mkdir("var/cache/apt/archives/partial")
+            tmpdir.mkdir("var/lib")
+            tmpdir.mkdir("var/lib/dpkg")
+            # yes
+            tmpdir.join("var/lib/dpkg/status").write("")
+            tmpdir.mkdir("var/lib/apt")
+            tmpdir.mkdir("var/lib/apt/lists")
+            tmpdir.mkdir("var/lib/apt/lists/partial")
+            tmpdir.mkdir("etc")
+            tmpdir.mkdir("etc/apt")
+            tmpdir.join("etc/apt/sources.list").write("")
+
+            _ensure_esm_cache_structure()
+
+        assert m_folder_absent.call_args_list == []
+        assert m_create_file.call_args_list == []
+        assert m_makedirs.call_args_list == []
+
+    @pytest.mark.parametrize("create_partial", (False, True))
+    def test_create_when_necessary(
+        self,
+        m_makedirs,
+        m_create_file,
+        m_folder_absent,
+        create_partial,
+        tmpdir,
+    ):
+        dir_path = tmpdir.strpath
+        with mock.patch("uaclient.apt.ESM_APT_ROOTDIR", dir_path), mock.patch(
+            "uaclient.apt.ESM_BASIC_FILE_STRUCTURE",
+            {
+                "files": [
+                    os.path.join(dir_path, "etc/apt/sources.list"),
+                    os.path.join(dir_path, "var/lib/dpkg/status"),
+                ],
+                "folders": [
+                    os.path.join(dir_path, "var/cache/apt/archives/partial"),
+                    os.path.join(dir_path, "var/lib/apt/lists/partial"),
+                ],
+            },
+        ):
+            if create_partial:
+                tmpdir.mkdir("etc")
+                tmpdir.mkdir("etc/apt")
+                tmpdir.join("etc/apt/sources.list").write("")
+
+            _ensure_esm_cache_structure()
+
+        assert m_folder_absent.call_args_list == [mock.call(tmpdir)]
+        assert m_create_file.call_args_list == [
+            mock.call(tmpdir + "/etc/apt/sources.list"),
+            mock.call(tmpdir + "/var/lib/dpkg/status"),
+        ]
+        assert m_makedirs.call_args_list == [
+            mock.call(
+                tmpdir + "/var/cache/apt/archives/partial",
+                exist_ok=True,
+                mode=755,
+            ),
+            mock.call(
+                tmpdir + "/var/lib/apt/lists/partial", exist_ok=True, mode=755
+            ),
+        ]
