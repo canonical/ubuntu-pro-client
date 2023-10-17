@@ -248,7 +248,7 @@ class RepoEntitlement(base.UAEntitlement):
             if package.current_ver
         ]
         if to_remove:
-            apt.remove_packages(
+            apt.purge_packages(
                 to_remove,
                 messages.UNINSTALLING_PACKAGES_FAILED.format(
                     packages=to_remove
