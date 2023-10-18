@@ -2,11 +2,12 @@
 Feature: Attached cloud does not detach when auto-attaching after manually attaching
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.aws.generic
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.gcp.generic
     Scenario Outline: No detaching on manually attached machine on all clouds
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro refresh` with sudo
         Then I will see the following on stdout:
@@ -28,7 +29,13 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         """
 
         Examples: ubuntu release
-           | release | esm-service |
-           | bionic  | enabled     |
-           | focal   | enabled     |
-           | xenial  | enabled     |
+           | release | machine_type  | esm-service |
+           | xenial  | aws.generic   | enabled     |
+           | xenial  | azure.generic | enabled     |
+           | xenial  | gcp.generic   | enabled     |
+           | bionic  | aws.generic   | enabled     |
+           | bionic  | azure.generic | enabled     |
+           | bionic  | gcp.generic   | enabled     |
+           | focal   | aws.generic   | enabled     |
+           | focal   | azure.generic | enabled     |
+           | focal   | gcp.generic   | enabled     |
