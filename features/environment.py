@@ -18,7 +18,6 @@ from features.util import (
     SUT,
     InstallationSource,
     landscape_reject_all_pending_computers,
-    lxc_get_property,
     process_template_vars,
 )
 
@@ -44,9 +43,6 @@ class UAClientBehaveConfig:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
-    :param image_clean:
-        This indicates whether the image created for this test run should be
-        cleaned up when all tests are complete.
     :param machine_type:
         The default machine_type to test: lxd-container, lxd-vm, azure.pro,
             azure.generic, aws.pro or aws.generic
@@ -56,10 +52,6 @@ class UAClientBehaveConfig:
     :param private_key_name:
         Optional name of the cloud's named private key object to use when
         connecting to launched VMs via ssh. Default: uaclient-integration.
-    :param reuse_image:
-        A string with an image name that should be used instead of building a
-        fresh image for this test run.   If specified, this image will not be
-        deleted.
     :param destroy_instances:
         This boolean indicates that test containers should be destroyed after
         the completion. Set to False to leave instances running.
@@ -76,7 +68,6 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = [
-        "image_clean",
         "destroy_instances",
         "ephemeral_instance",
         "snapshot_strategy",
@@ -93,7 +84,6 @@ class UAClientBehaveConfig:
         "machine_type",
         "private_key_file",
         "private_key_name",
-        "reuse_image",
         "artifact_dir",
         "install_from",
         "custom_ppa",
@@ -119,7 +109,6 @@ class UAClientBehaveConfig:
         self,
         *,
         cloud_credentials_path: Optional[str] = None,
-        image_clean: bool = True,
         destroy_instances: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
@@ -127,7 +116,6 @@ class UAClientBehaveConfig:
         machine_type: str = "lxd-container",
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
-        reuse_image: Optional[str] = None,
         contract_token: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
@@ -154,12 +142,10 @@ class UAClientBehaveConfig:
         self.landscape_registration_key = landscape_registration_key
         self.landscape_api_access_key = landscape_api_access_key
         self.landscape_api_secret_key = landscape_api_secret_key
-        self.image_clean = image_clean
         self.destroy_instances = destroy_instances
         self.machine_type = machine_type
         self.private_key_file = private_key_file
         self.private_key_name = private_key_name
-        self.reuse_image = reuse_image
         self.cmdline_tags = cmdline_tags
         self.artifact_dir = artifact_dir
         self.install_from = install_from
@@ -188,10 +174,6 @@ class UAClientBehaveConfig:
                 "but missing UACLIENT_BEHAVE_DEBS_PATH"
             )
             sys.exit(1)
-
-        if self.reuse_image is not None:
-            if self.image_clean:
-                print(" Reuse_image specified, it will not be deleted.")
 
         ignore_vars = ()  # type: Tuple[str, ...]
         if "pro" in self.machine_type:
@@ -316,29 +298,9 @@ def before_all(context: Context) -> None:
         for key, value in userdata.items():
             logging.debug("   - {} = {}".format(key, value))
             print("   - {} = {}".format(key, value))
-    context.series_image_name = {}
-    context.series_reuse_image = ""
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
     context.snapshots = {}
     context.machines = {}
-
-    if context.pro_config.reuse_image:
-        series = lxc_get_property(
-            context.pro_config.reuse_image, property_name="series", image=True
-        )
-        machine_type = lxc_get_property(
-            context.pro_config.reuse_image,
-            property_name="machine_type",
-            image=True,
-        )
-        if machine_type:
-            print("Found machine_type: {vm_type}".format(vm_type=machine_type))
-        if series is not None:
-            context.series_reuse_image = series
-            context.series_image_name[series] = context.pro_config.reuse_image
-        else:
-            print(" Could not check image series. It will not be used. ")
-            context.pro_config.reuse_image = None
 
 
 def _should_skip_tags(context: Context, tags: List) -> str:
@@ -507,16 +469,6 @@ def after_step(context, step):
 
 
 def after_all(context):
-    if context.pro_config.image_clean:
-        for key, image in context.series_image_name.items():
-            if key == context.series_reuse_image:
-                logging.info(
-                    " Not deleting this image: ",
-                    context.series_image_name[key],
-                )
-            else:
-                context.pro_config.default_cloud.api.delete_image(image)
-
     if context.pro_config.destroy_instances:
         try:
             if context.pro_config.default_cloud._ssh_key_managed:

@@ -43,51 +43,6 @@ class InstallationSource(Enum):
     CUSTOM = "custom"
 
 
-def lxc_get_property(name: str, property_name: str, image: bool = False):
-    """Check series name of either an image or a container.
-
-    :param name:
-        The name of the container or the image to check its series.
-    :param property_name:
-        The name of the property to return.
-    :param image:
-        If image==True will check image properties
-        If image==False it will check container configuration to get
-        properties.
-
-    :return:
-        The value of the container or image property.
-       `None` if it could not detect it (
-           some images don't have this field in properties).
-    """
-    if not image:
-        property_name = LXC_PROPERTY_MAP["container"][property_name]
-        output = subprocess.check_output(
-            ["lxc", "config", "get", name, property_name],
-            universal_newlines=True,
-        )
-        return output.rstrip()
-    else:
-        property_keys = LXC_PROPERTY_MAP["image"][property_name].split(".")
-        output = subprocess.check_output(
-            ["lxc", "image", "show", name], universal_newlines=True
-        )
-        image_config = yaml.safe_load(output)
-        logging.info("--- `lxc image show` output: ", image_config)
-        value = image_config
-        for key_name in property_keys:
-            value = image_config.get(value, {})
-        if not value:
-            logging.info(
-                "--- Could not detect image property {name}."
-                " Add it via `lxc image edit`".format(
-                    name=".".join(property_keys)
-                )
-            )
-            return None
-        return value
-
-
 def repo_state_hash(
     exclude_dirs: Iterable[str] = (
         ".github",
