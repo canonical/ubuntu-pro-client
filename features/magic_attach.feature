@@ -1,9 +1,10 @@
 Feature: Magic attach flow related tests
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attach using the magic attach flow
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/response-overlay.json` with the following:
         """
         {
@@ -49,8 +50,8 @@ Feature: Magic attach flow related tests
         And the machine is attached
 
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
+            | focal   | lxd-container |
+            | jammy   | lxd-container |
