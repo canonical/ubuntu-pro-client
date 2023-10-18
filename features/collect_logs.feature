@@ -1,9 +1,10 @@
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Run collect-logs on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         # simulate logrotate
         When I run `touch /var/log/ubuntu-advantage.log.1` with sudo
@@ -37,19 +38,20 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         ubuntu-advantage.service.txt
         """
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Run collect-logs on an attached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         # simulate logrotate
@@ -86,8 +88,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         ubuntu-esm-infra.list
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
