@@ -1,9 +1,10 @@
 Feature: Command behaviour when unattached
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Validate systemd unit/timer syntax
         When I run `systemd-analyze verify /lib/systemd/system/ua-timer.timer` with sudo
         Then stderr does not match regexp:
@@ -23,18 +24,19 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
@@ -48,24 +50,25 @@ Feature: Command behaviour when unattached
             """
 
         Examples: pro commands
-           | release | command |
-           | bionic  | detach  |
-           | bionic  | refresh |
-           | focal   | detach  |
-           | focal   | refresh |
-           | xenial  | detach  |
-           | xenial  | refresh |
-           | jammy   | detach  |
-           | jammy   | refresh |
-           | lunar   | detach  |
-           | lunar   | refresh |
-           | mantic  | detach  |
-           | mantic  | refresh |
+           | release | machine_type  | command |
+           | bionic  | lxd-container | detach  |
+           | bionic  | lxd-container | refresh |
+           | focal   | lxd-container | detach  |
+           | focal   | lxd-container | refresh |
+           | xenial  | lxd-container | detach  |
+           | xenial  | lxd-container | refresh |
+           | jammy   | lxd-container | detach  |
+           | jammy   | lxd-container | refresh |
+           | lunar   | lxd-container | detach  |
+           | lunar   | lxd-container | refresh |
+           | mantic  | lxd-container | detach  |
+           | mantic  | lxd-container | refresh |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
         Then I will see the following on stdout:
         """
@@ -101,18 +104,19 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-           | release  | infra-available |
-           | xenial   | yes             |
-           | bionic   | yes             |
-           | focal    | yes             |
-           | jammy    | yes             |
-           | lunar    | no              |
-           | mantic   | no              |
+           | release | machine_type  | infra-available |
+           | xenial  | lxd-container | yes             |
+           | bionic  | lxd-container | yes             |
+           | focal   | lxd-container | yes             |
+           | jammy   | lxd-container | yes             |
+           | lunar   | lxd-container | no              |
+           | mantic  | lxd-container | no              |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
         Then I will see the following on stderr:
           """
@@ -169,24 +173,25 @@ Feature: Command behaviour when unattached
           """
 
         Examples: ubuntu release
-          | release | command  |
-          | xenial  | enable   |
-          | xenial  | disable  |
-          | bionic  | enable   |
-          | bionic  | disable  |
-          | focal   | enable   |
-          | focal   | disable  |
-          | jammy   | enable   |
-          | jammy   | disable  |
-          | lunar   | enable   |
-          | lunar   | disable  |
-          | mantic  | enable   |
-          | mantic  | disable  |
+          | release | machine_type  | command  |
+          | xenial  | lxd-container | enable   |
+          | xenial  | lxd-container | disable  |
+          | bionic  | lxd-container | enable   |
+          | bionic  | lxd-container | disable  |
+          | focal   | lxd-container | enable   |
+          | focal   | lxd-container | disable  |
+          | jammy   | lxd-container | enable   |
+          | jammy   | lxd-container | disable  |
+          | lunar   | lxd-container | enable   |
+          | lunar   | lxd-container | disable  |
+          | mantic  | lxd-container | enable   |
+          | mantic  | lxd-container | disable  |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Check for newer versions of the client in an ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
         When I reboot the machine
         Then I verify that no files exist matching `/run/ubuntu-advantage/candidate-version`
@@ -259,20 +264,21 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
     @series.xenial
     @series.bionic
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I prepare the autocomplete test
         And I press tab twice to autocomplete the `ua` command
         Then stdout matches regexp:
@@ -322,18 +328,19 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release |
-          # | xenial  | Can't rely on Xenial because of bash sorting things weirdly
-          | bionic  |
+          | release | machine_type  |
+          # | xenial  | lxd-container | Can't rely on Xenial because of bash sorting things weirdly
+          | bionic  | lxd-container |
 
     @series.focal
     @series.jammy
     @series.lunar
     @series.mantic
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I prepare the autocomplete test
         And I press tab twice to autocomplete the `ua` command
         Then stdout matches regexp:
@@ -383,16 +390,17 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: esm cache failures don't generate errors
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
         And I run `apt update` with sudo
         # Wait for the hook to fail
@@ -419,19 +427,20 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
 
     @series.jammy
     @series.lunar
     @series.mantic
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo
         And I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
         And I verify that running `pro status` `with sudo` exits `1`
@@ -494,17 +503,18 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release | python_version | suffix                  |
-          | jammy   | python3.10     |                         |
+          | release | machine_type  | python_version | suffix                  |
+          | jammy   | lxd-container | python3.10     |                         |
           # Lunar+ has a BIG error message explaining why this is a clear user error...
-          | lunar   | python3.11     | --break-system-packages |
-          | mantic  | python3.11     | --break-system-packages |
+          | lunar   | lxd-container | python3.11     | --break-system-packages |
+          | mantic  | lxd-container | python3.11     | --break-system-packages |
 
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Warn users not to redirect/pipe human readable output
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run shell command `pro version | cat` as non-root
         Then I will see the following on stderr
         """
@@ -587,10 +597,10 @@ Feature: Command behaviour when unattached
         """
 
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
