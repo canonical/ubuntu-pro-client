@@ -4,9 +4,10 @@ Feature: pro config sub-command
     @series.xenial
     @series.jammy
     @series.lunar
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: old ua_config in uaclient.conf is still supported
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro config show` with sudo
         Then I will see the following on stdout:
         """
@@ -50,7 +51,7 @@ Feature: pro config sub-command
         """
         """
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | jammy   |
-            | lunar   |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | jammy   | lxd-container |
+            | lunar   | lxd-container |
