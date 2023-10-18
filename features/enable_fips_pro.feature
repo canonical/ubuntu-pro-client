@@ -3,8 +3,6 @@ Feature: FIPS enablement in PRO cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu Azure PRO vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -63,8 +61,6 @@ Feature: FIPS enablement in PRO cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.azure.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu Azure PRO vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -124,8 +120,6 @@ Feature: FIPS enablement in PRO cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP PRO vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

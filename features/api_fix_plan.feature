@@ -1,8 +1,6 @@
 Feature: Fix plan API endpoints
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1800-123456"]}'` as non-root
@@ -42,8 +40,6 @@ Feature: Fix plan API endpoints
            | jammy   | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
@@ -98,8 +94,6 @@ Feature: Fix plan API endpoints
            | focal   | lxd-container |
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
@@ -186,8 +180,6 @@ Feature: Fix plan API endpoints
            | xenial  | lxd-container |
 
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root

@@ -2,8 +2,6 @@
 Feature: Livepatch
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change config key `livepatch_url` to use value `<livepatch_url>`
@@ -42,8 +40,6 @@ Feature: Livepatch
             | focal   | lxd-vm       | https://livepatch.staging.canonical.com |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -94,8 +90,6 @@ Feature: Livepatch
             | focal   | lxd-vm       |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached livepatch status shows upgrade required when on an old kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
@@ -145,8 +139,6 @@ Feature: Livepatch
 
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro status --all` with sudo
@@ -176,8 +168,6 @@ Feature: Livepatch
             | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |
 
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd.vm
     Scenario Outline: Livepatch is supported on interim HWE kernel
         # This test is intended to ensure that an interim HWE kernel has the correct support status
         # It should be kept up to date so that it runs on the latest LTS and installs the latest

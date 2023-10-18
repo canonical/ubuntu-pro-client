@@ -1,8 +1,6 @@
 Feature: Ua fix command behaviour
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -34,8 +32,6 @@ Feature: Ua fix command behaviour
            | mantic  | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -200,8 +196,6 @@ Feature: Ua fix command behaviour
 
     @series.xenial
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
@@ -549,8 +543,6 @@ Feature: Ua fix command behaviour
            | xenial  | lxd-container |
 
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario: Fix command on an unattached machine
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -832,8 +824,6 @@ Feature: Ua fix command behaviour
         """
 
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario: Fix command on a machine without security/updates source lists
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo

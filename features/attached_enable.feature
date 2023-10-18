@@ -4,8 +4,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -31,8 +29,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable cc-eal with --access-only
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -54,8 +50,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @series.jammy
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -78,8 +72,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | mantic  | lxd-container | 23.10      | Mantic Minotaur  |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Empty series affordance means no series, null means all series
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -130,8 +122,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | jammy   | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of different services using json format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -201,8 +191,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of a service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -262,8 +250,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -289,8 +275,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
@@ -324,8 +308,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -410,8 +392,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | lxd-container | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -492,8 +472,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.bionic
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of usg service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -514,8 +492,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of usg service in a focal machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -577,8 +553,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.bionic
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached disable of livepatch in a lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -621,8 +595,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach works when snapd cannot be installed
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get remove -y snapd` with sudo
@@ -661,8 +633,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.bionic
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable livepatch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `canonical-livepatch status` `with sudo` exits `1`
@@ -693,8 +663,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | bionic  | lxd-vm       | enabled          |
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable livepatch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -764,8 +732,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @slow
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario: Attached enable livepatch on a machine with fips active
         Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -804,8 +770,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario: Attached enable fips on a machine with livepatch active
         Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -837,8 +801,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips on a machine with livepatch active
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -880,8 +842,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     @slow
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips on a machine with fips-updates active
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -918,8 +878,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable ros on a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -1082,8 +1040,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     # esm-infra is a good choice because it doesn't already have
     # other overrides that would interfere with the test
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario: Cloud overrides for a generic aws Focal instance
        Given a `focal` `aws.generic` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
@@ -1112,8 +1068,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: APT auth file is edited correctly on enable
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -1143,8 +1097,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | xenial  | aws.generic   |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -1187,8 +1139,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container | ant      |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable with corrupt lock
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

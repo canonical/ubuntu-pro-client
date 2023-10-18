@@ -3,8 +3,6 @@ Feature: Upgrade between releases when uaclient is attached
 
     @slow
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @upgrade
     Scenario Outline: Attached upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -59,8 +57,6 @@ Feature: Upgrade between releases when uaclient is attached
 
     @slow
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     @upgrade
     Scenario Outline: Attached FIPS upgrade across LTS releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

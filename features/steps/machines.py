@@ -1,7 +1,7 @@
 import datetime
 import logging
 import sys
-from typing import Dict, NamedTuple
+from typing import NamedTuple
 
 from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
@@ -9,6 +9,7 @@ from pycloudlib.instance import BaseInstance  # type: ignore
 from features.steps.shell import when_i_run_command
 from features.steps.ubuntu_advantage_tools import when_i_install_uat
 from features.util import (
+    BUILDER_NAME_PREFIX,
     SUT,
     InstallationSource,
     build_debs,
@@ -16,40 +17,38 @@ from features.util import (
 )
 
 MachineTuple = NamedTuple(
-    "MachineTuple", [("series", str), ("instance", BaseInstance)]
+    "MachineTuple",
+    [
+        ("series", str),
+        ("instance", BaseInstance),
+        ("machine_type", str),
+        ("cloud", str),
+    ],
 )
-MachinesDict = Dict[str, MachineTuple]
+SnapshotTuple = NamedTuple(
+    "SnapshotTuple",
+    [("series", str), ("name", str), ("machine_type", str), ("cloud", str)],
+)
 
 
-@when(
-    "I launch a `{series}` machine named `{machine_name}` from the snapshot of `{snapshot_name}`"  # noqa: E501
-)
 @when(
     "I launch a `{series}` `{machine_type}` machine named `{machine_name}` from the snapshot of `{snapshot_name}`"  # noqa: E501
 )
-@given("a `{series}` machine")
 @given("a `{series}` `{machine_type}` machine")
-@given("a `{series}` machine named `{machine_name}`")
 @given("a `{series}` `{machine_type}` machine named `{machine_name}`")
-@given(
-    "a `{series}` machine named `{machine_name}` with ingress ports `{ports}`"
-)
 @given(
     "a `{series}` `{machine_type}` machine named `{machine_name}` with ingress ports `{ports}`"  # noqa: E501
 )
 def given_a_machine(
     context,
     series,
-    machine_type=None,
+    machine_type,
     machine_name=SUT,
     snapshot_name=None,
     user_data=None,
     ports=None,
     cleanup=True,
 ):
-    if machine_type is None:
-        machine_type = context.pro_config.machine_type
-
     cloud = machine_type.split(".")[0]
     context.pro_config.clouds.get(cloud).manage_ssh_key()
 
@@ -75,18 +74,26 @@ def given_a_machine(
         if user_data is not None:
             user_data_to_use += user_data
 
+    if snapshot_name and snapshot_name in context.snapshots:
+        image_name = context.snapshots[snapshot_name].name
+    else:
+        image_name = None
+
     instance = context.pro_config.clouds.get(cloud).launch(
         series=series,
         machine_type=machine_type,
         instance_name=instance_name,
         ephemeral=context.pro_config.ephemeral_instance,
-        image_name=context.snapshots.get(snapshot_name, None),
+        image_name=image_name,
         inbound_ports=inbound_ports,
         user_data=user_data_to_use,
     )
 
     context.machines[machine_name] = MachineTuple(
-        series=series, instance=instance
+        series=series,
+        instance=instance,
+        machine_type=machine_type,
+        cloud=cloud,
     )
 
     if series == "xenial":
@@ -123,40 +130,34 @@ def given_a_machine(
 
 
 @when("I take a snapshot of the machine")
-def when_i_take_a_snapshot(
-    context, machine_type=None, machine_name=SUT, cleanup=True
-):
-    if machine_type is None:
-        machine_type = context.pro_config.machine_type
-
-    cloud = machine_type.split(".")[0]
+def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
+    machine_type = context.machines[machine_name].machine_type
+    series = context.machines[machine_name].series
+    cloud = context.machines[machine_name].cloud
     inst = context.machines[machine_name].instance
     snapshot = context.pro_config.clouds.get(cloud).api.snapshot(inst)
 
-    context.snapshots[machine_name] = snapshot
+    context.snapshots[machine_name] = SnapshotTuple(
+        series=series, name=snapshot, machine_type=machine_type, cloud=cloud
+    )
 
     if cleanup:
 
         def cleanup_snapshot() -> None:
             try:
-                context.pro_config.clouds.get(cloud).api.delete_image(
-                    context.snapshots[machine_name]
-                )
+                context.pro_config.clouds.get(cloud).api.delete_image(snapshot)
             except RuntimeError as e:
                 logging.error(
-                    "Failed to delete image: {}\n{}".format(
-                        context.snapshots[machine_name], str(e)
-                    )
+                    "Failed to delete image: {}\n{}".format(snapshot, str(e))
                 )
 
         context.add_cleanup(cleanup_snapshot)
 
 
-@given("a `{series}` machine with ubuntu-advantage-tools installed")
 @given(
     "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed"  # noqa: E501
 )
-def given_a_sut_machine(context, series, machine_type=None):
+def given_a_sut_machine(context, series, machine_type):
     if context.pro_config.install_from == InstallationSource.LOCAL:
         # build right away, this will cache the built debs for later use
         # building early means we catch build errors before investing in
@@ -178,24 +179,30 @@ def given_a_sut_machine(context, series, machine_type=None):
             )
             sys.exit(1)
 
+    builder_name = BUILDER_NAME_PREFIX + machine_type
+
     if context.pro_config.snapshot_strategy:
-        if "builder" not in context.snapshots:
+        if builder_name not in context.snapshots:
             given_a_machine(
                 context,
                 series,
                 machine_type=machine_type,
-                machine_name="builder",
+                machine_name=builder_name,
                 cleanup=False,
             )
-            when_i_install_uat(context, machine_name="builder")
+            when_i_install_uat(context, machine_name=builder_name)
             when_i_take_a_snapshot(
                 context,
-                machine_type=machine_type,
-                machine_name="builder",
+                machine_name=builder_name,
                 cleanup=False,
             )
-            context.machines["builder"].instance.delete(wait=False)
-        given_a_machine(context, series, snapshot_name="builder")
+            context.machines[builder_name].instance.delete(wait=False)
+        given_a_machine(
+            context,
+            series,
+            machine_type=machine_type,
+            snapshot_name=builder_name,
+        )
     else:
         given_a_machine(context, series, machine_type=machine_type)
         when_i_install_uat(context)
@@ -206,12 +213,12 @@ def given_a_sut_machine(context, series, machine_type=None):
 
 
 @given(
-    "a `{series}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa: E501
+    "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa: E501
 )
-def given_a_sut_machine_with_user_data(context, series):
+def given_a_sut_machine_with_user_data(context, series, machine_type):
     # doesn't support snapshot strategy because the test depends on
     # custom user data
-    given_a_machine(context, series, user_data=context.text)
+    given_a_machine(context, series, machine_type, user_data=context.text)
     when_i_install_uat(context)
 
 

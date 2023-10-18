@@ -15,6 +15,7 @@ from behave.runner import Context
 
 import features.cloud as cloud
 from features.util import (
+    BUILDER_NAME_PREFIX,
     SUT,
     InstallationSource,
     landscape_reject_all_pending_computers,
@@ -43,9 +44,10 @@ class UAClientBehaveConfig:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
-    :param machine_type:
-        The default machine_type to test: lxd-container, lxd-vm, azure.pro,
-            azure.generic, aws.pro or aws.generic
+    :param machine_types:
+        A comma-separated string of machine_types to test: lxd-container,
+            lxd-vm, azure.pro, azure.pro-fips, azure.generic, aws.pro,
+            aws.pro-fips, aws.generic, gcp.pro, gcp.pro-fips, gcp.generic
     :param private_key_file:
         Optional path to pre-existing private key file to use when connecting
         launched VMs via ssh.
@@ -81,7 +83,7 @@ class UAClientBehaveConfig:
         "landscape_registration_key",
         "landscape_api_access_key",
         "landscape_api_secret_key",
-        "machine_type",
+        "machine_types",
         "private_key_file",
         "private_key_name",
         "artifact_dir",
@@ -113,7 +115,7 @@ class UAClientBehaveConfig:
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
         sbuild_output_to_terminal: bool = False,
-        machine_type: str = "lxd-container",
+        machine_types: Optional[str] = None,
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
         contract_token: Optional[str] = None,
@@ -143,7 +145,6 @@ class UAClientBehaveConfig:
         self.landscape_api_access_key = landscape_api_access_key
         self.landscape_api_secret_key = landscape_api_secret_key
         self.destroy_instances = destroy_instances
-        self.machine_type = machine_type
         self.private_key_file = private_key_file
         self.private_key_name = private_key_name
         self.cmdline_tags = cmdline_tags
@@ -154,6 +155,9 @@ class UAClientBehaveConfig:
         self.userdata_file = userdata_file
         self.check_version = check_version
         self.sbuild_chroot = sbuild_chroot
+        self.machine_types = (
+            machine_types.split(",") if machine_types else None
+        )
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -176,7 +180,11 @@ class UAClientBehaveConfig:
             sys.exit(1)
 
         ignore_vars = ()  # type: Tuple[str, ...]
-        if "pro" in self.machine_type:
+        if (
+            self.machine_types
+            and len(self.machine_types) == 1
+            and "pro" in self.machine_types[0]
+        ):
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING",
@@ -186,8 +194,8 @@ class UAClientBehaveConfig:
             attr_name = env_name.replace("UACLIENT_BEHAVE_", "").lower()
             if getattr(self, attr_name):
                 print(
-                    " --- Ignoring {} because machine_type is {}".format(
-                        env_name, self.machine_type
+                    " --- Ignoring {} because machine_types is {}".format(
+                        env_name, self.machine_types
                     )
                 )
                 setattr(self, attr_name, None)
@@ -213,16 +221,6 @@ class UAClientBehaveConfig:
         self.timed_job_tag = timed_job_tag
 
         self.clouds = cloud.CloudManager(self)
-        if "aws" in self.machine_type:
-            self.default_cloud = self.clouds.get("aws")
-        elif "azure" in self.machine_type:
-            self.default_cloud = self.clouds.get("azure")
-        elif "gcp" in self.machine_type:
-            self.default_cloud = self.clouds.get("gcp")
-        elif "lxd-vm" in self.machine_type:
-            self.default_cloud = self.clouds.get("lxd-vm")
-        else:
-            self.default_cloud = self.clouds.get("lxd-container")
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
@@ -303,10 +301,11 @@ def before_all(context: Context) -> None:
     context.machines = {}
 
 
-def _should_skip_tags(context: Context, tags: List) -> str:
-    """Return a reason if a feature or scenario should be skipped"""
-    machine_type = getattr(context.pro_config, "machine_type", "")
-    machine_types = []
+def _should_skip_config_tags(context: Context, tags: List) -> str:
+    """
+    Return a reason if a feature or scenario should be skipped based on
+    missing but required config tags
+    """
 
     for tag in tags:
         parts = tag.split(".")
@@ -315,26 +314,14 @@ def _should_skip_tags(context: Context, tags: List) -> str:
         val = context.pro_config
         for idx, attr in enumerate(parts[2:], 1):
             val = getattr(val, attr, None)
-            if attr == "machine_type":
-                curr_machine_type = ".".join(parts[idx + 2 :])
-                machine_types.append(curr_machine_type)
-                if curr_machine_type == machine_type:
-                    return ""
-
-                break
             if val is None:
                 return "Skipped: tag value was None: {}".format(tag)
-
-    if machine_types:
-        return "Skipped: machine type {} was not found in tags:\n {}".format(
-            machine_type, ", ".join(machine_types)
-        )
 
     return ""
 
 
 def before_feature(context: Context, feature: Feature):
-    reason = _should_skip_tags(context, feature.tags)
+    reason = _should_skip_config_tags(context, feature.tags)
     if reason:
         feature.skip(reason=reason)
 
@@ -342,60 +329,56 @@ def before_feature(context: Context, feature: Feature):
 def before_scenario(context: Context, scenario: Scenario):
     context.stored_vars = {}
 
-    reason = _should_skip_tags(context, scenario.effective_tags)
+    reason = _should_skip_config_tags(context, scenario.effective_tags)
     if reason:
         scenario.skip(reason=reason)
         return
 
-    filter_series = context.pro_config.filter_series
-    given_a_series_match = re.match(
-        "a `([a-z]*)` machine with ubuntu-advantage-tools installed",
-        scenario.steps[0].name,
-    )
-    if filter_series and given_a_series_match:
-        series = given_a_series_match.group(1)
-        if series and series not in filter_series:
-            scenario.skip(
-                reason=(
-                    "Skipping scenario outline series `{series}`."
-                    " Cmdline provided @series tags: {cmdline_series}".format(
-                        series=series, cmdline_series=filter_series
-                    )
-                )
-            )
-            return
+    # Determine release and machine_type of this scenario.
+    # First check outline example table row.
+    # Then override with what is passed directly to the "Give a machine" step
+    # if applicable.
+    scenario_release = None
+    scenario_machine_type = None
 
     if hasattr(scenario, "_row") and scenario._row is not None:
-        row_release = scenario._row.get("release")
-        if (
-            row_release
-            and len(filter_series) > 0
-            and row_release not in filter_series
-        ):
-            scenario.skip(
-                reason=(
-                    "Skipping scenario outline series `{series}`."
-                    " Cmdline provided @series tags: {cmdline_series}".format(
-                        series=row_release, cmdline_series=filter_series
-                    )
+        scenario_release = scenario._row.get("release")
+        scenario_machine_type = scenario._row.get("machine_type")
+
+    given_a_series_machine_type_match = re.match(
+        "a `(.*)` `(.*)` machine with ubuntu-advantage-tools installed",
+        scenario.steps[0].name,
+    )
+    if given_a_series_machine_type_match:
+        step_release = given_a_series_machine_type_match.group(1)
+        if step_release != "<release>":
+            scenario_release = step_release
+        step_machine_type = given_a_series_machine_type_match.group(2)
+        if step_machine_type != "<machine_type>":
+            scenario_machine_type = step_machine_type
+
+    filter_series = context.pro_config.filter_series
+    if filter_series and scenario_release not in filter_series:
+        scenario.skip(
+            reason=(
+                "Skipping scenario outline series `{series}`."
+                " Cmdline provided @series tags: {cmdline_series}".format(
+                    series=scenario_release, cmdline_series=filter_series
                 )
             )
-            return
-        row_machine_type = scenario._row.get("machine_type")
-        if (
-            row_machine_type
-            and context.pro_config.machine_type != "any"
-            and row_machine_type != context.pro_config.machine_type
-        ):
-            scenario.skip(
-                reason=(
-                    "Skipping scenario outline machine_type `{}`."
-                    " Cmdline provided machine_type: {}".format(
-                        row_machine_type, context.pro_config.machine_type
-                    )
+        )
+        return
+    machine_types = context.pro_config.machine_types
+    if machine_types and scenario_machine_type not in machine_types:
+        scenario.skip(
+            reason=(
+                "Scenario machine_type is `{}`, but machine_types filter set"
+                " to {} - skipping.".format(
+                    scenario_machine_type, context.pro_config.machine_types
                 )
             )
-            return
+        )
+        return
 
     # before_step doesn't execute early enough to modify the step
     # so we perform step text surgery here
@@ -471,25 +454,33 @@ def after_step(context, step):
 def after_all(context):
     if context.pro_config.destroy_instances:
         try:
-            if context.pro_config.default_cloud._ssh_key_managed:
-                key_pair = context.pro_config.default_cloud.api.key_pair
-                os.remove(key_pair.private_key_path)
-                os.remove(key_pair.public_key_path)
+            for cloud_instance in context.pro_config.clouds.clouds.values():
+                if cloud_instance._ssh_key_managed:
+                    key_pair = cloud_instance.api.key_pair
+                    os.remove(key_pair.private_key_path)
+                    os.remove(key_pair.public_key_path)
 
         except Exception as e:
             logging.error(
                 "Failed to delete instance ssh keys:\n{}".format(str(e))
             )
 
-    if "builder" in context.snapshots:
+    # Builder snapshots don't get an auto-cleanup function, so clean them here
+    builder_snapshots = [
+        name
+        for name in context.snapshots
+        if name.startswith(BUILDER_NAME_PREFIX)
+    ]
+    for snapshot in builder_snapshots:
+        cloud = context.snapshots[snapshot].cloud
         try:
-            context.pro_config.default_cloud.api.delete_image(
-                context.snapshots["builder"]
+            context.pro_config.clouds.get(cloud).api.delete_image(
+                context.snapshots[snapshot].name
             )
         except RuntimeError as e:
             logging.error(
                 "Failed to delete image: {}\n{}".format(
-                    context.snapshots["builder"], str(e)
+                    context.snapshots[snapshot].name, str(e)
                 )
             )
 

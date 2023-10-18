@@ -2,8 +2,6 @@
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached refresh in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -58,8 +56,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -85,8 +81,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable with json format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -142,8 +136,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -183,8 +175,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -271,8 +261,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container | yes   | yes      | no     | yes | no   | no          | no  | no          | usg        | yes             |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -298,8 +286,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached show version in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -322,8 +308,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in a ubuntu machine with feature overrides
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -394,8 +378,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -445,8 +427,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     @series.bionic
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -565,8 +545,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.jammy
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -694,8 +672,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `systemctl stop ua-timer.timer` with sudo
@@ -773,8 +749,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script to valid machine activity endpoint
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -846,8 +820,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script to valid machine activity endpoint
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

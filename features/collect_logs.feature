@@ -1,8 +1,6 @@
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run collect-logs on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -47,8 +45,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Run collect-logs on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

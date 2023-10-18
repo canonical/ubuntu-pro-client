@@ -2,10 +2,6 @@
 Feature: Attached cloud does not detach when auto-attaching after manually attaching
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: No detaching on manually attached machine on all clouds
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

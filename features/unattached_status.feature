@@ -1,8 +1,6 @@
 Feature: Unattached status
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine - formatted
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro status --format json` as non-root
@@ -44,8 +42,6 @@ Feature: Unattached status
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
@@ -127,8 +123,6 @@ Feature: Unattached status
            | bionic  | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
@@ -207,8 +201,6 @@ Feature: Unattached status
            | focal   | lxd-container |
 
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
@@ -282,8 +274,6 @@ Feature: Unattached status
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -348,8 +338,6 @@ Feature: Unattached status
            | bionic  | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -415,8 +403,6 @@ Feature: Unattached status
            | focal   | lxd-container |
 
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -481,8 +467,6 @@ Feature: Unattached status
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -533,8 +517,6 @@ Feature: Unattached status
            | bionic  | lxd-container |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -583,8 +565,6 @@ Feature: Unattached status
            | focal   | lxd-container |
 
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

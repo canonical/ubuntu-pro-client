@@ -2,8 +2,6 @@
 Feature: Reboot Commands
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: reboot-cmds removes fips package holds and updates packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

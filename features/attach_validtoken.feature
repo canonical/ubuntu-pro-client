@@ -4,8 +4,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached command in a non-lts ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -43,8 +41,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
             | mantic  | lxd-container | yes       |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
@@ -103,8 +99,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | jammy   | lxd-container | hello=2.10-2ubuntu4         | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service   |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command with attach config
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # simplest happy path
@@ -215,8 +209,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | focal   | lxd-container | usg        |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
@@ -253,8 +245,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | jammy   | aws.generic  | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.azure.generic
     Scenario Outline: Attach command in an generic Azure Ubuntu VM
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
@@ -291,8 +281,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | jammy   | azure.generic | enabled   | n/a         | n/a       | usg        | n/a        |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attach command in an generic GCP Ubuntu VM
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
@@ -329,8 +317,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            | jammy   | gcp.generic  | enabled   | n/a         | n/a       | usg        | n/a        |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command with json output
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running attach `as non-root` with json response exits `1`
@@ -358,8 +344,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
           | jammy   | lxd-container | n/a      |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach and Check for contract change in status checking
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
        When I attach `contract_token` with sudo

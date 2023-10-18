@@ -1,9 +1,6 @@
 Feature: Creating golden images based on Cloud Ubuntu Pro instances
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Create a Pro fips-updates image and launch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

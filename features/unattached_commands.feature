@@ -1,8 +1,6 @@
 Feature: Command behaviour when unattached
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Validate systemd unit/timer syntax
@@ -33,8 +31,6 @@ Feature: Command behaviour when unattached
            | mantic  | lxd-container |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command>` `as non-root` exits `1`
@@ -65,8 +61,6 @@ Feature: Command behaviour when unattached
            | mantic  | lxd-container | refresh |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
@@ -113,8 +107,6 @@ Feature: Command behaviour when unattached
            | mantic  | lxd-container | no              |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
@@ -188,8 +180,6 @@ Feature: Command behaviour when unattached
           | mantic  | lxd-container | disable  |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Check for newer versions of the client in an ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
@@ -274,8 +264,6 @@ Feature: Command behaviour when unattached
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -336,8 +324,6 @@ Feature: Command behaviour when unattached
     @series.jammy
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -397,8 +383,6 @@ Feature: Command behaviour when unattached
           | mantic  | lxd-container |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
@@ -436,8 +420,6 @@ Feature: Command behaviour when unattached
     @series.jammy
     @series.lunar
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -511,8 +493,6 @@ Feature: Command behaviour when unattached
 
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Warn users not to redirect/pipe human readable output
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run shell command `pro version | cat` as non-root

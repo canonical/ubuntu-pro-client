@@ -1,8 +1,6 @@
 Feature: API security/security status tests
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     @uses.config.contract_token
     Scenario: Call Livepatched CVEs endpoint
         Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
@@ -18,8 +16,6 @@ Feature: API security/security status tests
          """
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Call package manifest endpoint for machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

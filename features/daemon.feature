@@ -2,8 +2,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.all
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
@@ -21,8 +19,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lts
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: cloud-id-shim should run in postinst and on boot
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify installing pro created the cloud-id file
@@ -59,8 +55,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lts
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon should run when appropriate on gcp generic lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
@@ -217,8 +211,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lts
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.azure.generic
     Scenario Outline: daemon should run when appropriate on azure generic lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
@@ -286,9 +278,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.lunar
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon does not start on gcp,azure generic non lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I wait `1` seconds
@@ -312,10 +301,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.all
     @uses.config.contract_token
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
-    @uses.config.machine_type.lxd-vm
-    @uses.config.machine_type.aws.generic
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
@@ -352,8 +337,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | lunar   | aws.generic   |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.pro
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -385,9 +368,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   | aws.pro       |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.pro
-    @uses.config.machine_type.azure.pro
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

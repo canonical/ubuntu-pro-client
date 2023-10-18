@@ -21,6 +21,7 @@ import yaml
 from uaclient.system import get_dpkg_arch
 
 SUT = "system-under-test"
+BUILDER_NAME_PREFIX = "builder-"
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
     "container": {"series": "image.release", "machine_type": "image.type"},
@@ -308,12 +309,13 @@ def process_template_vars(
                     logger_fn,
                 )
         elif function_name == "cloud":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.default_cloud.name,
-                logger_fn,
-            )
+            if args[1] in context.machines:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.machines[args[1]].cloud,
+                    logger_fn,
+                )
         elif function_name == "today":
             dt = datetime.datetime.utcnow()
             if len(args) == 2:

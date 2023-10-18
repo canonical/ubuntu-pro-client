@@ -1,8 +1,6 @@
 Feature: APT Messages
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -102,8 +100,6 @@ Feature: APT Messages
 
     @series.bionic
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -162,8 +158,6 @@ Feature: APT Messages
 
     @series.focal
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -224,8 +218,6 @@ Feature: APT Messages
           | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT News
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -693,10 +685,6 @@ Feature: APT Messages
     @series.xenial
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Cloud and series-specific URLs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -720,8 +708,6 @@ Feature: APT Messages
           | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
     @series.lunar
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

@@ -2,8 +2,6 @@
 Feature: FIPS enablement in cloud based machines
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -19,9 +17,6 @@ Feature: FIPS enablement in cloud based machines
             | xenial  | gcp.generic  | Xenial        | fips-updates  |
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -57,10 +52,6 @@ Feature: FIPS enablement in cloud based machines
 
 
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -96,10 +87,6 @@ Feature: FIPS enablement in cloud based machines
            | bionic  | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -134,8 +121,6 @@ Feature: FIPS enablement in cloud based machines
     @series.xenial
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.azure.generic
     Scenario Outline: Enable FIPS in an ubuntu Azure vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -198,8 +183,6 @@ Feature: FIPS enablement in cloud based machines
 
     @slow
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached FIPS in an ubuntu Xenial AWS vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -279,8 +262,6 @@ Feature: FIPS enablement in cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu AWS vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -343,8 +324,6 @@ Feature: FIPS enablement in cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -405,8 +384,6 @@ Feature: FIPS enablement in cloud based machines
 
     @slow
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `touch /etc/cloud/cloud-init.disabled` with sudo

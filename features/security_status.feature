@@ -2,8 +2,6 @@ Feature: Security status command behavior
 
     @series.xenial
     @series.bionic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Run security status with JSON/YAML format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -93,8 +91,6 @@ Feature: Security status command behavior
            | bionic  | lxd-container | ansible   | esm-apps  |
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     @uses.config.contract_token
     Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
         Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
@@ -114,8 +110,6 @@ Feature: Security status command behavior
         """
 
     @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
         Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
@@ -458,8 +452,6 @@ Feature: Security status command behavior
         """
 
     @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
         Given a `focal` `lxd-container` machine with ubuntu-advantage-tools installed
@@ -779,8 +771,6 @@ Feature: Security status command behavior
 
     # Latest released non-LTS
     @series.lunar
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario: Run security status in an Ubuntu machine
         Given a `lunar` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine

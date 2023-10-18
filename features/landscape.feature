@@ -5,8 +5,6 @@
 Feature: Enable landscape on Ubuntu
 
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable Landscape non-interactively
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo and options `--no-auto-enable`
@@ -155,8 +153,6 @@ Feature: Enable landscape on Ubuntu
             | mantic  | lxd-container |
 
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable Landscape interactively
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo and options `--no-auto-enable`

@@ -1,8 +1,6 @@
 Feature: Magic attach flow related tests
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach using the magic attach flow
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/response-overlay.json` with the following:

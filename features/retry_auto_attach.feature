@@ -1,10 +1,6 @@
 Feature: auto-attach retries periodically on failures
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: auto-attach retries for a month and updates status
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
@@ -135,10 +131,6 @@ Feature: auto-attach retries periodically on failures
 
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -152,7 +144,7 @@ Feature: auto-attach retries periodically on failures
         When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
         {
-            "https://contracts.canonical.com/v1/clouds/$behave_var{cloud}/token": [{
+            "https://contracts.canonical.com/v1/clouds/$behave_var{cloud system-under-test}/token": [{
               "type": "contract",
               "code": 400,
               "response": {
@@ -228,8 +220,6 @@ Feature: auto-attach retries periodically on failures
            | jammy   | gcp.pro      |
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: gcp auto-detect triggers retries on fail
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -296,10 +286,6 @@ Feature: auto-attach retries periodically on failures
 
 
     @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: auto-attach retries eventually succeed and clean up
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # modify the wait time to be shorter so we don't have to wait 15m
@@ -315,7 +301,7 @@ Feature: auto-attach retries periodically on failures
         When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
         {
-            "https://contracts.canonical.com/v1/clouds/$behave_var{cloud}/token": [{
+            "https://contracts.canonical.com/v1/clouds/$behave_var{cloud system-under-test}/token": [{
               "type": "contract",
               "code": 400,
               "response": {

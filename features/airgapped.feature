@@ -2,8 +2,6 @@
 Feature: Performing attach using ua-airgapped
 
     @series.jammy
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Pro works with the airgapped contract server
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # set up the apt mirror configuration

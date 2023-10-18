@@ -4,8 +4,6 @@ Feature: Build docker images with pro services
     @slow
     @docker
     @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Build docker images with pro services
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`

@@ -18,7 +18,7 @@ from features.util import (
 def when_i_install_uat(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
     series = context.machines[machine_name].series
-    is_pro = "pro" in context.pro_config.machine_type
+    is_pro = "pro" in context.machines[machine_name].machine_type
     if context.pro_config.install_from is InstallationSource.ARCHIVE:
         instance.execute("sudo apt update")
         when_i_apt_install(

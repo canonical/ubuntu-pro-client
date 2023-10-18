@@ -2,8 +2,6 @@ Feature: Upgrade between releases when uaclient is unattached
 
     @slow
     @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @upgrade
     @uses.config.contract_token
     Scenario Outline: Unattached upgrade
