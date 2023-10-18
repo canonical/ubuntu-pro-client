@@ -5,9 +5,10 @@ Feature: Timer for regular background jobs while attached
     @series.xenial
     @series.jammy
     @series.mantic
-    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd-container
     Scenario Outline: Timer is stopped when detached, started when attached
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify the `ua-timer` systemd timer is disabled
         When I attach `contract_token` with sudo
         # 6 hour timer with 1 hour randomized delay -> potentially 7 hours
@@ -15,7 +16,7 @@ Feature: Timer for regular background jobs while attached
         When I run `pro detach --assume-yes` with sudo
         Then I verify the `ua-timer` systemd timer is disabled
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | jammy   |
-            | mantic  |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | jammy   | lxd-container |
+            | mantic  | lxd-container |
