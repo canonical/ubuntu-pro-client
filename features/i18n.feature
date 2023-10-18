@@ -65,10 +65,11 @@ Feature: Pro supports multiple languages
            | focal   | lxd-container |
 
     @series.all
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Pro client's commands run successfully in a different locale
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         ## Change the locale
         When I run `apt install language-pack-fr -y` with sudo
         And I run `update-locale LANG=fr_FR.UTF-8` with sudo
@@ -183,10 +184,10 @@ Feature: Pro supports multiple languages
         When I run `pro --version` with sudo
         Then I will see the uaclient version on stdout
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
