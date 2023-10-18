@@ -2,27 +2,29 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     @series.all
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
         Then stderr matches regexp:
         """
         Unit ubuntu-advantage-cloud-id-shim.service could not be found.
         """
         Examples: version
-            | release |
-            | bionic  |
-            | focal   |
-            | jammy   |
-            | lunar   |
-            | mantic  |
+            | release | machine_type  |
+            | bionic  | lxd-container |
+            | focal   | lxd-container |
+            | jammy   | lxd-container |
+            | lunar   | lxd-container |
+            | mantic  | lxd-container |
 
     @series.lts
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: cloud-id-shim should run in postinst and on boot
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify installing pro created the cloud-id file
         When I run `cat /run/cloud-init/cloud-id` with sudo
         Then I will see the following on stdout
@@ -52,14 +54,15 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         lxd
         """
         Examples: version
-            | release |
-            | xenial  |
+            | release | machine_type  |
+            | xenial  | lxd-container |
 
     @series.lts
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon should run when appropriate on gcp generic lts
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout contains substring:
@@ -206,17 +209,18 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
+            | release | machine_type |
+            | xenial  | gcp.generic  |
+            | bionic  | gcp.generic  |
+            | focal   | gcp.generic  |
+            | jammy   | gcp.generic  |
 
     @series.lts
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.azure.generic
     Scenario Outline: daemon should run when appropriate on azure generic lts
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout contains substring:
@@ -274,18 +278,19 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         inactive
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
+            | release | machine_type  |
+            | xenial  | azure.generic |
+            | bionic  | azure.generic |
+            | focal   | azure.generic |
+            | jammy   | azure.generic |
 
     @series.lunar
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon does not start on gcp,azure generic non lts
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I wait `1` seconds
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout contains substring:
@@ -301,16 +306,18 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         daemon ending
         """
         Examples: version
-            | release |
-            | lunar   |
+            | release | machine_type  |
+            | lunar   | azure.generic |
+            | lunar   | gcp.generic   |
 
     @series.all
     @uses.config.contract_token
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     @uses.config.machine_type.lxd-vm
     @uses.config.machine_type.aws.generic
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -327,17 +334,28 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
-            | lunar   |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | xenial  | lxd-vm        |
+            | xenial  | aws.generic   |
+            | bionic  | lxd-container |
+            | bionic  | lxd-vm        |
+            | bionic  | aws.generic   |
+            | focal   | lxd-container |
+            | focal   | lxd-vm        |
+            | focal   | aws.generic   |
+            | jammy   | lxd-container |
+            | jammy   | lxd-vm        |
+            | jammy   | aws.generic   |
+            | lunar   | lxd-container |
+            | lunar   | lxd-vm        |
+            | lunar   | aws.generic   |
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.aws.pro
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -361,16 +379,17 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
+            | release | machine_type  |
+            | xenial  | aws.pro       |
+            | bionic  | aws.pro       |
+            | focal   | aws.pro       |
 
     @series.lts
+    @uses.config.machine_type.any
     @uses.config.machine_type.gcp.pro
     @uses.config.machine_type.azure.pro
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -408,7 +427,10 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         daemon starting
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
+            | release | machine_type  |
+            | xenial  | azure.pro     |
+            | xenial  | gcp.pro       |
+            | bionic  | azure.pro     |
+            | bionic  | gcp.pro       |
+            | focal   | azure.pro     |
+            | focal   | gcp.pro       |
