@@ -5,9 +5,10 @@ Feature: FIPS enablement in lxd containers
     @series.xenial
     @series.bionic
     @series.focal
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan openssl <libssl> libgcrypt20` with sudo, retrying exit [100]
         And I run `pro enable fips<updates>` `with sudo` and stdin `y`
@@ -90,20 +91,21 @@ Feature: FIPS enablement in lxd containers
         And I verify that packages `<additional-fips-packages>` installed versions match regexp `fips`
 
         Examples: ubuntu release
-           | release | fips-name    | updates  | libssl      | additional-fips-packages                                             |
-           | xenial  | FIPS         |          | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
-           | xenial  | FIPS Updates | -updates | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
-           | bionic  | FIPS         |          | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
-           | bionic  | FIPS Updates | -updates | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
-           | focal   | FIPS         |          | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
-           | focal   | FIPS Updates | -updates | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
+           | release | machine_type  | fips-name    | updates  | libssl      | additional-fips-packages                                             |
+           | xenial  | lxd-container | FIPS         |          | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
+           | xenial  | lxd-container | FIPS Updates | -updates | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
+           | bionic  | lxd-container | FIPS         |          | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
+           | bionic  | lxd-container | FIPS Updates | -updates | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
+           | focal   | lxd-container | FIPS         |          | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
+           | focal   | lxd-container | FIPS Updates | -updates | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
 
     @series.xenial
     @series.bionic
     @series.focal
+    @uses.config.machine_type.any
     @uses.config.machine_type.lxd-container
     Scenario Outline: Try to enable FIPS after FIPS Updates in a lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -139,7 +141,7 @@ Feature: FIPS enablement in lxd containers
             fips +yes +n/a
             """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
