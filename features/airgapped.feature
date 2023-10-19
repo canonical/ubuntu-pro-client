@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Performing attach using ua-airgapped
 
-    @series.jammy
     Scenario Outline: Pro works with the airgapped contract server
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # set up the apt mirror configuration

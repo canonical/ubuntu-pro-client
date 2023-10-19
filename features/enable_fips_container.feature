@@ -2,9 +2,6 @@
 @uses.config.contract_token
 Feature: FIPS enablement in lxd containers
 
-    @series.xenial
-    @series.bionic
-    @series.focal
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -97,9 +94,6 @@ Feature: FIPS enablement in lxd containers
            | focal   | lxd-container | FIPS         |          | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
            | focal   | lxd-container | FIPS Updates | -updates | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
     Scenario Outline: Try to enable FIPS after FIPS Updates in a lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: FIPS enablement in cloud based machines
 
-    @series.lts
     Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -16,7 +15,6 @@ Feature: FIPS enablement in cloud based machines
             | xenial  | gcp.generic  | Xenial        | fips          |
             | xenial  | gcp.generic  | Xenial        | fips-updates  |
 
-    @series.xenial
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -51,7 +49,6 @@ Feature: FIPS enablement in cloud based machines
            | xenial  | azure.generic | https://esm.ubuntu.com/fips/ubuntu xenial/main |
 
 
-    @series.bionic
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -86,7 +83,6 @@ Feature: FIPS enablement in cloud based machines
            | bionic  | azure.generic | https://esm.ubuntu.com/fips/ubuntu bionic/main |
            | bionic  | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
-    @series.focal
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -118,9 +114,6 @@ Feature: FIPS enablement in cloud based machines
            | focal   | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @series.focal
     Scenario Outline: Enable FIPS in an ubuntu Azure vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -182,7 +175,6 @@ Feature: FIPS enablement in cloud based machines
            | focal   | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.xenial
     Scenario Outline: Attached FIPS in an ubuntu Xenial AWS vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -260,8 +252,6 @@ Feature: FIPS enablement in cloud based machines
            | xenial  | aws.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
 
     @slow
-    @series.bionic
-    @series.focal
     Scenario Outline: Attached enable of FIPS in an ubuntu AWS vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -322,8 +312,6 @@ Feature: FIPS enablement in cloud based machines
            | focal   | aws.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.bionic
-    @series.focal
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -383,7 +371,6 @@ Feature: FIPS enablement in cloud based machines
            | focal   | gcp.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.lts
     Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `touch /etc/cloud/cloud-init.disabled` with sudo

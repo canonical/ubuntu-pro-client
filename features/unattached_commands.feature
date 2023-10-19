@@ -1,6 +1,5 @@
 Feature: Command behaviour when unattached
 
-    @series.all
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Validate systemd unit/timer syntax
@@ -30,7 +29,6 @@ Feature: Command behaviour when unattached
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.all
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command>` `as non-root` exits `1`
@@ -60,7 +58,6 @@ Feature: Command behaviour when unattached
            | mantic  | lxd-container | detach  |
            | mantic  | lxd-container | refresh |
 
-    @series.all
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro help esm-infra` as non-root
@@ -106,7 +103,6 @@ Feature: Command behaviour when unattached
            | lunar   | lxd-container | no              |
            | mantic  | lxd-container | no              |
 
-    @series.all
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
@@ -179,7 +175,6 @@ Feature: Command behaviour when unattached
           | mantic  | lxd-container | enable   |
           | mantic  | lxd-container | disable  |
 
-    @series.all
     Scenario Outline: Check for newer versions of the client in an ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         #  Make sure we have a fresh, just rebooted, environment
@@ -262,8 +257,6 @@ Feature: Command behaviour when unattached
           | lunar   | lxd-container |
           | mantic  | lxd-container |
 
-    @series.xenial
-    @series.bionic
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -320,10 +313,6 @@ Feature: Command behaviour when unattached
           # | xenial  | lxd-container | Can't rely on Xenial because of bash sorting things weirdly
           | bionic  | lxd-container |
 
-    @series.focal
-    @series.jammy
-    @series.lunar
-    @series.mantic
     # Side effect: this verifies that `ua` still works as a command
     Scenario Outline: Verify autocomplete options
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -382,7 +371,6 @@ Feature: Command behaviour when unattached
           | lunar   | lxd-container |
           | mantic  | lxd-container |
 
-    @series.lts
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
@@ -417,9 +405,6 @@ Feature: Command behaviour when unattached
           | focal   | lxd-container |
           | jammy   | lxd-container |
 
-    @series.jammy
-    @series.lunar
-    @series.mantic
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -492,7 +477,6 @@ Feature: Command behaviour when unattached
           | mantic  | lxd-container | python3.11     | --break-system-packages |
 
 
-    @series.all
     Scenario Outline: Warn users not to redirect/pipe human readable output
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run shell command `pro version | cat` as non-root

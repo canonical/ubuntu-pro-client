@@ -1,7 +1,6 @@
 Feature: Upgrade between releases when uaclient is unattached
 
     @slow
-    @series.all
     @upgrade
     @uses.config.contract_token
     Scenario Outline: Unattached upgrade

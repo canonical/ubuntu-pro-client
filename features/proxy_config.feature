@@ -2,7 +2,6 @@
 Feature: Proxy configuration
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -157,8 +156,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -254,7 +251,6 @@ Feature: Proxy configuration
            | bionic  | lxd-vm       |
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -349,8 +345,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -400,7 +394,6 @@ Feature: Proxy configuration
            | bionic  | lxd-vm       |
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -541,7 +534,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -616,7 +608,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -777,7 +768,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -876,7 +866,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: Get warning when configuring global or uaclient proxy
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -1028,7 +1017,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: apt_http(s)_proxy still works
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
@@ -1164,7 +1152,6 @@ Feature: Proxy configuration
            | jammy   | lxd-container |
 
     @slow
-    @series.jammy
     Scenario: Enable realtime kernel through proxy on a machine with no internet
         Given a `jammy` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
@@ -1194,7 +1181,6 @@ Feature: Proxy configuration
         A reboot is required to complete install.
         """
 
-    @series.lts
     Scenario Outline: Support HTTPS-in-HTTPS proxies
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
 

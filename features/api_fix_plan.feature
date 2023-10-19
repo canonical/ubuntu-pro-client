@@ -1,6 +1,5 @@
 Feature: Fix plan API endpoints
 
-    @series.lts
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1800-123456"]}'` as non-root
@@ -39,7 +38,6 @@ Feature: Fix plan API endpoints
            | focal   | lxd-container |
            | jammy   | lxd-container |
 
-    @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
@@ -93,7 +91,6 @@ Feature: Fix plan API endpoints
            | release | machine_type  |
            | focal   | lxd-container |
 
-    @series.xenial
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
@@ -179,7 +176,6 @@ Feature: Fix plan API endpoints
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    @series.bionic
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root

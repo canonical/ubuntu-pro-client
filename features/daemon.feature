@@ -1,6 +1,5 @@
 Feature: Pro Upgrade Daemon only runs in environments where necessary
 
-    @series.all
     @uses.config.contract_token
     Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -17,7 +16,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | lunar   | lxd-container |
             | mantic  | lxd-container |
 
-    @series.lts
     @uses.config.contract_token
     Scenario Outline: cloud-id-shim should run in postinst and on boot
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -53,7 +51,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | release | machine_type  |
             | xenial  | lxd-container |
 
-    @series.lts
     @uses.config.contract_token
     Scenario Outline: daemon should run when appropriate on gcp generic lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -209,7 +206,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   | gcp.generic  |
             | jammy   | gcp.generic  |
 
-    @series.lts
     @uses.config.contract_token
     Scenario Outline: daemon should run when appropriate on azure generic lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -276,7 +272,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   | azure.generic |
             | jammy   | azure.generic |
 
-    @series.lunar
     @uses.config.contract_token
     Scenario Outline: daemon does not start on gcp,azure generic non lts
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -299,7 +294,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | lunar   | azure.generic |
             | lunar   | gcp.generic   |
 
-    @series.all
     @uses.config.contract_token
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -336,7 +330,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | lunar   | lxd-vm        |
             | lunar   | aws.generic   |
 
-    @series.lts
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -367,7 +360,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | bionic  | aws.pro       |
             | focal   | aws.pro       |
 
-    @series.lts
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

@@ -1,6 +1,5 @@
 Feature: auto-attach retries periodically on failures
 
-    @series.lts
     Scenario Outline: auto-attach retries for a month and updates status
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
@@ -130,7 +129,6 @@ Feature: auto-attach retries periodically on failures
            | jammy   | gcp.generic   |
 
 
-    @series.lts
     Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -219,7 +217,6 @@ Feature: auto-attach retries periodically on failures
            | jammy   | azure.pro    |
            | jammy   | gcp.pro      |
 
-    @series.lts
     Scenario Outline: gcp auto-detect triggers retries on fail
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -285,7 +282,6 @@ Feature: auto-attach retries periodically on failures
            | jammy   | gcp.pro      |
 
 
-    @series.lts
     Scenario Outline: auto-attach retries eventually succeed and clean up
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # modify the wait time to be shorter so we don't have to wait 15m

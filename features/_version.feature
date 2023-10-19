@@ -1,6 +1,5 @@
 Feature: Pro is expected version
 
-    @series.all
     @uses.config.check_version
     Scenario Outline: Check pro version
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -91,7 +90,6 @@ Feature: Pro is expected version
             | mantic  | gcp.pro        |
             | mantic  | gcp.pro-fips   |
 
-    @series.all
     @uses.config.check_version
     @upgrade
     Scenario Outline: Check pro version

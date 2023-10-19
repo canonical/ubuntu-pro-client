@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Reboot Commands
 
-    @series.focal
     Scenario Outline: reboot-cmds removes fips package holds and updates packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

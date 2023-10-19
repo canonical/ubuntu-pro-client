@@ -1,9 +1,6 @@
 Feature: pro config sub-command
 
     # earliest, latest lts[, latest stable]
-    @series.xenial
-    @series.jammy
-    @series.lunar
     Scenario Outline: old ua_config in uaclient.conf is still supported
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro config show` with sudo

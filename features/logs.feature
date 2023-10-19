@@ -1,6 +1,5 @@
 Feature: Logs in Json Array Formatter
 
-    @series.all
     @uses.config.contract_token
     Scenario Outline: The log file can be successfully parsed as json array
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -29,7 +28,6 @@ Feature: Logs in Json Array Formatter
           | lunar   | lxd-container |
           | mantic  | lxd-container |
 
-    @series.all
     Scenario Outline: Non-root user and root user log files are different
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Confirm user log file does not exist 
@@ -60,7 +58,6 @@ Feature: Logs in Json Array Formatter
           | lunar   | lxd-container |
           | mantic  | lxd-container |
 
-    @series.all
     Scenario Outline: Non-root user log files included in collect logs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When i verify that running `pro status` `with sudo` exits `0`

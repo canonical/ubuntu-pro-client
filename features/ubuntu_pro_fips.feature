@@ -1,6 +1,5 @@
 Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
 
-    @series.lts
     Scenario Outline: Check fips is enabled correctly on Ubuntu pro fips Azure machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -151,7 +150,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | bionic  | azure.pro-fips | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | azure-fips          |
            | focal   | azure.pro-fips | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | azure-fips          |
 
-    @series.focal
     Scenario Outline: Check fips packages are correctly installed on Azure Focal machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -182,8 +180,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release | machine_type   | fips-apt-source                                |
            | focal   | azure.pro-fips | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
-    @series.xenial
-    @series.bionic
     Scenario Outline: Check fips packages are correctly installed on Azure Bionic & Xenial machines
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -219,7 +215,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | xenial  | azure.pro-fips | https://esm.ubuntu.com/fips/ubuntu xenial/main  |
            | bionic  | azure.pro-fips | https://esm.ubuntu.com/fips/ubuntu bionic/main  |
 
-    @series.lts
     Scenario Outline: Check fips is enabled correctly on Ubuntu pro fips AWS machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -369,7 +364,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | bionic  | aws.pro-fips | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | aws-fips            |
            | focal   | aws.pro-fips | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | aws-fips            |
 
-    @series.focal
     Scenario Outline: Check fips packages are correctly installed on AWS Focal machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -400,8 +394,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release | machine_type | fips-apt-source                                |
            | focal   | aws.pro-fips | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
-    @series.xenial
-    @series.bionic
     Scenario Outline: Check fips packages are correctly installed on AWS Bionic & Xenial machines
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -437,7 +429,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | xenial  | aws.pro-fips | https://esm.ubuntu.com/fips/ubuntu xenial/main  |
            | bionic  | aws.pro-fips | https://esm.ubuntu.com/fips/ubuntu bionic/main  |
 
-    @series.focal
     Scenario Outline: Check fips-updates can be enabled in a focal PRO FIPS machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -488,8 +479,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | focal   | azure.pro-fips |
            | focal   | gcp.pro-fips   |
 
-    @series.focal
-    @series.bionic
     Scenario Outline: Check fips is enabled correctly on Ubuntu pro fips GCP machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -637,7 +626,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | bionic  | gcp.pro-fips | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | gcp-fips            |
            | focal   | gcp.pro-fips | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | gcp-fips            |
 
-    @series.focal
     Scenario Outline: Check fips packages are correctly installed on GCP Pro Focal machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -668,7 +656,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release | machine_type | fips-apt-source                                |
            | focal   | gcp.pro-fips | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
-    @series.bionic
     Scenario Outline: Check fips packages are correctly installed on GCP Pro Bionic machines
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

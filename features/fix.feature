@@ -1,6 +1,5 @@
 Feature: Ua fix command behaviour
 
-    @series.all
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -31,7 +30,6 @@ Feature: Ua fix command behaviour
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -194,7 +192,6 @@ Feature: Ua fix command behaviour
            | release | machine_type  |
            | focal   | lxd-container |
 
-    @series.xenial
     @uses.config.contract_token
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -542,7 +539,6 @@ Feature: Ua fix command behaviour
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    @series.bionic
     Scenario: Fix command on an unattached machine
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
@@ -823,7 +819,6 @@ Feature: Ua fix command behaviour
         .*✔.* USN-6385-1 \[related\] does not affect your system.
         """
 
-    @series.bionic
     Scenario: Fix command on a machine without security/updates source lists
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo

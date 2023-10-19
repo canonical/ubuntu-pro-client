@@ -2,7 +2,6 @@
 Feature: Upgrade between releases when uaclient is attached
 
     @slow
-    @series.all
     @upgrade
     Scenario Outline: Attached upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -56,7 +55,6 @@ Feature: Upgrade between releases when uaclient is attached
         | lunar   | lxd-container | mantic       | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
-    @series.xenial
     @upgrade
     Scenario Outline: Attached FIPS upgrade across LTS releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

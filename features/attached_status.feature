@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Attached status
 
-    @series.all
     Scenario Outline: Attached status in a ubuntu machine - formatted
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -40,7 +39,6 @@ Feature: Attached status
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.xenial
     Scenario Outline: Non-root status can see in-progress operations
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -80,8 +78,6 @@ Feature: Attached status
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -128,7 +124,6 @@ Feature: Attached status
            | xenial  | lxd-container |
            | bionic  | lxd-container |
 
-    @series.focal
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -173,7 +168,6 @@ Feature: Attached status
            | release | machine_type  |
            | focal   | lxd-container |
 
-    @series.jammy
     Scenario Outline: Attached status in the latest LTS ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

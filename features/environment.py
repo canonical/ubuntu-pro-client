@@ -1,5 +1,4 @@
 import datetime
-import itertools
 import logging
 import os
 import random
@@ -84,6 +83,7 @@ class UAClientBehaveConfig:
         "landscape_api_access_key",
         "landscape_api_secret_key",
         "machine_types",
+        "releases",
         "private_key_file",
         "private_key_name",
         "artifact_dir",
@@ -116,6 +116,7 @@ class UAClientBehaveConfig:
         snapshot_strategy: bool = False,
         sbuild_output_to_terminal: bool = False,
         machine_types: Optional[str] = None,
+        releases: Optional[str] = None,
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
         contract_token: Optional[str] = None,
@@ -131,7 +132,6 @@ class UAClientBehaveConfig:
         userdata_file: Optional[str] = None,
         check_version: Optional[str] = None,
         sbuild_chroot: Optional[str] = None,
-        cmdline_tags: List = []
     ) -> None:
         # First, store the values we've detected
         self.cloud_credentials_path = cloud_credentials_path
@@ -147,7 +147,6 @@ class UAClientBehaveConfig:
         self.destroy_instances = destroy_instances
         self.private_key_file = private_key_file
         self.private_key_name = private_key_name
-        self.cmdline_tags = cmdline_tags
         self.artifact_dir = artifact_dir
         self.install_from = install_from
         self.custom_ppa = custom_ppa
@@ -158,13 +157,7 @@ class UAClientBehaveConfig:
         self.machine_types = (
             machine_types.split(",") if machine_types else None
         )
-        self.filter_series = set(
-            [
-                tag.split(".")[1]
-                for tag in cmdline_tags
-                if tag.startswith("series.") and "series.all" not in tag
-            ]
-        )
+        self.releases = releases.split(",") if releases else None
         # Next, perform any required validation
         if install_from == InstallationSource.CUSTOM and not custom_ppa:
             logging.error(
@@ -241,13 +234,7 @@ class UAClientBehaveConfig:
         kwargs = (
             {}
         )  # type: Dict[str, Union[str, bool, List, InstallationSource]]
-        # Preserve cmdline_tags for reference
-        if not config.tags.ands:
-            kwargs["cmdline_tags"] = []
-        else:
-            kwargs["cmdline_tags"] = list(
-                itertools.chain.from_iterable(config.tags.ands)
-            )
+
         for key, value in os.environ.items():
             if not key.startswith(cls.prefix):
                 continue
@@ -357,14 +344,12 @@ def before_scenario(context: Context, scenario: Scenario):
         if step_machine_type != "<machine_type>":
             scenario_machine_type = step_machine_type
 
-    filter_series = context.pro_config.filter_series
-    if filter_series and scenario_release not in filter_series:
+    releases = context.pro_config.releases
+    if releases and scenario_release not in releases:
         scenario.skip(
             reason=(
-                "Skipping scenario outline series `{series}`."
-                " Cmdline provided @series tags: {cmdline_series}".format(
-                    series=scenario_release, cmdline_series=filter_series
-                )
+                "Scenario release is `{}`, but releases filter set"
+                " to {} - skipping.".format(scenario_release, releases)
             )
         )
         return

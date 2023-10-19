@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Enable anbox on Ubuntu
 
-    @series.jammy
     Scenario Outline: Enable Anbox cloud service in a container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -50,7 +49,6 @@ Feature: Enable anbox on Ubuntu
             | release | machine_type  |
             | jammy   | lxd-container |
 
-    @series.xenial
     Scenario Outline: Enable Anbox cloud service in an unsupported release
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -65,7 +63,6 @@ Feature: Enable anbox on Ubuntu
             | release | machine_type |
             | xenial  | lxd-vm       |
 
-    @series.jammy
     Scenario Outline: Enable Anbox cloud service in a VM
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`

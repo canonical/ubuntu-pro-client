@@ -1,6 +1,5 @@
 Feature: Package related API endpoints
 
-    @series.all
     @uses.config.contract_token
     Scenario Outline: Call packages API endpoints to see information in a Ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

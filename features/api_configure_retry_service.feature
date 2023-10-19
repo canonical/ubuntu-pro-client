@@ -1,6 +1,5 @@
 Feature: api.u.pro.attach.auto.configure_retry_service
 
-    @series.lts
     Scenario Outline: v1 successfully triggers retry service when run during startup
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo

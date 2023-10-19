@@ -1,6 +1,5 @@
 Feature: Client behaviour for the API endpoints
 
-    @series.all
     Scenario Outline: all API endpoints can be imported individually
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service"` as non-root
@@ -31,7 +30,6 @@ Feature: Client behaviour for the API endpoints
         | lunar   | lxd-container |
         | mantic  | lxd-container |
 
-    @series.all
     Scenario Outline: API invalid endpoint or args
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api invalid.endpoint` `with sudo` exits `1`
@@ -54,7 +52,6 @@ Feature: Client behaviour for the API endpoints
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.all
     Scenario Outline: Basic endpoints
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.version.v1` with sudo

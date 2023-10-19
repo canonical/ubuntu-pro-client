@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Livepatch
 
-    @series.focal
     Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change config key `livepatch_url` to use value `<livepatch_url>`
@@ -39,7 +38,6 @@ Feature: Livepatch
             | focal   | lxd-vm       | https://livepatch.canonical.com         |
             | focal   | lxd-vm       | https://livepatch.staging.canonical.com |
 
-    @series.focal
     Scenario Outline: Attached livepatch status shows warning when on unsupported kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -89,7 +87,6 @@ Feature: Livepatch
             | release | machine_type |
             | focal   | lxd-vm       |
 
-    @series.focal
     Scenario Outline: Attached livepatch status shows upgrade required when on an old kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
@@ -137,8 +134,6 @@ Feature: Livepatch
             | release | machine_type | old_kernel_version |
             | focal   | gcp.generic  | 5.4.0-28-generic   |
 
-    @series.lunar
-    @series.mantic
     Scenario Outline: Livepatch is not enabled by default and can't be enabled on interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro status --all` with sudo
@@ -167,7 +162,6 @@ Feature: Livepatch
             | lunar   | lxd-vm       | 23.04 (Lunar Lobster)   |
             | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |
 
-    @series.jammy
     Scenario Outline: Livepatch is supported on interim HWE kernel
         # This test is intended to ensure that an interim HWE kernel has the correct support status
         # It should be kept up to date so that it runs on the latest LTS and installs the latest

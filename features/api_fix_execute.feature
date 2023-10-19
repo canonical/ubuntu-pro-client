@@ -1,6 +1,5 @@
 Feature: Fix execute API endpoints
 
-    @series.lts
     Scenario Outline: Fix execute command on invalid CVEs/USNs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-1800-123456"]}'` as non-root
@@ -39,7 +38,6 @@ Feature: Fix execute API endpoints
            | focal   | lxd-container |
            | jammy   | lxd-container |
 
-    @series.focal
     Scenario Outline: Fix execute on a Focal machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
@@ -102,7 +100,6 @@ Feature: Fix execute API endpoints
            | release | machine_type  |
            | focal   | lxd-container |
 
-    @series.xenial
     Scenario Outline: Fix execute API command on a Xenial machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
@@ -204,7 +201,6 @@ Feature: Fix execute API endpoints
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    @series.bionic
     Scenario Outline: Fix execute API command on a Bionic machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root

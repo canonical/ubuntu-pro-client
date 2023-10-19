@@ -2,8 +2,6 @@
 Feature: FIPS enablement in lxd VMs
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -133,8 +131,6 @@ Feature: FIPS enablement in lxd VMs
            | bionic  | lxd-vm       | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -270,8 +266,6 @@ Feature: FIPS enablement in lxd VMs
            | bionic  | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -327,7 +321,6 @@ Feature: FIPS enablement in lxd VMs
            | bionic  | lxd-vm       | enabled          |
 
     @slow
-    @series.focal
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -390,7 +383,6 @@ Feature: FIPS enablement in lxd VMs
            | focal   | lxd-vm       | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main |
 
     @slow
-    @series.focal
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -459,7 +451,6 @@ Feature: FIPS enablement in lxd VMs
            | focal   | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |
 
     @slow
-    @series.lts
     Scenario Outline: Attached enable fips-updates on fips enabled vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -534,8 +525,6 @@ Feature: FIPS enablement in lxd VMs
            | focal   | lxd-vm       |
 
     @slow
-    @series.xenial
-    @series.bionic
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
@@ -558,7 +547,6 @@ Feature: FIPS enablement in lxd VMs
         | bionic  | lxd-vm       |
 
     @slow
-    @series.focal
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
@@ -580,7 +568,6 @@ Feature: FIPS enablement in lxd VMs
 
 
     @slow
-    @series.jammy
     Scenario Outline: Attached enable fips-preview
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml

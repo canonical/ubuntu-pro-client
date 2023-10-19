@@ -1,6 +1,5 @@
 Feature: Full Auto-Attach Endpoint
 
-    @series.lts
     Scenario Outline: Run auto-attach on cloud instance.
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

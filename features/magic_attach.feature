@@ -1,6 +1,5 @@
 Feature: Magic attach flow related tests
 
-    @series.lts
     Scenario Outline: Attach using the magic attach flow
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/response-overlay.json` with the following:

@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
-    @series.jammy
     Scenario Outline: Enable Real-time kernel service in a container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -20,7 +19,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | release | machine_type  |
             | jammy   | lxd-container |
 
-    @series.lts
     Scenario Outline: Enable Real-time kernel service on unsupported release
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -41,7 +39,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | bionic  | lxd-vm       | 18.04 LTS  | Bionic Beaver   |
             | focal   | lxd-vm       | 20.04 LTS  | Focal Fossa     |
 
-    @series.jammy
     Scenario Outline: Enable Real-time kernel service
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
@@ -334,7 +331,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | release | machine_type |
             | jammy   | lxd-vm       |
 
-    @series.jammy
     Scenario Outline: Enable Real-time kernel service access-only
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`

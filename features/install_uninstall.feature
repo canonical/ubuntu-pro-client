@@ -1,6 +1,5 @@
 Feature: Pro Install and Uninstall related tests
 
-    @series.all
     Scenario Outline: Do not fail on postinst when cloud-id returns error
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
@@ -15,7 +14,6 @@ Feature: Pro Install and Uninstall related tests
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.lts
     @uses.config.contract_token
     Scenario Outline: Purge package after attaching it to a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -47,7 +45,6 @@ Feature: Pro Install and Uninstall related tests
            | jammy   | lxd-container |
 
     @slow
-    @series.lts
     Scenario Outline: Do not fail during postinst with nonstandard python setup
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Works when in a python virtualenv

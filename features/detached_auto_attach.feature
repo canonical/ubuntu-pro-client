@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Attached cloud does not detach when auto-attaching after manually attaching
 
-    @series.lts
     Scenario Outline: No detaching on manually attached machine on all clouds
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

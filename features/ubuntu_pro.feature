@@ -1,6 +1,5 @@
 Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
-    @series.lts
     Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `<machine_type>` machine named `proxy`
@@ -73,7 +72,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  | aws.pro      | disabled | disabled | disabled | cis        |
            | focal   | aws.pro      | disabled | n/a      | disabled | usg        |
 
-    @series.lts
     Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3128`
@@ -145,7 +143,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | cis        |
            | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | usg        |
 
-    @series.lts
     Scenario Outline: Proxy auto-attach in an Ubuntu Pro GCP machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `<machine_type>` machine named `proxy`
@@ -217,7 +214,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
            | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
 
-    @series.lts
     Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -343,7 +339,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | jammy   | aws.pro      | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     |
 
 
-    @series.lts
     Scenario Outline: Attached refresh in an Ubuntu pro Azure machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -468,7 +463,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   | azure.pro    | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
            | jammy   | azure.pro    | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        |
 
-    @series.lts
     Scenario Outline: Attached refresh in an Ubuntu pro GCP machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -593,7 +587,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   | gcp.pro      | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
            | jammy   | gcp.pro      | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
 
-    @series.lts
     Scenario Outline: Auto-attach service works on Pro Machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `systemctl start ua-auto-attach.service` with sudo
@@ -627,7 +620,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | jammy   | azure.pro    |
            | jammy   | gcp.pro      |
 
-    @series.lts
     Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
         # This user_data should not do anything, just guarantee that the ua-auto-attach service
@@ -692,7 +684,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | jammy   | azure.pro    |
            | jammy   | gcp.pro      |
 
-    @series.lts
     Scenario Outline: Unregistered Pro machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro auto-attach` `with sudo` exits `1`
