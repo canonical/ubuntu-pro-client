@@ -1,10 +1,8 @@
-# Documentation
+# Documentation style guide
 
-Our docs are hosted on [Read the Docs](https://readthedocs.com/). This page
-will explain how to contribute to the docs and build them locally.
-
-The documentation is *primarily* written in standard Markdown, but pages can
-be written in reStructuredText if you prefer.
+Our documentation is *primarily* written in standard Markdown, but pages can
+be written in reStructuredText if you prefer. Our docs are hosted on
+[Read the Docs](https://readthedocs.com/). 
 
 We also use the
 [MyST-Parser Sphinx extension](https://myst-parser.readthedocs.io/en/latest/intro.html).
@@ -12,49 +10,36 @@ This causes all Markdown (.md) files to be parsed as MyST, and
 [enables the use of directives](https://myst-parser.readthedocs.io/en/latest/syntax/roles-and-directives.html),
 which can be awkward to achieve in standard Markdown.
 
-## Branches
+## General tips and style guide
 
-To facilitate the package release process and keep the documentation maintained
-in the same repository as the codebase, there are two separate branches for the
-docs:
-- The `docs` branch, where the latest documentation is kept, used to track
-  releases and publish it in `Read The Docs`;
-- The `docs-devel` branch, where the documentation of upcoming features and changes is kept until they are ready to be released.
+Documentation consistency (in terms of writing style) is vital for a good user
+experience. We use the [Canonical style guide](https://docs.ubuntu.com/styleguide/en)
+in our documentation, which is summarised below -- with a few additions
+relevant to our docs.
 
-When a pull request with improvements or new content to the documentation
-contains features which are not released yet, it should target the
-`docs-devel` branch. Fixes, improvements, and content for existing features can
-target the `docs` branch directly, so they are published immediately after the
-pull request is merged.
+To make it more straightforward to publish your contribution, we recommend that
+you:
 
-## Building the docs
-
-To build the docs for Ubuntu Pro Client, you can use the `make` command.
-Switch to the `docs` (or `docs-devel`) branch and make sure to install the
-dependencies:
-
-```
-$ git checkout docs
-$ make install
-```
-
-When the environment is set up, run:
-
-```
-$ make build
-```
-
-The command will generate the HTML pages inside `docs/build`. The makefile
-target will build the documentation for you using Sphinx.
-
-Once built, the HTML files will be viewable in `docs/build/html/`. Use your web
-browser to open `index.html` to preview the site.
-
-## Style guide
-
-We use the [Canonical style guide](https://docs.ubuntu.com/styleguide/en) in
-our documentation, which is summarised below -- with a few additions relevant
-to our docs.
+* Use a spell checker (set to en-GB).
+* Be concise and to-the-point in your writing.
+* Check your links and test your code snippets to make sure they work as
+  expected.
+* Link back to other (reputable) pages on a topic, rather than repeating their
+  content.
+* Expand your acronyms the first time they appear on the page, e.g.
+  JavaScript Object Notation (JSON).
+* Try not to assume that your reader will have the same knowledge as you. If
+  you’re covering a new topic (or something complicated) then try to briefly
+  explain, or link to, things the average reader may not know.
+* If you have used some references you think would be generally helpful to your
+  reader, feel free to include a “Further reading” section at the end of the
+  page.
+* Unless a list item includes punctuation, don’t end it with a full stop. If
+  one item in the list needs a full stop, add one to all the items.
+  
+  If your list items are longer than a sentence or two each, consider whether
+  it might be better to use sub-headings instead, so that they appear in the
+  in-page navigation menu (on the right-hand side of the screen).
 
 ### Language
 
@@ -76,13 +61,12 @@ Headings should be written in sentence case. This means that only the first
 letter is capitalised (unless the header text refers to e.g., a product name
 that would normally be capitalised, such as "Ubuntu Pro Client").
 
-Ensure that you do not skip header levels when creating your document
-structure, i.e., that a section is followed by a subsection, and not a
-sub-subsection. Skipping header levels can lead to de-ranking of pages in
-search engines.
+Try not to skip heading levels in your document structure, i.e., a level 2
+header (##) should always be followed by a level 3 sub-header (###) not level
+4.Skipping header levels can lead to de-ranking of pages in search engines.
 
 Try to craft your headings to be descriptive, but as short as possible, to help
-readers understand what content to expect if they click on it.
+readers understand what content to expect on the page.
 
 ### Line length
 
@@ -94,7 +78,8 @@ that the pages and tables do not get so wide that side scrolling is required.
 Where possible, use contextual text in your links to aid users with screen
 readers and other accessibility tools. For example, "check out our
 [documentation style guide](#links) is preferable to "click
-[here](#links) for more".
+[here](#links) for more" because it provides a larger link area and also helps
+readers to understand what the link contains.
 
 ### Code blocks
 
@@ -103,13 +88,38 @@ Our documentation uses the
 which creates a small button on the right-hand side of code blocks for users to
 copy the code snippets we provide.
 
+You can create a code block by using three backticks ``` and including the
+language (for syntax highlighting):
+
+```
+  ```yaml
+  Some code block here
+  ```
+```
+
+Using "text" as the language is useful for displaying command output or plain
+text, since it does not highlight anything.
+
 The copied code will strip out any prompt symbols so that users can
 paste commands directly into their terminal. For user convenience, please
 ensure that if you show any code output, it is presented in a separate code
-block to the commands.
+block to the commands. The output should be preceded with a small description
+that explains what’s happening. For example:
 
-Please also specify the language used in your code block, to make sure it
-renders with the correct syntax highlighting.
+```
+  ```bash
+  uname -r
+  ```
+
+  Produces the following output:
+
+  ```text
+  4.14.151
+  ```
+```
+
+Use a single backtick to mark inline commands and other string literals, like
+paths to files. This will render them in monospaced font within the paragraph.
 
 ### Vertical whitespace
 
@@ -157,13 +167,6 @@ warning, danger, and error.
 Although it's possible to nest admonitions inside each other, it's better to
 avoid doing that unless it's strictly necessary!
 ```
-
-## Organisation
-
-We follow the [principles of Diataxis](https://diataxis.fr/) in our
-documentation. When writing new docs, try to consider the purpose of the
-document and how the reader will probably use it. This will help you to decide
-which section it belongs in.
 
 ### Getting advice
 

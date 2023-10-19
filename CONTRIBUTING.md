@@ -35,4 +35,5 @@ from the architecture of the project to how you should test any code changes.
 
 ### Documentation
 
-* [Documentation guide](./dev-docs/devdocs_styleguide.md)
+* [How to contribute to our documentation](./dev-docs/documentation/contribute_docs.md)
+* [Our style guide](./dev-docs/documentation/styleguide.md)
