@@ -2350,7 +2350,6 @@ msgid "FIPS Updates"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1320
-#, fuzzy
 msgid "FIPS compliant crypto packages with stable security updates"
 msgstr ""
 
