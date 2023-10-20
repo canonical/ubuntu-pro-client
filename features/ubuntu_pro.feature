@@ -1,157 +1,15 @@
 Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
-    Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
+    Scenario Outline: Proxy auto-attach on a cloud Ubuntu Pro machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` `<machine_type>` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
-        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
-        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        # This also tests that legacy `ua_config` settings still work
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://$behave_var{machine-ip proxy}:3128
-          https_proxy: http://$behave_var{machine-ip proxy}:3128
-        """
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro auto-attach` with sudo
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            anbox-cloud   +(yes|no)  .*
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
-        Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
-            """
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `pro enable <cis_or_usg>` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `pro disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT contracts.canonical.com.*
-        """
-        And stdout does not match regexp:
-        """
-        .*CONNECT 169.254.169.254.*
-        """
-        Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
-           | xenial  | aws.pro      | disabled | disabled | disabled | cis        |
-           | bionic  | aws.pro      | disabled | disabled | disabled | cis        |
-           | focal   | aws.pro      | disabled | n/a      | disabled | usg        |
-
-    Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3128`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
-        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
-        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://$behave_var{machine-ip proxy}:3128
-          https_proxy: http://$behave_var{machine-ip proxy}:3128
-        """
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro auto-attach` with sudo
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
-            anbox-cloud   +(yes|no)  .*
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
-        Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
-            """
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `pro enable <cis_or_usg>` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `pro disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT contracts.canonical.com.*
-        """
-        And stdout does not match regexp:
-        """
-        .*CONNECT 169.254.169.254.*
-        """
-        Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
-           | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | cis        |
-           | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | cis        |
-           | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | usg        |
-
-    Scenario Outline: Proxy auto-attach in an Ubuntu Pro GCP machine
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` `<machine_type>` machine named `proxy`
+        Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3389`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        # This also tests that legacy `ua_config` settings still work
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -177,7 +35,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +<livepatch-s> +<lp-desc>
+            livepatch     +yes +<livepatch-s>  +<lp-desc>
             """
         Then stdout matches regexp:
             """
@@ -206,12 +64,22 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout does not match regexp:
         """
+        .*CONNECT 169.254.169.254.*
+        """
+        And stdout does not match regexp:
+        """
         .*CONNECT metadata.*
         """
         Examples: ubuntu release
            | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
+           | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
            | xenial  | gcp.pro      | n/a      | disabled | disabled | warning     | Current kernel is not supported | cis        |
+           | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
            | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
+           | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
            | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
 
     Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
