@@ -475,7 +475,7 @@ msgid "The following package(s) will be reinstalled from the archive:"
 msgstr "O(s) pacote(s) à seguir serão reinstalados:"
 
 #: ../../uaclient/messages/__init__.py:162
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
 "{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' "
