@@ -228,7 +228,7 @@ class UserConfigData(DataObject):
 
 user_config_file = DataObjectFile(
     UserConfigData,
-    UAFile("user-config.json", private=True),
+    UAFile("user-config.json", private=False),
     DataObjectFileFormat.JSON,
     optional_type_errors_become_null=True,
 )

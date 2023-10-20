@@ -429,6 +429,12 @@ case "$1" in
           chmod 0700 "$private_dir"
       fi
 
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "30~"; then
+        if [ -f /var/lib/ubuntu-advantage/user-config.json ]; then
+            chmod 0644 /var/lib/ubuntu-advantage/user-config.json
+        fi
+      fi
+
       if [ "$VERSION_ID" = "16.04" ]; then
         if echo "$PREVIOUS_PKG_VER" | grep -q "14.04"; then
           mark_reboot_cmds_as_needed
