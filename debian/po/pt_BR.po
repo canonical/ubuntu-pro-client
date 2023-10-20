@@ -278,7 +278,6 @@ msgid "Are you sure? (y/N) "
 msgstr "Tem certeza? (y/N) "
 
 #: ../../uaclient/messages/__init__.py:48
-#, fuzzy
 msgid "Do you want to proceed? (y/N) "
 msgstr "Você quer prosseguir? (y/N) "
 
@@ -465,12 +464,11 @@ msgid "The following package(s) will be REMOVED:"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:148
-#, fuzzy
 msgid "The following package(s) will be reinstalled from the archive:"
 msgstr "O(s) pacote(s) à seguir serão reinstalados:"
 
 #: ../../uaclient/messages/__init__.py:159
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
 "{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' "
@@ -493,7 +491,7 @@ msgstr[1] ""
 "Renove sua assinatura em {url}"
 
 #: ../../uaclient/messages/__init__.py:172
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "CAUTION: Your Ubuntu Pro subscription will expire in {{remaining_days}} "
 "day.\n"
@@ -516,7 +514,7 @@ msgstr[1] ""
 "continuidade da cobertura de segurança para suas aplicações."
 
 #: ../../uaclient/messages/__init__.py:185
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "CAUTION: Your Ubuntu Pro subscription expired on {{expired_date}}.\n"
 "Renew your subscription at {url} to ensure\n"
