@@ -1859,6 +1859,10 @@ UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF = FormattedNamedMessage(
     "unattended-upgrades-cfg-value-turned-off",
     t.gettext("{cfg_name} is turned off"),
 )
+UNATTENDED_UPGRADES_UNINSTALLED = NamedMessage(
+    "unattended-upgrades-uninstalled",
+    t.gettext("unattended-upgrades package is not installed"),
+)
 
 LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
     "landscape-client-not-installed",

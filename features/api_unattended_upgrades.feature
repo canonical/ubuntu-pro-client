@@ -194,6 +194,12 @@ Feature: api.u.unattended_upgrades.status.v1
           "vim"
         ]
         """
+        When I run `apt remove unattended-upgrades -y` with sudo
+        And I run `pro api u.unattended_upgrades.status.v1` as non-root
+        Then stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"apt_periodic_job_enabled": false, "package_lists_refresh_frequency_days": 0, "systemd_apt_timer_enabled": false, "unattended_upgrades_allowed_origins": \[\], "unattended_upgrades_disabled_reason": {"code": "unattended-upgrades-uninstalled", "msg": "unattended-upgrades packages is not installed"}, "unattended_upgrades_frequency_days": 0, "unattended_upgrades_last_run": null, "unattended_upgrades_running": false}, "meta": {"environment_vars": \[\]}, "type": "UnattendedUpgradesStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
 
         Examples: ubuntu release
            | release | machine_type  | extra_field                               |
