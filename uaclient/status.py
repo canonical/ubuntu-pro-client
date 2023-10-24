@@ -82,9 +82,9 @@ STATUS_HUMANIZE_COLORIZE = {
 STATUS_UNATTACHED_TMPL = "{name: <17}{available: <11}{description}"
 
 STATUS_SIMULATED_TMPL = """\
-{name: <17}{available: <11}{entitled: <11}{auto_enabled: <14}{description}"""
+{name: <17}{available: <11}{entitled: <11}{auto_enabled: <16}{description}"""
 
-STATUS_HEADER = "{name: <17}{entitled: <10}{status: <10}{description}".format(
+STATUS_HEADER = "{name: <17}{entitled: <10}{status: <13}{description}".format(
     name=messages.STATUS_SERVICE,
     entitled=messages.STATUS_ENTITLED,
     status=messages.STATUS_STATUS,
@@ -94,9 +94,9 @@ STATUS_HEADER = "{name: <17}{entitled: <10}{status: <10}{description}".format(
 # less than reality because we colorize the values in entitled and status
 # columns. Colorizing has an opening and closing set of unprintable characters
 # that factor into formats len() calculations
-STATUS_TMPL = "{name: <17}{entitled: <19}{status: <19}{description}"
+STATUS_TMPL = "{name: <17}{entitled: <19}{status: <22}{description}"
 VARIANT_STATUS_TMPL = (
-    "{marker} {name: <15}{entitled: <19}{status: <19}{description}"
+    "{marker} {name: <15}{entitled: <19}{status: <22}{description}"
 )
 
 DEFAULT_STATUS = {

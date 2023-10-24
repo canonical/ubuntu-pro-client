@@ -71,22 +71,22 @@ RESPONSE_CONTRACT_INFO = {
 }
 
 SIMULATED_STATUS_ALL = """\
-SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
-esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
-fips             no         no         no            NIST-certified FIPS crypto packages
-fips-updates     no         no         no            FIPS compliant crypto packages with stable security updates
-livepatch        yes        yes        no            Canonical Livepatch service
-realtime-kernel  no         no         no            Ubuntu kernel with PREEMPT_RT patches integrated
-ros              no         no         no            Security Updates for the Robot Operating System
-ros-updates      no         no         no            All Updates for the Robot Operating System
+SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED    DESCRIPTION
+esm-apps         yes        no         yes             Expanded Security Maintenance for Applications
+esm-infra        yes        yes        yes             Expanded Security Maintenance for Infrastructure
+fips             no         no         no              NIST-certified FIPS crypto packages
+fips-updates     no         no         no              FIPS compliant crypto packages with stable security updates
+livepatch        yes        yes        no              Canonical Livepatch service
+realtime-kernel  no         no         no              Ubuntu kernel with PREEMPT_RT patches integrated
+ros              no         no         no              Security Updates for the Robot Operating System
+ros-updates      no         no         no              All Updates for the Robot Operating System
 """  # noqa: E501
 
 SIMULATED_STATUS = """\
-SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-apps         yes        no         yes           Expanded Security Maintenance for Applications
-esm-infra        yes        yes        yes           Expanded Security Maintenance for Infrastructure
-livepatch        yes        yes        no            Canonical Livepatch service
+SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED    DESCRIPTION
+esm-apps         yes        no         yes             Expanded Security Maintenance for Applications
+esm-infra        yes        yes        yes             Expanded Security Maintenance for Infrastructure
+livepatch        yes        yes        no              Canonical Livepatch service
 """  # noqa: E501
 
 UNATTACHED_STATUS_ALL = """\
@@ -117,15 +117,15 @@ See https://ubuntu.com/pro
 """  # noqa: E501
 
 ATTACHED_STATUS_ALL = """\
-SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         Expanded Security Maintenance for Applications
-esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
-fips             no        {dash}         NIST-certified FIPS crypto packages
-fips-updates     no        {dash}         FIPS compliant crypto packages with stable security updates
-livepatch        no        {dash}         Canonical Livepatch service
-realtime-kernel  no        {dash}         Ubuntu kernel with PREEMPT_RT patches integrated
-ros              no        {dash}         Security Updates for the Robot Operating System
-ros-updates      no        {dash}         All Updates for the Robot Operating System
+SERVICE          ENTITLED  STATUS       DESCRIPTION
+esm-apps         no        {dash}            Expanded Security Maintenance for Applications
+esm-infra        no        {dash}            Expanded Security Maintenance for Infrastructure
+fips             no        {dash}            NIST-certified FIPS crypto packages
+fips-updates     no        {dash}            FIPS compliant crypto packages with stable security updates
+livepatch        no        {dash}            Canonical Livepatch service
+realtime-kernel  no        {dash}            Ubuntu kernel with PREEMPT_RT patches integrated
+ros              no        {dash}            Security Updates for the Robot Operating System
+ros-updates      no        {dash}            All Updates for the Robot Operating System
 {notices}{features}
 Enable services with: pro enable <service>
 
@@ -137,10 +137,10 @@ Technical support level: n/a
 
 # Omit beta services from status
 ATTACHED_STATUS = """\
-SERVICE          ENTITLED  STATUS    DESCRIPTION
-esm-apps         no        {dash}         Expanded Security Maintenance for Applications
-esm-infra        no        {dash}         Expanded Security Maintenance for Infrastructure
-livepatch        no        {dash}         Canonical Livepatch service
+SERVICE          ENTITLED  STATUS       DESCRIPTION
+esm-apps         no        {dash}            Expanded Security Maintenance for Applications
+esm-infra        no        {dash}            Expanded Security Maintenance for Infrastructure
+livepatch        no        {dash}            Canonical Livepatch service
 {notices}{features}
 For a list of all Ubuntu Pro services, run 'pro status --all'
 Enable services with: pro enable <service>
