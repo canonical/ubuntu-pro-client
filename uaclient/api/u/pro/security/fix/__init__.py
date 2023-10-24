@@ -792,6 +792,8 @@ def _generate_fix_plan(
     additional_data=None
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
+    src_pocket_pkgs = defaultdict(list)
+
     fix_plan = get_fix_plan(
         title=issue_id,
         description=issue_description,
