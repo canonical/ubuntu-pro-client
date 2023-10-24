@@ -8,6 +8,7 @@ from uaclient.messages import (
     UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY,
     UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF,
     UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED,
+    UNATTENDED_UPGRADES_UNINSTALLED,
 )
 
 M_PATH = "uaclient.api.u.unattended_upgrades.status.v1"
@@ -92,6 +93,7 @@ class TestUnattendedUpgradesLastRun:
 
 
 class TestUnattendedUpgradesStatusV1:
+    @mock.patch("uaclient.apt.is_installed", return_value=True)
     @mock.patch(M_PATH + ".get_apt_config_keys")
     @mock.patch(M_PATH + ".get_apt_config_values")
     @mock.patch(M_PATH + "._is_unattended_upgrades_running")
@@ -104,6 +106,7 @@ class TestUnattendedUpgradesStatusV1:
         m_is_running,
         m_apt_cfg_values,
         m_apt_cfg_keys,
+        _m_apt_is_installed,
         FakeConfig,
     ):
         expected_datetime = datetime.datetime(2023, 2, 23, 15, 0, 0, 102490)
@@ -154,3 +157,28 @@ class TestUnattendedUpgradesStatusV1:
         assert m_apt_job_status.call_count == 1
         assert m_apt_cfg_values.call_count == 1
         assert m_last_run.call_count == 1
+        assert _m_apt_is_installed.call_count == 1
+
+    @mock.patch("uaclient.apt.is_installed", return_value=False)
+    def test_unattended_upgrades_status_v1_when_pkg_not_installed(
+        self,
+        _m_apt_is_installed,
+        FakeConfig,
+    ):
+        actual_return = api._status(FakeConfig())
+        assert False is actual_return.apt_periodic_job_enabled
+        assert False is actual_return.systemd_apt_timer_enabled
+        assert 0 == actual_return.package_lists_refresh_frequency_days
+        assert 0 == actual_return.unattended_upgrades_frequency_days
+        assert [] == actual_return.unattended_upgrades_allowed_origins
+        assert False is actual_return.unattended_upgrades_running
+        assert None is actual_return.unattended_upgrades_last_run
+        assert (
+            api.UnattendedUpgradesDisabledReason(
+                msg=UNATTENDED_UPGRADES_UNINSTALLED.msg,
+                code=UNATTENDED_UPGRADES_UNINSTALLED.name,
+            )
+            == actual_return.unattended_upgrades_disabled_reason
+        )
+
+        assert _m_apt_is_installed.call_count == 1

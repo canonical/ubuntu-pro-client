@@ -2,7 +2,7 @@ import datetime
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
-from uaclient import exceptions, messages, system
+from uaclient import apt, exceptions, messages, system
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.exceptions import UnattendedUpgradesError
@@ -15,6 +15,7 @@ from uaclient.data_types import (
     Field,
     IntDataValue,
     StringDataValue,
+    data_list,
 )
 
 UNATTENDED_UPGRADES_CONFIG_KEYS = [
@@ -44,7 +45,10 @@ class UnattendedUpgradesStatusResult(DataObject, AdditionalInfo):
         Field("apt_periodic_job_enabled", BoolDataValue),
         Field("package_lists_refresh_frequency_days", IntDataValue),
         Field("unattended_upgrades_frequency_days", IntDataValue),
-        Field("unattended_upgrades_allowed_origins", StringDataValue),
+        Field(
+            "unattended_upgrades_allowed_origins",
+            data_list(StringDataValue),
+        ),
         Field("unattended_upgrades_running", BoolDataValue),
         Field(
             "unattended_upgrades_disabled_reason",
@@ -145,6 +149,21 @@ def status() -> UnattendedUpgradesStatusResult:
 
 
 def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
+    if not apt.is_installed("unattended-upgrades"):
+        return UnattendedUpgradesStatusResult(
+            systemd_apt_timer_enabled=False,
+            apt_periodic_job_enabled=False,
+            package_lists_refresh_frequency_days=0,
+            unattended_upgrades_frequency_days=0,
+            unattended_upgrades_allowed_origins=[],
+            unattended_upgrades_disabled_reason=UnattendedUpgradesDisabledReason(  # noqa
+                msg=messages.UNATTENDED_UPGRADES_UNINSTALLED.msg,
+                code=messages.UNATTENDED_UPGRADES_UNINSTALLED.name,
+            ),
+            unattended_upgrades_running=False,
+            unattended_upgrades_last_run=None,
+        )
+
     systemd_apt_timer_enabled = _get_apt_daily_job_status()
     unattended_upgrades_last_run = _get_unattended_upgrades_last_run()
 
