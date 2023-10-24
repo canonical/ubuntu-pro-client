@@ -229,3 +229,19 @@ Feature: Fix plan API endpoints
         Examples: ubuntu release details
            | release | machine_type  |
            | bionic  | lxd-container |
+
+    @series.mantic
+    @uses.config.machine_type.lxd-vm
+    Scenario Outline: Fix command on an unattached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2022-40982"]}'` as non-root
+        Then stdout is a json matching the `api_response` schema
+        And the json API response data matches the `cve_fix_plan` schema
+        And stdout matches regexp:
+        """
+        {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["linux"\], "description": ".*", "error": null, "expected_status": "still-affected", "plan": \[\], "title": "CVE-2022-40982", "warnings": \[{"data": {"source_packages": \["linux"\], "status": "pending"}, "order": 1, "warning_type": "security-issue-not-fixed"}\]}\], "expected_status": "still-affected"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        """
+
+        Examples: ubuntu release details
+           | release |
+           | mantic  |
