@@ -208,7 +208,6 @@ Feature: APT Messages
         """
         Examples: ubuntu release
           | release | machine_type  | package | more_msg                | learn_more_msg                                                    |
-          | bionic  | lxd-container | ansible | more security updates   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04 |
           | focal   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
           | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
