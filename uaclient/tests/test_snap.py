@@ -10,8 +10,51 @@ from uaclient.snap import (
     get_config_option_value,
     get_installed_snaps,
     get_snap_info,
+    is_snapd_installed_as_a_snap,
     unconfigure_snap_proxy,
 )
+
+
+class TestIsSnapdInstalledAsASnap:
+    @pytest.mark.parametrize(
+        ["installed_snaps", "expected"],
+        [
+            ([], False),
+            (
+                [
+                    SnapPackage(
+                        "one", "123", "456", "oldest/unstable", "someone"
+                    )
+                ],
+                False,
+            ),
+            (
+                [
+                    SnapPackage(
+                        "snapd", "123", "456", "oldest/unstable", "someone"
+                    )
+                ],
+                True,
+            ),
+            (
+                [
+                    SnapPackage(
+                        "one", "123", "456", "oldest/unstable", "someone"
+                    ),
+                    SnapPackage(
+                        "snapd", "123", "456", "oldest/unstable", "someone"
+                    ),
+                ],
+                True,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.snap.get_installed_snaps")
+    def test_is_snapd_installed_as_a_snap(
+        self, m_get_installed_snaps, installed_snaps, expected
+    ):
+        m_get_installed_snaps.return_value = installed_snaps
+        assert expected == is_snapd_installed_as_a_snap()
 
 
 class TestConfigureSnapProxy:

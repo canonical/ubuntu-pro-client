@@ -35,6 +35,11 @@ def is_snapd_installed() -> bool:
     return "snapd" in apt.get_installed_packages_names()
 
 
+def is_snapd_installed_as_a_snap() -> bool:
+    """Returns whether or not snapd is installed as a snap"""
+    return any((snap.name == "snapd" for snap in get_installed_snaps()))
+
+
 def configure_snap_proxy(
     http_proxy: Optional[str] = None,
     https_proxy: Optional[str] = None,

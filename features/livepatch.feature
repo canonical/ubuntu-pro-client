@@ -197,3 +197,41 @@ Feature: Livepatch
         Examples: ubuntu release
             | release | machine_type | release_num |
             | jammy   | lxd-vm       | 22.04       |
+
+    @series.xenial
+    @uses.config.machine_type.any
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: snapd installed as a snap if necessary
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run `snap list` with sudo
+        Then stdout does not contain substring:
+        """
+        snapd
+        """
+        When I set the machine token overlay to the following yaml
+        """
+        machineTokenInfo:
+          contractInfo:
+            resourceEntitlements:
+              - type: livepatch
+                directives:
+                  requiredSnaps:
+                    - name: core22
+        """
+        When I attach `contract_token` with sudo
+        Then stdout contains substring:
+        """
+        Installing snapd snap
+        """
+        When I run `snap list` with sudo
+        Then stdout contains substring:
+        """
+        snapd
+        """
+        And stdout contains substring:
+        """
+        core22
+        """
+        Examples: ubuntu release
+            | release | machine_type |
+            | xenial  | lxd-vm       |

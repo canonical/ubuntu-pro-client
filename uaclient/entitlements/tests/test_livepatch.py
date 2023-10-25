@@ -372,6 +372,7 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
+@mock.patch(M_PATH + "snap.is_snapd_installed_as_a_snap")
 @mock.patch(M_PATH + "snap.is_snapd_installed")
 @mock.patch("uaclient.http.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.snap.configure_snap_proxy")
@@ -383,6 +384,13 @@ class TestLivepatchEntitlementEnable:
         mock.call(
             ["apt-get", "install", "--assume-yes", "snapd"],
             retry_sleeps=apt.APT_RETRIES,
+        )
+    ]
+    mocks_snapd_install_as_a_snap = [
+        mock.call(
+            ["/usr/bin/snap", "install", "snapd"],
+            capture=True,
+            retry_sleeps=[0.5, 1, 5],
         )
     ]
     mocks_snap_wait_seed = [
@@ -398,7 +406,10 @@ class TestLivepatchEntitlementEnable:
         )
     ]
     mocks_install = (
-        mocks_snapd_install + mocks_snap_wait_seed + mocks_livepatch_install
+        mocks_snapd_install
+        + mocks_snapd_install_as_a_snap
+        + mocks_snap_wait_seed
+        + mocks_livepatch_install
     )
     mocks_config = [
         mock.call(
@@ -444,6 +455,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         capsys,
         caplog_text,
         event,
@@ -454,6 +466,7 @@ class TestLivepatchEntitlementEnable:
         application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         m_is_snapd_installed.return_value = False
+        m_is_snapd_installed_as_a_snap.return_value = False
 
         def fake_update_sources_list(sources_list):
             if apt_update_success:
@@ -469,6 +482,7 @@ class TestLivepatchEntitlementEnable:
         msg = (
             "Installing snapd\n"
             "Updating standard Ubuntu package lists\n"
+            "Installing snapd snap\n"
             "Installing canonical-livepatch snap\n"
             "Disabling Livepatch prior to re-attach with new token\n"
             "Canonical Livepatch enabled\n"
@@ -482,6 +496,73 @@ class TestLivepatchEntitlementEnable:
             assert expected_log not in caplog_text()
         else:
             assert expected_log in caplog_text()
+        assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
+        assert m_validate_proxy.call_count == 2
+        assert m_snap_proxy.call_count == 1
+        assert m_livepatch_proxy.call_count == 1
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.system.get_release_info")
+    @mock.patch("uaclient.system.subp")
+    @mock.patch("uaclient.contract.apply_contract_overrides")
+    @mock.patch("uaclient.apt.update_sources_list")
+    @mock.patch("uaclient.apt.run_apt_install_command")
+    @mock.patch("uaclient.apt.run_apt_update_command")
+    @mock.patch("uaclient.system.which", return_value=None)
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(
+        M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
+    )
+    def test_enable_continues_when_snap_install_snapd_fails(
+        self,
+        m_can_enable,
+        m_app_status,
+        m_which,
+        m_run_apt_update,
+        m_run_apt_install,
+        m_update_sources_list,
+        _m_contract_overrides,
+        m_subp,
+        _m_get_release_info,
+        m_livepatch_proxy,
+        m_snap_proxy,
+        m_validate_proxy,
+        m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
+        capsys,
+        caplog_text,
+        event,
+        entitlement,
+    ):
+        """Install snapd and canonical-livepatch snap when not on system."""
+        application_status = ApplicationStatus.ENABLED
+        m_app_status.return_value = application_status, "enabled"
+        m_is_snapd_installed.return_value = False
+        m_is_snapd_installed_as_a_snap.return_value = False
+        m_subp.side_effect = [
+            None,
+            exceptions.ProcessExecutionError("test"),
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+
+        assert entitlement.enable()
+        assert self.mocks_install + self.mocks_config in m_subp.call_args_list
+        assert self.mocks_apt_update == m_run_apt_update.call_args_list
+        assert 1 == m_update_sources_list.call_count
+        msg = (
+            "Installing snapd\n"
+            "Updating standard Ubuntu package lists\n"
+            "Installing snapd snap\n"
+            "Executing `snap install snapd` failed.\n"
+            "Installing canonical-livepatch snap\n"
+            "Disabling Livepatch prior to re-attach with new token\n"
+            "Canonical Livepatch enabled\n"
+        )
+        assert (msg, "") == capsys.readouterr()
         assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
@@ -507,6 +588,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         capsys,
         event,
         entitlement,
@@ -556,6 +638,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         capsys,
         event,
         entitlement,
@@ -616,6 +699,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         capsys,
         entitlement,
     ):
@@ -660,6 +744,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         _m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         cls_name,
         cls_title,
         entitlement,
@@ -696,6 +781,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         entitlement,
         capsys,
         caplog_text,
@@ -759,6 +845,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         entitlement,
     ):
         m_is_snapd_installed.return_value = False
@@ -794,6 +881,7 @@ class TestLivepatchEntitlementEnable:
         m_snap_proxy,
         m_validate_proxy,
         m_is_snapd_installed,
+        m_is_snapd_installed_as_a_snap,
         entitlement,
     ):
         m_is_snapd_installed.return_value = True

@@ -90,6 +90,20 @@ class LivepatchEntitlement(UAEntitlement):
             event.info(messages.INSTALLING_PACKAGES.format(packages="snapd"))
             snap.install_snapd()
 
+        if not snap.is_snapd_installed_as_a_snap():
+            event.info(
+                messages.INSTALLING_PACKAGES.format(packages="snapd snap")
+            )
+            try:
+                snap.install_snap("snapd")
+            except exceptions.ProcessExecutionError as e:
+                LOG.warning("Failed to install snapd as a snap", exc_info=e)
+                event.info(
+                    messages.EXECUTING_COMMAND_FAILED.format(
+                        command="snap install snapd"
+                    )
+                )
+
         snap.run_snapd_wait_cmd()
 
         http_proxy = http.validate_proxy(
