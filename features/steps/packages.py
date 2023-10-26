@@ -62,9 +62,14 @@ def verify_package_not_installed(context, package):
     when_i_run_command(
         context, "apt-cache policy {}".format(package), "as non-root"
     )
-    assert_that(
-        context.process.stdout.strip(), contains_string("Installed: (none)")
-    )
+    output = context.process.stdout.strip()
+    if "Installed" in output:
+        assert_that(
+            context.process.stdout.strip(),
+            contains_string("Installed: (none)"),
+        )
+    # If no output or it doesn't contain installation information,
+    # then the package is neither installed nor known
 
 
 @then("I verify that `{package}` is installed from apt source `{apt_source}`")

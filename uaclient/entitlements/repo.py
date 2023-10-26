@@ -164,8 +164,8 @@ class RepoEntitlement(base.UAEntitlement):
         self.remove_apt_config(silent=silent)
 
         if self.purge and self.origin:
-            self.execute_removal(packages_to_remove)
             self.execute_reinstall(packages_to_reinstall)
+            self.execute_removal(packages_to_remove)
         return True
 
     def purge_kernel_check(self, package_list):
