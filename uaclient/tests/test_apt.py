@@ -1441,7 +1441,9 @@ class TestGetRemoteVersionsForPackage:
                 get_remote_versions_for_package(
                     mock_package(
                         "name",
-                        installed_version=mock_version("1.0"),
+                        installed_version=mock_version(
+                            "1.0", [mock_origin("now", "", "Origin1", "")]
+                        ),
                         other_versions=[
                             mock_version(
                                 "0.9", [mock_origin("", "", "Origin1", "")]

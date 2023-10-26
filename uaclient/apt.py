@@ -462,6 +462,9 @@ def get_remote_versions_for_package(
         valid_origins = [
             file
             for file, _ in version.file_list
+            # component == now means we are getting it from the local dpkg
+            # cache, and we don't really care about those entries because
+            # they are the currently installed version of the package.
             if file.component != "now" and file.origin != exclude_origin
         ]
         if valid_origins:
