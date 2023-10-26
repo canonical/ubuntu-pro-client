@@ -239,13 +239,15 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def execute_removal(self, packages_to_remove):
-        # We need to check for package.current_ver again, because there is an
-        # intermediate step between listing the packages and acting on them.
+        # We need to check again if the package is installed, because there is
+        # an intermediate step between listing the packages and acting on them.
+        # Some reinstalls may also uninstall dependencies.
         # Packages may be removed between those operations.
+        installed_packages = apt.get_installed_packages_names()
         to_remove = [
             package.name
             for package in packages_to_remove
-            if package.current_ver
+            if package.name in installed_packages
         ]
         if to_remove:
             apt.purge_packages(
@@ -256,13 +258,14 @@ class RepoEntitlement(base.UAEntitlement):
             )
 
     def execute_reinstall(self, packages_to_reinstall):
-        # We need to check for package.current_ver again, because there is an
-        # intermediate step between listing the packages and acting on them.
+        # We need to check again if the package is installed, because there is
+        # an intermediate step between listing the packages and acting on them.
         # Packages may be removed between those operations.
+        installed_packages = apt.get_installed_packages_names()
         to_reinstall = [
             "{}={}".format(package.name, version.ver_str)
             for (package, version) in packages_to_reinstall
-            if package.current_ver
+            if package.name in installed_packages
         ]
         if to_reinstall:
             apt.reinstall_packages(to_reinstall)

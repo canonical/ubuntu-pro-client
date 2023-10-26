@@ -864,13 +864,16 @@ class TestPurge:
         ),
     )
     @mock.patch(M_PATH + "apt.purge_packages")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_execute_removal(
         self,
+        m_installed_packages,
         m_apt_purge,
         remove,
         expected_remove,
         entitlement_factory,
     ):
+        m_installed_packages.return_value = ["remove1", "remove2"]
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             affordances={"series": ["xenial"]},
@@ -903,13 +906,16 @@ class TestPurge:
         ),
     )
     @mock.patch(M_PATH + "apt.run_apt_install_command")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
     def test_execute_reinstall(
         self,
+        m_installed_packages,
         m_apt_install,
         reinstall,
         expected_install,
         entitlement_factory,
     ):
+        m_installed_packages.return_value = ["reinstall1", "reinstall2"]
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             affordances={"series": ["xenial"]},
