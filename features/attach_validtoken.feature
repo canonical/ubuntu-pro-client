@@ -17,7 +17,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS   +DESCRIPTION
         anbox-cloud   +yes      +n/a      +.*
         cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
         cis           +yes      +n/a      +Security compliance and audit tools
