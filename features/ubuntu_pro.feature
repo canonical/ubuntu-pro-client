@@ -1,5 +1,154 @@
 Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
+    @series.lts
+    @uses.config.machine_type.aws.pro
+    Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `focal` machine named `proxy`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        # This also tests that legacy `ua_config` settings still work
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        ua_config:
+          http_proxy: http://$behave_var{machine-ip proxy}:3128
+          https_proxy: http://$behave_var{machine-ip proxy}:3128
+        """
+        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        When I run `pro auto-attach` with sudo
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            anbox-cloud   +(yes|no)  .*
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            """
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
+            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+            """
+        When I run `pro enable <cis_or_usg>` with sudo
+        And I run `pro status` with sudo
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
+            """
+        When I run `pro disable <cis_or_usg>` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
+            """
+        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT contracts.canonical.com.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT 169.254.169.254.*
+        """
+        Examples: ubuntu release
+           | release | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
+           | xenial  | disabled | disabled | disabled | cis        |
+           | bionic  | disabled | disabled | disabled | cis        |
+           | focal   | disabled | n/a      | disabled | usg        |
+
+    @series.lts
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `focal` machine named `proxy` with ingress ports `3128`
+        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        ua_config:
+          http_proxy: http://$behave_var{machine-ip proxy}:3128
+          https_proxy: http://$behave_var{machine-ip proxy}:3128
+        """
+        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        When I run `pro auto-attach` with sudo
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            anbox-cloud   +(yes|no)  .*
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            """
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
+            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
+            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
+            livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
+            """
+        When I run `pro enable <cis_or_usg>` with sudo
+        And I run `pro status` with sudo
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
+            """
+        When I run `pro disable <cis_or_usg>` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
+            """
+        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT contracts.canonical.com.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT 169.254.169.254.*
+        """
+        Examples: ubuntu release
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
+           | xenial  | disabled | disabled | disabled | enabled     | cis        |
+           | bionic  | disabled | disabled | disabled | enabled     | cis        |
+           | focal   | disabled | n/a      | disabled | enabled     | usg        |
+
     Scenario Outline: Proxy auto-attach on a cloud Ubuntu Pro machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3389`
@@ -34,6 +183,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +<livepatch-s>  +<lp-desc>
             """
@@ -104,6 +254,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
@@ -123,6 +274,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
@@ -200,12 +352,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s |
-           | xenial  | aws.pro      | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     |
-           | bionic  | aws.pro      | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     |
-           | focal   | aws.pro      | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     |
-           | jammy   | aws.pro      | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     |
-
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s | fips-p   |
+           | xenial  | aws.pro      | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     | n/a      |
+           | bionic  | aws.pro      | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     | n/a      |
+           | focal   | aws.pro      | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     | n/a      |
+           | jammy   | aws.pro      | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     | disabled |
 
     Scenario Outline: Attached refresh in an Ubuntu pro Azure machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -229,6 +380,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
@@ -248,6 +400,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
@@ -325,11 +478,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
-           | xenial  | azure.pro    | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
-           | bionic  | azure.pro    | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
-           | focal   | azure.pro    | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
-           | jammy   | azure.pro    | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg | fips-p   |
+           | xenial  | azure.pro    | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        | n/a      |
+           | bionic  | azure.pro    | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        | n/a      |
+           | focal   | azure.pro    | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        | n/a      |
+           | jammy   | azure.pro    | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        | disabled |
 
     Scenario Outline: Attached refresh in an Ubuntu pro GCP machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -353,6 +506,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
@@ -372,6 +526,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
@@ -449,11 +604,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg |
-           | xenial  | gcp.pro      | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        |
-           | bionic  | gcp.pro      | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        |
-           | focal   | gcp.pro      | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
-           | jammy   | gcp.pro      | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg | fips-p   |
+           | xenial  | gcp.pro      | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        | n/a      |
+           | bionic  | gcp.pro      | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        | n/a      |
+           | focal   | gcp.pro      | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        | n/a      |
+           | jammy   | gcp.pro      | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        | disabled |
 
     Scenario Outline: Auto-attach service works on Pro Machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
