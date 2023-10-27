@@ -16,6 +16,7 @@ When using the CVE endpoint, the expected output is as follows:
       "cves_data": {
         "cves": [
           {
+            "additional_data": {},
             "error": null,
             "expected_status": "EXPECTED_STATUS",
             "plan": [
@@ -26,7 +27,8 @@ When using the CVE endpoint, the expected output is as follows:
                   ],
                   "source_packages": [
                     "package"
-                  ]
+                  ],
+                  "pocket": "standard-updates"
                 },
                 "operation": "apt-upgrade",
                 "order": 1
@@ -73,6 +75,8 @@ If we take a look at a CVE object, we will see the following structure:
 * **warnings**: Warnings that can happen when generating the plan. For example, if the CVE doesn't
   have a fix available for a given package, this will be reflected here. We will detail the possible
   warnings in a following section.
+* **additional_data**: Additional data for the CVE being fixed. Currently, this field is only
+  being used by USNs, where we deliver which CVEs and Launchpad bugs are associated with the USN.
 
 
 ## What operations can appear in the plan array?
@@ -94,7 +98,8 @@ The JSON representation for this step is:
 {
   "data": {
     "binary_packages": ["binary_package"],
-    "source_packages": ["source_package"]
+    "source_packages": ["source_package"],
+    "pocket": "standard-updates"
   },
   "operation": "apt-upgrade",
   "order": 1
@@ -111,7 +116,9 @@ The JSON representation for this step is:
 ```json
 {
   "data": {
-    "reason": "required-pro-service"
+    "reason": "required-pro-service",
+    "source_packages": ["source_package"],
+    "required_service": "esm-infra"
   },
   "operation": "attach",
   "order": 1
@@ -130,7 +137,8 @@ The JSON representation for this step is:
 ```json
 {
   "data": {
-    "service": "esm-infra"
+    "service": "esm-infra",
+    "source_packages": ["source_package"]
   },
   "operation": "enable",
   "order": 1
@@ -157,6 +165,44 @@ The JSON representation for this step is:
 The `data` object will state why no operation is needed. This can either be because the CVE doesn't
 affect the system, or because the CVE is already fixed in the machine.
 
+### NoOpAlreadyFixed
+
+This is a sub-type of a NoOp step that indicates that the CVE is already
+fixed in the machine. The JSON representation for this step is:
+
+```json
+{
+  "data": {
+    "status": "cve-already-fixed"
+    "pocket": "standard-updates",
+    "source_packages": ["source_package"]
+  },
+  "operation": "no-op",
+  "order": 1
+}
+```
+
+The `data` object will state which packages are already fixed and which
+pocket they come from.
+
+### NoOpLivepatchFixData
+
+This is a sub-type of a NoOp step that indicates that the CVE is already
+fixed by a patch from Livepatch. The JSON representation for this step is:
+
+```json
+{
+  "data": {
+    "status": "cve-fixed-by-livepatch",
+    "patch_version": "87.1"
+  },
+  "operation": "no-op",
+  "order": 1
+}
+```
+
+The `data` object will state the patch version that fixed the CVE.
+
 ## What warnings can be generated?
 
 There are two distinct warnings that can happen when executing the plan API:
@@ -172,14 +218,16 @@ in the following JSON representation:
   "data": {
     "binary_package": "binary_package",
     "binary_package_version": "3.5.12-1ubuntu7.16",
-    "source_package": "source_package"
+    "source_package": "source_package",
+    "pocket": "standard-updates"
   },
   "order": 1,
   "warning_type": "package-cannot-be-installed"
 }
 ```
 
-The `data` object details the package that cannot be installed and the package version.
+The `data` object details the package that cannot be installed,
+the package version and the pocket it comes from.
 
 ### Security issue not fixed
 
@@ -237,3 +285,6 @@ endpoint is how the USN object is represented. This can be seen here:
 We can see that there is a distinction between the **target** USN and the **related** USNs.
 To better understand that distinction, please refer to
 [our explanation of CVEs and USNs](cves_and_usns_explained.md).
+
+Finally, for USNs, we don't have the `NoOpLivepatchFixData` option, since
+they should only occur for CVEs.
