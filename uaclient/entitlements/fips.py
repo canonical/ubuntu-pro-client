@@ -592,3 +592,12 @@ class FIPSPreviewEntitlement(FIPSEntitlement):
                 FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
             ),
         )
+
+    def _allow_fips_on_cloud_instance(
+        self, series: str, cloud_id: str
+    ) -> bool:
+        # For fips-preview, we should not block the service
+        # if there is no FIPS cloud-optimized kernel. That is
+        # because this service is intended as an early access for
+        # FIPS service, so users should be aware of the risks
+        return True
