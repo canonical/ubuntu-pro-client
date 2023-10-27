@@ -40,6 +40,9 @@ class TxtColor:
     ENDC = "\033[0m"
 
 
+STANDALONE_YES = t.gettext("yes")
+STANDALONE_NO = t.gettext("no")
+
 OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
 BLUE_INFO = TxtColor.INFOBLUE + "[info]" + TxtColor.ENDC
@@ -808,8 +811,8 @@ STATUS_DESCRIPTION = t.gettext("DESCRIPTION")
 STATUS_NOTICES = t.gettext("NOTICES")
 STATUS_FEATURES = t.gettext("FEATURES")
 
-STATUS_ENTITLED_ENTITLED = t.gettext("yes")
-STATUS_ENTITLED_UNENTITLED = t.gettext("no")
+STATUS_ENTITLED_ENTITLED = STANDALONE_YES
+STATUS_ENTITLED_UNENTITLED = STANDALONE_NO
 STATUS_STATUS_ENABLED = t.gettext("enabled")
 STATUS_STATUS_DISABLED = t.gettext("disabled")
 STATUS_STATUS_INAPPLICABLE = t.gettext("n/a")
