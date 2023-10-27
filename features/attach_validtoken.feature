@@ -24,6 +24,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
         esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
         fips          +yes      +n/a      +NIST-certified FIPS crypto packages
+        fips-preview  +yes      +n/a      +.*
         fips-updates  +yes      +n/a      +FIPS compliant crypto packages with stable security updates
         landscape     +yes      +<landscape>      +Management and administration tool for Ubuntu
         livepatch     +yes      +n/a      +Canonical Livepatch service
