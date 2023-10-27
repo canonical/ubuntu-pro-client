@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 10:45-0300\n"
+"POT-Creation-Date: 2023-10-27 11:44-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -2147,7 +2147,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1164
 msgid "Common Criteria EAL2 Provisioning Packages"
-msgstr ""
+msgstr "Pacotes de Provisionamento do Common Criteria EAL2"
 
 #: ../../uaclient/messages/__init__.py:1166
 msgid ""
@@ -2179,7 +2179,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1182
 msgid "Security compliance and audit tools"
-msgstr ""
+msgstr "Ferramentas de auditoria e conformidade de segurança"
 
 #: ../../uaclient/messages/__init__.py:1184
 #, python-brace-format
@@ -2211,7 +2211,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1205
 msgid "Expanded Security Maintenance for Applications"
-msgstr ""
+msgstr "Manutenção de Segurança Expandida para Aplicações"
 
 #: ../../uaclient/messages/__init__.py:1208
 #, python-brace-format
@@ -2227,7 +2227,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1219
 msgid "Expanded Security Maintenance for Infrastructure"
-msgstr ""
+msgstr "Manutenção de Segurança Expandida para Infraestrutura"
 
 #: ../../uaclient/messages/__init__.py:1222
 #, python-brace-format
@@ -2248,7 +2248,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1232
 msgid "NIST-certified FIPS crypto packages"
-msgstr ""
+msgstr "Pacotes FIPS de criptografia certificados pelo NIST"
 
 #: ../../uaclient/messages/__init__.py:1234
 #, python-brace-format
@@ -2349,6 +2349,8 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1320
 msgid "FIPS compliant crypto packages with stable security updates"
 msgstr ""
+"Pacotes de criptografia compatíveis com FIPS com atualizações de segurança "
+"estáveis"
 
 #: ../../uaclient/messages/__init__.py:1323
 #, python-brace-format
@@ -2366,6 +2368,7 @@ msgstr ""
 #: ../../uaclient/messages/__init__.py:1331
 msgid "Preview of FIPS crypto packages undergoing certification with NIST"
 msgstr ""
+"Prévia de pacotes FIPS de criptografia em processo de certificação pelo NIST"
 
 #: ../../uaclient/messages/__init__.py:1334
 msgid ""
@@ -2391,7 +2394,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1352
 msgid "Management and administration tool for Ubuntu"
-msgstr ""
+msgstr "Ferramenta de gerenciamento e administração para o Ubuntu"
 
 #: ../../uaclient/messages/__init__.py:1355
 #, python-brace-format
@@ -2412,7 +2415,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1369
 msgid "Canonical Livepatch service"
-msgstr ""
+msgstr "Serviço de Livepatch da Canonical"
 
 #: ../../uaclient/messages/__init__.py:1371
 #, python-brace-format
@@ -2462,7 +2465,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1398
 msgid "Ubuntu kernel with PREEMPT_RT patches integrated"
-msgstr ""
+msgstr "Kernel do Ubuntu com patches PREEMPT_RT integrados"
 
 #: ../../uaclient/messages/__init__.py:1401
 msgid ""
@@ -2479,7 +2482,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1411
 msgid "Generic version of the RT kernel (default)"
-msgstr ""
+msgstr "Versão genérica do kernel RT (padrão)"
 
 #: ../../uaclient/messages/__init__.py:1413
 msgid "Real-time NVIDIA Tegra Kernel"
@@ -2487,7 +2490,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1415
 msgid "RT kernel optimized for NVIDIA Tegra platform"
-msgstr ""
+msgstr "Kernel RT otimizado para a plataforma NVIDIA Tegra"
 
 #: ../../uaclient/messages/__init__.py:1417
 msgid "Real-time Intel IOTG Kernel"
@@ -2495,7 +2498,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1419
 msgid "RT kernel optimized for Intel IOTG platform"
-msgstr ""
+msgstr "Kernel RT otimizado para a plataforma Intel IOTG"
 
 #: ../../uaclient/messages/__init__.py:1422
 #, python-brace-format
@@ -2533,7 +2536,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1450
 msgid "Security Updates for the Robot Operating System"
-msgstr ""
+msgstr "Atualizações de Segurança para o Robot Operating System"
 
 #: ../../uaclient/messages/__init__.py:1452
 #, python-brace-format
@@ -2554,7 +2557,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1463
 msgid "All Updates for the Robot Operating System"
-msgstr ""
+msgstr "Todas as Atualizações para o Robot Operating System"
 
 #: ../../uaclient/messages/__init__.py:1466
 #, python-brace-format
