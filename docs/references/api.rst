@@ -1203,7 +1203,7 @@ executing any of those steps.
                - *List[FixPlanResult]*
                - A list of FixPlanResult objects
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanResult``
+        - ``uaclient.api.u.pro.security.fix.FixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1226,8 +1226,11 @@ executing any of those steps.
              * - ``error``
                - *Optional[FixPlanError]*
                - A list of FixPlanError objects
+             * - ``additional_data``
+               - *AdditionalData*
+               - Additional data for the CVE
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanStep``
+        - ``uaclient.api.u.pro.security.fix.FixPlanStep``
 
           .. list-table::
              :header-rows: 1
@@ -1244,14 +1247,8 @@ executing any of those steps.
              * - ``data``
                - *object*
                - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
-             * - ``warnings``
-               - *List[FixPlanWarning]*
-               - A list of FixPlanWarning objects
-             * - ``error``
-               - *Optional[FixPlanError]*
-               - A list of FixPlanError objects
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
+        - ``uaclient.api.u.pro.security.fix.FixPlanWarning``
 
           .. list-table::
              :header-rows: 1
@@ -1269,7 +1266,7 @@ executing any of those steps.
                - *object*
                - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanError``
+        - ``uaclient.api.u.pro.security.fix.FixPlanError``
 
           .. list-table::
              :header-rows: 1
@@ -1284,7 +1281,11 @@ executing any of those steps.
                - *str*
                - The message code
 
-        - ``uaclient.api.u.pro.security.fix import AptUpgradeData``
+        - ``uaclient.api.u.pro.security.fix.AdditionalData``
+
+            For a CVE, we don't expect any additional data at the moment
+
+        - ``uaclient.api.u.pro.security.fix.AptUpgradeData``
 
           .. list-table::
              :header-rows: 1
@@ -1298,8 +1299,11 @@ executing any of those steps.
              * - ``source_packages``
                - *List[str]*
                - A list of source packages that need to be upgraded
+             * - ``pocket``
+               - *str*
+               - The pocket where the packages will be installed from
 
-        - ``uaclient.api.u.pro.security.fix import AttachData``
+        - ``uaclient.api.u.pro.security.fix.AttachData``
 
           .. list-table::
              :header-rows: 1
@@ -1310,8 +1314,14 @@ executing any of those steps.
              * - ``reason``
                - *str*
                - The reason why an attach operation is needed
+             * - ``source_packages``
+               - *List[str]*
+               - The source packages that require the attach operation
+             * - ``required_service``
+               - *str*
+               - The required service that requires the attach operation
 
-        - ``uaclient.api.u.pro.security.fix import EnableData``
+        - ``uaclient.api.u.pro.security.fix.EnableData``
 
           .. list-table::
              :header-rows: 1
@@ -1322,8 +1332,11 @@ executing any of those steps.
              * - ``service``
                - *str*
                - The Pro client service that needs to be enabled
+             * - ``source_packages``
+               - *str*
+               - The source packages that require the service to be enabled
 
-        - ``uaclient.api.u.pro.security.fix import NoOpData``
+        - ``uaclient.api.u.pro.security.fix.NoOpData``
 
           .. list-table::
              :header-rows: 1
@@ -1335,7 +1348,40 @@ executing any of those steps.
                - *str*
                - The status of the CVE when no operation can be performed
 
-        - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
+        - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of the CVE when no operation can be performed
+             * - ``source_packages``
+               - *str*
+               - The source packages that are already fixed
+             * - ``pocket``
+               - *str*
+               - The pocket where the packages would have been installed from
+
+        - ``uaclient.api.u.pro.security.fix.NoOpLivepatchFixData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of the CVE when no operation can be performed
+             * - ``patch_version``
+               - *str*
+               - Version of the path from Livepatch that fixed the CVE
+
+        - ``uaclient.api.u.pro.security.fix.PackageCannotBeInstalledData``
 
           .. list-table::
              :header-rows: 1
@@ -1352,8 +1398,14 @@ executing any of those steps.
              * - ``source_package``
                - *str*
                - The source package associated with the binary package
+             * - ``related_source_packages``
+               - *List[str]*
+               - A list of source packages that comes from the same pocket as the affected package
+             * - ``pocket``
+               - *str*
+               - The pocket where the affected package should be installed from
 
-        - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
+        - ``uaclient.api.u.pro.security.fix.SecurityIssueNotFixedData``
 
           .. list-table::
              :header-rows: 1
@@ -1379,7 +1431,7 @@ executing any of those steps.
 
         .. code-block:: bash
 
-           pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1234-1234", "CVE-1234-1235"]}'
+           pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1234-56789", "CVE-1234-1235"]}'
 
       - Expected attributes in JSON structure:
 
@@ -1399,11 +1451,13 @@ executing any of those steps.
                                 "data": {
                                     "binary_packages": ["pkg1"],
                                     "source_packages": ["pkg1"],
+                                    "pocket": "standard-updates",
                                 }
                             }
                         ],
                         "warnings": [],
-                        "error": null
+                        "error": null,
+                        "additional_data": {}
                     }
                   ]
               }
@@ -1463,7 +1517,7 @@ executing any of those steps.
                - *List[FixPlanUSNResult]*
                - A list of FixPlanUSNResult objects
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanUSNResult``
+        - ``uaclient.api.u.pro.security.fix.FixPlanUSNResult``
 
           .. list-table::
              :header-rows: 1
@@ -1478,7 +1532,7 @@ executing any of those steps.
                - *List[FixPlanResult]*
                - A list of FixPlanResult objects for the related USNs
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanResult``
+        - ``uaclient.api.u.pro.security.fix.FixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1501,6 +1555,9 @@ executing any of those steps.
              * - ``error``
                - *Optional[FixPlanError]*
                - A list of FixPlanError objects
+             * - ``additional_data``
+               - *AdditionalData*
+               - Additional data for the USN
 
         - ``uaclient.api.u.pro.security.fix import FixPlanStep``
 
@@ -1519,12 +1576,6 @@ executing any of those steps.
              * - ``data``
                - *object*
                - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
-             * - ``warnings``
-               - *List[FixPlanWarning]*
-               - A list of FixPlanWarning objects
-             * - ``error``
-               - *Optional[FixPlanError]*
-               - A list of FixPlanError objects
 
         - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
 
@@ -1559,6 +1610,22 @@ executing any of those steps.
                - *str*
                - The message code
 
+        - ``uaclient.api.u.pro.security.fix.AdditionalData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``associated_cves``
+               - *List[str]*
+               - The associated CVEs for the USN
+             * - ``associated_launchpad_bugs``
+               - *List[str]*
+               - The associated Launchpad bugs for the USN
+
+
         - ``uaclient.api.u.pro.security.fix import AptUpgradeData``
 
           .. list-table::
@@ -1573,6 +1640,9 @@ executing any of those steps.
              * - ``source_packages``
                - *List[str]*
                - A list of source packages that need to be upgraded
+             * - ``pocket``
+               - *str*
+               - The pocket where the packages will be installed from
 
         - ``uaclient.api.u.pro.security.fix import AttachData``
 
@@ -1585,6 +1655,12 @@ executing any of those steps.
              * - ``reason``
                - *str*
                - The reason why an attach operation is needed
+             * - ``source_packages``
+               - *List[str]*
+               - The source packages that require the attach operation
+             * - ``required_service``
+               - *str*
+               - The required service that requires the attach operation
 
         - ``uaclient.api.u.pro.security.fix import EnableData``
 
@@ -1597,6 +1673,9 @@ executing any of those steps.
              * - ``service``
                - *str*
                - The Pro client service that needs to be enabled
+             * - ``source_packages``
+               - *str*
+               - The source packages that require the service to be enabled
 
         - ``uaclient.api.u.pro.security.fix import NoOpData``
 
@@ -1609,6 +1688,24 @@ executing any of those steps.
              * - ``status``
                - *str*
                - The status of the USN when no operation can be performed
+
+        - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of the CVE when no operation can be performed
+             * - ``source_packages``
+               - *str*
+               - The source packages that are already fixed
+             * - ``pocket``
+               - *str*
+               - The pocket where the packages would have been installed from
 
         - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
 
@@ -1627,6 +1724,12 @@ executing any of those steps.
              * - ``source_package``
                - *str*
                - The source package associated with the binary package
+             * - ``related_source_packages``
+               - *List[str]*
+               - A list of source packages that comes from the same pocket as the affected package
+             * - ``pocket``
+               - *str*
+               - The pocket where the affected package should be installed from
 
         - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
 
@@ -1676,11 +1779,20 @@ executing any of those steps.
                                     "data": {
                                         "binary_packages": ["pkg1"],
                                         "source_packages": ["pkg1"],
+                                        "pocket": "standard-updates"
                                     }
                                 }
                             ],
                             "warnings": [],
-                            "error": null
+                            "error": null,
+                            "additional_data": {
+                                "associated_cves": [
+                                    "CVE-1234-56789"
+                                ],
+                                "associated_launchpad_bus": [
+                                    "https://launchpad.net/bugs/BUG_ID"
+                                ]
+                            }
                         },
                     }
                   ]
