@@ -7,6 +7,22 @@ Feature: Pro supports multiple languages
         """
         Esta máquina NÃO está vinculada a uma assinatura do Ubuntu Pro.
         """
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --all` as non-root
+        Then stdout contains substring:
+        """
+        sim
+        """
+        Then stdout contains substring:
+        """
+        não
+        """
+        When I run `apt update` with sudo
+        And I apt install `jq`
+        And I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --format json | jq .services[0].available` as non-root
+        Then I will see the following on stdout:
+        """
+        "yes"
+        """
         When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
         Then stdout contains substring:

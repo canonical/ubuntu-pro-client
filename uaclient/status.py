@@ -679,10 +679,15 @@ def format_tabular(status: Dict[str, Any], show_all: bool = False) -> str:
                     if descr_override
                     else service.get("description", "")
                 )
+                available = (
+                    messages.STANDALONE_YES
+                    if service.get("available") == "yes"
+                    else messages.STANDALONE_NO
+                )
                 content.append(
                     STATUS_UNATTACHED_TMPL.format(
                         name=service.get("name", ""),
-                        available=service.get("available", ""),
+                        available=available,
                         description=description,
                     )
                 )
