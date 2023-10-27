@@ -344,7 +344,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro status --all` with sudo
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +.*
         cc-eal        +no
         """
@@ -358,7 +358,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +.*
         cc-eal        +no
         """

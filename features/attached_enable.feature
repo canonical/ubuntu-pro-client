@@ -905,21 +905,21 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros           +yes                disabled           Security Updates for the Robot Operating System
+        ros +yes +disabled +Security Updates for the Robot Operating System
         """
         When I run `pro enable ros --assume-yes` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros           +yes                enabled            Security Updates for the Robot Operating System
+        ros +yes +enabled +Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
+        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
+        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
         When I verify that running `pro disable esm-apps` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -937,11 +937,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros           +yes                disabled           Security Updates for the Robot Operating System
+        ros +yes +disabled +Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                disabled           Expanded Security Maintenance for Applications
+        esm-apps +yes +disabled +Expanded Security Maintenance for Applications
         """
         When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -962,15 +962,15 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros           +yes                enabled            Security Updates for the Robot Operating System
+        ros +yes +enabled +Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
+        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
+        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `500`
@@ -984,7 +984,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   +yes                enabled            All Updates for the Robot Operating System
+        ros-updates +yes +enabled +All Updates for the Robot Operating System
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `500`
@@ -1013,11 +1013,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   +yes                enabled            All Updates for the Robot Operating System
+        ros-updates +yes +enabled +All Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        ros           +yes                enabled            Security Updates for the Robot Operating System
+        ros +yes +enabled +Security Updates for the Robot Operating System
         """
         When I run `pro disable ros-updates --assume-yes` with sudo
         When I run `pro disable ros --assume-yes` with sudo
@@ -1027,19 +1027,19 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   +yes                enabled            All Updates for the Robot Operating System
+        ros-updates +yes +enabled +All Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        ros           +yes                enabled            Security Updates for the Robot Operating System
+        ros +yes +enabled +Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
+        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
         """
         And stdout matches regexp
         """
-        esm-infra     +yes                enabled            Expanded Security Maintenance for Infrastructure
+        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
         """
         When I run `pro detach` `with sudo` and stdin `y`
         Then stdout matches regexp:
@@ -1127,7 +1127,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And I run `pro status --all` as non-root
         Then stdout matches regexp
         """
-        esm-apps      +yes                enabled            Expanded Security Maintenance for Applications
+        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root

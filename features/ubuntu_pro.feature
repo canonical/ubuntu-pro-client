@@ -27,7 +27,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED +STATUS +DESCRIPTION
             anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
@@ -101,7 +101,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED +STATUS +DESCRIPTION
             anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
@@ -175,7 +175,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED +STATUS +DESCRIPTION
             anbox-cloud   +(yes|no)  .*
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
@@ -238,7 +238,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `pro status --all --wait` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
@@ -258,7 +258,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
@@ -367,7 +367,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `pro status --all --wait` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
@@ -387,7 +387,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
-        SERVICE      +ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
@@ -495,7 +495,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `pro status --all --wait` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
@@ -515,7 +515,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `pro status --all` as non-root
         Then stdout matches regexp:
         """
-        SERVICE       +ENTITLED  STATUS    DESCRIPTION
+        SERVICE       +ENTITLED +STATUS +DESCRIPTION
         anbox-cloud   +(yes|no)  .*
         cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
         """
