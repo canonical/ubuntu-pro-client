@@ -36,6 +36,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
@@ -109,6 +110,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
             """
@@ -182,6 +184,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
             esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+            fips-preview  +yes  +n/a      +.*
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
             livepatch     +yes +<livepatch-s> +<lp-desc>
             """
@@ -244,6 +247,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
@@ -263,6 +267,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
         """
@@ -340,11 +345,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s | fips-p   |
+           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     | n/a      |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     | n/a      |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     | n/a      |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | usg        | enabled     | disabled |
 
 
     @series.lts
@@ -371,6 +376,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
@@ -390,6 +396,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +Canonical Livepatch service
         """
@@ -467,11 +474,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg | fips-p   |
+           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        | n/a      |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        | n/a      |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        | n/a      |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        | disabled |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -497,6 +504,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
@@ -516,6 +524,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
         esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
         fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
+        fips-preview  +yes +<fips-p> +.*
         fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
         livepatch     +yes +<livepatch>  +<lp-desc>
         """
@@ -593,11 +602,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg | fips-p   |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        | n/a      |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        | n/a      |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        | n/a      |
+           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        | disabled |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
