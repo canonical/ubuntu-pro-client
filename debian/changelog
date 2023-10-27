@@ -55,7 +55,7 @@ ubuntu-advantage-tools (30) mantic; urgency=medium
       + add journald logging for the daemon and systemd timer
       + remove daemon and timer log files
       + standardize the logging calls through the codebase (GH: #2632)
-    - systemd: change ubuntu-advantage.service type from 'notify' to 'exec',
+    - systemd: change ubuntu-advantage.service type from 'notify' to 'simple',
       dropping the dependency on python3-systemd (LP: #2038417) (GH: #2692)
     - tests:
       + add scenarios where cloud-init is present but disabled (LP: #1938208)
