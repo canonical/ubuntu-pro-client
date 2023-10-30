@@ -66,7 +66,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
 def refresh_contract(cfg: config.UAConfig):
     try:
         contract.refresh(cfg)
-    except exceptions.UrlError:
+    except exceptions.ConnectivityError:
         LOG.warning("Failed to refresh contract")
         raise
 

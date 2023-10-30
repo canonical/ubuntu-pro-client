@@ -100,7 +100,9 @@ class TestActionRefresh:
         FakeConfig,
     ):
         """On failure in request_updates_contract emit an error."""
-        refresh.side_effect = exceptions.UrlError(mock.MagicMock(), "url")
+        refresh.side_effect = exceptions.ConnectivityError(
+            mock.MagicMock(), "url"
+        )
 
         cfg = FakeConfig.for_attached_machine()
 

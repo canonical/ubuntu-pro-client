@@ -645,8 +645,9 @@ class TestMain:
         expected_log_call,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
-        m_args.action.side_effect = exceptions.UrlError(
-            socket.gaierror(-2, "Name or service not known"), url=error_url
+        m_args.action.side_effect = exceptions.ConnectivityError(
+            cause=socket.gaierror(-2, "Name or service not known"),
+            url=error_url,
         )
 
         with pytest.raises(SystemExit) as excinfo:
@@ -657,7 +658,11 @@ class TestMain:
 
         assert [
             mock.call(
-                info_msg=messages.E_CONNECTIVITY_ERROR.msg, file_type=mock.ANY
+                info_msg=messages.E_CONNECTIVITY_ERROR.format(
+                    url=error_url,
+                    cause_error="[Errno -2] Name or service not known",
+                ).msg,
+                file_type=mock.ANY,
             )
         ] == m_event_info.call_args_list
         assert [expected_log_call] == m_log_exception.call_args_list
