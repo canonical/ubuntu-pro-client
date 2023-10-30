@@ -168,7 +168,8 @@ def _readurl_urllib(
     except error.HTTPError as e:
         resp = e
     except error.URLError as e:
-        raise exceptions.UrlError(e, url=req.full_url)
+        LOG.exception(str(e.reason))
+        raise exceptions.ConnectivityError(cause=e, url=req.full_url)
 
     body = resp.read().decode("utf-8")
 

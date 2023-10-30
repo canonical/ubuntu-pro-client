@@ -259,14 +259,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
+        response = self.request_url(
+            API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
+        )
 
-        try:
-            response = self.request_url(
-                API_V1_GET_MAGIC_ATTACH_TOKEN_INFO, headers=headers
-            )
-        except exceptions.UrlError as e:
-            LOG.exception(e)
-            raise exceptions.ConnectivityError()
         if response.code == 401:
             raise exceptions.MagicAttachTokenError()
         if response.code == 503:
@@ -283,16 +279,12 @@ class UAContractClient(serviceclient.UAServiceClient):
     def new_magic_attach_token(self) -> Dict[str, Any]:
         """Create a magic attach token for the user."""
         headers = self.headers()
+        response = self.request_url(
+            API_V1_NEW_MAGIC_ATTACH,
+            headers=headers,
+            method="POST",
+        )
 
-        try:
-            response = self.request_url(
-                API_V1_NEW_MAGIC_ATTACH,
-                headers=headers,
-                method="POST",
-            )
-        except exceptions.UrlError as e:
-            LOG.exception(e)
-            raise exceptions.ConnectivityError()
         if response.code == 503:
             raise exceptions.MagicAttachUnavailable()
         if response.code != 200:
@@ -308,16 +300,12 @@ class UAContractClient(serviceclient.UAServiceClient):
         """Revoke a magic attach token for the user."""
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(magic_token)})
+        response = self.request_url(
+            API_V1_REVOKE_MAGIC_ATTACH,
+            headers=headers,
+            method="DELETE",
+        )
 
-        try:
-            response = self.request_url(
-                API_V1_REVOKE_MAGIC_ATTACH,
-                headers=headers,
-                method="DELETE",
-            )
-        except exceptions.UrlError as e:
-            LOG.exception(e)
-            raise exceptions.ConnectivityError()
         if response.code == 400:
             raise exceptions.MagicAttachTokenAlreadyActivated()
         if response.code == 401:
@@ -659,7 +647,7 @@ def refresh(cfg):
 
     :raise UbuntuProError: on failure to update contract or error processing
         contract deltas
-    :raise UrlError: On failure during a connection
+    :raise ConnectivityError: On failure during a connection
     """
     orig_entitlements = cfg.machine_token_file.entitlements
     orig_token = cfg.machine_token

@@ -2031,12 +2031,13 @@ E_PROXY_AUTH_FAIL = NamedMessage(
     "proxy-auth-fail", t.gettext("Proxy authentication failed")
 )
 
-E_CONNECTIVITY_ERROR = NamedMessage(
+E_CONNECTIVITY_ERROR = FormattedNamedMessage(
     "connectivity-error",
     t.gettext(
         """\
-Failed to connect to authentication server
-Check your Internet connection and try again."""
+Failed to connect to {url}
+{cause_error}
+"""
     ),
 )
 

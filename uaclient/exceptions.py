@@ -19,20 +19,6 @@ class DelayProLicensePolling(IsProLicensePresentError):
     pass
 
 
-class UrlError(IOError):
-    def __init__(
-        self,
-        cause: Exception,
-        url: str,
-    ):
-        if getattr(cause, "reason", None):
-            cause_error = str(getattr(cause, "reason"))
-        else:
-            cause_error = str(cause)
-        super().__init__(cause_error)
-        self.url = url
-
-
 class ProcessExecutionError(IOError):
     def __init__(
         self,
@@ -206,10 +192,6 @@ class ProxyAuthenticationFailed(UbuntuProError):
     _msg = messages.E_PROXY_AUTH_FAIL
 
 
-class ConnectivityError(UbuntuProError):
-    _msg = messages.E_CONNECTIVITY_ERROR
-
-
 class ExternalAPIError(UbuntuProError):
     _formatted_msg = messages.E_EXTERNAL_API_ERROR
     code = None  # type: int
@@ -235,6 +217,31 @@ class PycurlCACertificatesError(UbuntuProError):
         super().__init__(**kwargs)
         self.url = url
 
+
+class ConnectivityError(UbuntuProError, IOError):
+    _formatted_msg = messages.E_CONNECTIVITY_ERROR
+
+    def __init__(
+        self,
+        cause: Exception,
+        url: str,
+    ):
+        if getattr(cause, "reason", None):
+            cause_error = str(getattr(cause, "reason"))
+        else:
+            cause_error = str(cause)
+        IOError.__init__(self, cause_error)
+        UbuntuProError.__init__(self, cause_error=cause_error, url=url)
+
+        # Even though we already set those variable through UbuntuProError
+        # we need to set them again to avoid mypy warnings
+        self.cause_error = cause_error
+        self.url = url
+
+
+# We are doing that just to keep backwards compatibility
+# for our custom UrlError exception
+UrlError = ConnectivityError
 
 ###############################################################################
 #                              ATTACH/ENABLE                                  #

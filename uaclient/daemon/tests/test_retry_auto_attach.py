@@ -43,11 +43,9 @@ class TestFullAutoAttachToFailureReason:
                 'an error from Canonical servers: "response"',
             ),
             (
-                exceptions.ConnectivityError(),
-                "a connectivity error",
-            ),
-            (
-                exceptions.UrlError(error.URLError("urlerror"), "url"),
+                exceptions.ConnectivityError(
+                    cause=error.URLError("urlerror"), url="url"
+                ),
                 'an error while reaching url: "urlerror"',
             ),
             (fakes.FakeUbuntuProError(), '"This is a test"'),
