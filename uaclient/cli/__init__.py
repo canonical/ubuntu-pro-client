@@ -1065,7 +1065,7 @@ def action_enable(args, *, cfg, **kwargs):
     event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.refresh(cfg)
-    except (exceptions.UrlError, exceptions.UbuntuProError):
+    except (exceptions.ConnectivityError, exceptions.UbuntuProError):
         # Inability to refresh is not a critical issue during enable
         LOG.warning("Failed to refresh contract", exc_info=True)
         event.warning(warning_msg=messages.E_REFRESH_CONTRACT_FAILURE)
@@ -1231,7 +1231,7 @@ def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
             cfg=cfg,
             mode=event_logger.EventLoggerMode.CLI,
         )
-    except exceptions.UrlError:
+    except exceptions.ConnectivityError:
         event.info(messages.E_ATTACH_FAILURE.msg)
         return 1
     else:
@@ -1301,7 +1301,7 @@ def action_attach(args, *, cfg, **kwargs):
 
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
-    except exceptions.UrlError:
+    except exceptions.ConnectivityError:
         raise exceptions.AttachError()
     else:
         ret = 0
@@ -1527,8 +1527,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
 def _action_refresh_contract(_args, cfg: config.UAConfig):
     try:
         contract.refresh(cfg)
-    except exceptions.UrlError as exc:
-        LOG.exception(exc)
+    except exceptions.ConnectivityError:
         raise exceptions.RefreshContractFailure()
     print(messages.REFRESH_CONTRACT_SUCCESS)
 
@@ -1707,7 +1706,7 @@ def main_error_handler(func):
             print(messages.CLI_INTERRUPT_RECEIVED, file=sys.stderr)
             lock.clear_lock_file_if_present()
             sys.exit(1)
-        except exceptions.UrlError as exc:
+        except exceptions.ConnectivityError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
                 tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
                 if apt.is_installed("ca-certificates"):
@@ -1720,7 +1719,10 @@ def main_error_handler(func):
                     "Failed to access URL: %s", exc.url, exc_info=exc
                 )
 
-                msg = messages.E_CONNECTIVITY_ERROR
+                msg = messages.E_CONNECTIVITY_ERROR.format(
+                    url=exc.url,
+                    cause_error=exc.cause_error,
+                )
                 event.error(error_msg=msg.msg, error_code=msg.name)
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
 

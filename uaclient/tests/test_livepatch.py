@@ -327,7 +327,12 @@ class TestUALivepatchClient:
                 ],
                 LivepatchSupport.UNSUPPORTED,
             ),
-            (exceptions.UrlError(mock.MagicMock(), "url"), None),
+            (
+                exceptions.ConnectivityError(
+                    cause=mock.MagicMock(), url="url"
+                ),
+                None,
+            ),
             (Exception(), None),
             (
                 [

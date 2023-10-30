@@ -53,7 +53,7 @@ def attach_with_token(
 ) -> None:
     """
     Common functionality to take a token and attach via contract backend
-    :raise UrlError: On unexpected connectivity issues to contract
+    :raise ConnectivityError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
@@ -62,14 +62,9 @@ def attach_with_token(
 
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
-
-    try:
-        new_machine_token = contract_client.add_contract_machine(
-            contract_token=token, attachment_dt=attached_at
-        )
-    except exceptions.UrlError as e:
-        LOG.exception(str(e))
-        raise exceptions.ConnectivityError()
+    new_machine_token = contract_client.add_contract_machine(
+        contract_token=token, attachment_dt=attached_at
+    )
 
     cfg.machine_token_file.write(new_machine_token)
 
@@ -89,7 +84,7 @@ def attach_with_token(
             cfg.machine_token_file.entitlements,
             allow_enable,
         )
-    except (exceptions.UrlError, exceptions.UbuntuProError) as exc:
+    except (exceptions.ConnectivityError, exceptions.UbuntuProError) as exc:
         # Persist updated status in the event of partial attach
         attachment_data_file.write(AttachmentData(attached_at=attached_at))
         ua_status.status(cfg=cfg)
@@ -112,7 +107,7 @@ def auto_attach(
     allow_enable=True,
 ) -> None:
     """
-    :raise UrlError: On unexpected connectivity issues to contract
+    :raise ConnectivityError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.

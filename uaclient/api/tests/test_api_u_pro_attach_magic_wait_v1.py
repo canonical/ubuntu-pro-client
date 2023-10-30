@@ -67,10 +67,10 @@ class TestMagicAttachWaitV1:
     ):
         magic_token = "test-id"
         m_attach_token_info.side_effect = [
-            exceptions.ConnectivityError(),
-            exceptions.ConnectivityError(),
-            exceptions.ConnectivityError(),
-            exceptions.ConnectivityError(),
+            exceptions.ConnectivityError(url="url", cause="cause"),
+            exceptions.ConnectivityError(url="url", cause="cause"),
+            exceptions.ConnectivityError(url="url", cause="cause"),
+            exceptions.ConnectivityError(url="url", cause="cause"),
         ]
 
         options = MagicAttachWaitOptions(magic_token=magic_token)
@@ -86,9 +86,9 @@ class TestMagicAttachWaitV1:
     ):
         magic_token = "test-id"
         m_attach_token_info.side_effect = [
-            exceptions.ConnectivityError(),
-            exceptions.ConnectivityError(),
-            exceptions.ConnectivityError(),
+            exceptions.ConnectivityError(url="url", cause="cause"),
+            exceptions.ConnectivityError(url="url", cause="cause"),
+            exceptions.ConnectivityError(url="url", cause="cause"),
             {
                 "token": magic_token,
                 "expires": "2100-06-09T18:14:55.323733Z",
@@ -113,7 +113,7 @@ class TestMagicAttachWaitV1:
     ):
         magic_token = "test-id"
         m_attach_token_info.side_effect = [
-            exceptions.ConnectivityError(),
+            exceptions.ConnectivityError(url="url", cause="cause"),
             exceptions.MagicAttachUnavailable(),
             exceptions.MagicAttachUnavailable(),
             {

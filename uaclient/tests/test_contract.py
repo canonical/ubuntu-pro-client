@@ -528,9 +528,12 @@ class TestUAContractClient:
         "request_side_effect,expected_exception,message",
         (
             (
-                exceptions.UrlError("cause", "url"),
+                exceptions.ConnectivityError(cause="cause", url="url"),
                 exceptions.ConnectivityError,
-                messages.E_CONNECTIVITY_ERROR,
+                messages.E_CONNECTIVITY_ERROR.format(
+                    url="url",
+                    cause_error="cause",
+                ),
             ),
             (
                 [
@@ -604,12 +607,20 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.UrlError("cause", "url")
+        request_url.side_effect = exceptions.ConnectivityError(
+            cause=Exception("cause"), url="url"
+        )
 
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.get_magic_attach_token_info(magic_token=magic_token)
 
-        assert messages.E_CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert (
+            messages.E_CONNECTIVITY_ERROR.format(
+                url="url",
+                cause_error="cause",
+            ).msg
+            == exc_error.value.msg
+        )
         assert messages.E_CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
     @pytest.mark.parametrize(
@@ -651,12 +662,20 @@ class TestUAContractClient:
         cfg = FakeConfig()
         client = UAContractClient(cfg)
         magic_token = "test-id"
-        request_url.side_effect = exceptions.UrlError("cause", "url")
+        request_url.side_effect = exceptions.ConnectivityError(
+            cause=Exception("cause"), url="url"
+        )
 
         with pytest.raises(exceptions.ConnectivityError) as exc_error:
             client.revoke_magic_attach_token(magic_token=magic_token)
 
-        assert messages.E_CONNECTIVITY_ERROR.msg == exc_error.value.msg
+        assert (
+            messages.E_CONNECTIVITY_ERROR.format(
+                url="url",
+                cause_error="cause",
+            ).msg
+            == exc_error.value.msg
+        )
         assert messages.E_CONNECTIVITY_ERROR.name == exc_error.value.msg_code
 
     @pytest.mark.parametrize(
@@ -1161,12 +1180,12 @@ class TestGetAvailableResources:
         """Raise error get_available_resources can't contact backend"""
         cfg = FakeConfig()
 
-        urlerror = exceptions.UrlError(
+        urlerror = exceptions.ConnectivityError(
             socket.gaierror(-2, "Name or service not known"), "url"
         )
         m_available_resources.side_effect = urlerror
 
-        with pytest.raises(exceptions.UrlError) as exc:
+        with pytest.raises(exceptions.ConnectivityError) as exc:
             get_available_resources(cfg)
         assert urlerror == exc.value
 
