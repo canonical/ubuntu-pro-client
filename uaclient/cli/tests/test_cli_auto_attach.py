@@ -85,7 +85,9 @@ class TestActionAutoAttach:
         "api_side_effect,expected_err,expected_ret",
         (
             (
-                exceptions.UrlError("does-not-matter", "url"),
+                exceptions.ConnectivityError(
+                    cause=Exception("does-not-matter"), url="url"
+                ),
                 messages.E_ATTACH_FAILURE.msg,
                 1,
             ),

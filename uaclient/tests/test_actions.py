@@ -49,7 +49,7 @@ class TestAttachWithToken:
             (
                 "token",
                 True,
-                exceptions.UrlError(Exception(), "url"),
+                exceptions.ConnectivityError(cause=Exception(), url="url"),
                 None,
                 None,
                 None,
@@ -73,7 +73,7 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                exceptions.UrlError(Exception(), "url"),
+                exceptions.ConnectivityError(cause=Exception(), url="url"),
                 None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -86,7 +86,7 @@ class TestAttachWithToken:
                 [mock.call()],
                 [],
                 [],
-                pytest.raises(exceptions.UrlError),
+                pytest.raises(exceptions.ConnectivityError),
             ),
             (
                 "token",

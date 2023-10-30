@@ -958,14 +958,14 @@ class TestActionStatus:
         _m_on_supported_kernel,
         FakeConfig,
     ):
-        """Raise UrlError on connectivity issues"""
-        m_get_avail_resources.side_effect = exceptions.UrlError(
-            socket.gaierror(-2, "Name or service not known"), "url"
+        """Raise ConnectivityError on connectivity issues"""
+        m_get_avail_resources.side_effect = exceptions.ConnectivityError(
+            cause=socket.gaierror(-2, "Name or service not known"), url="url"
         )
 
         cfg = FakeConfig()
 
-        with pytest.raises(exceptions.UrlError):
+        with pytest.raises(exceptions.ConnectivityError):
             action_status(
                 mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
             )
@@ -1023,8 +1023,8 @@ class TestActionStatus:
         "exception_to_throw,exception_type,exception_message",
         (
             (
-                exceptions.UrlError("Not found", "url"),
-                exceptions.UrlError,
+                exceptions.ConnectivityError(Exception("Not found"), "url"),
+                exceptions.ConnectivityError,
                 "Not found",
             ),
             (

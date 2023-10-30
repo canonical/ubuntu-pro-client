@@ -9,26 +9,28 @@ Feature: Unattached status
         When I run `sed -i 's/contracts.can/invalidurl.notcan/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that running `pro status --format json` `as non-root` exits `1`
         Then stdout is a json matching the `ua_status` schema
-        And I will see the following on stdout:
-            """
-            {"environment_vars": [], "errors": [{"message": "Failed to connect to authentication server\nCheck your Internet connection and try again.", "message_code": "connectivity-error", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-            """
+        And stdout matches regexp:
+        """
+        {"environment_vars": \[\], "errors": \[{"message": "Failed to connect to .*\\n\[Errno -2\] Name or service not known\\n", "message_code": "connectivity-error", "service": null, "type": "system"}\], "result": "failure", "services": \[\], "warnings": \[\]}
+        """
         And I verify that running `pro status --format yaml` `as non-root` exits `1`
         Then stdout is a yaml matching the `ua_status` schema
-        And I will see the following on stdout:
-            """
-            environment_vars: []
-            errors:
-            - message: 'Failed to connect to authentication server
+        And stdout matches regexp:
+        """
+        environment_vars: \[\]
+        errors:
+        - message: 'Failed to connect to https://invalidurl.notcanonical.com/v1/resources(.*)
 
-                Check your Internet connection and try again.'
-              message_code: connectivity-error
-              service: null
-              type: system
-            result: failure
-            services: []
-            warnings: []
-            """
+            \[Errno -2\] Name or service not known
+
+            '
+          message_code: connectivity-error
+          service: null
+          type: system
+        result: failure
+        services: \[\]
+        warnings: \[\]
+        """
 
         Examples: ubuntu release
            | release | machine_type  |

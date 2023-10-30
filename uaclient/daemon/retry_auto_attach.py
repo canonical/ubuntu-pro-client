@@ -52,11 +52,9 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
             error_msg=e.body
         )
     elif isinstance(e, api_exceptions.ConnectivityError):
-        return messages.RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR
-    elif isinstance(e, api_exceptions.UrlError):
         return messages.RETRY_ERROR_DETAIL_URL_ERROR_URL.format(
             url=e.url
-        ) + ': "{}"'.format(str(e))
+        ) + ': "{}"'.format(str(e.cause_error))
     elif isinstance(e, api_exceptions.UbuntuProError):
         return '"{}"'.format(e.msg)
     else:
