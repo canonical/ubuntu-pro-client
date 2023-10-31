@@ -201,7 +201,6 @@ Feature: Unattached status
            | release |
            | focal   |
 
-    @wip
     @series.jammy
     @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
