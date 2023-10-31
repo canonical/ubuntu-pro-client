@@ -43,7 +43,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        \d+ additional security update\(s\) require Ubuntu Pro with '<service>' enabled.
+        \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
         Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         [\w\d.]+
@@ -110,7 +110,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        \d+ additional security update\(s\) require Ubuntu Pro with '<service>' enabled.
+        \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
         Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
 
         """

@@ -158,11 +158,11 @@ CONTRACT_EXPIRED_WITH_PKGS = P(
     lambda n: t.ngettext(
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
-{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
+{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' enabled.
 Renew your service at {url}""",  # noqa: E501
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
-{{pkg_num}} additional security update(s) require Ubuntu Pro with '{{service}}' enabled.
+{{pkg_num}} additional security updates require Ubuntu Pro with '{{service}}' enabled.
 Renew your service at {url}""",  # noqa: E501
         n,
     ).format(url=urls.PRO_DASHBOARD)
