@@ -16,6 +16,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             One moment, checking your subscription first
             Updating CC EAL2 package lists
             (This will download more than 500MB of packages, so may take some time.)
+            Updating standard Ubuntu package lists
             Installing CC EAL2 packages
             CC EAL2 enabled
             Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
