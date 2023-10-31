@@ -620,3 +620,73 @@ Feature: FIPS enablement in lxd VMs
         Examples: ubuntu release
            | release | machine_type |
            | jammy   | lxd-vm       |
+
+    @slow
+    Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `apt update` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        When I run `pro enable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating <fips-name> package lists
+        Installing <fips-name> packages
+        Updating standard Ubuntu package lists
+        <fips-name> enabled
+        A reboot is required to complete install
+        """
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+        """
+        <fips-service> +yes                enabled
+        """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I reboot the machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+        """
+        fips
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+        When I run `pro disable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        A reboot is required to complete disable operation
+        """
+        When I reboot the machine
+        Then I verify that `openssh-server` installed version matches regexp `Fips`
+        And I verify that `openssh-client` installed version matches regexp `Fips`
+        And I verify that `strongswan` installed version matches regexp `Fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `Fips`
+        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+        Then I will see the following on stdout:
+        """
+        openssh-client was already not on hold.
+        openssh-server was already not on hold.
+        strongswan was already not on hold.
+        """
+        When I run `pro status --all` with sudo
+        Then stdout matches regexp:
+        """
+        <fips-service> +yes                disabled
+        """
+        When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        Cannot enable FIPS because FIPS Updates was once enabled.
+        """
+        And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
+
+        Examples: ubuntu release
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                                       |
+           | jammy   | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main |
