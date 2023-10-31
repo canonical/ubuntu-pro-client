@@ -203,7 +203,7 @@ class UAConfig:
         if old_apt_val:
             event.info(
                 messages.WARNING_DEPRECATED_FIELD.format(
-                    old="apt_https_proxy", new="global_apt_https_proxy"
+                    old="apt_http_proxy", new="global_apt_http_proxy"
                 )
             )
             return old_apt_val
