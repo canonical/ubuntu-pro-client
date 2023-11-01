@@ -216,7 +216,7 @@ Feature: Proxy configuration
         Then I will see the following on stdout:
         """
         No proxy set in config; however, proxy is configured for: snap, livepatch.
-        See https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788 for more information on pro proxy configuration.
+        See https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/configure_proxies.html for more information on pro proxy configuration.
     
         Successfully processed your pro configuration.
         """

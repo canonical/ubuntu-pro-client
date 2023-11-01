@@ -23,6 +23,7 @@ Feature: FIPS enablement in lxd VMs
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -146,6 +147,7 @@ Feature: FIPS enablement in lxd VMs
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -181,7 +183,7 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro disable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
             """
-            This will disable the FIPS entitlement but the FIPS packages will remain installed.
+            This will disable the FIPS Updates entitlement but the FIPS Updates packages will remain installed.
             """
         And stdout matches regexp:
             """
@@ -281,8 +283,9 @@ Feature: FIPS enablement in lxd VMs
         When I run `pro enable fips-updates --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating <fips-name> package lists
+            Updating FIPS Updates package lists
             Installing FIPS Updates packages
+            Updating standard Ubuntu package lists
             FIPS Updates enabled
             A reboot is required to complete install
             """
@@ -330,6 +333,7 @@ Feature: FIPS enablement in lxd VMs
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -392,6 +396,7 @@ Feature: FIPS enablement in lxd VMs
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -457,8 +462,9 @@ Feature: FIPS enablement in lxd VMs
         And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
             """
-            Updating <fips-name> package lists
+            Updating FIPS package lists
             Installing FIPS packages
+            Updating standard Ubuntu package lists
             FIPS enabled
             A reboot is required to complete install
             """
@@ -478,8 +484,9 @@ Feature: FIPS enablement in lxd VMs
             """
             One moment, checking your subscription first
             Disabling incompatible service: FIPS
-            Updating <fips-name> package lists
+            Updating FIPS Updates package lists
             Installing FIPS Updates packages
+            Updating standard Ubuntu package lists
             FIPS Updates enabled
             A reboot is required to complete install.
             """
@@ -531,7 +538,7 @@ Feature: FIPS enablement in lxd VMs
         And I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
         And I run `pro enable fips --assume-yes` with sudo
-        Then stderr matches regexp:
+        Then stdout matches regexp:
         """
         Could not determine cloud, defaulting to generic FIPS package.
         """
@@ -552,7 +559,7 @@ Feature: FIPS enablement in lxd VMs
         When I delete the file `/run/cloud-init/instance-data.json`
         And I attach `contract_token` with sudo
         And I run `pro enable fips --assume-yes` with sudo
-        Then stderr matches regexp:
+        Then stdout matches regexp:
         """
         Could not determine cloud, defaulting to generic FIPS package.
         """
