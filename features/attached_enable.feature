@@ -686,7 +686,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then stdout matches regexp:
         """
         Installing canonical-livepatch snap
-        Canonical livepatch enabled
+        Canonical Livepatch enabled
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -757,8 +757,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
+            Installing snapd snap
             Installing canonical-livepatch snap
-            Canonical livepatch enabled
+            Canonical Livepatch enabled
             """
         When I run `pro disable livepatch` with sudo
         And I run `pro enable fips --assume-yes` with sudo
@@ -767,6 +768,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             One moment, checking your subscription first
             Updating FIPS package lists
             Installing FIPS packages
+            Updating standard Ubuntu package lists
             FIPS enabled
             A reboot is required to complete install.
             """
@@ -796,6 +798,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
             Updating Ubuntu Pro: ESM Infra package lists
             Ubuntu Pro: ESM Infra enabled
+            Installing snapd snap
             Installing canonical-livepatch snap
             Canonical Livepatch enabled
             """
@@ -832,7 +835,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stdout matches regexp:
             """
             Installing canonical-livepatch snap
-            Canonical livepatch enabled
+            Canonical Livepatch enabled
             """
         When I run `pro enable fips --assume-yes` with sudo
         Then I will see the following on stdout
@@ -841,6 +844,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Disabling incompatible service: Livepatch
             Updating FIPS package lists
             Installing FIPS packages
+            Updating standard Ubuntu package lists
             FIPS enabled
             A reboot is required to complete install.
             """
@@ -873,7 +877,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         And stdout matches regexp:
             """
             Installing canonical-livepatch snap
-            Canonical livepatch enabled
+            Canonical Livepatch enabled
             """
         When I run `pro disable livepatch` with sudo
         And I run `pro enable fips-updates --assume-yes` with sudo
@@ -882,6 +886,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             One moment, checking your subscription first
             Updating FIPS Updates package lists
             Installing FIPS Updates packages
+            Updating standard Ubuntu package lists
             FIPS Updates enabled
             A reboot is required to complete install.
             """
