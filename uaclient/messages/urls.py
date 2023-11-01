@@ -34,7 +34,9 @@ LANDSCAPE_HOME_PAGE = "https://ubuntu.com/landscape"
 LANDSCAPE_SAAS = "https://landscape.canonical.com"
 LANDSCAPE_DOCS_INSTALL = "https://ubuntu.com/landscape/install"
 LIVEPATCH_HOME_PAGE = "https://ubuntu.com/security/livepatch"
-LIVEPATCH_SUPPORTED_KERNELS = "https://ubuntu.com/security/livepatch"
+LIVEPATCH_SUPPORTED_KERNELS = (
+    "https://ubuntu.com/security/livepatch/docs/kernels"
+)
 REALTIME_HOME_PAGE = "https://ubuntu.com/realtime-kernel"
 ROS_HOME_PAGE = "https://ubuntu.com/robotics/ros-esm"
 USG_DOCS = "https://ubuntu.com/security/certifications/docs/usg"
