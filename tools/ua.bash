@@ -3,18 +3,13 @@
 . /etc/os-release  # For VERSION_ID
 
 API_ENDPOINTS=$(/usr/bin/python3 -c 'from uaclient.api.api import VALID_ENDPOINTS; print(" ".join(VALID_ENDPOINTS))')
+SERVICES="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
 
 _ua_complete()
 {
-    local cur_word prev_word services subcmds base_params
+    local cur_word prev_word subcmds base_params
     cur_word="${COMP_WORDS[COMP_CWORD]}"
     prev_word="${COMP_WORDS[COMP_CWORD-1]}"
-
-    if [ "$VERSION_ID" = "16.04" ] || [ "$VERSION_ID" == "18.04" ]; then
-        services="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates"
-    else
-        services="anbox-cloud cc-eal esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
-    fi
 
     subcmds="--debug --help --version api attach auto-attach collect-logs config detach disable enable fix help refresh security-status status system version"
     base_params=""
@@ -28,11 +23,11 @@ _ua_complete()
             case ${prev_word} in
                 disable)
                     # shellcheck disable=SC2207
-                    COMPREPLY=($(compgen -W "$services" -- $cur_word))
+                    COMPREPLY=($(compgen -W "$SERVICES" -- $cur_word))
                     ;;
                 enable)
                     # shellcheck disable=SC2207
-                    COMPREPLY=($(compgen -W "$services" -- $cur_word))
+                    COMPREPLY=($(compgen -W "$SERVICES" -- $cur_word))
                     ;;
                 api)
                     # shellcheck disable=SC2207
