@@ -4,20 +4,18 @@
 
 API_ENDPOINTS=$(/usr/bin/python3 -c 'from uaclient.api.api import VALID_ENDPOINTS; print(" ".join(VALID_ENDPOINTS))')
 SERVICES="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
+SUBCMDS="--debug --help --version api attach auto-attach collect-logs config detach disable enable fix help refresh security-status status system version"
 
 _ua_complete()
 {
-    local cur_word prev_word subcmds base_params
+    local cur_word prev_word
     cur_word="${COMP_WORDS[COMP_CWORD]}"
     prev_word="${COMP_WORDS[COMP_CWORD-1]}"
-
-    subcmds="--debug --help --version api attach auto-attach collect-logs config detach disable enable fix help refresh security-status status system version"
-    base_params=""
 
     case ${COMP_CWORD} in
         1)
             # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W "$base_params $subcmds" -- $cur_word))
+            COMPREPLY=($(compgen -W "$SUBCMDS" -- $cur_word))
             ;;
         2)
             case ${prev_word} in
