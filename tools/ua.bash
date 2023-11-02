@@ -2,6 +2,8 @@
 
 . /etc/os-release  # For VERSION_ID
 
+API_ENDPOINTS=$(/usr/bin/python3 -c 'from uaclient.api.api import VALID_ENDPOINTS; print(" ".join(VALID_ENDPOINTS))')
+
 _ua_complete()
 {
     local cur_word prev_word services subcmds base_params
@@ -31,6 +33,10 @@ _ua_complete()
                 enable)
                     # shellcheck disable=SC2207
                     COMPREPLY=($(compgen -W "$services" -- $cur_word))
+                    ;;
+                api)
+                    # shellcheck disable=SC2207
+                    COMPREPLY=($(compgen -W "$API_ENDPOINTS" -- $cur_word))
                     ;;
             esac
             ;;
