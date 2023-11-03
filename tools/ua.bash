@@ -34,7 +34,22 @@ _ua_complete()
             esac
             ;;
         *)
-            COMPREPLY=()
+            local subcmd
+            subcmd="${COMP_WORDS[1]}"
+            case ${subcmd} in
+                disable)
+                    # shellcheck disable=SC2207
+                    COMPREPLY=($(compgen -W "$SERVICES" -- $cur_word))
+                    ;;
+                enable)
+                    # shellcheck disable=SC2207
+                    COMPREPLY=($(compgen -W "$SERVICES" -- $cur_word))
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+
+            esac
             ;;
     esac
 }
