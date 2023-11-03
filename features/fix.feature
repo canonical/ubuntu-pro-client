@@ -60,7 +60,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
         Fixing requested USN-4539-1
@@ -100,7 +100,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5573-1: rsync vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2022-37434
 
         Fixing requested USN-5573-1
@@ -138,7 +138,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5573-1: rsync vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2022-37434
 
         Fixing requested USN-5573-1
@@ -176,7 +176,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5573-1: rsync vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2022-37434
 
         Fixing requested USN-5573-1
@@ -212,7 +212,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
         Fixing requested USN-4539-1
@@ -284,7 +284,7 @@ Feature: Ua fix command behaviour
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
         USN-5079-2: curl vulnerabilities
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
@@ -322,7 +322,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp
         """
         USN-5079-2: curl vulnerabilities
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
@@ -347,7 +347,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5079-2: curl vulnerabilities
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2021-22946
          - https://ubuntu.com/security/CVE-2021-22947
 
@@ -389,7 +389,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5051-2: OpenSSL vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2021-3712
 
         Fixing requested USN-5051-2
@@ -411,7 +411,7 @@ Feature: Ua fix command behaviour
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
         USN-5378-4: Gzip vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2022-1271
 
         Fixing requested USN-5378-4
@@ -466,7 +466,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-5378-4: Gzip vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2022-1271
 
         Fixing requested USN-5378-4
@@ -571,7 +571,7 @@ Feature: Ua fix command behaviour
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
         USN-4539-1: AWL vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
         Fixing requested USN-4539-1
@@ -583,7 +583,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-4539-1: AWL vulnerability
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2020-11728
 
         Fixing requested USN-4539-1
@@ -682,7 +682,7 @@ Feature: Ua fix command behaviour
         Then stdout matches regexp:
         """
         USN-6130-1: Linux kernel vulnerabilities
-        Found CVEs:
+        Associated CVEs:
          - https://ubuntu.com/security/CVE-2023-30456
          - https://ubuntu.com/security/CVE-2023-1380
          - https://ubuntu.com/security/CVE-2023-32233
