@@ -60,6 +60,6 @@ Feature: Upgrade between releases when uaclient is unattached
         | release | machine_type  | next_release | prompt | devel_release   | service_status |
         | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
         | bionic  | lxd-container | focal        | lts    |                 | enabled        |
-        | focal   | lxd-container | jammy        | lts    | --devel-release | enabled        |
+        | focal   | lxd-container | jammy        | lts    |                 | enabled        |
         | jammy   | lxd-container | lunar        | normal |                 | n/a            |
-        | lunar   | lxd-container | mantic       | normal | --devel-release | n/a            |
+        | lunar   | lxd-container | mantic       | normal |                 | n/a            |
