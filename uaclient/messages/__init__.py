@@ -593,7 +593,7 @@ SECURITY_CVE_STATUS_UNKNOWN = t.gettext(
 UNKNOWN: {status}"""
 )
 
-SECURITY_FOUND_CVES = t.gettext("Found CVEs:")
+SECURITY_FOUND_CVES = t.gettext("Associated CVEs:")
 SECURITY_FOUND_LAUNCHPAD_BUGS = t.gettext("Found Launchpad bugs:")
 SECURITY_FIXING_REQUESTED_USN = t.gettext(
     """\
