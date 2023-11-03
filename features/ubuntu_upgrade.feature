@@ -50,9 +50,9 @@ Feature: Upgrade between releases when uaclient is attached
         | xenial  | lxd-container | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | bionic  | lxd-container | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | bionic  | lxd-container | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
-        | focal   | lxd-container | jammy        | lts    | --devel-release | esm-infra | enabled         | esm-apps | enabled         | true           |
+        | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | jammy   | lxd-container | lunar        | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
-        | lunar   | lxd-container | mantic       | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | lunar   | lxd-container | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
     @upgrade
