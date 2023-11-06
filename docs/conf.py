@@ -123,3 +123,8 @@ html_js_files = [
     "js/synced_tab_links.js",
 ]
 html_favicon = "_static/favicon.ico"
+
+
+linkcheck_ignore = [
+    "https://manpages.ubuntu.com/landscape-config"
+]

@@ -1,6 +1,7 @@
 furo
 m2r2
 myst-parser
+pyspelling
 sphinx==5.1.1
 sphinx_autobuild
 sphinx_copybutton

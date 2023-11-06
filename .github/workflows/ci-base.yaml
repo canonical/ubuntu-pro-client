@@ -20,4 +20,4 @@ jobs:
       - name: Install docs environment
         run: make install
       - name: Build docs
-        run: make build
+        run: make html
