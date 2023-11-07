@@ -386,6 +386,7 @@ Feature: FIPS enablement in cloud based machines
         """
         Updating package lists
         Installing FIPS packages
+        Updating standard Ubuntu package lists
         FIPS enabled
         A reboot is required to complete install
         """

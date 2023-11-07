@@ -99,7 +99,7 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 19 times.
+        Failed to automatically attach to Ubuntu Pro services 19 time\(s\).
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo pro auto-attach`.
@@ -108,7 +108,7 @@ Feature: auto-attach retries periodically on failures
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 19 times.
+        Failed to automatically attach to Ubuntu Pro services 19 time\(s\).
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo pro auto-attach`.
