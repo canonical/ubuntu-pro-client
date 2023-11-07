@@ -1,7 +1,7 @@
 # How to create a customised Cloud Ubuntu Pro image
 
 * Launch an Ubuntu Pro instance on your cloud of choice
-* Customize the instance as you see fit
+* Customise the instance as you see fit
 * Run the command: `sudo rm /etc/machine-id`
 * Use your cloud platform to clone or snapshot this VM as a golden image
 

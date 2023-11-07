@@ -21,8 +21,8 @@ entitled to enable any additional Ubuntu Pro services (like
 
 ## Ubuntu Pro FIPS
 
-These specialized Ubuntu Pro images for 16.04, 18.04 and 20.04 come pre-enabled
-with the cloud-optimized FIPS-certified kernel, as well as all additional SSL
+These specialised Ubuntu Pro images for 16.04, 18.04 and 20.04 come pre-enabled
+with the cloud-optimised FIPS-certified kernel, as well as all additional SSL
 and security hardening enabled. These images are available as
 [AWS Ubuntu Pro FIPS](https://ubuntu.com/aws/fips),
 [Azure Ubuntu Pro FIPS](https://ubuntu.com/azure/fips) and GCP Ubuntu Pro FIPS.

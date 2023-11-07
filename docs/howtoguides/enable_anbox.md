@@ -4,7 +4,7 @@
 [Anbox Cloud is supported on 20.04 and 22.04 releases](https://anbox-cloud.io/).
 ```
 
-To use Anbox, you will need to enable it directly throught the Ubuntu Pro Client,
+To use Anbox, you will need to enable it directly through the Ubuntu Pro Client,
 which will install all of the necessary snaps and set up the APT sources needed for
 the service.
 
