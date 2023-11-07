@@ -46,7 +46,7 @@ sudo rm /etc/machine-id
 Cloud-specific instructions are here:
 
 * [AWS](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/tkv-create-ami-from-instance.html)
-* [Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource)
+* [Azure](https://learn.microsoft.com/en-us/azure/virtual-machines/capture-image-resource)
 * [GCP](https://cloud.google.com/compute/docs/machine-images/create-machine-images)
 
 ## Launch your custom image
@@ -64,7 +64,7 @@ updates to FIPS packages when they become available.
 sudo pro enable fips-updates --assume-yes
 ```
 
-This can be scripted using [cloud-init user data](https://cloudinit.readthedocs.io/en/latest/topics/modules.html#runcmd) at launch time:
+This can be scripted using [cloud-init user data](https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd) at launch time:
 ```yaml
 #cloud-config
 # Enable fips-updates after pro auto-attach and reboot after cloud-init completes
