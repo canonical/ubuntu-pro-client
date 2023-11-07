@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (30) mantic; urgency=medium
+ubuntu-advantage-tools (30) noble; urgency=medium
 
   * d/control:
     - add python3-apt as a build dependency
@@ -62,7 +62,7 @@ ubuntu-advantage-tools (30) mantic; urgency=medium
       + change 'permission' to 'priority' when checking apt priority in tests
         (GH: #2719)
 
- -- Renan Rodrigo <renanrodrigo@canonical.com>  Wed, 04 Oct 2023 08:35:37 -0300
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 07 Nov 2023 08:35:37 -0300
 
 ubuntu-advantage-tools (29.4) mantic; urgency=medium
 
