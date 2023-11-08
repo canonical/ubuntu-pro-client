@@ -26,7 +26,7 @@ async function run() {
         await client.rest.issues.create({
             owner: context.issue.owner,
             repo: context.issue.repo,
-            title: item.body.replace(/^[Bb]reaks: /, ""),
+            title: issue.body.replace(/^[Bb]reaks: /, ""),
             body: `This issue was created from a comment in Pull Request #${prNumber}.`
         })
     }
