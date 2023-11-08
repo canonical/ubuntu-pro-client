@@ -1170,7 +1170,7 @@ msgstr "DESCONHECIDO: {status}"
 
 #: ../../uaclient/messages/__init__.py:596
 msgid "Associated CVEs:"
-msgstr ""
+msgstr "CVEs associadas:"
 
 #: ../../uaclient/messages/__init__.py:597
 msgid "Found Launchpad bugs:"
