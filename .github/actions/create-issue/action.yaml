@@ -1,0 +1,9 @@
+name: 'Create issues on PR merge'
+description: 'Looks for "Breaks:" in the PR description and opens an issue when found'
+inputs:
+  repo-token:
+    description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
+runs:
+  using: 'node16'
+  main: 'index.js'

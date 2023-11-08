@@ -1,0 +1,10 @@
+{
+  "name": "create-issue",
+  "version": "1.0.0",
+  "description": "Looks for \"Breaks:\" in the PR description and opens an issue when found",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0"
+  }
+}

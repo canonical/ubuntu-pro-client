@@ -1,0 +1,23 @@
+---
+
+name: Post-merge actions
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: cd ./.github/actions/create-issue && npm install
+      - name: Create issues if needed
+        uses: ./.github/actions/create-issue
+        id: create-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
