@@ -35,6 +35,7 @@ extensions = [
     "sphinxcontrib.mermaid",
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.jquery",
+    "sphinxext.opengraph",
 ]
 autosectionlabel_prefix_document = True
 
@@ -128,3 +129,8 @@ html_favicon = "_static/favicon.ico"
 linkcheck_ignore = [
     "https://manpages.ubuntu.com/landscape-config"
 ]
+
+
+ogp_site_url = 'https://canonical-ubuntu-pro-client.readthedocs-hosted.com/'
+ogp_site_name = project
+ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg'
