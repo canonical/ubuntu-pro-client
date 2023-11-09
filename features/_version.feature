@@ -14,6 +14,7 @@ Feature: Pro is expected version
     @uses.config.machine_type.gcp.pro
     @uses.config.machine_type.gcp.pro-fips
     Scenario Outline: Check pro version
+        # this is a noop test change
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
