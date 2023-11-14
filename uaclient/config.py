@@ -4,7 +4,7 @@ import logging
 import os
 from collections import namedtuple
 from functools import lru_cache, wraps
-from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
+from typing import Any, Dict, Optional, Tuple
 
 from uaclient import (
     apt,
@@ -74,14 +74,6 @@ VALID_UA_CONFIG_KEYS = (
 DataPath = namedtuple("DataPath", ("filename", "private"))
 
 event = event_logger.get_event_logger()
-
-# needed for solving mypy errors dealing with _lru_cache_wrapper
-# Found at https://github.com/python/mypy/issues/5858#issuecomment-454144705
-S = TypeVar("S", bound=str)
-
-
-def str_cache(func: Callable[..., S]) -> S:
-    return lru_cache()(func)  # type: ignore
 
 
 class UAConfig:
@@ -201,7 +193,7 @@ class UAConfig:
         state_files.user_config_file.write(self.user_config)
 
     @property  # type: ignore
-    @str_cache
+    @lru_cache(maxsize=None)
     def global_apt_http_proxy(self) -> Optional[str]:
         global_val = self.user_config.global_apt_http_proxy
         if global_val:
@@ -225,7 +217,7 @@ class UAConfig:
         state_files.user_config_file.write(self.user_config)
 
     @property  # type: ignore
-    @str_cache
+    @lru_cache(maxsize=None)
     def global_apt_https_proxy(self) -> Optional[str]:
         global_val = self.user_config.global_apt_https_proxy
         if global_val:
