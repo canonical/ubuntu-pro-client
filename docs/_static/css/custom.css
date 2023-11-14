@@ -1,5 +1,4 @@
 /** Fix the font weight (300 for normal, 400 for slightly bold) **/
-/** Should be 100 for all headers, 400 for normal text  **/
 
 /** We are creating both of these styles only to have the
  *  headers of the compatibility matrix to be vertically
@@ -17,52 +16,13 @@ table.docutils th.text-center {
   vertical-align: bottom;
 }
 
-h1, h2, h3, h4, h5, h6, .sidebar-tree .current-page>.reference, button, input, optgroup, select, textarea, th.head {
-    font-weight: 200;
+
+div.page, h1, h2, h3, h4, h5, h6, .sidebar-tree .current-page>.reference, button, input, optgroup, select, textarea, th.head {
+    font-weight: 300
 }
 
-.toc-title {
+.toc-tree li.scroll-current>.reference, dl.glossary dt, dl.simple dt, dl:not([class]) dt {
     font-weight: 400;
-}
-
-.sidebar-tree .toctree-l2.has-children>.reference {
-    font-weight: 300;
-}
-
-li.toctree-l3 {
-    font-weight: 200;
-}
-
-div.page, li.scroll-current>.reference, dl.glossary dt, dl.simple dt, dl:not([class]) dt {
-    font-weight: 300;
-    line-height: 1.5;
-    font-size: var(--font-size--normal);
-}
-
-
-/** Side bars (side-bar tree = left, toc-tree = right) **/
-div.sidebar-tree {
-    font-weight: 200;
-    line-height: 1.5;
-    font-size: var(--font-size--normal);
-}
-
-div.toc-tree {
-    font-weight: 200;
-    font-size: var(--font-size--medium);
-    line-height: 1.5;
-}
-
-.sidebar-tree .toctree-l1>.reference, .toc-tree li.scroll-current>.reference {
-    font-weight: 400;
-}
-
-/** List styling   **/
-ol, ul {
-    margin-bottom: 1.5rem;
-    margin-left: 1rem;
-    margin-top: 0;
-    padding-left: 1rem;
 }
 
 /** Table styling **/
@@ -83,9 +43,9 @@ table.docutils td, table.docutils th, table.docutils td:last-child, table.docuti
     border-left: none;
 }
 
-/* center align table cells with ":-:" */
-td.text-center {
-    text-align: center;
+/* Allow to centre text horizontally in table data cells */
+table.align-center {
+    text-align: center !important;
 }
 
 /** No rounded corners **/
@@ -94,44 +54,12 @@ td.text-center {
     border-radius: 0;
 }
 
-/** code blocks and literals **/
-code.docutils.literal.notranslate, .highlight pre, pre.literal-block {
-    font-size: var(--font-size--medium);
-}
-
-
 /** Admonition styling **/
 
 .admonition {
-    font-size: var(--font-size--medium);
-    box-shadow: none;
-}
-
-/** Styling for links **/
-/* unvisited link */
-a:link {
-    color: #06c;
-    text-decoration: none;
-}
-
-/* visited link */
-a:visited {
-    color: #7d42b8;
-    text-decoration: none;
-}
-
-/* mouse over link */
-a:hover {
-    text-decoration: underline;
-}
-
-/* selected link */
-a:active {
-    text-decoration: underline;
-}
-
-a.sidebar-brand.centered {
-    text-decoration: none;
+    border-top: 1px solid #d9d9d9;
+    border-right: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
 }
 
 /** Color for the "copy link" symbol next to headings **/
@@ -258,7 +186,21 @@ details summary {
     color: var(--color-link);
 }
 
-/** Context links at the bottom of the page **/
-footer {
-    font-size: var(--font-size--medium);
+/** Fix the styling of the version box for readthedocs **/
+
+#furo-readthedocs-versions .rst-versions, #furo-readthedocs-versions .rst-current-version, #furo-readthedocs-versions:focus-within .rst-current-version, #furo-readthedocs-versions:hover .rst-current-version  {
+    background: var(--color-sidebar-item-background--hover);
+}
+
+.rst-versions .rst-other-versions dd a {
+    color: var(--color-link);
+}
+
+#furo-readthedocs-versions:focus-within .rst-current-version .fa-book, #furo-readthedocs-versions:hover .rst-current-version .fa-book, .rst-versions .rst-other-versions {
+    color: var(--color-sidebar-link-text);
+}
+
+.rst-versions .rst-current-version {
+    color: var(--color-version-popup);
+    font-weight: bolder;
 }
