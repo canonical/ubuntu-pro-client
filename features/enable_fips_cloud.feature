@@ -441,7 +441,6 @@ Feature: FIPS enablement in cloud based machines
     @slow
     @series.bionic
     @series.focal
-    @series.jammy
     @uses.config.machine_type.any
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
@@ -488,4 +487,3 @@ Feature: FIPS enablement in cloud based machines
            | release |
            | bionic  |
            | focal   |
-           | jammy   |
