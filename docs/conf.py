@@ -21,6 +21,9 @@ import datetime
 project = "Ubuntu Pro Client"
 author = "Canonical Group Ltd"
 copyright = "%s, %s" % (datetime.date.today().year, author)
+# If your project is on documentation.ubuntu.com, specify the project
+# slug (for example, "lxd") here.
+slug = ""
 
 # -- General configuration ---------------------------------------------------
 
@@ -137,6 +140,10 @@ ogp_site_url = 'https://canonical-ubuntu-pro-client.readthedocs-hosted.com/'
 ogp_site_name = project
 ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg'
 
+# The default for notfound_urls_prefix usually works, but not for
+# documentation on documentation.ubuntu.com
+if slug:
+    notfound_urls_prefix = '/' + slug + '/en/latest/'
 
 notfound_context = {
     'title': 'Page not found',
