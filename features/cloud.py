@@ -174,7 +174,11 @@ class Cloud:
         return instance.id
 
     def locate_image_name(
-        self, series: str, machine_type: str, daily: bool = True
+        self,
+        series: str,
+        machine_type: str,
+        daily: bool = True,
+        include_deprecated: bool = False,
     ) -> str:
         """Locate and return the image name to use for vm provision.
 
@@ -193,10 +197,8 @@ class Cloud:
             )
 
         image_type = ImageType.GENERIC
-        include_deprecated = False
         if "pro-fips" in machine_type:
             image_type = ImageType.PRO_FIPS
-            include_deprecated = True
         elif "pro" in machine_type:
             image_type = ImageType.PRO
 
@@ -343,8 +345,19 @@ class EC2(Cloud):
                 daily = False
             else:
                 daily = True
+
+            include_deprecated = False
+            if series == "xenial":
+                logging.debug(
+                    "including deprecated images when locating xenial on aws"
+                )
+                include_deprecated = True
+
             image_name = self.locate_image_name(
-                series, machine_type, daily=daily
+                series,
+                machine_type,
+                daily=daily,
+                include_deprecated=include_deprecated,
             )
 
         logging.info(
@@ -659,7 +672,11 @@ class _LXD(Cloud):
         return instance.name
 
     def locate_image_name(
-        self, series: str, machine_type: str, daily: bool = True
+        self,
+        series: str,
+        machine_type: str,
+        daily: bool = True,
+        include_deprecated: bool = False,
     ) -> str:
         """Locate and return the image name to use for vm provision.
 
