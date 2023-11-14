@@ -2,7 +2,6 @@
 Feature: Build docker images with pro services
 
     @slow
-    @docker
     @series.mantic
     @uses.config.machine_type.lxd-vm
     Scenario Outline: Build docker images with pro services
