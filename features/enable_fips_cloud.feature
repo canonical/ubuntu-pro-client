@@ -391,7 +391,7 @@ Feature: FIPS enablement in cloud based machines
            | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.lts
+    @series.xenial
     @uses.config.machine_type.any
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
@@ -437,6 +437,55 @@ Feature: FIPS enablement in cloud based machines
         Examples: ubuntu release
            | release |
            | xenial  |
+
+    @slow
+    @series.bionic
+    @series.focal
+    @series.jammy
+    @uses.config.machine_type.any
+    @uses.config.machine_type.aws.generic
+    Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `touch /etc/cloud/cloud-init.disabled` with sudo
+        And I reboot the machine
+        And I verify that running `cloud-id` `with sudo` exits `2`
+        Then I will see the following on stdout:
+        """
+        disabled
+        """
+        When I attach `contract_token` with sudo
+        And I run `pro enable fips --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        Installing FIPS packages
+        Updating standard Ubuntu package lists
+        FIPS enabled
+        A reboot is required to complete install
+        """
+        When I run `apt-cache policy ubuntu-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the machine
+        And  I run `uname -r` as non-root
+        Then stdout does not match regexp:
+        """
+        aws-fips
+        """
+        And stdout matches regexp:
+        """
+        fips
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+
+        Examples: ubuntu release
+           | release |
            | bionic  |
            | focal   |
            | jammy   |
