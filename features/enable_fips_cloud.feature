@@ -460,4 +460,3 @@ Feature: FIPS enablement in cloud based machines
            | release | machine_type |
            | bionic  | aws.generic  |
            | focal   | aws.generic  |
-           | jammy   | aws.generic  |
