@@ -247,7 +247,7 @@ Feature: Fix plan API endpoints
         And the json API response data matches the `cve_fix_plan` schema
         And stdout matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["linux"\], "description": ".*", "error": null, "expected_status": "still-affected", "plan": \[\], "title": "CVE-2022-40982", "warnings": \[{"data": {"source_packages": \["linux"\], "status": "pending"}, "order": 1, "warning_type": "security-issue-not-fixed"}\]}\], "expected_status": "still-affected"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \[\], "description": ".*", "error": null, "expected_status": "not-affected", "plan": \[{"data": {"status": "system-not-affected"}, "operation": "no-op", "order": 1}\], "title": "CVE-2022-40982", "warnings": \[\]}\], "expected_status": "not-affected"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
 
         Examples: ubuntu release details
