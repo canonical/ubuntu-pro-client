@@ -11,7 +11,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         And I run `pro status` as non-root
         Then stdout matches regexp:
         """
-        No Ubuntu Pro services are available to this system.
+        <status_string>
         """
         And stdout matches regexp:
         """
@@ -38,9 +38,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release
-            | release | landscape |
-            | lunar   | n/a       |
-            | mantic  | yes       |
+            | release | landscape | status_string                                                           |
+            | lunar   | n/a       | No Ubuntu Pro services are available to this system.                    |
+            | mantic  | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
     @series.lts
     @uses.config.machine_type.lxd-container
