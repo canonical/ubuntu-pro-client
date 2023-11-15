@@ -200,7 +200,7 @@ The command will prompt you for a response, like this:
 
 ```
 USN-5079-2: curl vulnerabilities
-Found CVEs:
+Associated CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 
@@ -231,7 +231,7 @@ token you should now see the following output:
 
 ```
 USN-5079-2: curl vulnerabilities
-Found CVEs:
+Associated CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 
@@ -296,7 +296,7 @@ observe that the USN is indeed fixed, which you can confirm by running the
 
 ```
 USN-5079-2: curl vulnerabilities
-Found CVEs:
+Associated CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 
