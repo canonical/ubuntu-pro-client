@@ -7,7 +7,7 @@ To make this clear, let's take a look into the following example:
 
 ```
 USN-5573-1: rsync vulnerability
-Found CVEs:
+Associated CVEs:
   - https://ubuntu.com/security/CVE-2022-37434
 
 Fixing requested USN-5573-1
@@ -50,7 +50,7 @@ the following output instead:
 
 ```
 USN-5573-1: rsync vulnerability
-Found CVEs:
+Associated CVEs:
   - https://ubuntu.com/security/CVE-2022-37434
 
 Fixing requested USN-5573-1
