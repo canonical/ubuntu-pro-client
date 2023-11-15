@@ -2,10 +2,8 @@
 Feature: Proxy configuration
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured for uaclient
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -151,18 +149,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach command when proxy is configured
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -251,15 +246,13 @@ Feature: Proxy configuration
         """
     
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
@@ -345,18 +338,15 @@ Feature: Proxy configuration
         """
     
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach command when authenticated proxy is configured
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
@@ -399,15 +389,13 @@ Feature: Proxy configuration
         """
     
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -539,17 +527,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
@@ -615,17 +601,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when proxy is configured globally
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -777,17 +761,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command when authenticated proxy is configured globally
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
@@ -877,17 +859,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Get warning when configuring global or uaclient proxy
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -1030,17 +1010,15 @@ Feature: Proxy configuration
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: apt_http(s)_proxy still works
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -1167,17 +1145,15 @@ Feature: Proxy configuration
         \"https://localhost:12345\" is not working. Not setting as proxy.
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.jammy
-    @uses.config.machine_type.lxd-vm
     Scenario: Enable realtime kernel through proxy on a machine with no internet
-        Given a `jammy` machine with ubuntu-advantage-tools installed
+        Given a `jammy` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
         Given a `focal` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
@@ -1205,9 +1181,6 @@ Feature: Proxy configuration
         A reboot is required to complete install.
         """
 
-    @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Support HTTPS-in-HTTPS proxies
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
 

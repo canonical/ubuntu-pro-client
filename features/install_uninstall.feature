@@ -1,26 +1,22 @@
 Feature: Pro Install and Uninstall related tests
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Do not fail on postinst when cloud-id returns error
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
         Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.lts
     @uses.config.contract_token
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Purge package after attaching it to a machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
         Then I verify that files exist matching `/var/log/ubuntu-advantage.log`
@@ -42,17 +38,15 @@ Feature: Pro Install and Uninstall related tests
         And I verify that no files exist matching `/etc/apt/preferences.d/ubuntu-*`
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Do not fail during postinst with nonstandard python setup
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Works when in a python virtualenv
         When I run `apt update` with sudo
         And I run `apt install python3-venv -y` with sudo
@@ -84,8 +78,8 @@ Feature: Pro Install and Uninstall related tests
         Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |

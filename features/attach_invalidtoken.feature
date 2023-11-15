@@ -1,9 +1,6 @@
 Feature: Command behaviour when trying to attach a machine to an Ubuntu
          Pro subscription using an invalid token
 
-    @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command failure on invalid token
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro attach INVALID_TOKEN` `with sudo` exits `1`
@@ -32,9 +29,6 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Attach command failure on expired token
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

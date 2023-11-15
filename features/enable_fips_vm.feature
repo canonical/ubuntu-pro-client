@@ -2,11 +2,8 @@
 Feature: FIPS enablement in lxd VMs
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro status --format json` with sudo
         Then stdout contains substring
@@ -129,16 +126,13 @@ Feature: FIPS enablement in lxd VMs
         """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | xenial  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | xenial  | lxd-vm       | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | bionic  | lxd-vm       | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
@@ -267,16 +261,13 @@ Feature: FIPS enablement in lxd VMs
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                                |
-           | xenial  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                                |
+           | xenial  | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
+           | bionic  | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
@@ -325,15 +316,13 @@ Feature: FIPS enablement in lxd VMs
             livepatch +yes +enabled
             """
         Examples: ubuntu release
-           | release | livepatch_status |
-           | xenial  | warning          |
-           | bionic  | enabled          |
+           | release | machine_type | livepatch_status |
+           | xenial  | lxd-vm       | warning          |
+           | bionic  | lxd-vm       | enabled          |
 
     @slow
-    @series.focal
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `pro enable <fips-service> --assume-yes` with sudo
@@ -390,14 +379,12 @@ Feature: FIPS enablement in lxd VMs
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                               |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                               |
+           | focal   | lxd-vm       | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main |
 
     @slow
-    @series.focal
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `pro enable <fips-service> --assume-yes` with sudo
@@ -460,14 +447,12 @@ Feature: FIPS enablement in lxd VMs
         And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                               |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                               |
+           | focal   | lxd-vm       | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips-updates on fips enabled vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
@@ -534,17 +519,14 @@ Feature: FIPS enablement in lxd VMs
             """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
+           | focal   | lxd-vm       |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
         And I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
@@ -560,15 +542,13 @@ Feature: FIPS enablement in lxd VMs
         """
 
         Examples: ubuntu release
-        | release |
-        | xenial  |
-        | bionic  |
+        | release | machine_type |
+        | xenial  | lxd-vm       |
+        | bionic  | lxd-vm       |
 
     @slow
-    @series.focal
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I delete the file `/run/cloud-init/instance-data.json`
         And I attach `contract_token` with sudo
         And I run `pro enable fips --assume-yes` with sudo
@@ -583,15 +563,13 @@ Feature: FIPS enablement in lxd VMs
         """
 
         Examples: ubuntu release
-        | release |
-        | focal   |
+        | release | machine_type |
+        | focal   | lxd-vm       |
 
 
     @slow
-    @series.jammy
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips-preview
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         availableResources:
@@ -633,5 +611,5 @@ Feature: FIPS enablement in lxd VMs
         """
 
         Examples: ubuntu release
-           | release |
-           | jammy   |
+           | release | machine_type |
+           | jammy   | lxd-vm       |

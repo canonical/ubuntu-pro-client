@@ -1,9 +1,7 @@
 Feature: Unattached status
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine - formatted
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro status --format json` as non-root
         Then stdout is a json matching the `ua_status` schema
         When I run `pro status --format yaml` as non-root
@@ -33,19 +31,16 @@ Feature: Unattached status
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
         And I run `pro status` as non-root
         Then stdout matches regexp:
@@ -120,14 +115,12 @@ Feature: Unattached status
         """ 
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
         When I run `pro status` as non-root
         Then stdout matches regexp:
@@ -200,13 +193,11 @@ Feature: Unattached status
         """ 
 
         Examples: ubuntu release
-           | release |
-           | focal   |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Unattached status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify root and non-root `pro status` calls have the same output
         And I run `pro status` as non-root
         Then stdout matches regexp:
@@ -273,15 +264,12 @@ Feature: Unattached status
         """ 
 
         Examples: ubuntu release
-           | release |
-           | jammy   |
+           | release | machine_type  |
+           | jammy   | lxd-container |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
         """
@@ -338,15 +326,13 @@ Feature: Unattached status
             warnings: []
             """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
         """
@@ -405,14 +391,12 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release |
-           | focal   |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
         """
@@ -468,16 +452,13 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release |
-           | jammy   |
+           | release | machine_type  |
+           | jammy   | lxd-container |
 
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
@@ -520,15 +501,13 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
@@ -562,7 +541,6 @@ Feature: Unattached status
         esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
-        fips-preview    +.* +.* +.*
         fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         ros             +yes       +no        +no           +Security Updates for the Robot Operating System
@@ -570,14 +548,12 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release |
-           | focal   |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
@@ -616,5 +592,5 @@ Feature: Unattached status
         """
 
         Examples: ubuntu release
-           | release |
-           | jammy   |
+           | release | machine_type  |
+           | jammy   | lxd-container |

@@ -2,11 +2,8 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         subscription using a valid token
 
-    @series.lunar
-    @series.mantic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached command in a non-lts ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro status` as non-root
         Then stdout matches regexp:
@@ -37,14 +34,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release
-            | release | landscape |
-            | lunar   | n/a       |
-            | mantic  | yes       |
+            | release | machine_type  | landscape |
+            | lunar   | lxd-container | n/a       |
+            | mantic  | lxd-container | yes       |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command in a ubuntu lxd container
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
         And I run `apt install update-motd` with sudo, retrying exit [100]
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y <downrev_pkg>` with sudo, retrying exit [100]
@@ -94,16 +89,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release packages
-           | release | downrev_pkg                 | cc_status | cis_or_usg | cis      | fips     | livepatch_desc                |
-           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
-           | bionic  | libkrad0=1.16-2build1       | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
-           | focal   | hello=2.10-2ubuntu2         | n/a       | usg        | disabled | disabled | Canonical Livepatch service   |
-           | jammy   | hello=2.10-2ubuntu4         | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service   |
+           | release | machine_type  | downrev_pkg                 | cc_status | cis_or_usg | cis      | fips     | livepatch_desc                |
+           | xenial  | lxd-container | libkrad0=1.13.2+dfsg-5      | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
+           | bionic  | lxd-container | libkrad0=1.16-2build1       | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
+           | focal   | lxd-container | hello=2.10-2ubuntu2         | n/a       | usg        | disabled | disabled | Canonical Livepatch service   |
+           | jammy   | lxd-container | hello=2.10-2ubuntu4         | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service   |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command with attach config
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # simplest happy path
         When I create the file `/tmp/attach.yaml` with the following
         """
@@ -206,15 +199,13 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         Cannot enable unknown service 'nonexistent, nonexistent2'.
         """
         Examples: ubuntu
-           | release | cis_or_usg |
-           | xenial  | cis        |
-           | bionic  | cis        |
-           | focal   | usg        |
+           | release | machine_type  | cis_or_usg |
+           | xenial  | lxd-container | cis        |
+           | bionic  | lxd-container | cis        |
+           | focal   | lxd-container | usg        |
 
-    @series.all
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -242,16 +233,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release livepatch status
-           | release | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg | cis_status |
-           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
-           | bionic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
-           | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
-           | jammy   | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
+           | release | machine_type | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg | cis_status |
+           | xenial  | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
+           | bionic  | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
+           | focal   | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
+           | jammy   | aws.generic  | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
 
-    @series.lts
-    @uses.config.machine_type.azure.generic
     Scenario Outline: Attach command in an generic Azure Ubuntu VM
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -279,16 +268,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | enabled   | disabled    | disabled  | cis        | disabled   |
-           | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
-           | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | enabled   | n/a         | n/a       | usg        | n/a        |
+           | release | machine_type  | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
+           | xenial  | azure.generic | enabled   | disabled    | disabled  | cis        | disabled   |
+           | bionic  | azure.generic | enabled   | disabled    | disabled  | cis        | disabled   |
+           | focal   | azure.generic | enabled   | disabled    | n/a       | usg        | disabled   |
+           | jammy   | azure.generic | enabled   | n/a         | n/a       | usg        | n/a        |
 
-    @series.all
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attach command in an generic GCP Ubuntu VM
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -316,16 +303,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | n/a       | n/a         | disabled  | cis        | disabled   |
-           | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
-           | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | enabled   | n/a         | n/a       | usg        | n/a        |
+           | release | machine_type | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
+           | xenial  | gcp.generic  | n/a       | n/a         | disabled  | cis        | disabled   |
+           | bionic  | gcp.generic  | enabled   | disabled    | disabled  | cis        | disabled   |
+           | focal   | gcp.generic  | enabled   | disabled    | n/a       | usg        | disabled   |
+           | jammy   | gcp.generic  | enabled   | n/a         | n/a       | usg        | n/a        |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach command with json output
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running attach `as non-root` with json response exits `1`
         Then I will see the following on stdout:
             """
@@ -344,16 +329,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
 
         Examples: ubuntu release
-          | release | cc-eal   |
-          | xenial  | disabled |
-          | bionic  | disabled |
-          | focal   | n/a      |
-          | jammy   | n/a      |
+          | release | machine_type  | cc-eal   |
+          | xenial  | lxd-container | disabled |
+          | bionic  | lxd-container | disabled |
+          | focal   | lxd-container | n/a      |
+          | jammy   | lxd-container | n/a      |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attach and Check for contract change in status checking
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
        When I attach `contract_token` with sudo
        Then stdout matches regexp:
        """
@@ -396,8 +379,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
 
         Examples: ubuntu release livepatch status
-           | release |
+           | release | machine_type  |
            # removing until we add this feature back in a way that doesn't hammer the server
-           #| xenial  |
-           #| bionic  |
-           #| focal   |
+           #| xenial  | lxd-container |
+           #| bionic  | lxd-container |
+           #| focal   | lxd-container |

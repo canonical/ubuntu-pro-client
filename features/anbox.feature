@@ -1,10 +1,8 @@
 @uses.config.contract_token
 Feature: Enable anbox on Ubuntu
 
-    @series.jammy
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable Anbox cloud service in a container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         When I run `pro status` as non-root
         Then stdout matches regexp:
@@ -48,13 +46,11 @@ Feature: Enable anbox on Ubuntu
         """
 
         Examples: ubuntu release
-            | release |
-            | jammy   |
+            | release | machine_type  |
+            | jammy   | lxd-container |
 
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Anbox cloud service in an unsupported release
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         And I verify that running `pro enable anbox-cloud` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -64,13 +60,11 @@ Feature: Enable anbox on Ubuntu
         """
 
         Examples: ubuntu release
-            | release |
-            | xenial  |
+            | release | machine_type |
+            | xenial  | lxd-vm       |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Anbox cloud service in a VM
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         And I run `snap remove lxd` with sudo
         And I run `pro enable anbox-cloud --access-only --assume-yes` with sudo
@@ -146,5 +140,5 @@ Feature: Enable anbox on Ubuntu
         And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
 
         Examples: ubuntu release
-            | release |
-            | jammy   |
+            | release | machine_type |
+            | jammy   | lxd-vm       |
