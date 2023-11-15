@@ -9,7 +9,7 @@ is the output of running `pro fix USN-5079-2 --dry-run`:
 WARNING: The option --dry-run is being used.
 No packages will be installed when running this command.
 USN-5079-2: curl vulnerabilities
-Found CVEs:
+Associated CVEs:
 https://ubuntu.com/security/CVE-2021-22946
 https://ubuntu.com/security/CVE-2021-22947
 1 affected source package is installed: curl
