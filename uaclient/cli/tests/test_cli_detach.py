@@ -103,10 +103,12 @@ class TestActionDetach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
+        m_sleep,
         m_prompt,
         FakeConfig,
         capsys,
@@ -118,7 +120,7 @@ class TestActionDetach:
         cfg.write_cache("lock", "123:pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
         expected_error_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro detach", lock_holder="pro enable", pid="123"
         )
