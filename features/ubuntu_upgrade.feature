@@ -53,6 +53,7 @@ Feature: Upgrade between releases when uaclient is attached
         | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | jammy   | lxd-container | lunar        | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
         | lunar   | lxd-container | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | mantic  | lxd-container | noble        | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
     @upgrade
