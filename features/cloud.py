@@ -10,6 +10,49 @@ from pycloudlib.cloud import ImageType  # type: ignore
 DEFAULT_CONFIG_PATH = "~/.config/pycloudlib.toml"
 
 
+def cloud_factory(pro_config, cloud_name):
+    if cloud_name == "aws":
+        return EC2(
+            cloud_credentials_path=pro_config.cloud_credentials_path,
+            tag=pro_config.timed_job_tag,
+            timestamp_suffix=False,
+        )
+    if cloud_name == "azure":
+        return Azure(
+            cloud_credentials_path=pro_config.cloud_credentials_path,
+            tag=pro_config.timed_job_tag,
+            timestamp_suffix=False,
+        )
+    if cloud_name == "gcp":
+        return GCP(
+            cloud_credentials_path=pro_config.cloud_credentials_path,
+            tag=pro_config.timed_job_tag,
+            timestamp_suffix=False,
+        )
+    if cloud_name == "lxd-vm":
+        return LXDVirtualMachine(
+            cloud_credentials_path=pro_config.cloud_credentials_path,
+        )
+    if cloud_name == "lxd-container":
+        return LXDContainer(
+            cloud_credentials_path=pro_config.cloud_credentials_path,
+        )
+    raise RuntimeError("Invalid cloud name")
+
+
+class CloudManager:
+    def __init__(self, pro_config):
+        self.pro_config = pro_config
+        self.clouds = {}
+
+    def get(self, cloud_name):
+        cloud = self.clouds.get(cloud_name)
+        if cloud is None:
+            cloud = cloud_factory(self.pro_config, cloud_name)
+            self.clouds[cloud_name] = cloud
+        return cloud
+
+
 class Cloud:
     """Base class for cloud providers that should be tested through behave.
 

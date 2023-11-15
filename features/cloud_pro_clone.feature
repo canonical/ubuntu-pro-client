@@ -1,10 +1,7 @@
 Feature: Creating golden images based on Cloud Ubuntu Pro instances
 
-    @series.lts
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Create a Pro fips-updates image and launch
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -31,7 +28,7 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that `activityInfo.activityToken` value has been updated on the contract
         Then I verify that `activityInfo.activityID` value has not been updated on the contract
-        When I launch a `<release>` machine named `clone` from the snapshot of `system-under-test`
+        When I launch a `<release>` `<machine_type>` machine named `clone` from the snapshot of `system-under-test`
         # The clone will run auto-attach on boot
         When I run `pro status --wait` `with sudo` on the `clone` machine
         Then the machine is attached
@@ -52,6 +49,8 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
           status: enabled
         """
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
+           | release | machine_type  |
+           | bionic  | aws.pro       |
+           | bionic  | gcp.pro       |
+           | focal   | aws.pro       |
+           | focal   | gcp.pro       |

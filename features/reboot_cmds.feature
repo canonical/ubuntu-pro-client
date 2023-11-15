@@ -1,10 +1,8 @@
 @uses.config.contract_token
 Feature: Reboot Commands
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: reboot-cmds removes fips package holds and updates packages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `apt install -y strongswan` with sudo
         When I run `pro enable fips --assume-yes` with sudo
@@ -44,5 +42,5 @@ Feature: Reboot Commands
         *** <new_version> 1001
         """
         Examples: ubuntu release
-            | release | old_version      | new_version               |
-            | focal   | 5.8.2-1ubuntu3.5 | 5.8.2-1ubuntu3.fips.3.1.2 |
+            | release | machine_type  | old_version      | new_version               |
+            | focal   | lxd-container | 5.8.2-1ubuntu3.5 | 5.8.2-1ubuntu3.fips.3.1.2 |

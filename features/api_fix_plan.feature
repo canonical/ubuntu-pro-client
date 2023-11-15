@@ -1,9 +1,7 @@
 Feature: Fix plan API endpoints
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1800-123456"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_plan` schema
@@ -34,16 +32,14 @@ Feature: Fix plan API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_plan` schema
@@ -92,13 +88,11 @@ Feature: Fix plan API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | focal   |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.xenial
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_plan` schema
@@ -179,13 +173,11 @@ Feature: Fix plan API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | xenial  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
 
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_plan` schema
@@ -235,13 +227,11 @@ Feature: Fix plan API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | bionic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
 
-    @series.mantic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2022-40982"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_plan` schema
@@ -251,5 +241,5 @@ Feature: Fix plan API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | mantic  |
+           | release | machine_type |
+           | mantic  | lxd-vm       |

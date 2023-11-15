@@ -1,11 +1,8 @@
 Feature: FIPS enablement in PRO cloud based machines
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.aws.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu Azure PRO vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -54,18 +51,15 @@ Feature: FIPS enablement in PRO cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | aws.pro      | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | aws.pro      | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | aws.pro      | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | aws.pro      | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.azure.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu Azure PRO vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -114,19 +108,16 @@ Feature: FIPS enablement in PRO cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | azure.pro    | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | azure.pro    | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | azure.pro    | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | azure.pro    | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP PRO vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -175,8 +166,8 @@ Feature: FIPS enablement in PRO cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | gcp.pro      | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | gcp.pro      | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | gcp.pro      | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | gcp.pro      | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |

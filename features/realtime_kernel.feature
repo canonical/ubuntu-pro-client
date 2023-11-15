@@ -1,10 +1,8 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
-    @series.jammy
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable Real-time kernel service in a container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -18,13 +16,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Cannot install Real-time kernel on a container.
             """
         Examples: ubuntu release
-            | release |
-            | jammy   |
+            | release | machine_type  |
+            | jammy   | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Real-time kernel service on unsupported release
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -38,15 +34,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Real-time kernel is not available for Ubuntu <version> (<full_name>).
             """
         Examples: ubuntu release
-            | release | version    | full_name       |
-            | xenial  | 16.04 LTS  | Xenial Xerus    |
-            | bionic  | 18.04 LTS  | Bionic Beaver   |
-            | focal   | 20.04 LTS  | Focal Fossa     |
+            | release | machine_type | version    | full_name       |
+            | xenial  | lxd-vm       | 16.04 LTS  | Xenial Xerus    |
+            | bionic  | lxd-vm       | 18.04 LTS  | Bionic Beaver   |
+            | focal   | lxd-vm       | 20.04 LTS  | Focal Fossa     |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Real-time kernel service
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         Then I verify that running `pro enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -334,13 +328,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-            | release |
-            | jammy   |
+            | release | machine_type |
+            | jammy   | lxd-vm       |
 
-    @series.jammy
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Enable Real-time kernel service access-only
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         When I run `pro enable realtime-kernel --access-only` with sudo
         Then stdout matches regexp:
@@ -371,5 +363,5 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         realtime
         """
         Examples: ubuntu release
-            | release |
-            | jammy   |
+            | release | machine_type |
+            | jammy   | lxd-vm       |

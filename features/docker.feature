@@ -2,10 +2,8 @@
 Feature: Build docker images with pro services
 
     @slow
-    @series.mantic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Build docker images with pro services
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
         When I run `apt-get install -y docker.io docker-buildx jq` with sudo
         When I create the file `/home/ubuntu/Dockerfile` with the following:
@@ -72,7 +70,7 @@ Feature: Build docker images with pro services
         Then I verify that running `DOCKER_BUILDKIT=1 docker build . --no-cache --secret id=ua-attach-config,src=ua-attach-config.yaml -t ua-test` `with sudo` exits `1`
 
         Examples: ubuntu release
-           | release | container_release |enable_services | test_package_name | test_package_version |
-           | mantic  | xenial            | [ esm-infra ]  | curl              | esm                  |
-           | mantic  | bionic            | [ fips ]       | openssl           | fips                 |
-           | mantic  | focal             | [ esm-apps ]   | hello             | esm                  |
+           | release | machine_type | container_release |enable_services | test_package_name | test_package_version |
+           | mantic  | lxd-vm       | xenial            | [ esm-infra ]  | curl              | esm                  |
+           | mantic  | lxd-vm       | bionic            | [ fips ]       | openssl           | fips                 |
+           | mantic  | lxd-vm       | focal             | [ esm-apps ]   | hello             | esm                  |

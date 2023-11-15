@@ -2,11 +2,8 @@
 Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable cc-eal` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -25,15 +22,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
             """
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | bionic  |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Enable cc-eal with --access-only
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `pro enable cc-eal --access-only` with sudo
         Then I will see the following on stdout:
@@ -45,17 +39,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         Then I verify that running `apt-get install ubuntu-commoncriteria` `with sudo` exits `0`
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | bionic  |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
 
-    @series.focal
-    @series.jammy
-    @series.lunar
-    @series.mantic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable cc-eal` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -69,16 +58,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             CC EAL2 is not available for Ubuntu <version> (<full_name>).
             """
         Examples: ubuntu release
-            | release | version    | full_name        |
-            | focal   | 20.04 LTS  | Focal Fossa      |
-            | jammy   | 22.04 LTS  | Jammy Jellyfish  |
-            | lunar   | 23.04      | Lunar Lobster    |
-            | mantic  | 23.10      | Mantic Minotaur  |
+            | release | machine_type  | version    | full_name        |
+            | focal   | lxd-container | 20.04 LTS  | Focal Fossa      |
+            | jammy   | lxd-container | 22.04 LTS  | Jammy Jellyfish  |
+            | lunar   | lxd-container | 23.04      | Lunar Lobster    |
+            | mantic  | lxd-container | 23.10      | Mantic Minotaur  |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Empty series affordance means no series, null means all series
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
         When I set the machine token overlay to the following yaml
         """
@@ -120,16 +107,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Ubuntu Pro: ESM Infra enabled
         """
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
+            | focal   | lxd-container |
+            | jammy   | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of different services using json format
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
@@ -190,16 +175,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                                                                             |
-           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  | valid_services                                                                                                                             |
+           | xenial  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of a service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable foobar` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -251,15 +234,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | infra-pkg | esm-infra-url                       | msg                                                                                                                   |
-           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  | infra-pkg | esm-infra-url                       | msg                                                                                                                   |
+           | xenial  | lxd-container | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | libkrad0  | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | hello     | https://esm.ubuntu.com/infra/ubuntu | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable livepatch` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -274,18 +255,16 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: Un-supported services in containers
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -309,17 +288,14 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: not entitled services
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I verify that running `pro enable cis --access-only` `with sudo` exits `0`
         Then I will see the following on stdout:
@@ -397,14 +373,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: cis script
-           | release | cis_script                                  |
-           | bionic  | Canonical_Ubuntu_18.04_CIS-harden.sh        |
-           | xenial  | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
+           | release | machine_type  | cis_script                                  |
+           | bionic  | lxd-container | Canonical_Ubuntu_18.04_CIS-harden.sh        |
+           | xenial  | lxd-container | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I verify that running `pro enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
@@ -478,14 +452,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: cis script
-           | release | cis_script                                  |
-           | focal   | Canonical_Ubuntu_20.04_CIS-harden.sh        |
+           | release | machine_type  | cis_script                                  |
+           | focal   | lxd-container | Canonical_Ubuntu_20.04_CIS-harden.sh        |
 
-    @series.bionic
-    @series.xenial
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of usg service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I verify that running `pro enable usg` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -499,14 +470,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: cis service
-           | release |
-           | bionic  |
-           | xenial  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | xenial  | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable of usg service in a focal machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable usg` with sudo
         Then I will see the following on stdout:
@@ -561,14 +530,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: cis service
-           | release |
-           | focal  |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.bionic
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached disable of livepatch in a lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro status` with sudo
         Then stdout matches regexp:
@@ -603,15 +569,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | livepatch_status |
-           | xenial  | warning          |
-           | bionic  | enabled          |
+           | release | machine_type | livepatch_status |
+           | xenial  | lxd-vm       | warning          |
+           | bionic  | lxd-vm       | enabled          |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attach works when snapd cannot be installed
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get remove -y snapd` with sudo
         And I create the file `/etc/apt/preferences.d/no-snapd` with the following
         """
@@ -642,15 +605,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Failed to install snapd on the system
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
 
-    @series.bionic
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable livepatch
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `canonical-livepatch status` `with sudo` exits `1`
         Then I will see the following on stderr:
             """
@@ -674,14 +634,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release | livepatch_status |
-           | xenial  | warning          |
-           | bionic  | enabled          |
+           | release | machine_type | livepatch_status |
+           | xenial  | lxd-vm       | warning          |
+           | bionic  | lxd-vm       | enabled          |
 
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable livepatch
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
@@ -744,14 +702,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
+           | release | machine_type  |
+           | xenial  | lxd-vm        |
 
     @slow
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario: Attached enable livepatch on a machine with fips active
-        Given a `bionic` machine with ubuntu-advantage-tools installed
+        Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
@@ -789,10 +745,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             {"_schema_version": "0.1", "errors": [{"message": "Cannot enable Livepatch when FIPS is enabled.", "message_code": "livepatch-error-when-fips-enabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
 
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario: Attached enable fips on a machine with livepatch active
-        Given a `bionic` machine with ubuntu-advantage-tools installed
+        Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
@@ -821,11 +775,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips on a machine with livepatch active
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
@@ -859,16 +810,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | xenial  |
+           | release | machine_type |
+           | bionic  | lxd-vm       |
+           | xenial  | lxd-vm       |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Attached enable fips on a machine with fips-updates active
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
@@ -898,15 +846,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | xenial  |
+           | release | machine_type  |
+           | bionic  | lxd-vm        |
+           | xenial  | lxd-vm        |
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable ros on a machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
@@ -1058,18 +1003,16 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | ros-security-source                                    | ros-updates-source                                            |
-           | xenial  | https://esm.ubuntu.com/ros/ubuntu xenial-security/main | https://esm.ubuntu.com/ros-updates/ubuntu xenial-updates/main |
-           | bionic  | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |
+           | release | machine_type  | ros-security-source                                    | ros-updates-source                                            |
+           | xenial  | lxd-container | https://esm.ubuntu.com/ros/ubuntu xenial-security/main | https://esm.ubuntu.com/ros-updates/ubuntu xenial-updates/main |
+           | bionic  | lxd-container | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |
 
     # Overall test for overrides; in the future, when many services
     # have overrides, we can consider removing this
     # esm-infra is a good choice because it doesn't already have
     # other overrides that would interfere with the test
-    @series.focal
-    @uses.config.machine_type.aws.generic
     Scenario: Cloud overrides for a generic aws Focal instance
-       Given a `focal` machine with ubuntu-advantage-tools installed
+       Given a `focal` `aws.generic` machine with ubuntu-advantage-tools installed
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -1095,10 +1038,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         E: Unable to locate package some-package-aws
         """
 
-    @series.xenial
-    @uses.config.machine_type.lxd-container
     Scenario Outline: APT auth file is edited correctly on enable
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
         Then I will see the following on stdout:
@@ -1122,13 +1063,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         3 /etc/apt/auth.conf.d/90ubuntu-advantage
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
+           | release | machine_type  |
+           | xenial  | aws.generic   |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable esm-apps on a machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro status --all` as non-root
         Then stdout matches regexp
@@ -1163,15 +1102,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | apps-pkg |
-           | xenial  | jq       |
-           | bionic  | bundler  |
-           | focal   | ant      |
+           | release | machine_type  | apps-pkg |
+           | xenial  | lxd-container | jq       |
+           | bionic  | lxd-container | bundler  |
+           | focal   | lxd-container | ant      |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached enable with corrupt lock
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro disable esm-infra --assume-yes` with sudo
         And I create the file `/var/lib/ubuntu-advantage/lock` with the following:
@@ -1188,8 +1125,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |

@@ -66,21 +66,21 @@ jobs:
       fail-fast: false
       matrix:
         release: ['bionic', 'focal', 'jammy', 'lunar']
-        platform: ['lxd']
+        platform: ['lxd-container']
         host_os: ['ubuntu-22.04']
         include:
           # xenial lxd containers dont work on hosts >20.04
           - release: xenial
-            platform: lxd
+            platform: lxd-container
             host_os: ubuntu-20.04
           - release: bionic
-            platform: awspro
+            platform: aws.pro
             host_os: ubuntu-22.04
           - release: bionic
-            platform: gcppro
+            platform: gcp.pro
             host_os: ubuntu-22.04
           - release: bionic
-            platform: awspro-fips
+            platform: aws.pro-fips
             host_os: ubuntu-22.04
     steps:
       - name: Prepare test tools
@@ -93,14 +93,14 @@ jobs:
           # https://linuxcontainers.org/lxd/docs/master/howto/network_bridge_firewalld/#prevent-issues-with-lxd-and-docker
           sudo iptables -I DOCKER-USER -j ACCEPT
       - name: Refresh LXD
-        if: matrix.platform == 'lxd' || matrix.platform == 'vm'
+        if: matrix.platform == 'lxd-container' || matrix.platform == 'lxd-vm'
         run: sudo snap refresh --channel latest/stable lxd
       - name: Initialize LXD
-        if: matrix.platform == 'lxd' || matrix.platform == 'vm'
+        if: matrix.platform == 'lxd-container' || matrix.platform == 'lxd-vm'
         run: sudo lxd init --auto
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Retieve debs
+      - name: Retrieve debs
         uses: actions/download-artifact@v3
         with:
           name: 'ci-debs-${{ matrix.release }}'
@@ -144,8 +144,7 @@ jobs:
           sh -c 'printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
           sh -c 'printf "%s\n" "$SSH_PUBLIC_KEY" > ~/.ssh/cloudinit_id_rsa.pub'
 
-          uversion=$(ubuntu-distro-info --series='${{ matrix.release }}' --release | cut -d' ' -f1)
-          sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow"
+          sg lxd -c "tox -e behave -- -D machine_types=${{ matrix.platform }} -D releases=${{ matrix.release }} --tags=-slow --tags=-upgrade"
       - name: Archive test artifacts
         if: always()
         uses: actions/upload-artifact@v3

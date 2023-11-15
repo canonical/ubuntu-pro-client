@@ -1,9 +1,7 @@
 Feature: Fix execute API endpoints
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix execute command on invalid CVEs/USNs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-1800-123456"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -34,16 +32,14 @@ Feature: Fix execute API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix execute on a Focal machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -101,13 +97,11 @@ Feature: Fix execute API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | focal   |
+           | release | machine_type  |
+           | focal   | lxd-container |
 
-    @series.xenial
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix execute API command on a Xenial machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -204,13 +198,11 @@ Feature: Fix execute API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | xenial  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
 
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Fix execute API command on a Bionic machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-28196"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -269,5 +261,5 @@ Feature: Fix execute API endpoints
         """
 
         Examples: ubuntu release details
-           | release |
-           | bionic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
