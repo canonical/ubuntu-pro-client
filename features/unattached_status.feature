@@ -588,6 +588,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +yes       +yes       +no           +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes       +yes       +no           +.*
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         """
 

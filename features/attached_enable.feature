@@ -1033,9 +1033,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         And I attach `contract_token` with sudo and options `--no-auto-enable`
         And I verify that running `pro enable esm-infra` `with sudo` exits `1`
-        Then stderr matches regexp:
+        Then stdout matches regexp:
         """
-        Stderr: E: Unable to locate package some-package-aws
+        E: Unable to locate package some-package-aws
         """
 
     Scenario Outline: APT auth file is edited correctly on enable
