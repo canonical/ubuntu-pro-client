@@ -49,6 +49,7 @@ Feature: auto-attach retries periodically on failures
         When I set `interval_index` = `10` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I set `failure_reason` = `"an unknown error"` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart ubuntu-advantage.service` with sudo
+        And I wait `5` seconds
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
@@ -83,6 +84,7 @@ Feature: auto-attach retries periodically on failures
         # simulate all attempts failing
         When I set `interval_index` = `18` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
         When I run `systemctl restart ubuntu-advantage.service` with sudo
+        And I wait `5` seconds
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout contains substring
         """
