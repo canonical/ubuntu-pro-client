@@ -55,6 +55,7 @@ Feature: Upgrade between releases when uaclient is attached
         | focal   | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
         | jammy   | lunar        | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
         | lunar   | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | mantic  | noble        | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
     @series.xenial
