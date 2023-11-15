@@ -71,6 +71,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
         Updating <fips-name> package lists
         Installing <fips-name> packages
+        Updating standard Ubuntu package lists
         <fips-name> enabled
         A reboot is required to complete install
         """
