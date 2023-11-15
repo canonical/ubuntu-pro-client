@@ -21,13 +21,13 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating Landscape package lists
+        Updating standard Ubuntu package lists
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         """
         Then stdout contains substring
         """
-        System successfully registered.
+        Registration request sent successfully.
         """
         When I run `pro status` as non-root
         Then stdout matches regexp:
@@ -64,6 +64,7 @@ Feature: Enable landscape on Ubuntu
         Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`
         """
 
+        # TODO: Known "Uninstalling" bug: #2839
         When I run `sudo pro disable landscape` with sudo
         Then I will see the following on stdout:
         """
@@ -71,20 +72,27 @@ Feature: Enable landscape on Ubuntu
         Failed running command 'landscape-config --disable' [exit(1)]. Message: error: config file /etc/landscape/client.conf can't be read
         Backing up /etc/landscape/client.conf as /etc/landscape/client.conf.pro-disable-backup
         [Errno 2] No such file or directory: '/etc/landscape/client.conf' -> '/etc/landscape/client.conf.pro-disable-backup'
-        Uninstalling landscape-client
+        Uninstalling
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        landscape +yes +disabled
+        landscape +yes +warning
         """
+        Then stdout contains substring:
+        """
+        Landscape is installed but not configured.
+        Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`
+        """
+        # TODO: Known status bug around not uninstalling landscape: #2840
+        When I run `apt-get remove -y landscape-client` with sudo
 
         # Enable with assume-yes
         When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating Landscape package lists
+        Updating standard Ubuntu package lists
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         Landscape enabled
@@ -95,16 +103,17 @@ Feature: Enable landscape on Ubuntu
         landscape +yes +enabled
         """
         When I run `sudo pro disable landscape` with sudo
+        # TODO: Known status bug around not uninstalling landscape: #2840
+        When I run `apt-get remove -y landscape-client` with sudo
 
         # Fail to enable with assume-yes
         When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
-        Updating Landscape package lists
+        Updating standard Ubuntu package lists
         Installing landscape-client
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --silent`
-        Created symlink /etc/systemd/system/multi-user.target.wants/landscape-client.service → /lib/systemd/system/landscape-client.service.
         Invalid account name or registration key.
         Could not enable Landscape.
         """
@@ -119,6 +128,8 @@ Feature: Enable landscape on Ubuntu
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
         """
         When I run `sudo pro disable landscape` with sudo
+        # TODO: Known status bug around not uninstalling landscape: #2840
+        When I run `apt-get remove -y landscape-client` with sudo
 
         # Enable with assume-yes and format json
         When I run `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
@@ -132,12 +143,14 @@ Feature: Enable landscape on Ubuntu
         landscape +yes +enabled
         """
         When I run `sudo pro disable landscape` with sudo
+        # TODO: Known status bug around not uninstalling landscape: #2840
+        When I run `apt-get remove -y landscape-client` with sudo
 
         # Fail to enable with assume-yes and format json
         When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"additional_info": {"stderr": "Created symlink /etc/systemd/system/multi-user.target.wants/landscape-client.service \u2192 /lib/systemd/system/landscape-client.service.\nInvalid account name or registration key.", "stdout": "Please wait..."}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": ["landscape"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"additional_info": {"stderr": "Invalid account name or registration key.", "stdout": ""}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": ["landscape"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -181,14 +194,11 @@ Feature: Enable landscape on Ubuntu
         # tags
         # request registration
         """
-        y
+        n
         $behave_var{machine-name system-under-test}
         pro-client-qa
         $behave_var{config landscape_registration_key}
         $behave_var{config landscape_registration_key}
-
-
-        n
 
 
         y
@@ -196,13 +206,13 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating Landscape package lists
+        Updating standard Ubuntu package lists
         Installing landscape-client
         Executing `landscape-config`
         """
         Then stdout contains substring:
         """
-        System successfully registered.
+        Registration request sent successfully.
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
@@ -210,17 +220,16 @@ Feature: Enable landscape on Ubuntu
         landscape +yes +enabled
         """
         When I run `pro disable landscape` with sudo
+        # TODO: Known status bug around not uninstalling landscape: #2840
+        When I run `apt-get remove -y landscape-client` with sudo
 
         When I verify that running `pro enable landscape` `with sudo` and the following stdin exits `1`
         """
-        y
+        n
         $behave_var{machine-name system-under-test}
         pro-client-qa
         wrong
         wrong
-
-
-        n
 
 
         y
@@ -228,7 +237,7 @@ Feature: Enable landscape on Ubuntu
         Then stdout contains substring:
         """
         One moment, checking your subscription first
-        Updating Landscape package lists
+        Updating standard Ubuntu package lists
         Installing landscape-client
         Executing `landscape-config`
         """
