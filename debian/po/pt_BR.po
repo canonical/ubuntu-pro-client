@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 12:04+0200\n"
+"POT-Creation-Date: 2023-11-15 11:52-0500\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -1169,8 +1169,8 @@ msgid "UNKNOWN: {status}"
 msgstr "DESCONHECIDO: {status}"
 
 #: ../../uaclient/messages/__init__.py:596
-msgid "Found CVEs:"
-msgstr "CVEs encontradas:"
+msgid "Associated CVEs:"
+msgstr ""
 
 #: ../../uaclient/messages/__init__.py:597
 msgid "Found Launchpad bugs:"
@@ -3417,3 +3417,6 @@ msgid "Value provided was not found in {enum_class}'s allowed: value: {values}"
 msgstr ""
 "Valor fornecido não está presente nos valores permitidos de {enum_class}: "
 "{values}"
+
+#~ msgid "Found CVEs:"
+#~ msgstr "CVEs encontradas:"
