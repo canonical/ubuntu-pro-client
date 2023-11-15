@@ -214,7 +214,7 @@ Some particularly important attributes in the output include:
     * `n/a`: The service cannot be enabled on this machine.
     * `warning`: The service is supposed to be enabled but something is wrong. Check the `warning` field in the service item for additional information.
 
-For example, if you want to programatically find the status of esm-infra on a particular machine, you can use the following command:
+For example, if you want to programmatically find the status of esm-infra on a particular machine, you can use the following command:
 ```shell
 sudo pro status --format=json | jq '.services[] | select(.name == "esm-infra").status'
 ```

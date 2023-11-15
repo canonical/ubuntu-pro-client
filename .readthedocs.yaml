@@ -1,7 +1,9 @@
 version: 2
 
 sphinx:
-   configuration: docs/conf.py
+  builder: dirhtml
+  configuration: docs/conf.py
+  fail_on_warning: true
 
 build:
   os: ubuntu-22.04
@@ -9,5 +11,5 @@ build:
     python: "3.10"
 
 python:
-   install:
-   - requirements: docs-requirements.txt
+  install:
+  - requirements: docs-requirements.txt

@@ -8,7 +8,7 @@ on your machine.
 ## Main `pro` commands
 
 When dealing with `pro` through the command line, there are six commands that
-cover the main functionalites of the tool. They are:
+cover the main functions of the tool. They are:
 
 * `status`
 * `attach`

@@ -98,7 +98,7 @@ DOCKER_BUILDKIT=1 docker build . --secret id=pro-attach-config,src=pro-attach-co
 ```
 
 This will pass the `pro-attach-config.yaml` file we created earlier as a
-[BuildKit Secret](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)
+[BuildKit Secret](https://docs.docker.com/engine/reference/builder/#run---mounttypesecret)
 so that the finished Docker image will not contain your Ubuntu Pro token.
 
 ## Test the Docker image

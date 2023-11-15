@@ -57,7 +57,7 @@ The value of this field will only be `true` if *ALL*  of the following prerequis
   happen and unattended-upgrades might not be able to install new versions of the packages.
 * *`systemd_apt_timer_enabled` is true*: This variable is true if both `apt-daily.timer` and `apt-daily-upgrade.timer` are running
   on the machine. These timers are the ones that control when unattended-upgrades run. The first job, `apt-daily.timer` is responsible
-  for triggering the code that downloads the lastest package information on the system. The second job, `apt-daily-upgrade.timer` is
+  for triggering the code that downloads the latest package information on the system. The second job, `apt-daily-upgrade.timer` is
   responsible for running unattended-upgrades to download the latest version of the packages. If one of these jobs is disabled,
   unattended-upgrades might not work as expected.
 * *`unattended_upgrades_allowed_origins` is not empty*: This variable defines the origins that

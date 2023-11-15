@@ -113,7 +113,7 @@ RUN --mount=type=secret,id=pro-attach-config \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Now, with all of your ubuntu apt packages installed, including all those
+# Now, with all of your Ubuntu apt packages installed, including all those
 # from Ubuntu Pro services, you can continue the rest of your app-specific Dockerfile.
 ```
 

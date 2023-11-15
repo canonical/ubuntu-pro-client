@@ -42,10 +42,10 @@ If you only wish to build the docs once (e.g., to have a local copy on your
 machine) then run:
 
 ```bash
-$ make build
+$ make html
 ```
 
-The `build` command will generate the HTML pages inside `docs/build`.
+The `html` command will generate the HTML pages inside `docs/build`.
 The makefile target will build the documentation for you using Sphinx. Once
 built, the HTML files will be viewable in `docs/build/html/`. Use your web
 browser to open `index.html` to preview the site.

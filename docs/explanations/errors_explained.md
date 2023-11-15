@@ -47,7 +47,7 @@ During an `apt upgrade` or `apt install ubuntu-advantage-tools`
 
 **What does it mean:**
 
-This means that `/var/lib/ubuntu-advantage/user-config.json` was unable to be written or a json serialization error occurred.
+This means that `/var/lib/ubuntu-advantage/user-config.json` was unable to be written or a json serialisation error occurred.
 
 **What you can do about it:**
 
@@ -67,7 +67,7 @@ During an `apt upgrade` or `apt install ubuntu-advantage-tools`
 
 **What does it mean:**
 
-This means that `/etc/ubuntu-advantage/uaclient.conf` was unable to be written or a yaml serialization error occurred.
+This means that `/etc/ubuntu-advantage/uaclient.conf` was unable to be written or a yaml serialisation error occurred.
 
 **What you can do about it:**
 
