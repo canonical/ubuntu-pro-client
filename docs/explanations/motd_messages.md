@@ -104,7 +104,7 @@ on the machine is in ESM state.
 
 ## MOTD about important subscription conditions
 
-One of the [timer jobs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_the_timer_jobs.html)
+One of the [timer jobs](./what_are_the_timer_jobs.md)
 Ubuntu Pro uses can insert additional messages into MOTD.
 These messages will be always delivered next to the content created by
 `update-notifier`. These additional messages are generated when `pro`
