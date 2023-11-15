@@ -22,6 +22,7 @@ Feature: FIPS enablement in PRO cloud based machines
                 """
                 Updating <fips-name> package lists
                 Installing <fips-name> packages
+                Updating standard Ubuntu package lists
                 <fips-name> enabled
                 A reboot is required to complete install
                 """
@@ -78,6 +79,7 @@ Feature: FIPS enablement in PRO cloud based machines
                 """
                 Updating <fips-name> package lists
                 Installing <fips-name> packages
+                Updating standard Ubuntu package lists
                 <fips-name> enabled
                 A reboot is required to complete install
                 """
@@ -135,6 +137,7 @@ Feature: FIPS enablement in PRO cloud based machines
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
