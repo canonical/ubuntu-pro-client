@@ -177,10 +177,12 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
+        m_sleep,
         capsys,
         FakeConfig,
         event,
@@ -190,7 +192,7 @@ class TestActionAttach:
         cfg.write_cache("lock", "123:pro disable")
         with pytest.raises(LockHeldError) as exc_info:
             action_attach(mock.MagicMock(), cfg=cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
         assert (
             "Unable to perform: pro attach.\n"
             "Operation in progress: pro disable (pid:123)"
