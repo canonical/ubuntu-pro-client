@@ -134,6 +134,7 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -199,6 +200,7 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -278,6 +280,7 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -340,6 +343,7 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating <fips-name> package lists
             Installing <fips-name> packages
+            Updating standard Ubuntu package lists
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -407,11 +411,12 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
         """
-        Updating package lists
+        Could not determine cloud, defaulting to generic FIPS package.
+        Updating FIPS package lists
         Installing FIPS packages
         Updating standard Ubuntu package lists
         FIPS enabled
-        A reboot is required to complete install
+        A reboot is required to complete install.
         """
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout does not match regexp:
@@ -456,11 +461,12 @@ Feature: FIPS enablement in cloud based machines
         And I run `pro enable fips --assume-yes` with sudo
         Then stdout matches regexp:
         """
-        Updating package lists
+        Could not determine cloud, defaulting to generic FIPS package.
+        Updating FIPS package lists
         Installing FIPS packages
         Updating standard Ubuntu package lists
         FIPS enabled
-        A reboot is required to complete install
+        A reboot is required to complete install.
         """
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout does not match regexp:
