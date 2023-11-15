@@ -21,6 +21,7 @@ import yaml
 from uaclient.system import get_dpkg_arch
 
 SUT = "system-under-test"
+BUILDER_NAME_PREFIX = "builder-"
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
     "container": {"series": "image.release", "machine_type": "image.type"},
@@ -41,51 +42,6 @@ class InstallationSource(Enum):
     STABLE = "stable"
     PROPOSED = "proposed"
     CUSTOM = "custom"
-
-
-def lxc_get_property(name: str, property_name: str, image: bool = False):
-    """Check series name of either an image or a container.
-
-    :param name:
-        The name of the container or the image to check its series.
-    :param property_name:
-        The name of the property to return.
-    :param image:
-        If image==True will check image properties
-        If image==False it will check container configuration to get
-        properties.
-
-    :return:
-        The value of the container or image property.
-       `None` if it could not detect it (
-           some images don't have this field in properties).
-    """
-    if not image:
-        property_name = LXC_PROPERTY_MAP["container"][property_name]
-        output = subprocess.check_output(
-            ["lxc", "config", "get", name, property_name],
-            universal_newlines=True,
-        )
-        return output.rstrip()
-    else:
-        property_keys = LXC_PROPERTY_MAP["image"][property_name].split(".")
-        output = subprocess.check_output(
-            ["lxc", "image", "show", name], universal_newlines=True
-        )
-        image_config = yaml.safe_load(output)
-        logging.info("--- `lxc image show` output: ", image_config)
-        value = image_config
-        for key_name in property_keys:
-            value = image_config.get(value, {})
-        if not value:
-            logging.info(
-                "--- Could not detect image property {name}."
-                " Add it via `lxc image edit`".format(
-                    name=".".join(property_keys)
-                )
-            )
-            return None
-        return value
 
 
 def repo_state_hash(
@@ -353,12 +309,13 @@ def process_template_vars(
                     logger_fn,
                 )
         elif function_name == "cloud":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.default_cloud.name,
-                logger_fn,
-            )
+            if args[1] in context.machines:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.machines[args[1]].cloud,
+                    logger_fn,
+                )
         elif function_name == "today":
             dt = datetime.datetime.utcnow()
             if len(args) == 2:

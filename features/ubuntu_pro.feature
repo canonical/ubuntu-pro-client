@@ -1,165 +1,15 @@
 Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
-    @series.lts
-    @uses.config.machine_type.aws.pro
-    Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
-        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
-        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        # This also tests that legacy `ua_config` settings still work
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://$behave_var{machine-ip proxy}:3128
-          https_proxy: http://$behave_var{machine-ip proxy}:3128
-        """
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro auto-attach` with sudo
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED +STATUS +DESCRIPTION
-            anbox-cloud   +(yes|no)  .*
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
-        Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-            fips-preview  +yes  +n/a      +.*
-            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
-            """
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `pro enable <cis_or_usg>` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `pro disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT contracts.canonical.com.*
-        """
-        And stdout does not match regexp:
-        """
-        .*CONNECT 169.254.169.254.*
-        """
-        Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
-           | xenial  | disabled | disabled | disabled | cis        |
-           | bionic  | disabled | disabled | disabled | cis        |
-           | focal   | disabled | n/a      | disabled | usg        |
-
-    @series.lts
-    @uses.config.machine_type.azure.pro
-    Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy` with ingress ports `3128`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
-        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
-        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        ua_config:
-          http_proxy: http://$behave_var{machine-ip proxy}:3128
-          https_proxy: http://$behave_var{machine-ip proxy}:3128
-        """
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro auto-attach` with sudo
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED +STATUS +DESCRIPTION
-            anbox-cloud   +(yes|no)  .*
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
-        Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-            fips-preview  +yes  +n/a      +.*
-            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
-            """
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
-        When I run `pro enable <cis_or_usg>` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
-        When I run `pro disable <cis_or_usg>` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT contracts.canonical.com.*
-        """
-        And stdout does not match regexp:
-        """
-        .*CONNECT 169.254.169.254.*
-        """
-        Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
-           | xenial  | disabled | disabled | disabled | enabled     | cis        |
-           | bionic  | disabled | disabled | disabled | enabled     | cis        |
-           | focal   | disabled | n/a      | disabled | enabled     | usg        |
-
-    @series.lts
-    @uses.config.machine_type.gcp.pro
-    Scenario Outline: Proxy auto-attach in an Ubuntu Pro GCP machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+    Scenario Outline: Proxy auto-attach on a cloud Ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3389`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
             dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        # This also tests that legacy `ua_config` settings still work
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -186,7 +36,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
             fips-preview  +yes  +n/a      +.*
             fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +<livepatch-s> +<lp-desc>
+            livepatch     +yes +<livepatch-s>  +<lp-desc>
             """
         Then stdout matches regexp:
             """
@@ -215,18 +65,26 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout does not match regexp:
         """
+        .*CONNECT 169.254.169.254.*
+        """
+        And stdout does not match regexp:
+        """
         .*CONNECT metadata.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
-           | xenial  | n/a      | disabled | disabled | warning     | Current kernel is not supported | cis        |
-           | bionic  | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-           | focal   | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
+           | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | xenial  | gcp.pro      | n/a      | disabled | disabled | warning     | Current kernel is not supported | cis        |
+           | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
+           | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
+           | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
+           | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
 
-    @series.lts
-    @uses.config.machine_type.aws.pro
     Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -345,17 +203,15 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s | fips-p   |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     | n/a      |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     | n/a      |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     | n/a      |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | usg        | enabled     | disabled |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s | fips-p   |
+           | xenial  | aws.pro      | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     | n/a      |
+           | bionic  | aws.pro      | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     | n/a      |
+           | focal   | aws.pro      | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     | n/a      |
+           | jammy   | aws.pro      | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     | disabled |
 
 
-    @series.lts
-    @uses.config.machine_type.azure.pro
     Scenario Outline: Attached refresh in an Ubuntu pro Azure machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -474,16 +330,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg | fips-p   |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        | n/a      |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        | n/a      |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        | n/a      |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        | disabled |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg | fips-p   |
+           | xenial  | azure.pro    | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        | n/a      |
+           | bionic  | azure.pro    | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        | n/a      |
+           | focal   | azure.pro    | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        | n/a      |
+           | jammy   | azure.pro    | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        | disabled |
 
-    @series.lts
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Attached refresh in an Ubuntu pro GCP machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -602,18 +456,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg | fips-p   |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        | n/a      |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        | n/a      |
-           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        | n/a      |
-           | jammy   | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        | disabled |
+           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg | fips-p   |
+           | xenial  | gcp.pro      | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        | n/a      |
+           | bionic  | gcp.pro      | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        | n/a      |
+           | focal   | gcp.pro      | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        | n/a      |
+           | jammy   | gcp.pro      | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        | disabled |
 
-    @series.lts
-    @uses.config.machine_type.gcp.pro
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
     Scenario Outline: Auto-attach service works on Pro Machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -631,18 +481,22 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type |
+           | xenial  | aws.pro      |
+           | xenial  | azure.pro    |
+           | xenial  | gcp.pro      |
+           | bionic  | aws.pro      |
+           | bionic  | azure.pro    |
+           | bionic  | gcp.pro      |
+           | focal   | aws.pro      |
+           | focal   | azure.pro    |
+           | focal   | gcp.pro      |
+           | jammy   | aws.pro      |
+           | jammy   | azure.pro    |
+           | jammy   | gcp.pro      |
 
-    @series.lts
-    @uses.config.machine_type.gcp.pro
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
     Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
-        Given a `<release>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
         # This user_data should not do anything, just guarantee that the ua-auto-attach service
         # does nothing
         """
@@ -691,16 +545,22 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type |
+           | xenial  | aws.pro      |
+           | xenial  | azure.pro    |
+           | xenial  | gcp.pro      |
+           | bionic  | aws.pro      |
+           | bionic  | azure.pro    |
+           | bionic  | gcp.pro      |
+           | focal   | aws.pro      |
+           | focal   | azure.pro    |
+           | focal   | gcp.pro      |
+           | jammy   | aws.pro      |
+           | jammy   | azure.pro    |
+           | jammy   | gcp.pro      |
 
-    @series.lts
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Unregistered Pro machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `pro auto-attach` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -709,8 +569,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type |
+           | xenial  | aws.generic  |
+           | bionic  | aws.generic  |
+           | focal   | aws.generic  |
+           | jammy   | aws.generic  |

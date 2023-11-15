@@ -2,11 +2,9 @@
 Feature: Upgrade between releases when uaclient is attached
 
     @slow
-    @series.all
-    @uses.config.machine_type.lxd-container
     @upgrade
     Scenario Outline: Attached upgrade
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `<before_cmd>` with sudo
         # Local PPAs are prepared and served only when testing with local debs
@@ -48,21 +46,19 @@ Feature: Upgrade between releases when uaclient is attached
         """
 
         Examples: ubuntu release
-        | release | next_release | prompt | devel_release   | service1  | service1_status | service2 | service2_status | before_cmd     |
-        | xenial  | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-        | bionic  | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-        | bionic  | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
-        | focal   | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-        | jammy   | lunar        | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
-        | lunar   | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
-        | mantic  | noble        | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | release | machine_type  | next_release | prompt | devel_release   | service1  | service1_status | service2 | service2_status | before_cmd     |
+        | xenial  | lxd-container | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
+        | bionic  | lxd-container | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
+        | bionic  | lxd-container | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
+        | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
+        | jammy   | lxd-container | lunar        | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | lunar   | lxd-container | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
+        | mantic  | lxd-container | noble        | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
 
     @slow
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     @upgrade
     Scenario Outline: Attached FIPS upgrade across LTS releases
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt-get install lsof` with sudo, retrying exit [100]
         And I run `pro disable livepatch` with sudo
@@ -130,6 +126,6 @@ Feature: Upgrade between releases when uaclient is attached
         """
 
         Examples: ubuntu release
-        | release | next_release | fips-service  | fips-name    | source-file         |
-        | xenial  | bionic       | fips          | FIPS         | ubuntu-fips         |
-        | xenial  | bionic       | fips-updates  | FIPS Updates | ubuntu-fips-updates |
+        | release | machine_type | next_release | fips-service  | fips-name    | source-file         |
+        | xenial  | lxd-vm       | bionic       | fips          | FIPS         | ubuntu-fips         |
+        | xenial  | lxd-vm       | bionic       | fips-updates  | FIPS Updates | ubuntu-fips-updates |

@@ -1,10 +1,8 @@
 @uses.config.contract_token
 Feature: FIPS enablement in cloud based machines
 
-    @series.lts
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro enable <fips_service> --assume-yes` `with sudo` exits `1`
         And stdout matches regexp:
@@ -13,15 +11,12 @@ Feature: FIPS enablement in cloud based machines
         """
 
         Examples: fips
-            | release | release_title | fips_service  |
-            | xenial  | Xenial        | fips          |
-            | xenial  | Xenial        | fips-updates  |
+            | release | machine_type | release_title | fips_service  |
+            | xenial  | gcp.generic  | Xenial        | fips          |
+            | xenial  | gcp.generic  | Xenial        | fips-updates  |
 
-    @series.xenial
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
     Scenario Outline: FIPS unholds packages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
@@ -49,16 +44,13 @@ Feature: FIPS enablement in cloud based machines
         And I verify that `strongswan-hmac` installed version matches regexp `fips`
 
         Examples: ubuntu release
-           | release | fips-apt-source                                |
-           | xenial  | https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | release | machine_type  | fips-apt-source                                |
+           | xenial  | aws.generic   | https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | xenial  | azure.generic | https://esm.ubuntu.com/fips/ubuntu xenial/main |
 
 
-    @series.bionic
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: FIPS unholds packages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
@@ -86,15 +78,13 @@ Feature: FIPS enablement in cloud based machines
         And I verify that `strongswan-hmac` installed version matches regexp `fips`
 
         Examples: ubuntu release
-           | release | fips-apt-source                                |
-           | bionic  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | release | machine_type  | fips-apt-source                                |
+           | bionic  | aws.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | azure.generic | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
-    @series.focal
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: FIPS unholds packages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
@@ -118,16 +108,14 @@ Feature: FIPS enablement in cloud based machines
         And I verify that `strongswan-hmac` installed version matches regexp `fips`
 
         Examples: ubuntu release
-           | release | fips-apt-source                                |
-           | focal   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type  | fips-apt-source                                |
+           | focal   | aws.generic   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | azure.generic | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.xenial
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.azure.generic
     Scenario Outline: Enable FIPS in an ubuntu Azure vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
@@ -179,19 +167,17 @@ Feature: FIPS enablement in cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service | fips-package      | fips-kernel  | fips-apt-source                                |
-           | xenial  | FIPS         | fips         | ubuntu-fips       |  fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-           | xenial  | FIPS Updates | fips-updates | ubuntu-fips       |  fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-           | bionic  | FIPS         | fips         | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type  | fips-name    | fips-service | fips-package      | fips-kernel  | fips-apt-source                                |
+           | xenial  | azure.generic | FIPS         | fips         | ubuntu-fips       |  fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | xenial  | azure.generic | FIPS Updates | fips-updates | ubuntu-fips       |  fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | bionic  | azure.generic | FIPS         | fips         | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | azure.generic | FIPS         | fips         | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips |  azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.xenial
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached FIPS in an ubuntu Xenial AWS vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
@@ -264,15 +250,12 @@ Feature: FIPS enablement in cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | xenial  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | xenial  | aws.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu AWS vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
@@ -325,18 +308,15 @@ Feature: FIPS enablement in cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | aws.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | aws.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | aws.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | aws.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
@@ -388,18 +368,15 @@ Feature: FIPS enablement in cloud based machines
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-           | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
-           | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | release | machine_type | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | gcp.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | bionic  | gcp.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu bionic/main |
+           | focal   | gcp.generic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
+           | focal   | gcp.generic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
     @slow
-    @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `touch /etc/cloud/cloud-init.disabled` with sudo
         And I reboot the machine
         And I verify that running `cloud-id` `with sudo` exits `1`
@@ -440,8 +417,11 @@ Feature: FIPS enablement in cloud based machines
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
+           | release | machine_type |
+           | xenial  | aws.generic  |
+           | bionic  | aws.generic  |
+           | focal   | aws.generic  |
+           | jammy   | aws.generic  |
 
     @slow
     @series.bionic

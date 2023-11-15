@@ -1,8 +1,5 @@
 Feature: Pro supports multiple languages
 
-    @series.lts
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Translation works
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
@@ -38,10 +35,6 @@ Feature: Pro supports multiple languages
            | focal   | lxd-container |
            | jammy   | lxd-container |
 
-    @series.lunar
-    @series.mantic
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Translation works
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
@@ -72,9 +65,6 @@ Feature: Pro supports multiple languages
            | lunar   | lxd-container |
            | mantic  | lxd-container |
 
-    @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     # Note: Translations do work on xenial, but our test environment triggers a bug in python that
     #       causes it to think we're in an ascii-only environment
     Scenario Outline: Translation doesn't error when python thinks it's ascii only
@@ -93,9 +83,6 @@ Feature: Pro supports multiple languages
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    @series.focal
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd-container
     Scenario Outline: apt-hook translations work
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -114,11 +101,9 @@ Feature: Pro supports multiple languages
            | release | machine_type  |
            | focal   | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Pro client's commands run successfully in a different locale
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         ## Change the locale
         When I run `apt install language-pack-fr -y` with sudo
         And I run `update-locale LANG=fr_FR.UTF-8` with sudo
@@ -233,10 +218,10 @@ Feature: Pro supports multiple languages
         When I run `pro --version` with sudo
         Then I will see the uaclient version on stdout
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |

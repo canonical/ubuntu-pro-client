@@ -1,9 +1,7 @@
 Feature: api.u.unattended_upgrades.status.v1
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: v1 unattended upgrades status
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.unattended_upgrades.status.v1` as non-root
         Then stdout matches regexp:
         """
@@ -204,10 +202,10 @@ Feature: api.u.unattended_upgrades.status.v1
         """
 
         Examples: ubuntu release
-           | release | extra_field                               |
-           | xenial  |                                           |
-           | bionic  | "Unattended-Upgrade::DevRelease": "false" |
-           | focal   | "Unattended-Upgrade::DevRelease": "auto"  |
-           | jammy   | "Unattended-Upgrade::DevRelease": "auto"  |
-           | lunar   | "Unattended-Upgrade::DevRelease": "auto"  |
-           | mantic  | "Unattended-Upgrade::DevRelease": "auto"  |
+           | release | machine_type  | extra_field                               |
+           | xenial  | lxd-container |                                           |
+           | bionic  | lxd-container | "Unattended-Upgrade::DevRelease": "false" |
+           | focal   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
+           | jammy   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
+           | lunar   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
+           | mantic  | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |

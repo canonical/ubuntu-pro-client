@@ -1,10 +1,8 @@
 Feature: API security/security status tests
 
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     @uses.config.contract_token
     Scenario: Call Livepatched CVEs endpoint
-        Given a `xenial` machine with ubuntu-advantage-tools installed
+        Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro api u.pro.security.status.livepatch_cves.v1` as non-root
         Then stdout matches regexp:
@@ -16,11 +14,9 @@ Feature: API security/security status tests
          "type": "LivepatchCVEs"
          """
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Call package manifest endpoint for machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro status` as non-root
         Then stdout matches regexp:
@@ -71,11 +67,9 @@ Feature: API security/security status tests
         """
         oval:com.ubuntu.<release>:def:<CVE_ID>:\s+true
         """
-        
-
         Examples: ubuntu release
-            | release | base_version    | CVE_ID      |
-            | xenial  | 3.4.10-4ubuntu1 | 39991000000 |
-            | bionic  | 3.5.18-1ubuntu1 | 55501000000 |
-            | focal   | 3.6.13-2ubuntu1 | 55501000000 |
-            | jammy   | 3.7.3-4ubuntu1  | 55501000000 |
+            | release | machine_type  | base_version    | CVE_ID      |
+            | xenial  | lxd-container | 3.4.10-4ubuntu1 | 39991000000 |
+            | bionic  | lxd-container | 3.5.18-1ubuntu1 | 55501000000 |
+            | focal   | lxd-container | 3.6.13-2ubuntu1 | 55501000000 |
+            | jammy   | lxd-container | 3.7.3-4ubuntu1  | 55501000000 |

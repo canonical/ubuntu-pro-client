@@ -1,10 +1,8 @@
 Feature: Logs in Json Array Formatter
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: The log file can be successfully parsed as json array
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo
         And I run `apt install jq -y` with sudo
         And I verify that running `pro status` `with sudo` exits `0`
@@ -22,18 +20,16 @@ Feature: Logs in Json Array Formatter
         """
         """
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd.container
     Scenario Outline: Non-root user and root user log files are different
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Confirm user log file does not exist 
         When I verify `/var/log/ubuntu-advantage.log` is empty
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log`
@@ -54,18 +50,16 @@ Feature: Logs in Json Array Formatter
         Executed with sys.argv: ['/usr/bin/pro', 'attach'
         """
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd.container
     Scenario Outline: Non-root user log files included in collect logs
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When i verify that running `pro status` `with sudo` exits `0`
         And I verify that running `pro collect-logs` `with sudo` exits `0`
         And I run `tar -tf ua_logs.tar.gz` as non-root
@@ -81,10 +75,10 @@ Feature: Logs in Json Array Formatter
         user0.log
         """
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | jammy   |
-          | lunar   |
-          | mantic  |
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | lunar   | lxd-container |
+          | mantic  | lxd-container |

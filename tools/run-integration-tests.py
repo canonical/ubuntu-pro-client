@@ -24,19 +24,35 @@ TOKEN_TO_ENVVAR = {
 }
 
 PLATFORM_SERIES_TESTS = {
-    "azuregeneric": ["xenial", "bionic", "focal", "jammy", "lunar"],
-    "azurepro": ["xenial", "bionic", "focal", "jammy"],
-    "azurepro-fips": ["xenial", "bionic", "focal"],
-    "awsgeneric": ["xenial", "bionic", "focal", "jammy"],
-    "awspro": ["xenial", "bionic", "focal", "jammy"],
-    "awspro-fips": ["xenial", "bionic", "focal"],
+    "aws.generic": ["xenial", "bionic", "focal", "jammy"],
+    "aws.pro": ["xenial", "bionic", "focal", "jammy"],
+    "aws.pro-fips": ["xenial", "bionic", "focal"],
+    "azure.generic": ["xenial", "bionic", "focal", "jammy", "lunar"],
+    "azure.pro": ["xenial", "bionic", "focal", "jammy"],
+    "azure.pro-fips": ["xenial", "bionic", "focal"],
+    "gcp.generic": ["xenial", "bionic", "focal", "jammy", "lunar"],
+    "gcp.pro": ["xenial", "bionic", "focal", "jammy"],
+    "gcp.pro-fips": ["bionic", "focal"],
+    "lxd-container": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
+    "lxd-vm": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
     "docker": ["focal"],
-    "gcpgeneric": ["xenial", "bionic", "focal", "jammy", "lunar"],
-    "gcppro": ["xenial", "bionic", "focal", "jammy"],
-    "gcppro-fips": ["bionic", "focal"],
-    "lxd": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
-    "vm": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
     "upgrade": ["xenial", "bionic", "focal", "jammy", "lunar"],
+}
+
+PLATFORM_ARGS = {
+    "aws.generic": ["-D", "machine_types=aws.generic"],
+    "aws.pro": ["-D", "machine_types=aws.pro"],
+    "aws.pro-fips": ["-D", "machine_types=aws.pro-fips"],
+    "azure.generic": ["-D", "machine_types=azure.generic"],
+    "azure.pro": ["-D", "machine_types=azure.pro"],
+    "azure.pro-fips": ["-D", "machine_types=azure.pro-fips"],
+    "gcp.generic": ["-D", "machine_types=gcp.generic"],
+    "gcp.pro": ["-D", "machine_types=gcp.pro"],
+    "gcp.pro-fips": ["-D", "machine_types=gcp.pro-fips"],
+    "lxd-container": ["-D", "machine_types=lxd-container", "--tags=-upgrade"],
+    "lxd-vm": ["-D", "machine_types=lxd-vm", "--tags=-docker"],
+    "docker": ["--tags=docker", "features/docker.feature"],
+    "upgrade": ["--tags=upgrade"],
 }
 
 
@@ -66,10 +82,13 @@ def build_commands(
                 command = [
                     "tox",
                     "-e",
-                    "behave-{}-{}".format(p, series_version),
+                    "behave",
                     "--",
                     "-D",
                     "install_from={}".format(install_from),
+                    "-D",
+                    "releases={}".format(s),
+                    *PLATFORM_ARGS[p],
                 ]
 
                 if check_version:
@@ -87,7 +106,13 @@ def build_commands(
                 if wip:
                     command.extend(["--tags=wip", "--stop"])
 
-                commands.append((command, env))
+                commands.append(
+                    (
+                        "behave-{}-{}".format(p.replace(".", "-"), s),
+                        command,
+                        env,
+                    )
+                )
 
     return commands
 
@@ -170,31 +195,29 @@ def run_tests(
     os.makedirs(output_dir, exist_ok=True)
     error = False
     processes = []
-    for command, env in commands:
+    for name, command, env in commands:
         print("Running {}".format(command))
-        with open(
-            "{}/{}.txt".format(output_dir, command[2]), "wb"
-        ) as result_file:
+        with open("{}/{}.txt".format(output_dir, name), "wb") as result_file:
             process = subprocess.Popen(
                 command, env=env, stdout=result_file, stderr=stdout
             )
-            processes.append(process)
+            processes.append((name, process))
 
     while processes:
-        for process in processes:
+        for name, process in processes:
             result = process.poll()
             if result is not None:
                 if result == 0:
                     print("{} finished sucessfully".format(process.args))
                 else:
                     print("Failing tests for {}".format(process.args))
-                    result_filename = "{}.txt".format(process.args[2])
+                    result_filename = "{}.txt".format(name)
                     os.rename(
                         "{}/{}".format(output_dir, result_filename),
                         "{}/failed-{}".format(output_dir, result_filename),
                     )
                     error = True
-                processes.remove(process)
+                processes.remove((name, process))
         time.sleep(5)
 
     if install_from == "proposed" and not error:

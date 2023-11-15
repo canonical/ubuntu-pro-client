@@ -1,11 +1,7 @@
 Feature: Full Auto-Attach Endpoint
 
-    @series.lts
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.azure.pro
-    @uses.config.machine_type.gcp.pro
     Scenario Outline: Run auto-attach on cloud instance.
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
@@ -30,9 +26,17 @@ Feature: Full Auto-Attach Endpoint
         livepatch     +yes +(disabled|n/a)  +(Canonical Livepatch service|Current kernel is not supported)
         """
         Examples:
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type |
+           | xenial  | aws.pro      |
+           | xenial  | azure.pro    |
+           | xenial  | gcp.pro      |
+           | bionic  | aws.pro      |
+           | bionic  | azure.pro    |
+           | bionic  | gcp.pro      |
+           | focal   | aws.pro      |
+           | focal   | azure.pro    |
+           | focal   | gcp.pro      |
+           | jammy   | aws.pro      |
+           | jammy   | azure.pro    |
+           | jammy   | gcp.pro      |
            

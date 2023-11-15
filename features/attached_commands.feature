@@ -1,10 +1,8 @@
 @uses.config.contract_token
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached refresh in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro refresh` `as non-root` exits `1`
         And stderr matches regexp:
@@ -48,18 +46,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable livepatch` `as non-root` exits `1`
         And stderr matches regexp:
@@ -74,18 +70,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable with json format
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable foobar --format json` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
@@ -132,16 +126,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | valid_services                                                                                                                             |
-           | xenial  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  | valid_services                                                                                                                             |
+           | xenial  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of a service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable foobar` `as non-root` exits `1`
         And stderr matches regexp:
@@ -172,16 +164,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release | msg                                                                                                                                            |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  | msg                                                                                                                                            |
+           | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached detach in an ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro api u.pro.status.enabled_services.v1` as non-root
         Then stdout matches regexp:
@@ -259,16 +249,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        """
 
        Examples: ubuntu release
-           | release | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | ros-updates | cis_or_usg | realtime-kernel |
-           | xenial  | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
-           | bionic  | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
-           | focal   | yes   | yes      | no     | yes | yes  | yes         | yes | no          | usg        | no              |
-           | jammy   | yes   | yes      | no     | yes | no   | no          | no  | no          | usg        | yes             |
+           | release | machine_type  | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | ros-updates | cis_or_usg | realtime-kernel |
+           | xenial  | lxd-container | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
+           | bionic  | lxd-container | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
+           | focal   | lxd-container | yes   | yes      | no     | yes | yes  | yes         | yes | no          | usg        | no              |
+           | jammy   | lxd-container | yes   | yes      | no     | yes | no   | no          | no  | no          | usg        | yes             |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached auto-attach in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro auto-attach` `as non-root` exits `1`
         And stderr matches regexp:
@@ -283,18 +271,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached show version in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro version` as non-root
         Then I will see the uaclient version on stdout
@@ -306,18 +292,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then I will see the uaclient version on stdout
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached status in a ubuntu machine with feature overrides
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
         {
@@ -377,18 +361,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | xenial  | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Attached disable of different services in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
         And stderr matches regexp:
@@ -426,19 +408,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | msg                                                                                                                                            |
-           | xenial  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  | msg                                                                                                                                            |
+           | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    @series.xenial
-    @series.bionic
-    @series.lunar
-    @series.mantic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an attached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro help esm-infra` with sudo
         Then I will see the following on stdout:
@@ -547,17 +524,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | infra-status |
-           | bionic  | enabled      |
-           | xenial  | enabled      |
-           | lunar   | n/a          |
-           | mantic  | n/a          |
+           | release | machine_type  | infra-status |
+           | bionic  | lxd-container | enabled      |
+           | xenial  | lxd-container | enabled      |
+           | lunar   | lxd-container | n/a          |
+           | mantic  | lxd-container | n/a          |
 
-    @series.jammy
-    @series.focal
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Help command on an attached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro help esm-infra` with sudo
         Then I will see the following on stdout:
@@ -678,14 +652,12 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.all
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script on an attached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `systemctl stop ua-timer.timer` with sudo
         And I attach `contract_token` with sudo
         Then I verify that running `pro config set update_messaging_timer=-2` `with sudo` exits `1`
@@ -752,18 +724,16 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
-           | lunar   |
-           | mantic  |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script to valid machine activity endpoint
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt update` with sudo
         And I run `apt install jq -y` with sudo
@@ -826,16 +796,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Run timer script to valid machine activity endpoint
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `rm /var/lib/ubuntu-advantage/machine-token.json` with sudo
         And I run `ua status` as non-root
@@ -852,11 +820,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     @series.lts
     @uses.config.machine_type.lxd-container

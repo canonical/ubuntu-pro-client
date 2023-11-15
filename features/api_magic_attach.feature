@@ -1,9 +1,7 @@
 Feature: Magic Attach endpoints
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Call magic attach endpoints
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I change contract to staging with sudo
         And I verify that running `pro api u.pro.attach.magic.revoke.v1` `as non-root` exits `1`
         Then stdout is a json matching the `api_response` schema
@@ -67,8 +65,8 @@ Feature: Magic Attach endpoints
         """
 
         Examples: ubuntu release
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
+            | focal   | lxd-container |
+            | jammy   | lxd-container |

@@ -1,12 +1,10 @@
 Feature: Upgrade between releases when uaclient is unattached
 
     @slow
-    @series.all
-    @uses.config.machine_type.lxd-container
     @upgrade
     @uses.config.contract_token
     Scenario Outline: Unattached upgrade
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Local PPAs are prepared and served only when testing with local debs
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
         And I run `apt update` with sudo
@@ -59,10 +57,10 @@ Feature: Upgrade between releases when uaclient is unattached
         """
 
         Examples: ubuntu release
-        | release | next_release | prompt | devel_release   | service_status |
-        | xenial  | bionic       | lts    |                 | enabled        |
-        | bionic  | focal        | lts    |                 | enabled        |
-        | focal   | jammy        | lts    |                 | enabled        |
-        | jammy   | lunar        | normal |                 | n/a            |
-        | lunar   | mantic       | normal |                 | n/a            |
-        | mantic  | noble        | normal | --devel-release | n/a            |
+        | release | machine_type  | next_release | prompt | devel_release   | service_status |
+        | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
+        | bionic  | lxd-container | focal        | lts    |                 | enabled        |
+        | focal   | lxd-container | jammy        | lts    |                 | enabled        |
+        | jammy   | lxd-container | lunar        | normal |                 | n/a            |
+        | lunar   | lxd-container | mantic       | normal |                 | n/a            |
+        | mantic  | lxd-container | noble        | normal | --devel-release | n/a            |

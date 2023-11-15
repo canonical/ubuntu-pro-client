@@ -1,11 +1,8 @@
 Feature: Security status command behavior
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Run security status with JSON/YAML format
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         And I run `apt-get install ansible -y` with sudo
         And I run `pro security-status --format json` as non-root
@@ -87,15 +84,13 @@ Feature: Security status command behavior
         argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml', 'text')
         """
         Examples: ubuntu release
-           | release | package   | service   |
-           | xenial  | apport    | esm-infra |
-           | bionic  | ansible   | esm-apps  |
+           | release | machine_type  | package   | service   |
+           | xenial  | lxd-container | apport    | esm-infra |
+           | bionic  | lxd-container | ansible   | esm-apps  |
 
-    @series.xenial
-    @uses.config.machine_type.lxd-vm
     @uses.config.contract_token
     Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
-        Given a `xenial` machine with ubuntu-advantage-tools installed
+        Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
@@ -111,11 +106,9 @@ Feature: Security status command behavior
             patched: true
         """
 
-    @series.xenial
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
-        Given a `xenial` machine with ubuntu-advantage-tools installed
+        Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I run `apt-get install -y ansible` with sudo
@@ -454,11 +447,9 @@ Feature: Security status command behavior
         Enable esm-apps with: pro enable esm-apps
         """
 
-    @series.focal
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario: Run security status in an Ubuntu machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
+        Given a `focal` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I run `apt-get install -y ansible` with sudo
@@ -774,10 +765,8 @@ Feature: Security status command behavior
         """
 
     # Latest released non-LTS
-    @series.lunar
-    @uses.config.machine_type.lxd-container
     Scenario: Run security status in an Ubuntu machine
-        Given a `lunar` machine with ubuntu-advantage-tools installed
+        Given a `lunar` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I run `apt-get install -y ansible` with sudo

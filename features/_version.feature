@@ -1,20 +1,8 @@
 Feature: Pro is expected version
 
-    @series.all
     @uses.config.check_version
-    @uses.config.machine_type.lxd-container
-    @uses.config.machine_type.lxd-vm
-    @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.aws.pro
-    @uses.config.machine_type.aws.pro-fips
-    @uses.config.machine_type.azure.generic
-    @uses.config.machine_type.azure.pro
-    @uses.config.machine_type.azure.pro-fips
-    @uses.config.machine_type.gcp.generic
-    @uses.config.machine_type.gcp.pro
-    @uses.config.machine_type.gcp.pro-fips
     Scenario Outline: Check pro version
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
@@ -34,20 +22,78 @@ Feature: Pro is expected version
         THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
-            | lunar   |
-            | mantic  |
+            | release | machine_type   |
+            | xenial  | lxd-container  |
+            | xenial  | lxd-vm         |
+            | xenial  | aws.generic    |
+            | xenial  | aws.pro        |
+            | xenial  | aws.pro-fips   |
+            | xenial  | azure.generic  |
+            | xenial  | azure.pro      |
+            | xenial  | azure.pro-fips |
+            | xenial  | gcp.generic    |
+            | xenial  | gcp.pro        |
+            | xenial  | gcp.pro-fips   |
+            | bionic  | lxd-container  |
+            | bionic  | lxd-vm         |
+            | bionic  | aws.generic    |
+            | bionic  | aws.pro        |
+            | bionic  | aws.pro-fips   |
+            | bionic  | azure.generic  |
+            | bionic  | azure.pro      |
+            | bionic  | azure.pro-fips |
+            | bionic  | gcp.generic    |
+            | bionic  | gcp.pro        |
+            | bionic  | gcp.pro-fips   |
+            | focal   | lxd-container  |
+            | focal   | lxd-vm         |
+            | focal   | aws.generic    |
+            | focal   | aws.pro        |
+            | focal   | aws.pro-fips   |
+            | focal   | azure.generic  |
+            | focal   | azure.pro      |
+            | focal   | azure.pro-fips |
+            | focal   | gcp.generic    |
+            | focal   | gcp.pro        |
+            | focal   | gcp.pro-fips   |
+            | jammy   | lxd-container  |
+            | jammy   | lxd-vm         |
+            | jammy   | aws.generic    |
+            | jammy   | aws.pro        |
+            | jammy   | aws.pro-fips   |
+            | jammy   | azure.generic  |
+            | jammy   | azure.pro      |
+            | jammy   | azure.pro-fips |
+            | jammy   | gcp.generic    |
+            | jammy   | gcp.pro        |
+            | jammy   | gcp.pro-fips   |
+            | lunar   | lxd-container  |
+            | lunar   | lxd-vm         |
+            | lunar   | aws.generic    |
+            | lunar   | aws.pro        |
+            | lunar   | aws.pro-fips   |
+            | lunar   | azure.generic  |
+            | lunar   | azure.pro      |
+            | lunar   | azure.pro-fips |
+            | lunar   | gcp.generic    |
+            | lunar   | gcp.pro        |
+            | lunar   | gcp.pro-fips   |
+            | mantic  | lxd-container  |
+            | mantic  | lxd-vm         |
+            | mantic  | aws.generic    |
+            | mantic  | aws.pro        |
+            | mantic  | aws.pro-fips   |
+            | mantic  | azure.generic  |
+            | mantic  | azure.pro      |
+            | mantic  | azure.pro-fips |
+            | mantic  | gcp.generic    |
+            | mantic  | gcp.pro        |
+            | mantic  | gcp.pro-fips   |
 
-    @series.all
     @uses.config.check_version
-    @uses.config.machine_type.lxd-container
     @upgrade
     Scenario Outline: Check pro version
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
@@ -67,10 +113,10 @@ Feature: Pro is expected version
         THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
         """
         Examples: version
-            | release |
-            | xenial  |
-            | bionic  |
-            | focal   |
-            | jammy   |
-            | lunar   |
-            | mantic  |
+            | release | machine_type  |
+            | xenial  | lxd-container |
+            | bionic  | lxd-container |
+            | focal   | lxd-container |
+            | jammy   | lxd-container |
+            | lunar   | lxd-container |
+            | mantic  | lxd-container |

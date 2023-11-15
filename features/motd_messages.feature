@@ -1,11 +1,8 @@
 Feature: MOTD Messages
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     @uses.config.contract_token
     Scenario Outline: Contract update prevents contract expiration messages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         When I attach `contract_token` with sudo
         When I update contract to use `effectiveTo` as `$behave_var{today +2}`
@@ -49,16 +46,13 @@ Feature: MOTD Messages
         [\w\d.]+
         """
         Examples: ubuntu release
-           | release | service   |
-           | xenial  | esm-infra |
-           | bionic  | esm-apps  |
+           | release | machine_type  | service   |
+           | xenial  | lxd-container | esm-infra |
+           | bionic  | lxd-container | esm-apps  |
 
 
-    @series.xenial
-    @series.bionic
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Contract Expiration Messages
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
         And I run `apt-get install ansible -y` with sudo
         And I attach `contract_token` with sudo
@@ -147,6 +141,6 @@ Feature: MOTD Messages
 
         """
         Examples: ubuntu release
-           | release | service   |
-           | xenial  | esm-infra |
-           | bionic  | esm-infra |
+           | release | machine_type  | service   |
+           | xenial  | lxd-container | esm-infra |
+           | bionic  | lxd-container | esm-infra |
