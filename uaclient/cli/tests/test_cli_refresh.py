@@ -75,14 +75,15 @@ class TestActionRefresh:
         else:
             action_refresh(mock.MagicMock(target=target), cfg=cfg)
 
+    @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
-    def test_lock_file_exists(self, m_subp, FakeConfig):
+    def test_lock_file_exists(self, m_subp, m_sleep, FakeConfig):
         """Check inability to refresh if operation holds lock file."""
         cfg = FakeConfig().for_attached_machine()
         cfg.write_cache("lock", "123:pro disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_refresh(mock.MagicMock(), cfg=cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
         assert (
             "Unable to perform: pro refresh.\n"
             "Operation in progress: pro disable (pid:123)"

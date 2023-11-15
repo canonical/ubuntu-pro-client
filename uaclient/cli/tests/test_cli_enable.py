@@ -131,10 +131,12 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
+        m_sleep,
         _refresh,
         capsys,
         event,
@@ -147,7 +149,7 @@ class TestActionEnable:
 
         with pytest.raises(exceptions.LockHeldError) as err:
             action_enable(args, cfg=cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
 
         expected_message = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro enable", lock_holder="pro disable", pid="123"

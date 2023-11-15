@@ -532,10 +532,12 @@ class TestDisable:
             expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
+        m_sleep,
         FakeConfig,
         event,
     ):
@@ -549,7 +551,7 @@ class TestDisable:
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
-        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
         assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
