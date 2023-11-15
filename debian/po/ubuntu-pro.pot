@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 12:04+0200\n"
+"POT-Creation-Date: 2023-11-15 11:52-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -988,7 +988,7 @@ msgid "UNKNOWN: {status}"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:596
-msgid "Found CVEs:"
+msgid "Associated CVEs:"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:597
