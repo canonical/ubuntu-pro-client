@@ -35,6 +35,36 @@ Feature: Pro supports multiple languages
            | focal   | lxd-container |
            | jammy   | lxd-container |
 
+    Scenario Outline: Translation works
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
+        Then stdout contains substring:
+        """
+        Ubuntu Pro não está disponível para versões do Ubuntu não LTS.
+        """
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --all` as non-root
+        Then stdout contains substring:
+        """
+        não
+        """
+        When I run `apt update` with sudo
+        And I apt install `jq`
+        And I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --format json | jq .result` as non-root
+        Then I will see the following on stdout:
+        """
+        "success"
+        """
+        When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
+        When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
+        Then stdout contains substring:
+        """
+        Ubuntu Pro is not available for non-LTS releases.
+        """
+        Examples: ubuntu release
+           | release | machine_type  |
+           | lunar   | lxd-container |
+           | mantic  | lxd-container |
+
     # Note: Translations do work on xenial, but our test environment triggers a bug in python that
     #       causes it to think we're in an ascii-only environment
     Scenario Outline: Translation doesn't error when python thinks it's ascii only
