@@ -172,6 +172,7 @@ Feature: Fix plan API endpoints
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

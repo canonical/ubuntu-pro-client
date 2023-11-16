@@ -16,3 +16,4 @@ Feature: Timer for regular background jobs while attached
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |

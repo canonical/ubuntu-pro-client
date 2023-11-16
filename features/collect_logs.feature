@@ -45,6 +45,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Run collect-logs on an attached machine
@@ -94,3 +95,4 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

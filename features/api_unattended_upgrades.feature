@@ -253,3 +253,4 @@ Feature: api.u.unattended_upgrades.status.v1
       | focal   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | jammy   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | mantic  | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | noble   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |

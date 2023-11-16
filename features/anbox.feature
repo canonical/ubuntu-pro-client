@@ -36,6 +36,7 @@ Feature: Enable anbox on Ubuntu
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Enable Anbox cloud service in an unsupported release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -114,3 +115,4 @@ Feature: Enable anbox on Ubuntu
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+      | noble   | lxd-vm       |

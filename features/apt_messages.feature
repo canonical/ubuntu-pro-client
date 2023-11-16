@@ -192,6 +192,7 @@ Feature: APT Messages
       | focal   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
+      | noble   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
 
   @uses.config.contract_token
   Scenario Outline: APT News
@@ -650,6 +651,8 @@ Feature: APT Messages
       | jammy   | lxd-vm        |
       | mantic  | lxd-container |
       | mantic  | lxd-vm        |
+      | noble   | lxd-container |
+      | noble   | lxd-vm |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

@@ -79,6 +79,17 @@ Feature: Pro is expected version
       | mantic  | gcp.generic    |
       | mantic  | gcp.pro        |
       | mantic  | gcp.pro-fips   |
+      | noble   | lxd-container  |
+      | noble   | lxd-vm         |
+      | noble   | aws.generic    |
+      | noble   | aws.pro        |
+      | noble   | aws.pro-fips   |
+      | noble   | azure.generic  |
+      | noble   | azure.pro      |
+      | noble   | azure.pro-fips |
+      | noble   | gcp.generic    |
+      | noble   | gcp.pro        |
+      | noble   | gcp.pro-fips   |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
@@ -109,3 +120,4 @@ Feature: Pro is expected version
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
