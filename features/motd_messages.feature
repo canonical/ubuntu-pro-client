@@ -50,10 +50,11 @@ Feature: MOTD Messages
       | xenial  | lxd-container | esm-infra |
       | bionic  | lxd-container | esm-apps  |
       | bionic  | wsl           | esm-apps  |
+      | noble   | lxd-container | esm-apps  |
 
   Scenario Outline: Contract Expiration Messages
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I apt install `ansible`
+    When I apt install `ansible hello`
     And I attach `contract_token` with sudo
     And I set the machine token overlay to the following yaml
       """
@@ -101,7 +102,7 @@ Feature: MOTD Messages
       [\w\d.]+
 
       \*Your Ubuntu Pro subscription has EXPIRED\*
-      \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
+      \d+ additional security update(s)? require(s)? Ubuntu Pro with '<service>' enabled.
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
       """
     When I apt upgrade

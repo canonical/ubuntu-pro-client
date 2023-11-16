@@ -57,3 +57,4 @@ Feature: api.u.pro.attach.auto.configure_retry_service
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

@@ -151,6 +151,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | jammy   | aws.pro      | hello     | hello    |
       | jammy   | azure.pro    | hello     | hello    |
       | jammy   | gcp.pro      | hello     | hello    |
+      | noble   | aws.pro      | hello     | hello    |
+      | noble   | azure.pro    | hello     | hello    |
+      | noble   | gcp.pro      | hello     | hello    |
 
   Scenario Outline: Auto-attach service works on Pro Machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -184,6 +187,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | jammy   | aws.pro      |
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
+      | noble   | aws.pro      |
+      | noble   | azure.pro    |
+      | noble   | gcp.pro      |
 
   Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
@@ -248,6 +254,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | jammy   | aws.pro      |
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
+      | noble   | aws.pro      |
+      | noble   | azure.pro    |
+      | noble   | gcp.pro      |
 
   Scenario Outline: Unregistered Pro machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -265,3 +274,4 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | bionic  | aws.generic  |
       | focal   | aws.generic  |
       | jammy   | aws.generic  |
+      | noble   | aws.generic  |

@@ -127,3 +127,4 @@ Feature: Magic Attach endpoints
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

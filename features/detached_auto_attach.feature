@@ -30,3 +30,6 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
       | focal   | aws.generic   |
       | focal   | azure.generic |
       | focal   | gcp.generic   |
+      | noble   | aws.generic   |
+      | noble   | azure.generic |
+      | noble   | gcp.generic   |

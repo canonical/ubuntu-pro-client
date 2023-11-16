@@ -36,6 +36,7 @@ Feature: Attached status
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Non-root status can see in-progress operations
@@ -434,3 +435,46 @@ Feature: Attached status
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in the latest LTS ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      landscape       +yes      +disabled +Management and administration tool for Ubuntu
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +disabled +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+      usg             +yes      +n/a      +Security compliance and audit tools
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | noble   | lxd-container |
