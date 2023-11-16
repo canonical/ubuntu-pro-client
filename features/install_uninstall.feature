@@ -12,6 +12,7 @@ Feature: Pro Install and Uninstall related tests
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -80,6 +81,7 @@ Feature: Pro Install and Uninstall related tests
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Package ubuntu-advantage-tools now install
@@ -126,3 +128,4 @@ Feature: Pro Install and Uninstall related tests
       | focal   | lxd-container | ubuntu_advantage |
       | jammy   | lxd-container | ubuntu_advantage |
       | mantic  | lxd-container | ubuntu_advantage |
+      | noble   | lxd-container | ubuntu_advantage |

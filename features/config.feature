@@ -51,3 +51,4 @@ Feature: pro config sub-command
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |

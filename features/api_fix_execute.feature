@@ -186,6 +186,7 @@ Feature: Fix execute API endpoints
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Fix execute on a Focal machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

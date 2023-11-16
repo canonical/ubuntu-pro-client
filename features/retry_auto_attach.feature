@@ -129,6 +129,9 @@ Feature: auto-attach retries periodically on failures
       | jammy   | aws.generic   |
       | jammy   | azure.generic |
       | jammy   | gcp.generic   |
+      | noble   | aws.generic   |
+      | noble   | azure.generic |
+      | noble   | gcp.generic   |
 
   Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -218,6 +221,9 @@ Feature: auto-attach retries periodically on failures
       | jammy   | aws.pro      |
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
+      | noble   | aws.pro      |
+      | noble   | azure.pro    |
+      | noble   | gcp.pro      |
 
   Scenario Outline: gcp auto-detect triggers retries on fail
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -282,6 +288,7 @@ Feature: auto-attach retries periodically on failures
       | bionic  | gcp.pro      |
       | focal   | gcp.pro      |
       | jammy   | gcp.pro      |
+      | noble   | gcp.pro      |
 
   Scenario Outline: auto-attach retries eventually succeed and clean up
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -373,3 +380,6 @@ Feature: auto-attach retries periodically on failures
       | jammy   | aws.pro      |
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
+      | noble   | aws.pro      |
+      | noble   | azure.pro    |
+      | noble   | gcp.pro      |

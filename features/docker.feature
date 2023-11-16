@@ -69,6 +69,9 @@ Feature: Build docker images with pro services
       | mantic  | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
       | mantic  | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
       | mantic  | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
+      | noble   | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
+      | noble   | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
+      | noble   | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
 
   Scenario Outline: Build pro docker images auto-attached instances - settings_overrides method
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

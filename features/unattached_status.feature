@@ -39,6 +39,7 @@ Feature: Unattached status
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Unattached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -270,6 +271,75 @@ Feature: Unattached status
       | release | machine_type  |
       | jammy   | lxd-container |
 
+  Scenario Outline: Unattached status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      landscape       +yes       +Management and administration tool for Ubuntu
+      livepatch       +yes       +Canonical Livepatch service
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      fips            +no        +NIST-certified FIPS crypto packages
+      fips-preview    +no        +.*
+      fips-updates    +no        +FIPS compliant crypto packages with stable security updates
+      landscape       +yes       +Management and administration tool for Ubuntu
+      livepatch       +yes       +Canonical Livepatch service
+      realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +no        +Security Updates for the Robot Operating System
+      ros-updates     +no        +All Updates for the Robot Operating System
+      usg             +no        +Security compliance and audit tools
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I append the following on uaclient config:
+      """
+      features:
+          allow_beta: true
+      """
+    When I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      landscape       +yes       +Management and administration tool for Ubuntu
+      livepatch       +yes       +Canonical Livepatch service
+
+      FEATURES
+      allow_beta: True
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | noble   | lxd-container |
+
   @uses.config.contract_token
   Scenario Outline: Simulate status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -285,6 +355,8 @@ Feature: Unattached status
       fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+      ros             +yes       +no        +no           +Security Updates for the Robot Operating System
+      ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
       """
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
@@ -459,6 +531,66 @@ Feature: Unattached status
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Simulate status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I do a preflight check for `contract_token` without the all flag
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
+      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+      """
+    When I do a preflight check for `contract_token` with the all flag
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      fips            +no        +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview    +no        +yes       +no           +.*
+      fips-updates    +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
+      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +no        +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
+      usg             +no        +yes       +no           +Security compliance and audit tools
+      """
+    When I do a preflight check for `contract_token` formatted as json
+    Then stdout is a json matching the `ua_status` schema
+    When I do a preflight check for `contract_token` formatted as yaml
+    Then stdout is a yaml matching the `ua_status` schema
+    When I verify that a preflight check for `invalid_token` formatted as json exits 1
+    Then stdout is a json matching the `ua_status` schema
+    And I will see the following on stdout:
+      """
+      {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+      """
+    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
+    Then stdout is a yaml matching the `ua_status` schema
+    And I will see the following on stdout:
+      """
+      environment_vars: []
+      errors:
+      - message: Invalid token. See https://ubuntu.com/pro/dashboard
+        message_code: attach-invalid-token
+        service: null
+        type: system
+      result: failure
+      services: []
+      warnings: []
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | noble   | lxd-container |
 
   @uses.config.contract_token_staging_expired
   Scenario Outline: Simulate status with expired token in a ubuntu machine

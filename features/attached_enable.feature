@@ -119,6 +119,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Attached enable of different services using json format
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -187,6 +188,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
       | focal   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
       | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+      | noble   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
   Scenario Outline: Attached enable of a service in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -264,6 +266,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Attached enable not entitled service in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -296,6 +299,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Attached enable of cis service in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1041,3 +1045,4 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

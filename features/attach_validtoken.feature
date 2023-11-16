@@ -79,6 +79,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container | libkrad0=1.16-2build1  | disabled  | cis        | disabled | disabled | Canonical Livepatch service |
       | focal   | lxd-container | hello=2.10-2ubuntu2    | n/a       | usg        | disabled | disabled | Canonical Livepatch service |
       | jammy   | lxd-container | hello=2.10-2ubuntu4    | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
+      | noble   | lxd-container | hello=2.10-3build1     | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -226,6 +227,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | jammy   | aws.generic   |
       | jammy   | azure.generic |
       | jammy   | gcp.generic   |
+      | noble   | aws.generic   |
+      | noble   | azure.generic |
+      | noble   | gcp.generic   |
 
   Scenario Outline: Attach command with json output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -248,6 +252,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container | disabled |
       | focal   | lxd-container | n/a      |
       | jammy   | lxd-container | n/a      |
+      | noble   | lxd-container | n/a      |
 
   Scenario Outline: Attach and Check for contract change in status checking
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

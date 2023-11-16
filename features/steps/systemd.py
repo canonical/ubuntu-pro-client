@@ -63,7 +63,7 @@ def verify_systemd_timer_scheduled(context, timer_name, minutes):
         raise AssertionError(
             "timer {} is not enabled or does not exist".format(timer_name)
         )
-    match = re.match(r"^(.+) UTC\s+(.+) left", timer_info_str)
+    match = re.match(r"^(.+) UTC +\d+", timer_info_str)
     if match is None:
         raise AssertionError(
             "timer {} is not scheduled to run:\n{}".format(

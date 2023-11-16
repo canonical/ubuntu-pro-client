@@ -15,6 +15,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: cloud-id-shim should run in postinst and on boot
@@ -104,6 +105,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then on `bionic`, systemd status output says memory usage is less than `15` MB
     Then on `focal`, systemd status output says memory usage is less than `14` MB
     Then on `jammy`, systemd status output says memory usage is less than `14` MB
+    Then on `noble`, systemd status output says memory usage is less than `14` MB
     When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
     Then stdout contains substring:
       """
@@ -199,6 +201,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | bionic  | gcp.generic  |
       | focal   | gcp.generic  |
       | jammy   | gcp.generic  |
+      | noble   | gcp.generic  |
 
   @uses.config.contract_token
   Scenario Outline: daemon should run when appropriate on azure generic lts
@@ -265,6 +268,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | bionic  | azure.generic |
       | focal   | azure.generic |
       | jammy   | azure.generic |
+      | noble   | azure.generic |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start on gcp,azure generic non lts
@@ -296,7 +300,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then stdout matches regexp:
       """
       Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
+      \s*Condition: start condition (failed|unmet).*
       """
     When I attach `contract_token` with sudo
     When I run `pro detach --assume-yes` with sudo
@@ -305,7 +309,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then stdout matches regexp:
       """
       Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
+      \s*Condition: start condition (failed|unmet).*
       """
 
     Examples: version
@@ -325,6 +329,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | mantic  | lxd-container |
       | mantic  | lxd-vm        |
       | mantic  | aws.generic   |
+      | noble   | lxd-container |
+      | noble   | lxd-vm        |
+      | noble   | aws.generic   |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

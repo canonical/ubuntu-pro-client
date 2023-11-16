@@ -34,6 +34,7 @@ Feature: Pro supports multiple languages
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Translation works
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
