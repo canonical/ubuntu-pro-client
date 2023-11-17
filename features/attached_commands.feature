@@ -826,10 +826,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | jammy   | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Disable with purge does not work with assume-yes
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I verify that running `pro disable esm-apps --assume-yes --purge` `with sudo` exits `1`
         Then stderr contains substring:
@@ -837,16 +835,14 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Error: Cannot use --purge together with --assume-yes.
         """
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
-    @series.lts
-    @uses.config.machine_type.lxd-container
     Scenario Outline: Disable with purge works and purges repo services not involving a kernel
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt update` with sudo
         And I apt install `ansible`
@@ -868,17 +864,15 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I verify that `ansible` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/universe`
 
         Examples: ubuntu release
-           | release | pocket           |
+           | release | machine_type  | pocket           |
            # This ends up in GH #943 but maybe can be improved?
-           | xenial  | xenial-backports |
-           | bionic  | bionic-updates   |
-           | focal   | focal            |
-           | jammy   | jammy            |
+           | xenial  | lxd-container | xenial-backports |
+           | bionic  | lxd-container | bionic-updates   |
+           | focal   | lxd-container | focal            |
+           | jammy   | lxd-container | jammy            |
 
-    @series.lts
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Disable with purge unsupported services
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I verify that running `pro disable livepatch --purge` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -887,17 +881,15 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
-           | jammy   |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
+           | focal   | lxd-vm       |
+           | jammy   | lxd-vm       |
 
     @slow
-    @series.lts
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Disable and purge fips
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt update` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
@@ -913,7 +905,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         fips
         """
         And I verify that `openssh-server` is installed from apt source `<fips-source>`
-        And I verify that `linux-fips` is installed from apt source `<fips-source>`
+        And I verify that `<kernel-package>` is installed from apt source `<fips-source>`
         When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
         Then stdout matches regexp:
         """
@@ -948,213 +940,31 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         fips
         """
         And I verify that `openssh-server` is installed from apt source `<archive-source>`
-        And I verify that `linux-fips` is not installed
+        And I verify that `<kernel-package>` is not installed
         Examples: ubuntu release
-           | release | fips-service | fips-name    | fips-source                                                    | archive-source                                                 |
-           | xenial  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu xenial/main                 | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main |
-           | xenial  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main |
-           | bionic  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
-           | bionic  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
-           | focal   | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://archive.ubuntu.com/ubuntu focal-updates/main            |
-           | focal   | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://archive.ubuntu.com/ubuntu focal-updates/main            |
+           | release | machine_type  | fips-service | fips-name    | kernel-package   | fips-source                                                    | archive-source                                                    |
+           | xenial  | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu xenial/main                 | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main    |
+           | xenial  | lxd-vm        | fips-updates | FIPS Updates | linux-fips       | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main    |
+           | bionic  | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | lxd-vm        | fips-updates | FIPS Updates | linux-fips       | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | aws.generic   | fips         | FIPS         | linux-aws-fips   | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | aws.generic   | fips-updates | FIPS Updates | linux-aws-fips   | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | azure.generic | fips         | FIPS         | linux-azure-fips | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | azure.generic | fips-updates | FIPS Updates | linux-azure-fips | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | gcp.generic   | fips         | FIPS         | linux-gcp-fips   | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | bionic  | gcp.generic   | fips-updates | FIPS Updates | linux-gcp-fips   | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
+           | focal   | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://archive.ubuntu.com/ubuntu focal-updates/main               |
+           | focal   | lxd-vm        | fips-updates | FIPS Updates | linux-fips       | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://archive.ubuntu.com/ubuntu focal-updates/main               |
+           | focal   | aws.generic   | fips         | FIPS         | linux-aws-fips   | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-east-2.ec2.archive.ubuntu.com/ubuntu focal-updates/main |
+           | focal   | aws.generic   | fips-updates | FIPS Updates | linux-aws-fips   | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-east-2.ec2.archive.ubuntu.com/ubuntu focal-updates/main |
+           | focal   | azure.generic | fips         | FIPS         | linux-azure-fips | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://azure.archive.ubuntu.com/ubuntu focal-updates/main         |
+           | focal   | azure.generic | fips-updates | FIPS Updates | linux-azure-fips | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://azure.archive.ubuntu.com/ubuntu focal-updates/main         |
+           | focal   | gcp.generic   | fips         | FIPS         | linux-gcp-fips   | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
+           | focal   | gcp.generic   | fips-updates | FIPS Updates | linux-gcp-fips   | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
 
     @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.gcp.generic
-    Scenario Outline: Disable and purge fips
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
-        And I run `pro enable <fips-service> --assume-yes` with sudo
-        And I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +enabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout matches regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<fips-source>`
-        And I verify that `linux-gcp-fips` is installed from apt source `<fips-source>`
-        When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
-        Then stdout matches regexp:
-        """
-        \(The --purge flag is still experimental - use with caution\)
-
-        Purging the <fips-name> packages would uninstall the following kernel\(s\):
-        .*
-        .* is the current running kernel\.
-        If you cannot guarantee that other kernels in this system are bootable and
-        working properly, \*do not proceed\*\. You may end up with an unbootable system\.
-        Do you want to proceed\? \(y/N\)
-        """
-        And stdout matches regexp:
-        """
-        The following package\(s\) will be REMOVED:
-        (.|\n)+
-
-        The following package\(s\) will be reinstalled from the archive:
-        (.|\n)+
-
-        Do you want to proceed\? \(y/N\)
-        """
-        When I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +disabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout does not match regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<archive-source>`
-        And I verify that `linux-gcp-fips` is not installed
-        Examples: ubuntu release
-           | release | fips-service | fips-name    | fips-source                                                    | archive-source                                                   |
-           | bionic  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main   |
-           | bionic  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main   |
-           | focal   | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main |
-           | focal   | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main |
-
-    @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.aws.generic
-    Scenario Outline: Disable and purge fips
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
-        And I run `pro enable <fips-service> --assume-yes` with sudo
-        And I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +enabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout matches regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<fips-source>`
-        And I verify that `linux-aws-fips` is installed from apt source `<fips-source>`
-        When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
-        Then stdout matches regexp:
-        """
-        \(The --purge flag is still experimental - use with caution\)
-
-        Purging the <fips-name> packages would uninstall the following kernel\(s\):
-        .*
-        .* is the current running kernel\.
-        If you cannot guarantee that other kernels in this system are bootable and
-        working properly, \*do not proceed\*\. You may end up with an unbootable system\.
-        Do you want to proceed\? \(y/N\)
-        """
-        And stdout matches regexp:
-        """
-        The following package\(s\) will be REMOVED:
-        (.|\n)+
-
-        The following package\(s\) will be reinstalled from the archive:
-        (.|\n)+
-
-        Do you want to proceed\? \(y/N\)
-        """
-        When I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +disabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout does not match regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<archive-source>`
-        And I verify that `linux-aws-fips` is not installed
-        Examples: ubuntu release
-           | release | fips-service | fips-name    | fips-source                                                    | archive-source                                                    |
-           | bionic  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
-           | bionic  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
-           | focal   | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-east-2.ec2.archive.ubuntu.com/ubuntu focal-updates/main |
-           | focal   | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-east-2.ec2.archive.ubuntu.com/ubuntu focal-updates/main |
-
-    @slow
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.azure.generic
-    Scenario Outline: Disable and purge fips
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
-        And I run `pro enable <fips-service> --assume-yes` with sudo
-        And I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +enabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout matches regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<fips-source>`
-        And I verify that `linux-azure-fips` is installed from apt source `<fips-source>`
-        When I run `pro disable <fips-service> --purge` `with sudo` and stdin `y\ny`
-        Then stdout matches regexp:
-        """
-        \(The --purge flag is still experimental - use with caution\)
-
-        Purging the <fips-name> packages would uninstall the following kernel\(s\):
-        .*
-        .* is the current running kernel\.
-        If you cannot guarantee that other kernels in this system are bootable and
-        working properly, \*do not proceed\*\. You may end up with an unbootable system\.
-        Do you want to proceed\? \(y/N\)
-        """
-        And stdout matches regexp:
-        """
-        The following package\(s\) will be REMOVED:
-        (.|\n)+
-
-        The following package\(s\) will be reinstalled from the archive:
-        (.|\n)+
-
-        Do you want to proceed\? \(y/N\)
-        """
-        When I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +disabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout does not match regexp:
-        """
-        fips
-        """
-        And I verify that `openssh-server` is installed from apt source `<archive-source>`
-        And I verify that `linux-azure-fips` is not installed
-        Examples: ubuntu release
-           | release | fips-service | fips-name    | fips-source                                                    | archive-source                                                 |
-           | bionic  | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
-           | bionic  | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main |
-           | focal   | fips         | FIPS         | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://azure.archive.ubuntu.com/ubuntu focal-updates/main      |
-           | focal   | fips-updates | FIPS Updates | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://azure.archive.ubuntu.com/ubuntu focal-updates/main      |
-
-    @slow
-    @series.lts
-    @uses.config.machine_type.lxd-vm
     Scenario Outline: Disable does not purge if no other kernel found
-        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt update` with sudo
         And I run `pro enable fips --assume-yes` with sudo
@@ -1174,7 +984,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-           | focal   |
+           | release | machine_type |
+           | xenial  | lxd-vm       |
+           | bionic  | lxd-vm       |
+           | focal   | lxd-vm       |

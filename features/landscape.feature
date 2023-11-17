@@ -176,16 +176,13 @@ Feature: Enable landscape on Ubuntu
 
         When I run `pro enable landscape` `with sudo` and the following stdin
         # This will change in the future, but right now the lines are:
-        # allow starting on boot
+        # use self-hosted?
         # computer title
         # account name
         # registration key
         # confirm registration key
         # http proxy
         # https proxy
-        # enable script execution
-        # access group
-        # tags
         # request registration
         """
         n
