@@ -182,9 +182,6 @@ Feature: Livepatch
             | release | machine_type | release_num |
             | jammy   | lxd-vm       | 22.04       |
 
-    @series.xenial
-    @uses.config.machine_type.any
-    @uses.config.machine_type.lxd.vm
     Scenario Outline: snapd installed as a snap if necessary
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `snap list` with sudo

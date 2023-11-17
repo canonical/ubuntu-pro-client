@@ -1,4 +1,3 @@
-
 @uses.config.contract_token
 Feature: FIPS enablement in lxd containers
 
