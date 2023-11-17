@@ -14,7 +14,7 @@ from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.system import subp
 
-__VERSION__ = "30"
+__VERSION__ = "30.1"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 
@@ -51,6 +51,7 @@ def get_last_known_candidate() -> Optional[str]:
         not os.path.exists(CANDIDATE_CACHE_PATH)
         or os.stat(CANDIDATE_CACHE_PATH).st_mtime < last_apt_cache_update
     ):
+        candidate_version = None
         try:
             candidate_version = get_pkg_candidate_version(
                 "ubuntu-advantage-tools"

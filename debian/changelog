@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (30.1) noble; urgency=medium
+
+  * fix UnboundLocalError in update-check error handling (LP: #2043836)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 17 Nov 2023 14:25:22 -0500
+
 ubuntu-advantage-tools (30) noble; urgency=medium
 
   * d/control:
