@@ -205,6 +205,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips-preview    +yes       +.*
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +Security compliance and audit tools
@@ -225,7 +226,7 @@ Feature: Unattached status
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips            +no        +NIST-certified FIPS crypto packages
         fips-preview    +yes       +.*
-        fips-updates    +no        +FIPS compliant crypto packages with stable security updates
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         landscape       +no        +Management and administration tool for Ubuntu
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -250,6 +251,7 @@ Feature: Unattached status
         esm-apps        +yes       +Expanded Security Maintenance for Applications
         esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
         fips-preview    +yes       +.*
+        fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +Canonical Livepatch service
         realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +Security compliance and audit tools
@@ -404,6 +406,7 @@ Feature: Unattached status
         esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips-preview    +yes       +yes       +no           +.*
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
         usg             +yes       +yes       +no           +Security compliance and audit tools
@@ -418,7 +421,7 @@ Feature: Unattached status
         esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
         fips            +no        +yes       +no           +NIST-certified FIPS crypto packages
         fips-preview    +yes       +yes       +no           +.*
-        fips-updates    +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
+        fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
         landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
         livepatch       +yes       +yes       +yes          +Canonical Livepatch service
         realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -550,7 +553,7 @@ Feature: Unattached status
         Examples: ubuntu release
            | release | machine_type  |
            | focal   | lxd-container |
-
+ 
     @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status with expired token in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
