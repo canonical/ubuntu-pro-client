@@ -182,6 +182,7 @@ Feature: Attached status
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         usg             +yes      +disabled +Security compliance and audit tools
 
         For a list of all Ubuntu Pro services, run 'pro status --all'
@@ -198,7 +199,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +n/a      +NIST-certified FIPS crypto packages
         fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
-        fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         landscape       +yes      +n/a      +Management and administration tool for Ubuntu
         livepatch       +yes      +n/a      +Canonical Livepatch service
         realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated

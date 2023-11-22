@@ -206,7 +206,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
        fips          +<fips>     +NIST-certified FIPS crypto packages
        fips-preview  +.* +.*
-       fips-updates  +<fips>     +FIPS compliant crypto packages with stable security updates
+       fips-updates  +<fips-u>   +FIPS compliant crypto packages with stable security updates
        landscape     +(yes|no)   +Management and administration tool for Ubuntu
        livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
        realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -249,11 +249,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
        """
 
        Examples: ubuntu release
-           | release | machine_type  | anbox | esm-apps | cc-eal | cis | fips | fips-update | ros | ros-updates | cis_or_usg | realtime-kernel |
-           | xenial  | lxd-container | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
-           | bionic  | lxd-container | no    | yes      | yes    | yes | yes  | yes         | yes | yes         | cis        | no              |
-           | focal   | lxd-container | yes   | yes      | no     | yes | yes  | yes         | yes | no          | usg        | no              |
-           | jammy   | lxd-container | yes   | yes      | no     | yes | no   | no          | no  | no          | usg        | yes             |
+           | release | machine_type  | anbox | esm-apps | cc-eal | cis | fips | fips-u | ros | ros-updates | cis_or_usg | realtime-kernel |
+           | xenial  | lxd-container | no    | yes      | yes    | yes | yes  | yes    | yes | yes         | cis        | no              |
+           | bionic  | lxd-container | no    | yes      | yes    | yes | yes  | yes    | yes | yes         | cis        | no              |
+           | focal   | lxd-container | yes   | yes      | no     | yes | yes  | yes    | yes | no          | usg        | no              |
+           | jammy   | lxd-container | yes   | yes      | no     | yes | no   | yes    | no  | no          | usg        | yes             |
 
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
