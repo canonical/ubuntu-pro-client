@@ -1,4 +1,4 @@
-# compatibility matrix for Ubuntu Pro services
+# Compatibility matrix for Ubuntu Pro services
 
 Some Ubuntu Pro services are compatible with each other. The following
 matrix display the services that are compatible:

@@ -1,3 +1,5 @@
+.. _tutorial:
+
 Ubuntu Pro Client tutorial
 **************************
 
@@ -22,7 +24,7 @@ works.
 ..  toctree::
     :maxdepth: 1
 
-    tutorials/basic_commands.md
+    tutorials/basic_commands.rst
 
 Further tutorials
 =================
@@ -35,6 +37,5 @@ start. They are not sequential, so you can approach them in any order you like!
 ..  toctree::
     :maxdepth: 1
 
-    tutorials/fix_scenarios.md
-    tutorials/create_a_fips_docker_image.md
-    tutorials/create_a_fips_updates_pro_cloud_image.md
+    tutorials/fix_scenarios.rst
+    tutorials/create_a_fips_docker_image.rst
