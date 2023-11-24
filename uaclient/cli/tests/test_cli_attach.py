@@ -9,6 +9,7 @@ import pytest
 
 from uaclient import event_logger, http, messages, util
 from uaclient.cli import (
+    _post_cli_attach,
     action_attach,
     attach_parser,
     get_parser,
@@ -230,6 +231,25 @@ class TestActionAttach:
             "warnings": [],
         }
         assert expected == json.loads(capsys.readouterr()[0])
+
+    @mock.patch(
+        "uaclient.status.format_tabular", return_value="mock_tabular_status"
+    )
+    @mock.patch("uaclient.actions.status", return_value=("", 0))
+    @mock.patch(M_PATH + "daemon")
+    def test_post_cli_attach(
+        self, m_daemon, m_status, m_format_tabular, capsys, FakeConfig
+    ):
+        cfg = FakeConfig.for_attached_machine()
+        _post_cli_attach(cfg)
+
+        assert [mock.call()] == m_daemon.stop.call_args_list
+        assert [mock.call(cfg)] == m_daemon.cleanup.call_args_list
+        assert [mock.call(cfg)] == m_status.call_args_list
+        assert [mock.call("")] == m_format_tabular.call_args_list
+        out, _ = capsys.readouterr()
+        assert "This machine is now attached to 'test_contract'" in out
+        assert "mock_tabular_status" in out
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
