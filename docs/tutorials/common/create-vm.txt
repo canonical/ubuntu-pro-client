@@ -28,7 +28,7 @@ are operating on the correct version of Xenial:
 
 .. code-block:: bash
 
-    $ sudo apt update && sudo apt upgrade -y
+    $ sudo apt update && sudo apt install ubuntu-advantage-tools
     
 From now on, every time we say: "run the command" our intention is for you to
 run that command inside your VM.    
