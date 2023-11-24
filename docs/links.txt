@@ -46,6 +46,7 @@
 
 .. _fips_AWS: https://ubuntu.com/aws/fips
 .. _fips_Azure: https://ubuntu.com/azure/fips
+.. _fips_GCP: https://ubuntu.com/gcp/fips
 
 
 
