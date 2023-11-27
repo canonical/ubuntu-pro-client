@@ -335,6 +335,8 @@ Feature: APT Messages
         When I run `rm -rf /var/lib/ubuntu-advantage/messages` with sudo
         When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
         When I run `apt-get update` with sudo
+        # the apt-news.service unit runs in the background, give it some time to fetch the json file
+        When I wait `5` seconds
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -567,6 +569,8 @@ Feature: APT Messages
         # test that apt update will trigger hook to update apt_news for local override
         When I run `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
         When I run `apt-get update` with sudo
+        # the apt-news.service unit runs in the background, give it some time to fetch the json file
+        When I wait `5` seconds
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
