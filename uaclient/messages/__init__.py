@@ -1534,13 +1534,14 @@ It is only possible to enable Anbox Cloud on a container using
 the --access-only flag.""",
 )
 
-UNEXPECTED_ERROR = NamedMessage(
+UNEXPECTED_ERROR = FormattedNamedMessage(
     "unexpected-error",
     t.gettext(
         """\
-Unexpected error(s) occurred.
-For more details, see the log: /var/log/ubuntu-advantage.log
-To file a bug run: ubuntu-bug ubuntu-advantage-tools"""
+Unexpected error(s) occurred: {error_msg}
+For more details, see the log: ~/.cache/ubuntu-pro/ubuntu-pro.log
+First, try searching online for solutions to this error.
+Otherwise, file a bug using the command: ubuntu-bug ubuntu-advantage-tools"""
     ),
 )
 

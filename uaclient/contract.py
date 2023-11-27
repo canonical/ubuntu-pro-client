@@ -551,7 +551,7 @@ def process_entitlements_delta(
     if unexpected_error:
         raise exceptions.AttachFailureUnknownError(
             failed_services=[
-                (name, messages.UNEXPECTED_ERROR) for name in failed_services
+                (name, messages.UNEXPECTED_ERROR.format(error_msg=str(e))) for name in failed_services
             ]
         )
     elif delta_error:
