@@ -491,7 +491,9 @@ class TestMain:
         (
             (
                 TypeError("'NoneType' object is not subscriptable"),
-                messages.UNEXPECTED_ERROR.msg,
+                messages.UNEXPECTED_ERROR.format(
+                    error_msg="'NoneType' object is not subscriptable"
+                ),
                 "Unhandled exception, please file a bug",
             ),
         ),
