@@ -61,7 +61,6 @@ Feature: Enable landscape on Ubuntu
         Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`
         """
 
-        # TODO: Known "Uninstalling" bug: #2839
         When I run `sudo pro disable landscape` with sudo
         Then I will see the following on stdout:
         """
@@ -69,7 +68,6 @@ Feature: Enable landscape on Ubuntu
         Failed running command 'landscape-config --disable' [exit(1)]. Message: error: config file /etc/landscape/client.conf can't be read
         Backing up /etc/landscape/client.conf as /etc/landscape/client.conf.pro-disable-backup
         [Errno 2] No such file or directory: '/etc/landscape/client.conf' -> '/etc/landscape/client.conf.pro-disable-backup'
-        Uninstalling
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
