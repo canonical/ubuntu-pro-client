@@ -594,6 +594,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             for package in required_packages
             if package.get("removeOnDisable", False)
         ]
+        # If none of the packages have removeOnDisable, then there is nothing
+        # to process here
+        if len(package_names) == 0:
+            return True
+
         LOG.debug("Uninstalling packages %r", package_names)
         package_names_str = " ".join(package_names)
         event.info(

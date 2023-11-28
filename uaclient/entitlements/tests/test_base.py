@@ -1418,12 +1418,12 @@ class TestHandleRequiredPackages:
             ),
             (
                 [{"name": "package"}],
-                [mock.call([], mock.ANY)],
+                [],
                 True,
             ),
             (
                 [{"name": "package"}, {"name": "package2"}],
-                [mock.call([], mock.ANY)],
+                [],
                 True,
             ),
             (
