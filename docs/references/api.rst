@@ -699,13 +699,13 @@ This endpoint fixes the specified CVEs on the machine.
                - *str*
                - The status of fixing the CVE
              * - ``upgraded_packages``
-               - *List[UpgradedPackages]*
-               - A list of UpgradedPackages objects
+               - *List[UpgradedPackage]*
+               - A list of UpgradedPackage objects
              * - ``error``
                - *Optional[FixExecuteError]*
                - A FixExecuteError object
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackages``
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackage``
 
           .. list-table::
              :header-rows: 1
@@ -850,7 +850,7 @@ This endpoint fixes the specified CVEs on the machine.
         prevents any required packages from being upgraded. The system
         is considered **not-affected** if the CVE doesn't affect the system at all.
       * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
-        that was upgraded during the fix operation. The UpgradePackage object always contain
+        that was upgraded during the fix operation. The UpgradedPackage object always contain
         the **name** of the package, the **version** it was upgraded to and the **pocket** where
         the package upgrade came from.
 
@@ -965,13 +965,13 @@ This endpoint fixes the specified USNs on the machine.
                - *str*
                - The status of fixing the USN
              * - ``upgraded_packages``
-               - *List[UpgradedPackages]*
-               - A list of UpgradedPackages objects
+               - *List[UpgradedPackage]*
+               - A list of UpgradedPackage objects
              * - ``error``
                - *Optional[FixExecuteError]*
                - A FixExecuteError object
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackages``
+        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackage``
 
           .. list-table::
              :header-rows: 1
@@ -1094,7 +1094,7 @@ This endpoint fixes the specified USNs on the machine.
       * **status**: The status of the fix operation considering **all** USNs.
                     This means that if one USN cannot be fixed, this field will reflect that.
                     Note that related USNs don't interfere with this attribute, meaning
-                    that a related USN can fail to be fixed without modyfing the **status**
+                    that a related USN can fail to be fixed without modifying the **status**
                     value.
 
       Each **usn** object contains a reference for both **target_usn** and **related_usns**.
@@ -1116,7 +1116,7 @@ This endpoint fixes the specified USNs on the machine.
         prevents any required packages from being upgraded. The system
         is considered **not-affected** if the USN doesn't affect the system at all.
       * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
-        that was upgraded during the fix operation. The UpgradePackage object always contain
+        that was upgraded during the fix operation. The UpgradedPackage object always contain
         the **name** of the package, the **version** it was upgraded to and the **pocket** where
         the package upgrade came from.
 
