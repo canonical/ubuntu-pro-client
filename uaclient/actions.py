@@ -32,6 +32,8 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 UA_SERVICES = (
+    "apt-news.service",
+    "esm-cache.service",
     "ua-timer.service",
     "ua-timer.timer",
     "ua-auto-attach.path",
