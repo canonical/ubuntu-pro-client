@@ -528,7 +528,7 @@ class TestActionAttach:
             ),
             (
                 Exception("error"),
-                messages.UNEXPECTED_ERROR,
+                messages.UNEXPECTED_ERROR.format(error_msg="error"),
                 messages.E_ATTACH_FAILURE_UNEXPECTED,
             ),
         ),

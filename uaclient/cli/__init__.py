@@ -1764,7 +1764,8 @@ def main_error_handler(func):
             LOG.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
-                info_msg=messages.UNEXPECTED_ERROR.format(error_msg=str(e)), file_type=sys.stderr
+                info_msg=messages.UNEXPECTED_ERROR.format(error_msg=str(e)),
+                file_type=sys.stderr,
             )
             event.error(
                 error_msg=getattr(e, "msg", str(e)), error_type="exception"

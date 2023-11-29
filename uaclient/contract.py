@@ -504,7 +504,7 @@ def process_entitlements_delta(
     from uaclient.entitlements import entitlements_enable_order
 
     delta_error = False
-    unexpected_error = False
+    unexpected_errors = []
 
     # We need to sort our entitlements because some of them
     # depend on other service to be enable first.
@@ -535,7 +535,7 @@ def process_entitlements_delta(
             )
         except Exception as e:
             LOG.exception(e)
-            unexpected_error = True
+            unexpected_errors.append(e)
             failed_services.append(name)
             LOG.exception(
                 "Unexpected error processing contract delta for %s: %r",
@@ -548,10 +548,14 @@ def process_entitlements_delta(
             if service_enabled and deltas:
                 event.service_processed(name)
     event.services_failed(failed_services)
-    if unexpected_error:
+    if len(unexpected_errors) > 0:
         raise exceptions.AttachFailureUnknownError(
             failed_services=[
-                (name, messages.UNEXPECTED_ERROR.format(error_msg=str(e))) for name in failed_services
+                (
+                    name,
+                    messages.UNEXPECTED_ERROR.format(error_msg=str(exception)),
+                )
+                for name, exception in zip(failed_services, unexpected_errors)
             ]
         )
     elif delta_error:
