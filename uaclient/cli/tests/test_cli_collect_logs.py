@@ -129,6 +129,10 @@ class TestActionCollectLogs:
                     "-o",
                     "short-precise",
                     "-u",
+                    "apt-news.service",
+                    "-u",
+                    "esm-cache.service",
+                    "-u",
                     "ua-timer.service",
                     "-u",
                     "ua-auto-attach.service",
@@ -138,6 +142,10 @@ class TestActionCollectLogs:
                     "ubuntu-advantage.service",
                 ],
                 rcs=None,
+            ),
+            mock.call(["systemctl", "status", "apt-news.service"], rcs=[0, 3]),
+            mock.call(
+                ["systemctl", "status", "esm-cache.service"], rcs=[0, 3]
             ),
             mock.call(["systemctl", "status", "ua-timer.service"], rcs=[0, 3]),
             mock.call(["systemctl", "status", "ua-timer.timer"], rcs=[0, 3]),

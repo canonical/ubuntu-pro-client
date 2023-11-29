@@ -15,9 +15,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # So the -error suffix does not appear there.
         Then stdout matches regexp:
         """
+        apt-news.service.txt
         build.info
         cloud-id.txt
         cloud-init-journal.txt
+        esm-cache.service.txt
         jobs-status.json
         livepatch-status.txt-error
         pro-journal.txt
@@ -60,9 +62,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         # So the -error suffix does not appear there.
         Then stdout matches regexp:
         """
+        apt-news.service.txt
         build.info
         cloud-id.txt
         cloud-init-journal.txt
+        esm-cache.service.txt
         jobs-status.json
         livepatch-status.txt-error
         pro-journal.txt
