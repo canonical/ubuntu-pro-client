@@ -1,3 +1,4 @@
+AdditionalData
 airgapped
 Airgapping
 amd
@@ -25,6 +26,7 @@ cron
 CTRL
 cve
 CVE
+CVEAPIFixExecuteResult
 CVEFixPlanResult
 cves
 CVEs
@@ -39,10 +41,14 @@ EnabledService
 enablement
 esm
 ESM
+FailedUpgrade
 fips
 FIPS
 firewalled
 Firewalled
+FixExecuteError
+FixExecuteResult
+FixExecuteUSNResult
 FixPlanError
 FixPlanResult
 FixPlanStep
@@ -74,7 +80,9 @@ motd
 MOTD
 Multipass
 NoOp
+NoOpAlreadyFixed
 NoOpData
+NoOpLivepatchFixData
 num
 PackageCannotBeInstalledData
 PackageSummary
@@ -115,9 +123,12 @@ un
 unparsed
 UpdateInfo
 UpdateSummary
+UpgradedPackage
 usg
 USG
 usn
+usns
+USNAPIFixExecuteResult
 USNFixPlanResult
 USNs
 usr
