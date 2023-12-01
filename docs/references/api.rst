@@ -684,7 +684,7 @@ This endpoint fixes the specified CVEs on the machine.
                - *List[FixExecuteResult]*
                - A list of FixExecuteResult objects
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteResult``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
 
           .. list-table::
              :header-rows: 1
@@ -705,7 +705,7 @@ This endpoint fixes the specified CVEs on the machine.
                - *Optional[FixExecuteError]*
                - A FixExecuteError object
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackage``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
 
           .. list-table::
              :header-rows: 1
@@ -723,7 +723,7 @@ This endpoint fixes the specified CVEs on the machine.
                - *str*
                - The pocket which contained the package upgrade
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteError``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
 
           .. list-table::
              :header-rows: 1
@@ -741,7 +741,7 @@ This endpoint fixes the specified CVEs on the machine.
                - *Optional[List[FailedUpgrade]]*
                - A list of FailedUpgrade objects
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FailedUpgrade``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
 
           .. list-table::
              :header-rows: 1
@@ -950,7 +950,7 @@ This endpoint fixes the specified USNs on the machine.
                - *List[FixExecuteResult]*
                - A list of FixExecuteResult objects for the related USNs
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteResult``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
 
           .. list-table::
              :header-rows: 1
@@ -971,7 +971,7 @@ This endpoint fixes the specified USNs on the machine.
                - *Optional[FixExecuteError]*
                - A FixExecuteError object
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.UpgradedPackage``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
 
           .. list-table::
              :header-rows: 1
@@ -989,7 +989,7 @@ This endpoint fixes the specified USNs on the machine.
                - *str*
                - The pocket which contained the package upgrade
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FixExecuteError``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
 
           .. list-table::
              :header-rows: 1
@@ -1007,7 +1007,7 @@ This endpoint fixes the specified USNs on the machine.
                - *Optional[List[FailedUpgrade]]*
                - A list of FailedUpgrade objects
 
-        - ``uaclient.api.u.pro.security.fix.common.execute.v1.FailedUpgrade``
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
 
           .. list-table::
              :header-rows: 1
