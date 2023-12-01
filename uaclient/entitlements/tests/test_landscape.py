@@ -99,174 +99,126 @@ class TestLandscapeEntitlement:
     @pytest.mark.parametrize(
         [
             "subp_sideeffect",
-            "rename_sideeffect",
             "expected_subp_calls",
-            "expected_rename_calls",
             "expected_result",
         ],
         [
             (
                 None,
-                None,
                 [mock.call(["landscape-config", "--disable"])],
-                [
-                    mock.call(
-                        "/etc/landscape/client.conf",
-                        "/etc/landscape/client.conf.pro-disable-backup",
-                    )
-                ],
                 True,
             ),
             (
                 exceptions.ProcessExecutionError("test"),
-                None,
                 [mock.call(["landscape-config", "--disable"])],
-                [
-                    mock.call(
-                        "/etc/landscape/client.conf",
-                        "/etc/landscape/client.conf.pro-disable-backup",
-                    )
-                ],
-                True,
-            ),
-            (
-                None,
-                FileNotFoundError(),
-                [mock.call(["landscape-config", "--disable"])],
-                [
-                    mock.call(
-                        "/etc/landscape/client.conf",
-                        "/etc/landscape/client.conf.pro-disable-backup",
-                    )
-                ],
                 True,
             ),
         ],
     )
-    @mock.patch("os.rename")
     @mock.patch("uaclient.system.subp")
     def test_perform_disable(
         self,
         m_subp,
-        m_rename,
         subp_sideeffect,
-        rename_sideeffect,
         expected_subp_calls,
-        expected_rename_calls,
         expected_result,
         FakeConfig,
     ):
         m_subp.side_effect = subp_sideeffect
-        m_rename.side_effect = rename_sideeffect
         landscape = LandscapeEntitlement(FakeConfig())
         assert expected_result == landscape._perform_disable()
         assert expected_subp_calls == m_subp.call_args_list
-        assert expected_rename_calls == m_rename.call_args_list
 
     @pytest.mark.parametrize(
         [
-            "is_installed",
-            "expected_is_installed_calls",
+            "are_required_packages_installed",
+            "is_systemd_unit_active",
             "expected_result",
         ],
         [
             (
                 False,
-                [mock.call("landscape-client")],
+                False,
                 (
                     ApplicationStatus.DISABLED,
-                    messages.LANDSCAPE_CLIENT_NOT_INSTALLED,
+                    messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
+                ),
+            ),
+            (
+                False,
+                True,
+                (
+                    ApplicationStatus.DISABLED,
+                    messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
                 ),
             ),
             (
                 True,
-                [mock.call("landscape-client")],
+                False,
+                (
+                    ApplicationStatus.DISABLED,
+                    messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
+                ),
+            ),
+            (
+                True,
+                True,
                 (ApplicationStatus.ENABLED, None),
             ),
         ],
     )
-    @mock.patch("uaclient.apt.is_installed")
+    @mock.patch("uaclient.system.is_systemd_unit_active")
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.are_required_packages_installed"  # noqa: E501
+    )
     def test_application_status(
         self,
-        m_is_installed,
-        is_installed,
-        expected_is_installed_calls,
+        m_are_required_packages_installed,
+        m_is_systemd_unit_active,
+        are_required_packages_installed,
+        is_systemd_unit_active,
         expected_result,
         FakeConfig,
     ):
-        m_is_installed.return_value = is_installed
+        m_are_required_packages_installed.return_value = (
+            are_required_packages_installed
+        )
+        m_is_systemd_unit_active.return_value = is_systemd_unit_active
         landscape = LandscapeEntitlement(FakeConfig())
         assert expected_result == landscape.application_status()
-        assert expected_is_installed_calls == m_is_installed.call_args_list
 
     @pytest.mark.parametrize(
         [
-            "exists",
             "we_are_currently_root",
             "subp_sideeffect",
-            "unit_active",
             "expected_subp_calls",
             "expected_result",
         ],
         [
             (
-                False,
-                None,
-                None,
-                None,
-                [],
-                (True, messages.LANDSCAPE_NOT_CONFIGURED),
-            ),
-            (
-                True,
                 True,
                 exceptions.ProcessExecutionError("test"),
-                None,
                 [mock.call(mock.ANY)],
                 (True, messages.LANDSCAPE_NOT_REGISTERED),
             ),
-            (
-                True,
-                True,
-                None,
-                False,
-                [mock.call(mock.ANY)],
-                (True, messages.LANDSCAPE_SERVICE_NOT_ACTIVE),
-            ),
-            (True, True, None, True, [mock.call(mock.ANY)], (False, None)),
-            (
-                True,
-                False,
-                None,
-                False,
-                [],
-                (True, messages.LANDSCAPE_SERVICE_NOT_ACTIVE),
-            ),
-            (True, False, None, True, [], (False, None)),
+            (True, None, [mock.call(mock.ANY)], (False, None)),
+            (False, None, [], (False, None)),
         ],
     )
-    @mock.patch("uaclient.system.is_systemd_unit_active")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.util.we_are_currently_root")
-    @mock.patch("os.path.exists")
     def test_enabled_warning_status(
         self,
-        m_exists,
         m_we_are_currently_root,
         m_subp,
-        m_is_systemd_unit_active,
-        exists,
         we_are_currently_root,
         subp_sideeffect,
-        unit_active,
         expected_subp_calls,
         expected_result,
         FakeConfig,
     ):
-        m_exists.return_value = exists
         m_we_are_currently_root.return_value = we_are_currently_root
         m_subp.side_effect = subp_sideeffect
-        m_is_systemd_unit_active.return_value = unit_active
         landscape = LandscapeEntitlement(FakeConfig())
         assert expected_result == landscape.enabled_warning_status()
         assert expected_subp_calls == m_subp.call_args_list

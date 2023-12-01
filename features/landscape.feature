@@ -6,7 +6,7 @@ Feature: Enable landscape on Ubuntu
 
     Scenario Outline: Enable Landscape non-interactively
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo and options `--no-auto-enable`
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
 
         Then I verify that running `pro enable landscape` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -36,51 +36,12 @@ Feature: Enable landscape on Ubuntu
         """
         landscape +yes +enabled
         """
-
-        When I run `systemctl stop landscape-client` with sudo
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +warning
-        """
-        Then stdout contains substring:
-        """
-        Landscape is installed and configured and registered but not running.
-        Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`
-        """
-
-        When I run `rm /etc/landscape/client.conf` with sudo
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +warning
-        """
-        Then stdout contains substring:
-        """
-        Landscape is installed but not configured.
-        Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`
-        """
-
         When I run `sudo pro disable landscape` with sudo
-        Then I will see the following on stdout:
-        """
-        Executing `landscape-config --disable`
-        Failed running command 'landscape-config --disable' [exit(1)]. Message: error: config file /etc/landscape/client.conf can't be read
-        Backing up /etc/landscape/client.conf as /etc/landscape/client.conf.pro-disable-backup
-        [Errno 2] No such file or directory: '/etc/landscape/client.conf' -> '/etc/landscape/client.conf.pro-disable-backup'
-        """
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
-        landscape +yes +warning
+        landscape +yes +disabled
         """
-        Then stdout contains substring:
-        """
-        Landscape is installed but not configured.
-        Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`
-        """
-        # TODO: Known status bug around not uninstalling landscape: #2840
-        When I run `apt-get remove -y landscape-client` with sudo
 
         # Enable with assume-yes
         When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
@@ -97,21 +58,33 @@ Feature: Enable landscape on Ubuntu
         """
         landscape +yes +enabled
         """
-        When I run `sudo pro disable landscape` with sudo
-        # TODO: Known status bug around not uninstalling landscape: #2840
-        When I run `apt-get remove -y landscape-client` with sudo
+
+        # stopping the service effectively disables it
+        When I run `systemctl stop landscape-client` with sudo
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +disabled
+        """
+        When I verify that running `sudo pro disable landscape` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        Landscape is not currently enabled
+        See: sudo pro status
+        """
 
         # Fail to enable with assume-yes
-        When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa` `with sudo` exits `1`
+        When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
         One moment, checking your subscription first
         Updating standard Ubuntu package lists
         Installing landscape-client
-        Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --silent`
+        Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         Invalid account name or registration key.
         Could not enable Landscape.
         """
+        # This will become obsolete soon: #2864
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
@@ -123,8 +96,11 @@ Feature: Enable landscape on Ubuntu
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
         """
         When I run `sudo pro disable landscape` with sudo
-        # TODO: Known status bug around not uninstalling landscape: #2840
-        When I run `apt-get remove -y landscape-client` with sudo
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +disabled
+        """
 
         # Enable with assume-yes and format json
         When I run `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
@@ -138,15 +114,14 @@ Feature: Enable landscape on Ubuntu
         landscape +yes +enabled
         """
         When I run `sudo pro disable landscape` with sudo
-        # TODO: Known status bug around not uninstalling landscape: #2840
-        When I run `apt-get remove -y landscape-client` with sudo
 
         # Fail to enable with assume-yes and format json
-        When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa` `with sudo` exits `1`
+        When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [{"additional_info": {"stderr": "Invalid account name or registration key.", "stdout": ""}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": ["landscape"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
+        # This will become obsolete soon: #2864
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
@@ -157,14 +132,13 @@ Feature: Enable landscape on Ubuntu
         Landscape is installed and configured but not registered.
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
         """
-        When I run `sudo pro disable landscape` with sudo
         Examples: ubuntu release
             | release | machine_type  |
             | mantic  | lxd-container |
 
     Scenario Outline: Enable Landscape interactively
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo and options `--no-auto-enable`
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
 
         Then I verify that running `pro enable landscape` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -209,8 +183,6 @@ Feature: Enable landscape on Ubuntu
         landscape +yes +enabled
         """
         When I run `pro disable landscape` with sudo
-        # TODO: Known status bug around not uninstalling landscape: #2840
-        When I run `apt-get remove -y landscape-client` with sudo
 
         When I verify that running `pro enable landscape` `with sudo` and the following stdin exits `1`
         """
@@ -234,6 +206,7 @@ Feature: Enable landscape on Ubuntu
         """
         Invalid account name or registration key.
         """
+        # This will become obsolete soon: #2864
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
@@ -243,6 +216,96 @@ Feature: Enable landscape on Ubuntu
         """
         Landscape is installed and configured but not registered.
         Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
+        """
+        Examples: ubuntu release
+            | release | machine_type  |
+            | mantic  | lxd-container |
+
+    Scenario Outline: Easily re-enable Landscape non-interactively after a disable
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
+
+        When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
+        Then I will see the following on stdout:
+        """
+        One moment, checking your subscription first
+        Updating standard Ubuntu package lists
+        Installing landscape-client
+        Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
+        Landscape enabled
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +enabled
+        """
+
+        When I run `pro disable landscape` with sudo
+        Then I will see the following on stdout:
+        """
+        Executing `landscape-config --disable`
+        /etc/landscape/client.conf contains your landscape-client configuration.
+        To re-enable Landscape with the same configuration, run:
+            sudo pro enable landscape --assume-yes
+        """
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +disabled
+        """
+
+        When I run `pro enable landscape --assume-yes` with sudo
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +enabled
+        """
+        When I run shell command `cat /etc/landscape/client.conf | grep computer_title` with sudo
+        Then I will see the following on stdout:
+        """
+        computer_title = $behave_var{machine-name system-under-test}
+        """
+        When I run shell command `cat /etc/landscape/client.conf | grep account_name` with sudo
+        Then I will see the following on stdout:
+        """
+        account_name = pro-client-qa
+        """
+
+        # Now do the same test but with a full detach
+        When I run `pro detach --assume-yes` with sudo
+        Then I will see the following on stdout:
+        """
+        Detach will disable the following service:
+            landscape
+        Executing `landscape-config --disable`
+        /etc/landscape/client.conf contains your landscape-client configuration.
+        To re-enable Landscape with the same configuration, run:
+            sudo pro enable landscape --assume-yes
+
+        This machine is now detached.
+        """
+        When I run `pro api u.pro.status.is_attached.v1` with sudo
+        Then stdout contains substring:
+        """
+        "is_attached": false
+        """
+
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
+        When I run `pro enable landscape --assume-yes` with sudo
+        When I run `pro status` with sudo
+        Then stdout matches regexp:
+        """
+        landscape +yes +enabled
+        """
+        When I run shell command `cat /etc/landscape/client.conf | grep computer_title` with sudo
+        Then I will see the following on stdout:
+        """
+        computer_title = $behave_var{machine-name system-under-test}
+        """
+        When I run shell command `cat /etc/landscape/client.conf | grep account_name` with sudo
+        Then I will see the following on stdout:
+        """
+        account_name = pro-client-qa
         """
         Examples: ubuntu release
             | release | machine_type  |
