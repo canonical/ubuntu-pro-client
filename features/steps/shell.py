@@ -119,7 +119,12 @@ def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
     )
 
     expected_codes = exit_codes.split(",")
-    assert str(context.process.returncode) in expected_codes
+    if str(context.process.returncode) not in expected_codes:
+        raise AssertionError(
+            "Expected exit code in: {} but got {}".format(
+                expected_codes, context.process.returncode
+            )
+        )
 
 
 @step("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
@@ -129,7 +134,12 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     when_i_run_command(context, cmd_name, spec, verify_return=False)
     logging.debug("got return code: %d", context.process.returncode)
     expected_codes = exit_codes.split(",")
-    assert str(context.process.returncode) in expected_codes
+    if str(context.process.returncode) not in expected_codes:
+        raise AssertionError(
+            "Expected exit code in: {} but got {}".format(
+                expected_codes, context.process.returncode
+            )
+        )
 
 
 def get_command_prefix_for_user_spec(user_spec):
