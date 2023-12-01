@@ -823,6 +823,27 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ),
             )
 
+        applicability_status, _ = self.applicability_status()
+        # applicability_status() returns APPLICABLE if not self.entitlement_cfg
+        # but we want to be more strict and prevent disabling if
+        # not self.entitlement_cfg, so we check it explicitly here.
+        # This prevents e.g. landscape from being disabled on jammy when it
+        # doesn't exist for jammy yet but was manually configured separately
+        # from pro.
+        if (
+            not self.entitlement_cfg
+            or applicability_status == ApplicabilityStatus.INAPPLICABLE
+        ):
+            return (
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.NOT_APPLICABLE,
+                    message=messages.CANNOT_DISABLE_NOT_APPLICABLE.format(
+                        title=self.title
+                    ),
+                ),
+            )
+
         if self.dependent_services and not ignore_dependent_services:
             if self.detect_dependent_services():
                 return (

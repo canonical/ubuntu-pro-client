@@ -1669,6 +1669,13 @@ ALREADY_DISABLED = FormattedNamedMessage(
 {title} is not currently enabled\nSee: sudo pro status"""
     ),
 )
+CANNOT_DISABLE_NOT_APPLICABLE = FormattedNamedMessage(
+    "cannot-disable-not-applicable",
+    t.gettext(
+        """\
+Disabling {title} with pro is not supported.\nSee: sudo pro status"""
+    ),
+)
 ALREADY_ENABLED = FormattedNamedMessage(
     "service-already-enabled",
     t.gettext(
