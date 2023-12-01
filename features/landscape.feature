@@ -310,3 +310,77 @@ Feature: Enable landscape on Ubuntu
         Examples: ubuntu release
             | release | machine_type  |
             | mantic  | lxd-container |
+
+    Scenario Outline: Detaching/reattaching on an unsupported release does not affect landscape
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
+        When I run `pro status` with sudo
+        Then stdout does not contain substring:
+        """
+        landscape
+        """
+
+        When I apt install `landscape-client`
+
+        # assert pre-enabled state
+        When I verify that running `systemctl is-active landscape-client` `with sudo` exits `3`
+        Then I will see the following on stdout:
+        """
+        inactive
+        """
+
+        # enable with landscape-config directly
+        When I run `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key} --silent` with sudo
+        Then I will see the following on stdout:
+        """
+        Please wait...
+        System successfully registered.
+        """
+
+        # assert that landscape is running, but pro doesn't care
+        When I verify that running `systemctl is-active landscape-client` `with sudo` exits `0`
+        Then I will see the following on stdout:
+        """
+        active
+        """
+        When I run `pro status` with sudo
+        Then stdout does not contain substring:
+        """
+        landscape
+        """
+
+        # disable refuses
+        When I verify that running `pro disable landscape` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        Disabling Landscape with pro is not supported.
+        See: sudo pro status
+        """
+
+        # detach doesn't touch it
+        When I run `pro detach --assume-yes` with sudo
+        Then I will see the following on stdout:
+        """
+        This machine is now detached.
+        """
+
+        # still running
+        When I verify that running `systemctl is-active landscape-client` `with sudo` exits `0`
+        Then I will see the following on stdout:
+        """
+        active
+        """
+
+        # re-attaching doesn't affect it either
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
+
+        # still running
+        When I verify that running `systemctl is-active landscape-client` `with sudo` exits `0`
+        Then I will see the following on stdout:
+        """
+        active
+        """
+
+        Examples: ubuntu release
+            | release | machine_type  |
+            | jammy   | lxd-container |
