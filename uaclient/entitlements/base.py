@@ -550,6 +550,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
+    def are_required_packages_installed(self) -> bool:
+        """install packages necessary to enable a service."""
+        required_packages = (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("requiredPackages")
+        )
+
+        # If we don't have the directive, there is nothing
+        # to process here
+        if not required_packages:
+            return True
+
+        package_names = [package["name"] for package in required_packages]
+        installed_packages = apt.get_installed_packages_names()
+
+        return all(
+            [required in installed_packages for required in package_names]
+        )
+
     def handle_required_packages(self) -> bool:
         """install packages necessary to enable a service."""
         required_packages = (

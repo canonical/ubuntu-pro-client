@@ -1,19 +1,12 @@
 import logging
-import os
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
+from uaclient import event_logger, exceptions, messages, system, util
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()
-
-LANDSCAPE_CLIENT_PACKAGE_NAME = "landscape-client"
-LANDSCAPE_CLIENT_CONFIG_PATH = "/etc/landscape/client.conf"
-LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP = (
-    "/etc/landscape/client.conf.pro-disable-backup"
-)
 
 
 class LandscapeEntitlement(UAEntitlement):
@@ -68,50 +61,29 @@ class LandscapeEntitlement(UAEntitlement):
             event.info(str(e).strip())
             event.warning(str(e), self.name)
 
-        LOG.debug(
-            "Backing up %s as %s",
-            LANDSCAPE_CLIENT_CONFIG_PATH,
-            LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
-        )
-        event.info(
-            messages.BACKING_UP_FILE.format(
-                original=LANDSCAPE_CLIENT_CONFIG_PATH,
-                backup=LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
-            )
-        )
-        try:
-            os.rename(
-                LANDSCAPE_CLIENT_CONFIG_PATH,
-                LANDSCAPE_CLIENT_CONFIG_PATH_DISABLE_BACKUP,
-            )
-        except FileNotFoundError as e:
-            LOG.error(e)
-            event.info(str(e))
-            event.warning(str(e), self.name)
+        event.info(messages.LANDSCAPE_CONFIG_REMAINS)
 
         return True
 
     def application_status(
         self,
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
-        if apt.is_installed(LANDSCAPE_CLIENT_PACKAGE_NAME):
+        if (
+            self.are_required_packages_installed()
+            and system.is_systemd_unit_active("landscape-client")
+        ):
             return (ApplicationStatus.ENABLED, None)
         else:
             return (
                 ApplicationStatus.DISABLED,
-                messages.LANDSCAPE_CLIENT_NOT_INSTALLED,
+                messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
             )
 
     def enabled_warning_status(
         self,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
-        if not os.path.exists(LANDSCAPE_CLIENT_CONFIG_PATH):
-            return (
-                True,
-                messages.LANDSCAPE_NOT_CONFIGURED,
-            )
-
         # This check wrongly gives warning when non-root
+        # This will become obsolete soon: #2864
         if util.we_are_currently_root():
             try:
                 system.subp(
@@ -122,12 +94,6 @@ class LandscapeEntitlement(UAEntitlement):
                     True,
                     messages.LANDSCAPE_NOT_REGISTERED,
                 )
-
-        if not system.is_systemd_unit_active("landscape-client"):
-            return (
-                True,
-                messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
-            )
 
         return False, None
 
