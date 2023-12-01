@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import textwrap
 
@@ -15,6 +16,8 @@ from features.util import SafeLoaderWithoutDatetime, process_template_vars
 def then_i_will_see_on_stream(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
+    logging.debug("repr(expected): %r", text)
+    logging.debug("repr(actual): %r", content)
     if not text == content:
         raise AssertionError(
             "Expected to find exactly:\n{}\nBut got:\n{}".format(
