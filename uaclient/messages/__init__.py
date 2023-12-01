@@ -1369,6 +1369,13 @@ more. Find out more about Landscape at {home_url}"""
     install_url=urls.LANDSCAPE_DOCS_INSTALL,
     home_url=urls.LANDSCAPE_HOME_PAGE,
 )
+LANDSCAPE_CONFIG_REMAINS = t.gettext(
+    """\
+/etc/landscape/client.conf contains your landscape-client configuration.
+To re-enable Landscape with the same configuration, run:
+    sudo pro enable landscape --assume-yes
+"""
+)
 
 LIVEPATCH_TITLE = t.gettext("Livepatch")
 LIVEPATCH_DESCRIPTION = t.gettext("Canonical Livepatch service")
@@ -1869,19 +1876,6 @@ UNATTENDED_UPGRADES_UNINSTALLED = NamedMessage(
     t.gettext("unattended-upgrades package is not installed"),
 )
 
-LANDSCAPE_CLIENT_NOT_INSTALLED = NamedMessage(
-    "landscape-client-not-installed",
-    t.gettext("landscape-client is not installed"),
-)
-LANDSCAPE_NOT_CONFIGURED = NamedMessage(
-    "landscape-not-configured",
-    t.gettext(
-        """\
-Landscape is installed but not configured.
-Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`\
-"""
-    ),
-)
 LANDSCAPE_NOT_REGISTERED = NamedMessage(
     "landscape-not-registered",
     t.gettext(
@@ -1894,10 +1888,7 @@ Run `sudo landscape-config` to register, or run `sudo pro disable landscape`\
 LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
     "landscape-service-not-active",
     t.gettext(
-        """\
-Landscape is installed and configured and registered but not running.
-Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`\
-"""
+        "landscape-client is either not installed or installed but disabled."
     ),
 )
 LANDSCAPE_CONFIG_FAILED = NamedMessage(
