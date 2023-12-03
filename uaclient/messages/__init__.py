@@ -162,11 +162,11 @@ CONTRACT_EXPIRED_WITH_PKGS = P(
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
 {{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' enabled.
-Renew your service at {url}""",  # noqa: E501
+Renew your subscription at {url}""",  # noqa: E501
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
 {{pkg_num}} additional security updates require Ubuntu Pro with '{{service}}' enabled.
-Renew your service at {url}""",  # noqa: E501
+Renew your subscription at {url}""",  # noqa: E501
         n,
     ).format(url=urls.PRO_DASHBOARD)
 )
@@ -201,7 +201,7 @@ Your grace period will expire in {{remaining_days}} days.""",
 CONTRACT_EXPIRED = t.gettext(
     """\
 *Your Ubuntu Pro subscription has EXPIRED*
-Renew your service at {url}"""
+Renew your subscription at {url}"""
 ).format(url=urls.PRO_DASHBOARD)
 
 
@@ -270,7 +270,7 @@ Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
 # ATTACH
 AUTO_ATTACH_RUNNING = t.gettext(
     "Currently attempting to automatically attach this machine to "
-    "Ubuntu Pro services"
+    "an Ubuntu Pro subscription"
 )
 ATTACH_SUCCESS_TMPL = t.gettext(
     """\
@@ -384,15 +384,15 @@ working properly, *do not proceed*. You may end up with an unbootable system.
 # These are for the retry-auto-attach functionality
 AUTO_ATTACH_RETRY_NOTICE = t.gettext(
     """\
-Failed to automatically attach to Ubuntu Pro services {num_attempts} time(s).
+Failed to automatically attach to an Ubuntu Pro subscription {num_attempts} time(s).
 The failure was due to: {reason}.
 The next attempt is scheduled for {next_run_datestring}.
-You can try manually with `sudo pro auto-attach`."""
+You can try manually with `sudo pro auto-attach`."""  # noqa: E501
 )
 
 AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE = t.gettext(
     """\
-Failed to automatically attach to Ubuntu Pro services {num_attempts} time(s).
+Failed to automatically attach to an Ubuntu Pro subscription {num_attempts} time(s).
 The most recent failure was due to: {reason}.
 Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
 You can try manually with `sudo pro auto-attach`."""  # noqa: E501
@@ -917,7 +917,7 @@ CLI_CONFIG_DESC = t.gettext("Manage Ubuntu Pro configuration")
 
 CLI_ATTACH_DESC = t.gettext(
     """\
-Attach this machine to Ubuntu Pro with a token obtained from:
+Attach this machine to an Ubuntu Pro subscription with a token obtained from:
 {url}
 
 When running this command without a token, it will generate a short code
@@ -999,7 +999,9 @@ is specified, all targets are refreshed.
 )
 CLI_REFRESH_TARGET = t.gettext("Target to refresh.")
 
-CLI_DETACH_DESC = t.gettext("Detach this machine from Ubuntu Pro services.")
+CLI_DETACH_DESC = t.gettext(
+    "Detach this machine from an Ubuntu Pro subscription."
+)
 
 CLI_HELP_DESC = t.gettext(
     "Provide detailed information about Ubuntu Pro services."
