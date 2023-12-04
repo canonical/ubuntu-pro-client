@@ -87,6 +87,7 @@ Feature: Security status command behavior
            | release | machine_type  | package   | service   |
            | xenial  | lxd-container | apport    | esm-infra |
            | bionic  | lxd-container | ansible   | esm-apps  |
+           | bionic  | wsl           | ansible   | esm-apps  |
 
     @uses.config.contract_token
     Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
@@ -448,8 +449,8 @@ Feature: Security status command behavior
         """
 
     @uses.config.contract_token
-    Scenario: Run security status in an Ubuntu machine
-        Given a `focal` `lxd-container` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Run security status in an Ubuntu machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I apt install `ansible`
@@ -763,6 +764,11 @@ Feature: Security status command behavior
 
         Enable esm-apps with: pro enable esm-apps
         """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | focal   | lxd-container |
+           | focal   | wsl           |
 
     # Latest released non-LTS
     Scenario: Run security status in an Ubuntu machine

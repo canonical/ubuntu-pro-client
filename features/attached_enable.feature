@@ -24,6 +24,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | release | machine_type  |
             | xenial  | lxd-container |
             | bionic  | lxd-container |
+            | bionic  | wsl           |
 
     Scenario Outline: Enable cc-eal with --access-only
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -372,6 +373,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Examples: cis script
            | release | machine_type  | cis_script                                  |
            | bionic  | lxd-container | Canonical_Ubuntu_18.04_CIS-harden.sh        |
+           | bionic  | wsl           | Canonical_Ubuntu_18.04_CIS-harden.sh        |
            | xenial  | lxd-container | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
 
     Scenario Outline: Attached enable of cis service in a ubuntu machine
@@ -513,6 +515,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Examples: cis service
            | release | machine_type  |
            | focal   | lxd-container |
+           | focal   | wsl           |
 
     Scenario Outline: Attached disable of livepatch in a lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -541,6 +544,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type | livepatch_status |
            | xenial  | lxd-vm       | warning          |
            | bionic  | lxd-vm       | enabled          |
+           | bionic  | wsl          | enabled          |
 
     Scenario Outline: Attach works when snapd cannot be installed
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -910,6 +914,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type  | ros-security-source                                    | ros-updates-source                                            |
            | xenial  | lxd-container | https://esm.ubuntu.com/ros/ubuntu xenial-security/main | https://esm.ubuntu.com/ros-updates/ubuntu xenial-updates/main |
            | bionic  | lxd-container | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |
+           | bionic  | wsl           | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |
 
     # Overall test for overrides; in the future, when many services
     # have overrides, we can consider removing this

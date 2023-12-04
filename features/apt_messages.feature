@@ -146,6 +146,7 @@ Feature: APT Messages
           | release | machine_type  | version |
           | xenial  | lxd-container | 16      |
           | bionic  | lxd-container | 18      |
+          | bionic  | wsl           | 18      |
 
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -203,7 +204,9 @@ Feature: APT Messages
         Examples: ubuntu release
           | release | machine_type  | package | more_msg                | learn_more_msg                                                    |
           | focal   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | focal   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
           | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
+          | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro             |
 
     @uses.config.contract_token
     Scenario Outline: APT News
