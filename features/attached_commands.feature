@@ -38,9 +38,12 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Examples: ubuntu release
            | release | machine_type  |
            | bionic  | lxd-container |
+           | bionic  | wsl           |
            | focal   | lxd-container |
+           | focal   | wsl           |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
+           | jammy   | wsl           |
            | mantic  | lxd-container |
 
     Scenario Outline: Disable command on an attached machine
@@ -213,8 +216,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type  |
            | xenial  | lxd-container |
            | bionic  | lxd-container |
+           | bionic  | wsl           |
            | focal   | lxd-container |
+           | focal   | wsl           |
            | jammy   | lxd-container |
+           | jammy   | wsl           |
 
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -663,6 +669,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type  |
            | xenial  | lxd-container |
            | bionic  | lxd-container |
+           | bionic  | wsl           |
            | focal   | lxd-container |
            | jammy   | lxd-container |
            | mantic  | lxd-container |
@@ -791,6 +798,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            # This ends up in GH #943 but maybe can be improved?
            | xenial  | lxd-container | xenial-backports |
            | bionic  | lxd-container | bionic-updates   |
+           | bionic  | wsl           | bionic-updates   |
            | focal   | lxd-container | focal            |
            | jammy   | lxd-container | jammy            |
 

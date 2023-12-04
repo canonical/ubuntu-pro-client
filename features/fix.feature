@@ -189,6 +189,7 @@ Feature: Ua fix command behaviour
         Examples: ubuntu release details
            | release | machine_type  |
            | focal   | lxd-container |
+           | focal   | wsl           |
 
     @uses.config.contract_token
     Scenario Outline: Fix command on an unattached machine
@@ -572,8 +573,8 @@ Feature: Ua fix command behaviour
            | release | machine_type  |
            | xenial  | lxd-container |
 
-    Scenario: Fix command on an unattached machine
-        Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Fix command on an unattached machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
@@ -868,8 +869,13 @@ Feature: Ua fix command behaviour
         .*✔.* CVE-2023-42752 does not affect your system.
         """
 
-    Scenario: Fix command on a machine without security/updates source lists
-        Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
+        Examples: ubuntu release details
+           | release | machine_type  |
+           | bionix  | lxd-container |
+           | bionic  | wsl           |
+
+    Scenario Outline: Fix command on a machine without security/updates source lists
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/bionic-security/d" /etc/apt/sources.list` with sudo
         And I apt update
@@ -889,3 +895,8 @@ Feature: Ua fix command behaviour
         1 package is still affected: openssl
         .*✘.* CVE-2023-0286 is not resolved.
         """
+
+        Examples: ubuntu release details
+           | release | machine_type  |
+           | bionix  | lxd-container |
+           | bionic  | wsl           |

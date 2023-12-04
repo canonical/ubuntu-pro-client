@@ -333,6 +333,7 @@ Feature: Attached status
            | release | machine_type  |
            | xenial  | lxd-container |
            | bionic  | lxd-container |
+           | bionic  | wsl           |
 
     @uses.config.contract_token
     Scenario Outline: Attached status in a ubuntu machine
@@ -379,6 +380,7 @@ Feature: Attached status
         Examples: ubuntu release
            | release | machine_type  |
            | focal   | lxd-container |
+           | focal   | wsl           |
 
     @uses.config.contract_token
     Scenario Outline: Attached status in the latest LTS ubuntu machine
