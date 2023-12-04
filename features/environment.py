@@ -93,6 +93,9 @@ class UAClientBehaveConfig:
         "userdata_file",
         "check_version",
         "sbuild_chroot",
+        "wsl_pubkey_path",
+        "wsl_privkey_path",
+        "wsl_ip_address",
     ]
     redact_options = [
         "contract_token",
@@ -132,6 +135,9 @@ class UAClientBehaveConfig:
         userdata_file: Optional[str] = None,
         check_version: Optional[str] = None,
         sbuild_chroot: Optional[str] = None,
+        wsl_pubkey_path: Optional[str] = None,
+        wsl_privkey_path: Optional[str] = None,
+        wsl_ip_address: Optional[str] = None,
     ) -> None:
         # First, store the values we've detected
         self.cloud_credentials_path = cloud_credentials_path
@@ -154,6 +160,10 @@ class UAClientBehaveConfig:
         self.userdata_file = userdata_file
         self.check_version = check_version
         self.sbuild_chroot = sbuild_chroot
+        self.wsl_pubkey_path = wsl_pubkey_path
+        self.wsl_privkey_path = wsl_privkey_path
+        self.wsl_ip_address = wsl_ip_address
+
         self.machine_types = (
             machine_types.split(",") if machine_types else None
         )
@@ -470,6 +480,10 @@ def after_all(context):
             logging.error(
                 "Failed to delete instance ssh keys:\n{}".format(str(e))
             )
+
+        if context.pro_config.clouds.has("wsl"):
+            cloud_instance = context.pro_config.clouds.get("wsl")
+            cloud_instance.stop_windows_machine()
 
     # Builder snapshots don't get an auto-cleanup function, so clean them here
     builder_snapshots = [
