@@ -21,52 +21,16 @@ def clear_lock_file_if_present():
         clear_lock_file()
 
 
-class SingleAttemptLock:
+class SpinLock:
     """
     Context manager for gaining exclusive access to the lock file.
+
     Create a lock file if absent. The lock file will contain a pid of the
     running process, and a customer-visible description of the lock holder.
 
-    :param lock_holder: String with the service name or command which is
-        holding the lock. This lock_holder string will be customer visible in
-        status.json.
-    :raises: LockHeldError if lock is held.
-    """
-
-    def __init__(self, *_args, cfg: config.UAConfig, lock_holder: str):
-        self.cfg = cfg
-        self.lock_holder = lock_holder
-
-    def __enter__(self):
-        global clear_lock_file
-        (lock_pid, cur_lock_holder) = self.cfg.check_lock_info()
-        if lock_pid > 0:
-            raise exceptions.LockHeldError(
-                lock_request=self.lock_holder,
-                lock_holder=cur_lock_holder,
-                pid=lock_pid,
-            )
-        self.cfg.write_cache(
-            "lock", "{}:{}".format(os.getpid(), self.lock_holder)
-        )
-        notices.add(
-            Notice.OPERATION_IN_PROGRESS,
-            operation=self.lock_holder,
-        )
-        clear_lock_file = functools.partial(self.cfg.delete_cache_key, "lock")
-
-    def __exit__(self, _exc_type, _exc_value, _traceback):
-        global clear_lock_file
-        self.cfg.delete_cache_key("lock")
-        clear_lock_file = None  # Unset due to successful lock delete
-
-
-class SpinLock(SingleAttemptLock):
-    """
-    Context manager for gaining exclusive access to the lock file. In contrast
-    to the SingleAttemptLock, the SpinLock will try several times to acquire
-    the lock before giving up. The number of times to try and how long to sleep
-    in between tries is configurable.
+    The SpinLock will try several times to acquire the lock before giving up.
+    The number of times to try and how long to sleep in between tries is
+    configurable.
 
     :param lock_holder: String with the service name or command which is
         holding the lock. This lock_holder string will be customer visible in
@@ -86,16 +50,35 @@ class SpinLock(SingleAttemptLock):
         sleep_time: int = 10,
         max_retries: int = 12
     ):
-        super().__init__(cfg=cfg, lock_holder=lock_holder)
+        self.cfg = cfg
+        self.lock_holder = lock_holder
         self.sleep_time = sleep_time
         self.max_retries = max_retries
+
+    def grab_lock(self):
+        global clear_lock_file
+        (lock_pid, cur_lock_holder) = self.cfg.check_lock_info()
+        if lock_pid > 0:
+            raise exceptions.LockHeldError(
+                lock_request=self.lock_holder,
+                lock_holder=cur_lock_holder,
+                pid=lock_pid,
+            )
+        self.cfg.write_cache(
+            "lock", "{}:{}".format(os.getpid(), self.lock_holder)
+        )
+        notices.add(
+            Notice.OPERATION_IN_PROGRESS,
+            operation=self.lock_holder,
+        )
+        clear_lock_file = functools.partial(self.cfg.delete_cache_key, "lock")
 
     def __enter__(self):
         LOG.debug("spin lock starting for %s", self.lock_holder)
         tries = 0
         while True:
             try:
-                super().__enter__()
+                self.grab_lock()
                 break
             except exceptions.LockHeldError as e:
                 LOG.debug(
@@ -106,3 +89,8 @@ class SpinLock(SingleAttemptLock):
                     raise e
                 else:
                     time.sleep(self.sleep_time)
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        global clear_lock_file
+        self.cfg.delete_cache_key("lock")
+        clear_lock_file = None  # Unset due to successful lock delete
