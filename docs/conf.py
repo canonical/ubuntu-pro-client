@@ -21,6 +21,9 @@ import datetime
 project = "Ubuntu Pro Client"
 author = "Canonical Group Ltd"
 copyright = "%s, %s" % (datetime.date.today().year, author)
+# If your project is on documentation.ubuntu.com, specify the project
+# slug (for example, "lxd") here.
+slug = ""
 
 # -- General configuration ---------------------------------------------------
 
@@ -30,11 +33,13 @@ copyright = "%s, %s" % (datetime.date.today().year, author)
 
 extensions = [
     "myst_parser",
+    "notfound.extension",
     "sphinx_copybutton",
     "sphinx_design",
     "sphinxcontrib.mermaid",
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.jquery",
+    "sphinxext.opengraph",
 ]
 autosectionlabel_prefix_document = True
 
@@ -116,6 +121,7 @@ html_css_files = [
     "css/custom.css",
     "css/mermaid.css",
     "css/header.css",
+    "css/furo_colors.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
@@ -123,3 +129,23 @@ html_js_files = [
     "js/synced_tab_links.js",
 ]
 html_favicon = "_static/favicon.ico"
+
+
+linkcheck_ignore = [
+    "https://manpages.ubuntu.com/landscape-config"
+]
+
+
+ogp_site_url = 'https://canonical-ubuntu-pro-client.readthedocs-hosted.com/'
+ogp_site_name = project
+ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg'
+
+# The default for notfound_urls_prefix usually works, but not for
+# documentation on documentation.ubuntu.com
+if slug:
+    notfound_urls_prefix = '/' + slug + '/en/latest/'
+
+notfound_context = {
+    'title': 'Page not found',
+    'body': '<h1>Page not found</h1>\n\n<p>Sorry, but the documentation page that you are looking for was not found.</p>\n<p>Documentation changes over time, and pages are moved around. We try to redirect you to the updated content where possible, but unfortunately, that didn\'t work this time (maybe because the content you were looking for does not exist in this version of the documentation).</p>\n<p>You can try to use the navigation to locate the content you\'re looking for, or search for a similar page.</p>\n',
+}

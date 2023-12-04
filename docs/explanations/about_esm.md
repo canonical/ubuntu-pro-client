@@ -76,7 +76,7 @@ installed by apt (in `install` or `upgrade`) or by unattended-upgrades will
 always be the highest `esm` version available for a given package, even if a
 higher version is present on a non-esm source.
 
-This behavior guarantees that if you have `esm-infra` or `esm-apps` enabled,
+This behaviour guarantees that if you have `esm-infra` or `esm-apps` enabled,
 your system will always have the `esm` patches installed for any package
 available in the ESM repositories.
 

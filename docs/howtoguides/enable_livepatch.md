@@ -102,7 +102,7 @@ patch state: ✓ no livepatches needed for this kernel yet
 ```
 
 You can also check
-[the support matrix](https://ubuntu.com/security/livepatch/docs/kernels)
+[the support matrix](https://ubuntu.com/security/livepatch/docs/livepatch/reference/kernels)
 to see if your kernel is supported by Livepatch. To find out more, refer to
 this explanation of
 [how Livepatch works](https://ubuntu.com/security/livepatch/docs/livepatch/explanation/howitworks).

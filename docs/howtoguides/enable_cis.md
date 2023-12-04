@@ -23,7 +23,7 @@ Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
 ```
 
 Once the feature is enabled please
-[follow the documentation](https://ubuntu.com/security/certifications/docs/cis)
+[follow the documentation](https://ubuntu.com/security/certifications/docs/usg/cis)
 for the CIS tooling, to run the provided hardening audit scripts.
 
 ## Disable the service

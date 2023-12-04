@@ -1,9 +1,12 @@
 furo
 m2r2
 myst-parser
+pyspelling
 sphinx==5.1.1
 sphinx_autobuild
 sphinx_copybutton
 sphinx_design
+sphinx-notfound-page
 sphinxcontrib-mermaid
 sphinxcontrib-jquery
+sphinxext-opengraph

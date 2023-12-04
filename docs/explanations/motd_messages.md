@@ -104,7 +104,7 @@ on the machine is in ESM state.
 
 ## MOTD about important subscription conditions
 
-One of the [timer jobs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_the_timer_jobs.html)
+One of the [timer jobs](./what_are_the_timer_jobs.md)
 Ubuntu Pro uses can insert additional messages into MOTD.
 These messages will be always delivered next to the content created by
 `update-notifier`. These additional messages are generated when `pro`
@@ -176,11 +176,11 @@ not-yet-applied potential updates in general. Therefore it is generally not
 recommended to disable them. But still, you can selectively disable them
 by removing the config files that add them, as outlined below.
 
-Removing those files is considered a conffile change to customize a program
+Removing those files is considered a conffile change to customise a program
 and they will stay removed even on future upgrades or re-installations of the
 related packages.
 
-If you realize that you actually need them back you need
+If you realise that you actually need them back you need
 to reinstall the related packages and tell apt/dpkg to offer you to restore
 those files via:
 
