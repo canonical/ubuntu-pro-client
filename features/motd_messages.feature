@@ -49,6 +49,7 @@ Feature: MOTD Messages
            | release | machine_type  | service   |
            | xenial  | lxd-container | esm-infra |
            | bionic  | lxd-container | esm-apps  |
+           | bionic  | wsl           | esm-apps  |
 
 
     Scenario Outline: Contract Expiration Messages
@@ -71,7 +72,6 @@ Feature: MOTD Messages
         CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
         continued security coverage for your applications.
-
         """
         When I set the machine token overlay to the following yaml
         """
@@ -84,12 +84,11 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
         [\w\d.]+
-
+        
         CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
         continued security coverage for your applications.
         Your grace period will expire in 11 days.
-
         """
         When I set the machine token overlay to the following yaml
         """
@@ -102,11 +101,10 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
         [\w\d.]+
-
+        
         \*Your Ubuntu Pro subscription has EXPIRED\*
         \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
-
         """
         When I apt upgrade
         When I run `pro refresh messages` with sudo
@@ -114,10 +112,9 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
         [\w\d.]+
-
+        
         \*Your Ubuntu Pro subscription has EXPIRED\*
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
-
         """
         When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
         """
@@ -135,12 +132,13 @@ Feature: MOTD Messages
         Then stdout matches regexp:
         """
         [\w\d.]+
-
+        
         \*Your Ubuntu Pro subscription has EXPIRED\*
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
-
         """
+
         Examples: ubuntu release
            | release | machine_type  | service   |
            | xenial  | lxd-container | esm-infra |
            | bionic  | lxd-container | esm-infra |
+           | bionic  | wsl           | esm-infra |
