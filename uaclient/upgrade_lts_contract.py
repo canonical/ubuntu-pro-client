@@ -41,8 +41,8 @@ current_codename_to_past_codename = {
     "bionic": "xenial",
     "focal": "bionic",
     "jammy": "focal",
-    "lunar": "jammy",
     "mantic": "lunar",
+    "noble": "jammy",
 }
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))

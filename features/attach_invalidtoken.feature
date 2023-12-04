@@ -26,7 +26,6 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     @uses.config.contract_token_staging_expired
@@ -52,5 +51,4 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |

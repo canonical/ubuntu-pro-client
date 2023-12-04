@@ -159,7 +159,6 @@ Feature: Livepatch
         """
         Examples: ubuntu release
             | release | machine_type | pretty_name             |
-            | lunar   | lxd-vm       | 23.04 (Lunar Lobster)   |
             | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |
 
     Scenario Outline: Livepatch is supported on interim HWE kernel

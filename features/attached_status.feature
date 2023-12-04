@@ -36,7 +36,6 @@ Feature: Attached status
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Non-root status can see in-progress operations

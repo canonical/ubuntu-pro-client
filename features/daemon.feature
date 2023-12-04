@@ -13,7 +13,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | bionic  | lxd-container |
             | focal   | lxd-container |
             | jammy   | lxd-container |
-            | lunar   | lxd-container |
             | mantic  | lxd-container |
 
     @uses.config.contract_token
@@ -291,8 +290,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Examples: version
             | release | machine_type  |
-            | lunar   | azure.generic |
-            | lunar   | gcp.generic   |
+            | mantic  | azure.generic |
+            | mantic  | gcp.generic   |
 
     @uses.config.contract_token
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
@@ -326,9 +325,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | jammy   | lxd-container |
             | jammy   | lxd-vm        |
             | jammy   | aws.generic   |
-            | lunar   | lxd-container |
-            | lunar   | lxd-vm        |
-            | lunar   | aws.generic   |
+            | mantic  | lxd-container |
+            | mantic  | lxd-vm        |
+            | mantic  | aws.generic   |
 
     Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
