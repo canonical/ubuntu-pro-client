@@ -3,26 +3,24 @@ import pytest
 
 from uaclient.exceptions import LockHeldError
 from uaclient.files.notices import Notice
-from uaclient.lock import SingleAttemptLock, SpinLock
+from uaclient.lock import SpinLock
 from uaclient.messages import LOCK_HELD
 
 M_PATH = "uaclient.lock."
 M_PATH_UACONFIG = "uaclient.config.UAConfig."
 
 
-@pytest.mark.parametrize("lock_cls", (SingleAttemptLock, SpinLock))
-@mock.patch("os.getpid", return_value=123)
-@mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.notices.NoticesManager.add")
-@mock.patch(M_PATH_UACONFIG + "write_cache")
-class TestLockCommon:
+class TestSpinLock:
+    @mock.patch("os.getpid", return_value=123)
+    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
+    @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_creates_and_releases_lock(
         self,
         m_write_cache,
         m_add_notice,
         m_delete_cache_key,
         _m_getpid,
-        lock_cls,
         FakeConfig,
     ):
         cfg = FakeConfig()
@@ -32,7 +30,7 @@ class TestLockCommon:
             assert arg == mock.sentinel.arg
             return mock.sentinel.success
 
-        with lock_cls(cfg=cfg, lock_holder="some operation"):
+        with SpinLock(cfg=cfg, lock_holder="some operation"):
             ret = test_function(arg)
 
         assert mock.sentinel.success == ret
@@ -45,13 +43,16 @@ class TestLockCommon:
         ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 
+    @mock.patch("os.getpid", return_value=123)
+    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
+    @mock.patch("uaclient.files.notices.NoticesManager.add")
+    @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_creates_and_releases_lock_when_error_occurs(
         self,
         m_write_cache,
         m_add_notice,
         m_delete_cache_key,
         _m_getpid,
-        lock_cls,
         FakeConfig,
     ):
         cfg = FakeConfig()
@@ -60,7 +61,7 @@ class TestLockCommon:
             raise RuntimeError("test")
 
         with pytest.raises(RuntimeError) as exc:
-            with lock_cls(cfg=cfg, lock_holder="some operation"):
+            with SpinLock(cfg=cfg, lock_holder="some operation"):
                 test_function()
 
         assert "test" == str(exc.value)
@@ -73,48 +74,9 @@ class TestLockCommon:
         ] == m_add_notice.call_args_list
         assert [mock.call("lock")] == m_delete_cache_key.call_args_list
 
-
-@mock.patch("os.getpid", return_value=123)
-@mock.patch(M_PATH_UACONFIG + "delete_cache_key")
-@mock.patch("uaclient.files.notices.NoticesManager.add")
-@mock.patch(M_PATH_UACONFIG + "write_cache")
-class TestSingleAttemptLock:
-    @mock.patch(M_PATH_UACONFIG + "check_lock_info", return_value=(10, "held"))
-    def test_raises_lock_held_when_held(
-        self,
-        _m_check_lock_info,
-        m_write_cache,
-        m_add_notice,
-        m_delete_cache_key,
-        _m_getpid,
-        FakeConfig,
-    ):
-        cfg = FakeConfig()
-        arg = mock.sentinel.arg
-
-        def test_function(args, cfg):
-            assert arg == mock.sentinel.arg
-            return mock.sentinel.success
-
-        with pytest.raises(LockHeldError) as exc:
-            with SingleAttemptLock(cfg=cfg, lock_holder="some operation"):
-                test_function(arg, cfg=cfg)
-
-        assert (
-            "Unable to perform: some operation.\n"
-            + LOCK_HELD.format(lock_holder="held", pid=10)
-            == exc.value.msg
-        )
-
-        assert [] == m_write_cache.call_args_list
-        assert [] == m_add_notice.call_args_list
-        assert [] == m_delete_cache_key.call_args_list
-
-
-class TestSpinLock:
     @mock.patch(M_PATH + "time.sleep")
     @mock.patch(
-        M_PATH + "SingleAttemptLock.__enter__",
+        M_PATH + "SpinLock.grab_lock",
         side_effect=[
             LockHeldError(
                 lock_request="request", lock_holder="holder", pid=10
@@ -144,7 +106,7 @@ class TestSpinLock:
 
     @mock.patch(M_PATH + "time.sleep")
     @mock.patch(
-        M_PATH + "SingleAttemptLock.__enter__",
+        M_PATH + "SpinLock.grab_lock",
         side_effect=[
             LockHeldError(
                 lock_request="request", lock_holder="holder", pid=10
