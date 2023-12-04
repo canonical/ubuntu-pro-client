@@ -11,7 +11,6 @@ Feature: Pro Install and Uninstall related tests
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     @uses.config.contract_token

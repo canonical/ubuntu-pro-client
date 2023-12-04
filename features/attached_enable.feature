@@ -61,7 +61,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
             | release | machine_type  | version    | full_name        |
             | focal   | lxd-container | 20.04 LTS  | Focal Fossa      |
             | jammy   | lxd-container | 22.04 LTS  | Jammy Jellyfish  |
-            | lunar   | lxd-container | 23.04      | Lunar Lobster    |
             | mantic  | lxd-container | 23.10      | Mantic Minotaur  |
 
     Scenario Outline: Empty series affordance means no series, null means all series
@@ -260,7 +259,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached enable not entitled service in a ubuntu machine

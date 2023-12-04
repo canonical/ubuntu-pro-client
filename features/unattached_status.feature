@@ -36,7 +36,6 @@ Feature: Unattached status
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Unattached status in a ubuntu machine

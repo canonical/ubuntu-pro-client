@@ -42,7 +42,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |
 
     @uses.config.contract_token

@@ -41,11 +41,11 @@ Feature: Upgrade between releases when uaclient is unattached
         And I verify that the folder `/var/lib/ubuntu-advantage/apt-esm` does not exist
         When I run `apt update` with sudo
         And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.list || true` with sudo
-        Then if `<next_release>` not in `lunar or mantic or noble` and stdout matches regexp:
+        Then if `<next_release>` not in `mantic or noble` and stdout matches regexp:
         """
         deb https://esm.ubuntu.com/apps/ubuntu <next_release>-apps-security main
         """
-        And if `<next_release>` not in `lunar or mantic or noble` and stdout matches regexp:
+        And if `<next_release>` not in `mantic or noble` and stdout matches regexp:
         """
         deb https://esm.ubuntu.com/apps/ubuntu <next_release>-apps-updates main
         """
@@ -61,6 +61,5 @@ Feature: Upgrade between releases when uaclient is unattached
         | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
         | bionic  | lxd-container | focal        | lts    |                 | enabled        |
         | focal   | lxd-container | jammy        | lts    |                 | enabled        |
-        | jammy   | lxd-container | lunar        | normal |                 | n/a            |
-        | lunar   | lxd-container | mantic       | normal |                 | n/a            |
+        | jammy   | lxd-container | mantic       | normal |                 | n/a            |
         | mantic  | lxd-container | noble        | normal | --devel-release | n/a            |

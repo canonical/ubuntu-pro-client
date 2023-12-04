@@ -29,7 +29,6 @@ Feature: Client behaviour for the API endpoints
         | bionic  | lxd-container |
         | focal   | lxd-container |
         | jammy   | lxd-container |
-        | lunar   | lxd-container |
         | mantic  | lxd-container |
 
     Scenario Outline: API invalid endpoint or args
@@ -51,7 +50,6 @@ Feature: Client behaviour for the API endpoints
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Basic endpoints
@@ -88,5 +86,4 @@ Feature: Client behaviour for the API endpoints
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
