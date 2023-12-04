@@ -13,7 +13,6 @@ SERIES_TO_VERSION = {
     "bionic": "18.04",
     "focal": "20.04",
     "jammy": "22.04",
-    "lunar": "23.04",
     "mantic": "23.10",
 }
 
@@ -27,16 +26,16 @@ PLATFORM_SERIES_TESTS = {
     "aws.generic": ["xenial", "bionic", "focal", "jammy"],
     "aws.pro": ["xenial", "bionic", "focal", "jammy"],
     "aws.pro-fips": ["xenial", "bionic", "focal"],
-    "azure.generic": ["xenial", "bionic", "focal", "jammy", "lunar"],
+    "azure.generic": ["xenial", "bionic", "focal", "jammy", "mantic"],
     "azure.pro": ["xenial", "bionic", "focal", "jammy"],
     "azure.pro-fips": ["xenial", "bionic", "focal"],
-    "gcp.generic": ["xenial", "bionic", "focal", "jammy", "lunar"],
+    "gcp.generic": ["xenial", "bionic", "focal", "jammy", "mantic"],
     "gcp.pro": ["xenial", "bionic", "focal", "jammy"],
     "gcp.pro-fips": ["bionic", "focal"],
-    "lxd-container": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
-    "lxd-vm": ["xenial", "bionic", "focal", "jammy", "lunar", "mantic"],
+    "lxd-container": ["xenial", "bionic", "focal", "jammy", "mantic"],
+    "lxd-vm": ["xenial", "bionic", "focal", "jammy", "mantic"],
     "docker": ["focal"],
-    "upgrade": ["xenial", "bionic", "focal", "jammy", "lunar"],
+    "upgrade": ["xenial", "bionic", "focal", "jammy", "mantic"],
 }
 
 PLATFORM_ARGS = {

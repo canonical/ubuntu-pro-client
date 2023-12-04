@@ -25,7 +25,6 @@ Feature: Logs in Json Array Formatter
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |
 
     Scenario Outline: Non-root user and root user log files are different
@@ -55,7 +54,6 @@ Feature: Logs in Json Array Formatter
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |
 
     Scenario Outline: Non-root user log files included in collect logs
@@ -80,5 +78,4 @@ Feature: Logs in Json Array Formatter
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |

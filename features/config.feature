@@ -49,4 +49,4 @@ Feature: pro config sub-command
             | release | machine_type  |
             | xenial  | lxd-container |
             | jammy   | lxd-container |
-            | lunar   | lxd-container |
+            | mantic  | lxd-container |

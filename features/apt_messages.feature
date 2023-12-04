@@ -673,7 +673,7 @@ Feature: APT Messages
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
+          | mantic  | lxd-container |
 
     Scenario Outline: Cloud and series-specific URLs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -744,4 +744,4 @@ Feature: APT Messages
         """
         Examples: ubuntu release
           | release | machine_type  |
-          | lunar   | lxd-container |
+          | mantic  | lxd-container |

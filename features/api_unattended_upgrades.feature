@@ -207,5 +207,4 @@ Feature: api.u.unattended_upgrades.status.v1
            | bionic  | lxd-container | "Unattended-Upgrade::DevRelease": "false" |
            | focal   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
            | jammy   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
-           | lunar   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
            | mantic  | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
