@@ -2,3 +2,4 @@ mypy
 types-PyYAML
 types-toml
 types-pycurl
+types-paramiko
