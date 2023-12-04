@@ -36,7 +36,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
         Examples: ubuntu release
             | release | machine_type  | landscape | status_string                                                           |
-            | lunar   | lxd-container | n/a       | No Ubuntu Pro services are available to this system.                    |
             | mantic  | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
     Scenario Outline: Attach command in a ubuntu lxd container

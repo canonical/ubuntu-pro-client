@@ -62,7 +62,6 @@ Feature: Pro supports multiple languages
         """
         Examples: ubuntu release
            | release | machine_type  |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     # Note: Translations do work on xenial, but our test environment triggers a bug in python that
@@ -223,5 +222,4 @@ Feature: Pro supports multiple languages
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |

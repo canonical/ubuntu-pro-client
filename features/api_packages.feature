@@ -33,4 +33,4 @@ Feature: Package related API endpoints
             | bionic  | lxd-container | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
             | focal   | lxd-container | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
             | jammy   | lxd-container | libcurl4        | 7.81.0-1         | standard-security |
-            | lunar   | lxd-container | libcurl4        | 7.88.1-8ubuntu1  | standard-security |
+            | mantic  | lxd-container | libcurl4        | 8.2.1-1ubuntu3   | standard-security |

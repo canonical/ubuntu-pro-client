@@ -26,7 +26,6 @@ Feature: Command behaviour when unattached
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
@@ -53,8 +52,6 @@ Feature: Command behaviour when unattached
            | xenial  | lxd-container | refresh |
            | jammy   | lxd-container | detach  |
            | jammy   | lxd-container | refresh |
-           | lunar   | lxd-container | detach  |
-           | lunar   | lxd-container | refresh |
            | mantic  | lxd-container | detach  |
            | mantic  | lxd-container | refresh |
 
@@ -100,7 +97,6 @@ Feature: Command behaviour when unattached
            | bionic  | lxd-container | yes             |
            | focal   | lxd-container | yes             |
            | jammy   | lxd-container | yes             |
-           | lunar   | lxd-container | no              |
            | mantic  | lxd-container | no              |
 
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
@@ -170,8 +166,6 @@ Feature: Command behaviour when unattached
           | focal   | lxd-container | disable  |
           | jammy   | lxd-container | enable   |
           | jammy   | lxd-container | disable  |
-          | lunar   | lxd-container | enable   |
-          | lunar   | lxd-container | disable  |
           | mantic  | lxd-container | enable   |
           | mantic  | lxd-container | disable  |
 
@@ -254,7 +248,6 @@ Feature: Command behaviour when unattached
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |
 
     # Side effect: this verifies that `ua` still works as a command
@@ -318,7 +311,6 @@ Feature: Command behaviour when unattached
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |
 
     Scenario Outline: esm cache failures don't generate errors
@@ -422,8 +414,7 @@ Feature: Command behaviour when unattached
         Examples: ubuntu release
           | release | machine_type  | python_version | suffix                  |
           | jammy   | lxd-container | python3.10     |                         |
-          # Lunar+ has a BIG error message explaining why this is a clear user error...
-          | lunar   | lxd-container | python3.11     | --break-system-packages |
+          # mantic+ has a BIG error message explaining why this is a clear user error...
           | mantic  | lxd-container | python3.11     | --break-system-packages |
 
 
@@ -516,5 +507,4 @@ Feature: Command behaviour when unattached
           | bionic  | lxd-container |
           | focal   | lxd-container |
           | jammy   | lxd-container |
-          | lunar   | lxd-container |
           | mantic  | lxd-container |

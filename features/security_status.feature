@@ -766,7 +766,7 @@ Feature: Security status command behavior
 
     # Latest released non-LTS
     Scenario: Run security status in an Ubuntu machine
-        Given a `lunar` `lxd-container` machine with ubuntu-advantage-tools installed
+        Given a `mantic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
         And I run `apt-get install -y ansible` with sudo

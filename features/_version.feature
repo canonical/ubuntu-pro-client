@@ -67,17 +67,6 @@ Feature: Pro is expected version
             | jammy   | gcp.generic    |
             | jammy   | gcp.pro        |
             | jammy   | gcp.pro-fips   |
-            | lunar   | lxd-container  |
-            | lunar   | lxd-vm         |
-            | lunar   | aws.generic    |
-            | lunar   | aws.pro        |
-            | lunar   | aws.pro-fips   |
-            | lunar   | azure.generic  |
-            | lunar   | azure.pro      |
-            | lunar   | azure.pro-fips |
-            | lunar   | gcp.generic    |
-            | lunar   | gcp.pro        |
-            | lunar   | gcp.pro-fips   |
             | mantic  | lxd-container  |
             | mantic  | lxd-vm         |
             | mantic  | aws.generic    |
@@ -118,5 +107,4 @@ Feature: Pro is expected version
             | bionic  | lxd-container |
             | focal   | lxd-container |
             | jammy   | lxd-container |
-            | lunar   | lxd-container |
             | mantic  | lxd-container |

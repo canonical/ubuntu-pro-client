@@ -51,7 +51,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
@@ -75,7 +74,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached disable with json format
@@ -276,7 +274,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached show version in a ubuntu machine
@@ -297,7 +294,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached status in a ubuntu machine with feature overrides
@@ -366,7 +362,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container |
            | xenial  | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Attached disable of different services in a ubuntu machine
@@ -527,7 +522,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type  | infra-status |
            | bionic  | lxd-container | enabled      |
            | xenial  | lxd-container | enabled      |
-           | lunar   | lxd-container | n/a          |
            | mantic  | lxd-container | n/a          |
 
     Scenario Outline: Help command on an attached machine
@@ -729,7 +723,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
-           | lunar   | lxd-container |
            | mantic  | lxd-container |
 
     Scenario Outline: Run timer script to valid machine activity endpoint
