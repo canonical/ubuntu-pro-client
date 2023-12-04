@@ -46,12 +46,18 @@ Feature: Command behaviour when unattached
            | release | machine_type  | command |
            | bionic  | lxd-container | detach  |
            | bionic  | lxd-container | refresh |
+           | bionic  | wsl           | detach  |
+           | bionic  | wsl           | refresh |
            | focal   | lxd-container | detach  |
            | focal   | lxd-container | refresh |
+           | focal   | wsl           | detach  |
+           | focal   | wsl           | refresh |
            | xenial  | lxd-container | detach  |
            | xenial  | lxd-container | refresh |
            | jammy   | lxd-container | detach  |
            | jammy   | lxd-container | refresh |
+           | jammy   | wsl           | detach  |
+           | jammy   | wsl           | refresh |
            | mantic  | lxd-container | detach  |
            | mantic  | lxd-container | refresh |
 
@@ -95,8 +101,11 @@ Feature: Command behaviour when unattached
            | release | machine_type  | infra-available |
            | xenial  | lxd-container | yes             |
            | bionic  | lxd-container | yes             |
+           | bionic  | wsl           | yes             |
            | focal   | lxd-container | yes             |
+           | focal   | wsl           | yes             |
            | jammy   | lxd-container | yes             |
+           | jammy   | wsl           | yes             |
            | mantic  | lxd-container | no              |
 
     Scenario Outline: Unattached enable/disable fails in a ubuntu machine
@@ -162,10 +171,16 @@ Feature: Command behaviour when unattached
           | xenial  | lxd-container | disable  |
           | bionic  | lxd-container | enable   |
           | bionic  | lxd-container | disable  |
+          | bionic  | wsl           | enable   |
+          | bionic  | wsl           | disable  |
           | focal   | lxd-container | enable   |
           | focal   | lxd-container | disable  |
+          | focal   | wsl           | enable   |
+          | focal   | wsl           | disable  |
           | jammy   | lxd-container | enable   |
           | jammy   | lxd-container | disable  |
+          | jammy   | wsl           | enable   |
+          | jammy   | wsl           | disable  |
           | mantic  | lxd-container | enable   |
           | mantic  | lxd-container | disable  |
 
