@@ -628,13 +628,13 @@ Feature: FIPS enablement in lxd VMs
         And I run `apt update` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `pro enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
+        Then stdout contains substring:
         """
         Updating <fips-name> package lists
         Installing <fips-name> packages
         Updating standard Ubuntu package lists
         <fips-name> enabled
-        A reboot is required to complete install
+        A reboot is required to complete install.
         """
         When I run `pro status --all` with sudo
         Then stdout matches regexp:
