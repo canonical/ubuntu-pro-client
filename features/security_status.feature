@@ -397,7 +397,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt cache may be outdated\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         This machine is NOT receiving security patches because the LTS period has ended
@@ -429,7 +429,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt information was updated 2 day\(s\) ago\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         This machine is NOT receiving security patches because the LTS period has ended
@@ -714,7 +714,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt cache may be outdated\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         This machine is receiving security patching for Ubuntu Main/Restricted
@@ -746,7 +746,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt information was updated 2 day\(s\) ago\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         This machine is receiving security patching for Ubuntu Main/Restricted
@@ -823,7 +823,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt cache may be outdated\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         Main/Restricted packages receive updates until 7/2024\.
@@ -845,7 +845,7 @@ Feature: Security status command behavior
         for a list of available options\.
 
         The system apt information was updated 2 day\(s\) ago\. Make sure to run
-            sudo apt-get update
+            sudo apt update
         to get the latest package information from apt\.
 
         Main/Restricted packages receive updates until 7/2024\.
