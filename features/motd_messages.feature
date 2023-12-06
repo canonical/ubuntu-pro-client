@@ -54,7 +54,7 @@ Feature: MOTD Messages
     Scenario Outline: Contract Expiration Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        And I run `apt-get install ansible -y` with sudo
+        And I apt install `ansible`
         And I attach `contract_token` with sudo
         And I set the machine token overlay to the following yaml
         """

@@ -11,7 +11,7 @@ Feature: FIPS enablement in lxd VMs
         {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured", "warning": null}
         """
         When I run `pro disable livepatch` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        And I apt install `openssh-client openssh-server strongswan`
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `pro enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
@@ -125,7 +125,7 @@ Feature: FIPS enablement in lxd VMs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `pro disable livepatch` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        And I apt install `openssh-client openssh-server strongswan`
         When I run `pro enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
@@ -268,7 +268,7 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        And I apt install `openssh-client openssh-server strongswan`
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout contains substring:
         """
@@ -323,7 +323,7 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        And I apt install `openssh-client openssh-server strongswan`
         When I run `pro enable <fips-service> --assume-yes` with sudo
         Then stdout contains substring:
         """
