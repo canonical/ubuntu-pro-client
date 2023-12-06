@@ -5,6 +5,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List  # noqa: F401
 
 from uaclient import defaults, system, util
+from uaclient.config import UAConfig
 
 
 class RedactionFilter(logging.Filter):
@@ -59,6 +60,17 @@ class JsonArrayFormatter(logging.Formatter):
 
         local_log_record["extra"] = extra_message_dict
         return json.dumps(list(local_log_record.values()))
+
+
+def get_user_or_root_log_file_path() -> str:
+    """
+    Gets the correct log_file path,
+    adjusting for whether the user is root or not.
+    """
+    if util.we_are_currently_root():
+        return UAConfig().log_file
+    else:
+        return "~/.cache/" + defaults.USER_CACHE_SUBDIR + "/ubuntu-pro.log"
 
 
 def get_user_log_file() -> str:
