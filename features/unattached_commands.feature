@@ -179,7 +179,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
         And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
@@ -194,7 +194,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
         When I run `pro status --format json` as non-root
@@ -202,7 +202,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
         When I run `pro config show` as non-root
@@ -210,7 +210,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
         When I run `pro api u.pro.version.v1` as non-root
@@ -228,7 +228,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
         When I run `apt-get update` with sudo
@@ -238,7 +238,7 @@ Feature: Command behaviour when unattached
         """
         .*\[info\].* A new version is available: 2:99.9.9
         Please run:
-            sudo apt-get install ubuntu-advantage-tools
+            sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
 
