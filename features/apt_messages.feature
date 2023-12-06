@@ -4,7 +4,7 @@ Feature: APT Messages
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt-get upgrade -y` with sudo
         When I apt install `<standard-pkg>`
         When I run `apt upgrade -y` with sudo
@@ -94,7 +94,7 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt-get -y upgrade` with sudo
         When I run `apt-get -y autoremove` with sudo
         When I run `pro config set apt_news=false` with sudo
@@ -150,7 +150,7 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
         When I apt install `<package>`
@@ -209,15 +209,15 @@ Feature: APT Messages
     Scenario Outline: APT News
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        # On interim releases we will not enable any service, so we need a manual apt-get update
-        When I run `apt-get update` with sudo
+        # On interim releases we will not enable any service, so we need a manual apt update
+        When I apt update
         When I run `DEBIAN_FRONTEND=noninteractive apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get autoremove -y` with sudo
         When I apt install `jq`
         When I run `pro detach --assume-yes` with sudo
 
         Given a `focal` `<machine_type>` machine named `apt-news-server`
-        When I run `apt-get update` `with sudo` on the `apt-news-server` machine
+        When I apt update on the `apt-news-server` machine
         When I apt install `nginx` on the `apt-news-server` machine
         When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
         When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
@@ -283,7 +283,7 @@ Feature: APT Messages
         }
         """
         # apt update stamp will prevent a apt_news refresh
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt upgrade` with sudo
         Then I will see the following on stdout
         """
@@ -328,7 +328,7 @@ Feature: APT Messages
         When I run `rm -rf /run/ubuntu-advantage` with sudo
         When I run `rm -rf /var/lib/ubuntu-advantage/messages` with sudo
         When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
-        When I run `apt-get update` with sudo
+        When I apt update
         # the apt-news.service unit runs in the background, give it some time to fetch the json file
         When I wait `5` seconds
         When I run `apt upgrade` with sudo
@@ -562,7 +562,7 @@ Feature: APT Messages
         """
         # test that apt update will trigger hook to update apt_news for local override
         When I run `rm -f /var/lib/apt/periodic/update-success-stamp` with sudo
-        When I run `apt-get update` with sudo
+        When I apt update
         # the apt-news.service unit runs in the background, give it some time to fetch the json file
         When I wait `5` seconds
         When I run `apt upgrade` with sudo
@@ -675,9 +675,10 @@ Feature: APT Messages
 
     Scenario Outline: Cloud and series-specific URLs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I apt install `ansible`
-        When I run `apt-get update` with sudo
+        # Update after installing to make sure messages are there
+        When I apt update
         When I run `apt upgrade --dry-run` with sudo
         Then stdout contains substring:
         """
@@ -698,7 +699,7 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
         When I apt install `hello`

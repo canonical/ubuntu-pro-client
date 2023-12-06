@@ -40,7 +40,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo, retrying exit [100]
+        When I apt update
         And I apt install `update-motd`
         And I apt install `<downrev_pkg>`
         And I run `pro refresh messages` with sudo
