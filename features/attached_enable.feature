@@ -223,7 +223,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I apt install `<infra-pkg>`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
@@ -551,7 +551,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Pin: release o=*
         Pin-Priority: -10
         """
-        And I run `apt-get update` with sudo
+        And I apt update
         When I attempt to attach `contract_token` with sudo
         Then I will see the following on stderr:
         """
@@ -974,7 +974,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that `esm-apps` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `510`
         """
@@ -984,7 +984,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I apt install `<apps-pkg>`
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:

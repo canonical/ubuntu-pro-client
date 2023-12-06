@@ -2,7 +2,7 @@ Feature: Ua fix command behaviour
 
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt remove ca-certificates -y` with sudo
         When I run `rm -f /etc/ssl/certs/ca-certificates.crt` with sudo
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
@@ -31,7 +31,7 @@ Feature: Ua fix command behaviour
 
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
@@ -203,7 +203,7 @@ Feature: Ua fix command behaviour
         """
         Error: USN-12345-12 not found.
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         When I apt install `libawl-php`
         And I reboot the machine
         And I run `pro fix USN-4539-1` as non-root
@@ -515,7 +515,7 @@ Feature: Ua fix command behaviour
         When I run `pro detach --assume-yes` with sudo
         And I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I apt install `squid`
         And I verify that running `pro fix CVE-2020-25097` `as non-root` exits `1`
         Then stdout matches regexp:
@@ -539,7 +539,7 @@ Feature: Ua fix command behaviour
 
     Scenario: Fix command on an unattached machine
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
-        When I run `apt-get update` with sudo
+        When I apt update
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
@@ -827,7 +827,7 @@ Feature: Ua fix command behaviour
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/bionic-security/d" /etc/apt/sources.list` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I run `wget -O pkg.deb https://launchpad.net/ubuntu/+source/openssl/1.1.1-1ubuntu2.1~18.04.14/+build/22454675/+files/openssl_1.1.1-1ubuntu2.1~18.04.14_amd64.deb` as non-root
         And I run `dpkg -i pkg.deb` with sudo
         And I verify that running `pro fix CVE-2023-0286` `as non-root` exits `1`

@@ -231,8 +231,8 @@ Feature: Command behaviour when unattached
             sudo apt install ubuntu-advantage-tools
         to get the latest bug fixes and new features.
         """
-        When I run `apt-get update` with sudo
-        # apt-get update will bring a new candidate, which is the current installed version
+        When I apt update
+        # The update will bring a new candidate, which is the current installed version
         And I run `pro status` as non-root
         Then stderr does not match regexp:
         """
@@ -316,7 +316,7 @@ Feature: Command behaviour when unattached
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
-        And I update apt package lists
+        And I apt update
         # Wait for the hook to fail
         When I wait `5` seconds
         And I run `systemctl --failed` with sudo
@@ -350,7 +350,7 @@ Feature: Command behaviour when unattached
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I update apt package lists
+        When I apt update
         And I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
         And I verify that running `pro status` `with sudo` exits `1`
         Then stderr matches regexp:

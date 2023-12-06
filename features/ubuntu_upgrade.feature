@@ -72,7 +72,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
         When I run `pro status --all` with sudo
         Then I verify that `<fips-service>` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I reboot the machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:

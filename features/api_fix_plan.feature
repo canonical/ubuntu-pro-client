@@ -61,7 +61,7 @@ Feature: Fix plan API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["krb5"\], "description": ".*", "error": null, "expected_status": "fixed", "plan": \[{"data": {"pocket": "standard-updates", "source_packages": \["krb5"\], "status": "cve-already-fixed"}, "operation": "no-op", "order": 1}\], "title": "CVE-2020-28196", "warnings": \[\]}, {"additional_data": {}, "affected_packages": \[\], "description": ".*", "error": null, "expected_status": "not-affected", "plan": \[{"data": {"status": "system-not-affected"}, "operation": "no-op", "order": 1}], "title": "CVE-2022-24959", "warnings": \[\]}\], "expected_status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I apt install `libawl-php=0.60-1`
         And I run `pro api u.pro.security.fix.usn.plan.v1 --data '{"usns": ["USN-4539-1"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
@@ -106,7 +106,7 @@ Feature: Fix plan API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["krb5"\], "description": ".*", "error": null, "expected_status": "fixed", "plan": \[{"data": {"pocket": "standard-updates", "source_packages": \["krb5"\], "status": "cve-already-fixed"}, "operation": "no-op", "order": 1}\], "title": "CVE-2020-28196", "warnings": \[\]}\], "expected_status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I apt install `expat=2.1.0-7 swish-e matanza ghostscript`
         And I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2017-9233"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
@@ -161,7 +161,7 @@ Feature: Fix plan API endpoints
         """
         When I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I apt install `squid`
         And I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-25097"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
@@ -184,7 +184,7 @@ Feature: Fix plan API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["krb5"\], "description": ".*", "error": null, "expected_status": "fixed", "plan": \[{"data": {"pocket": "standard-updates", "source_packages": \["krb5"\], "status": "cve-already-fixed"}, "operation": "no-op", "order": 1}\], "title": "CVE-2020-28196", "warnings": \[\]}\], "expected_status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I apt install `xterm=330-1ubuntu2`
         And I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2021-27135"]}'` as non-root
         Then stdout is a json matching the `api_response` schema

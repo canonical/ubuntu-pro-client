@@ -81,7 +81,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy::esm.ubuntu.com \".*\";
         Acquire::https::Proxy::esm.ubuntu.com \".*\";
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -253,7 +253,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt update` `with sudo` on the `proxy` machine
+        When I apt update on the `proxy` machine
         And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -312,7 +312,7 @@ Feature: Proxy configuration
         .*CONNECT esm.ubuntu.com.*
         """
         When I run `pro refresh config` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -347,7 +347,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt update` `with sudo` on the `proxy` machine
+        When I apt update on the `proxy` machine
         And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -452,7 +452,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy::esm.ubuntu.com \".*\";
         Acquire::https::Proxy::esm.ubuntu.com \".*\";
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -535,7 +535,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt update` `with sudo` on the `proxy` machine
+        When I apt update on the `proxy` machine
         And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -567,7 +567,7 @@ Feature: Proxy configuration
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro refresh config` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -691,7 +691,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy \".*\";
         Acquire::https::Proxy \".*\";
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -768,7 +768,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt update` `with sudo` on the `proxy` machine
+        When I apt update on the `proxy` machine
         And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -831,7 +831,7 @@ Feature: Proxy configuration
         .*CONNECT esm.ubuntu.com.*
         """
         When I run `pro refresh config` with sudo
-        And I run `apt-get update` with sudo
+        And I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -895,7 +895,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy \".*\";
         Acquire::https::Proxy \".*\";
         """
-        When I run `apt-get update` with sudo
+        When I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -1072,7 +1072,7 @@ Feature: Proxy configuration
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `apt-get update` with sudo
+        When I apt update
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -1180,7 +1180,7 @@ Feature: Proxy configuration
 
         # set up a HTTPS proxy
         Given a `jammy` `<machine_type>` machine named `proxy`
-        When I update apt package lists on the `proxy` machine
+        When I apt update on the `proxy` machine
         And I apt install `openssl libssl-dev ssl-cert squid-openssl apache2-utils` on the `proxy` machine
         And I run `openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes -out ca.crt -keyout ca.key -subj "/C=CN/ST=BJ/O=STS/CN=CA"` `with sudo` on the `proxy` machine
         And I run `openssl genrsa -out $behave_var{machine-name proxy}.lxd.key` `with sudo` on the `proxy` machine

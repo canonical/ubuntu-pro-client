@@ -3,7 +3,7 @@ Feature: Logs in Json Array Formatter
     @uses.config.contract_token
     Scenario Outline: The log file can be successfully parsed as json array
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I update apt package lists
+        When I apt update
         And I apt install `jq`
         And I verify that running `pro status` `with sudo` exits `0`
         And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
