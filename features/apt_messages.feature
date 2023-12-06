@@ -629,14 +629,14 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # *Your Ubuntu Pro subscription has EXPIRED*
-        # Renew your service at https://ubuntu.com/pro/dashboard
+        # Renew your subscription at https://ubuntu.com/pro/dashboard
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
-        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro/dashboard"
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
@@ -658,14 +658,14 @@ Feature: APT Messages
         Calculating upgrade...
         #
         # *Your Ubuntu Pro subscription has EXPIRED*
-        # Renew your service at https://ubuntu.com/pro/dashboard
+        # Renew your subscription at https://ubuntu.com/pro/dashboard
         #
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
         Then I will see the following on stdout
         """
-        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your service at https://ubuntu.com/pro/dashboard"
+        "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
         """
         Examples: ubuntu release
           | release | machine_type  |

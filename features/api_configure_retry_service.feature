@@ -35,7 +35,7 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.
@@ -44,7 +44,7 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.

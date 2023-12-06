@@ -30,7 +30,7 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
         The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: ".*".
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.
@@ -39,7 +39,7 @@ Feature: auto-attach retries periodically on failures
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 1 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
         The failure was due to: Canonical servers did not recognize this machine as Ubuntu Pro: ".*".
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.
@@ -66,7 +66,7 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 11 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.
@@ -75,7 +75,7 @@ Feature: auto-attach retries periodically on failures
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 11 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 11 time\(s\).
         The failure was due to: an unknown error.
         The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
         You can try manually with `sudo pro auto-attach`.
@@ -101,7 +101,7 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services 19 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 19 time\(s\).
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo pro auto-attach`.
@@ -110,7 +110,7 @@ Feature: auto-attach retries periodically on failures
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services 19 time\(s\).
+        Failed to automatically attach to an Ubuntu Pro subscription 19 time\(s\).
         The most recent failure was due to: an unknown error.
         Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
         You can try manually with `sudo pro auto-attach`.
@@ -172,13 +172,13 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I append the following on uaclient config:
         """
@@ -196,13 +196,13 @@ Feature: auto-attach retries periodically on failures
         Then I verify that running `run-parts /etc/update-motd.d/` `with sudo` exits `0,1`
         Then stdout does not match regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I run `pro status` with sudo
         Then stdout does not match regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         Examples: ubuntu release
            | release | machine_type |
@@ -268,13 +268,13 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         Examples: ubuntu release
            | release | machine_type |
@@ -327,13 +327,13 @@ Feature: auto-attach retries periodically on failures
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I run `pro status` with sudo
         Then stdout matches regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I append the following on uaclient config:
         """
@@ -351,13 +351,13 @@ Feature: auto-attach retries periodically on failures
         Then I verify that running `run-parts /etc/update-motd.d/` `with sudo` exits `0,1`
         Then stdout does not match regexp:
         """
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         When I run `pro status` with sudo
         Then stdout does not match regexp:
         """
         NOTICES
-        Failed to automatically attach to Ubuntu Pro services
+        Failed to automatically attach to an Ubuntu Pro subscription
         """
         Examples: ubuntu release
            | release | machine_type |
