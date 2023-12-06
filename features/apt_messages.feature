@@ -6,8 +6,7 @@ Feature: APT Messages
         When I attach `contract_token` with sudo
         When I run `apt-get update` with sudo
         When I run `apt-get upgrade -y` with sudo
-
-        When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
+        When I apt install `<standard-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -16,7 +15,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
+        When I apt install `<infra-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -25,7 +24,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
+        When I apt install `<apps-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -34,8 +33,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
-        When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
+        When I apt install `<standard-pkg> <infra-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -44,8 +42,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
-        When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
+        When I apt install `<standard-pkg> <apps-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -54,8 +51,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
-        When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
+        When I apt install `<infra-pkg> <apps-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -64,9 +60,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt-get install -y --allow-downgrades <standard-pkg>` with sudo
-        When I run `apt-get install -y --allow-downgrades <infra-pkg>` with sudo
-        When I run `apt-get install -y --allow-downgrades <apps-pkg>` with sudo
+        When I apt install `<standard-pkg> <infra-pkg> <apps-pkg>`
         When I run `apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
@@ -159,7 +153,7 @@ Feature: APT Messages
         When I run `apt-get update` with sudo
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
-        When I run `apt-get install <package> -y` with sudo
+        When I apt install `<package>`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo
@@ -682,7 +676,7 @@ Feature: APT Messages
     Scenario Outline: Cloud and series-specific URLs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `apt-get install ansible -y` with sudo
+        When I apt install `ansible`
         When I run `apt-get update` with sudo
         When I run `apt upgrade --dry-run` with sudo
         Then stdout contains substring:
@@ -707,7 +701,7 @@ Feature: APT Messages
         When I run `apt-get update` with sudo
         When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
         When I run `apt-get -y autoremove` with sudo
-        When I run `apt-get install hello -y` with sudo
+        When I apt install `hello`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I run `apt upgrade` with sudo

@@ -20,7 +20,7 @@ Feature: Livepatch
         Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         """
         Then I verify that files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
-        When I run `apt-get install linux-generic -y` with sudo
+        When I apt install `linux-generic`
         When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
         When I run `update-grub` with sudo
         When I reboot the machine
@@ -68,7 +68,7 @@ Feature: Livepatch
         Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
 
         """
-        When I run `apt-get install linux-generic -y` with sudo
+        When I apt install `linux-generic`
         When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
         When I run `update-grub` with sudo
         When I reboot the machine
@@ -90,7 +90,7 @@ Feature: Livepatch
     Scenario Outline: Attached livepatch status shows upgrade required when on an old kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        When I run `apt-get install linux-headers-<old_kernel_version> linux-image-<old_kernel_version> -y` with sudo
+        When I apt install `linux-headers-<old_kernel_version> linux-image-<old_kernel_version>`
         When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-gcp -y` with sudo
         When I run `update-grub` with sudo
         When I reboot the machine
@@ -108,7 +108,7 @@ Feature: Livepatch
         Please upgrade the kernel with apt and reboot for continued livepatch support.
 
         """
-        When I run `apt-get install linux-headers-generic linux-image-generic -y` with sudo
+        When I apt install `linux-headers-generic linux-image-generic`
         When I reboot the machine
         When I run `uname -r` with sudo
         Then stdout does not contain substring:
@@ -160,7 +160,7 @@ Feature: Livepatch
         # HWE kernel for that release.
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        When I run `apt-get install linux-generic-hwe-<release_num> -y` with sudo
+        When I apt install `linux-generic-hwe-<release_num>`
         When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
         When I run `update-grub` with sudo
         When I reboot the machine

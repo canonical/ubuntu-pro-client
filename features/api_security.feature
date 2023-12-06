@@ -21,9 +21,9 @@ Feature: API security/security status tests
         Then I verify that `esm-infra` is enabled
         When I run `apt update` with sudo
         And I run `apt upgrade -y` with sudo
-        And I run `apt install jq bzip2 -y` with sudo
+        And I apt install `jq bzip2`
         # Install the oscap version 1.3.7 which solved the epoch error message issue
-        And I run `apt-get install -y cmake libdbus-1-dev libdbus-glib-1-dev libcurl4-openssl-dev libgcrypt20-dev libselinux1-dev libxslt1-dev libgconf2-dev libacl1-dev libblkid-dev libcap-dev libxml2-dev libldap2-dev libpcre3-dev swig libxml-parser-perl libxml-xpath-perl libperl-dev libbz2-dev g++ libapt-pkg-dev libyaml-dev libxmlsec1-dev libxmlsec1-openssl` with sudo
+        And I apt install `cmake libdbus-1-dev libdbus-glib-1-dev libcurl4-openssl-dev libgcrypt20-dev libselinux1-dev libxslt1-dev libgconf2-dev libacl1-dev libblkid-dev libcap-dev libxml2-dev libldap2-dev libpcre3-dev swig libxml-parser-perl libxml-xpath-perl libperl-dev libbz2-dev g++ libapt-pkg-dev libyaml-dev libxmlsec1-dev libxmlsec1-openssl`
         And I run `wget https://github.com/OpenSCAP/openscap/releases/download/1.3.7/openscap-1.3.7.tar.gz` as non-root
         And I run `tar xzf openscap-1.3.7.tar.gz` as non-root
         And I run shell command `mkdir -p openscap-1.3.7/build` as non-root
@@ -56,7 +56,7 @@ Feature: API security/security status tests
         oval:com.ubuntu.<release>:def:<CVE_ID>:\s+false
         """
         # Downgrade the package 
-        When I run shell command `apt install libgnutls30=<base_version> -y --allow-downgrades` with sudo
+        When I apt install `libgnutls30=<base_version>`
         And I run shell command `pro api u.security.package_manifest.v1 | jq -r '.data.attributes.manifest_data' > manifest` as non-root
         And I run shell command `oscap oval eval --report report.html oci.com.ubuntu.<release>.usn.oval.xml` as non-root
         Then stdout matches regexp:

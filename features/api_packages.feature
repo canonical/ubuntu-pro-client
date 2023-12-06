@@ -17,7 +17,7 @@ Feature: Package related API endpoints
         When I attach `contract_token` with sudo
         And I run `apt upgrade -y` with sudo
         # Install some outdated package
-        And I run `apt install <package>=<outdated_version> -y --allow-downgrades` with sudo
+        And I apt install `<package>=<outdated_version>`
         # See the update there
         When I store candidate version of package `<package>`
         And I regexify `candidate` stored var

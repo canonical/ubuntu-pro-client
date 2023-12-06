@@ -3,7 +3,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     Scenario Outline: Proxy auto-attach on a cloud Ubuntu Pro machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3389`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
@@ -104,7 +104,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
+        When I apt install `<infra-pkg>/<release>-infra-security`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -114,7 +114,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         Installed: .*[~+]esm
         """
-        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo, retrying exit [100]
+        When I apt install `<apps-pkg>/<release>-apps-security`
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:
         """

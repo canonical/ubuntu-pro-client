@@ -73,7 +73,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         <fips-apt-source> amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
+        When I apt install `<infra-pkg>/<release>-infra-security`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -87,7 +87,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         Installed: .*[~+]esm
         """
-        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo, retrying exit [100]
+        When I apt install `<apps-pkg>/<release>-apps-security`
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:
         """

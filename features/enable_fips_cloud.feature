@@ -18,7 +18,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
+        And I apt install `openssh-client openssh-server strongswan`
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -52,7 +52,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
+        And I apt install `openssh-client openssh-server strongswan`
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -86,7 +86,7 @@ Feature: FIPS enablement in cloud based machines
     Scenario Outline: FIPS unholds packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
+        And I apt install `openssh-client openssh-server strongswan`
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `pro enable fips --assume-yes` with sudo
         Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`

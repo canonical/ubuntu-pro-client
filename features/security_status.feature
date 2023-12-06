@@ -4,7 +4,7 @@ Feature: Security status command behavior
     Scenario Outline: Run security status with JSON/YAML format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo
-        And I run `apt-get install ansible -y` with sudo
+        And I apt install `ansible`
         And I run `pro security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
@@ -111,7 +111,7 @@ Feature: Security status command behavior
         Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
-        And I run `apt-get install -y ansible` with sudo
+        And I apt install `ansible`
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
         Then stdout matches regexp:
@@ -452,7 +452,7 @@ Feature: Security status command behavior
         Given a `focal` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
-        And I run `apt-get install -y ansible` with sudo
+        And I apt install `ansible`
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
         Then stdout matches regexp:
@@ -769,7 +769,7 @@ Feature: Security status command behavior
         Given a `mantic` `lxd-container` machine with ubuntu-advantage-tools installed
         When I install third-party / unknown packages in the machine
         # Ansible is in esm-apps
-        And I run `apt-get install -y ansible` with sudo
+        And I apt install `ansible`
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
         Then stdout matches regexp:

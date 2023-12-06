@@ -7,7 +7,7 @@ Feature: Upgrade between releases when uaclient is unattached
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Local PPAs are prepared and served only when testing with local debs
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
-        And I run `apt update` with sudo
+        And I update apt package lists
         And I run `sleep 30` as non-root
         And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.list || true` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
