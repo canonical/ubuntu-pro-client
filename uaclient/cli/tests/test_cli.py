@@ -862,13 +862,6 @@ class TestGetValidEntitlementNames:
         assert expected_ents_not_found == actual_ents_not_found
 
 
-expected_notice = r""".*[info].* A new version is available: 1.2.3
-Please run:
-    sudo apt-get install ubuntu-advantage-tools
-to get the latest bug fixes and new features.
-"""
-
-
 # There is a fixture for this function to avoid leaking, as it is called in
 # the main CLI function. So, instead of importing it directly, we are using
 # the reference for the fixture to test it.
