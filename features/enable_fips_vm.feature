@@ -32,7 +32,7 @@ Feature: FIPS enablement in lxd VMs
         """
         FIPS support requires system reboot to complete configuration
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
@@ -141,7 +141,7 @@ Feature: FIPS enablement in lxd VMs
         A reboot is required to complete install.
         """
         And I verify that `<fips-service>` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
@@ -279,7 +279,7 @@ Feature: FIPS enablement in lxd VMs
         A reboot is required to complete install.
         """
         And I verify that `<fips-service>` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
@@ -334,7 +334,7 @@ Feature: FIPS enablement in lxd VMs
         A reboot is required to complete install.
         """
         And I verify that `<fips-service>` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`

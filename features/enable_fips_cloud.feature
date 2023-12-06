@@ -127,7 +127,7 @@ Feature: FIPS enablement in cloud based machines
         A reboot is required to complete install
         """
         And I verify that `<fips-service>` is enabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `apt-cache policy <fips-package>` as non-root
         Then stdout does not match regexp:
