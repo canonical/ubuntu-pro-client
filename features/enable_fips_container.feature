@@ -30,7 +30,7 @@ Feature: FIPS enablement in lxd containers
         """
         FIPS support requires system reboot to complete configuration
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that `openssh-server` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         And I verify that `openssh-client` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`
         And I verify that `strongswan` is installed from apt source `https://esm.ubuntu.com/fips<updates>/ubuntu <release><updates>/main`

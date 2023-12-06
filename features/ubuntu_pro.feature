@@ -103,7 +103,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I apt install `<infra-pkg>/<release>-infra-security`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:

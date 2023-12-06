@@ -15,7 +15,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I verify that `esm-infra` is enabled
         And I verify that `fips` is enabled
         And I verify that `fips-updates` is disabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
@@ -72,7 +72,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         <fips-apt-source> amd64 Packages
         """
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         When I apt install `<infra-pkg>/<release>-infra-security`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
@@ -160,7 +160,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I verify that `esm-infra` is enabled
         And I verify that `fips` is enabled
         And I verify that `fips-updates` is disabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
@@ -190,7 +190,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         And I verify that `esm-infra` is enabled
         And I verify that `fips` is enabled
         And I verify that `fips-updates` is disabled
-        And I verify that running `apt update` `with sudo` exits `0`
+        And I ensure apt update runs without errors
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`

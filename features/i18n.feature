@@ -16,7 +16,7 @@ Feature: Pro supports multiple languages
         """
         não
         """
-        When I update apt package lists
+        When I apt update
         And I apt install `jq`
         And I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --format json | jq .services[0].available` as non-root
         Then I will see the following on stdout:
@@ -47,7 +47,7 @@ Feature: Pro supports multiple languages
         """
         não
         """
-        When I update apt package lists
+        When I apt update
         And I apt install `jq`
         And I run shell command `LANGUAGE=pt_BR.UTF-8 pro status --format json | jq .result` as non-root
         Then I will see the following on stdout:
@@ -85,10 +85,10 @@ Feature: Pro supports multiple languages
     Scenario Outline: apt-hook translations work
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `apt-get update` with sudo
+        When I apt update
         When I run `apt-get upgrade -y` with sudo
         When I run `pro detach --assume-yes` with sudo
-        When I run `apt-get update` with sudo
+        When I apt update
         When I apt install `hello`
         When I attach `contract_token` with sudo
         When I run shell command `LANGUAGE=pt_BR.UTF-8 apt upgrade -y` with sudo
@@ -123,7 +123,7 @@ Feature: Pro supports multiple languages
         """
         Architecture:
         """
-        When I update apt package lists
+        When I apt update
         Then stdout does not match regexp:
         """
         Hit

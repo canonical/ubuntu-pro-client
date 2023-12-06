@@ -19,7 +19,7 @@ Feature: API security/security status tests
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that `esm-infra` is enabled
-        When I run `apt update` with sudo
+        When I apt update
         And I run `apt upgrade -y` with sudo
         And I apt install `jq bzip2`
         # Install the oscap version 1.3.7 which solved the epoch error message issue
