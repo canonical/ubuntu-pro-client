@@ -66,7 +66,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
-from uaclient.log import JsonArrayFormatter
+from uaclient.log import JsonArrayFormatter, get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
@@ -1766,7 +1766,10 @@ def main_error_handler(func):
             LOG.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
-                info_msg=messages.UNEXPECTED_ERROR.format(error_msg=str(e)),
+                info_msg=messages.UNEXPECTED_ERROR.format(
+                    error_msg=str(e),
+                    log_path=get_user_or_root_log_file_path(),
+                ),
                 file_type=sys.stderr,
             )
             event.error(

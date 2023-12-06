@@ -1557,10 +1557,9 @@ UNEXPECTED_ERROR = FormattedNamedMessage(
     "unexpected-error",
     t.gettext(
         """\
-Unexpected error(s) occurred: {error_msg}
-For more details, see the log: ~/.cache/ubuntu-pro/ubuntu-pro.log
-First, try searching online for solutions to this error.
-Otherwise, file a bug using the command: ubuntu-bug ubuntu-advantage-tools"""
+An unexpected error occurred: {error_msg}
+For more details, see the log: {log_path}
+If you think this is a bug, please run: ubuntu-bug ubuntu-advantage-tools"""
     ),
 )
 
