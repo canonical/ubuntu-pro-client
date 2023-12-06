@@ -4,12 +4,12 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -39,8 +39,7 @@ Feature: Proxy configuration
         """
         .*CONNECT contracts.canonical.com.*
         """
-        When I run `pro status` with sudo
-        Then the machine is attached
+        And the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -158,12 +157,12 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -200,11 +199,11 @@ Feature: Proxy configuration
         """
         When I run `pro refresh config` with sudo
         Then I will see the following on stdout:
-            """
-            Setting snap proxy
-            Setting Livepatch proxy
-            Successfully processed your pro configuration.
-            """
+        """
+        Setting snap proxy
+        Setting Livepatch proxy
+        Successfully processed your pro configuration.
+        """
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
         {
@@ -253,14 +252,14 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-            """
+        """
+        dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -347,14 +346,14 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-            """
+        """
+        dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -396,12 +395,12 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
@@ -418,8 +417,7 @@ Feature: Proxy configuration
         """
         .*CONNECT contracts.canonical.com.*
         """
-        When I run `pro status` with sudo
-        Then the machine is attached
+        And the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
@@ -536,14 +534,14 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-            """
+        """
+        dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
         """
@@ -610,12 +608,12 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -650,8 +648,7 @@ Feature: Proxy configuration
         """
         .*CONNECT contracts.canonical.com.*
         """
-        When I run `pro status` with sudo
-        Then the machine is attached
+        And the machine is attached
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -770,14 +767,14 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
         And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-            """
+        """
+        dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -868,12 +865,12 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: Get warning when configuring global or uaclient proxy
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
@@ -1019,7 +1016,7 @@ Feature: Proxy configuration
     @slow
     Scenario Outline: apt_http(s)_proxy still works
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -1155,23 +1152,20 @@ Feature: Proxy configuration
     Scenario: Enable realtime kernel through proxy on a machine with no internet
         Given a `jammy` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
-        Given a `focal` machine named `proxy`
+        Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I run `pro config set global_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
         And I attach `contract_token` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps     +yes      +enabled      +Expanded Security Maintenance for Applications
-        esm-infra     +yes      +enabled      +Expanded Security Maintenance for Infrastructure
-        """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
         When I run `pro disable livepatch --assume-yes` with sudo
         When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
         Then stdout contains substring:

@@ -4,11 +4,7 @@ Feature: Enable anbox on Ubuntu
     Scenario Outline: Enable Anbox cloud service in a container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo and options `--no-auto-enable`
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +disabled
-        """
+        Then I verify that `anbox-cloud` is disabled
         Then I verify that running `pro enable anbox-cloud` `as non-root` exits `1`
         And I will see the following on stderr:
         """
@@ -28,22 +24,14 @@ Feature: Enable anbox on Ubuntu
         Updating Anbox Cloud package lists
         Anbox Cloud access enabled
         """
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +enabled
-        """
+        And I verify that `anbox-cloud` is enabled
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has priority `500`
         """
         https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
         """
         When I run `pro disable anbox-cloud` with sudo
-        And I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +disabled
-        """
+        Then I verify that `anbox-cloud` is disabled
 
         Examples: ubuntu release
             | release | machine_type  |
@@ -74,11 +62,7 @@ Feature: Enable anbox on Ubuntu
         Updating Anbox Cloud package lists
         Anbox Cloud access enabled
         """
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +enabled
-        """
+        And I verify that `anbox-cloud` is enabled
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has priority `500`
         """
@@ -91,11 +75,7 @@ Feature: Enable anbox on Ubuntu
         When I run `cat /var/lib/ubuntu-advantage/private/anbox-cloud-credentials` with sudo
         Then stdout is a json matching the `anbox_cloud_credentials` schema
         When I run `pro disable anbox-cloud` with sudo
-        And I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +disabled
-        """
+        Then I verify that `anbox-cloud` is disabled
         And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
         When I run `pro enable anbox-cloud --assume-yes` with sudo
         Then I will see the following on stdout:
@@ -115,11 +95,7 @@ Feature: Enable anbox on Ubuntu
         configuration changes.
         For more information, see https://anbox-cloud.io/docs/tut/installing-appliance#initialise
         """
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +enabled
-        """
+        Then I verify that `anbox-cloud` is enabled
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has priority `500`
         """
@@ -132,11 +108,7 @@ Feature: Enable anbox on Ubuntu
         When I run `cat /var/lib/ubuntu-advantage/private/anbox-cloud-credentials` with sudo
         Then stdout is a json matching the `anbox_cloud_credentials` schema
         When I run `pro disable anbox-cloud` with sudo
-        And I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        anbox-cloud +yes +disabled
-        """
+        Then I verify that `anbox-cloud` is disabled
         And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
 
         Examples: ubuntu release

@@ -8,10 +8,7 @@ Feature: Reboot Commands
         When I run `pro enable fips --assume-yes` with sudo
         When I reboot the machine
         When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        fips +yes +enabled
-        """
+        Then I verify that `fips` is enabled
         When I run `apt install -y --allow-downgrades strongswan=<old_version>` with sudo
         When I run `apt-mark hold strongswan` with sudo
         When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo

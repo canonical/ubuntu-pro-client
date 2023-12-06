@@ -1,6 +1,7 @@
 import json
 
 from behave import then, when
+from hamcrest import assert_that, equal_to
 
 from features.steps.contract import change_contract_endpoint_to_staging
 from features.steps.shell import (
@@ -8,6 +9,7 @@ from features.steps.shell import (
     when_i_retry_run_command,
     when_i_run_command,
 )
+from features.util import SUT
 
 ERROR_CODE = "1"
 
@@ -70,13 +72,22 @@ def when_i_verify_attach_expired_token_with_json_response(context, spec):
     )
 
 
-@then("the machine is attached")
-def then_the_machine_is_attached(context):
+def is_machine_attached(context, machine_name=SUT):
     when_i_run_command(
         context,
-        command="pro api u.pro.status.is_attached.v1",
-        user_spec="as non-root",
+        "pro api u.pro.status.is_attached.v1",
+        "as non-root",
+        machine_name=machine_name,
     )
+    data = json.loads(context.process.stdout.strip())
+    return data["data"]["attributes"]["is_attached"]
 
-    is_attached_resp = json.loads(context.process.stdout.strip())
-    assert is_attached_resp["data"]["attributes"]["is_attached"]
+
+@then("the machine is attached")
+def then_the_machine_is_attached(context):
+    assert_that(is_machine_attached(context), equal_to(True))
+
+
+@then("the machine is unattached")
+def then_the_machine_is_unattached(context):
+    assert_that(is_machine_attached(context), equal_to(False))

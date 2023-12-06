@@ -16,15 +16,9 @@ Feature: Full Auto-Attach Endpoint
         full_auto_attach(FullAutoAttachOptions(enable=["esm-infra"]))
         """
         And I run `python3 /tmp/full_auto_attach.py` with sudo
-        And I run `pro status --all` with sudo
-        Then stdout matches regexp:
-        """
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        """
-        Then stdout matches regexp:
-        """
-        livepatch     +yes +(disabled|n/a)  +(Canonical Livepatch service|Current kernel is not supported)
-        """
+        Then I verify that `esm-infra` is enabled
+        And I verify that `livepatch` is disabled
+
         Examples:
            | release | machine_type |
            | xenial  | aws.pro      |

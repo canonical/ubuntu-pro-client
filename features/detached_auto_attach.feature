@@ -17,20 +17,16 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
         This machine is already attached to '.+'
         To use a different subscription first run: sudo pro detach.
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-infra    +yes      +<esm-service> +Expanded Security Maintenance for Infrastructure
-        """
+        And I verify that `esm-infra` is enabled
 
         Examples: ubuntu release
-           | release | machine_type  | esm-service |
-           | xenial  | aws.generic   | enabled     |
-           | xenial  | azure.generic | enabled     |
-           | xenial  | gcp.generic   | enabled     |
-           | bionic  | aws.generic   | enabled     |
-           | bionic  | azure.generic | enabled     |
-           | bionic  | gcp.generic   | enabled     |
-           | focal   | aws.generic   | enabled     |
-           | focal   | azure.generic | enabled     |
-           | focal   | gcp.generic   | enabled     |
+           | release | machine_type  |
+           | xenial  | aws.generic   |
+           | xenial  | azure.generic |
+           | xenial  | gcp.generic   |
+           | bionic  | aws.generic   |
+           | bionic  | azure.generic |
+           | bionic  | gcp.generic   |
+           | focal   | aws.generic   |
+           | focal   | azure.generic |
+           | focal   | gcp.generic   |

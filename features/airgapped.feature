@@ -31,11 +31,8 @@ Feature: Performing attach using ua-airgapped
         And I disable any internet connection on the machine
         And I change config key `contract_url` to use value `http://$behave_var{machine-ip contracts}:8484`
         And I attach `contract_token` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps     +yes      +enabled .*
-        esm-infra    +yes      +enabled .*
-        """
+        Then I verify that `esm-infra` is enabled
+        And I verify that `esm-apps` is enabled
         When I run `apt-cache policy hello` with sudo
         Then stdout matches regexp:
         """
