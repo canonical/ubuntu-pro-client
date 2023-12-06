@@ -72,15 +72,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         This machine is now attached to
         """
-        And stdout matches regexp:
-        """
-        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        """
         And stderr matches regexp:
         """
         Enabling default service esm-infra
         """
+        Then I verify that `esm-infra` is enabled
+        And I verify that `esm-apps` is enabled
         When I verify that running `pro attach contract_token` `with sudo` exits `2`
         Then stderr matches regexp:
         """
@@ -104,18 +101,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
         When I run `pro attach --attach-config /tmp/attach.yaml` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps +yes +enabled
-        """
-        And stdout matches regexp:
-        """
-        esm-infra +yes +enabled
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg> +yes +disabled
-        """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
+        And I verify that `<cis_or_usg>` is disabled
         When I run `pro detach --assume-yes` with sudo
         # don't allow both token on cli and config
         Then I verify that running `pro attach TOKEN --attach-config /tmp/attach.yaml` `with sudo` exits `1`
@@ -134,18 +122,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
         When I run `pro attach --attach-config /tmp/attach.yaml` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps +yes +enabled
-        """
-        And stdout matches regexp:
-        """
-        esm-infra +yes +disabled
-        """
-        And stdout matches regexp:
-        """
-        <cis_or_usg> +yes +enabled
-        """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is disabled
+        And I verify that `<cis_or_usg>` is enabled
         When I run `pro detach --assume-yes` with sudo
         # missing token
         When I create the file `/tmp/attach.yaml` with the following
@@ -186,35 +165,22 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
         Then I verify that running `pro attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
-        Then stdout matches regexp:
-        """
-        esm-apps +yes +enabled
-        """
-        And stdout matches regexp:
-        """
-        esm-infra +yes +disabled
-        """
-        Then stderr matches regexp:
+        And stderr matches regexp:
         """
         Cannot enable unknown service 'nonexistent, nonexistent2'.
         """
+        And I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is disabled
+
         Examples: ubuntu
            | release | machine_type  | cis_or_usg |
            | xenial  | lxd-container | cis        |
            | bionic  | lxd-container | cis        |
            | focal   | lxd-container | usg        |
 
-    Scenario Outline: Attach command in an generic AWS Ubuntu VM
+    Scenario Outline: Attach command in an generic cloud images
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I set the machine token overlay to the following yaml
-        """
-        machineTokenInfo:
-          contractInfo:
-            resourceEntitlements:
-              - type: esm-apps
-                entitled: false
-        """
-        And I attach `contract_token` with sudo
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         Ubuntu Pro: ESM Infra enabled
@@ -223,110 +189,41 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
         """
         This machine is now attached to
         """
-        And stdout matches regexp:
-        """
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        """
         And stderr matches regexp:
         """
         Enabling default service esm-infra
         """
+        And I verify that `esm-infra` is enabled
 
         Examples: ubuntu release livepatch status
-           | release | machine_type | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg | cis_status |
-           | xenial  | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
-           | bionic  | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
-           | focal   | aws.generic  | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
-           | jammy   | aws.generic  | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        | n/a        |
-
-    Scenario Outline: Attach command in an generic Azure Ubuntu VM
-       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I set the machine token overlay to the following yaml
-        """
-        machineTokenInfo:
-          contractInfo:
-            resourceEntitlements:
-              - type: esm-apps
-                entitled: false
-        """
-        And I attach `contract_token` with sudo
-        Then stdout matches regexp:
-        """
-        Ubuntu Pro: ESM Infra enabled
-        """
-        And stdout matches regexp:
-        """
-        This machine is now attached to
-        """
-        And stdout matches regexp:
-        """
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        """
-        And stderr matches regexp:
-        """
-        Enabling default service esm-infra
-        """
-
-        Examples: ubuntu release livepatch status
-           | release | machine_type  | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | azure.generic | enabled   | disabled    | disabled  | cis        | disabled   |
-           | bionic  | azure.generic | enabled   | disabled    | disabled  | cis        | disabled   |
-           | focal   | azure.generic | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | azure.generic | enabled   | n/a         | n/a       | usg        | n/a        |
-
-    Scenario Outline: Attach command in an generic GCP Ubuntu VM
-       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I set the machine token overlay to the following yaml
-        """
-        machineTokenInfo:
-          contractInfo:
-            resourceEntitlements:
-              - type: esm-apps
-                entitled: false
-        """
-        And I attach `contract_token` with sudo
-        Then stdout matches regexp:
-        """
-        Ubuntu Pro: ESM Infra enabled
-        """
-        And stdout matches regexp:
-        """
-        This machine is now attached to
-        """
-        And stdout matches regexp:
-        """
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        """
-        And stderr matches regexp:
-        """
-        Enabling default service esm-infra
-        """
-
-        Examples: ubuntu release livepatch status
-           | release | machine_type | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | gcp.generic  | n/a       | n/a         | disabled  | cis        | disabled   |
-           | bionic  | gcp.generic  | enabled   | disabled    | disabled  | cis        | disabled   |
-           | focal   | gcp.generic  | enabled   | disabled    | n/a       | usg        | disabled   |
-           | jammy   | gcp.generic  | enabled   | n/a         | n/a       | usg        | n/a        |
+           | release | machine_type   |
+           | xenial  | aws.generic    |
+           | xenial  | azure.generic  |
+           | xenial  | gcp.generic    |
+           | bionic  | aws.generic    |
+           | bionic  | azure.generic  |
+           | bionic  | gcp.generic    |
+           | focal   | aws.generic    |
+           | focal   | azure.generic  |
+           | focal   | gcp.generic    |
+           | jammy   | aws.generic    |
+           | jammy   | azure.generic  |
+           | jammy   | gcp.generic    |
 
     Scenario Outline: Attach command with json output
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running attach `as non-root` with json response exits `1`
         Then I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
         When I verify that running attach `with sudo` with json response exits `0`
         Then I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
         """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
         """
+        And I verify that `esm-infra` is enabled
+        And I verify that `esm-apps` is enabled
 
         Examples: ubuntu release
           | release | machine_type  | cc-eal   |
@@ -346,10 +243,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
        """
        This machine is now attached to
        """
-       And stdout matches regexp:
-       """
-       esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-       """
+       And I verify that `esm-infra` is enabled
        When I set the machine token overlay to the following yaml
        """
        machineTokenInfo:

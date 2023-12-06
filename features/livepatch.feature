@@ -118,11 +118,7 @@ Feature: Livepatch
         """
         <old_kernel_version>
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +enabled +Canonical Livepatch service
-        """
+        And I verify that `livepatch` is enabled
         Then stdout does not contain substring:
         """
         NOTICES
@@ -173,10 +169,8 @@ Feature: Livepatch
         When I reboot the machine
         When I attach `contract_token` with sudo
         When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +enabled +Canonical Livepatch service
-        """
+        Then I verify that `livepatch` is enabled
+
         Examples: ubuntu release
             | release | machine_type | release_num |
             | jammy   | lxd-vm       | 22.04       |
