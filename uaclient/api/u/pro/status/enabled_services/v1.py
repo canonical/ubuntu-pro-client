@@ -56,13 +56,13 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
     for ent_cls in ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.user_facing_status()[0] == UserFacingStatus.ACTIVE:
-            enabled_service = EnabledService(name=ent.name)
+            enabled_service = EnabledService(name=ent.presentation_name)
             for _, variant_cls in ent.variants.items():
                 variant = variant_cls(cfg)
 
                 if variant.user_facing_status()[0] == UserFacingStatus.ACTIVE:
                     enabled_service = EnabledService(
-                        name=ent.name,
+                        name=ent.presentation_name,
                         variant_enabled=True,
                         variant_name=variant.variant_name,
                     )

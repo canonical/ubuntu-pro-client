@@ -15,7 +15,9 @@ class TestEnabledServicesV1:
 
         m_cls_1 = mock.MagicMock()
         m_inst_1 = mock.MagicMock(variants={})
-        type(m_inst_1).name = mock.PropertyMock(return_value="ent1")
+        type(m_inst_1).presentation_name = mock.PropertyMock(
+            return_value="ent1"
+        )
         m_inst_1.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -32,7 +34,9 @@ class TestEnabledServicesV1:
 
         m_cls_2 = mock.MagicMock()
         m_inst_2 = mock.MagicMock(variants={"variant": m_variant_cls})
-        type(m_inst_2).name = mock.PropertyMock(return_value="ent2")
+        type(m_inst_2).presentation_name = mock.PropertyMock(
+            return_value="ent2"
+        )
         m_inst_2.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -41,7 +45,9 @@ class TestEnabledServicesV1:
 
         m_cls_3 = mock.MagicMock()
         m_inst_3 = mock.MagicMock()
-        type(m_inst_3).name = mock.PropertyMock(return_value="ent3")
+        type(m_inst_3).presentation_name = mock.PropertyMock(
+            return_value="ent3"
+        )
         m_inst_3.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
