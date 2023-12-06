@@ -4,11 +4,11 @@ Feature: Reboot Commands
     Scenario Outline: reboot-cmds removes fips package holds and updates packages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `apt install -y strongswan` with sudo
+        When I apt install `strongswan`
         When I run `pro enable fips --assume-yes` with sudo
         When I reboot the machine
         Then I verify that `fips` is enabled
-        When I run `apt install -y --allow-downgrades strongswan=<old_version>` with sudo
+        When I apt install `strongswan=<old_version>`
         When I run `apt-mark hold strongswan` with sudo
         When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         When I run `pro status` with sudo

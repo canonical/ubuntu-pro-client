@@ -62,7 +62,7 @@ Feature: Fix execute API endpoints
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"description": "Kerberos vulnerability", "errors": null, "status": "fixed", "title": "CVE-2020-28196", "upgraded_packages": \[\]}, {"description": "Linux kernel vulnerabilities", "errors": null, "status": "not-affected", "title": "CVE-2022-24959", "upgraded_packages": \[\]}\], "status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `apt-get update` with sudo
-        And I run `apt install -y libawl-php=0.60-1 --allow-downgrades` with sudo
+        And I apt install `libawl-php=0.60-1`
         And I run `pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-4539-1"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
@@ -81,8 +81,7 @@ Feature: Fix execute API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"usns_data": {"status": "fixed", "usns": \[{"related_usns": \[\], "target_usn": {"description": "AWL vulnerability", "errors": null, "status": "fixed", "title": "USN-4539-1", "upgraded_packages": \[\]}}\]}}, "meta": {"environment_vars": \[\]}, "type": "USNFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt install -y rsync=3.1.3-8 --allow-downgrades` with sudo
-        And I run `apt install -y zlib1g=1:1.2.11.dfsg-2ubuntu1 --allow-downgrades` with sudo
+        When I apt install `rsync=3.1.3-8 zlib1g=1:1.2.11.dfsg-2ubuntu1`
         And I run `pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-5573-1"]}'` with sudo
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
@@ -117,7 +116,7 @@ Feature: Fix execute API endpoints
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"description": ".*", "errors": null, "status": "fixed", "title": "CVE-2020-28196", "upgraded_packages": \[\]}\], "status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `apt-get update` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
+        And I apt install `expat=2.1.0-7 swish-e matanza ghostscript`
         And I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2017-9233"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -139,7 +138,7 @@ Feature: Fix execute API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"additional_data": {}, "affected_packages": \["krb5"\], "description": ".*", "error": null, "expected_status": "fixed", "plan": \[{"data": {"pocket": "standard-updates", "source_packages": \["krb5"\], "status": "cve-already-fixed"}, "operation": "no-op", "order": 1}\], "title": "CVE-2020-28196", "warnings": \[\]}, {"additional_data": {}, "affected_packages": \[\], "description": ".*", "error": null, "expected_status": "not-affected", "plan": \[{"data": {"status": "system-not-affected"}, "operation": "no-op", "order": 1}\], "title": "CVE-2020-15180", "warnings": \[\]}, {"additional_data": {}, "affected_packages": \["expat", "matanza", "swish-e"\], "description": ".*", "error": null, "expected_status": "still-affected", "plan": \[{"data": {"pocket": "standard-updates", "source_packages": \["expat"\], "status": "cve-already-fixed"}, "operation": "no-op", "order": 2}\], "title": "CVE-2017-9233", "warnings": \[{"data": {"source_packages": \["matanza", "swish-e"\], "status": "needs-triage"}, "order": 1, "warning_type": "security-issue-not-fixed"}\]}\], "expected_status": "still-affected"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixPlan"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]
         """
-        When I run `apt install -y libawl-php` with sudo
+        When I apt install `libawl-php`
         And I reboot the machine
         And I run `pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-4539-1"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
@@ -188,7 +187,7 @@ Feature: Fix execute API endpoints
         And I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
         And I run `apt-get update` with sudo
-        And I run `apt-get install squid -y` with sudo
+        And I apt install `squid`
         And I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2020-25097"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -211,7 +210,7 @@ Feature: Fix execute API endpoints
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"description": "Kerberos vulnerability", "errors": null, "status": "fixed", "title": "CVE-2020-28196", "upgraded_packages": \[\]}\], "status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
         When I run `apt-get update` with sudo
-        And I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
+        And I apt install `xterm=330-1ubuntu2`
         And I run `pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-2021-27135"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And the json API response data matches the `cve_fix_execute` schema
@@ -226,15 +225,14 @@ Feature: Fix execute API endpoints
         """
         {"_schema_version": "v1", "data": {"attributes": {"cves_data": {"cves": \[{"description": "xterm vulnerability", "errors": null, "status": "fixed", "title": "CVE-2021-27135", "upgraded_packages": \[{"name": "xterm", "pocket": "standard-updates", "version": ".*"}\]}\], "status": "fixed"}}, "meta": {"environment_vars": \[\]}, "type": "CVEFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt install -y libawl-php` with sudo
+        When I apt install `libawl-php`
         And I run `pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-4539-1"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:
         """
         {"_schema_version": "v1", "data": {"attributes": {"usns_data": {"status": "not-affected", "usns": \[{"related_usns": \[\], "target_usn": {"description": ".*", "errors": null, "status": "not-affected", "title": "USN-4539-1", "upgraded_packages": \[\]}}\]}}, "meta": {"environment_vars": \[\]}, "type": "USNFixExecute"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
         """
-        When I run `apt-get install libbz2-1.0=1.0.6-8.1 -y --allow-downgrades` with sudo
-        And I run `apt-get install bzip2=1.0.6-8.1 -y` with sudo
+        When I apt install `libbz2-1.0=1.0.6-8.1 bzip2=1.0.6-8.1`
         And I run `pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-4038-3"]}'` as non-root
         Then stdout is a json matching the `api_response` schema
         And stdout matches regexp:

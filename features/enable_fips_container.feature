@@ -4,7 +4,7 @@ Feature: FIPS enablement in lxd containers
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan openssl <libssl> libgcrypt20` with sudo, retrying exit [100]
+        And I apt install `openssh-client openssh-server strongswan openssl <libssl> libgcrypt20`
         And I run `pro enable fips<updates>` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """

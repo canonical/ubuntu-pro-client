@@ -316,7 +316,7 @@ Feature: Command behaviour when unattached
     Scenario Outline: esm cache failures don't generate errors
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I disable access to esm.ubuntu.com
-        And I run `apt update` with sudo
+        And I update apt package lists
         # Wait for the hook to fail
         When I wait `5` seconds
         And I run `systemctl --failed` with sudo
@@ -350,7 +350,7 @@ Feature: Command behaviour when unattached
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt update` with sudo
+        When I update apt package lists
         And I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
         And I verify that running `pro status` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -377,7 +377,7 @@ Feature: Command behaviour when unattached
         """
         esm-cache.service
         """
-        When I run `apt install python3-pip -y` with sudo
+        When I apt install `python3-pip`
         And I run `pip3 install pyyaml==3.10 <suffix>` with sudo
         And I run `ls /usr/local/lib/<python_version>/dist-packages/` with sudo
         Then stdout matches regexp:

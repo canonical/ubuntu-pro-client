@@ -47,8 +47,8 @@ Feature: Pro Install and Uninstall related tests
     Scenario Outline: Do not fail during postinst with nonstandard python setup
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Works when in a python virtualenv
-        When I run `apt update` with sudo
-        And I run `apt install python3-venv -y` with sudo
+        When I update apt package lists
+        And I apt install `python3-venv`
         And I run `python3 -m venv env` with sudo
         Then I verify that running `bash -c ". env/bin/activate && python3 -c 'import uaclient'"` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -60,7 +60,7 @@ Feature: Pro Install and Uninstall related tests
         # Works with python built/installed from source
         When I run `wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz` with sudo
         When I run `tar -xvf Python-3.10.0.tgz` with sudo
-        When I run `apt install build-essential zlib1g-dev -y` with sudo
+        When I apt install `build-essential zlib1g-dev`
         When I run `sh -c "cd Python-3.10.0 && ./configure"` with sudo
         When I run `make -C Python-3.10.0` with sudo
         When I run `make -C Python-3.10.0 install` with sudo

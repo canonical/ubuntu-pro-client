@@ -677,8 +677,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Run timer script to valid machine activity endpoint
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
-        And I run `apt install jq -y` with sudo
+        And I update apt package lists
+        And I apt install `jq`
         And I save the `activityInfo.activityToken` value from the contract
         And I save the `activityInfo.activityID` value from the contract
         # normal metering call when activityId is set by attach response above, expect new
@@ -778,7 +778,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Disable with purge works and purges repo services not involving a kernel
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
+        And I update apt package lists
         And I apt install `ansible`
         And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
         Then stdout matches regexp:
@@ -821,7 +821,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Disable and purge fips
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
+        And I update apt package lists
         And I run `pro enable <fips-service> --assume-yes` with sudo
         And I reboot the machine
         Then I verify that `<fips-service>` is eanbled
@@ -889,7 +889,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Disable does not purge if no other kernel found
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `apt update` with sudo
+        And I update apt package lists
         And I run `pro enable fips --assume-yes` with sudo
         And I reboot the machine
         And I run shell command `rm -rf $(find /boot -name 'vmlinuz*[^fips]')` with sudo

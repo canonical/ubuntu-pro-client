@@ -68,7 +68,7 @@ Feature: Attached status
         Operation in progress: pro enable
         """
         When I run `pro disable cis --assume-yes` with sudo
-        When I run `apt-get install jq -y` with sudo
+        When I apt install `jq`
         When I run shell command `sudo pro enable cis >/dev/null & pro status --format json | jq -r .execution_status` as non-root
         Then I will see the following on stdout:
         """

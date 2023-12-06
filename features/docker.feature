@@ -5,7 +5,7 @@ Feature: Build docker images with pro services
     Scenario Outline: Build docker images with pro services
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
-        When I run `apt-get install -y docker.io docker-buildx jq` with sudo
+        When I apt install `docker.io docker-buildx jq`
         When I create the file `/home/ubuntu/Dockerfile` with the following:
         """
         FROM ubuntu:<container_release>
