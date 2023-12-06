@@ -224,7 +224,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         <esm-infra-url> <release>-infra-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>` with sudo, retrying exit [100]
+        When I apt install `<infra-pkg>`
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -618,7 +618,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         no
         """
-        When I run `apt-get install libc6 -y` with sudo
+        When I apt install `libc6`
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
@@ -635,7 +635,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         no
         """
-        When I run `apt-get install linux-image-generic -y` with sudo
+        When I apt install `linux-image-generic`
         And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
         Then stdout matches regexp:
         """
@@ -646,7 +646,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         yes
         """
-        When I run `apt-get install dbus -y` with sudo
+        When I apt install `dbus`
         And I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
@@ -854,7 +854,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         <ros-security-source> amd64 Packages
         """
-        When I run `apt install python3-catkin-pkg -y` with sudo
+        When I apt install `python3-catkin-pkg`
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-security-source>`
 
         When I run `pro enable ros-updates --assume-yes` with sudo
@@ -864,7 +864,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         <ros-updates-source> amd64 Packages
         """
-        When I run `apt install python3-catkin-pkg -y` with sudo
+        When I apt install `python3-catkin-pkg`
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-updates-source>`
         When I run `pro disable ros` `with sudo` and stdin `y`
         Then stdout matches regexp
@@ -985,7 +985,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <apps-pkg>` with sudo, retrying exit [100]
+        When I apt install `<apps-pkg>`
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:
         """

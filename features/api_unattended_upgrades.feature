@@ -12,7 +12,7 @@ Feature: api.u.unattended_upgrades.status.v1
         APT::Periodic::Enable "0";
         """
         And I run `apt-get update` with sudo
-        And I run `apt-get install jq -y` with sudo
+        And I apt install `jq`
         And I run shell command `pro api u.unattended_upgrades.status.v1 | jq .data.attributes.apt_periodic_job_enabled` as non-root
         Then I will see the following on stdout:
         """

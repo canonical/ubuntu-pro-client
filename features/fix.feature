@@ -12,7 +12,7 @@ Feature: Ua fix command behaviour
             Cannot verify certificate of server
             Please install "ca-certificates" and try again.
             """
-        When I run `apt install ca-certificates -y` with sudo
+        When I apt install `ca-certificates`
         When I run `mv /etc/ssl/certs /etc/ssl/wronglocation` with sudo
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then stderr matches regexp:
@@ -54,7 +54,7 @@ Feature: Ua fix command behaviour
         Error: issue "USN-12345678-12" is not recognized.
         Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
         """
-        When I run `apt install -y libawl-php=0.60-1 --allow-downgrades` with sudo
+        When I apt install `libawl-php=0.60-1`
         And I run `pro fix USN-4539-1` with sudo
         Then stdout matches regexp:
         """
@@ -93,8 +93,7 @@ Feature: Ua fix command behaviour
 
         .*✔.* CVE-2022-24959 does not affect your system.
         """
-        When I run `apt install -y rsync=3.1.3-8 --allow-downgrades` with sudo
-        And I run `apt install -y zlib1g=1:1.2.11.dfsg-2ubuntu1 --allow-downgrades` with sudo
+        When I apt install `rsync=3.1.3-8 zlib1g=1:1.2.11.dfsg-2ubuntu1`
         And I run `pro fix USN-5573-1` with sudo
         Then stdout matches regexp:
         """
@@ -205,7 +204,7 @@ Feature: Ua fix command behaviour
         Error: USN-12345-12 not found.
         """
         When I run `apt-get update` with sudo
-        When I run `apt install -y libawl-php` with sudo
+        When I apt install `libawl-php`
         And I reboot the machine
         And I run `pro fix USN-4539-1` as non-root
         Then stdout matches regexp:
@@ -242,7 +241,7 @@ Feature: Ua fix command behaviour
 
         .*✔.* CVE-2020-28196 is resolved.
         """
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
+        When I apt install `expat=2.1.0-7 swish-e matanza ghostscript`
         And I verify that running `pro fix CVE-2017-9233 --dry-run` `as non-root` exits `1`
         Then stdout matches regexp:
         """
@@ -403,7 +402,7 @@ Feature: Ua fix command behaviour
         When I run `pro disable esm-infra` with sudo
         # Allow esm-cache to be populated
         And I run `sleep 5` as non-root
-        And I run `apt-get install gzip -y` with sudo
+        And I apt install `gzip`
         And I run `pro fix USN-5378-4 --dry-run` as non-root
         Then stdout matches regexp:
         """
@@ -517,7 +516,7 @@ Feature: Ua fix command behaviour
         And I run `sed -i "/xenial-updates/d" /etc/apt/sources.list` with sudo
         And I run `sed -i "/xenial-security/d" /etc/apt/sources.list` with sudo
         And I run `apt-get update` with sudo
-        And I run `apt-get install squid -y` with sudo
+        And I apt install `squid`
         And I verify that running `pro fix CVE-2020-25097` `as non-root` exits `1`
         Then stdout matches regexp:
         """
@@ -563,7 +562,7 @@ Feature: Ua fix command behaviour
         Error: issue "USN-12345678-12" is not recognized.
         Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
         """
-        When I run `apt install -y libawl-php` with sudo
+        When I apt install `libawl-php`
         And I run `pro fix USN-4539-1 --dry-run` as non-root
         Then stdout matches regexp:
         """
@@ -603,7 +602,7 @@ Feature: Ua fix command behaviour
 
         .*✔.* CVE-2020-28196 is resolved.
         """
-        When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
+        When I apt install `xterm=330-1ubuntu2`
         And I verify that running `pro fix CVE-2021-27135` `as non-root` exits `1`
         Then stdout matches regexp:
         """
@@ -660,8 +659,7 @@ Feature: Ua fix command behaviour
 
         .*✔.* CVE-2021-27135 is resolved.
         """
-        When I run `apt-get install libbz2-1.0=1.0.6-8.1 -y --allow-downgrades` with sudo
-        And I run `apt-get install bzip2=1.0.6-8.1 -y` with sudo
+        When I apt install `libbz2-1.0=1.0.6-8.1 bzip2=1.0.6-8.1`
         And I run `pro fix USN-4038-3` with sudo
         Then stdout matches regexp:
         """

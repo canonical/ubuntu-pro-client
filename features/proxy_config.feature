@@ -5,7 +5,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -120,7 +120,7 @@ Feature: Proxy configuration
         """
         \"http://host:port\" is not a valid url. Not setting as proxy
         """
-        When I run `apt install python3-pycurl -y` with sudo
+        When I apt install `python3-pycurl`
         And I verify that running `pro config set ua_apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -158,7 +158,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -226,7 +226,7 @@ Feature: Proxy configuration
           "https_proxy": "invalidurls"
         }
         """
-        And I run `apt install python3-pycurl -y` with sudo
+        And I apt install `python3-pycurl`
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -254,7 +254,7 @@ Feature: Proxy configuration
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
-        And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
+        And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -348,7 +348,7 @@ Feature: Proxy configuration
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
-        And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
+        And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -396,7 +396,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -497,7 +497,7 @@ Feature: Proxy configuration
           "ua_apt_https_proxy": "https://localhost:12345"
         }
         """
-        And I run `apt install python3-pycurl -y` with sudo
+        And I apt install `python3-pycurl`
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -536,7 +536,7 @@ Feature: Proxy configuration
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
-        And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
+        And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -591,7 +591,7 @@ Feature: Proxy configuration
           "ua_apt_https_proxy": "http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128"
         }
         """
-        And I run `apt install python3-pycurl -y` with sudo
+        And I apt install `python3-pycurl`
         And I verify that running `pro refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -609,7 +609,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -638,7 +638,7 @@ Feature: Proxy configuration
         .*HEAD http://api.snapcraft.io.*
         """
         # We need this for the route command
-        When I run `apt-get install net-tools` with sudo
+        When I apt install `net-tools`
         # We will guarantee that the machine will only use the proxy when
         # running the pro commands
         And I run `route del default` with sudo
@@ -730,7 +730,7 @@ Feature: Proxy configuration
         """
         \"http://host:port\" is not a valid url. Not setting as proxy
         """
-        When I run `apt install python3-pycurl -y` with sudo
+        When I apt install `python3-pycurl`
         And I verify that running `pro config set global_apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stderr matches regexp:
         """
@@ -769,7 +769,7 @@ Feature: Proxy configuration
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
         When I run `apt update` `with sudo` on the `proxy` machine
-        And I run `apt install squid apache2-utils -y` `with sudo` on the `proxy` machine
+        And I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -798,7 +798,7 @@ Feature: Proxy configuration
         """
         .*HEAD http://api.snapcraft.io.*
         """
-        When I run `apt-get install net-tools` with sudo
+        When I apt install `net-tools`
         # We will guarantee that the machine will only use the proxy when
         # running the pro commands
         And I run `route del default` with sudo
@@ -866,7 +866,7 @@ Feature: Proxy configuration
     Scenario Outline: Get warning when configuring global or uaclient proxy
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -1017,7 +1017,7 @@ Feature: Proxy configuration
     Scenario Outline: apt_http(s)_proxy still works
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -1131,7 +1131,7 @@ Feature: Proxy configuration
         Acquire::http::Proxy \".*:3128\";
         Acquire::https::Proxy \".*:3128\";
         """
-        When I run `apt install python3-pycurl -y` with sudo
+        When I apt install `python3-pycurl`
         And I verify that running `pro config set apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
         Then stdout matches regexp:
         """
@@ -1153,7 +1153,7 @@ Feature: Proxy configuration
         Given a `jammy` `lxd-vm` machine with ubuntu-advantage-tools installed
         When I disable any internet connection on the machine
         Given a `focal` `lxd-container` machine named `proxy`
-        When I run `apt install squid -y` `with sudo` on the `proxy` machine
+        When I apt install `squid` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
         dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
@@ -1180,7 +1180,7 @@ Feature: Proxy configuration
 
         # set up a HTTPS proxy
         Given a `jammy` `<machine_type>` machine named `proxy`
-        When I run `apt update` `with sudo` on the `proxy` machine
+        When I update apt package lists on the `proxy` machine
         And I apt install `openssl libssl-dev ssl-cert squid-openssl apache2-utils` on the `proxy` machine
         And I run `openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes -out ca.crt -keyout ca.key -subj "/C=CN/ST=BJ/O=STS/CN=CA"` `with sudo` on the `proxy` machine
         And I run `openssl genrsa -out $behave_var{machine-name proxy}.lxd.key` `with sudo` on the `proxy` machine
@@ -1240,7 +1240,7 @@ Feature: Proxy configuration
         Please install "ca-certificates" and try again.
         """
 
-        When I run `apt install ca-certificates -y` with sudo
+        When I apt install `ca-certificates`
         And I run `update-ca-certificates` with sudo
         And I run `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
         And I run `pro config set ua_apt_https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` with sudo
@@ -1270,7 +1270,7 @@ Feature: Proxy configuration
         """
 
         # Pre-install canonical-livepatch to tell it to trust the cert
-        When I run `apt install snapd -y` with sudo
+        When I apt install `snapd`
         And I run `snap install canonical-livepatch` with sudo
         And I run shell command `canonical-livepatch config ca-certs=@stdin < /usr/local/share/ca-certificates/ca.crt` with sudo
 
@@ -1287,7 +1287,7 @@ Feature: Proxy configuration
         """
 
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        And I run `apt-get install hello` with sudo
+        And I apt install `hello`
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout contains substring
         """

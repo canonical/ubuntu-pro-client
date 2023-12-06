@@ -7,7 +7,7 @@ Feature: Performing attach using ua-airgapped
         Given a `jammy` `<machine_type>` machine named `mirror`
         When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
         And I run `apt-get update` `with sudo` on the `mirror` machine
-        And I run `apt-get install apt-mirror get-resource-tokens ua-airgapped -yq` `with sudo` on the `mirror` machine
+        And I apt install `apt-mirror get-resource-tokens ua-airgapped` on the `mirror` machine
         And I download the service credentials on the `mirror` machine
         And I extract the `esm-infra` credentials from the `mirror` machine
         And I extract the `esm-apps` credentials from the `mirror` machine
@@ -22,7 +22,7 @@ Feature: Performing attach using ua-airgapped
         Given a `jammy` `<machine_type>` machine named `contracts`
         When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `contracts` machine
         And I run `apt-get update` `with sudo` on the `contracts` machine
-        And I run `apt-get install contracts-airgapped -yq` `with sudo` on the `contracts` machine
+        And I apt install `contracts-airgapped` on the `contracts` machine
         And I run `apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4067E40313CB4B13` `with sudo` on the `contracts` machine
         And I disable any internet connection on the `contracts` machine
         And I send the contracts-airgapped config from the `mirror` machine to the `contracts` machine

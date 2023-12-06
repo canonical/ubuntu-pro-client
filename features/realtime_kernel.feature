@@ -355,7 +355,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         \s* 500 https://esm.ubuntu.com/realtime/ubuntu <release>/main amd64 Packages
         """
-        When I run `apt-get install -y ubuntu-realtime` with sudo
+        When I apt install `ubuntu-realtime`
         When I reboot the machine
         When I run `uname -r` as non-root
         Then stdout matches regexp:

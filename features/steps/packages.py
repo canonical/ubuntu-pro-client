@@ -3,19 +3,19 @@ import re
 from behave import then, when
 from hamcrest import assert_that, contains_string, matches_regexp
 
-from features.steps.shell import when_i_run_command
+from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
 
 
 @when("I apt install `{package_names}`")
 @when("I apt install `{package_names}` on the `{machine_name}` machine")
 def when_i_apt_install(context, package_names, machine_name=SUT):
-    when_i_run_command(
+    when_i_retry_run_command(
         context,
         " ".join(
             [
                 "DEBIAN_FRONTEND=noninteractive",
-                "apt-get",
+                "apt",
                 "install",
                 "-y",
                 "--allow-downgrades",
@@ -26,6 +26,7 @@ def when_i_apt_install(context, package_names, machine_name=SUT):
         ),
         "with sudo",
         machine_name=machine_name,
+        exit_codes="100",
     )
 
 
