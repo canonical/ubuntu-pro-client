@@ -43,4 +43,4 @@ Feature: Reboot Commands
         """
         Examples: ubuntu release
             | release | machine_type  | old_version      | new_version               |
-            | focal   | lxd-container | 5.8.2-1ubuntu3.5 | 5.8.2-1ubuntu3.fips.3.1.2 |
+            | focal   | lxd-container | 5.8.2-1ubuntu3   | 5.8.2-1ubuntu3.fips.3.1.2 |
