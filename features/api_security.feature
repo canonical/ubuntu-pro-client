@@ -18,11 +18,7 @@ Feature: API security/security status tests
     Scenario Outline: Call package manifest endpoint for machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        """
+        Then I verify that `esm-infra` is enabled
         When I run `apt update` with sudo
         And I run `apt upgrade -y` with sudo
         And I run `apt install jq bzip2 -y` with sudo

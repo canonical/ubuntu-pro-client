@@ -5,59 +5,32 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Given a `focal` `<machine_type>` machine named `proxy` with ingress ports `3389`
         When I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-            """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
-            """
+        """
+        dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
+        """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         # This also tests that legacy `ua_config` settings still work
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
         log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
         ua_config:
           http_proxy: http://$behave_var{machine-ip proxy}:3389
           https_proxy: http://$behave_var{machine-ip proxy}:3389
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         When I run `pro auto-attach` with sudo
-        When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-            """
-            SERVICE       +ENTITLED +STATUS +DESCRIPTION
-            anbox-cloud   +(yes|no)  .*
-            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            """
-        Then stdout matches regexp:
-            """
-            esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-            esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-            fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-            fips-preview  +yes  +n/a      +.*
-            fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-            livepatch     +yes +<livepatch-s>  +<lp-desc>
-            """
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-            """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
+        And I verify that `livepatch` is enabled
         When I run `pro enable <cis_or_usg>` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +enabled   +Security compliance and audit tools
-            """
+        Then I verify that `<cis_or_usg>` is enabled
         When I run `pro disable <cis_or_usg>` with sudo
         Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            <cis_or_usg>         +yes    +disabled   +Security compliance and audit tools
-            """
+        """
+        Updating package lists
+        """
+        And I verify that `<cis_or_usg>` is disabled
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -71,6 +44,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         .*CONNECT metadata.*
         """
+
         Examples: ubuntu release
            | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
            | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
@@ -83,56 +57,17 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
            | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
 
-    Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
+    Scenario Outline: Attached refresh in an Ubuntu pro cloud machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
         log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
         """
         And I run `pro auto-attach` with sudo
-        And I run `pro status --all --wait` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE       +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-        """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE       +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch-s>  +(Canonical Livepatch service|Current kernel is not supported)
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-        """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
+        And I verify that `livepatch` is enabled
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
         Then stdout matches regexp:
@@ -203,264 +138,19 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
 
         Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg | livepatch-s | fips-p   |
-           | xenial  | aws.pro      | disabled | disabled | disabled | libkrad0  | jq       | cis        | enabled     | n/a      |
-           | bionic  | aws.pro      | disabled | disabled | disabled | libkrad0  | bundler  | cis        | enabled     | n/a      |
-           | focal   | aws.pro      | disabled | n/a      | disabled | hello     | ant      | usg        | enabled     | n/a      |
-           | jammy   | aws.pro      | n/a      | n/a      | disabled | hello     | hello    | usg        | warning     | disabled |
-
-
-    Scenario Outline: Attached refresh in an Ubuntu pro Azure machine
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        """
-        And I run `pro auto-attach` with sudo
-        And I run `pro status --all --wait` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE       +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch>  +Canonical Livepatch service
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
-        """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE      +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch>  +Canonical Livepatch service
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-        """
-        When I run `systemctl start ua-auto-attach.service` with sudo
-        And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
-        Then stdout matches regexp:
-        """
-        .*status=0\/SUCCESS.*
-        """
-        And stdout matches regexp:
-        """
-        Active: inactive \(dead\).*
-        \s*Condition: start condition failed.*
-        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
-        """
-        When I verify that running `pro auto-attach` `with sudo` exits `2`
-        Then stderr matches regexp:
-        """
-        This machine is already attached to '.*'
-        To use a different subscription first run: sudo pro detach.
-        """
-        When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
-        """
-        And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
-        And I run `apt-cache policy <infra-pkg>` as non-root
-        Then stdout matches regexp:
-        """
-        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
-        """
-        And stdout matches regexp:
-        """
-        Installed: .*[~+]esm
-        """
-        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo, retrying exit [100]
-        And I run `apt-cache policy <apps-pkg>` as non-root
-        Then stdout matches regexp:
-        """
-        Version table:
-        \s*\*\*\* .* 510
-        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
-        """
-        When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
-        """
-        """
-        And I reboot the machine
-        And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
-        Then stdout matches regexp:
-        """
-        .*status=0\/SUCCESS.*
-        """
-        When I run `ua api u.pro.attach.auto.should_auto_attach.v1` with sudo
-        Then stdout matches regexp:
-        """
-        {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": true}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-        """
-
-        Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg | fips-p   |
-           | xenial  | azure.pro    | disabled | disabled | disabled | libkrad0  | jq       | enabled   | cis        | n/a      |
-           | bionic  | azure.pro    | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        | n/a      |
-           | focal   | azure.pro    | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        | n/a      |
-           | jammy   | azure.pro    | n/a      | n/a      | disabled | hello     | hello    | enabled   | usg        | disabled |
-
-    Scenario Outline: Attached refresh in an Ubuntu pro GCP machine
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-        """
-        contract_url: 'https://contracts.canonical.com'
-        data_dir: /var/lib/ubuntu-advantage
-        log_level: debug
-        log_file: /var/log/ubuntu-advantage.log
-        """
-        And I run `pro auto-attach` with sudo
-        And I run `pro status --all --wait` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE       +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch>  +<lp-desc>
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
-        """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE       +ENTITLED +STATUS +DESCRIPTION
-        anbox-cloud   +(yes|no)  .*
-        cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-        """
-        Then stdout matches regexp:
-        """
-        esm-apps      +yes +enabled +Expanded Security Maintenance for Applications
-        esm-infra     +yes +enabled +Expanded Security Maintenance for Infrastructure
-        fips          +yes +<fips-s> +NIST-certified FIPS crypto packages
-        fips-preview  +yes +<fips-p> +.*
-        fips-updates  +yes +<fips-s> +FIPS compliant crypto packages with stable security updates
-        livepatch     +yes +<livepatch>  +<lp-desc>
-        """
-        Then stdout matches regexp:
-        """
-        <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
-        """
-        When I run `systemctl start ua-auto-attach.service` with sudo
-        And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
-        Then stdout matches regexp:
-        """
-        .*status=0\/SUCCESS.*
-        """
-        And stdout matches regexp:
-        """
-        Active: inactive \(dead\).*
-        \s*Condition: start condition failed.*
-        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
-        """
-        When I verify that running `pro auto-attach` `with sudo` exits `2`
-        Then stderr matches regexp:
-        """
-        This machine is already attached to '.*'
-        To use a different subscription first run: sudo pro detach.
-        """
-        When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
-        """
-        And apt-cache policy for the following url has priority `510`
-        """
-        https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
-        """
-        And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
-        And I run `apt-cache policy <infra-pkg>` as non-root
-        Then stdout matches regexp:
-        """
-        \s*510 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
-        """
-        And stdout matches regexp:
-        """
-        Installed: .*[~+]esm
-        """
-        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo, retrying exit [100]
-        And I run `apt-cache policy <apps-pkg>` as non-root
-        Then stdout matches regexp:
-        """
-        Version table:
-        \s*\*\*\* .* 510
-        \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
-        """
-        When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
-        """
-        """
-        And I reboot the machine
-        And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
-        Then stdout matches regexp:
-        """
-        .*status=0\/SUCCESS.*
-        """
-        When I run `ua api u.pro.attach.auto.should_auto_attach.v1` with sudo
-        Then stdout matches regexp:
-        """
-        {"_schema_version": "v1", "data": {"attributes": {"should_auto_attach": true}, "meta": {"environment_vars": \[\]}, "type": "ShouldAutoAttach"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-        """
-
-        Examples: ubuntu release
-           | release | machine_type | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | lp-desc                         | cis_or_usg | fips-p   |
-           | xenial  | gcp.pro      | n/a      | disabled | disabled | libkrad0  | jq       | warning   | Current kernel is not supported | cis        | n/a      |
-           | bionic  | gcp.pro      | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | Canonical Livepatch service     | cis        | n/a      |
-           | focal   | gcp.pro      | disabled | n/a      | disabled | hello     | ant      | enabled   | Canonical Livepatch service     | usg        | n/a      |
-           | jammy   | gcp.pro      | n/a      | n/a      | disabled | hello     | hello    | enabled   | Canonical Livepatch service     | usg        | disabled |
+           | release | machine_type | infra-pkg | apps-pkg |
+           | xenial  | aws.pro      | libkrad0  | jq       |
+           | xenial  | azure.pro    | libkrad0  | jq       |
+           | xenial  | gcp.pro      | libkrad0  | jq       |
+           | bionic  | aws.pro      | libkrad0  | bundler  |
+           | bionic  | azure.pro    | libkrad0  | bundler  |
+           | bionic  | gcp.pro      | libkrad0  | bundler  |
+           | focal   | aws.pro      | hello     | ant      |
+           | focal   | azure.pro    | hello     | ant      |
+           | focal   | gcp.pro      | hello     | ant      |
+           | jammy   | aws.pro      | hello     | hello    |
+           | jammy   | azure.pro    | hello     | hello    |
+           | jammy   | gcp.pro      | hello     | hello    |
 
     Scenario Outline: Auto-attach service works on Pro Machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

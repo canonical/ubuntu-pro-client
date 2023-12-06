@@ -9,7 +9,7 @@ Feature: Upgrade between releases when uaclient is attached
         And I run `<before_cmd>` with sudo
         # Local PPAs are prepared and served only when testing with local debs
         And I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
-        And I run `apt-get dist-upgrade --assume-yes` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
@@ -71,10 +71,7 @@ Feature: Upgrade between releases when uaclient is attached
         A reboot is required to complete install.
         """
         When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service> +yes                enabled
-        """
+        Then I verify that `<fips-service>` is enabled
         And I verify that running `apt update` `with sudo` exits `0`
         When I reboot the machine
         And  I run `uname -r` as non-root
@@ -89,7 +86,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
          # Local PPAs are prepared and served only when testing with local debs
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
-        And I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --allow-downgrades` with sudo
         # A package may need a reboot after running dist-upgrade
         And I reboot the machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
@@ -109,10 +106,7 @@ Feature: Upgrade between releases when uaclient is attached
         """
         """
         When I run `pro status --all` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service> +yes                enabled
-        """
+        Then I verify that `<fips-service>` is enabled
         When  I run `uname -r` as non-root
         Then stdout matches regexp:
         """

@@ -26,22 +26,10 @@ Feature: Enable landscape on Ubuntu
         """
         Registration request sent successfully.
         """
-        When I run `pro status` as non-root
-        Then stdout matches regexp:
-        """
-        landscape +yes +enabled
-        """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +enabled
-        """
+        And I verify that `landscape` is enabled
+
         When I run `sudo pro disable landscape` with sudo
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +disabled
-        """
+        Then I verify that `landscape` is disabled
 
         # Enable with assume-yes
         When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
@@ -53,19 +41,11 @@ Feature: Enable landscape on Ubuntu
         Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
         Landscape enabled
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +enabled
-        """
+        And I verify that `landscape` is enabled
 
         # stopping the service effectively disables it
         When I run `systemctl stop landscape-client` with sudo
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +disabled
-        """
+        Then I verify that `landscape` is disabled
         When I verify that running `sudo pro disable landscape` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
@@ -108,11 +88,7 @@ Feature: Enable landscape on Ubuntu
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["landscape"], "result": "success", "warnings": []}
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +enabled
-        """
+        And I verify that `landscape` is enabled
         When I run `sudo pro disable landscape` with sudo
 
         # Fail to enable with assume-yes and format json
@@ -177,11 +153,7 @@ Feature: Enable landscape on Ubuntu
         """
         Registration request sent successfully.
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +enabled
-        """
+        And I verify that `landscape` is enabled
         When I run `pro disable landscape` with sudo
 
         When I verify that running `pro enable landscape` `with sudo` and the following stdin exits `1`
