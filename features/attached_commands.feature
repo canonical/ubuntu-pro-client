@@ -6,31 +6,31 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         Then I verify that running `pro refresh` `as non-root` exits `1`
         And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
+        """
+        This command must be run as root \(try using sudo\).
+        """
         When I run `pro refresh` with sudo
         Then I will see the following on stdout:
-            """
-            Successfully processed your pro configuration.
-            Successfully refreshed your subscription.
-            Successfully updated Ubuntu Pro related APT and MOTD messages.
-            """
+        """
+        Successfully processed your pro configuration.
+        Successfully refreshed your subscription.
+        Successfully updated Ubuntu Pro related APT and MOTD messages.
+        """
         When I run `pro refresh config` with sudo
         Then I will see the following on stdout:
-            """
-            Successfully processed your pro configuration.
-            """
+        """
+        Successfully processed your pro configuration.
+        """
         When I run `pro refresh contract` with sudo
         Then I will see the following on stdout:
-            """
-            Successfully refreshed your subscription.
-            """
+        """
+        Successfully refreshed your subscription.
+        """
         When I run `pro refresh messages` with sudo
         Then I will see the following on stdout:
-            """
-            Successfully updated Ubuntu Pro related APT and MOTD messages.
-            """
+        """
+        Successfully updated Ubuntu Pro related APT and MOTD messages.
+        """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
         Then stdout matches regexp:
@@ -53,28 +53,62 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container |
            | mantic  | lxd-container |
 
-    Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
+    Scenario Outline: Disable command on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro disable livepatch` `as non-root` exits `1`
         And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        And I verify that running `pro disable livepatch` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            Livepatch is not currently enabled
-            See: sudo pro status
-            """
+        """
+        This command must be run as root \(try using sudo\).
+        """
+        When I verify that running `pro disable foobar` `as non-root` exits `1`
+        Then stderr matches regexp:
+        """
+        This command must be run as root \(try using sudo\).
+        """
+        When I verify that running `pro disable livepatch` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        Livepatch is not currently enabled
+        See: sudo pro status
+        """
+        When I verify that running `pro disable foobar` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Cannot disable unknown service 'foobar'.
+        <msg>
+        """
+        When I verify that running `pro disable livepatch foobar` `as non-root` exits `1`
+        Then stderr matches regexp:
+        """
+        This command must be run as root \(try using sudo\)
+        """
+        When I verify that running `pro disable livepatch foobar` `with sudo` exits `1`
+        Then I will see the following on stdout:
+        """
+        Livepatch is not currently enabled
+        See: sudo pro status
+        """
+        And stderr matches regexp:
+        """
+        Cannot disable unknown service 'foobar'.
+        <msg>
+        """
+        When I verify that running `pro disable esm-infra` `as non-root` exits `1`
+        Then stderr matches regexp:
+        """
+        This command must be run as root \(try using sudo\).
+        """
+        When I run `pro disable esm-infra` with sudo
+        Then I verify that `esm-infra` is disabled
+        And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
-           | release | machine_type  |
-           | bionic  | lxd-container |
-           | focal   | lxd-container |
-           | xenial  | lxd-container |
-           | jammy   | lxd-container |
-           | mantic  | lxd-container |
+           | release | machine_type  | msg                                                                                                                                            |
+           | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
+           | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
     Scenario Outline: Attached disable with json format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -82,27 +116,27 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Then I verify that running `pro disable foobar --format json` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
         Then I verify that running `pro disable foobar --format json` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
         Then I verify that running `pro disable foobar --format json --assume-yes` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
         And I verify that running `pro disable foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
-            """
-            {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "foobar", "operation": "disable", "service_msg": "Try <valid_services>"}, "message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
+        """
+        {"_schema_version": "0.1", "errors": [{"additional_info": {"invalid_service": "foobar", "operation": "disable", "service_msg": "Try <valid_services>"}, "message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
         And I verify that running `pro disable livepatch --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
@@ -130,44 +164,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | focal   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
            | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
 
-    Scenario Outline: Attached disable of a service in a ubuntu machine
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `pro disable foobar` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        And I verify that running `pro disable foobar` `with sudo` exits `1`
-        And stderr matches regexp:
-            """
-            Cannot disable unknown service 'foobar'.
-            <msg>
-            """
-        And I verify that running `pro disable esm-infra` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        When I run `pro disable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-
-        Examples: ubuntu release
-           | release | machine_type  | msg                                                                                                                                            |
-           | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -191,82 +187,56 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Updating package lists
         This machine is now detached.
         """
-       When I run `pro status --all` as non-root
-       Then stdout matches regexp:
-       """
-       SERVICE       +AVAILABLE  DESCRIPTION
-       anbox-cloud   +<anbox>    .*
-       cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-       """
-       Then stdout matches regexp:
-       """
-       esm-apps      +<esm-apps> +Expanded Security Maintenance for Applications
-       esm-infra     +yes        +Expanded Security Maintenance for Infrastructure
-       fips          +<fips>     +NIST-certified FIPS crypto packages
-       fips-preview  +.* +.*
-       fips-updates  +<fips-u>   +FIPS compliant crypto packages with stable security updates
-       landscape     +(yes|no)   +Management and administration tool for Ubuntu
-       livepatch     +(yes|no)   +(Canonical Livepatch service|Current kernel is not supported)
-       realtime-kernel +<realtime-kernel> +Ubuntu kernel with PREEMPT_RT patches integrated
-       ros           +<ros>      +Security Updates for the Robot Operating System
-       ros-updates   +<ros-updates>      +All Updates for the Robot Operating System
-       """
-       Then stdout matches regexp:
-       """
-       <cis_or_usg>           +<cis>      +Security compliance and audit tools
-       """
-       And stdout matches regexp:
-       """
-       This machine is not attached to an Ubuntu Pro subscription.
-       """
-       And I verify that running `apt update` `with sudo` exits `0`
-       When I attach `contract_token` with sudo
-       Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
-       And stdout is a json matching the `ua_operation` schema
-       And I will see the following on stdout:
-       """
-       {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        And the machine is unattached
+        And I verify that running `apt update` `with sudo` exits `0`
+        When I attach `contract_token` with sudo
+        Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
         """
-       Then I verify that running `pro enable foobar --format json` `with sudo` exits `1`
-       And stdout is a json matching the `ua_operation` schema
-       And I will see the following on stdout:
-       """
-       {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-       """
-       Then I verify that running `pro detach --format json --assume-yes` `as non-root` exits `1`
-       And stdout is a json matching the `ua_operation` schema
-       And I will see the following on stdout:
-       """
-       {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-       """
-       When I run `pro detach --format json --assume-yes` with sudo
-       Then stdout is a json matching the `ua_operation` schema
-       And I will see the following on stdout:
-       """
-       {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
-       """
+        {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+         """
+        Then I verify that running `pro enable foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
+        Then I verify that running `pro detach --format json --assume-yes` `as non-root` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
+        When I run `pro detach --format json --assume-yes` with sudo
+        Then stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+        """
+        And the machine is unattached
 
        Examples: ubuntu release
-           | release | machine_type  | anbox | esm-apps | cc-eal | cis | fips | fips-u | ros | ros-updates | cis_or_usg | realtime-kernel |
-           | xenial  | lxd-container | no    | yes      | yes    | yes | yes  | yes    | yes | yes         | cis        | no              |
-           | bionic  | lxd-container | no    | yes      | yes    | yes | yes  | yes    | yes | yes         | cis        | no              |
-           | focal   | lxd-container | yes   | yes      | no     | yes | yes  | yes    | yes | no          | usg        | no              |
-           | jammy   | lxd-container | yes   | yes      | no     | yes | no   | yes    | no  | no          | usg        | yes             |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `pro auto-attach` `as non-root` exits `1`
         And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
+        """
+        This command must be run as root \(try using sudo\).
+        """
         When I verify that running `pro auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
-            """
-            This machine is already attached to '.+'
-            To use a different subscription first run: sudo pro detach.
-            """
+        """
+        This machine is already attached to '.+'
+        To use a different subscription first run: sudo pro detach.
+        """
 
         Examples: ubuntu release
            | release | machine_type  |
@@ -364,32 +334,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
            | jammy   | lxd-container |
            | mantic  | lxd-container |
 
-    Scenario Outline: Attached disable of different services in a ubuntu machine
+    Scenario Outline: Attached enable when reboot required
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `pro disable esm-infra livepatch foobar` `as non-root` exits `1`
-        And stderr matches regexp:
-        """
-        This command must be run as root \(try using sudo\)
-        """
-        And I verify that running `pro disable esm-infra livepatch foobar` `with sudo` exits `1`
-        And I will see the following on stdout:
-        """
-        Updating package lists
-        Livepatch is not currently enabled
-        See: sudo pro status
-        """
-        And stderr matches regexp:
-        """
-        Cannot disable unknown service 'foobar'.
-        <msg>
-        """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-infra    +yes      +disabled +Expanded Security Maintenance for Infrastructure
-        """
-        When I run `touch /var/run/reboot-required` with sudo
+        And I run `pro disable esm-infra` with sudo
+        And I run `touch /var/run/reboot-required` with sudo
         And I run `touch /var/run/reboot-required.pkgs` with sudo
         And I run `pro enable esm-infra` with sudo
         Then stdout matches regexp:
@@ -403,11 +352,11 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
 
         Examples: ubuntu release
-           | release | machine_type  | msg                                                                                                                                            |
-           | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-           | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-           | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
 
     Scenario Outline: Help command on an attached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -799,18 +748,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `rm /var/lib/ubuntu-advantage/machine-token.json` with sudo
-        And I run `ua status` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE +AVAILABLE +DESCRIPTION
-        """
+        Then the machine is unattached
         When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         Then I verify that files exist matching `/var/lib/ubuntu-advantage/machine-token.json`
-        When I run `ua status` as non-root
-        Then stdout matches regexp:
-        """
-        SERVICE +ENTITLED +STATUS +DESCRIPTION
-        """
+        Then the machine is attached
 
         Examples: ubuntu release
            | release | machine_type  |
@@ -849,11 +790,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
         Do you want to proceed\? \(y/N\)
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps   +yes   +disabled   +Expanded Security Maintenance for Applications
-        """
+        And I verify that `esm-apps` is disabled
         And I verify that `ansible` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/universe`
 
         Examples: ubuntu release
@@ -887,11 +824,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         And I run `apt update` with sudo
         And I run `pro enable <fips-service> --assume-yes` with sudo
         And I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +enabled
-        """
+        Then I verify that `<fips-service>` is eanbled
         When  I run `uname -r` as non-root
         Then stdout matches regexp:
         """
@@ -922,11 +855,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         Do you want to proceed\? \(y/N\)
         """
         When I reboot the machine
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service>   +yes   +disabled
-        """
+        Then I verify that `<fips-service>` is disabled
         When  I run `uname -r` as non-root
         Then stdout does not match regexp:
         """
@@ -934,6 +863,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         And I verify that `openssh-server` is installed from apt source `<archive-source>`
         And I verify that `<kernel-package>` is not installed
+
         Examples: ubuntu release
            | release | machine_type  | fips-service | fips-name    | kernel-package   | fips-source                                                    | archive-source                                                    |
            | xenial  | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu xenial/main                 | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main    |

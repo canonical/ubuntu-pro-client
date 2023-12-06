@@ -18,7 +18,7 @@ Feature: Upgrade between releases when uaclient is unattached
         """
         deb https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates main
         """
-        When I run `apt-get dist-upgrade --assume-yes` with sudo
+        When I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following

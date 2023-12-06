@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
-    @slow
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -477,55 +476,39 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         When I attach `contract_token` with sudo
         And I run `pro enable usg` with sudo
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Updating Ubuntu Security Guide package lists
-            Ubuntu Security Guide enabled
-            Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            usg         +yes    +enabled   +Security compliance and audit tools
-            """
+        """
+        One moment, checking your subscription first
+        Updating Ubuntu Security Guide package lists
+        Ubuntu Security Guide enabled
+        Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
+        """
+        And I verify that `usg` is enabled
         When I run `pro disable usg` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
             """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            usg         +yes    +disabled   +Security compliance and audit tools
-            """
+        And I verify that `usg` is disabled
         When I run `pro enable cis` with sudo
         Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            From Ubuntu 20.04 onward 'pro enable cis' has been
-            replaced by 'pro enable usg'. See more information at:
-            https://ubuntu.com/security/certifications/docs/usg
-            Updating CIS Audit package lists
-            Updating standard Ubuntu package lists
-            Installing CIS Audit packages
-            CIS Audit enabled
-            Visit https://ubuntu.com/security/cis to learn how to use CIS
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            usg         +yes    +enabled   +Security compliance and audit tools
-            """
+        """
+        One moment, checking your subscription first
+        From Ubuntu 20.04 onward 'pro enable cis' has been
+        replaced by 'pro enable usg'. See more information at:
+        https://ubuntu.com/security/certifications/docs/usg
+        Updating CIS Audit package lists
+        Updating standard Ubuntu package lists
+        Installing CIS Audit packages
+        CIS Audit enabled
+        Visit https://ubuntu.com/security/cis to learn how to use CIS
+        """
+        And I verify that `usg` is enabled
         When I run `pro disable usg` with sudo
         Then stdout matches regexp:
-            """
-            Updating package lists
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            usg         +yes    +disabled   +Security compliance and audit tools
-            """
+        """
+        Updating package lists
+        """
+        And I verify that `usg` is disabled
 
         Examples: cis service
            | release | machine_type  |
@@ -851,25 +834,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached enable ros on a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros +yes +disabled +Security Updates for the Robot Operating System
-        """
+        Then I verify that `ros` is disabled
         When I run `pro enable ros --assume-yes` with sudo
-        And I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros +yes +enabled +Security Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
-        """
-        And stdout matches regexp
-        """
-        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
-        """
+        Then I verify that `ros` is enabled
+        And I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
         When I verify that running `pro disable esm-apps` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
@@ -883,15 +852,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Disabling dependent service: ROS ESM Security Updates
         Updating package lists
         """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros +yes +disabled +Security Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        esm-apps +yes +disabled +Expanded Security Maintenance for Applications
-        """
+        And I verify that `ros` is disabled
+        And I verify that `esm-apps` is disabled
         When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
         """
@@ -908,19 +870,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Updating ROS ESM Security Updates package lists
         ROS ESM Security Updates enabled
         """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros +yes +enabled +Security Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
-        """
-        And stdout matches regexp
-        """
-        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
-        """
+        And I verify that `ros` is enabled
+        And I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `500`
         """
@@ -930,11 +882,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-security-source>`
 
         When I run `pro enable ros-updates --assume-yes` with sudo
-        And I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros-updates +yes +enabled +All Updates for the Robot Operating System
-        """
+        Then I verify that `ros-updates` is enabled
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `500`
         """
@@ -949,6 +897,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
         Updating package lists
         """
+        And I verify that `ros-updates` is disabled
         When I run `pro enable ros-updates` `with sudo` and stdin `y`
         Then stdout matches regexp
         """
@@ -959,37 +908,17 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Updating ROS ESM All Updates package lists
         ROS ESM All Updates enabled
         """
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros-updates +yes +enabled +All Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        ros +yes +enabled +Security Updates for the Robot Operating System
-        """
+        And I verify that `ros-updates` is enabled
+        And I verify that `ros` is enabled
         When I run `pro disable ros-updates --assume-yes` with sudo
-        When I run `pro disable ros --assume-yes` with sudo
-        When I run `pro disable esm-apps --assume-yes` with sudo
-        When I run `pro disable esm-infra --assume-yes` with sudo
-        When I run `pro enable ros-updates --assume-yes` with sudo
-        When I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        ros-updates +yes +enabled +All Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        ros +yes +enabled +Security Updates for the Robot Operating System
-        """
-        And stdout matches regexp
-        """
-        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
-        """
-        And stdout matches regexp
-        """
-        esm-infra +yes +enabled +Expanded Security Maintenance for Infrastructure
-        """
+        And I run `pro disable ros --assume-yes` with sudo
+        And I run `pro disable esm-apps --assume-yes` with sudo
+        And I run `pro disable esm-infra --assume-yes` with sudo
+        And I run `pro enable ros-updates --assume-yes` with sudo
+        Then I verify that `ros-updates` is enabled
+        And I verify that `ros` is enabled
+        And I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
         When I run `pro detach` `with sudo` and stdin `y`
         Then stdout matches regexp:
         """
@@ -999,6 +928,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Updating package lists
         This machine is now detached.
         """
+        And the machine is unattached
 
         Examples: ubuntu release
            | release | machine_type  | ros-security-source                                    | ros-updates-source                                            |
@@ -1067,11 +997,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `pro status --all` as non-root
-        Then stdout matches regexp
-        """
-        esm-apps +yes +enabled +Expanded Security Maintenance for Applications
-        """
+        Then I verify that `esm-apps` is enabled
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has priority `510`
