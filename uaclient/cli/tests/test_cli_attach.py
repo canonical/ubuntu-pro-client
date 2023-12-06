@@ -515,7 +515,10 @@ class TestActionAttach:
             ),
             (
                 Exception("error"),
-                messages.UNEXPECTED_ERROR.format(error_msg="error"),
+                messages.UNEXPECTED_ERROR.format(
+                    error_msg="error",
+                    log_path="/var/log/ubuntu-advantage.log",
+                ),
                 messages.E_ATTACH_FAILURE_UNEXPECTED,
             ),
         ),
@@ -534,6 +537,7 @@ class TestActionAttach:
         m_process_entitlement_delta,
         m_enable_order,
         _m_attachment_data_file_write,
+        # _m_get_user_or_root_log_path,
         expected_exception,
         expected_msg,
         expected_outer_msg,

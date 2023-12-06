@@ -492,7 +492,8 @@ class TestMain:
             (
                 TypeError("'NoneType' object is not subscriptable"),
                 messages.UNEXPECTED_ERROR.format(
-                    error_msg="'NoneType' object is not subscriptable"
+                    error_msg="'NoneType' object is not subscriptable",
+                    log_path="/var/log/ubuntu-advantage.log",
                 ),
                 "Unhandled exception, please file a bug",
             ),
@@ -510,6 +511,7 @@ class TestMain:
         m_log_exception,
         m_event_info,
         m_delete_cache_key,
+        # _m_get_user_or_root_log_path,
         event,
         exception,
         expected_error_msg,
@@ -530,7 +532,6 @@ class TestMain:
 
         exc = excinfo.value
         assert 1 == exc.code
-
         assert [
             mock.call(info_msg=expected_error_msg, file_type=mock.ANY)
         ] == m_event_info.call_args_list
