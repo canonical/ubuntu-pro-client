@@ -2,6 +2,7 @@ import json
 import logging
 from io import StringIO
 
+import mock
 import pytest
 
 from uaclient import log as pro_log
@@ -158,3 +159,42 @@ class TestLoggerFormatter:
             assert val[6].get("key") == extra.get("key")
         else:
             assert 7 == len(val)
+
+
+class TestLogHelpers:
+    def test_get_user_or_root_log_file_path(self):
+        """
+        Tests that the correct default log_file storage location is retrieved
+        when the user is root.
+        """
+        # test root log file path
+        with mock.patch(
+            "uaclient.util.we_are_currently_root",
+            return_value=True,
+        ):
+            assert (
+                pro_log.get_user_or_root_log_file_path()
+                == "/var/log/ubuntu-advantage.log"
+            )
+        # test default user log file path
+        with mock.patch(
+            "uaclient.util.we_are_currently_root",
+            return_value=False,
+        ):
+            assert (
+                pro_log.get_user_or_root_log_file_path()
+                == "~/.cache/ubuntu-pro/ubuntu-pro.log"
+            )
+        # test custom user log file path
+        with mock.patch(
+            "uaclient.config.UAConfig.log_file", new_callable=mock.PropertyMock
+        ) as mock_log_file:
+            expected_log_file = "/tmp/foo.log"
+            mock_log_file.return_value = expected_log_file
+            with mock.patch(
+                "uaclient.util.we_are_currently_root", return_value=True
+            ) as mock_root:
+                result = pro_log.get_user_or_root_log_file_path()
+                mock_root.assert_called()
+                mock_log_file.assert_called()
+                assert expected_log_file == result

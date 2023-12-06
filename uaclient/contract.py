@@ -24,6 +24,7 @@ from uaclient.defaults import (
 )
 from uaclient.files.state_files import attachment_data_file
 from uaclient.http import serviceclient
+from uaclient.log import get_user_or_root_log_file_path
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.
@@ -541,7 +542,10 @@ def process_entitlements_delta(
             failed_services=[
                 (
                     name,
-                    messages.UNEXPECTED_ERROR.format(error_msg=str(exception)),
+                    messages.UNEXPECTED_ERROR.format(
+                        error_msg=str(exception),
+                        log_path=get_user_or_root_log_file_path(),
+                    ),
                 )
                 for name, exception in zip(failed_services, unexpected_errors)
             ]
