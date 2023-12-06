@@ -104,7 +104,7 @@ WARN_NEW_VERSION_AVAILABLE_CLI = (
         """\
  A new version is available: {version}
 Please run:
-    sudo apt-get install ubuntu-advantage-tools
+    sudo apt install ubuntu-advantage-tools
 to get the latest bug fixes and new features."""
     )
 )
@@ -682,7 +682,7 @@ for a list of available options."""
 SS_UPDATE_CALL = t.gettext(
     """\
  Make sure to run
-    sudo apt-get update
+    sudo apt update
 to get the latest package information from apt."""
 )
 SS_UPDATE_DAYS = (
@@ -1257,7 +1257,7 @@ Warning: FIPS kernel is not optimized for your specific cloud.
 To fix it, run the following commands:
 
     1. sudo pro disable fips
-    2. sudo apt-get remove ubuntu-fips
+    2. sudo apt remove ubuntu-fips
     3. sudo pro enable fips --assume-yes
     4. sudo reboot
 """
