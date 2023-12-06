@@ -41,7 +41,7 @@ Feature: MOTD Messages
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
-        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         [\w\d.]+
         """
@@ -105,7 +105,7 @@ Feature: MOTD Messages
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
         \d+ additional security updates require Ubuntu Pro with '<service>' enabled.
-        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         When I run `apt-get upgrade -y` with sudo
@@ -116,7 +116,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -137,7 +137,7 @@ Feature: MOTD Messages
         [\w\d.]+
 
         \*Your Ubuntu Pro subscription has EXPIRED\*
-        Renew your service at https:\/\/ubuntu.com\/pro\/dashboard
+        Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
         Examples: ubuntu release
