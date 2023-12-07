@@ -544,7 +544,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     Scenario Outline: Attach works when snapd cannot be installed
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get remove -y snapd` with sudo
+        When I apt remove `snapd`
         And I create the file `/etc/apt/preferences.d/no-snapd` with the following
         """
         Package: snapd
