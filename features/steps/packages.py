@@ -7,6 +7,15 @@ from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
 
 
+@when("I apt dist-upgrade")
+def when_i_dist_update(context):
+    when_i_run_command(
+        context,
+        "apt dist-upgrade --assume-yes --allow-downgrades",
+        "with sudo",
+    )
+
+
 @then("I ensure apt update runs without errors")
 def then_i_check_apt_update(context):
     when_i_run_command(
