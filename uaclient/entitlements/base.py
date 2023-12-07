@@ -683,7 +683,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         ret = []
         for service in self.incompatible_services:
             ent_status, _ = service.entitlement(self.cfg).application_status()
-            if ent_status == ApplicationStatus.ENABLED:
+            if ent_status in (
+                ApplicationStatus.ENABLED,
+                ApplicationStatus.WARNING,
+            ):
                 ret.append(service)
 
         return ret
