@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.data_types import AdditionalInfo, ErrorWarningObject
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -53,16 +53,21 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
         return EnabledServicesResult(enabled_services=[])
 
     enabled_services = []  # type: List[EnabledService]
+    warnings = []  # type: List[ErrorWarningObject]
     for ent_cls in ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
-        if ent.user_facing_status()[0] == UserFacingStatus.ACTIVE:
-            enabled_service = EnabledService(name=ent.presentation_name)
+        ent_status, details = ent.user_facing_status()
+
+        if ent_status in (UserFacingStatus.ACTIVE, UserFacingStatus.WARNING):
+            ent_name = ent.presentation_name
+            enabled_service = EnabledService(name=ent_name)
+
             for _, variant_cls in ent.variants.items():
                 variant = variant_cls(cfg)
 
                 if variant.user_facing_status()[0] == UserFacingStatus.ACTIVE:
                     enabled_service = EnabledService(
-                        name=ent.presentation_name,
+                        name=ent_name,
                         variant_enabled=True,
                         variant_name=variant.variant_name,
                     )
@@ -70,9 +75,21 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
 
             enabled_services.append(enabled_service)
 
-    return EnabledServicesResult(
-        enabled_services=sorted(enabled_services, key=lambda x: x.name)
+            if ent_status == UserFacingStatus.WARNING and details:
+                warnings.append(
+                    ErrorWarningObject(
+                        title=details.msg or "",
+                        code=details.name or "",
+                        meta={"service": ent_name},
+                    )
+                )
+
+    result = EnabledServicesResult(
+        enabled_services=sorted(enabled_services, key=lambda x: x.name),
     )
+    result.warnings = warnings
+
+    return result
 
 
 endpoint = APIEndpoint(
