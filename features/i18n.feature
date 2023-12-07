@@ -23,7 +23,7 @@ Feature: Pro supports multiple languages
         """
         "yes"
         """
-        When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
+        When I apt remove `ubuntu-pro-client-l10n`
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
         Then stdout contains substring:
         """
@@ -54,7 +54,7 @@ Feature: Pro supports multiple languages
         """
         "success"
         """
-        When I run `apt-get remove -y ubuntu-pro-client-l10n` with sudo
+        When I apt remove `ubuntu-pro-client-l10n`
         When I run shell command `LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
         Then stdout contains substring:
         """

@@ -60,6 +60,23 @@ def when_i_apt_install(context, package_names, machine_name=SUT):
     )
 
 
+@when("I apt remove `{package_names}`")
+def when_i_apt_remove(context, package_names):
+    when_i_run_command(
+        context,
+        " ".join(
+            [
+                "DEBIAN_FRONTEND=noninteractive",
+                "apt",
+                "remove",
+                "-y",
+                *package_names.split(" "),
+            ]
+        ),
+        "with sudo",
+    )
+
+
 @then("apt-cache policy for the following url has priority `{prio_id}`")
 def then_apt_cache_policy_for_the_following_url_has_priority_prio_id(
     context, prio_id
