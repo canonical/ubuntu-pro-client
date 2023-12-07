@@ -194,7 +194,7 @@ Feature: api.u.unattended_upgrades.status.v1
           "vim"
         ]
         """
-        When I run `apt remove unattended-upgrades -y` with sudo
+        When I apt remove `unattended-upgrades`
         And I run `pro api u.unattended_upgrades.status.v1` as non-root
         Then stdout matches regexp:
         """

@@ -1230,7 +1230,7 @@ Feature: Proxy configuration
         Proxy authentication failed
         """
 
-        When I run `apt remove ca-certificates -y` with sudo
+        When I apt remove `ca-certificates`
         And I run `rm -f /etc/ssl/certs/ca-certificates.crt` with sudo
         And I verify that running `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
         Then stderr matches regexp:
