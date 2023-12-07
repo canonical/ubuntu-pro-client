@@ -21,7 +21,7 @@ Feature: Livepatch
         """
         Then I verify that files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
         When I apt install `linux-generic`
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
+        When I apt remove `linux-image*-kvm`
         When I run `update-grub` with sudo
         When I reboot the machine
         When I run `pro status` with sudo
@@ -69,7 +69,7 @@ Feature: Livepatch
 
         """
         When I apt install `linux-generic`
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
+        When I apt remove `linux-image*-kvm`
         When I run `update-grub` with sudo
         When I reboot the machine
         When I run `pro status` with sudo
@@ -91,7 +91,7 @@ Feature: Livepatch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         When I apt install `linux-headers-<old_kernel_version> linux-image-<old_kernel_version>`
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-gcp -y` with sudo
+        When I apt remove `linux-image*-gcp`
         When I run `update-grub` with sudo
         When I reboot the machine
         When I run `uname -r` with sudo
@@ -161,7 +161,7 @@ Feature: Livepatch
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
         When I apt install `linux-generic-hwe-<release_num>`
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get remove linux-image*-kvm -y` with sudo
+        When I apt remove `linux-image*-kvm`
         When I run `update-grub` with sudo
         When I reboot the machine
         When I attach `contract_token` with sudo

@@ -24,7 +24,7 @@ Feature: Pro Install and Uninstall related tests
         And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-pro-esm-infra.gpg`
         And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
         And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
-        When I run `apt-get purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
+        When I run `apt purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
         Then stdout matches regexp:
         """
         Purging configuration files for ubuntu-advantage-tools
