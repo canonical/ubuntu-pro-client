@@ -1,4 +1,4 @@
-# This file is used by Ubuntu Pro and supplied by the ubuntu-advantage-tools
+# This file is used by Ubuntu Pro and supplied by the ubuntu-pro-client
 # package. It has no effect if Ubuntu Pro services are not in use since no
 # other apt repositories are expected to match o=UbuntuESM.
 #
