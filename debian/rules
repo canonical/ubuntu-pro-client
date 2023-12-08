@@ -13,11 +13,30 @@ include /etc/os-release
 # versus Xenial to make those contraints applicable on each series.
 DISTRO_INFO_DEPS="distro-info (>= 0.18ubuntu0.18.04.1),"
 
+# Xenial, Bionic, Focal, Jammy, and Mantic all began with only the
+# ubuntu-advantage-tools. Even after the rename to ubuntu-pro-client, those
+# releases need to keep ubuntu-advantage-tools installed, because the prerm
+# script will break ESM access. In order to force ubuntu-advantage-tools to
+# stay installed, we add ubuntu-advantage-tools to the Depends list for
+# ubuntu-pro-client on those releases.
+# On Noble onward, only ubuntu-pro-client needs to be installed, because it
+# will have been there from the beginning of the release. ubuntu-advantage-tools
+# still can be installed, but it will no longer cause any harm.
+SELF_DEPS=""
+
 ifeq (${VERSION_ID},"16.04")
 APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32),"
 DISTRO_INFO_DEPS="distro-info (>= 0.14ubuntu0.2),"
+SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
 else ifeq (${VERSION_ID},"18.04")
 APT_PKG_DEPS="apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11),"
+SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
+else ifeq (${VERSION_ID},"20.04")
+SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
+else ifeq (${VERSION_ID},"22.04")
+SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
+else ifeq (${VERSION_ID},"23.10")
+SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
 endif
 
 %:
@@ -39,50 +58,54 @@ endif
 endif
 
 override_dh_gencontrol:
-	echo extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS) >> debian/ubuntu-advantage-tools.substvars
+	echo extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS) $(SELF_DEPS) >> debian/ubuntu-pro-client.substvars
 	dh_gencontrol
 
 override_dh_systemd_enable:
-	dh_systemd_enable -pubuntu-advantage-pro ua-auto-attach.service
-	dh_systemd_enable -pubuntu-advantage-tools ua-reboot-cmds.service
-	dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
-	dh_systemd_enable -pubuntu-advantage-tools ua-timer.service
-	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage.service
+	dh_systemd_enable -pubuntu-pro-image-auto-attach ua-auto-attach.service
+	dh_systemd_enable -pubuntu-pro-client ua-reboot-cmds.service
+	dh_systemd_enable -pubuntu-pro-client ua-timer.timer
+	dh_systemd_enable -pubuntu-pro-client ua-timer.service
+	dh_systemd_enable -pubuntu-pro-client ubuntu-advantage.service
 ifeq (${VERSION_ID},"16.04")
 	# Only enable cloud-id-shim on Xenial
-	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage-cloud-id-shim.service
+	dh_systemd_enable -pubuntu-pro-client ubuntu-advantage-cloud-id-shim.service
 endif
 
 override_dh_systemd_start:
-	dh_systemd_start -pubuntu-advantage-tools ua-timer.timer
-	dh_systemd_start -pubuntu-advantage-tools ubuntu-advantage.service
+	dh_systemd_start -pubuntu-pro-client ua-timer.timer
+	dh_systemd_start -pubuntu-pro-client ubuntu-advantage.service
 
 override_dh_auto_install:
-	dh_auto_install --destdir=debian/ubuntu-advantage-tools
+	dh_auto_install --destdir=debian/ubuntu-pro-client
 	debian/jinja2_render debian/apparmor/ubuntu_pro_apt_news.jinja2 debian/apparmor/ubuntu_pro_apt_news ubuntu_codename=${UBUNTU_CODENAME}
 	# quick syntax check on the generated profile
 	apparmor_parser -K -T -Q debian/apparmor/ubuntu_pro_apt_news
-	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_pro_apt_news $(CURDIR)/debian/ubuntu-advantage-tools/etc/apparmor.d/ubuntu_pro_apt_news
-	dh_apparmor -pubuntu-advantage-tools --profile-name=ubuntu_pro_apt_news
+	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_pro_apt_news $(CURDIR)/debian/ubuntu-pro-client/etc/apparmor.d/ubuntu_pro_apt_news
+	dh_apparmor -pubuntu-pro-client --profile-name=ubuntu_pro_apt_news
 
 	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
 
 	# We install the conf file even on non-LTS version to avoid issues on upgrade scenarios
-	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install-conf
-	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install
+	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-pro-client install-conf
+	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-pro-client install
 
 	# We want to guarantee that we are not shipping any conftest files
-	find $(CURDIR)/debian/ubuntu-advantage-tools -type f -name conftest.py -delete
+	find $(CURDIR)/debian/ubuntu-pro-client -type f -name conftest.py -delete
 
 ifneq (${VERSION_ID},"16.04")
 	# Only install cloud-id-shim on Xenial
-	rm $(CURDIR)/debian/ubuntu-advantage-tools/lib/systemd/system/ubuntu-advantage-cloud-id-shim.service
+	rm $(CURDIR)/debian/ubuntu-pro-client/lib/systemd/system/ubuntu-advantage-cloud-id-shim.service
 endif
 
-	# Move ua-auto-attach.service out to ubuntu-advantage-pro
-	mkdir -p debian/ubuntu-advantage-pro/lib/systemd/system
-	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.* debian/ubuntu-advantage-pro/lib/systemd/system
-	cd debian/ubuntu-advantage-tools
+	# Move ua-auto-attach.service out to ubuntu-pro-image-auto-attach
+	mkdir -p debian/ubuntu-pro-image-auto-attach/lib/systemd/system
+	mv debian/ubuntu-pro-client/lib/systemd/system/ua-auto-attach.* debian/ubuntu-pro-image-auto-attach/lib/systemd/system
+
+	# move migration scripts from before the package rename into ubuntu-advantage-tools
+	mkdir -p debian/ubuntu-advantage-tools/usr/lib/ubuntu-advantage
+	mv debian/ubuntu-pro-client/usr/lib/ubuntu-advantage/migrate_user_config.py debian/ubuntu-advantage-tools/usr/lib/ubuntu-advantage
+	mv debian/ubuntu-pro-client/usr/lib/ubuntu-advantage/patch_status_json.py debian/ubuntu-advantage-tools/usr/lib/ubuntu-advantage
 
 
 override_dh_auto_clean:
