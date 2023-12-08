@@ -784,7 +784,7 @@ Feature: Security status command behavior
             pro security-status --help
         for a list of available options\.
 
-        Main/Restricted packages receive updates until 1/2024\.
+        Main/Restricted packages receive updates until 7/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -795,7 +795,7 @@ Feature: Security status command behavior
         \d+ packages installed:
          +\d+ packages from Ubuntu Main/Restricted repository
 
-        Main/Restricted packages receive updates until 1/2024\.
+        Main/Restricted packages receive updates until 7/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -826,7 +826,7 @@ Feature: Security status command behavior
             sudo apt-get update
         to get the latest package information from apt\.
 
-        Main/Restricted packages receive updates until 1/2024\.
+        Main/Restricted packages receive updates until 7/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
@@ -848,7 +848,7 @@ Feature: Security status command behavior
             sudo apt-get update
         to get the latest package information from apt\.
 
-        Main/Restricted packages receive updates until 1/2024\.
+        Main/Restricted packages receive updates until 7/2024\.
 
         Ubuntu Pro is not available for non-LTS releases\.
         """
