@@ -450,7 +450,6 @@ case "$1" in
       rm_old_license_check_marker
       disable_new_timer_if_old_timer_already_disabled
       remove_old_systemd_units
-      /usr/lib/ubuntu-advantage/cloud-id-shim.sh || true
 
       # On old version of ubuntu-advantange-tools, we don't have a public
       # machine_token.json file on attached machines. Since the non-root
@@ -473,15 +472,6 @@ case "$1" in
       # Rename the gpg keys to -pro-
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "29~"; then
           rename_gpg_keys
-      fi
-
-      if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
-          echo "Warning: uaclient.conf contains old ua_config field." >&2
-          echo "         Please do the following:" >&2
-          echo "         1. Run 'pro config set field=value' for each field/value pair" >&2
-          echo "            present under ua_config in /etc/ubuntu-advantage/uaclient.conf" >&2
-          echo "         2. Delete ua_config and all sub-fields in" >&2
-          echo "            /etc/ubuntu-advantage/uaclient.conf" >&2
       fi
       ;;
 esac

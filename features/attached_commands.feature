@@ -37,7 +37,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         """
         /var/log/ubuntu-advantage.log
         """
-        When I run `logrotate --force /etc/logrotate.d/ubuntu-advantage-tools` with sudo
+        When I run `logrotate --force /etc/logrotate.d/ubuntu-pro-client` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
         Then stdout matches regexp:
         """

@@ -35,6 +35,14 @@ Vcs-Browser: https://github.com/canonical/ubuntu-pro-client
 Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools
+Depends: ubuntu-pro-client, ${misc:Depends}
+Architecture: all
+Priority: optional
+Section: oldlibs
+Description: transitional package
+ This is a transitional package. It can safely be removed.
+
+Package: ubuntu-pro-client
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/
 Architecture: any
 Depends: ${misc:Depends},
@@ -44,6 +52,9 @@ Depends: ${misc:Depends},
          python3-pkg-resources,
          ${extra:Depends}
 Recommends: ubuntu-pro-client-l10n
+Breaks: ubuntu-advantage-tools (<<31~)
+Replaces: ubuntu-advantage-tools (<<31~)
+Provides: ubuntu-advantage-tools
 Description: Management tools for Ubuntu Pro
  Ubuntu Pro is a suite of additional services provided by Canonical on
  top of Ubuntu. Whether you're an enterprise customer deploying systems
@@ -53,17 +64,26 @@ Description: Management tools for Ubuntu Pro
 
 Package: ubuntu-pro-client-l10n
 Architecture: any
-Depends: ${misc:Depends}, ubuntu-advantage-tools (>=30~)
+Depends: ${misc:Depends}, ubuntu-pro-client (= ${binary:Version})
 Description: Translations for Ubuntu Pro Client
  This package delivers translations of Ubuntu Pro Client for various
  languages.
 
 Package: ubuntu-advantage-pro
+Depends: ubuntu-pro-image-auto-attach, ${misc:Depends}
+Architecture: all
+Priority: optional
+Section: oldlibs
+Description: transitional package
+ This is a transitional package. It can safely be removed.
+
+Package: ubuntu-pro-image-auto-attach
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances/
 Architecture: all
-Depends: ${misc:Depends}, ubuntu-advantage-tools (>=20.2)
-Replaces: ubuntu-advantage-tools (<<20.2)
-Breaks: ubuntu-advantage-tools (<<20.2)
+Depends: ${misc:Depends}, ubuntu-pro-client (>=31~)
+Breaks: ubuntu-advantage-pro (<<31~)
+Replaces: ubuntu-advantage-pro (<<31~)
+Provides: ubuntu-advantage-pro
 Description: Service to auto-attach Ubuntu Pro cloud images
  This package delivers an additional service that performs an auto-attach
  operation for Ubuntu Pro cloud instances. This package should not be manually

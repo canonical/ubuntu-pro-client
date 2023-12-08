@@ -7,7 +7,7 @@ import setuptools
 
 from uaclient import defaults
 
-NAME = "ubuntu-advantage-tools"
+NAME = "ubuntu-pro-client"
 
 INSTALL_REQUIRES = open("requirements.txt").read().rstrip("\n").split("\n")
 
