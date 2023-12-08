@@ -104,7 +104,7 @@ WARN_NEW_VERSION_AVAILABLE_CLI = (
         """\
  A new version is available: {version}
 Please run:
-    sudo apt install ubuntu-advantage-tools
+    sudo apt install ubuntu-pro-client
 to get the latest bug fixes and new features."""
     )
 )

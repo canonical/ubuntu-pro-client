@@ -1,4 +1,4 @@
-# bash completion for ubuntu-advantage-tools
+# bash completion for ubuntu-pro-client
 
 . /etc/os-release  # For VERSION_ID
 

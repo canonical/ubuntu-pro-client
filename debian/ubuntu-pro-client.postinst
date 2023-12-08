@@ -1,0 +1,98 @@
+#!/bin/sh
+
+set -e
+
+. /etc/os-release  # For VERSION_ID
+
+# Needed even if this script doesn't call debconf, see:
+# https://lintian.debian.org/tags/postinst-does-not-load-confmodule.html
+# Note: this may re-exec the postinst script.
+. /usr/share/debconf/confmodule
+
+if [ -z "${VERSION_ID}" ]; then
+    echo "Warning: missing VERSION_ID in /etc/os-release" >&2
+    VERSION_ID="NO-VERSION_ID"
+fi
+
+
+XENIAL_CLOUD_ID_SHIM_UNIT_LOCATION="/etc/systemd/system/multi-user.target.wants/ubuntu-advantage-cloud-id-shim.service"
+
+NOTICES_DIR="/var/lib/ubuntu-advantage/notices"
+TEMP_NOTICES_DIR="/run/ubuntu-advantage/notices"
+REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
+
+
+#
+# Helpers that change state of pro-client
+#
+add_notice() {
+    notice=$1
+    mkdir -p $NOTICES_DIR
+    touch $NOTICES_DIR/$notice
+}
+add_temp_notice() {
+    notice=$1
+    mkdir -p $TEMP_NOTICES_DIR
+    touch $TEMP_NOTICES_DIR/$notice
+}
+mark_reboot_cmds_as_needed() {
+    if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
+      touch $REBOOT_CMD_MARKER_FILE
+    fi
+}
+
+
+case "$1" in
+    configure)
+      PREVIOUS_PKG_VER=$2
+
+      #
+      # Migrations from previous ubuntu-pro-client package versions
+      #
+      # These should always be version-gated using PREVIOUS_PKG_VER and execute in order from oldest to newest.
+      # For example:
+      #   if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "33~"; then
+      #       # do the migrations to version 33
+      #   fi
+      #   if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "34~"; then
+      #       # do the migrations to version 34
+      #   fi
+      #
+
+      # none yet for ubuntu-pro-client package
+
+
+      #
+      # do-release-upgrade migrations from previous Ubuntu release ubuntu-pro-client package versions
+      #
+
+      # Xenial -> Bionic: clean up unnecessary cloud-id-shim unit that is only in xenial packages
+      if [ "$VERSION_ID" = "18.04" ]; then
+          if echo "$PREVIOUS_PKG_VER" | grep -q "16.04"; then
+              if [ -L $XENIAL_CLOUD_ID_SHIM_UNIT_LOCATION ]; then
+                  deb-systemd-helper purge ubuntu-advantage-cloud-id-shim.service > /dev/null || true
+                  deb-systemd-helper unmask ubuntu-advantage-cloud-id-shim.service > /dev/null || true
+              fi
+          fi
+      fi
+
+
+      #
+      # Always do these to ensure ubuntu-pro-client is in correct state
+      #
+
+      /usr/lib/ubuntu-advantage/cloud-id-shim.sh || true
+
+      if grep -q "^ua_config:" /etc/ubuntu-advantage/uaclient.conf; then
+          echo "Warning: uaclient.conf contains old ua_config field." >&2
+          echo "         Please do the following:" >&2
+          echo "         1. Run 'pro config set field=value' for each field/value pair" >&2
+          echo "            present under ua_config in /etc/ubuntu-advantage/uaclient.conf" >&2
+          echo "         2. Delete ua_config and all sub-fields in" >&2
+          echo "            /etc/ubuntu-advantage/uaclient.conf" >&2
+      fi
+      ;;
+esac
+
+#DEBHELPER#
+exit 0

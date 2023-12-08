@@ -53,9 +53,7 @@ def get_last_known_candidate() -> Optional[str]:
     ):
         candidate_version = None
         try:
-            candidate_version = get_pkg_candidate_version(
-                "ubuntu-advantage-tools"
-            )
+            candidate_version = get_pkg_candidate_version("ubuntu-pro-client")
             if candidate_version:
                 os.makedirs(UAC_RUN_PATH, exist_ok=True)
                 with open(CANDIDATE_CACHE_PATH, "w") as f:
