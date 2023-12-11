@@ -15,7 +15,7 @@ Feature: Package related API endpoints
         """
         # Make sure we have an updated system
         When I attach `contract_token` with sudo
-        And I run `apt upgrade -y` with sudo
+        And I apt upgrade
         # Install some outdated package
         And I apt install `<package>=<outdated_version>`
         # See the update there

@@ -108,7 +108,7 @@ Feature: MOTD Messages
         Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
 
         """
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I run `pro refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:

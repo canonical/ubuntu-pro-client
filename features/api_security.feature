@@ -20,7 +20,7 @@ Feature: API security/security status tests
         When I attach `contract_token` with sudo
         Then I verify that `esm-infra` is enabled
         When I apt update
-        And I run `apt upgrade -y` with sudo
+        And I apt upgrade
         And I apt install `jq bzip2`
         # Install the oscap version 1.3.7 which solved the epoch error message issue
         And I apt install `cmake libdbus-1-dev libdbus-glib-1-dev libcurl4-openssl-dev libgcrypt20-dev libselinux1-dev libxslt1-dev libgconf2-dev libacl1-dev libblkid-dev libcap-dev libxml2-dev libldap2-dev libpcre3-dev swig libxml-parser-perl libxml-xpath-perl libperl-dev libbz2-dev g++ libapt-pkg-dev libyaml-dev libxmlsec1-dev libxmlsec1-openssl`
