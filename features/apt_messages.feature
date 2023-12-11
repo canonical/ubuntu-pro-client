@@ -5,9 +5,9 @@ Feature: APT Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I apt update
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I apt install `<standard-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -16,7 +16,7 @@ Feature: APT Messages
         """
 
         When I apt install `<infra-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -25,7 +25,7 @@ Feature: APT Messages
         """
 
         When I apt install `<apps-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -34,7 +34,7 @@ Feature: APT Messages
         """
 
         When I apt install `<standard-pkg> <infra-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -43,7 +43,7 @@ Feature: APT Messages
         """
 
         When I apt install `<standard-pkg> <apps-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -52,7 +52,7 @@ Feature: APT Messages
         """
 
         When I apt install `<infra-pkg> <apps-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -61,7 +61,7 @@ Feature: APT Messages
         """
 
         When I apt install `<standard-pkg> <infra-pkg> <apps-pkg>`
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -69,7 +69,7 @@ Feature: APT Messages
 
         """
 
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
@@ -95,11 +95,11 @@ Feature: APT Messages
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
-        When I run `apt-get -y upgrade` with sudo
+        When I apt upgrade
         When I run `apt-get -y autoremove` with sudo
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -111,7 +111,7 @@ Feature: APT Messages
         Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
-        When I run `apt-get upgrade` with sudo
+        When I apt-get upgrade
         Then I will see the following on stdout:
         """
         Reading package lists...
@@ -121,7 +121,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I run `apt upgrade --dry-run` with sudo
+        When I dry run apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -130,10 +130,10 @@ Feature: APT Messages
         Calculating upgrade...
         The following packages will be upgraded:
         """
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -151,12 +151,12 @@ Feature: APT Messages
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
-        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        When I apt upgrade including phased updates
         When I run `apt-get -y autoremove` with sudo
         When I apt install `<package>`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -168,7 +168,7 @@ Feature: APT Messages
         <learn_more_msg>
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
-        When I run `apt-get upgrade` with sudo
+        When I apt-get upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -178,7 +178,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I run `apt upgrade --dry-run` with sudo
+        When I dry run apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -188,10 +188,10 @@ Feature: APT Messages
         The following packages will be upgraded:
           <package>
         """
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -211,7 +211,7 @@ Feature: APT Messages
         When I attach `contract_token` with sudo
         # On interim releases we will not enable any service, so we need a manual apt update
         When I apt update
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        When I apt upgrade including phased updates
         When I run `apt-get autoremove -y` with sudo
         When I apt install `jq`
         When I run `pro detach --assume-yes` with sudo
@@ -238,7 +238,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -257,7 +257,7 @@ Feature: APT Messages
         """
 
         # Test that it is not shown in apt-get output
-        When I run `apt-get upgrade` with sudo
+        When I apt-get upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -284,7 +284,7 @@ Feature: APT Messages
         """
         # apt update stamp will prevent a apt_news refresh
         When I apt update
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -304,7 +304,7 @@ Feature: APT Messages
         
         # manual refresh gets new message
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -331,7 +331,7 @@ Feature: APT Messages
         When I apt update
         # the apt-news.service unit runs in the background, give it some time to fetch the json file
         When I wait `5` seconds
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -369,7 +369,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -399,7 +399,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -430,7 +430,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -459,7 +459,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -493,7 +493,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -523,7 +523,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -553,7 +553,7 @@ Feature: APT Messages
         }
         """
         When I attach `contract_token` with sudo
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         When I set the machine token overlay to the following yaml
         """
         machineTokenInfo:
@@ -565,7 +565,7 @@ Feature: APT Messages
         When I apt update
         # the apt-news.service unit runs in the background, give it some time to fetch the json file
         When I wait `5` seconds
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -591,7 +591,7 @@ Feature: APT Messages
             effectiveTo: $behave_var{today -3}
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -618,7 +618,7 @@ Feature: APT Messages
             effectiveTo: $behave_var{today -20}
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -647,7 +647,7 @@ Feature: APT Messages
         }
         """
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then I will see the following on stdout
         """
         Reading package lists...
@@ -679,7 +679,7 @@ Feature: APT Messages
         When I apt install `ansible`
         # Update after installing to make sure messages are there
         When I apt update
-        When I run `apt upgrade --dry-run` with sudo
+        When I dry run apt upgrade
         Then stdout contains substring:
         """
         <msg>
@@ -700,17 +700,17 @@ Feature: APT Messages
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
-        When I run `apt-get -o APT::Get::Always-Include-Phased-Updates=true upgrade -y` with sudo
+        When I apt upgrade including phased updates
         When I run `apt-get -y autoremove` with sudo
         When I apt install `hello`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout does not match regexp:
         """
         Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
         """
-        When I run `apt-get upgrade` with sudo
+        When I apt-get upgrade
         Then I will see the following on stdout:
         """
         Reading package lists...
@@ -720,7 +720,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I run `apt upgrade --dry-run` with sudo
+        When I dry run apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -729,10 +729,10 @@ Feature: APT Messages
         Calculating upgrade...
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
         """
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I run `pro detach --assume-yes` with sudo
         When I run `pro refresh messages` with sudo
-        When I run `apt upgrade` with sudo
+        When I apt upgrade
         Then stdout matches regexp:
         """
         Reading package lists...

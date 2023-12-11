@@ -253,7 +253,7 @@ Feature: Security status command behavior
             apt-cache show .+
         to learn more about that package\.
         """
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
         Then stdout matches regexp:
@@ -574,7 +574,7 @@ Feature: Security status command behavior
             apt-cache show .+
         to learn more about that package\.
         """
-        When I run `apt upgrade -y` with sudo
+        When I apt upgrade
         And I verify root and non-root `pro security-status` calls have the same output
         And I run `pro security-status` as non-root
         Then stdout matches regexp:
