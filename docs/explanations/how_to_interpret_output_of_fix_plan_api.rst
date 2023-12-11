@@ -31,7 +31,7 @@ output is as follows:
                       "source_packages": [
                         "package"
                       ],
-                      "pocket: "standard-updates"
+                      "pocket": "standard-updates"
                     },
                     "operation": "apt-upgrade",
                     "order": 1
