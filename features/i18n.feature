@@ -86,11 +86,12 @@ Feature: Pro supports multiple languages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I apt update
-        When I run `apt-get upgrade -y` with sudo
+        When I apt upgrade
         When I run `pro detach --assume-yes` with sudo
         When I apt update
         When I apt install `hello`
         When I attach `contract_token` with sudo
+        # Didn't call the step specifically because of the language environment
         When I run shell command `LANGUAGE=pt_BR.UTF-8 apt upgrade -y` with sudo
         Then stdout matches regexp:
         """
