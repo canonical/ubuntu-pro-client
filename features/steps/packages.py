@@ -37,6 +37,38 @@ def when_i_apt_update(context, machine_name=SUT):
     )
 
 
+@when("I {dry} run {command} upgrade")
+@when("I {command} upgrade")
+@when("I {command} upgrade including {phased} updates")
+def when_i_apt_upgrade(context, command="apt", dry="", phased=""):
+    cmd_list = [
+        command,
+        "upgrade",
+    ]
+
+    if dry == "dry":
+        cmd_list.append("--dry-run")
+    else:
+        cmd_list.insert(0, "DEBIAN_FRONTEND=noninteractive")
+        cmd_list.extend(
+            [
+                "-y",
+                "--allow-downgrades",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+            ]
+        )
+    # It will be either phased or dry, never both
+    if phased == "phased":
+        cmd_list.append("-o APT::Get::Always-Include-Phased-Updates=true")
+
+    when_i_run_command(
+        context,
+        " ".join(cmd_list),
+        "with sudo",
+    )
+
+
 @when("I apt install `{package_names}`")
 @when("I apt install `{package_names}` on the `{machine_name}` machine")
 def when_i_apt_install(context, package_names, machine_name=SUT):
