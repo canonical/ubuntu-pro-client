@@ -30,7 +30,8 @@ Feature: Logs in Json Array Formatter
     Scenario Outline: Non-root user and root user log files are different
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Confirm user log file does not exist 
-        When I verify `/var/log/ubuntu-advantage.log` is empty
+        When I run `truncate -s 0 /var/log/ubuntu-advantage.log` with sudo
+        And I verify `/var/log/ubuntu-advantage.log` is empty
         Then I verify that no files exist matching `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log`
         When I verify that running `pro status` `as non-root` exits `0`
         Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log`
