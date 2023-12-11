@@ -1,0 +1,276 @@
+{% if ubuntu_codename not in ["xenial", "bionic", "focal"] %}
+abi <abi/3.0>,
+{% endif %}
+include <tunables/global>
+
+profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
+  include <abstractions/base>
+  include <abstractions/nameservice>
+  include <abstractions/openssl>
+  include <abstractions/python>
+  include <abstractions/user-tmp>
+
+  capability chown,
+  capability dac_override,
+  capability dac_read_search,
+  capability fowner,
+  capability kill,
+  capability setgid,
+  capability setuid,
+
+  signal send set=int peer=ubuntu_pro_esm_cache//apt_methods,
+  signal send set=int peer=ubuntu_pro_esm_cache//apt_methods_gpgv,
+
+  /etc/apt/** r,
+  /etc/machine-id r,
+  /etc/ubuntu-advantage/uaclient.conf r,
+
+  /run/ubuntu-advantage/ rw,
+  /run/ubuntu-advantage/** rw,
+
+  /run/systemd/container/ r,
+  /run/systemd/container/** r,
+
+  /usr/bin/apt mrix,
+  /usr/bin/apt-cache mrix,
+  /usr/bin/ischroot mrix,
+  /usr/bin/python3.{1,}[0-9] mrix,
+  /usr/bin/uname mrix,
+
+  /usr/bin/cloud-id Cx -> cloud_id,
+  /{,usr/}bin/ps Cx -> ps,
+  /usr/bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
+  /usr/bin/dpkg Cx -> dpkg,
+  /usr/bin/ubuntu-distro-info Cx -> ubuntu_distro_info,
+  /usr/lib/apt/methods/gpgv Cx -> apt_methods_gpgv,
+  /usr/lib/apt/methods/http Cx -> apt_methods,
+  /usr/lib/apt/methods/https Cx -> apt_methods,
+  /usr/lib/apt/methods/store Cx -> apt_methods,
+
+  /usr/share/dpkg/** r,
+  /usr/share/keyrings/* r,
+
+  /var/cache/apt/** rw,
+
+  /var/lib/apt/** r,
+  /var/lib/dpkg/** r,
+  /var/lib/ubuntu-advantage/** rwk,
+
+  /var/log/ubuntu-advantage.log rw,
+
+  @{PROC}/@{pid}/fd/ r,
+  @{PROC}/1/cgroup r,
+  @{PROC}/version_signature r,
+  @{PROC}/@{pid}/mountinfo r,
+  @{PROC}/@{pid}/status r,
+  @{PROC}/@{pid}/stat r,
+  @{PROC}/sys/kernel/osrelease r,
+
+{% if ubuntu_codename in ["bionic", "xenial"] %}
+  # see https://bugs.python.org/issue40501
+  /sbin/ldconfig rix,
+  /sbin/ldconfig.real rix,
+  @{PROC}/@{pid}/mounts r,
+  /usr/bin/@{multiarch}-gcc-* rix,
+  /usr/bin/@{multiarch}-ld.bfd rix,
+  /usr/lib/gcc/@{multiarch}/*/collect2 rix,
+  /usr/bin/@{multiarch}-objdump rix,
+{% endif %}
+
+  profile ps flags=(attach_disconnected) {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+
+    capability sys_ptrace,
+    ptrace read,
+
+    /{,usr/}bin/ps mrix,
+
+    /dev/tty r,
+
+    @{PROC}/ r,
+    @{PROC}/@{pid}/** r,
+    @{PROC}/uptime r,
+    @{PROC}/sys/kernel/** r,
+  }
+
+  profile cloud_id flags=(attach_disconnected) {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/python>
+
+    ptrace read peer=unconfined,
+
+    /etc/cloud/** r,
+    /etc/apt/** r,
+    /etc/apport/** r,
+    /etc/ssl/openssl.cnf r,
+
+    @{PROC}/@{pid}/fd/ r,
+    @{PROC}/1/environ r,
+    @{PROC}/1/cmdline r,
+    @{PROC}/@{pid}/status r,
+
+    /run/cloud-init/** r,
+
+    /usr/bin/ r,
+    /usr/bin/cloud-id r,
+    /usr/bin/python3.{1,}[0-9] mrix,
+    /usr/bin/uname mrix,
+
+    /usr/share/dpkg/** r,
+
+    # workarounds for
+    # https://gitlab.com/apparmor/apparmor/-/issues/346
+    /usr/bin/systemctl Px -> ubuntu_pro_esm_cache_systemctl,
+    /usr/bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
+
+    /var/lib/cloud/** r,
+
+{% if ubuntu_codename in ["bionic", "xenial"] %}
+    # see https://bugs.python.org/issue40501
+    /sbin/ldconfig rix,
+    /sbin/ldconfig.real rix,
+    @{PROC}/@{pid}/mounts r,
+    /usr/bin/@{multiarch}-gcc-* rix,
+    /usr/bin/@{multiarch}-ld.bfd rix,
+    /usr/lib/gcc/@{multiarch}/*/collect2 rix,
+    /usr/bin/@{multiarch}-objdump rix,
+
+    /etc/lsb-release r,
+    @{PROC}/cmdline r,
+    /bin/dash mrix,
+    /bin/uname mrix,
+{% endif %}
+
+  }
+
+  profile dpkg flags=(attach_disconnected) {
+    include <abstractions/base>
+
+    capability setgid,
+
+    /etc/dpkg/** r,
+
+    /usr/bin/dpkg mr,
+
+  }
+
+  profile ubuntu_distro_info flags=(attach_disconnected) {
+    include <abstractions/base>
+
+    /usr/bin/ubuntu-distro-info mr,
+
+    /usr/share/distro-info/** r,
+
+  }
+
+  profile apt_methods flags=(attach_disconnected) {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/ssl_certs>
+    include <abstractions/user-tmp>
+
+    capability setgid,
+    capability setuid,
+
+    network inet stream,
+    network inet6 stream,
+
+    signal receive set=int peer=ubuntu_pro_esm_cache,
+
+    / r,
+    /etc/dpkg/** r,
+
+    /usr/lib/apt/methods/gpgv mr,
+    /usr/lib/apt/methods/http mr,
+    /usr/lib/apt/methods/https mr,
+    /usr/lib/apt/methods/store mr,
+
+    /usr/share/dpkg/** r,
+
+    /var/lib/ubuntu-advantage/apt-esm/** rwk,
+
+    @{PROC}/@{pid}/cgroup r,
+    @{PROC}/@{pid}/fd/ r,
+
+  }
+
+  profile apt_methods_gpgv flags=(attach_disconnected) {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/ssl_certs>
+    include <abstractions/user-tmp>
+
+    capability setgid,
+    capability setuid,
+
+    signal receive set=int peer=ubuntu_pro_esm_cache,
+
+    / r,
+    /etc/dpkg/** r,
+
+    /{,usr/}bin/* mrix,
+
+    /usr/lib/apt/methods/gpgv mr,
+
+    /usr/share/dpkg/** r,
+    /usr/share/keyrings/* r,
+
+    /var/lib/ubuntu-advantage/apt-esm/** r,
+
+    @{PROC}/@{pid}/fd/ r,
+
+    # apt-config command needs these
+    # Note: observed only in xenial tests, but makes sense for all releases
+    /etc/apt/** r,
+    /var/lib/apt/** r,
+
+  }
+}
+
+  # these profiles were initially subprofiles of cloud-id, but:
+  # a) that crashes the kernel
+  # https://gitlab.com/apparmor/apparmor/-/issues/346
+  # b) <= bionic doesn't like the // or - chars in profile names
+  # https://gitlab.com/apparmor/apparmor/-/commit/99755daafb8cfde4df542b66f656597a482129ac
+
+  profile ubuntu_pro_esm_cache_systemctl flags=(attach_disconnected) {
+    include <abstractions/base>
+
+    capability net_admin,
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    /usr/bin/systemctl mr,
+
+    /run/systemd/private rw,
+    /run/systemd/** r,
+
+    @{PROC}/cmdline r,
+    @{PROC}/1/cmdline r,
+    @{PROC}/@{pid}/stat r,
+    @{PROC}/sys/kernel/osrelease r,
+  }
+
+  profile ubuntu_pro_esm_cache_systemd_detect_virt flags=(attach_disconnected) {
+    include <abstractions/base>
+
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    /usr/bin/systemd-detect-virt mr,
+
+    /run/systemd/** r,
+
+    @{PROC}/@{pid}/status r,
+    @{PROC}/@{pid}/stat r,
+    @{PROC}/1/environ r,
+    @{PROC}/1/sched r,
+    @{PROC}/cmdline r,
+    @{PROC}/1/cmdline r,
+    @{PROC}/sys/kernel/osrelease r,
+
+  }
