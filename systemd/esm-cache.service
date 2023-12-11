@@ -13,3 +13,4 @@ Description=Update the local ESM caches
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/esm_cache.py
+AppArmorProfile=ubuntu_pro_esm_cache

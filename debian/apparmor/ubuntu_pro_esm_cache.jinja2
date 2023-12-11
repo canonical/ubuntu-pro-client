@@ -1,0 +1,185 @@
+{% if ubuntu_codename not in ["xenial", "bionic", "focal"] %}
+abi <abi/3.0>,
+{% endif %}
+include <tunables/global>
+
+profile ubuntu_advantage_esm_cache {
+  include <abstractions/base>
+  include <abstractions/nameservice>
+  include <abstractions/openssl>
+  include <abstractions/python>
+  include <abstractions/user-tmp>
+
+  capability chown,
+  capability dac_override,
+  capability dac_read_search,
+  capability fowner,
+  capability kill,
+  capability setgid,
+  capability setuid,
+
+  signal send set=int peer=ubuntu_advantage_esm_cache//apt_methods,
+  signal send set=int peer=ubuntu_advantage_esm_cache//apt_methods_gpgv,
+
+  /etc/machine-id r,
+  /etc/apt/** r,
+  /etc/ubuntu-advantage/uaclient.conf r,
+  /run/ubuntu-advantage/ rw,
+  /run/ubuntu-advantage/* rw,
+  /run/systemd/container r,
+  /run/systemd/container/ r,
+  /run/systemd/container/** r,
+  /usr/bin/ps mrix,
+  /usr/bin/apt mrix,
+  /usr/bin/apt-cache mrix,
+  /usr/bin/ischroot mrix,
+  /usr/bin/cloud-id Cx -> cloud_id,
+  /usr/bin/systemd-detect-virt Px -> ubuntu_advantage_esm_cache//cloud-id_systemd-detect-virt,
+  /usr/bin/python3.{1,}[0-9] mrix,
+  /usr/bin/dpkg Cx -> dpkg,
+  /usr/bin/ubuntu-distro-info Cx -> ubuntu-distro-info,
+  /usr/lib/apt/methods/gpgv Cx -> apt_methods_gpgv,
+  /usr/lib/apt/methods/http Cx -> apt_methods,
+  /usr/lib/apt/methods/https Cx -> apt_methods,
+  /usr/lib/apt/methods/store Cx -> apt_methods,
+  /usr/share/dpkg/** r,
+  /usr/share/keyrings/* r,
+  /var/cache/apt/** rw,
+  /var/lib/apt/** r,
+  /var/lib/dpkg/** r,
+  /var/lib/ubuntu-advantage/** rwk,
+  /var/log/ubuntu-advantage.log rw,
+  @{PROC}/@{pid}/fd/ r,
+  @{PROC}/1/cgroup r,
+  @{PROC}/version_signature r,
+  @{PROC}/*/mountinfo r,
+
+
+  profile cloud_id {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/python>
+
+    ptrace read peer=unconfined,
+
+    /etc/cloud/** r,
+    /etc/apt/** r,
+    /etc/apport/** r,
+    /etc/ssl/openssl.cnf r,
+    @{PROC}/*/fd/ r,
+    @{PROC}/1/environ r,
+    @{PROC}/1/cmdline r,
+    /run/cloud-init/** r,
+    /usr/bin/ r,
+    /usr/bin/cloud-id r,
+    /usr/bin/python3.{1,}[0-9] mrix,
+    # workarounds for
+    # https://gitlab.com/apparmor/apparmor/-/issues/346
+    /usr/bin/systemctl Px -> ubuntu_advantage_esm_cache//cloud-id_systemctl,
+    /usr/bin/systemd-detect-virt Px -> ubuntu_advantage_esm_cache//cloud-id_systemd-detect-virt,
+    /usr/bin/uname mrix,
+    /var/lib/cloud/** r,
+    /usr/share/dpkg/** r,
+
+  }
+
+  # these profiles prefixed with "cloud-id" were initially subprofiles
+  # of cloud-id, but that crashes the kernel
+  # https://gitlab.com/apparmor/apparmor/-/issues/346
+
+  profile cloud-id_systemctl {
+    include <abstractions/base>
+
+    capability net_admin,
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    /usr/bin/systemctl mr,
+    /run/systemd/private rw,
+
+  }
+
+  profile cloud-id_systemd-detect-virt {
+    include <abstractions/base>
+
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    @{PROC}/*/status r,
+    @{PROC}/1/environ r,
+    @{PROC}/sys/kernel/osrelease r,
+    /usr/bin/systemd-detect-virt mr,
+    /run/systemd/container r,
+    /run/systemd/container/ r,
+    /run/systemd/container/** r,
+
+  }
+
+  profile dpkg {
+    include <abstractions/base>
+
+    capability setgid,
+
+    /etc/dpkg/** r,
+    /usr/bin/dpkg mr,
+
+  }
+
+  profile ubuntu-distro-info {
+    include <abstractions/base>
+
+    /usr/bin/ubuntu-distro-info mr,
+    /usr/share/distro-info/** r,
+
+  }
+
+  profile apt_methods {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/ssl_certs>
+    include <abstractions/user-tmp>
+
+    capability setgid,
+    capability setuid,
+
+    network inet stream,
+    network inet6 stream,
+
+    signal receive set=int peer=ubuntu_advantage_esm_cache,
+
+    / r,
+    /etc/dpkg/** r,
+    /usr/lib/apt/methods/gpgv mr,
+    /usr/lib/apt/methods/http mr,
+    /usr/lib/apt/methods/https mr,
+    /usr/lib/apt/methods/store mr,
+    /usr/share/dpkg/** r,
+    /var/lib/ubuntu-advantage/apt-esm/** rwk,
+    @{PROC}/@{pid}/cgroup r,
+    @{PROC}/@{pid}/fd/ r,
+
+  }
+
+  profile apt_methods_gpgv {
+    include <abstractions/base>
+    include <abstractions/nameservice>
+    include <abstractions/ssl_certs>
+    include <abstractions/user-tmp>
+
+    capability setgid,
+    capability setuid,
+
+    signal receive set=int peer=ubuntu_advantage_esm_cache,
+
+    / r,
+    /etc/dpkg/** r,
+    /usr/bin/* mrix,
+    /usr/lib/apt/methods/gpgv mr,
+    /usr/share/dpkg/** r,
+    /var/lib/ubuntu-advantage/apt-esm/** r,
+    @{PROC}/@{pid}/fd/ r,
+
+  }
+}
