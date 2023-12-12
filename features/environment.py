@@ -440,7 +440,9 @@ def after_step(context, step):
         # XXX
         with open("/var/log/syslog", "r") as syslog_fd:
             syslog_messages = syslog_fd.readlines()
-            apparmor_denied = [msg.strip() for msg in syslog_messages if "DENIED" in msg]
+            apparmor_denied = [
+                msg.strip() for msg in syslog_messages if "DENIED" in msg
+            ]
         logging.warning("XXX apparmor DENIED from host begin")
         logging.warning("\n".join(apparmor_denied))
         logging.warning("XXX apparmor DENIED from host end")
