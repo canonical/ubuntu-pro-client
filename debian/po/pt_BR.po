@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 21:27-0600\n"
+"POT-Creation-Date: 2023-12-12 14:43-0500\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -2319,7 +2319,7 @@ msgid "FIPS support requires system reboot to complete configuration."
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1306
-#: ../../uaclient/messages/__init__.py:1737
+#: ../../uaclient/messages/__init__.py:1751
 msgid "Reboot to FIPS kernel required"
 msgstr ""
 
@@ -2411,14 +2411,21 @@ msgid ""
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1373
+msgid ""
+"/etc/landscape/client.conf contains your landscape-client configuration.\n"
+"To re-enable Landscape with the same configuration, run:\n"
+"    sudo pro enable landscape --assume-yes\n"
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1380
 msgid "Livepatch"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1374
+#: ../../uaclient/messages/__init__.py:1381
 msgid "Canonical Livepatch service"
 msgstr "Serviço de Livepatch da Canonical"
 
-#: ../../uaclient/messages/__init__.py:1376
+#: ../../uaclient/messages/__init__.py:1383
 #, python-brace-format
 msgid ""
 "Livepatch provides selected high and critical kernel CVE fixes and other\n"
@@ -2433,42 +2440,42 @@ msgid ""
 "service at {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1385
+#: ../../uaclient/messages/__init__.py:1392
 msgid "Current kernel is not supported"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1388
+#: ../../uaclient/messages/__init__.py:1395
 #, python-brace-format
 msgid "Supported livepatch kernels are listed here: {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1391
+#: ../../uaclient/messages/__init__.py:1398
 #, python-brace-format
 msgid "Unable to configure livepatch: {error_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1393
+#: ../../uaclient/messages/__init__.py:1400
 msgid "Unable to enable Livepatch: "
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1395
+#: ../../uaclient/messages/__init__.py:1402
 msgid "Disabling Livepatch prior to re-attach with new token"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1398
+#: ../../uaclient/messages/__init__.py:1405
 msgid "Livepatch support requires a system reboot across LTS upgrade."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1401
-#: ../../uaclient/messages/__init__.py:1414
+#: ../../uaclient/messages/__init__.py:1408
+#: ../../uaclient/messages/__init__.py:1421
 msgid "Real-time kernel"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1403
+#: ../../uaclient/messages/__init__.py:1410
 msgid "Ubuntu kernel with PREEMPT_RT patches integrated"
 msgstr "Kernel do Ubuntu com patches PREEMPT_RT integrados"
 
-#: ../../uaclient/messages/__init__.py:1406
+#: ../../uaclient/messages/__init__.py:1413
 msgid ""
 "The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated. "
 "It\n"
@@ -2481,27 +2488,27 @@ msgid ""
 "Livepatch."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1416
+#: ../../uaclient/messages/__init__.py:1423
 msgid "Generic version of the RT kernel (default)"
 msgstr "Versão genérica do kernel RT (padrão)"
 
-#: ../../uaclient/messages/__init__.py:1418
+#: ../../uaclient/messages/__init__.py:1425
 msgid "Real-time NVIDIA Tegra Kernel"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1420
+#: ../../uaclient/messages/__init__.py:1427
 msgid "RT kernel optimized for NVIDIA Tegra platform"
 msgstr "Kernel RT otimizado para a plataforma NVIDIA Tegra"
 
-#: ../../uaclient/messages/__init__.py:1422
+#: ../../uaclient/messages/__init__.py:1429
 msgid "Real-time Intel IOTG Kernel"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1424
+#: ../../uaclient/messages/__init__.py:1431
 msgid "RT kernel optimized for Intel IOTG platform"
 msgstr "Kernel RT otimizado para a plataforma Intel IOTG"
 
-#: ../../uaclient/messages/__init__.py:1427
+#: ../../uaclient/messages/__init__.py:1434
 #, python-brace-format
 msgid ""
 "The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches "
@@ -2514,7 +2521,7 @@ msgid ""
 "Do you want to continue? [ default = Yes ]: (Y/n) "
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1438
+#: ../../uaclient/messages/__init__.py:1445
 msgid ""
 "This will remove the boot order preference for the Real-time kernel and\n"
 "disable updates to the Real-time kernel.\n"
@@ -2531,15 +2538,15 @@ msgid ""
 "Are you sure? (y/N) "
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1454
+#: ../../uaclient/messages/__init__.py:1461
 msgid "ROS ESM Security Updates"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1455
+#: ../../uaclient/messages/__init__.py:1462
 msgid "Security Updates for the Robot Operating System"
 msgstr "Atualizações de Segurança para o Robot Operating System"
 
-#: ../../uaclient/messages/__init__.py:1457
+#: ../../uaclient/messages/__init__.py:1464
 #, python-brace-format
 msgid ""
 "ros provides access to a private PPA which includes security-related "
@@ -2552,15 +2559,15 @@ msgid ""
 "{url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1466
+#: ../../uaclient/messages/__init__.py:1473
 msgid "ROS ESM All Updates"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1468
+#: ../../uaclient/messages/__init__.py:1475
 msgid "All Updates for the Robot Operating System"
 msgstr "Todas as Atualizações para o Robot Operating System"
 
-#: ../../uaclient/messages/__init__.py:1471
+#: ../../uaclient/messages/__init__.py:1478
 #, python-brace-format
 msgid ""
 "ros-updates provides access to a private PPA that includes non-security-"
@@ -2573,14 +2580,14 @@ msgid ""
 "{url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1542
+#: ../../uaclient/messages/__init__.py:1549
 msgid ""
 "Unexpected error(s) occurred.\n"
 "For more details, see the log: /var/log/ubuntu-advantage.log\n"
 "To file a bug run: ubuntu-bug ubuntu-advantage-tools"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1552
+#: ../../uaclient/messages/__init__.py:1559
 #, python-brace-format
 msgid ""
 "Failed to access URL: {url}\n"
@@ -2588,7 +2595,7 @@ msgid ""
 "Please install \"ca-certificates\" and try again."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1562
+#: ../../uaclient/messages/__init__.py:1569
 #, python-brace-format
 msgid ""
 "Failed to access URL: {url}\n"
@@ -2596,209 +2603,216 @@ msgid ""
 "Please check your openssl configuration."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1571
+#: ../../uaclient/messages/__init__.py:1578
 #, python-brace-format
 msgid "Ignoring unknown argument '{arg}'"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1577
+#: ../../uaclient/messages/__init__.py:1584
 #, python-brace-format
 msgid ""
 "A new version of the client is available: {version}. Please upgrade to the "
 "latest version to get the new features and bug fixes."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1584
+#: ../../uaclient/messages/__init__.py:1591
 #, python-brace-format
 msgid "{title} does not support being enabled with --access-only"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1589
+#: ../../uaclient/messages/__init__.py:1596
 #, python-brace-format
 msgid "{title} does not support being disabled with --purge"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1595
+#: ../../uaclient/messages/__init__.py:1602
 #, python-brace-format
 msgid "Cannot disable dependent service: {required_service}{error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1602
+#: ../../uaclient/messages/__init__.py:1609
 #, python-brace-format
 msgid ""
 "Cannot disable {service_being_disabled} when {dependent_service} is "
 "enabled.\n"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1610
+#: ../../uaclient/messages/__init__.py:1617
 #, python-brace-format
 msgid "Cannot disable {entitlement_name} with purge: no origin value defined"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1617
+#: ../../uaclient/messages/__init__.py:1624
 #, python-brace-format
 msgid "Cannot enable required service: {service}{error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1622
+#: ../../uaclient/messages/__init__.py:1629
 #, python-brace-format
 msgid ""
 "Cannot enable {service_being_enabled} when {required_service} is disabled.\n"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1630
+#: ../../uaclient/messages/__init__.py:1637
 #, python-brace-format
 msgid ""
 "Cannot enable {service_being_enabled} when {incompatible_service} is enabled."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1638
+#: ../../uaclient/messages/__init__.py:1645
 #, python-brace-format
 msgid "Cannot install {title} on a container."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1641
+#: ../../uaclient/messages/__init__.py:1648
 #, python-brace-format
 msgid "{title} is not configured"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1646
+#: ../../uaclient/messages/__init__.py:1653
 #, python-brace-format
 msgid ""
 "The {service} service is not enabled because the {package} package is\n"
 "not installed."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1652
+#: ../../uaclient/messages/__init__.py:1659
 #, python-brace-format
 msgid "{title} is active"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1656
+#: ../../uaclient/messages/__init__.py:1663
 #, python-brace-format
 msgid "{title} does not have an aptURL directive"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1661
+#: ../../uaclient/messages/__init__.py:1668
 #, python-brace-format
 msgid ""
 "{title} is not currently enabled\n"
 "See: sudo pro status"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1668
+#: ../../uaclient/messages/__init__.py:1675
+#, python-brace-format
+msgid ""
+"Disabling {title} with pro is not supported.\n"
+"See: sudo pro status"
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:1682
 #, python-brace-format
 msgid ""
 "{title} is already enabled.\n"
 "See: sudo pro status"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1675
+#: ../../uaclient/messages/__init__.py:1689
 #, python-brace-format
 msgid ""
 "This subscription is not entitled to {{title}}\n"
 "View your subscription at: {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1681
+#: ../../uaclient/messages/__init__.py:1695
 #, python-brace-format
 msgid "{title} is not entitled"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1687
+#: ../../uaclient/messages/__init__.py:1701
 #, python-brace-format
 msgid ""
 "{title} is not available for kernel {kernel}.\n"
 "Minimum kernel version required: {min_kernel}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1695
+#: ../../uaclient/messages/__init__.py:1709
 #, python-brace-format
 msgid ""
 "{title} is not available for kernel {kernel}.\n"
 "Supported flavors are: {supported_kernels}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1703
+#: ../../uaclient/messages/__init__.py:1717
 #, python-brace-format
 msgid "{title} is not available for Ubuntu {series}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1710
+#: ../../uaclient/messages/__init__.py:1724
 #, python-brace-format
 msgid ""
 "{title} is not available for platform {arch}.\n"
 "Supported platforms are: {supported_arches}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1718
+#: ../../uaclient/messages/__init__.py:1732
 #, python-brace-format
 msgid ""
 "{title} is not available for CPU vendor {vendor}.\n"
 "Supported CPU vendors are: {supported_vendors}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1725
+#: ../../uaclient/messages/__init__.py:1739
 msgid "no entitlement affordances checked"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1731
+#: ../../uaclient/messages/__init__.py:1745
 #, python-brace-format
 msgid ""
 "Ubuntu {{series}} does not provide {{cloud}} optimized FIPS kernel\n"
 "For help see: {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1741
+#: ../../uaclient/messages/__init__.py:1755
 #, python-brace-format
 msgid "Cannot enable {fips} when {fips_updates} is enabled."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1744
+#: ../../uaclient/messages/__init__.py:1758
 #, python-brace-format
 msgid "{file_name} is not set to 1"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1748
+#: ../../uaclient/messages/__init__.py:1762
 #, python-brace-format
 msgid "Cannot enable {fips} because {fips_updates} was once enabled."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1753
+#: ../../uaclient/messages/__init__.py:1767
 msgid ""
 "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS "
 "Updates installs security patches that aren't officially certified."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1761
+#: ../../uaclient/messages/__init__.py:1775
 msgid ""
 "FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs "
 "security patches that aren't officially certified."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1770
+#: ../../uaclient/messages/__init__.py:1784
 msgid ""
 "Livepatch cannot be enabled while running the official FIPS certified "
 "kernel. If you would like a FIPS compliant kernel with additional bug fixes "
 "and security updates, you can use the FIPS Updates service with Livepatch."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1778
+#: ../../uaclient/messages/__init__.py:1792
 msgid "canonical-livepatch snap is not installed."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1782
+#: ../../uaclient/messages/__init__.py:1796
 msgid "Cannot enable Livepatch when FIPS is enabled."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1787
+#: ../../uaclient/messages/__init__.py:1801
 msgid ""
 "The running kernel has reached the end of its active livepatch window.\n"
 "Please upgrade the kernel with apt and reboot for continued livepatch "
 "support."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1795
+#: ../../uaclient/messages/__init__.py:1809
 #, python-brace-format
 msgid ""
 "The current kernel ({{version}}, {{arch}}) has reached the end of its "
@@ -2808,7 +2822,7 @@ msgid ""
 "this warning."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1804
+#: ../../uaclient/messages/__init__.py:1818
 #, python-brace-format
 msgid ""
 "The current kernel ({{version}}, {{arch}}) is not supported by livepatch.\n"
@@ -2817,87 +2831,75 @@ msgid ""
 "this warning."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1814
+#: ../../uaclient/messages/__init__.py:1828
 msgid "canonical-livepatch status didn't finish successfully"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1820
+#: ../../uaclient/messages/__init__.py:1834
 #, python-brace-format
 msgid ""
 "Error running canonical-livepatch status:\n"
 "{livepatch_error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1829
+#: ../../uaclient/messages/__init__.py:1843
 msgid ""
 "Realtime and FIPS require different kernels, so you cannot enable both at "
 "the same time."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1836
+#: ../../uaclient/messages/__init__.py:1850
 msgid ""
 "Realtime and FIPS Updates require different kernels, so you cannot enable "
 "both at the same time."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1843
+#: ../../uaclient/messages/__init__.py:1857
 msgid "Livepatch is not currently supported for the Real-time kernel."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1848
+#: ../../uaclient/messages/__init__.py:1862
 #, python-brace-format
 msgid "{service} cannot be enabled together with {variant}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1852
+#: ../../uaclient/messages/__init__.py:1866
 msgid "Cannot install Real-time kernel on a container."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1857
+#: ../../uaclient/messages/__init__.py:1871
 msgid "apt-daily.timer jobs are not running"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1861
+#: ../../uaclient/messages/__init__.py:1875
 #, python-brace-format
 msgid "{cfg_name} is empty"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1865
+#: ../../uaclient/messages/__init__.py:1879
 #, python-brace-format
 msgid "{cfg_name} is turned off"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1869
+#: ../../uaclient/messages/__init__.py:1883
 msgid "unattended-upgrades package is not installed"
 msgstr "O pacote unattended-upgrades não está instalado"
 
-#: ../../uaclient/messages/__init__.py:1874
-msgid "landscape-client is not installed"
-msgstr ""
-
-#: ../../uaclient/messages/__init__.py:1879
-msgid ""
-"Landscape is installed but not configured.\n"
-"Run `sudo landscape-config` to set it up, or run `sudo pro disable landscape`"
-msgstr ""
-
-#: ../../uaclient/messages/__init__.py:1888
+#: ../../uaclient/messages/__init__.py:1889
 msgid ""
 "Landscape is installed and configured but not registered.\n"
 "Run `sudo landscape-config` to register, or run `sudo pro disable landscape`"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1897
-msgid ""
-"Landscape is installed and configured and registered but not running.\n"
-"Run `sudo landscape-config` to start it, or run `sudo pro disable landscape`"
+#: ../../uaclient/messages/__init__.py:1898
+msgid "landscape-client is either not installed or installed but disabled."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1905
+#: ../../uaclient/messages/__init__.py:1903
 msgid "landscape-config command failed"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1911
+#: ../../uaclient/messages/__init__.py:1909
 #, python-brace-format
 msgid ""
 "Error: issue \"{issue_id}\" is not recognized.\n"
@@ -2907,28 +2909,28 @@ msgid ""
 "USNs should follow the pattern USN-nnnn."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1925
+#: ../../uaclient/messages/__init__.py:1923
 msgid "Another process is running APT."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1931
+#: ../../uaclient/messages/__init__.py:1929
 #, python-brace-format
 msgid ""
 "APT update failed to read APT config for the following:\n"
 "{failed_repos}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1961
+#: ../../uaclient/messages/__init__.py:1959
 #, python-brace-format
 msgid "Invalid APT credentials provided for {repo}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1966
+#: ../../uaclient/messages/__init__.py:1964
 #, python-brace-format
 msgid "Timeout trying to access APT repository at {repo}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1972
+#: ../../uaclient/messages/__init__.py:1970
 #, python-brace-format
 msgid ""
 "Unexpected APT error.\n"
@@ -2936,106 +2938,106 @@ msgid ""
 "See /var/log/ubuntu-advantage.log"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1982
+#: ../../uaclient/messages/__init__.py:1980
 #, python-brace-format
 msgid ""
 "Cannot validate credentials for APT repo. Timeout after {seconds} seconds "
 "trying to reach {repo}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1989
+#: ../../uaclient/messages/__init__.py:1987
 #, python-brace-format
 msgid "snap {snap} is not installed or doesn't exist"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1994
+#: ../../uaclient/messages/__init__.py:1992
 #, python-brace-format
 msgid ""
 "Unexpected SNAPD API error\n"
 "{error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:1998
+#: ../../uaclient/messages/__init__.py:1996
 msgid "Could not reach the SNAPD API"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2002
+#: ../../uaclient/messages/__init__.py:2000
 msgid "Failed to install snapd on the system"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2007
+#: ../../uaclient/messages/__init__.py:2005
 #, python-brace-format
 msgid "Unable to install Livepatch client: {error_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2012
+#: ../../uaclient/messages/__init__.py:2010
 #, python-brace-format
 msgid "\"{proxy}\" is not working. Not setting as proxy."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2017
+#: ../../uaclient/messages/__init__.py:2015
 #, python-brace-format
 msgid "\"{proxy}\" is not a valid url. Not setting as proxy."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2023
+#: ../../uaclient/messages/__init__.py:2021
 msgid ""
 "To use an HTTPS proxy for HTTPS connections, please install pycurl with `apt "
 "install python3-pycurl`"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2029
+#: ../../uaclient/messages/__init__.py:2027
 #, python-brace-format
 msgid "PycURL Error: {e}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2033
+#: ../../uaclient/messages/__init__.py:2031
 msgid "Proxy authentication failed"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2039
+#: ../../uaclient/messages/__init__.py:2037
 msgid ""
 "Failed to connect to authentication server\n"
 "Check your Internet connection and try again."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2046
+#: ../../uaclient/messages/__init__.py:2044
 #, python-brace-format
 msgid "Error connecting to {url}: {code} {body}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2052
+#: ../../uaclient/messages/__init__.py:2050
 #, python-brace-format
 msgid ""
 "Cannot {operation} unknown service '{invalid_service}'.\n"
 "{service_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2061
+#: ../../uaclient/messages/__init__.py:2059
 #, python-brace-format
 msgid ""
 "This machine is already attached to '{account_name}'\n"
 "To use a different subscription first run: sudo pro detach."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2068
+#: ../../uaclient/messages/__init__.py:2066
 #, python-brace-format
 msgid "Failed to attach machine. See {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2075
+#: ../../uaclient/messages/__init__.py:2073
 #, python-brace-format
 msgid ""
 "Error while reading {config_name}:\n"
 "{error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2080
+#: ../../uaclient/messages/__init__.py:2078
 #, python-brace-format
 msgid "Invalid token. See {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2086
+#: ../../uaclient/messages/__init__.py:2084
 #, python-brace-format
 msgid ""
 "Attach denied:\n"
@@ -3043,7 +3045,7 @@ msgid ""
 "Visit {url} to manage contract tokens."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2096
+#: ../../uaclient/messages/__init__.py:2094
 #, python-brace-format
 msgid ""
 "Attach denied:\n"
@@ -3051,7 +3053,7 @@ msgid ""
 "Visit {url} to manage contract tokens."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2106
+#: ../../uaclient/messages/__init__.py:2104
 #, python-brace-format
 msgid ""
 "Attach denied:\n"
@@ -3059,41 +3061,41 @@ msgid ""
 "Visit {url} to manage contract tokens."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2116
+#: ../../uaclient/messages/__init__.py:2114
 #, python-brace-format
 msgid "Expired token or contract. To obtain a new token visit: {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2123
+#: ../../uaclient/messages/__init__.py:2121
 msgid "The magic attach token is already activated."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2129
+#: ../../uaclient/messages/__init__.py:2127
 msgid "The magic attach token is invalid, has expired or never existed"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2135
+#: ../../uaclient/messages/__init__.py:2133
 msgid "Service unavailable, please try again later."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2140
+#: ../../uaclient/messages/__init__.py:2138
 #, python-brace-format
 msgid "This attach flow does not support {param} with value: {value}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2146
+#: ../../uaclient/messages/__init__.py:2144
 #, python-brace-format
 msgid "Ubuntu Pro server provided no aptURL directive for {entitlement_name}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2154
+#: ../../uaclient/messages/__init__.py:2152
 #, python-brace-format
 msgid ""
 "This machine is not attached to an Ubuntu Pro subscription.\n"
 "See {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2163
+#: ../../uaclient/messages/__init__.py:2161
 #, python-brace-format
 msgid ""
 "To use '{{valid_service}}' you need an Ubuntu Pro subscription\n"
@@ -3101,59 +3103,59 @@ msgid ""
 "See {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2179
+#: ../../uaclient/messages/__init__.py:2177
 #, python-brace-format
 msgid "could not find entitlement named \"{entitlement_name}\""
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2184
+#: ../../uaclient/messages/__init__.py:2182
 msgid "failed to enable some services"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2190
+#: ../../uaclient/messages/__init__.py:2188
 msgid "Failed to enable default services, check: sudo pro status"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2198
+#: ../../uaclient/messages/__init__.py:2196
 msgid "Something went wrong during the attach process. Check the logs."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2206
+#: ../../uaclient/messages/__init__.py:2204
 #, python-brace-format
 msgid "Ubuntu Pro server provided no aptKey directive for {entitlement_name}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2213
+#: ../../uaclient/messages/__init__.py:2211
 #, python-brace-format
 msgid "Ubuntu Pro server provided no suites directive for {entitlement_name}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2220
+#: ../../uaclient/messages/__init__.py:2218
 #, python-brace-format
 msgid ""
 "Cannot setup apt pin. Empty apt repo origin value for {entitlement_name}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2229
+#: ../../uaclient/messages/__init__.py:2227
 #, python-brace-format
 msgid "Could not determine contract delta service type {orig} {new}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2233
+#: ../../uaclient/messages/__init__.py:2231
 #, python-brace-format
 msgid ""
 "Error on Pro Image:\n"
 "{error_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2239
+#: ../../uaclient/messages/__init__.py:2237
 #, python-brace-format
 msgid ""
 "An error occurred while talking the the cloud metadata service: {code} - "
 "{body}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2246
+#: ../../uaclient/messages/__init__.py:2244
 #, python-brace-format
 msgid ""
 "Failed to attach machine\n"
@@ -3161,16 +3163,16 @@ msgid ""
 "For more information, see {url}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2256
+#: ../../uaclient/messages/__init__.py:2254
 #, python-brace-format
 msgid "No valid AWS IMDS endpoint discovered at addresses: {addresses}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2263
+#: ../../uaclient/messages/__init__.py:2261
 msgid "Unable to determine cloud platform."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2271
+#: ../../uaclient/messages/__init__.py:2269
 #, python-brace-format
 msgid ""
 "Auto-attach image support is not available on this image\n"
@@ -3179,7 +3181,7 @@ msgstr ""
 "Suporte para auto-attach não está disponível para esta imagem\n"
 "Veja {url}"
 
-#: ../../uaclient/messages/__init__.py:2280
+#: ../../uaclient/messages/__init__.py:2278
 #, python-brace-format
 msgid ""
 "Auto-attach image support is not available on {{cloud_type}}\n"
@@ -3188,18 +3190,18 @@ msgstr ""
 "Suporte para auto-attach não está disponível para {{cloud_type}}\n"
 "Veja: {url}"
 
-#: ../../uaclient/messages/__init__.py:2288
+#: ../../uaclient/messages/__init__.py:2286
 #, python-brace-format
 msgid "{file_name} is not valid {file_format}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2294
+#: ../../uaclient/messages/__init__.py:2292
 #, python-brace-format
 msgid ""
 "Could not parse /etc/os-release VERSION: {orig_ver} (modified to {mod_ver})"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2302
+#: ../../uaclient/messages/__init__.py:2300
 #, python-brace-format
 msgid ""
 "Could not extract series information from /etc/os-release.\n"
@@ -3210,7 +3212,7 @@ msgstr ""
 "o campo VERSION não tem a informação de versão: {version}\n"
 "e o campo VERSION_CODENAME não está presente"
 
-#: ../../uaclient/messages/__init__.py:2312
+#: ../../uaclient/messages/__init__.py:2310
 #, python-brace-format
 msgid ""
 "There is a corrupted lock file in the system. To continue, please remove it\n"
@@ -3224,12 +3226,12 @@ msgstr ""
 "\n"
 "$ sudo rm {lock_file_path}"
 
-#: ../../uaclient/messages/__init__.py:2321
+#: ../../uaclient/messages/__init__.py:2319
 #, python-brace-format
 msgid "{source} returned invalid json: {out}"
 msgstr "{source} retornou um json inválido: {out}"
 
-#: ../../uaclient/messages/__init__.py:2327
+#: ../../uaclient/messages/__init__.py:2325
 #, python-brace-format
 msgid ""
 "Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. "
@@ -3238,7 +3240,7 @@ msgstr ""
 "Valor inválido para {path_to_value} em /etc/ubuntu-advantage/uaclient.conf."
 "Esperava {expected_value}, mas {value} foi encontrado."
 
-#: ../../uaclient/messages/__init__.py:2336
+#: ../../uaclient/messages/__init__.py:2334
 #, python-brace-format
 msgid ""
 "Cannot set {key} to {value}: <value> for interval must be a positive integer."
@@ -3246,17 +3248,17 @@ msgstr ""
 "Não foi possível associar {key} a {value}: <value> precisa ser um inteiro "
 "positivo."
 
-#: ../../uaclient/messages/__init__.py:2343
+#: ../../uaclient/messages/__init__.py:2341
 #, python-brace-format
 msgid "Invalid url in config. {key}: {value}"
 msgstr "url inválida no arquivo de configuração. {key}: {value}"
 
-#: ../../uaclient/messages/__init__.py:2348
+#: ../../uaclient/messages/__init__.py:2346
 #, python-brace-format
 msgid "Could not find yaml file: {filepath}"
 msgstr "Não foi possível encontrar o arquivo yaml: {filepath}"
 
-#: ../../uaclient/messages/__init__.py:2354
+#: ../../uaclient/messages/__init__.py:2352
 msgid ""
 "Error: Setting global apt proxy and pro scoped apt proxy\n"
 "at the same time is unsupported.\n"
@@ -3267,27 +3269,27 @@ msgstr ""
 "pro de apt ao mesmo tempo não é suportado.\n"
 "Cancelando o processo de configuração.\n"
 
-#: ../../uaclient/messages/__init__.py:2364
+#: ../../uaclient/messages/__init__.py:2362
 msgid "Can't load the distro-info database."
 msgstr "Não foi possível carregar o banco de dados do distro-info."
 
-#: ../../uaclient/messages/__init__.py:2369
+#: ../../uaclient/messages/__init__.py:2367
 #, python-brace-format
 msgid "Can't find series {series} in the distro-info database."
 msgstr ""
 "Não foi possível encontrar a série {series} na banco de dados do distro-info."
 
-#: ../../uaclient/messages/__init__.py:2374
+#: ../../uaclient/messages/__init__.py:2372
 #, python-brace-format
 msgid "Error: Cannot use {option1} together with {option2}."
 msgstr "Erro: não é possível usar {option1} junto com {option2}"
 
-#: ../../uaclient/messages/__init__.py:2378
+#: ../../uaclient/messages/__init__.py:2376
 #, python-brace-format
 msgid "No help available for '{name}'"
 msgstr "Ajuda não disponível para '{name}'"
 
-#: ../../uaclient/messages/__init__.py:2384
+#: ../../uaclient/messages/__init__.py:2382
 #, python-brace-format
 msgid ""
 "Error: issue \"{issue}\" is not recognized.\n"
@@ -3296,34 +3298,34 @@ msgstr ""
 "Erro: problema de segurnça \"{issue}\" não foi reconhecido.\n"
 "Use: \"pro fix CVE-yyyy-nnnn\" ou \"pro fix USN-nnnn\""
 
-#: ../../uaclient/messages/__init__.py:2390
+#: ../../uaclient/messages/__init__.py:2388
 #, python-brace-format
 msgid "{arg} must be one of: {choices}"
 msgstr "{arg} precisa ser um de: {choices}"
 
-#: ../../uaclient/messages/__init__.py:2395
+#: ../../uaclient/messages/__init__.py:2393
 #, python-brace-format
 msgid "Expected {expected} but found: {actual}"
 msgstr "Esperava {expected} mas encontrou: {actual}"
 
-#: ../../uaclient/messages/__init__.py:2399
+#: ../../uaclient/messages/__init__.py:2397
 msgid "Unable to process uaclient.conf"
 msgstr "Falha ao processar uaclient.conf"
 
-#: ../../uaclient/messages/__init__.py:2404
+#: ../../uaclient/messages/__init__.py:2402
 msgid "Unable to refresh your subscription"
 msgstr "Falha ao atualizar sua assinatura"
 
-#: ../../uaclient/messages/__init__.py:2409
+#: ../../uaclient/messages/__init__.py:2407
 msgid "Unable to update Ubuntu Pro related APT and MOTD messages."
 msgstr ""
 "Falha ao atualizar as mensagens de APT e MOTD relacioandas ao Ubuntu Pro"
 
-#: ../../uaclient/messages/__init__.py:2415
+#: ../../uaclient/messages/__init__.py:2413
 msgid "json formatted response requires --assume-yes flag."
 msgstr "resposta formatada em json necessita do paramêtro --assume-yes"
 
-#: ../../uaclient/messages/__init__.py:2423
+#: ../../uaclient/messages/__init__.py:2421
 msgid ""
 "Do not pass the TOKEN arg if you are using --attach-config.\n"
 "Include the token in the attach-config file instead.\n"
@@ -3333,50 +3335,50 @@ msgstr ""
 "Ao invés disso, inclua o token no arquivo de attach-config.\n"
 "    "
 
-#: ../../uaclient/messages/__init__.py:2432
+#: ../../uaclient/messages/__init__.py:2430
 msgid "Cannot provide both --args and --data at the same time"
 msgstr "Não é possível usar --args e --data ao mesmo tempo"
 
-#: ../../uaclient/messages/__init__.py:2438
+#: ../../uaclient/messages/__init__.py:2436
 #, python-brace-format
 msgid "Unable to perform: {lock_request}.\n"
 msgstr "Falha ao executar: {lock_request}.\n"
 
-#: ../../uaclient/messages/__init__.py:2447
+#: ../../uaclient/messages/__init__.py:2445
 msgid "This command must be run as root (try using sudo)."
 msgstr "Esse comando precisa ser executado como root (tente usando sudo)."
 
-#: ../../uaclient/messages/__init__.py:2452
+#: ../../uaclient/messages/__init__.py:2450
 #, python-brace-format
 msgid "Metadata for {issue} is invalid. Error: {error_msg}."
 msgstr "Metadados para {issue} não são válidos. Erro: {error_msg}."
 
-#: ../../uaclient/messages/__init__.py:2459
+#: ../../uaclient/messages/__init__.py:2457
 #, python-brace-format
 msgid "Error: {issue_id} not found."
 msgstr "Erro: {issue_id} não encontrada."
 
-#: ../../uaclient/messages/__init__.py:2463
+#: ../../uaclient/messages/__init__.py:2461
 #, python-brace-format
 msgid "GPG key '{keyfile}' not found."
 msgstr "chave GPG '{keyfile}' não foi encontrada"
 
-#: ../../uaclient/messages/__init__.py:2468
+#: ../../uaclient/messages/__init__.py:2466
 #, python-brace-format
 msgid "'{endpoint}' is not a valid endpoint"
 msgstr "'{endpoint}' não é um endpoint válido"
 
-#: ../../uaclient/messages/__init__.py:2473
+#: ../../uaclient/messages/__init__.py:2471
 #, python-brace-format
 msgid "Missing argument '{arg}' for endpoint {endpoint}"
 msgstr "'{arg}' está faltando para endpoint {endpoint}"
 
-#: ../../uaclient/messages/__init__.py:2478
+#: ../../uaclient/messages/__init__.py:2476
 #, python-brace-format
 msgid "{endpoint} accepts no arguments"
 msgstr "{endpoint} não aceita paramêtros"
 
-#: ../../uaclient/messages/__init__.py:2483
+#: ../../uaclient/messages/__init__.py:2481
 #, python-brace-format
 msgid ""
 "Error parsing API json data parameter:\n"
@@ -3385,32 +3387,32 @@ msgstr ""
 "Error ao analisar paramêtro data para API json:\n"
 "{data}"
 
-#: ../../uaclient/messages/__init__.py:2488
+#: ../../uaclient/messages/__init__.py:2486
 #, python-brace-format
 msgid "'{arg}' is not formatted as 'key=value'"
 msgstr "'{arg}' não está formatado como 'chave=valor'"
 
-#: ../../uaclient/messages/__init__.py:2493
+#: ../../uaclient/messages/__init__.py:2491
 #, python-brace-format
 msgid "Unable to determine version: {error_msg}"
 msgstr "Não foi possível determinar a versão: {error_msg}"
 
-#: ../../uaclient/messages/__init__.py:2498
+#: ../../uaclient/messages/__init__.py:2496
 msgid "features.disable_auto_attach set in config"
 msgstr "features.disable_auto_attach definida na configuração"
 
-#: ../../uaclient/messages/__init__.py:2503
+#: ../../uaclient/messages/__init__.py:2501
 #, python-brace-format
 msgid "Unable to determine unattended-upgrades status: {error_msg}"
 msgstr ""
 "Não foi possível determinar o status do unattended-upgrades: {error_msg}"
 
-#: ../../uaclient/messages/__init__.py:2509
+#: ../../uaclient/messages/__init__.py:2507
 #, python-brace-format
 msgid "Expected value with type {expected_type} but got type: {got_type}"
 msgstr "Esperava valor com tipo {expected_type}, mas recebeu tipo {got_type}"
 
-#: ../../uaclient/messages/__init__.py:2515
+#: ../../uaclient/messages/__init__.py:2513
 #, python-brace-format
 msgid ""
 "Got value with incorrect type at index {index}:\n"
@@ -3419,7 +3421,7 @@ msgstr ""
 "Valor com tipo incorreto na posição {index}:\n"
 "{nested_msg}"
 
-#: ../../uaclient/messages/__init__.py:2521
+#: ../../uaclient/messages/__init__.py:2519
 #, python-brace-format
 msgid ""
 "Got value with incorrect type for field \"{key}\":\n"
@@ -3428,7 +3430,7 @@ msgstr ""
 "Valor com tipo incorreto para o campo \"{key}\":\n"
 "{nested_msg}"
 
-#: ../../uaclient/messages/__init__.py:2528
+#: ../../uaclient/messages/__init__.py:2526
 #, python-brace-format
 msgid "Value provided was not found in {enum_class}'s allowed: value: {values}"
 msgstr ""
