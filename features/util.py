@@ -11,8 +11,9 @@ import sys
 import tempfile
 import time
 from base64 import b64encode
+from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional, Tuple
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -31,6 +32,43 @@ SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
 SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")
 SBUILD_DIR = os.path.join(UA_TMP_DIR, "sbuild")
 UA_DEB_BUILD_CACHE = os.path.join(UA_TMP_DIR, "deb-cache")
+
+
+ALL_BINARY_PACKAGE_NAMES = [
+    "ubuntu-pro-client",
+    "ubuntu-pro-client-l10n",
+    "ubuntu-pro-image-auto-attach",
+    "ubuntu-advantage-tools",
+    "ubuntu-advantage-pro",
+]
+
+
+@dataclass
+class ProDebPaths:
+    ubuntu_pro_client: str
+    ubuntu_pro_image_auto_attach: str
+    ubuntu_pro_client_l10n: str
+    ubuntu_advantage_tools: str
+    ubuntu_advantage_pro: str
+
+    def non_cloud_pro_image_debs(self) -> List[Tuple[str, str]]:
+        return [
+            ("ubuntu-pro-client", self.ubuntu_pro_client),
+            ("ubuntu-advantage-tools", self.ubuntu_advantage_tools),
+            ("ubuntu-pro-client-l10n", self.ubuntu_pro_client_l10n),
+        ]
+
+    def cloud_pro_image_debs(self) -> List[Tuple[str, str]]:
+        return [
+            (
+                "ubuntu-pro-image-auto-attach",
+                self.ubuntu_pro_image_auto_attach,
+            ),
+            ("ubuntu-advantage-pro", self.ubuntu_advantage_pro),
+        ]
+
+    def all_debs(self) -> List[Tuple[str, str]]:
+        return self.non_cloud_pro_image_debs() + self.cloud_pro_image_debs()
 
 
 class InstallationSource(Enum):
@@ -114,12 +152,36 @@ def repo_state_hash(
     return hashlib.md5(output_to_hash).hexdigest()
 
 
-def get_debs_for_series(debs_path: str, series: str) -> List[str]:
-    return [
-        os.path.join(debs_path, deb_file)
-        for deb_file in os.listdir(debs_path)
-        if series in deb_file
-    ]
+def get_debs_for_series(debs_path: str, series: str) -> ProDebPaths:
+    ubuntu_pro_client = ""
+    ubuntu_pro_client_l10n = ""
+    ubuntu_pro_image_auto_attach = ""
+    ubuntu_advantage_tools = ""
+    ubuntu_advantage_pro = ""
+    for deb_file in os.listdir(debs_path):
+        if series in deb_file:
+            full_path = os.path.join(debs_path, deb_file)
+            if "ubuntu-pro-client-l10n" in deb_file:
+                ubuntu_pro_client_l10n = full_path
+            elif "ubuntu-pro-client" in deb_file:
+                ubuntu_pro_client = full_path
+            elif "ubuntu-pro-image-auto-attach" in deb_file:
+                ubuntu_pro_image_auto_attach = full_path
+            elif "ubuntu-advantage-tools" in deb_file:
+                ubuntu_advantage_tools = full_path
+            elif "ubuntu-advantage-pro" in deb_file:
+                ubuntu_advantage_pro = full_path
+    return ProDebPaths(
+        ubuntu_pro_client=ubuntu_pro_client,
+        ubuntu_pro_client_l10n=ubuntu_pro_client_l10n,
+        ubuntu_pro_image_auto_attach=ubuntu_pro_image_auto_attach,
+        ubuntu_advantage_tools=ubuntu_advantage_tools,
+        ubuntu_advantage_pro=ubuntu_advantage_pro,
+    )
+
+
+def _create_deb_path(prefix: str, name: str):
+    return os.path.join(UA_DEB_BUILD_CACHE, "{}{}.deb".format(prefix, name))
 
 
 def build_debs(
@@ -127,7 +189,7 @@ def build_debs(
     architecture: Optional[str] = None,
     chroot: Optional[str] = None,
     sbuild_output_to_terminal: bool = False,
-) -> List[str]:
+) -> ProDebPaths:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
@@ -141,25 +203,28 @@ def build_debs(
         architecture = get_dpkg_arch()
 
     deb_prefix = "{}-{}-{}-".format(series, architecture, repo_state_hash())
-    tools_deb_name = "{}ubuntu-advantage-tools.deb".format(deb_prefix)
-    pro_deb_name = "{}ubuntu-advantage-pro.deb".format(deb_prefix)
-    l10n_deb_name = "{}ubuntu-pro-client-l10n.deb".format(deb_prefix)
-    tools_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, tools_deb_name)
-    pro_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, pro_deb_name)
-    l10n_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, l10n_deb_name)
+    deb_paths = ProDebPaths(
+        ubuntu_pro_client=_create_deb_path(deb_prefix, "ubuntu-pro-client"),
+        ubuntu_pro_image_auto_attach=_create_deb_path(
+            deb_prefix, "ubuntu-pro-image-auto-attach"
+        ),
+        ubuntu_pro_client_l10n=_create_deb_path(
+            deb_prefix, "ubuntu-pro-client-l10n"
+        ),
+        ubuntu_advantage_tools=_create_deb_path(
+            deb_prefix, "ubuntu-advantage-tools"
+        ),
+        ubuntu_advantage_pro=_create_deb_path(
+            deb_prefix, "ubuntu-advantage-pro"
+        ),
+    )
 
     if not os.path.exists(UA_DEB_BUILD_CACHE):
         os.makedirs(UA_DEB_BUILD_CACHE)
 
-    if os.path.exists(tools_deb_cache_path) and os.path.exists(
-        pro_deb_cache_path
-    ):
-        logging.info(
-            "--- Using debs in cache: {} and {} and {}".format(
-                tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path
-            )
-        )
-        return [tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path]
+    if os.path.exists(deb_paths.ubuntu_pro_client):
+        logging.info("--- Using debs in cache")
+        return deb_paths
 
     logging.info("--- Creating: {}".format(SOURCE_PR_TGZ))
 
@@ -248,17 +313,21 @@ def build_debs(
 
     for f in os.listdir(SBUILD_DIR):
         if f.endswith(".deb"):
-            if "l10n" in f:
-                dest = l10n_deb_cache_path
-            elif "pro" in f:
-                dest = pro_deb_cache_path
-            elif "tools" in f:
-                dest = tools_deb_cache_path
+            if "ubuntu-pro-client-l10n" in f:
+                dest = deb_paths.ubuntu_pro_client_l10n
+            elif "ubuntu-pro-client" in f:
+                dest = deb_paths.ubuntu_pro_client
+            elif "ubuntu-pro-image-auto-attach" in f:
+                dest = deb_paths.ubuntu_pro_image_auto_attach
+            elif "ubuntu-advantage-tools" in f:
+                dest = deb_paths.ubuntu_advantage_tools
+            elif "ubuntu-advantage-pro" in f:
+                dest = deb_paths.ubuntu_advantage_pro
             else:
                 continue
             shutil.copy(os.path.join(SBUILD_DIR, f), dest)
 
-    return [tools_deb_cache_path, pro_deb_cache_path, l10n_deb_cache_path]
+    return deb_paths
 
 
 class SafeLoaderWithoutDatetime(yaml.SafeLoader):
