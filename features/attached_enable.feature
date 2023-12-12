@@ -517,15 +517,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached disable of livepatch in a lxd vm
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips         +yes      +disabled +NIST-certified FIPS crypto packages
-        fips-updates +yes      +disabled +FIPS compliant crypto packages with stable security updates
-        livepatch    +yes      +<livepatch_status>  +Canonical Livepatch service
-        """
+        Then I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
+        And I verify that `livepatch` status is `<livepatch_status>`
         When I run `pro disable livepatch` with sudo
         Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
         And stderr matches regexp:
@@ -533,15 +527,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
         token obtained from https://ubuntu.com/livepatch.
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-apps     +yes      +enabled  +Expanded Security Maintenance for Applications
-        esm-infra    +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-        fips         +yes      +disabled +NIST-certified FIPS crypto packages
-        fips-updates +yes      +disabled +FIPS compliant crypto packages with stable security updates
-        livepatch    +yes      +disabled +Canonical Livepatch service
-        """
+        And I verify that `esm-apps` is enabled
+        And I verify that `esm-infra` is enabled
+        And I verify that `livepatch` is disabled
         When I verify that running `pro enable livepatch --access-only` `with sudo` exits `1`
         Then I will see the following on stdout:
         """
@@ -572,13 +560,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Enabling default service livepatch
         Failed to enable default services, check: sudo pro status
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +disabled
-        """
-        Then I verify that running `pro enable livepatch` `with sudo` exits `1`
-        Then I will see the following on stdout:
+        And I verify that `livepatch` is disabled
+        And I verify that running `pro enable livepatch` `with sudo` exits `1`
+        And I will see the following on stdout:
         """
         One moment, checking your subscription first
         Installing snapd
@@ -594,25 +578,21 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I verify that running `canonical-livepatch status` `with sudo` exits `1`
         Then I will see the following on stderr:
-            """
-            sudo: canonical-livepatch: command not found
-            """
+        """
+        sudo: canonical-livepatch: command not found
+        """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
-            """
-            Installing canonical-livepatch snap
-            Canonical Livepatch enabled
-            """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-            """
-            livepatch +yes +<livepatch_status>
-            """
+        """
+        Installing canonical-livepatch snap
+        Canonical Livepatch enabled
+        """
+        And I verify that `livepatch` status is `<livepatch_status>`
         When I run `canonical-livepatch status` with sudo
         Then stdout matches regexp:
-            """
-            running: true
-            """
+        """
+        running: true
+        """
 
         Examples: ubuntu release
            | release | machine_type | livepatch_status |
@@ -627,11 +607,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         Installing canonical-livepatch snap
         Canonical Livepatch enabled
         """
-        When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +warning
-        """
+        And I verify that `livepatch` status is warning
         When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
         Then stdout matches regexp:
         """
