@@ -7,6 +7,7 @@ from features.steps.files import when_i_create_file_with_content
 from features.steps.packages import when_i_apt_install
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import (
+    ALL_BINARY_PACKAGE_NAMES,
     SUT,
     InstallationSource,
     build_debs,
@@ -22,74 +23,83 @@ def when_i_install_uat(context, machine_name=SUT):
     if context.pro_config.install_from is InstallationSource.ARCHIVE:
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
     elif context.pro_config.install_from is InstallationSource.PREBUILT:
-        deb_paths = sorted(
-            get_debs_for_series(context.pro_config.debs_path, series)
+        debs = get_debs_for_series(context.pro_config.debs_path, series)
+        logging.info("using debs: {}".format(debs))
+        to_install = []
+        for deb_name, deb_path in debs.non_cloud_pro_image_debs():
+            instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
+            instance.push_file(deb_path, instance_tmp_path)
+            to_install.append(instance_tmp_path)
+        if is_pro:
+            for deb_name, deb_path in debs.cloud_pro_image_debs():
+                instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
+                instance.push_file(deb_path, instance_tmp_path)
+                to_install.append(instance_tmp_path)
+        when_i_apt_install(
+            context, " ".join(to_install), machine_name=machine_name
         )
-        logging.info("using debs: {}".format(deb_paths))
-        for deb_path in deb_paths:
-            if "advantage-pro" not in deb_path or is_pro:
-                instance.push_file(deb_path, "/tmp/behave_ua.deb")
-                when_i_apt_install(
-                    context, "/tmp/behave_ua.deb", machine_name=machine_name
-                )
-                instance.execute("sudo rm /tmp/behave_ua.deb")
     elif context.pro_config.install_from is InstallationSource.LOCAL:
-        ua_deb_path, pro_deb_path, l10n_deb_path = build_debs(
+        debs = build_debs(
             series,
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
-        instance.push_file(ua_deb_path, "/tmp/behave_ua.deb")
-        when_i_apt_install(
-            context, "/tmp/behave_ua.deb", machine_name=machine_name
-        )
-        instance.execute("sudo rm /tmp/behave_ua.deb")
-        instance.push_file(l10n_deb_path, "/tmp/behave_ua.deb")
-        when_i_apt_install(
-            context, "/tmp/behave_ua.deb", machine_name=machine_name
-        )
-        instance.execute("sudo rm /tmp/behave_ua.deb")
+        to_install = []
+        for deb_name, deb_path in debs.non_cloud_pro_image_debs():
+            instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
+            instance.push_file(deb_path, instance_tmp_path)
+            to_install.append(instance_tmp_path)
         if is_pro:
-            instance.push_file(pro_deb_path, "/tmp/behave_ua.deb")
-            when_i_apt_install(
-                context, "/tmp/behave_ua.deb", machine_name=machine_name
-            )
-            instance.execute("sudo rm /tmp/behave_ua.deb")
+            for deb_name, deb_path in debs.cloud_pro_image_debs():
+                instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
+                instance.push_file(deb_path, instance_tmp_path)
+                to_install.append(instance_tmp_path)
+        when_i_apt_install(
+            context, " ".join(to_install), machine_name=machine_name
+        )
     elif context.pro_config.install_from is InstallationSource.DAILY:
         instance.execute("sudo add-apt-repository ppa:ua-client/daily")
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
     elif context.pro_config.install_from is InstallationSource.STAGING:
         instance.execute("sudo add-apt-repository ppa:ua-client/staging")
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
     elif context.pro_config.install_from is InstallationSource.STABLE:
         instance.execute("sudo add-apt-repository ppa:ua-client/stable")
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
     elif context.pro_config.install_from is InstallationSource.PROPOSED:
         context.text = "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\n".format(  # noqa: E501
@@ -110,31 +120,26 @@ def when_i_install_uat(context, machine_name=SUT):
             machine_name=machine_name,
         )
 
-        context.text = "Package: ubuntu-advantage-tools\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/uatools-proposed",
-            machine_name=machine_name,
-        )
-
-        context.text = "Package: ubuntu-advantage-pro\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/uapro-proposed",
-            machine_name=machine_name,
-        )
+        for package in ALL_BINARY_PACKAGE_NAMES:
+            context.text = "Package: {package}\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
+                package=package,
+                series=series,
+            )
+            when_i_create_file_with_content(
+                context,
+                "/etc/apt/preferences.d/{}-proposed".format(package),
+                machine_name=machine_name,
+            )
 
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
     elif context.pro_config.install_from is InstallationSource.CUSTOM:
         instance.execute(
@@ -142,26 +147,28 @@ def when_i_install_uat(context, machine_name=SUT):
         )
         instance.execute("sudo apt update")
         when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
+            context, "ubuntu-pro-client", machine_name=machine_name
         )
         if is_pro:
             when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
+                context,
+                "ubuntu-pro-image-auto-attach",
+                machine_name=machine_name,
             )
 
 
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
     if context.pro_config.install_from is InstallationSource.LOCAL:
-        deb_paths = build_debs(
+        debs = build_debs(
             series,
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
 
-        for deb_path in deb_paths:
-            tools_or_pro = "tools" if "tools" in deb_path else "pro"
-            dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
-            context.machines[SUT].instance.push_file(deb_path, dest_path)
+        for deb_name, deb_path in debs.all_debs():
+            context.machines[SUT].instance.push_file(
+                deb_path, "{}/{}.deb".format(dest, deb_name)
+            )
     else:
         if context.pro_config.install_from is InstallationSource.PROPOSED:
             ppa_opts = ""
@@ -193,16 +200,12 @@ def when_i_have_the_debs_under_test(context, series, dest):
         logging.info("Download command `{}`".format(download_cmd))
         logging.info("stdout: {}".format(context.process.stdout))
         logging.info("stderr: {}".format(context.process.stderr))
-        when_i_run_shell_command(
-            context,
-            "cp ubuntu-advantage-tools*.deb ubuntu-advantage-tools.deb",
-            "with sudo",
-        )
-        when_i_run_shell_command(
-            context,
-            "cp ubuntu-advantage-pro*.deb ubuntu-advantage-pro.deb",
-            "with sudo",
-        )
+        for package in ALL_BINARY_PACKAGE_NAMES:
+            when_i_run_shell_command(
+                context,
+                "cp {package}*.deb {package}.deb".format(package=package),
+                "with sudo",
+            )
 
 
 @when(
@@ -250,9 +253,9 @@ def create_local_ppa(context, release):
         release,
         sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,
     )
-    for deb in debs:
-        deb_destination = "/tmp/" + deb.split("/")[-1]
-        context.machines["ppa"].instance.push_file(deb, deb_destination)
+    for deb_name, deb_path in debs.all_debs():
+        deb_destination = "/tmp/{}.deb".format(deb_name)
+        context.machines["ppa"].instance.push_file(deb_path, deb_destination)
         when_i_run_command(
             context,
             "aptly repo add repo-{} {}".format(release, deb_destination),
@@ -271,19 +274,21 @@ def create_local_ppa(context, release):
 def when_i_install_pro(context, machine_name=SUT):
     if context.pro_config.install_from is InstallationSource.LOCAL:
         series = context.machines[machine_name].series
-        deb_paths = build_debs(
+        debs = build_debs(
             series,
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
 
-        for deb_path in deb_paths:
-            if "advantage-pro" in deb_path:
-                context.machines[machine_name].instance.push_file(
-                    deb_path, "/tmp/pro.deb"
-                )
-                when_i_run_command(
-                    context, "dpkg -i /tmp/pro.deb", "with sudo"
-                )
+        to_install = []
+        for deb_name, deb_path in debs.cloud_pro_image_debs():
+            instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
+            context.machines[machine_name].instance.push_file(
+                deb_path, instance_tmp_path
+            )
+            to_install.append(instance_tmp_path)
+        when_i_apt_install(
+            context, " ".join(to_install), machine_name=machine_name
+        )
     else:
         when_i_run_command(
             context, "apt-get install ubuntu-advantage-pro", "with sudo"
