@@ -81,7 +81,7 @@ Note that this command will only remove the APT sources, but will not uninstall
 the snaps.
 
 To also purge the service, removing all the APT packages installed with it, see
-:ref:`how to disable and purge services <disable_and_purge>`_.
+:ref:`how to disable and purge services <disable_and_purge>`.
 
 .. LINKS
 
