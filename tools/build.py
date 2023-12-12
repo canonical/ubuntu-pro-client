@@ -39,7 +39,7 @@ def main(series=None, chroot=None, arch=None, quiet=False):
                     chroot=chroot,
                     sbuild_output_to_terminal=not quiet,
                     architecture=arch,
-                ),
+                ).__dict__,
             }
         )
     )
