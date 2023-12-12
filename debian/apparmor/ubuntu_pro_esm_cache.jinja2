@@ -53,7 +53,16 @@ profile ubuntu_advantage_esm_cache {
   @{PROC}/1/cgroup r,
   @{PROC}/version_signature r,
   @{PROC}/*/mountinfo r,
-
+{% if ubuntu_codename in ["bionic", "xenial"] %}
+  # see https://bugs.python.org/issue40501
+  /sbin/ldconfig rix,
+  /sbin/ldconfig.real rix,
+  @{PROC}/@{pid}/mounts r,
+  /usr/bin/@{multiarch}-gcc-* rix,
+  /usr/bin/@{multiarch}-ld.bfd rix,
+  /usr/lib/gcc/@{multiarch}/*/collect2 rix,
+  /usr/bin/@{multiarch}-objdump rix,
+{% endif %}
 
   profile cloud_id {
     include <abstractions/base>
