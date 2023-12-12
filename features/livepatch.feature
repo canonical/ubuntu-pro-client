@@ -99,11 +99,8 @@ Feature: Livepatch
         """
         <old_kernel_version>
         """
+        And I verify that `livepatch` status is warning
         When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        livepatch +yes +warning +Canonical Livepatch service
-        """
         Then stdout contains substring:
         """
         NOTICES
