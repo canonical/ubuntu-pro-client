@@ -1,0 +1,10 @@
+Make sure ``pro`` is up-to-date
+===============================
+
+All systems come with ``pro`` pre-installed through the
+``ubuntu-advantage-tools`` package. To make sure that you're running the latest
+version of ``pro``, run the following commands:
+
+.. code-block:: bash
+
+    sudo apt update && sudo apt install ubuntu-advantage-tools
