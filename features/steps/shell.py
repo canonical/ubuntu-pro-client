@@ -10,8 +10,16 @@ from features.util import SUT, process_template_vars
 
 
 @when("I run `{command}` {user_spec}, retrying exit [{exit_codes}]")
-def when_i_retry_run_command(context, command, user_spec, exit_codes):
-    when_i_run_command(context, command, user_spec, verify_return=False)
+def when_i_retry_run_command(
+    context, command, user_spec, exit_codes, machine_name=SUT
+):
+    when_i_run_command(
+        context,
+        command,
+        user_spec,
+        verify_return=False,
+        machine_name=machine_name,
+    )
     retries = [5, 5, 10]  # Sleep times to wait between retries
     while len(retries) > 0 and str(
         context.process.returncode
@@ -22,7 +30,13 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
                 exit_code=context.process.returncode, command=command
             )
         )
-        when_i_run_command(context, command, user_spec, verify_return=False)
+        when_i_run_command(
+            context,
+            command,
+            user_spec,
+            verify_return=False,
+            machine_name=machine_name,
+        )
     logging.warning(
         "Exhausted retries waiting for exit codes: %s. Final exit code: %d",
         exit_codes,
