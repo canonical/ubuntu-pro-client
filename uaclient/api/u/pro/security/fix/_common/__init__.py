@@ -167,11 +167,13 @@ class UASecurityClient(serviceclient.UAServiceClient):
             raise exceptions.SecurityAPIError(
                 url=API_V1_NOTICES, code=response.code, body=response.body
             )
+
         return sorted(
             [
                 USN(client=self, response=usn_md)
                 for usn_md in response.json_dict.get("notices", [])
-                if details is None or details in usn_md.get("cves_ids", [])
+                if (details is None or details in usn_md.get("cves_ids", []))
+                and usn_md.get("id", "").startswith("USN-")
             ],
             key=lambda x: x.id,
         )

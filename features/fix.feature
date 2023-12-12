@@ -824,6 +824,16 @@ Feature: Ua fix command behaviour
         .*✔.* USN-6385-1 \[related\] does not affect your system.
         .*✔.* USN-6460-1 \[related\] does not affect your system.
         """
+        When I run `pro fix CVE-2023-42752` with sudo
+        Then stdout matches regexp:
+        """
+        CVE-2023-42752: Linux kernel \(NVIDIA\) vulnerabilities
+         - https://ubuntu.com/security/CVE-2023-42752
+
+        No affected source packages are installed.
+
+        .*✔.* CVE-2023-42752 does not affect your system.
+        """
 
     Scenario: Fix command on a machine without security/updates source lists
         Given a `bionic` `lxd-container` machine with ubuntu-advantage-tools installed
