@@ -34,10 +34,10 @@ profile ubuntu_advantage_esm_cache {
   /usr/bin/apt-cache mrix,
   /usr/bin/ischroot mrix,
   /usr/bin/cloud-id Cx -> cloud_id,
-  /usr/bin/systemd-detect-virt Px -> ubuntu_advantage_esm_cache//cloud-id_systemd-detect-virt,
+  /usr/bin/systemd-detect-virt Px -> esm_cache_systemd_detect_virt,
   /usr/bin/python3.{1,}[0-9] mrix,
   /usr/bin/dpkg Cx -> dpkg,
-  /usr/bin/ubuntu-distro-info Cx -> ubuntu-distro-info,
+  /usr/bin/ubuntu-distro-info Cx -> ubuntu_distro_info,
   /usr/lib/apt/methods/gpgv Cx -> apt_methods_gpgv,
   /usr/lib/apt/methods/http Cx -> apt_methods,
   /usr/lib/apt/methods/https Cx -> apt_methods,
@@ -84,8 +84,8 @@ profile ubuntu_advantage_esm_cache {
     /usr/bin/python3.{1,}[0-9] mrix,
     # workarounds for
     # https://gitlab.com/apparmor/apparmor/-/issues/346
-    /usr/bin/systemctl Px -> ubuntu_advantage_esm_cache//cloud-id_systemctl,
-    /usr/bin/systemd-detect-virt Px -> ubuntu_advantage_esm_cache//cloud-id_systemd-detect-virt,
+    /usr/bin/systemctl Px -> esm_cache_systemctl,
+    /usr/bin/systemd-detect-virt Px -> esm_cache_systemd_detect_virt,
     /usr/bin/uname mrix,
     /var/lib/cloud/** r,
     /usr/share/dpkg/** r,
@@ -107,40 +107,6 @@ profile ubuntu_advantage_esm_cache {
 
   }
 
-  # these profiles prefixed with "cloud-id" were initially subprofiles
-  # of cloud-id, but that crashes the kernel
-  # https://gitlab.com/apparmor/apparmor/-/issues/346
-
-  profile cloud-id_systemctl {
-    include <abstractions/base>
-
-    capability net_admin,
-    capability sys_ptrace,
-
-    ptrace read peer=unconfined,
-
-    /usr/bin/systemctl mr,
-    /run/systemd/private rw,
-
-  }
-
-  profile cloud-id_systemd-detect-virt {
-    include <abstractions/base>
-
-    capability sys_ptrace,
-
-    ptrace read peer=unconfined,
-
-    @{PROC}/*/status r,
-    @{PROC}/1/environ r,
-    @{PROC}/sys/kernel/osrelease r,
-    /usr/bin/systemd-detect-virt mr,
-    /run/systemd/container r,
-    /run/systemd/container/ r,
-    /run/systemd/container/** r,
-
-  }
-
   profile dpkg {
     include <abstractions/base>
 
@@ -151,7 +117,7 @@ profile ubuntu_advantage_esm_cache {
 
   }
 
-  profile ubuntu-distro-info {
+  profile ubuntu_distro_info {
     include <abstractions/base>
 
     /usr/bin/ubuntu-distro-info mr,
@@ -207,3 +173,40 @@ profile ubuntu_advantage_esm_cache {
 
   }
 }
+
+  # these profiles prefixed with "cloud-id" were initially subprofiles
+  # of cloud-id, but:
+  # a) that crashes the kernel
+  # https://gitlab.com/apparmor/apparmor/-/issues/346
+  # b) <= bionic doesn't like the // or - chars in profile names
+  # https://gitlab.com/apparmor/apparmor/-/commit/99755daafb8cfde4df542b66f656597a482129ac
+
+  profile esm_cache_systemctl {
+    include <abstractions/base>
+
+    capability net_admin,
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    /usr/bin/systemctl mr,
+    /run/systemd/private rw,
+
+  }
+
+  profile esm_cache_systemd_detect_virt {
+    include <abstractions/base>
+
+    capability sys_ptrace,
+
+    ptrace read peer=unconfined,
+
+    @{PROC}/*/status r,
+    @{PROC}/1/environ r,
+    @{PROC}/sys/kernel/osrelease r,
+    /usr/bin/systemd-detect-virt mr,
+    /run/systemd/container r,
+    /run/systemd/container/ r,
+    /run/systemd/container/** r,
+
+  }
