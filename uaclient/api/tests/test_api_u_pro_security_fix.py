@@ -674,8 +674,9 @@ class TestUASecurityClient:
                 body="",
                 json_dict={
                     "notices": [
-                        {"id": "2", "cves_ids": ["cve"]},
-                        {"id": "1", "cves_ids": ["cve"]},
+                        {"id": "USN-2", "cves_ids": ["cve"]},
+                        {"id": "USN-1", "cves_ids": ["cve"]},
+                        {"id": "LSN-3", "cves_ids": ["cve"]},
                     ]
                 },
                 json_list=[],
@@ -683,8 +684,8 @@ class TestUASecurityClient:
             [usn1, usn2] = client.get_notices(**m_kwargs)
             assert isinstance(usn1, USN)
             assert isinstance(usn2, USN)
-            assert "1" == usn1.id
-            assert "2" == usn2.id
+            assert "USN-1" == usn1.id
+            assert "USN-2" == usn2.id
             assert [
                 mock.call(API_V1_NOTICES, query_params=m_kwargs)
             ] == request_url.call_args_list
@@ -702,8 +703,9 @@ class TestUASecurityClient:
             body="",
             json_dict={
                 "notices": [
-                    {"id": "2", "cves_ids": ["cve1"]},
-                    {"id": "1", "cves_ids": ["cve12"]},
+                    {"id": "USN-2", "cves_ids": ["cve2"]},
+                    {"id": "USN-1", "cves_ids": ["cve1"]},
+                    {"id": "LSN-3", "cves_ids": ["cve3"]},
                 ]
             },
             json_list=[],
@@ -712,11 +714,11 @@ class TestUASecurityClient:
 
         if details:
             assert len(usns) == 1
-            assert usns[0].id == "2"
+            assert usns[0].id == "USN-1"
         else:
             assert len(usns) == 2
-            assert usns[0].id == "1"
-            assert usns[1].id == "2"
+            assert usns[0].id == "USN-1"
+            assert usns[1].id == "USN-2"
 
     @pytest.mark.parametrize(
         "m_kwargs,expected_error, extra_security_params",
