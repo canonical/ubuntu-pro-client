@@ -52,7 +52,7 @@ profile ubuntu_advantage_esm_cache {
   @{PROC}/@{pid}/fd/ r,
   @{PROC}/1/cgroup r,
   @{PROC}/version_signature r,
-  @{PROC}/*/mountinfo r,
+  @{PROC}/@{pid}/mountinfo r,
 {% if ubuntu_codename in ["bionic", "xenial"] %}
   # see https://bugs.python.org/issue40501
   /sbin/ldconfig rix,
@@ -75,7 +75,7 @@ profile ubuntu_advantage_esm_cache {
     /etc/apt/** r,
     /etc/apport/** r,
     /etc/ssl/openssl.cnf r,
-    @{PROC}/*/fd/ r,
+    @{PROC}/@{pid}/fd/ r,
     @{PROC}/1/environ r,
     @{PROC}/1/cmdline r,
     /run/cloud-init/** r,
@@ -201,7 +201,7 @@ profile ubuntu_advantage_esm_cache {
 
     ptrace read peer=unconfined,
 
-    @{PROC}/*/status r,
+    @{PROC}/@{pid}/status r,
     @{PROC}/1/environ r,
     @{PROC}/sys/kernel/osrelease r,
     /usr/bin/systemd-detect-virt mr,
