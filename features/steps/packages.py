@@ -7,6 +7,15 @@ from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
 
 
+@when("I apt autoremove")
+def when_i_autoremove(context):
+    when_i_run_command(
+        context,
+        "apt -y autoremove",
+        "with sudo",
+    )
+
+
 @when("I apt dist-upgrade")
 def when_i_dist_update(context):
     when_i_run_command(
