@@ -66,6 +66,7 @@ Feature: Enable landscape on Ubuntu
         """
         # This will become obsolete soon: #2864
         When I run `pro status` with sudo
+        # I am keeping this check until the non-root landscape-config check works as expected
         Then stdout matches regexp:
         """
         landscape +yes +warning
@@ -99,6 +100,7 @@ Feature: Enable landscape on Ubuntu
         """
         # This will become obsolete soon: #2864
         When I run `pro status` with sudo
+        # I am keeping this check until the non-root landscape-config check works as expected
         Then stdout matches regexp:
         """
         landscape +yes +warning
@@ -174,16 +176,11 @@ Feature: Enable landscape on Ubuntu
         Installing landscape-client
         Executing `landscape-config`
         """
-        Then stderr contains substring:
+        And stderr contains substring:
         """
         Invalid account name or registration key.
         """
-        # This will become obsolete soon: #2864
         When I run `pro status` with sudo
-        Then stdout matches regexp:
-        """
-        landscape +yes +warning
-        """
         Then stdout contains substring:
         """
         Landscape is installed and configured but not registered.
