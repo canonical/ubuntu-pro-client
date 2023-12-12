@@ -374,8 +374,7 @@ def _landscape_api_request(access_key, secret_key, action, action_params):
         "version": "2011-08-01",
         **action_params,
     }
-    method = "POST"
-    uri = "https://landscape.canonical.com/api/"
+    method = "GET"
     host = "landscape.canonical.com"
     path = "/api/"
 
@@ -396,11 +395,13 @@ def _landscape_api_request(access_key, secret_key, action, action_params):
     signature = b64encode(digest)
     formatted_params += "&signature=" + quote(signature)
 
+    uri = "https://{host}{path}?{params}".format(
+        host=host, path=path, params=formatted_params
+    )
     request = Request(
         uri,
         headers={"Host": host},
         method=method,
-        data=formatted_params.encode(),
     )
     response = urlopen(request)
 
