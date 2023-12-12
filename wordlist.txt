@@ -25,6 +25,7 @@ NodePort
 observability
 OLM
 Permalink
+PPA
 pre
 ReadMe
 reST
@@ -33,6 +34,7 @@ RTD
 subdirectories
 subtree
 subfolders
+ua
 UI
 VM
 YAML
