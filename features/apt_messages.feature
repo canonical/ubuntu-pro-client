@@ -96,7 +96,7 @@ Feature: APT Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
         When I apt upgrade
-        When I run `apt-get -y autoremove` with sudo
+        When I apt autoremove
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
         When I apt upgrade
@@ -152,7 +152,7 @@ Feature: APT Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
         When I apt upgrade including phased updates
-        When I run `apt-get -y autoremove` with sudo
+        When I apt autoremove
         When I apt install `<package>`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
@@ -212,7 +212,7 @@ Feature: APT Messages
         # On interim releases we will not enable any service, so we need a manual apt update
         When I apt update
         When I apt upgrade including phased updates
-        When I run `apt-get autoremove -y` with sudo
+        When I apt autoremove
         When I apt install `jq`
         When I run `pro detach --assume-yes` with sudo
 
@@ -701,7 +701,7 @@ Feature: APT Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I apt update
         When I apt upgrade including phased updates
-        When I run `apt-get -y autoremove` with sudo
+        When I apt autoremove
         When I apt install `hello`
         When I run `pro config set apt_news=false` with sudo
         When I run `pro refresh messages` with sudo
