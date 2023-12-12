@@ -25,6 +25,7 @@ NodePort
 observability
 OLM
 Permalink
+ppa
 PPA
 pre
 ReadMe
