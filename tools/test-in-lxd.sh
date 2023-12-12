@@ -13,8 +13,9 @@ SHELL_BEFORE=${SHELL_BEFORE:-0}
 series=${1:-jammy}
 build_out=$(./tools/build.sh "$series")
 hash=$(echo "$build_out" | jq -r .state_hash)
-tools_deb=$(echo "$build_out" | jq -r '.debs[]' | grep tools)
-l10n_deb=$(echo "$build_out" | jq -r '.debs[]' | grep l10n)
+ubuntu_advantage_tools_deb=$(echo "$build_out" | jq -r '.debs.ubuntu_advantage_tools')
+ubuntu_pro_client_deb=$(echo "$build_out" | jq -r '.debs.ubuntu_pro_client')
+ubuntu_pro_client_l10n_deb=$(echo "$build_out" | jq -r '.debs.ubuntu_pro_client_l10n')
 name=ua-$series-$hash
 
 flags=
@@ -29,8 +30,9 @@ if [[ "$VM" -ne 0 ]]; then
     echo "vms take a while before the agent is ready"
     sleep 30
 fi
-lxc file push "$tools_deb" "${name}/tmp/ua_tools.deb"
-lxc file push "$l10n_deb" "${name}/tmp/ua_l10n.deb"
+lxc file push "$ubuntu_advantage_tools_deb" "${name}/tmp/ua_tools.deb"
+lxc file push "$ubuntu_pro_client_deb" "${name}/tmp/pro.deb"
+lxc file push "$ubuntu_pro_client_l10n_deb" "${name}/tmp/pro_l10n.deb"
 
 if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     set +x
@@ -43,6 +45,5 @@ if [[ "$SHELL_BEFORE" -ne 0 ]]; then
     lxc exec "$name" bash
 fi
 
-lxc exec "$name" -- dpkg -i /tmp/ua_tools.deb
-lxc exec "$name" -- dpkg -i /tmp/ua_l10n.deb
+lxc exec "$name" -- apt install /tmp/ua_tools.deb /tmp/pro.deb /tmp/pro_l10n.deb
 lxc shell "$name"
