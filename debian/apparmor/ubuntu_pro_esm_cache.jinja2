@@ -202,7 +202,10 @@ profile ubuntu_advantage_esm_cache {
     ptrace read peer=unconfined,
 
     @{PROC}/@{pid}/status r,
+    @{PROC}/@{pid}/stat r,
     @{PROC}/1/environ r,
+    @{PROC}/1/sched r,
+    @{PROC}/cmdline r,
     @{PROC}/sys/kernel/osrelease r,
     /usr/bin/systemd-detect-virt mr,
     /run/systemd/container r,
