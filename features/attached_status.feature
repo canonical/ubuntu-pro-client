@@ -1,6 +1,6 @@
-@uses.config.contract_token
 Feature: Attached status
 
+    @uses.config.contract_token
     Scenario Outline: Attached status in a ubuntu machine - formatted
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -38,6 +38,7 @@ Feature: Attached status
            | jammy   | lxd-container |
            | mantic  | lxd-container |
 
+    @uses.config.contract_token
     Scenario Outline: Non-root status can see in-progress operations
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -77,6 +78,214 @@ Feature: Attached status
            | release | machine_type  |
            | xenial  | lxd-container |
 
+    Scenario Outline: Attached status in a ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        log_level: debug
+        """
+        And I run `pro auto-attach` with sudo
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        """
+        When I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | aws.pro       |
+           | xenial  | azure.pro     |
+
+    Scenario Outline: Attached status in a ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        log_level: debug
+        """
+        And I run `pro auto-attach` with sudo
+        And I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        livepatch       +yes      +warning  +Current kernel is not supported
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+        fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +warning  +Current kernel is not supported
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | gcp.pro       |
+
+    Scenario Outline: Attached status in a ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        log_level: debug
+        """
+        And I run `pro auto-attach` with sudo
+        And I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
+        cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+        cis             +yes      +disabled +Security compliance and audit tools
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | bionic  | aws.pro       |
+           | bionic  | azure.pro     |
+           | bionic  | gcp.pro       |
+
+    Scenario Outline: Attached status in a ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        log_level: debug
+        """
+        And I run `pro auto-attach` with sudo
+        And I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        usg             +yes      +disabled +Security compliance and audit tools
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+        cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +disabled +NIST-certified FIPS crypto packages
+        fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        usg             +yes      +disabled +Security compliance and audit tools
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | focal   | aws.pro       |
+           | focal   | azure.pro     |
+           | focal   | gcp.pro       |
+
+    Scenario Outline: Attached status in a ubuntu Pro machine
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        log_level: debug
+        """
+        And I run `pro auto-attach` with sudo
+        And I verify root and non-root `pro status` calls have the same output
+        And I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        usg             +yes      +disabled +Security compliance and audit tools
+        """
+        When I verify root and non-root `pro status --all` calls have the same output
+        And I run `pro status --all` as non-root
+        Then stdout matches regexp:
+        """
+        SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+        anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+        cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+        esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+        esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+        fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+        fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+        livepatch       +yes      +enabled  +Canonical Livepatch service
+        usg             +yes      +disabled +Security compliance and audit tools
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | jammy   | aws.pro       |
+           | jammy   | azure.pro     |
+           | jammy   | gcp.pro       |
+
+    @uses.config.contract_token
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -124,6 +333,7 @@ Feature: Attached status
            | xenial  | lxd-container |
            | bionic  | lxd-container |
 
+    @uses.config.contract_token
     Scenario Outline: Attached status in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -169,6 +379,7 @@ Feature: Attached status
            | release | machine_type  |
            | focal   | lxd-container |
 
+    @uses.config.contract_token
     Scenario Outline: Attached status in the latest LTS ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
