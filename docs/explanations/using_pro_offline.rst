@@ -76,4 +76,4 @@ greater control over when those patches roll out across your infrastructure.
 .. _Snap-store-proxy: https://snapcraft.io/snap-store-proxy
 .. _Livepatch on-prem: https://ubuntu.com/security/livepatch/docs/livepatch_on_prem
 .. _operate in offline mode: https://docs.ubuntu.com/snap-store-proxy/en/airgap
-.. _guide on our knowledge base: https://support-portal.canonical.com/knowledge-base/Get-Started-With-Ubuntu-Pro-in-an-Airgapped-Environment
+.. _guide on our support portal: https://support-portal.canonical.com/knowledge-base/Get-Started-With-Ubuntu-Pro-in-an-Airgapped-Environment
