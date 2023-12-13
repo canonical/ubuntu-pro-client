@@ -6,6 +6,7 @@ pycodestyle
 mock
 pytest
 pytest-cov
+libapt-pkg-dev
 
 # python3-apt
 # We know it is in the distro, but for testing in venvs we need to install it
