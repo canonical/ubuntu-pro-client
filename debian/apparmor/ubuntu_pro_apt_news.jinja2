@@ -37,6 +37,7 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /tmp/** r,
 
   owner @{PROC}/@{pid}/fd/ r,
+  @{PROC}/@{pid}/status r,
   @{PROC}/@{pid}/cgroup r,
 {% if ubuntu_codename in ["bionic", "xenial"] %}
   # see https://bugs.python.org/issue40501
