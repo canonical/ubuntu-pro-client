@@ -26,11 +26,9 @@ How do I sync Pro packages in an airgapped system?
 
 No matter whether you are running a truly airgapped (offline) system, or one
 that is heavily firewalled, running Ubuntu Pro airgapped is an advanced
-use-case. In both cases, you will need to contact our `Customer Support teams`_
-who can help you implement air gapping in the best way for your specific
-environment.
-
-Note that this requires a paid subscription to Ubuntu Pro.
+use-case. The steps to achieve this are detailed in this
+`guide on our support portal`_. However, it is important to note that you will
+need to have a paid subscription to Ubuntu Pro.
 
 What tools will I need?
 =======================
@@ -67,16 +65,15 @@ Security patching with Livepatch on-prem
 
 Livepatch is the tool that provides patching for critical and high security
 vulnerabilities in the Ubuntu kernel. It can also be used in a firewalled
-setup using Livepatch on-prem, which our `Customer Support teams`_ can help you
-to set up.
+setup using Livepatch on-prem.
 
 `Livepatch on-prem`_ creates a local deployment of the Canonical Livepatch
 server, which retrieves patch updates from Canonical. This provides you with
 greater control over when those patches roll out across your infrastructure. 
-
 
 .. _Customer Support teams: https://ubuntu.com/support
 .. _Landscape Beta Discourse: https://discourse.ubuntu.com/c/landscape/landscape-beta/115
 .. _Snap-store-proxy: https://snapcraft.io/snap-store-proxy
 .. _Livepatch on-prem: https://ubuntu.com/security/livepatch/docs/livepatch_on_prem
 .. _operate in offline mode: https://docs.ubuntu.com/snap-store-proxy/en/airgap
+.. _guide on our knowledge base: https://support-portal.canonical.com/knowledge-base/Get-Started-With-Ubuntu-Pro-in-an-Airgapped-Environment
