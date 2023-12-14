@@ -18,15 +18,18 @@ class FullAutoAttachOptions(DataObject):
     fields = [
         Field("enable", data_list(StringDataValue), False),
         Field("enable_beta", data_list(StringDataValue), False),
+        Field("cloud_override", StringDataValue, False),
     ]
 
     def __init__(
         self,
         enable: Optional[List[str]] = None,
         enable_beta: Optional[List[str]] = None,
+        cloud_override: Optional[str] = None,
     ):
         self.enable = enable
         self.enable_beta = enable_beta
+        self.cloud_override = cloud_override
 
 
 class FullAutoAttachResult(DataObject, AdditionalInfo):
@@ -103,7 +106,9 @@ def _full_auto_attach_in_lock(
     ):
         raise exceptions.AutoAttachDisabledError()
 
-    instance = identity.cloud_instance_factory()
+    instance = identity.cloud_instance_factory(
+        cloud_override=options.cloud_override
+    )
     enable_default_services = (
         options.enable is None and options.enable_beta is None
     )

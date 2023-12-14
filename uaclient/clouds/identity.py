@@ -55,7 +55,9 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
 
 
-def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
+def cloud_instance_factory(
+    cloud_override: Optional[str] = None,
+) -> clouds.AutoAttachCloudInstance:
     """
     :raises CloudFactoryError: if no cloud instance object can be constructed
     :raises CloudFactoryNoCloudError: if no cloud instance object can be
@@ -75,7 +77,11 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
         "gce": gcp.UAAutoAttachGCPInstance,
     }  # type: Dict[str, Type[clouds.AutoAttachCloudInstance]]
 
-    cloud_type, _ = get_cloud_type()
+    if cloud_override is not None:
+        cloud_type = cloud_override
+    else:
+        cloud_type, _ = get_cloud_type()
+
     if not cloud_type:
         raise exceptions.CloudFactoryNoCloudError()
     cls = cloud_instance_map.get(cloud_type)
