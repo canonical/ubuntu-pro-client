@@ -42,6 +42,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (  # noqa: F401
     FixPlanStep,
     FixPlanUSNResult,
     FixPlanWarning,
+    FixPlanWarningFailUpdatingESMCache,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
     NoOpAlreadyFixedData,
@@ -649,6 +650,15 @@ def _execute_security_issue_not_fixed_step(
     fix_context.fix_status = FixStatus.SYSTEM_STILL_VULNERABLE
 
 
+def _execute_fail_updating_esm_cache_step(
+    fix_context: FixContext, step: FixPlanWarningFailUpdatingESMCache
+):
+    if util.we_are_currently_root():
+        print(messages.CLI_FIX_FAIL_UPDATING_ESM_CACHE)
+    else:
+        print("\n" + messages.CLI_FIX_FAIL_UPDATING_ESM_CACHE_NON_ROOT + "\n")
+
+
 def _execute_apt_upgrade_step(
     fix_context: FixContext,
     step: FixPlanAptUpgradeStep,
@@ -846,6 +856,8 @@ def execute_fix_plan(
             _execute_package_cannot_be_installed_step(fix_context, step)
         if isinstance(step, FixPlanWarningSecurityIssueNotFixed):
             _execute_security_issue_not_fixed_step(fix_context, step)
+        if isinstance(step, FixPlanWarningFailUpdatingESMCache):
+            _execute_fail_updating_esm_cache_step(fix_context, step)
         if isinstance(step, FixPlanAptUpgradeStep):
             _execute_apt_upgrade_step(fix_context, step)
 

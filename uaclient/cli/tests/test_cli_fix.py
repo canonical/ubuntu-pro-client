@@ -14,6 +14,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     AptUpgradeData,
     AttachData,
     EnableData,
+    FailUpdatingESMCacheData,
     FixPlanAptUpgradeStep,
     FixPlanAttachStep,
     FixPlanEnableStep,
@@ -22,6 +23,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanNoOpStep,
     FixPlanResult,
     FixPlanUSNResult,
+    FixPlanWarningFailUpdatingESMCache,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
     NoOpData,
@@ -820,6 +822,72 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in Ubuntu standard updates.
                     - Cannot install package pkg1 version 2.0
                     """
+                )
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg2"]]
+                )
+                + "\n\n"
+                + "1 package is still affected: pkg1"
+                + "\n"
+                + "{check} USN-### is not resolved.\n".format(
+                    check=messages.FAIL_X
+                ),
+                FixStatus.SYSTEM_STILL_VULNERABLE,
+                [
+                    UnfixedPackage(
+                        pkg="pkg1",
+                        unfixed_reason="Cannot install package pkg1 version 2.0",  # noqa
+                    ),
+                ],
+            ),
+            (
+                FixPlanResult(
+                    title="USN-###",
+                    description="test",
+                    expected_status=FixStatus.SYSTEM_STILL_VULNERABLE.value.msg,  # noqa
+                    affected_packages=["pkg1", "pkg2"],
+                    plan=[
+                        FixPlanAptUpgradeStep(
+                            data=AptUpgradeData(
+                                binary_packages=["pkg2"],
+                                source_packages=["pkg2"],
+                                pocket=STANDARD_UPDATES_POCKET,
+                            ),
+                            order=3,
+                        ),
+                    ],
+                    warnings=[
+                        FixPlanWarningFailUpdatingESMCache(
+                            data=FailUpdatingESMCacheData(
+                                title="Error msg",
+                                code="error-code",
+                            ),
+                            order=1,
+                        ),
+                        FixPlanWarningPackageCannotBeInstalled(
+                            data=PackageCannotBeInstalledData(
+                                binary_package="pkg1",
+                                binary_package_version="2.0",
+                                source_package="pkg1",
+                                related_source_packages=["pkg1", "pkg2"],
+                                pocket=STANDARD_UPDATES_POCKET,
+                            ),
+                            order=2,
+                        ),
+                    ],
+                    error=None,
+                    additional_data=None,
+                ),
+                False,
+                (None, None),
+                textwrap.dedent(
+                    """\
+                    2 affected source packages are installed: pkg1, pkg2
+                    WARNING: Failed to update ESM cache - package availability may be inaccurate
+                    (1/2, 2/2) pkg1, pkg2:
+                    A fix is available in Ubuntu standard updates.
+                    - Cannot install package pkg1 version 2.0
+                    """  # noqa
                 )
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y pkg2"]]

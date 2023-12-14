@@ -203,7 +203,82 @@ Feature: Ua fix command behaviour
         """
         Error: USN-12345-12 not found.
         """
+        When I verify that running `pro fix USN-5079-2 --dry-run` `as non-root` exits `1`
+        Then stdout matches regexp:
+        """
+        .*WARNING: The option --dry-run is being used.
+        No packages will be installed when running this command..*
+        USN-5079-2: curl vulnerabilities
+        Associated CVEs:
+         - https://ubuntu.com/security/CVE-2021-22946
+         - https://ubuntu.com/security/CVE-2021-22947
+
+        Fixing requested USN-5079-2
+        1 affected source package is installed: curl
+
+        .*WARNING: Unable to update ESM cache when running as non-root,
+        please run sudo apt update and try again if packages cannot be found..*
+
+        \(1/1\) curl:
+        A fix is available in Ubuntu Pro: ESM Infra.
+        - Cannot install package curl version .*
+        - Cannot install package libcurl3-gnutls version .*
+
+        .*The machine is not attached to an Ubuntu Pro subscription.
+        To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
+        { pro attach TOKEN }.*
+
+        .*Ubuntu Pro service: esm-infra is not enabled.
+        To proceed with the fix, a prompt would ask permission to automatically enable
+        this service.
+        { pro enable esm-infra }.*
+
+        1 package is still affected: curl
+        .*USN-5079-2 is not resolved.
+        """
         When I apt update
+        # We just need to await for the esm-cache to be populated
+        And I run `sleep 5` as non-root
+        And I run `pro fix USN-5079-2 --dry-run` as non-root
+        Then stdout matches regexp:
+        """
+        .*WARNING: The option --dry-run is being used.
+        No packages will be installed when running this command..*
+        USN-5079-2: curl vulnerabilities
+        Associated CVEs:
+         - https://ubuntu.com/security/CVE-2021-22946
+         - https://ubuntu.com/security/CVE-2021-22947
+
+        Fixing requested USN-5079-2
+        1 affected source package is installed: curl
+        \(1/1\) curl:
+        A fix is available in Ubuntu Pro: ESM Infra.
+
+        .*The machine is not attached to an Ubuntu Pro subscription.
+        To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
+        \{ pro attach TOKEN \}.*
+
+        .*Ubuntu Pro service: esm-infra is not enabled.
+        To proceed with the fix, a prompt would ask permission to automatically enable
+        this service.
+        \{ pro enable esm-infra \}.*
+        .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
+
+        .*USN-5079-2 is resolved.
+
+        Found related USNs:
+        - USN-5079-1
+
+        Fixing related USNs:
+        - USN-5079-1
+        No affected source packages are installed.
+
+        .*USN-5079-1 does not affect your system.
+
+        Summary:
+        .*USN-5079-2 \[requested\] is resolved.
+        .*USN-5079-1 \[related\] does not affect your system.
+        """
         When I apt install `libawl-php`
         And I reboot the machine
         And I run `pro fix USN-4539-1` as non-root
@@ -275,46 +350,6 @@ Feature: Ua fix command behaviour
 
         2 packages are still affected: matanza, swish-e
         .*✘.* CVE-2017-9233 is not resolved.
-        """
-        When I run `pro fix USN-5079-2 --dry-run` as non-root
-        Then stdout matches regexp:
-        """
-        .*WARNING: The option --dry-run is being used.
-        No packages will be installed when running this command..*
-        USN-5079-2: curl vulnerabilities
-        Associated CVEs:
-         - https://ubuntu.com/security/CVE-2021-22946
-         - https://ubuntu.com/security/CVE-2021-22947
-
-        Fixing requested USN-5079-2
-        1 affected source package is installed: curl
-        \(1/1\) curl:
-        A fix is available in Ubuntu Pro: ESM Infra.
-
-        .*The machine is not attached to an Ubuntu Pro subscription.
-        To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-        \{ pro attach TOKEN \}.*
-
-        .*Ubuntu Pro service: esm-infra is not enabled.
-        To proceed with the fix, a prompt would ask permission to automatically enable
-        this service.
-        \{ pro enable esm-infra \}.*
-        .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
-
-        .*✔.* USN-5079-2 is resolved.
-
-        Found related USNs:
-        - USN-5079-1
-
-        Fixing related USNs:
-        - USN-5079-1
-        No affected source packages are installed.
-
-        .*✔.* USN-5079-1 does not affect your system.
-
-        Summary:
-        .*✔.* USN-5079-2 \[requested\] is resolved.
-        .*✔.* USN-5079-1 \[related\] does not affect your system.
         """
         When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
         Then stdout matches regexp
