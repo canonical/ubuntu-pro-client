@@ -951,6 +951,16 @@ CLI_FIX_NO_RELATED = t.gettext(
     " also fix related USNs to the target USN."
 )
 
+CLI_FIX_FAIL_UPDATING_ESM_CACHE = t.gettext(
+    "WARNING: Failed to update ESM cache - package availability may be inaccurate"  # noqa
+)
+
+CLI_FIX_FAIL_UPDATING_ESM_CACHE_NON_ROOT = t.gettext(
+    "{bold}WARNING: Unable to update ESM cache when running as non-root,\n"
+    "please run sudo apt update and try again "
+    "if packages cannot be found.{end_bold}"
+).format(bold=TxtColor.BOLD, end_bold=TxtColor.ENDC)
+
 CLI_SS_DESC = t.gettext(
     """\
 Show security updates for packages in the system, including all
