@@ -31,7 +31,7 @@ RE_KERNEL_PKG = r"^linux-image-([\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+)$"
 
 
 class RepoEntitlement(base.UAEntitlement):
-    repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
+    repo_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
 
@@ -52,6 +52,10 @@ class RepoEntitlement(base.UAEntitlement):
     @property
     def repo_pin_priority(self) -> Union[int, str, None]:
         return None
+
+    @property
+    def repo_file(self) -> str:
+        return self.repo_file_tmpl.format(name=self.name)
 
     @property
     def packages(self) -> List[str]:
@@ -316,7 +320,7 @@ class RepoEntitlement(base.UAEntitlement):
         :return: False if apt url is already found on the source file.
                  True otherwise.
         """
-        apt_file = self.repo_list_file_tmpl.format(name=self.name)
+        apt_file = self.repo_file
         # If the apt file is commented out, we will assume that we need
         # to regenerate the apt file, regardless of the apt url delta
         if all(
@@ -383,8 +387,7 @@ class RepoEntitlement(base.UAEntitlement):
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
                 # Remove original aptURL and auth and rewrite
-                repo_filename = self.repo_list_file_tmpl.format(name=self.name)
-                apt.remove_auth_apt_repo(repo_filename, old_url)
+                apt.remove_auth_apt_repo(self.repo_file, old_url)
 
             self.remove_apt_config()
             self.setup_apt_config()
@@ -497,7 +500,7 @@ class RepoEntitlement(base.UAEntitlement):
         apt.setup_apt_proxy(
             http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
         )
-        repo_filename = self.repo_list_file_tmpl.format(name=self.name)
+        repo_filename = self.repo_file
         resource_cfg = self.entitlement_cfg
         directives = resource_cfg["entitlement"].get("directives", {})
         obligations = resource_cfg["entitlement"].get("obligations", {})
@@ -590,7 +593,7 @@ class RepoEntitlement(base.UAEntitlement):
             command after removing the apt files.
         """
         series = system.get_release_info().series
-        repo_filename = self.repo_list_file_tmpl.format(name=self.name)
+        repo_filename = self.repo_file
         entitlement = self.cfg.machine_token_file.entitlements[self.name].get(
             "entitlement", {}
         )

@@ -220,7 +220,7 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlement.repo_list_file_tmpl.format(name=entitlement.name)
+            entitlement(cfg).repo_file
             for entitlement in entitlements.ENTITLEMENT_CLASSES
             if issubclass(entitlement, entitlements.repo.RepoEntitlement)
         ),
