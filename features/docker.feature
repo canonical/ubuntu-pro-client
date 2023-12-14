@@ -119,3 +119,47 @@ Feature: Build docker images with pro services
            | jammy   | aws.pro      | aws            | xenial            | [ "esm-infra" ] | curl              | esm                  | --network=host   |
            | jammy   | azure.pro    | azure          | bionic            | [ "fips" ]      | openssl           | fips                 |                  |
            | jammy   | gcp.pro      | gce            | focal             | [ "esm-apps" ]  | hello             | esm                  |                  |
+
+    Scenario Outline: Build pro docker images auto-attached instances - API arg method
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I have the `<container_release>` debs under test in `/home/ubuntu`
+        When I run `apt-get update` with sudo
+        When I apt install `docker.io docker-buildx`
+        When I create the file `/home/ubuntu/Dockerfile` with the following:
+        """
+        FROM ubuntu:<container_release>
+        ARG PRO_CLOUD_OVERRIDE=
+
+        COPY ./ubuntu-advantage-tools.deb /ua.deb
+
+        RUN --mount=type=secret,id=ua-attach-config \
+            apt-get update \
+            && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
+
+            && ((dpkg -i /ua.deb || true)) \
+
+            && apt-get install -f \
+
+            && pro --debug api u.pro.attach.auto.full_auto_attach.v1 --data "{\"cloud_override\": \"$PRO_CLOUD_OVERRIDE\", \"enable\": <enable_services>}" \
+
+            && apt-get install -y <test_package_name> \
+
+            # If you need ca-certificates, remove it from this line
+            && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
+
+            && rm -rf /var/lib/apt/lists/*
+        """
+        # Build succeeds
+        When I run shell command `DOCKER_BUILDKIT=1 docker build . -t test --build-arg PRO_CLOUD_OVERRIDE=<cloud_override> <extra_build_args>` with sudo
+
+        # Service successfully enabled (Correct version of package installed)
+        When I run `docker run test dpkg-query --showformat='${Version}' --show <test_package_name>` with sudo
+        Then stdout matches regexp:
+        """
+        <test_package_version>
+        """
+        Examples: ubuntu release
+           | release | machine_type | cloud_override | container_release | enable_services   | test_package_name | test_package_version | extra_build_args |
+           | jammy   | aws.pro      | aws            | xenial            | [ \"esm-infra\" ] | curl              | esm                  | --network=host   |
+           | jammy   | azure.pro    | azure          | bionic            | [ \"fips\" ]      | openssl           | fips                 |                  |
+           | jammy   | gcp.pro      | gce            | focal             | [ \"esm-apps\" ]  | hello             | esm                  |                  |
