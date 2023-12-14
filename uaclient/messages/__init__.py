@@ -2532,3 +2532,8 @@ E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
 E_PYCURL_CA_CERTIFICATES = NamedMessage(
     "pycurl-ca-certificates-error", "Problem reading SSL CA certificates"
 )
+
+E_UPDATING_ESM_CACHE = FormattedNamedMessage(
+    "error-updating-esm-cache",
+    t.gettext("Error updating ESM services cache: {error}"),
+)
