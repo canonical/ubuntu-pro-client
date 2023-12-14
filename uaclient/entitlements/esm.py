@@ -36,7 +36,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
         assert self.name.startswith("esm-")
         esm_name = self.name[len("esm-") :]
         repo_filename = os.path.normpath(
-            ESM_APT_ROOTDIR + self.repo_list_file_tmpl.format(name=self.name),
+            ESM_APT_ROOTDIR + self.repo_file,
         )
         keyring_file = self.repo_key_file
 
@@ -62,7 +62,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
             ESM_APT_ROOTDIR + APT_KEYS_DIR + self.repo_key_file
         )
         repo_filename = os.path.normpath(
-            ESM_APT_ROOTDIR + self.repo_list_file_tmpl.format(name=self.name),
+            ESM_APT_ROOTDIR + self.repo_file,
         )
         system.ensure_file_absent(repo_filename)
         system.ensure_file_absent(keyring_file)

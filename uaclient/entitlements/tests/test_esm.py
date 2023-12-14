@@ -124,10 +124,7 @@ class TestUpdateESMCaches:
             assert m_write_file.call_args_list == [
                 mock.call(
                     os.path.normpath(
-                        apt.ESM_APT_ROOTDIR
-                        + entitlement.repo_list_file_tmpl.format(
-                            name=entitlement.name
-                        ),
+                        apt.ESM_APT_ROOTDIR + entitlement.repo_file,
                     ),
                     apt.ESM_REPO_FILE_CONTENT.format(
                         name=entitlement.name[4:], series="example"
@@ -165,8 +162,7 @@ class TestUpdateESMCaches:
         assert m_ensure_file_absent.call_args_list == [
             mock.call(
                 os.path.normpath(
-                    apt.ESM_APT_ROOTDIR
-                    + self.repo_list_file_tmpl.format(name=self.name),
+                    apt.ESM_APT_ROOTDIR + self.repo_file,
                 )
             ),
             mock.call(

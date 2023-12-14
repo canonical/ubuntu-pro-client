@@ -639,7 +639,7 @@ class TestCleanAptFiles:
 
         class TestRepo(request.param):
             name = entitlement_name
-            repo_list_file_tmpl = repo_tmpl
+            repo_file_tmpl = repo_tmpl
             repo_pref_file_tmpl = pref_tmpl
             is_repo = request.param == RepoEntitlement
 
