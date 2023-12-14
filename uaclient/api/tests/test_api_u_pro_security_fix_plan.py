@@ -14,6 +14,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     AptUpgradeData,
     AttachData,
     EnableData,
+    FailUpdatingESMCacheData,
     FixPlanAptUpgradeStep,
     FixPlanAttachStep,
     FixPlanEnableStep,
@@ -23,6 +24,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     FixPlanNoOpStep,
     FixPlanResult,
     FixPlanUSNResult,
+    FixPlanWarningFailUpdatingESMCache,
     FixPlanWarningPackageCannotBeInstalled,
     FixPlanWarningSecurityIssueNotFixed,
     NoOpAlreadyFixedData,
@@ -250,6 +252,7 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
+    @mock.patch(M_PATH + "_should_update_esm_cache", return_value=False)
     @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch(M_PATH + "_enabled_services")
@@ -270,6 +273,7 @@ class TestFixPlan:
         m_enabled_services,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
+        _m_should_update_esm_cache,
     ):
         m_check_cve_fixed_by_livepatch.return_value = (None, None)
         m_query_installed_pkgs.return_value = {
@@ -437,7 +441,6 @@ class TestFixPlan:
             error=None,
             additional_data=AdditionalData(),
         )
-
         assert expected_plan == fix_plan_cve(
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
@@ -910,6 +913,130 @@ class TestFixPlan:
                 ),
             ],
             warnings=[],
+            error=None,
+            additional_data=AdditionalData(),
+        )
+        assert expected_plan == fix_plan_cve(
+            issue_id="cve-1234-1235", cfg=mock.MagicMock()
+        )
+
+    @mock.patch(M_PATH + "_is_attached")
+    @mock.patch("uaclient.apt.update_esm_caches")
+    @mock.patch(M_PATH + "_should_update_esm_cache", return_value=True)
+    @mock.patch(M_PATH + "merge_usn_released_binary_package_versions")
+    @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
+    @mock.patch("uaclient.apt.get_pkg_candidate_version")
+    @mock.patch(M_PATH + "_get_cve_data")
+    @mock.patch(M_PATH + "query_installed_source_pkg_versions")
+    @mock.patch(M_PATH + "_check_cve_fixed_by_livepatch")
+    def test_fix_plan_for_cve_when_esm_cache_fails_to_be_updated(
+        self,
+        m_check_cve_fixed_by_livepatch,
+        m_query_installed_pkgs,
+        m_get_cve_data,
+        m_get_pkg_candidate_version,
+        m_get_cve_affected_pkgs,
+        m_merge_usn_pkgs,
+        m_should_update_esm_cache,
+        m_update_esm_caches,
+        m_is_attached,
+    ):
+        m_update_esm_caches.side_effect = Exception("test")
+        m_is_attached.return_value = mock.MagicMock(is_attached=False)
+        m_check_cve_fixed_by_livepatch.return_value = (None, None)
+        m_query_installed_pkgs.return_value = {
+            "pkg1": {
+                "bin1": "1.0",
+                "bin2": "1.1",
+            },
+        }
+        m_get_cve_data.return_value = (
+            mock.MagicMock(
+                description="descr",
+                notices=[mock.MagicMock(title="test")],
+            ),
+            [],
+        )
+        m_get_cve_affected_pkgs.return_value = {
+            "pkg1": CVEPackageStatus(
+                cve_response={
+                    "status": "released",
+                    "pocket": "esm-infra",
+                }
+            ),
+        }
+        m_merge_usn_pkgs.return_value = {
+            "pkg1": {
+                "source": {
+                    "description": "description",
+                    "name": "pkg1",
+                    "is_source": True,
+                    "version": "1.1",
+                },
+                "bin1": {
+                    "is_source": False,
+                    "name": "bin1",
+                    "version": "1.1~esm1",
+                },
+                "bin2": {
+                    "is_source": False,
+                    "name": "bin2",
+                    "version": "1.2~esm1",
+                },
+            },
+        }
+        m_get_pkg_candidate_version.side_effect = ["1.1", "1.1"]
+
+        expected_error_msg = messages.E_UPDATING_ESM_CACHE.format(error="test")
+        expected_plan = FixPlanResult(
+            title="CVE-1234-1235",
+            description="test",
+            expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
+            affected_packages=["pkg1"],
+            plan=[
+                FixPlanAttachStep(
+                    data=AttachData(
+                        reason="required-pro-service",
+                        required_service="esm-infra",
+                        source_packages=["pkg1"],
+                    ),
+                    order=3,
+                ),
+                FixPlanEnableStep(
+                    data=EnableData(
+                        service="esm-infra",
+                        source_packages=["pkg1"],
+                    ),
+                    order=4,
+                ),
+                FixPlanAptUpgradeStep(
+                    data=AptUpgradeData(
+                        binary_packages=["bin1"],
+                        source_packages=["pkg1"],
+                        pocket="esm-infra",
+                    ),
+                    order=5,
+                ),
+            ],
+            warnings=[
+                FixPlanWarningFailUpdatingESMCache(
+                    data=FailUpdatingESMCacheData(
+                        title=expected_error_msg.msg,
+                        code=expected_error_msg.name,
+                    ),
+                    order=1,
+                ),
+                FixPlanWarningPackageCannotBeInstalled(
+                    data=PackageCannotBeInstalledData(
+                        binary_package="bin2",
+                        source_package="pkg1",
+                        binary_package_version="1.2~esm1",
+                        pocket="esm-infra",
+                        related_source_packages=["pkg1"],
+                    ),
+                    order=2,
+                ),
+            ],
             error=None,
             additional_data=AdditionalData(),
         )
