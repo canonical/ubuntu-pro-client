@@ -31,7 +31,7 @@ RE_KERNEL_PKG = r"^linux-image-([\d]+[.-][\d]+[.-][\d]+-[\d]+-[A-Za-z0-9_-]+)$"
 
 
 class RepoEntitlement(base.UAEntitlement):
-    repo_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
+    repo_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.{extension}"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
 
@@ -55,7 +55,11 @@ class RepoEntitlement(base.UAEntitlement):
 
     @property
     def repo_file(self) -> str:
-        return self.repo_file_tmpl.format(name=self.name)
+        extension = "sources"
+        series = system.get_release_info().series
+        if series in apt.SERIES_NOT_USING_DEB822:
+            extension = "list"
+        return self.repo_file_tmpl.format(name=self.name, extension=extension)
 
     @property
     def packages(self) -> List[str]:

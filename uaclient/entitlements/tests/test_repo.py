@@ -244,6 +244,9 @@ class TestProcessContractDeltas:
         assert [] == m_remove_auth_apt_repo.call_args_list
         assert 1 == m_check_apt_url_applied.call_count
 
+    @pytest.mark.parametrize(
+        "series,file_extension", (("jammy", "list"), ("noble", "sources"))
+    )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
@@ -262,6 +265,8 @@ class TestProcessContractDeltas:
         m_release_info,
         m_read_cache,
         m_process_contract_deltas,
+        series,
+        file_extension,
         entitlement,
     ):
         """Remove old apt url when aptURL delta occurs on active service."""
@@ -270,6 +275,7 @@ class TestProcessContractDeltas:
         m_read_cache.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
         }
+        m_release_info.return_value.series = series
         assert entitlement.process_contract_deltas(
             {
                 "entitlement": {
@@ -289,7 +295,10 @@ class TestProcessContractDeltas:
         assert [mock.call()] == m_setup_apt_config.call_args_list
         apt_auth_remove_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest.list", "http://old"
+                "/etc/apt/sources.list.d/ubuntu-repotest.{}".format(
+                    file_extension
+                ),
+                "http://old",
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
@@ -421,6 +430,9 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
+    @pytest.mark.parametrize(
+        "series,file_extension", (("xenial", "list"), ("noble", "sources"))
+    )
     @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "system.should_reboot")
@@ -446,11 +458,13 @@ class TestRepoEnable:
         caplog_text,
         event,
         packages,
+        series,
+        file_extension,
         with_pre_install_msg,
         should_reboot,
     ):
         """On enable add authenticated apt repo and refresh package lists."""
-        m_release_info.return_value = mock.MagicMock(series="xenial")
+        m_release_info.return_value = mock.MagicMock(series=series)
         m_should_reboot.return_value = should_reboot
 
         pre_install_msgs = ["Some pre-install information", "Some more info"]
@@ -526,7 +540,9 @@ class TestRepoEnable:
         )
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest.list",
+                "/etc/apt/sources.list.d/ubuntu-repotest.{}".format(
+                    file_extension
+                ),
                 "http://REPOTEST/ubuntu",
                 "repotest-token",
                 ["xenial"],
