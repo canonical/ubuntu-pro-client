@@ -47,6 +47,9 @@ class TestActionCollectLogs:
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
 
+    @pytest.mark.parametrize(
+        "series,extension", (("jammy", "list"), ("noble", "sources"))
+    )
     @pytest.mark.parametrize("is_root", ((True), (False)))
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch(
@@ -69,8 +72,10 @@ class TestActionCollectLogs:
     @mock.patch("uaclient.system.subp", return_value=(None, None))
     @mock.patch("uaclient.log.get_user_log_file")
     @mock.patch("uaclient.log.get_all_user_log_files")
+    @mock.patch("uaclient.system.get_release_info")
     def test_collect_logs(
         self,
+        m_get_release_info,
         m_get_users,
         m_get_user,
         m_subp,
@@ -86,9 +91,12 @@ class TestActionCollectLogs:
         _glob,
         util_we_are_currently_root,
         is_root,
+        series,
+        extension,
         FakeConfig,
         tmpdir,
     ):
+        m_get_release_info.return_value.series = series
         util_we_are_currently_root.return_value = is_root
         m_get_user.return_value = tmpdir.join("user-log").strpath
         m_get_users.return_value = [
@@ -173,17 +181,49 @@ class TestActionCollectLogs:
             mock.call(cfg.log_file),
             mock.call("/var/lib/ubuntu-advantage/jobs-status.json"),
             mock.call("/etc/cloud/build.info"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-anbox-cloud.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-cc-eal.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-cis.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-esm-apps.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-esm-infra.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-fips.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-fips-updates.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-fips-preview.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-realtime-kernel.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-ros.list"),
-            mock.call("/etc/apt/sources.list.d/ubuntu-ros-updates.list"),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-anbox-cloud.{}".format(
+                    extension
+                )
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-cc-eal.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-cis.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-esm-apps.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-esm-infra.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-fips.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-fips-updates.{}".format(
+                    extension
+                )
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-fips-preview.{}".format(
+                    extension
+                )
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-realtime-kernel.{}".format(
+                    extension
+                )
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-ros.{}".format(extension)
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-ros-updates.{}".format(
+                    extension
+                )
+            ),
             mock.call("/var/log/ubuntu-advantage.log"),
             mock.call("/var/log/ubuntu-advantage.log.1"),
             *[mock.call(f) for f in APPARMOR_PROFILES],

@@ -21,6 +21,7 @@ from uaclient.apt import (
     APT_PROXY_CONFIG_HEADER,
     APT_RETRIES,
     KEYRINGS_DIR,
+    SERIES_NOT_USING_DEB822,
     PreserveAptCfg,
     _ensure_esm_cache_structure,
     add_apt_auth_conf_entry,
@@ -347,14 +348,12 @@ class TestValidAptCredentials:
 
 
 class TestAddAuthAptRepo:
+    @pytest.mark.parametrize("series", ("xenial", "noble"))
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
+    @mock.patch("uaclient.system.get_release_info")
     def test_add_auth_apt_repo_writes_sources_file(
         self,
         m_get_release_info,
@@ -362,6 +361,7 @@ class TestAddAuthAptRepo:
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
+        series,
         tmpdir,
     ):
         """Write a properly configured sources file to repo_filename."""
@@ -369,33 +369,45 @@ class TestAddAuthAptRepo:
         auth_file = tmpdir.join("auth.conf").strpath
         m_get_apt_auth_file.return_value = auth_file
         m_subp.return_value = "500 esm.canonical.com...", ""  # apt policy
+        m_get_release_info.return_value = mock.MagicMock(series=series)
 
         add_auth_apt_repo(
             repo_filename=repo_file,
             repo_url="http://fakerepo",
             credentials="mycreds",
-            suites=("xenial",),
+            suites=(series,),
             keyring_file="keyring",
         )
 
-        expected_content = (
-            "deb http://fakerepo xenial main\n"
-            "# deb-src http://fakerepo xenial main\n"
-        )
+        if series in SERIES_NOT_USING_DEB822:
+            expected_content = (
+                "deb http://fakerepo {series} main\n"
+                "# deb-src http://fakerepo {series} main\n"
+            ).format(series=series)
+            src_keyfile = os.path.join(KEYRINGS_DIR, "keyring")
+            dest_keyfile = os.path.join(APT_KEYS_DIR, "keyring")
+            gpg_export_calls = [mock.call(src_keyfile, dest_keyfile)]
+        else:
+            expected_content = (
+                "# Written by ubuntu-advantage-tools\n"
+                "\n"
+                "Types: deb\n"
+                "URIs: http://fakerepo\n"
+                "Suites: {series}\n"
+                "Components: main\n"
+                "Signed-By: /usr/share/keyrings/keyring\n"
+            ).format(series=series)
+            gpg_export_calls = []
+
         assert expected_content == system.load_file(repo_file)
-        src_keyfile = os.path.join(KEYRINGS_DIR, "keyring")
-        dest_keyfile = os.path.join(APT_KEYS_DIR, "keyring")
-        gpg_export_calls = [mock.call(src_keyfile, dest_keyfile)]
         assert gpg_export_calls == m_gpg_export.call_args_list
 
+    @pytest.mark.parametrize("series", ("xenial", "noble"))
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
+    @mock.patch("uaclient.system.get_release_info")
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
         self,
         m_get_release_info,
@@ -403,48 +415,68 @@ class TestAddAuthAptRepo:
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
+        series,
         tmpdir,
     ):
         """Skip any apt suites that don't match the current series."""
         repo_file = tmpdir.join("repo.conf").strpath
         auth_file = tmpdir.join("auth.conf").strpath
         m_get_apt_auth_file.return_value = auth_file
-        # apt policy with xenial-updates enabled
+        # apt policy with series-updates enabled
         stdout = dedent(
             """\
-            500 http://archive.ubuntu.com/ xenial-updates/main amd64 \
+            500 http://archive.ubuntu.com/ {series}-updates/main amd64 \
                         Packages
-                release v=16.04,o=Ubuntu,a=xenial-updates,n=xenial,l=Ubuntu\
-                        ,c=main"""
+                release v=XX.04,o=Ubuntu,a={series}-updates,n={series},\
+                        l=Ubuntu,c=main""".format(
+                series=series
+            )
         )
         m_subp.return_value = stdout, ""
+        m_get_release_info.return_value = mock.MagicMock(series=series)
 
         add_auth_apt_repo(
             repo_filename=repo_file,
             repo_url="http://fakerepo",
             credentials="mycreds",
-            suites=("xenial-one", "xenial-updates", "trusty-gone"),
+            suites=(
+                "{}-one".format(series),
+                "{}-updates".format(series),
+                "trusty-gone",
+            ),
             keyring_file="keyring",
         )
 
-        expected_content = dedent(
-            """\
-            deb http://fakerepo xenial-one main
-            # deb-src http://fakerepo xenial-one main
-            deb http://fakerepo xenial-updates main
-            # deb-src http://fakerepo xenial-updates main
-        """
-        )
+        if series in SERIES_NOT_USING_DEB822:
+            expected_content = dedent(
+                """\
+                deb http://fakerepo {series}-one main
+                # deb-src http://fakerepo {series}-one main
+                deb http://fakerepo {series}-updates main
+                # deb-src http://fakerepo {series}-updates main
+            """
+            ).format(series=series)
+        else:
+            expected_content = dedent(
+                """\
+                # Written by ubuntu-advantage-tools
+
+                Types: deb
+                URIs: http://fakerepo
+                Suites: {series}-one {series}-updates
+                Components: main
+                Signed-By: /usr/share/keyrings/keyring
+            """
+            ).format(series=series)
+
         assert expected_content == system.load_file(repo_file)
 
+    @pytest.mark.parametrize("series", ("xenial", "noble"))
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.system.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
+    @mock.patch("uaclient.system.get_release_info")
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
         self,
         m_get_release_info,
@@ -452,35 +484,54 @@ class TestAddAuthAptRepo:
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
+        series,
         tmpdir,
     ):
         """Skip any apt suites that don't match the current series."""
         repo_file = tmpdir.join("repo.conf").strpath
         auth_file = tmpdir.join("auth.conf").strpath
         m_get_apt_auth_file.return_value = auth_file
-        # apt policy without xenial-updates enabled
-        origin = "test-origin"
+        # apt policy without series-updates enabled
         m_subp.return_value = (
-            POST_INSTALL_APT_CACHE_NO_UPDATES.format("xenial", origin),
+            POST_INSTALL_APT_CACHE_NO_UPDATES.format(series, "test-origin"),
             "",
         )
+        m_get_release_info.return_value = mock.MagicMock(series=series)
 
         add_auth_apt_repo(
             repo_filename=repo_file,
             repo_url="http://fakerepo",
             credentials="mycreds",
-            suites=("xenial-one", "xenial-updates", "trusty-gone"),
+            suites=(
+                "{}-one".format(series),
+                "{}-updates".format(series),
+                "trusty-gone",
+            ),
             keyring_file="keyring",
         )
 
-        expected_content = dedent(
-            """\
-            deb http://fakerepo xenial-one main
-            # deb-src http://fakerepo xenial-one main
-            # deb http://fakerepo xenial-updates main
-            # deb-src http://fakerepo xenial-updates main
-        """
-        )
+        if series in SERIES_NOT_USING_DEB822:
+            expected_content = dedent(
+                """\
+                deb http://fakerepo {series}-one main
+                # deb-src http://fakerepo {series}-one main
+                # deb http://fakerepo {series}-updates main
+                # deb-src http://fakerepo {series}-updates main
+            """
+            ).format(series=series)
+        else:
+            expected_content = dedent(
+                """\
+                # Written by ubuntu-advantage-tools
+
+                Types: deb
+                URIs: http://fakerepo
+                Suites: {series}-one
+                Components: main
+                Signed-By: /usr/share/keyrings/keyring
+            """
+            ).format(series=series)
+
         assert expected_content == system.load_file(repo_file)
 
     @mock.patch("uaclient.apt.gpg.export_gpg_key")
