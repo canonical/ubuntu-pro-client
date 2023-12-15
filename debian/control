@@ -7,6 +7,7 @@ Build-Depends: bash-completion,
                debianutils (>= 4.7),
                dh-python,
                dh-apparmor,
+               apparmor,
 # After debhelper 13.3 we no longer need dh-systemd.
 # On hirsute and later, dh-systemd doesn't even exist.
 # On recent releases, the first alternative will be used.
