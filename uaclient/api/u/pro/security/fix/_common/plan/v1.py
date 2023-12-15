@@ -626,6 +626,22 @@ def _get_upgradable_package_candidates_by_pocket(
     return src_pocket_pkgs, binary_pocket_pkgs
 
 
+def _get_cve_description(
+    cve: CVE,
+    installed_pkgs: Dict[str, Dict[str, str]],
+):
+    if not cve.notices:
+        return cve.description
+
+    for notice in cve.notices:
+        usn_pkgs = notice.release_packages.keys()
+        for pkg in usn_pkgs:
+            if pkg in installed_pkgs:
+                return notice.title
+
+    return cve.notices[0].title
+
+
 def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
     livepatch_cve_status, patch_version = _check_cve_fixed_by_livepatch(
         issue_id
@@ -662,11 +678,7 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         usns, beta_pockets={}
     )
 
-    cve_description = cve.description
-    for notice in cve.notices:
-        # Only look at the most recent USN title
-        cve_description = notice.title
-        break
+    cve_description = _get_cve_description(cve, installed_pkgs)
 
     return _generate_fix_plan(
         issue_id=issue_id,

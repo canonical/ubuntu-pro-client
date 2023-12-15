@@ -248,7 +248,7 @@ Feature: Ua fix command behaviour
         """
         .*WARNING: The option --dry-run is being used.
         No packages will be installed when running this command..*
-        CVE-2017-9233: Coin3D vulnerability
+        CVE-2017-9233: Expat vulnerability
          - https://ubuntu.com/security/CVE-2017-9233
 
         3 affected source packages are installed: expat, matanza, swish-e
@@ -264,7 +264,7 @@ Feature: Ua fix command behaviour
         When I verify that running `pro fix CVE-2017-9233` `with sudo` exits `1`
         Then stdout matches regexp:
         """
-        CVE-2017-9233: Coin3D vulnerability
+        CVE-2017-9233: Expat vulnerability
          - https://ubuntu.com/security/CVE-2017-9233
 
         3 affected source packages are installed: expat, matanza, swish-e
