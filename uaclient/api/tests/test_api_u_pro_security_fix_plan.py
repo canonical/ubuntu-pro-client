@@ -31,6 +31,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
     USNAdditionalData,
+    _get_cve_description,
     fix_plan_cve,
     fix_plan_usn,
 )
@@ -1009,3 +1010,95 @@ class TestSecurityIssueData:
             assert fix_plan.error.msg == expected_message
         else:
             assert fix_plan.target_usn_plan.error.msg == expected_message
+
+
+class TestGetCVEDescription:
+    @pytest.mark.parametrize(
+        "installed_pkgs,notices,cve_description,expected_description",
+        (
+            ({}, [], "cve_description", "cve_description"),
+            (
+                {
+                    "pkg1": {
+                        "bin1": "1.0",
+                        "bin2": "1.1",
+                    },
+                },
+                [
+                    mock.MagicMock(
+                        title="usn2",
+                        release_packages={
+                            "pkg2": {
+                                "libpkg2": {
+                                    "version": "1.0",
+                                    "name": "libpkg2",
+                                },
+                                "source": {"version": "2.0", "name": "pkg2"},
+                            }
+                        },
+                    ),
+                    mock.MagicMock(
+                        title="usn1",
+                        release_packages={
+                            "pkg1": {
+                                "libpkg1": {
+                                    "version": "1.0",
+                                    "name": "libpkg1",
+                                },
+                                "source": {"version": "2.0", "name": "pkg1"},
+                            }
+                        },
+                    ),
+                ],
+                "cve_description",
+                "usn1",
+            ),
+            (
+                {
+                    "pkg3": {
+                        "bin1": "1.0",
+                        "bin2": "1.1",
+                    },
+                },
+                [
+                    mock.MagicMock(
+                        title="usn2",
+                        release_packages={
+                            "pkg2": {
+                                "libpkg2": {
+                                    "version": "1.0",
+                                    "name": "libpkg2",
+                                },
+                                "source": {"version": "2.0", "name": "pkg2"},
+                            }
+                        },
+                    ),
+                    mock.MagicMock(
+                        title="usn1",
+                        release_packages={
+                            "pkg1": {
+                                "libpkg1": {
+                                    "version": "1.0",
+                                    "name": "libpkg1",
+                                },
+                                "source": {"version": "2.0", "name": "pkg1"},
+                            }
+                        },
+                    ),
+                ],
+                "cve_description",
+                "usn2",
+            ),
+        ),
+    )
+    def test_get_cve_description(
+        self,
+        installed_pkgs,
+        notices,
+        cve_description,
+        expected_description,
+    ):
+        cve = mock.MagicMock(notices=notices, description=cve_description)
+        assert expected_description == _get_cve_description(
+            cve, installed_pkgs
+        )
