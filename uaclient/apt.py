@@ -51,6 +51,17 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
 
+SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy", "mantic")
+
+DEB822_REPO_FILE_CONTENT = """\
+# Written by ubuntu-advantage-tools
+
+Types: deb
+URIs: {url}
+Suites: {suites}
+Components: main
+Signed-By: {keyrings_dir}/{keyring_file}
+"""
 
 ESM_REPO_FILE_CONTENT = """\
 # Written by ubuntu-advantage-tools
@@ -472,6 +483,60 @@ def get_remote_versions_for_package(
     return valid_versions
 
 
+def _get_list_file_content(
+    suites: List[str], series: str, updates_enabled: bool, repo_url: str
+) -> str:
+    content = ""
+    for suite in suites:
+        if series not in suite:
+            continue  # Only enable suites matching this current series
+        maybe_comment = ""
+        if "-updates" in suite and not updates_enabled:
+            LOG.warning(
+                'Not enabling apt suite "%s" because "%s-updates" is not'
+                " enabled",
+                suite,
+                series,
+            )
+            maybe_comment = "# "
+        content += (
+            "{maybe_comment}deb {url} {suite} main\n"
+            "# deb-src {url} {suite} main\n".format(
+                maybe_comment=maybe_comment, url=repo_url, suite=suite
+            )
+        )
+
+    return content
+
+
+def _get_sources_file_content(
+    suites: List[str],
+    series: str,
+    updates_enabled: bool,
+    repo_url: str,
+    keyring_file: str,
+) -> str:
+    appliable_suites = [suite for suite in suites if series in suite]
+    if not updates_enabled:
+        LOG.warning(
+            "Not enabling service-related -updates suites because"
+            ' "%s-updates" is not enabled',
+            series,
+        )
+        appliable_suites = [
+            suite for suite in appliable_suites if "-updates" not in suite
+        ]
+
+    content = DEB822_REPO_FILE_CONTENT.format(
+        url=repo_url,
+        suites=" ".join(appliable_suites),
+        keyrings_dir=KEYRINGS_DIR,
+        keyring_file=keyring_file,
+    )
+
+    return content
+
+
 def add_auth_apt_repo(
     repo_filename: str,
     repo_url: str,
@@ -509,30 +574,22 @@ def add_auth_apt_repo(
         updates_enabled = True
         break
 
-    content = ""
-    for suite in suites:
-        if series not in suite:
-            continue  # Only enable suites matching this current series
-        maybe_comment = ""
-        if "-updates" in suite and not updates_enabled:
-            LOG.warning(
-                'Not enabling apt suite "%s" because "%s-updates" is not'
-                " enabled",
-                suite,
-                series,
-            )
-            maybe_comment = "# "
-        content += (
-            "{maybe_comment}deb {url} {suite} main\n"
-            "# deb-src {url} {suite} main\n".format(
-                maybe_comment=maybe_comment, url=repo_url, suite=suite
-            )
-        )
-    system.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
-    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
-    destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
-    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
+
+    if series in SERIES_NOT_USING_DEB822:
+        source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
+        destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
+        gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
+
+        content = _get_list_file_content(
+            suites, series, updates_enabled, repo_url
+        )
+    else:
+        content = _get_sources_file_content(
+            suites, series, updates_enabled, repo_url, keyring_file
+        )
+
+    system.write_file(repo_filename, content)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
