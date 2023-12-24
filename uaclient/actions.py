@@ -2,6 +2,8 @@ import datetime
 import glob
 import logging
 import os
+import re
+import shutil
 from typing import List, Optional  # noqa: F401
 
 from uaclient import (
@@ -43,6 +45,11 @@ UA_SERVICES = (
 )
 
 USER_LOG_COLLECTED_LIMIT = 10
+
+# XXX handle /etc/apparmor.d/local/<name>, which has the local admin overrides
+APPARMOR_PROFILES = [
+    "/etc/apparmor.d/ubuntu_pro_apt_news",
+]
 
 
 def attach_with_token(
@@ -285,3 +292,30 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             system.write_file(
                 os.path.join(output_dir, os.path.basename(f)), content
             )
+
+    # get apparmor logs
+    # can't use journalctl's --grep, because xenial doesn't support it :/
+    kernel_logs, _ = system.subp(
+        ["journalctl", "-b", "-k", "--since=1 day ago"]
+    )
+    apparmor_logs = []
+    if kernel_logs:
+        # filter out only what interests us
+        for kernel_line in kernel_logs.split("\n"):
+            if re.search(
+                r"apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)",
+                kernel_line,
+            ):
+                apparmor_logs.append(kernel_line)
+    system.write_file(
+        "{}/apparmor_logs.txt".format(output_dir), "\n".join(apparmor_logs)
+    )
+
+    # include apparmor profiles
+    for f in APPARMOR_PROFILES:
+        if os.path.isfile(f):
+            try:
+                shutil.copy(f, output_dir)
+            except Exception as e:
+                LOG.warning("Failed to copy file: %s\n%s", f, str(e))
+                continue
