@@ -63,11 +63,11 @@ override_dh_systemd_start:
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
-	debian/jinja2_render debian/apparmor/ubuntu_advantage_apt_news.jinja2 debian/apparmor/ubuntu_advantage_apt_news ubuntu_codename=${UBUNTU_CODENAME}
+	debian/jinja2_render debian/apparmor/ubuntu_pro_apt_news.jinja2 debian/apparmor/ubuntu_pro_apt_news ubuntu_codename=${UBUNTU_CODENAME}
 	# quick syntax check on the generated profile
-	apparmor_parser -K -T -Q debian/apparmor/ubuntu_advantage_apt_news
-	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_advantage_apt_news $(CURDIR)/debian/ubuntu-advantage-tools/etc/apparmor.d/ubuntu_advantage_apt_news
-	dh_apparmor -pubuntu-advantage-tools --profile-name=ubuntu_advantage_apt_news
+	apparmor_parser -K -T -Q debian/apparmor/ubuntu_pro_apt_news
+	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_pro_apt_news $(CURDIR)/debian/ubuntu-advantage-tools/etc/apparmor.d/ubuntu_pro_apt_news
+	dh_apparmor -pubuntu-advantage-tools --profile-name=ubuntu_pro_apt_news
 
 	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
 
@@ -92,4 +92,4 @@ endif
 override_dh_auto_clean:
 	dh_auto_clean
 	make clean
-	rm -f debian/apparmor/ubuntu_advantage_apt_news
+	rm -f debian/apparmor/ubuntu_pro_apt_news
