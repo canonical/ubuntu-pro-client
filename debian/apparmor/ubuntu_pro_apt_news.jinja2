@@ -43,6 +43,7 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /sbin/ldconfig rix,
   /sbin/ldconfig.real rix,
   @{PROC}/@{pid}/mounts r,
+  @{PROC}/@{pid}/status r,
   /usr/bin/@{multiarch}-gcc-* rix,
   /usr/bin/@{multiarch}-ld.bfd rix,
   /usr/lib/gcc/@{multiarch}/*/collect2 rix,
