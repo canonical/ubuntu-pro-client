@@ -4,6 +4,7 @@ import textwrap
 import mock
 import pytest
 
+from uaclient.actions import APPARMOR_PROFILES
 from uaclient.cli import (
     action_collect_logs,
     collect_logs_parser,
@@ -62,6 +63,7 @@ class TestActionCollectLogs:
     @mock.patch("pathlib.Path.stat")
     @mock.patch("os.chown")
     @mock.patch("os.path.isfile", return_value=True)
+    @mock.patch("shutil.copy")
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.system.subp", return_value=(None, None))
@@ -74,6 +76,7 @@ class TestActionCollectLogs:
         m_subp,
         _load_file,
         _write_file,
+        m_shutilcopy,
         m_isfile,
         _chown,
         _stat,
@@ -92,7 +95,7 @@ class TestActionCollectLogs:
             tmpdir.join("user1-log").strpath,
             tmpdir.join("user2-log").strpath,
         ]
-        is_file_calls = 17
+        is_file_calls = 17 + len(APPARMOR_PROFILES)
         user_log_files = [mock.call(m_get_user())]
         if util_we_are_currently_root():
             user_log_files = [
@@ -161,6 +164,7 @@ class TestActionCollectLogs:
             mock.call(
                 ["systemctl", "status", "ubuntu-advantage.service"], rcs=[0, 3]
             ),
+            mock.call(["journalctl", "-b", "-k", "--since=1 day ago"]),
         ]
 
         assert m_isfile.call_count == is_file_calls
@@ -182,8 +186,13 @@ class TestActionCollectLogs:
             mock.call("/etc/apt/sources.list.d/ubuntu-ros-updates.list"),
             mock.call("/var/log/ubuntu-advantage.log"),
             mock.call("/var/log/ubuntu-advantage.log.1"),
+            *[mock.call(f) for f in APPARMOR_PROFILES],
         ]
-        assert redact.call_count == is_file_calls + len(user_log_files)
+        # APPARMOR_PROFILES are not redacted
+        assert redact.call_count == is_file_calls + len(user_log_files) - len(
+            APPARMOR_PROFILES
+        )
+        assert m_shutilcopy.call_count == len(APPARMOR_PROFILES)
 
 
 class TestParser:
