@@ -8,6 +8,12 @@ from uaclient.actions import attach_with_token, auto_attach, collect_logs
 from uaclient.testing import fakes, helpers
 
 M_PATH = "uaclient.actions."
+APPARMOR_DENIED = (
+    'audit: type=1400 audit(1703513431.601:36): apparmor="DENIED" '
+    'operation="open" profile="ubuntu_pro_apt_news" '
+    'name="/proc/1422/status" pid=1422 comm="python3" '
+    'requested_mask="r" denied_mask="r" fsuid=0 ouid=0'
+)
 
 
 def fake_instance_factory():
@@ -335,8 +341,10 @@ class TestCollectLogs:
     @mock.patch("uaclient.actions._get_state_files")
     @mock.patch("glob.glob")
     @mock.patch("uaclient.log.get_user_log_file")
+    @mock.patch("uaclient.system.subp", return_value=(APPARMOR_DENIED, ""))
     def test_collect_logs_invalid_file(
         self,
+        m_system_subp,
         m_get_user,
         m_glob,
         m_get_state_files,
@@ -362,11 +370,19 @@ class TestCollectLogs:
             mock.call("a"),
             mock.call("b"),
         ] == m_load_file.call_args_list
-        assert 2 == m_write_file.call_count
+        assert 3 == m_write_file.call_count
+
+        # apparmor checks
+        assert 1 == m_system_subp.call_count
+        assert [
+            mock.call(["journalctl", "-b", "-k", "--since=1 day ago"]),
+        ] == m_system_subp.call_args_list
+
         print(m_write_file.call_args_list)
         assert [
             mock.call("test/user0.log", "test"),
             mock.call("test/b", "test"),
+            mock.call("test/apparmor_logs.txt", APPARMOR_DENIED),
         ] == m_write_file.call_args_list
         assert [
             mock.call("Failed to load file: %s\n%s", "a", "test")
