@@ -48,5 +48,16 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /usr/bin/@{multiarch}-ld.bfd rix,
   /usr/lib/gcc/@{multiarch}/*/collect2 rix,
   /usr/bin/@{multiarch}-objdump rix,
+
+  # for some reason, these are not needed in later ubuntu releases
+  capability chown,
+  capability fowner,
+  capability dac_override,
+
+  /etc/apt/auth.conf.d/90ubuntu-advantage rw,
+  /var/lib/apt/lists/partial/ rw,
+  /var/lib/apt/lists/partial/* rw,
+  /var/cache/apt/archives/partial/ rw,
+  /var/cache/apt/archives/partial/* rw,
 {% endif %}
 }
