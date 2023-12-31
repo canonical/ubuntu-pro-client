@@ -48,8 +48,9 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /usr/bin/@{multiarch}-ld.bfd rix,
   /usr/lib/gcc/@{multiarch}/*/collect2 rix,
   /usr/bin/@{multiarch}-objdump rix,
-
-  # for some reason, these are not needed in later ubuntu releases
+{% endif %}
+{% if ubuntu_codename in ["xenial"] %}
+  # for some reason, these were just needed in xenial
   capability chown,
   capability fowner,
   capability dac_override,
