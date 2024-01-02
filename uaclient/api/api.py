@@ -74,9 +74,6 @@ def _process_data(
         raise errors.APIJSONDataFormatError(data=data)
 
     for k, v in json_data.items():
-        if not k or not v:
-            raise errors.APIBadArgsFormat(arg="{}:{}".format(k, v))
-
         if k not in fields:
             warnings.append(
                 ErrorWarningObject(
