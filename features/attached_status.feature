@@ -53,6 +53,7 @@ Feature: Attached status
     Then stdout matches regexp:
       """
       One moment, checking your subscription first
+      Configuring APT access to CIS Audit
       Updating CIS Audit package lists
       Updating standard Ubuntu package lists
       Installing CIS Audit packages

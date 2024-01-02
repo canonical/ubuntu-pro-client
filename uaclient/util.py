@@ -7,7 +7,7 @@ import sys
 import textwrap
 import time
 from functools import wraps
-from typing import Any, Dict, List, Optional, Union  # noqa: F401
+from typing import Any, Callable, Dict, List, Optional, Union  # noqa: F401
 
 from uaclient import exceptions, messages
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
@@ -267,6 +267,7 @@ def redact_sensitive_logs(
 
 def handle_message_operations(
     msg_ops: Optional[MessagingOperations],
+    print_fn: Callable[[str], None],
 ) -> bool:
     """Emit messages to the console for user interaction
 
@@ -277,15 +278,12 @@ def handle_message_operations(
 
     :return: True upon success, False on failure.
     """
-    from uaclient import event_logger
-
-    event = event_logger.get_event_logger()
     if not msg_ops:
         return True
 
     for msg_op in msg_ops:
         if isinstance(msg_op, str):
-            event.info(msg_op)
+            print_fn(msg_op)
         else:  # Then we are a callable and dict of args
             functor, args = msg_op
             if not functor(**args):

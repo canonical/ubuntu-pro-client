@@ -5,7 +5,7 @@ import re
 import socket
 from typing import List, NamedTuple, Optional
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
+from uaclient import api, apt, event_logger, exceptions, messages, system, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -143,7 +143,7 @@ def install_snapd():
         raise exceptions.CannotInstallSnapdError()
 
 
-def run_snapd_wait_cmd():
+def run_snapd_wait_cmd(progress: api.ProgressWrapper):
     try:
         system.subp([SNAP_CMD, "wait", "system", "seed.loaded"], capture=True)
     except exceptions.ProcessExecutionError as e:
@@ -151,7 +151,7 @@ def run_snapd_wait_cmd():
             LOG.warning(
                 "Detected version of snapd that does not have wait command"
             )
-            event.info(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+            progress.emit("info", messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
         else:
             raise
 

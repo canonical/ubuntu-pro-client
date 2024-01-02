@@ -71,8 +71,11 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         )
         return self._disable
 
-    def _perform_enable(self, **kwargs):
+    def _perform_enable(self, *args, **kwargs):
         return self._enable
+
+    def enable_steps(self):
+        return 1
 
     def applicability_status(self):
         if self._applicability_status is not None:
@@ -361,17 +364,14 @@ class TestEntitlementEnable:
         [(False, False), (False, True), (True, False), (True, True)],
     )
     @mock.patch("uaclient.util.is_config_value_true")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_enable_when_incompatible_service_found(
         self,
-        m_prompt,
         m_is_config_value_true,
         block_disable_on_enable,
         assume_yes,
         base_entitlement_factory,
         mock_entitlement,
     ):
-        m_prompt.return_value = assume_yes
         m_is_config_value_true.return_value = block_disable_on_enable
         entitlement = base_entitlement_factory(
             entitled=True,
@@ -392,15 +392,11 @@ class TestEntitlementEnable:
             ),
         )
 
-        ret, reason = entitlement.enable()
-
-        expected_prompt_call = 1
-        if block_disable_on_enable:
-            expected_prompt_call = 0
+        ret, reason = entitlement.enable(mock.MagicMock())
 
         expected_ret = False
         expected_reason = CanEnableFailureReason.INCOMPATIBLE_SERVICE
-        if assume_yes and not block_disable_on_enable:
+        if not block_disable_on_enable:
             expected_ret = True
             expected_reason = None
         expected_disable_call = 1 if expected_ret else 0
@@ -410,17 +406,13 @@ class TestEntitlementEnable:
             assert reason is None
         else:
             assert reason.reason == expected_reason
-        assert m_prompt.call_count == expected_prompt_call
         assert m_is_config_value_true.call_count == 1
         assert m_incompatible_obj.disable.call_count == expected_disable_call
 
     @pytest.mark.parametrize("assume_yes", ((False), (True)))
-    @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_enable_when_required_service_found(
-        self, m_prompt, assume_yes, base_entitlement_factory, mock_entitlement
+        self, assume_yes, base_entitlement_factory, mock_entitlement
     ):
-        m_prompt.return_value = assume_yes
-
         m_required_service_cls, m_required_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, ""),
             enable=(True, None),
@@ -438,23 +430,11 @@ class TestEntitlementEnable:
             },
         )
 
-        ret, reason = entitlement.enable()
+        ret, reason = entitlement.enable(mock.MagicMock())
 
-        expected_prompt_call = 1
-        expected_ret = False
-        expected_reason = CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
-        if assume_yes:
-            expected_ret = True
-            expected_reason = None
-        expected_enable_call = 1 if expected_ret else 0
-
-        assert ret == expected_ret
-        if expected_reason is None:
-            assert reason is None
-        else:
-            assert reason.reason == expected_reason
-        assert m_prompt.call_count == expected_prompt_call
-        assert m_required_service_obj.enable.call_count == expected_enable_call
+        assert ret is True
+        assert reason is None
+        assert m_required_service_obj.enable.call_count == 1
 
     @pytest.mark.parametrize(
         "can_enable_fail,handle_incompat_calls,enable_req_calls",
@@ -523,7 +503,7 @@ class TestEntitlementEnable:
         entitlement = base_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
 
-        assert (False, can_enable_fail) == entitlement.enable()
+        assert (False, can_enable_fail) == entitlement.enable(mock.MagicMock())
 
         assert 1 == m_can_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count
@@ -579,7 +559,7 @@ class TestEntitlementEnable:
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
             m_can_enable.return_value = (False, fail_reason)
-            ret, fail = entitlement.enable()
+            ret, fail = entitlement.enable(mock.MagicMock())
 
         assert not ret
         expected_msg = "Cannot enable required service: Test"
@@ -588,45 +568,6 @@ class TestEntitlementEnable:
         assert expected_msg == fail.message.msg
         assert 1 == m_can_enable.call_count
 
-    @pytest.mark.parametrize(
-        [
-            "msg_ops_results",
-            "can_enable_call_count",
-            "perform_enable_call_count",
-            "expected_result",
-        ],
-        (
-            ([False], 0, 0, (False, None)),
-            ([True, False], 1, 0, (False, None)),
-            ([True, True, False], 1, 1, (False, None)),
-            ([True, True, True], 1, 1, (True, None)),
-        ),
-    )
-    @mock.patch.object(
-        ConcreteTestEntitlement, "_perform_enable", return_value=True
-    )
-    @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.can_enable",
-        return_value=(True, None),
-    )
-    @mock.patch("uaclient.util.handle_message_operations")
-    def test_enable_when_messaging_hooks_fail(
-        self,
-        m_handle_messaging_hooks,
-        m_can_enable,
-        m_perform_enable,
-        msg_ops_results,
-        can_enable_call_count,
-        perform_enable_call_count,
-        expected_result,
-        base_entitlement_factory,
-    ):
-        m_handle_messaging_hooks.side_effect = msg_ops_results
-        entitlement = base_entitlement_factory()
-        assert expected_result == entitlement.enable()
-        assert can_enable_call_count == m_can_enable.call_count
-        assert perform_enable_call_count == m_perform_enable.call_count
-
     @mock.patch("uaclient.util.handle_message_operations")
     def test_enable_fails_when_blocking_service_is_enabled(
         self,
@@ -634,7 +575,7 @@ class TestEntitlementEnable:
         mock_entitlement,
         base_entitlement_factory,
     ):
-        expected_msg = messages.INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+        expected_msg = messages.E_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
             service_being_enabled=ConcreteTestEntitlement.title,
             incompatible_service="Test",
         )
@@ -662,7 +603,7 @@ class TestEntitlementEnable:
             },
         )
 
-        result, reason = entitlement.enable()
+        result, reason = entitlement.enable(mock.MagicMock())
         assert not result
         assert expected_msg.msg == reason.message.msg.strip()
 
@@ -1482,7 +1423,7 @@ class TestHandleRequiredSnaps:
             mock.MagicMock,
         ]
 
-        assert entitlement.handle_required_snaps()
+        assert entitlement.handle_required_snaps(mock.MagicMock())
 
         if not directives:
             assert 0 == m_is_snapd_installed.call_count
@@ -1561,7 +1502,9 @@ class TestHandleRequiredPackages:
             directives={"requiredPackages": required_packages_directive},
         )
 
-        assert expected_result == entitlement.handle_required_packages()
+        assert expected_result == entitlement.handle_required_packages(
+            mock.MagicMock()
+        )
         assert [] == m_apt_update.call_args_list
         assert (
             expected_apt_update_calls == m_update_sources_list.call_args_list

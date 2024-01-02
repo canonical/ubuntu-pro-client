@@ -1,8 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
-import contextlib
 import copy
-import io
 import logging
 import os
 from functools import partial
@@ -349,7 +347,7 @@ class TestFIPSEntitlementEnable:
         fips_entitlement = entitlement_factory(FIPSEntitlement)
         assert (
             fips_common_enable_return_value
-            is fips_entitlement._perform_enable()
+            is fips_entitlement._perform_enable(mock.MagicMock())
         )
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
 
@@ -382,51 +380,12 @@ class TestFIPSEntitlementEnable:
     ):
         m_repo_enable.return_value = repo_enable_return_value
         with mock.patch.object(fips, "services_once_enabled_file"):
-            assert repo_enable_return_value is entitlement._perform_enable()
+            assert repo_enable_return_value is entitlement._perform_enable(
+                mock.MagicMock()
+            )
         assert (
             expected_remove_notice_calls == m_remove_notice.call_args_list[:2]
         )
-
-    @mock.patch(
-        "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
-    )
-    @mock.patch("uaclient.system.get_release_info")
-    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
-    @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.system.is_container", return_value=False)
-    def test_fips_enable_fails_when_livepatch_service_is_enabled(
-        self,
-        m_is_container,
-        m_handle_message_op,
-        m_prompt,
-        m_is_config_value_true,
-        m_get_release_info,
-        m_get_cloud_type,
-        entitlement_factory,
-    ):
-        fips_ent = entitlement_factory(FIPSEntitlement)
-        m_handle_message_op.return_value = True
-        base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
-        m_get_release_info.return_value = mock.MagicMock(series="test")
-
-        with mock.patch(
-            "{}.application_status".format(base_path)
-        ) as m_livepatch:
-            with mock.patch.object(
-                fips_ent,
-                "applicability_status",
-                return_value=(ApplicabilityStatus.APPLICABLE, ""),
-            ):
-                m_livepatch.return_value = (
-                    ApplicationStatus.ENABLED,
-                    "",
-                )
-                ret, fail = fips_ent.enable()
-
-        assert not ret
-        expected_msg = "Cannot enable FIPS when Livepatch is enabled."
-        assert expected_msg == fail.message.msg
 
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
@@ -456,7 +415,7 @@ class TestFIPSEntitlementEnable:
                     ApplicationStatus.ENABLED,
                     "",
                 )
-                result, reason = fips_entitlement.enable()
+                result, reason = fips_entitlement.enable(mock.MagicMock())
                 assert not result
                 expected_msg = (
                     "Cannot enable FIPS when FIPS Updates is enabled."
@@ -490,7 +449,7 @@ class TestFIPSEntitlementEnable:
             with mock.patch.object(
                 fips, "services_once_enabled_file", fake_dof
             ):
-                result, reason = fips_entitlement.enable()
+                result, reason = fips_entitlement.enable(mock.MagicMock())
                 assert not result
                 expected_msg = (
                     "Cannot enable FIPS because FIPS Updates was once enabled."
@@ -518,7 +477,7 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_livepatch:
             m_livepatch.return_value = (ApplicationStatus.DISABLED, "")
-            result, reason = entitlement.enable()
+            result, reason = entitlement.enable(mock.MagicMock())
             assert not result
             expected_msg = """\
             Ubuntu Xenial does not provide a GCP optimized FIPS kernel"""
@@ -555,7 +514,7 @@ class TestFIPSEntitlementEnable:
                 ApplicationStatus.DISABLED,
                 "",
             )
-            result, reason = entitlement.enable()
+            result, reason = entitlement.enable(mock.MagicMock())
             assert not result
             expected_msg = """\
             Ubuntu Test does not provide a GCP optimized FIPS kernel"""
@@ -653,7 +612,7 @@ class TestFIPSEntitlementEnable:
             NoCloudTypeReason.CLOUD_ID_ERROR,
         )
         fips_entitlement = entitlement_factory(FIPSEntitlement)
-        fips_entitlement._perform_enable()
+        fips_entitlement._perform_enable(mock.MagicMock())
         logs = caplog_text()
         assert (
             "Could not determine cloud, defaulting to generic FIPS package."
@@ -728,10 +687,6 @@ class TestFIPSCheckForRebootMsg:
     @pytest.mark.parametrize(
         "operation,expected",
         (
-            (
-                "install",
-                messages.FIPS_SYSTEM_REBOOT_REQUIRED,
-            ),
             (
                 "disable operation",
                 messages.FIPS_DISABLE_REBOOT_REQUIRED,
@@ -961,7 +916,7 @@ class TestFipsEntitlementInstallPackages:
         m_run_apt.side_effect = fakes.FakeUbuntuProError()
         with mock.patch.object(entitlement, "remove_apt_config"):
             with pytest.raises(exceptions.UbuntuProError):
-                entitlement.install_packages()
+                entitlement.install_packages(mock.MagicMock())
 
     @mock.patch(M_PATH + "apt.get_installed_packages_names")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
@@ -983,12 +938,11 @@ class TestFipsEntitlementInstallPackages:
             fakes.FakeUbuntuProError(),
         ]
 
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            with mock.patch.object(
-                type(entitlement), "conditional_packages", conditional_pkgs
-            ):
-                entitlement.install_packages()
+        progress_mock = mock.MagicMock()
+        with mock.patch.object(
+            type(entitlement), "conditional_packages", conditional_pkgs
+        ):
+            entitlement.install_packages(progress_mock)
 
         install_cmds = []
         all_pkgs = packages + conditional_pkgs
@@ -1005,21 +959,27 @@ class TestFipsEntitlementInstallPackages:
                 )
             )
 
-        expected_msg = "\n".join(
-            [
-                "Installing {} packages".format(entitlement.title),
-                "Updating standard Ubuntu package lists",
+        assert [
+            mock.call("message_operation", mock.ANY),
+            mock.call("info", "Updating standard Ubuntu package lists"),
+            mock.call(
+                "info",
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"
                 ),
+            ),
+            mock.call(
+                "info",
                 messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="c"
                 ),
-            ]
-        )
+            ),
+        ] == progress_mock.emit.call_args_list
+        assert [
+            mock.call("Installing {} packages".format(entitlement.title)),
+        ] == progress_mock.progress.call_args_list
 
         assert install_cmds == m_run_apt_install.call_args_list
-        assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
 
 class TestFipsSetupAPTConfig:
@@ -1050,7 +1010,7 @@ class TestFipsSetupAPTConfig:
     ):
         """Unmark only fips-specific package holds if present."""
         run_apt_command.return_value = held_packages
-        entitlement.setup_apt_config(silent=False)
+        entitlement.setup_apt_config(mock.MagicMock())
         expected_calls = [
             mock.call(
                 ["apt-mark", "showholds"],
@@ -1070,7 +1030,7 @@ class TestFipsSetupAPTConfig:
                 )
             )
         assert expected_calls == run_apt_command.call_args_list
-        assert [mock.call(silent=False)] == setup_apt_config.call_args_list
+        assert [mock.call(mock.ANY)] == setup_apt_config.call_args_list
 
 
 class TestFipsEntitlementPackages:
@@ -1162,7 +1122,10 @@ class TestFIPSUpdatesEntitlementEnable:
             fips_updates_ent = entitlement_factory(
                 FIPSUpdatesEntitlement, cfg=cfg
             )
-            assert fips_updates_ent._perform_enable() == enable_ret
+            assert (
+                fips_updates_ent._perform_enable(mock.MagicMock())
+                == enable_ret
+            )
 
         if enable_ret:
             assert 1 == m_services_once_enabled.write.call_count

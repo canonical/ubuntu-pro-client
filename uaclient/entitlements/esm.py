@@ -1,7 +1,7 @@
 import os
 from typing import Tuple, Type, Union
 
-from uaclient import messages, system
+from uaclient import api, messages, system
 from uaclient.apt import APT_KEYS_DIR, DEB822_REPO_FILE_CONTENT, KEYRINGS_DIR
 from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.entitlements import repo
@@ -22,10 +22,10 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
 
         return (ROSEntitlement, ROSUpdatesEntitlement)
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         from uaclient.timer.update_messaging import update_motd_messages
 
-        enable_performed = super()._perform_enable(silent=silent)
+        enable_performed = super()._perform_enable(progress)
         if enable_performed:
             update_motd_messages(self.cfg)
             self.disable_local_esm_repo()
