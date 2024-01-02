@@ -413,9 +413,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # using Union instead of Optional here to signal that it may expand to
     # support additional reason types in the future.
+    # TODO: currently enable is a function designed for use in the CLI
+    # and we are re-using it for the API by passing through an `api` flag.
+    # This will be inverted in the next release by redesigning this function
+    # to be used by the API (including potentially breaking it into smaller
+    # functions). Then the CLI enable will be refactored to use the API.
     def enable(
         self,
         silent: bool = False,
+        enable_required_services: Optional[bool] = None,
+        disable_incompatible_services: Optional[bool] = None,
+        api: bool = False,
     ) -> Tuple[bool, Union[None, CanEnableFailure]]:
         """Enable specific entitlement.
 
@@ -426,9 +434,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 include other types of reasons in the future.
         """
 
-        msg_ops = self.messaging.get("pre_can_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
+        if enable_required_services is None:
+            enable_required_services = self.assume_yes
+        if disable_incompatible_services is None:
+            disable_incompatible_services = self.assume_yes
+
+        if not api:
+            msg_ops = self.messaging.get("pre_can_enable", [])
+            if not util.handle_message_operations(msg_ops):
+                return False, None
 
         can_enable, fail = self.can_enable()
         if not can_enable:
@@ -437,7 +451,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return False, None
             elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
                 # Try to disable those services before proceeding with enable
-                incompat_ret, error = self.handle_incompatible_services()
+                incompat_ret, error = self.handle_incompatible_services(
+                    api=api, allow=disable_incompatible_services
+                )
                 if not incompat_ret:
                     fail.message = error
                     return False, fail
@@ -446,7 +462,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
             ):
                 # Try to enable those services before proceeding with enable
-                req_ret, error = self._enable_required_services()
+                req_ret, error = self._enable_required_services(
+                    api=api, allow=enable_required_services
+                )
                 if not req_ret:
                     fail.message = error
                     return False, fail
@@ -454,9 +472,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 # every other reason means we can't continue
                 return False, fail
 
-        msg_ops = self.messaging.get("pre_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
+        if not api:
+            msg_ops = self.messaging.get("pre_enable", [])
+            if not util.handle_message_operations(msg_ops):
+                return False, None
 
         # TODO: Move all logic from RepoEntitlement that
         # handles the additionalPackages and APT directives
@@ -472,9 +491,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not ret:
             return False, None
 
-        msg_ops = self.messaging.get("post_enable", [])
-        if not util.handle_message_operations(msg_ops):
-            return False, None
+        if not api:
+            msg_ops = self.messaging.get("post_enable", [])
+            if not util.handle_message_operations(msg_ops):
+                return False, None
 
         return True, None
 
@@ -703,6 +723,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def handle_incompatible_services(
         self,
+        api: bool,
+        allow: bool,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when incompatible services are found during enable.
@@ -738,8 +760,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if cfg_block_disable_on_enable:
                 return False, e_msg
 
+            if api and not allow:
+                raise exceptions.EnableBlockedByIncompatibleService(
+                    target=self.name, incompatible=ent.name
+                )
+
             if not util.prompt_for_confirmation(
-                msg=user_msg, assume_yes=self.assume_yes
+                msg=user_msg, assume_yes=allow
             ):
                 return False, e_msg
 
@@ -757,6 +784,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def _enable_required_services(
         self,
+        api: bool,
+        allow: bool,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when required services are found during enable.
@@ -783,8 +812,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     required_service=ent.title,
                 )
 
+                if api and not allow:
+                    raise exceptions.EnableBlockedByRequiredService(
+                        target=self.name, required=ent.name
+                    )
+
                 if not util.prompt_for_confirmation(
-                    msg=user_msg, assume_yes=self.assume_yes
+                    msg=user_msg, assume_yes=allow
                 ):
                     return False, e_msg
 

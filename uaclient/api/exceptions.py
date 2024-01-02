@@ -4,12 +4,17 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
     ContractAPIError,
+    EnableBlockedByIncompatibleService,
+    EnableBlockedByRequiredService,
+    EntitlementNotEnabledError,
     EntitlementNotFoundError,
     EntitlementsNotEnabledError,
     InvalidProImage,
     LockHeldError,
     NonAutoAttachImageError,
+    NonRootUserError,
     UbuntuProError,
+    UnattachedError,
     UrlError,
     UserFacingError,
 )
@@ -22,10 +27,15 @@ __all__ = [
     "InvalidProImage",
     "LockHeldError",
     "NonAutoAttachImageError",
+    "NonRootUserError",
     "UbuntuProError",
+    "UnattachedError",
     "UrlError",
     "UserFacingError",
     "EntitlementsNotEnabledError",
+    "EntitlementNotEnabledError",
+    "EnableBlockedByIncompatibleService",
+    "EnableBlockedByRequiredService",
 ]
 
 
@@ -35,3 +45,7 @@ class AutoAttachDisabledError(UbuntuProError):
 
 class UnattendedUpgradesError(APIError):
     _formatted_msg = messages.E_UNATTENDED_UPGRADES_ERROR
+
+
+class NotSupported(UbuntuProError):
+    _msg = messages.E_NOT_SUPPORTED

@@ -351,6 +351,18 @@ class EntitlementsNotEnabledError(UbuntuProError):
         )
 
 
+class EntitlementNotEnabledError(UbuntuProError):
+    _formatted_msg = messages.E_ENTITLEMENT_NOT_ENABLED_ERROR
+
+    def __init__(self, service: str, reason: messages.NamedMessage):
+        super().__init__(
+            service=service,
+            additional_info={
+                "reason": {"code": reason.name, "title": reason.msg}
+            },
+        )
+
+
 class AttachFailureDefaultServices(EntitlementsNotEnabledError):
     _msg = messages.E_ATTACH_FAILURE_DEFAULT_SERVICES
 
@@ -373,6 +385,14 @@ class RepoPinFailNoOrigin(UbuntuProError):
 
 class InvalidContractDeltasServiceType(UbuntuProError):
     _formatted_msg = messages.E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE
+
+
+class EnableBlockedByIncompatibleService(UbuntuProError):
+    _formatted_msg = messages.E_ENABLE_BLOCKED_BY_INCOMPATIBLE_SERVICE
+
+
+class EnableBlockedByRequiredService(UbuntuProError):
+    _formatted_msg = messages.E_ENABLE_BLOCKED_BY_REQUIRED_SERVICE
 
 
 ###############################################################################
