@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, Optional, Tuple
 
 from uaclient import (
+    api,
     event_logger,
     exceptions,
     http,
@@ -11,7 +12,7 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.entitlements.base import IncompatibleService, UAEntitlement
+from uaclient.entitlements.base import EntitlementWithMessage, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import StaticAffordance
 
@@ -41,15 +42,15 @@ class LivepatchEntitlement(UAEntitlement):
     affordance_check_arch = True
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.fips import FIPSEntitlement
         from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
-            IncompatibleService(
+            EntitlementWithMessage(
                 FIPSEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
             ),
-            IncompatibleService(
+            EntitlementWithMessage(
                 RealtimeKernelEntitlement,
                 messages.REALTIME_LIVEPATCH_INCOMPATIBLE,
             ),
@@ -81,27 +82,36 @@ class LivepatchEntitlement(UAEntitlement):
             ),
         )
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def enable_steps(self) -> int:
+        return 2
+
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         """Enable specific entitlement.
 
         @return: True on success, False otherwise.
         """
+        progress.progress(messages.INSTALLING_LIVEPATCH)
+
         if not snap.is_snapd_installed():
-            event.info(messages.INSTALLING_PACKAGES.format(packages="snapd"))
+            progress.emit(
+                "info", messages.INSTALLING_PACKAGES.format(packages="snapd")
+            )
             snap.install_snapd()
 
         if not snap.is_snapd_installed_as_a_snap():
-            event.info(
-                messages.INSTALLING_PACKAGES.format(packages="snapd snap")
+            progress.emit(
+                "info",
+                messages.INSTALLING_PACKAGES.format(packages="snapd snap"),
             )
             try:
                 snap.install_snap("snapd")
             except exceptions.ProcessExecutionError as e:
                 LOG.warning("Failed to install snapd as a snap", exc_info=e)
-                event.info(
+                progress.emit(
+                    "info",
                     messages.EXECUTING_COMMAND_FAILED.format(
                         command="snap install snapd"
-                    )
+                    ),
                 )
 
         snap.run_snapd_wait_cmd()
@@ -118,10 +128,11 @@ class LivepatchEntitlement(UAEntitlement):
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
         if not livepatch.is_livepatch_installed():
-            event.info(
+            progress.emit(
+                "info",
                 messages.INSTALLING_PACKAGES.format(
                     packages="canonical-livepatch snap"
-                )
+                ),
             )
             try:
                 snap.install_snap("canonical-livepatch")
@@ -131,11 +142,14 @@ class LivepatchEntitlement(UAEntitlement):
         livepatch.configure_livepatch_proxy(http_proxy, https_proxy)
 
         return self.setup_livepatch_config(
-            process_directives=True, process_token=True
+            progress, process_directives=True, process_token=True
         )
 
     def setup_livepatch_config(
-        self, process_directives: bool = True, process_token: bool = True
+        self,
+        progress: api.ProgressWrapper,
+        process_directives: bool = True,
+        process_token: bool = True,
     ) -> bool:
         """Processs configuration setup for livepatch directives.
 
@@ -144,6 +158,8 @@ class LivepatchEntitlement(UAEntitlement):
         :param process_token: Boolean set True when token should be
             processsed.
         """
+        progress.progress(messages.SETTING_UP_LIVEPATCH)
+
         entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
             self.name
         )
@@ -152,10 +168,11 @@ class LivepatchEntitlement(UAEntitlement):
                 process_config_directives(entitlement_cfg)
             except exceptions.ProcessExecutionError as e:
                 LOG.error(str(e), exc_info=e)
-                event.info(
+                progress.emit(
+                    "info",
                     messages.LIVEPATCH_UNABLE_TO_CONFIGURE.format(
                         error_msg=str(e)
-                    )
+                    ),
                 )
                 return False
         if process_token:
@@ -170,7 +187,7 @@ class LivepatchEntitlement(UAEntitlement):
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
                 LOG.info("Disabling livepatch before re-enabling")
-                event.info(messages.LIVEPATCH_DISABLE_REATTACH)
+                progress.emit("info", messages.LIVEPATCH_DISABLE_REATTACH)
                 try:
                     system.subp([livepatch.LIVEPATCH_CMD, "disable"])
                 except exceptions.ProcessExecutionError as e:
@@ -189,10 +206,11 @@ class LivepatchEntitlement(UAEntitlement):
                         break
                 if msg == messages.LIVEPATCH_UNABLE_TO_ENABLE:
                     msg += str(e)
-                event.info(msg)
+                progress.emit("info", msg)
                 return False
-            event.info(
-                messages.ENABLED_TMPL.format(title="Canonical Livepatch")
+            progress.emit(
+                "info",
+                messages.ENABLED_TMPL.format(title="Canonical Livepatch"),
             )
         return True
 
@@ -300,7 +318,7 @@ class LivepatchEntitlement(UAEntitlement):
         )
 
         if process_enable_default:
-            enable_success, _ = self.enable()
+            enable_success, _ = self.enable(api.ProgressWrapper())
             return enable_success
 
         application_status, _ = self.application_status()
@@ -323,6 +341,7 @@ class LivepatchEntitlement(UAEntitlement):
                 )
             )
             return self.setup_livepatch_config(
+                progress=api.ProgressWrapper(),
                 process_directives=process_directives,
                 process_token=process_token,
             )

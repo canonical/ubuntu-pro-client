@@ -6,6 +6,7 @@ from os.path import exists
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from uaclient import (
+    api,
     apt,
     contract,
     event_logger,
@@ -133,26 +134,34 @@ class RepoEntitlement(base.UAEntitlement):
 
         return result, reason
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def enable_steps(self) -> int:
+        will_install = self.packages is not None and len(self.packages) > 0
+        if self.access_only or not will_install:
+            return 2
+        else:
+            return 3
+
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         """Enable specific entitlement.
 
         @return: True on success, False otherwise.
         @raises: UbuntuProError on failure to install suggested packages
         """
-        self.setup_apt_config(silent=silent)
+        progress.progress(
+            messages.CONFIGURING_APT_ACCESS.format(service=self.name)
+        )
+        self.setup_apt_config(progress)
 
         if self.supports_access_only and self.access_only:
             if len(self.packages) > 0:
-                event.info(
+                progress.emit(
+                    "info",
                     messages.SKIPPING_INSTALLING_PACKAGES.format(
                         packages=" ".join(self.packages)
-                    )
+                    ),
                 )
-            event.info(messages.ACCESS_ENABLED_TMPL.format(title=self.title))
         else:
-            self.install_packages()
-            event.info(messages.ENABLED_TMPL.format(title=self.title))
-            self._check_for_reboot_msg(operation="install")
+            self.install_packages(progress)
         return True
 
     def _perform_disable(self, silent=False):
@@ -425,7 +434,7 @@ class RepoEntitlement(base.UAEntitlement):
                 apt.remove_auth_apt_repo(self.repo_file, old_url)
 
             self.remove_apt_config()
-            self.setup_apt_config()
+            self.setup_apt_config(api.ProgressWrapper())
 
         if delta_packages:
             LOG.info("New additionalPackages, installing %r", delta_packages)
@@ -434,12 +443,15 @@ class RepoEntitlement(base.UAEntitlement):
                     packages=", ".join(delta_packages)
                 )
             )
-            self.install_packages(package_list=delta_packages)
+            self.install_packages(
+                api.ProgressWrapper(), package_list=delta_packages
+            )
 
         return True
 
     def install_packages(
         self,
+        progress: api.ProgressWrapper,
         package_list: Optional[List[str]] = None,
         cleanup_on_failure: bool = True,
         verbose: bool = True,
@@ -458,21 +470,21 @@ class RepoEntitlement(base.UAEntitlement):
         if not package_list:
             return
 
-        msg_ops = self.messaging.get("pre_install", [])
-        if not util.handle_message_operations(msg_ops):
-            return
+        progress.emit("pre_install")
 
         try:
-            self._update_sources_list()
+            self._update_sources_list(progress)
         except exceptions.UbuntuProError:
             if cleanup_on_failure:
                 self.remove_apt_config()
             raise
 
+        installing_msg = messages.INSTALLING_SERVICE_PACKAGES.format(
+            title=self.title
+        )
+        progress.progress(installing_msg)
         if verbose:
-            event.info(
-                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
-            )
+            event.info(installing_msg)
 
         if self.apt_noninteractive:
             override_env_vars = {"DEBIAN_FRONTEND": "noninteractive"}
@@ -492,12 +504,16 @@ class RepoEntitlement(base.UAEntitlement):
                 override_env_vars=override_env_vars,
             )
         except exceptions.UbuntuProError:
-            event.info(messages.ENABLE_FAILED.format(title=self.title))
             if cleanup_on_failure:
+                LOG.info(
+                    "Apt install failed, removing apt config for {}".format(
+                        self.name
+                    )
+                )
                 self.remove_apt_config()
             raise
 
-    def setup_apt_config(self, silent: bool = False) -> None:
+    def setup_apt_config(self, progress: api.ProgressWrapper) -> None:
         """Setup apt config based on the resourceToken and directives.
         Also sets up apt proxy if necessary.
 
@@ -589,12 +605,12 @@ class RepoEntitlement(base.UAEntitlement):
             prerequisite_pkgs.append("ca-certificates")
 
         if prerequisite_pkgs:
-            if not silent:
-                event.info(
-                    messages.INSTALLING_PACKAGES.format(
-                        packages=", ".join(prerequisite_pkgs)
-                    )
-                )
+            progress.emit(
+                "info",
+                messages.INSTALLING_PACKAGES.format(
+                    packages=", ".join(prerequisite_pkgs)
+                ),
+            )
             try:
                 apt.run_apt_install_command(packages=prerequisite_pkgs)
             except exceptions.UbuntuProError:
@@ -611,8 +627,8 @@ class RepoEntitlement(base.UAEntitlement):
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows pro status to report correct info
-        if not silent:
-            event.info(messages.APT_UPDATING_LIST.format(name=self.title))
+        updating_msg = messages.APT_UPDATING_LIST.format(name=self.title)
+        progress.progress(updating_msg)
         try:
             apt.update_sources_list(repo_filename)
         except exceptions.UbuntuProError:

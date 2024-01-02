@@ -57,9 +57,9 @@ def get_origin_information_to_service_map():
     }
 
 
-def get_installed_packages_by_origin() -> DefaultDict[
-    "str", List[apt_pkg.Package]
-]:
+def get_installed_packages_by_origin() -> (
+    DefaultDict["str", List[apt_pkg.Package]]
+):
     result = defaultdict(list)
 
     with PreserveAptCfg(get_apt_pkg_cache) as cache:

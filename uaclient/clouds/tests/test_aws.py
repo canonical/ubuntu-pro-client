@@ -306,7 +306,6 @@ class TestUAAutoAttachAWSInstance:
     def test_identity_doc_logs_error_if_both_ipv4_and_ipv6_fails(
         self, readurl, caplog_text
     ):
-
         instance = UAAutoAttachAWSInstance()
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS

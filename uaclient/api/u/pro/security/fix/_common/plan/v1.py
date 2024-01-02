@@ -355,7 +355,6 @@ class AdditionalData(DataObject):
 
 
 class USNAdditionalData(AdditionalData):
-
     fields = [
         Field("associated_cves", data_list(StringDataValue)),
         Field("associated_launchpad_bugs", data_list(StringDataValue)),

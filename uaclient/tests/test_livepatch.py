@@ -203,7 +203,6 @@ class TestStatus:
         m_is_livepatch_installed,
         m_subp,
     ):
-
         m_is_livepatch_installed.return_value = True
         m_subp.side_effect = exceptions.ProcessExecutionError("")
 

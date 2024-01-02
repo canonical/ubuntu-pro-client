@@ -299,7 +299,6 @@ class TestAPICall:
         with mock.patch(
             "uaclient.api.api.VALID_ENDPOINTS", ["example_endpoint"]
         ):
-
             result = call_api("example_endpoint", [], "", FakeConfig())
 
         assert len(result.warnings) == 1

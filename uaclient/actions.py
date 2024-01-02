@@ -8,6 +8,7 @@ import shutil
 from typing import List, Optional  # noqa: F401
 
 from uaclient import (
+    api,
     clouds,
     config,
     contract,
@@ -161,7 +162,7 @@ def enable_entitlement_by_name(
         access_only=access_only,
         extra_args=extra_args,
     )
-    return entitlement.enable()
+    return entitlement.enable(api.ProgressWrapper())
 
 
 def status(

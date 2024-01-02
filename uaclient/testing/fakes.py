@@ -3,7 +3,6 @@ from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
 
 
 class FakeContractClient(UAContractClient):
-
     _requests = []
     _responses = {}
 

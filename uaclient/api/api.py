@@ -24,6 +24,7 @@ VALID_ENDPOINTS = [
     "u.pro.security.fix.usn.plan.v1",
     "u.pro.security.status.livepatch_cves.v1",
     "u.pro.security.status.reboot_required.v1",
+    "u.pro.services.enable.v1",
     "u.pro.status.enabled_services.v1",
     "u.pro.status.is_attached.v1",
     "u.pro.version.v1",
@@ -91,7 +92,6 @@ def _process_data(
 def call_api(
     endpoint_path: str, options: List[str], data: str, cfg: UAConfig
 ) -> APIResponse:
-
     if endpoint_path not in VALID_ENDPOINTS:
         return errors.error_out(
             errors.APIInvalidEndpoint(endpoint=endpoint_path)

@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import event_logger, exceptions, messages, system, util
+from uaclient import api, event_logger, exceptions, messages, system, util
 from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
@@ -16,13 +16,16 @@ class LandscapeEntitlement(UAEntitlement):
     help_doc_url = messages.urls.LANDSCAPE_HOME_PAGE
     help_text = messages.LANDSCAPE_HELP_TEXT
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def enable_steps(self) -> int:
+        return 1
+
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         cmd = ["landscape-config"] + self.extra_args
         if self.assume_yes and "--silent" not in cmd:
             cmd += ["--silent"]
 
         LOG.debug("Executing: %r", cmd)
-        event.info(
+        progress.progress(
             util.redact_sensitive_logs(
                 messages.EXECUTING_COMMAND.format(command=" ".join(cmd))
             )
@@ -30,19 +33,11 @@ class LandscapeEntitlement(UAEntitlement):
         try:
             system.subp(cmd, pipe_stdouterr=self.assume_yes)
         except exceptions.ProcessExecutionError as e:
+            LOG.exception(e)
             if self.assume_yes:
-                err_msg = messages.LANDSCAPE_CONFIG_FAILED
-                event.error(
-                    err_msg.msg,
-                    err_msg.name,
-                    service=self.name,
-                    additional_info={
-                        "stdout": e.stdout.strip(),
-                        "stderr": e.stderr.strip(),
-                    },
+                raise exceptions.LandscapeConfigFailed(
+                    stdout=e.stdout.strip(), stderr=e.stderr.strip()
                 )
-                event.info(e.stderr.strip())
-                event.info(messages.ENABLE_FAILED.format(title=self.title))
             return False
 
         if self.assume_yes:

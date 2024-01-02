@@ -6,7 +6,6 @@ from uaclient.types import MessagingOperationsDict
 
 
 class CISEntitlement(repo.RepoEntitlement):
-
     help_doc_url = messages.urls.USG_DOCS
     name = "cis"
     description = messages.CIS_DESCRIPTION

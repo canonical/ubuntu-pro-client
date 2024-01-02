@@ -18,6 +18,7 @@ import logging
 import sys
 
 from uaclient import (
+    api,
     config,
     contract,
     defaults,
@@ -50,14 +51,18 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
     LOG.debug("Attempting to remove Ubuntu Pro FIPS package holds")
     fips = FIPSEntitlement(cfg)
     try:
-        fips.setup_apt_config()  # Removes package holds
+        fips.setup_apt_config(
+            progress=api.ProgressWrapper()
+        )  # Removes package holds
         LOG.debug("Successfully removed Ubuntu Pro FIPS package holds")
     except Exception as e:
         LOG.error(e)
         LOG.warning("Could not remove Ubuntu Pro FIPS package holds")
 
     try:
-        fips.install_packages(cleanup_on_failure=False)
+        fips.install_packages(
+            progress=api.ProgressWrapper(), cleanup_on_failure=False
+        )
     except exceptions.UbuntuProError:
         LOG.warning("Failed to install packages at boot: %r", fips.packages)
         raise

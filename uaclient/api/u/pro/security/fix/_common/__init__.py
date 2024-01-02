@@ -62,7 +62,6 @@ class FixStatus(enum.Enum):
 
 
 class UASecurityClient(serviceclient.UAServiceClient):
-
     url_timeout = 20
     cfg_url_base_attr = "security_url"
 

@@ -9,7 +9,6 @@ from uaclient import config, http, system, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
-
     url_timeout = 30  # type: Optional[int]
     # Cached serviceclient_url_responses if provided in uaclient.conf
     # via features: {serviceclient_url_responses: /some/file.json}

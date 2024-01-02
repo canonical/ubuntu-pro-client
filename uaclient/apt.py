@@ -899,7 +899,7 @@ def update_esm_caches(cfg) -> None:
         fetch_progress = EsmAcquireProgress()
         try:
             cache.update(fetch_progress, sources_list, 0)
-        except (SystemError) as e:
+        except SystemError as e:
             LOG.warning("Failed to fetch the ESM Apt Cache: {}".format(str(e)))
 
 

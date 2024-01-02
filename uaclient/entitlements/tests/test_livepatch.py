@@ -296,7 +296,6 @@ class TestLivepatchProcessContractDeltas:
 @mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
-
     mocks_apt_update = []
     mocks_snapd_install = [
         mock.call(

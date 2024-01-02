@@ -47,8 +47,8 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
+from uaclient.cli import cli_constants as cli_constants
 from uaclient.cli import cli_util, enable, fix
-from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import (
@@ -195,7 +195,9 @@ def auto_attach_parser(parser):
     """Build or extend an arg parser for auto-attach subcommand."""
     parser.prog = "auto-attach"
     parser.description = messages.CLI_AUTO_ATTACH_DESC
-    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command=parser.prog
+    )
     parser._optionals.title = messages.CLI_FLAGS
     return parser
 
@@ -204,7 +206,9 @@ def collect_logs_parser(parser):
     """Build or extend an arg parser for 'collect-logs' subcommand."""
     parser.prog = "collect-logs"
     parser.description = messages.CLI_COLLECT_LOGS_DESC
-    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command=parser.prog
+    )
     parser.add_argument(
         "-o",
         "--output",
@@ -215,8 +219,8 @@ def collect_logs_parser(parser):
 
 def config_show_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config show' subcommand."""
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="{} show [key]".format(parent_command)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="{} show [key]".format(parent_command)
     )
     parser.prog = "show"
     parser.description = messages.CLI_CONFIG_SHOW_DESC
@@ -230,8 +234,9 @@ def config_show_parser(parser, parent_command: str):
 
 def config_set_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config set' subcommand."""
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="{} set <key>=<value>".format(parent_command)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME,
+        command="{} set <key>=<value>".format(parent_command),
     )
     parser.prog = "aset"
     parser.description = messages.CLI_CONFIG_SET_DESC
@@ -249,8 +254,9 @@ def config_set_parser(parser, parent_command: str):
 
 def config_unset_parser(parser, parent_command: str):
     """Build or extend an arg parser for 'config unset' subcommand."""
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="{} unset <key>".format(parent_command)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME,
+        command="{} unset <key>".format(parent_command),
     )
     parser.prog = "unset"
     parser.description = messages.CLI_CONFIG_UNSET_DESC
@@ -270,8 +276,8 @@ def config_unset_parser(parser, parent_command: str):
 def config_parser(parser):
     """Build or extend an arg parser for config subcommand."""
     command = "config"
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="{} <command>".format(command)
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="{} <command>".format(command)
     )
     parser.prog = command
     parser.description = messages.CLI_CONFIG_DESC
@@ -301,7 +307,9 @@ def config_parser(parser):
 
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="attach <token>"
+    )
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.prog = "attach"
     parser.description = messages.CLI_ATTACH_DESC
@@ -369,8 +377,8 @@ def security_status_parser(parser):
 def refresh_parser(parser):
     """Build or extend an arg parser for refresh subcommand."""
     parser.prog = "refresh"
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="refresh [contract|config|messages]"
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="refresh [contract|config|messages]"
     )
 
     parser._optionals.title = messages.CLI_FLAGS
@@ -418,7 +426,9 @@ def action_security_status(args, *, cfg, **kwargs):
 
 def detach_parser(parser):
     """Build or extend an arg parser for detach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="detach")
+    usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="detach"
+    )
     parser.usage = usage
     parser.prog = "detach"
     parser.description = messages.CLI_DETACH_DESC
@@ -440,7 +450,9 @@ def detach_parser(parser):
 
 def help_parser(parser, cfg: config.UAConfig):
     """Build or extend an arg parser for help subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="help [service]")
+    usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="help [service]"
+    )
     parser.usage = usage
     parser.prog = "help"
     parser.description = messages.CLI_HELP_DESC
@@ -471,8 +483,8 @@ def help_parser(parser, cfg: config.UAConfig):
 
 def disable_parser(parser, cfg: config.UAConfig):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(
-        name=NAME, command="disable <service> [<service>]"
+    usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="disable <service> [<service>]"
     )
     parser.description = messages.CLI_DISABLE_DESC
     parser.usage = usage
@@ -511,7 +523,9 @@ def disable_parser(parser, cfg: config.UAConfig):
 
 def system_parser(parser):
     """Build or extend an arg parser for system subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="system <command>")
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="system <command>"
+    )
     parser.description = messages.CLI_SYSTEM_DESC
     parser.prog = "system"
     parser._optionals.title = messages.CLI_FLAGS
@@ -529,8 +543,8 @@ def system_parser(parser):
 
 def reboot_required_parser(parser):
     # This formatter_class ensures that our formatting below isn't lost
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="system reboot-required"
+    parser.usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="system reboot-required"
     )
     parser.pro = "reboot-required"
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
@@ -540,7 +554,9 @@ def reboot_required_parser(parser):
 
 def status_parser(parser):
     """Build or extend an arg parser for status subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="status")
+    usage = cli_constants.USAGE_TMPL.format(
+        name=cli_constants.NAME, command="status"
+    )
     parser.usage = usage
     parser.prog = "status"
     # This formatter_class ensures that our formatting below isn't lost
@@ -1116,10 +1132,14 @@ def action_collect_logs(args, *, cfg: config.UAConfig, **kwargs):
 def get_parser(cfg: config.UAConfig):
     base_desc = __doc__
     parser = UAArgumentParser(
-        prog=NAME,
+        prog=cli_constants.NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        usage=USAGE_TMPL.format(name=NAME, command="<command>"),
-        epilog=messages.CLI_HELP_EPILOG.format(name=NAME, command="<command>"),
+        usage=cli_constants.USAGE_TMPL.format(
+            name=cli_constants.NAME, command="<command>"
+        ),
+        epilog=messages.CLI_HELP_EPILOG.format(
+            name=cli_constants.NAME, command="<command>"
+        ),
         base_desc=base_desc,
     )
     parser.add_argument(
@@ -1129,7 +1149,7 @@ def get_parser(cfg: config.UAConfig):
         "--version",
         action="version",
         version=version.get_version(),
-        help=messages.CLI_ROOT_VERSION.format(name=NAME),
+        help=messages.CLI_ROOT_VERSION.format(name=cli_constants.NAME),
     )
     parser._optionals.title = messages.CLI_FLAGS
     subparsers = parser.add_subparsers(
@@ -1202,7 +1222,8 @@ def get_parser(cfg: config.UAConfig):
     status_parser(parser_status)
 
     parser_version = subparsers.add_parser(
-        "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
+        "version",
+        help=messages.CLI_ROOT_VERSION.format(name=cli_constants.NAME),
     )
     parser_version.set_defaults(action=print_version)
 
@@ -1520,7 +1541,7 @@ def main_error_handler(func):
                 info_msg=messages.UNEXPECTED_ERROR.format(
                     error_msg=str(e),
                     log_path=get_user_or_root_log_file_path(),
-                ),
+                ).msg,
                 file_type=sys.stderr,
             )
             event.error(

@@ -54,7 +54,7 @@ from uaclient.api.u.pro.security.fix.cve.plan.v1 import _plan as cve_plan
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import USNFixPlanOptions
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import _plan as usn_plan
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.cli.constants import NAME, USAGE_TMPL
+from uaclient.cli.cli_constants import NAME, USAGE_TMPL
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUD_URLS,

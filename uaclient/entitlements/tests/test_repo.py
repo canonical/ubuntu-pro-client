@@ -495,7 +495,7 @@ class TestRepoEnable:
         # We patch the type of entitlement because packages is a property
         with mock.patch.object(type(entitlement), "packages", packages):
             with messaging_patch:
-                entitlement.enable()
+                entitlement.enable(mock.MagicMock())
 
         expected_calls = [
             mock.call(apt.APT_METHOD_HTTPS_FILE),
@@ -650,7 +650,6 @@ class TestRepoPerformDisable:
         purge_value,
         entitlement_factory,
     ):
-
         m_packages = []
         for i in range(1, 6):
             package = mock.MagicMock()

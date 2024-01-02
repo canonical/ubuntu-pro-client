@@ -53,6 +53,7 @@ PROCEED_YES_NO = t.gettext("Do you want to proceed? (y/N) ")
 CLI_INTERRUPT_RECEIVED = t.gettext("Interrupt received; exiting.")
 
 LOCK_HELD = t.gettext("""Operation in progress: {lock_holder} (pid:{pid})""")
+ACQUIRING_LOCK = t.gettext("Acquiring Ubuntu Pro lock")
 
 REFRESH_CONTRACT_SUCCESS = t.gettext(
     "Successfully refreshed your subscription."
@@ -109,6 +110,7 @@ to get the latest bug fixes and new features."""
     )
 )
 
+UNKNOWN_ERROR = t.gettext("an unknown error")
 
 ###############################################################################
 #                      GENERIC SYSTEM OPERATIONS                              #
@@ -338,6 +340,7 @@ ENABLE_REBOOT_REQUIRED_TMPL = t.gettext(
     """\
 A reboot is required to complete {operation}."""
 )
+CONFIGURING_APT_ACCESS = t.gettext("Configuring APT access to {service}")
 
 # DISABLE
 DISABLE_FAILED_TMPL = t.gettext("Could not disable {title}.")
@@ -411,7 +414,6 @@ RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = t.gettext(
 )
 RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = t.gettext("a connectivity error")
 RETRY_ERROR_DETAIL_URL_ERROR_URL = t.gettext("an error while reaching {url}")
-RETRY_ERROR_DETAIL_UNKNOWN = t.gettext("an unknown error")
 
 # These are related messages but actually occur during a "refresh"
 DISABLE_DURING_CONTRACT_REFRESH = t.gettext(
@@ -1421,6 +1423,8 @@ LIVEPATCH_DISABLE_REATTACH = t.gettext(
 LIVEPATCH_LTS_REBOOT_REQUIRED = t.gettext(
     "Livepatch support requires a system reboot across LTS upgrade."
 )
+INSTALLING_LIVEPATCH = t.gettext("Installing Livepatch")
+SETTING_UP_LIVEPATCH = t.gettext("Setting up Livepatch")
 
 REALTIME_TITLE = t.gettext("Real-time kernel")
 REALTIME_DESCRIPTION = t.gettext(
@@ -1639,22 +1643,6 @@ REPO_PURGE_FAIL_NO_ORIGIN = FormattedNamedMessage(
 ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
     "error-enabling-required-service",
     t.gettext("Cannot enable required service: {service}{error}"),
-)
-REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "required-service-stops-enable",
-    t.gettext(
-        """\
-Cannot enable {service_being_enabled} when {required_service} is disabled.
-"""
-    ),
-)
-INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "incompatible-service-stops-enable",
-    t.gettext(
-        """\
-Cannot enable {service_being_enabled} when \
-{incompatible_service} is enabled."""
-    ),
 )
 
 SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
@@ -1887,6 +1875,17 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     t.gettext("Cannot install Real-time kernel on a container."),
 )
 
+ROS_REQUIRES_ESM = NamedMessage(
+    "ros-requires-esm",
+    t.gettext("ROS packages assume ESM updates are enabled."),
+)
+ROS_UPDATES_REQUIRES_ROS = NamedMessage(
+    "ros-updates-requires-ros",
+    t.gettext(
+        "ROS bugfix updates assume ROS security fix updates are enabled."
+    ),
+)
+
 UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
     "unattended-upgrades-systemd-job-disabled",
     t.gettext("apt-daily.timer jobs are not running"),
@@ -1919,10 +1918,6 @@ LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
         "landscape-client is either not installed or installed but disabled."
     ),
 )
-LANDSCAPE_CONFIG_FAILED = NamedMessage(
-    "landscape-config-failed",
-    t.gettext("""landscape-config command failed"""),
-)
 
 INVALID_SECURITY_ISSUE = FormattedNamedMessage(
     "invalid-security-issue",
@@ -1932,6 +1927,11 @@ Error: issue "{issue_id}" is not recognized.\n
 CVEs should follow the pattern CVE-yyyy-nnn.\n
 USNs should follow the pattern USN-nnnn."""
     ),
+)
+
+GENERIC_UNKNOWN_ISSUE = NamedMessage(
+    "unknown-issue",
+    UNKNOWN_ERROR,
 )
 
 
@@ -2204,6 +2204,11 @@ E_ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
     t.gettext("failed to enable some services"),
 )
 
+E_ENTITLEMENT_NOT_ENABLED_ERROR = FormattedNamedMessage(
+    "entitlement-not-enabled",
+    t.gettext("failed to enable {service}"),
+)
+
 E_ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
     "attach-failure-default-service",
     t.gettext(
@@ -2247,6 +2252,23 @@ E_REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
 E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
     "invalid-contract-deltas-service-type",
     t.gettext("Could not determine contract delta service type {orig} {new}"),
+)
+
+E_REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "required-service-stops-enable",
+    t.gettext(
+        """\
+Cannot enable {service_being_enabled} when {required_service} is disabled.
+"""
+    ),
+)
+E_INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "incompatible-service-stops-enable",
+    t.gettext(
+        """\
+Cannot enable {service_being_enabled} when \
+{incompatible_service} is enabled."""
+    ),
 )
 
 E_INVALID_PRO_IMAGE = FormattedNamedMessage(
@@ -2452,6 +2474,11 @@ E_API_ERROR_ARGS_AND_DATA_TOGETHER = NamedMessage(
     t.gettext("Cannot provide both --args and --data at the same time"),
 )
 
+E_PROMPT_DENIED = NamedMessage(
+    "prompt-denied",
+    t.gettext("Operation cancelled by user"),
+)
+
 E_LOCK_HELD_ERROR = FormattedNamedMessage(
     "lock-held-error",
     t.gettext(
@@ -2567,4 +2594,14 @@ E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE = FormattedNamedMessage(
         " - APT url: {apt_url}\n - Suite: {suite}\n"
         "These directives need to be unique for every entitlement."
     ),
+)
+
+E_NOT_SUPPORTED = NamedMessage(
+    "not-supported",
+    t.gettext("The operation is not supported"),
+)
+
+E_LANDSCAPE_CONFIG_FAILED = NamedMessage(
+    "landscape-config-failed",
+    t.gettext("""landscape-config command failed"""),
 )

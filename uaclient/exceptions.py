@@ -335,7 +335,6 @@ class EntitlementNotFoundError(UbuntuProError):
 
 
 class EntitlementsNotEnabledError(UbuntuProError):
-
     exit_code = 4
     _msg = messages.E_ENTITLEMENTS_NOT_ENABLED_ERROR
 
@@ -348,6 +347,18 @@ class EntitlementsNotEnabledError(UbuntuProError):
         ]
         super().__init__(
             additional_info={"services": info_dicts},
+        )
+
+
+class EntitlementNotEnabledError(UbuntuProError):
+    _formatted_msg = messages.E_ENTITLEMENT_NOT_ENABLED_ERROR
+
+    def __init__(self, service: str, reason: messages.NamedMessage):
+        super().__init__(
+            service=service,
+            additional_info={
+                "reason": {"code": reason.name, "title": reason.msg}
+            },
         )
 
 
@@ -377,6 +388,18 @@ class InvalidContractDeltasServiceType(UbuntuProError):
 
 class EntitlementsAPTDirectivesAreNotUnique(UbuntuProError):
     _formatted_msg = messages.E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE
+
+
+class RequiredServiceStopsEnable(UbuntuProError):
+    _formatted_msg = messages.E_REQUIRED_SERVICE_STOPS_ENABLE
+
+
+class IncompatibleServiceStopsEnable(UbuntuProError):
+    _formatted_msg = messages.E_INCOMPATIBLE_SERVICE_STOPS_ENABLE
+
+
+class LandscapeConfigFailed(UbuntuProError):
+    _msg = messages.E_LANDSCAPE_CONFIG_FAILED
 
 
 ###############################################################################
@@ -522,6 +545,10 @@ class CLIAttachTokenArgXORConfig(UbuntuProError):
 
 class CLIAPIOptionsXORData(UbuntuProError):
     _msg = messages.E_API_ERROR_ARGS_AND_DATA_TOGETHER
+
+
+class PromptDeniedError(UbuntuProError):
+    _msg = messages.E_PROMPT_DENIED
 
 
 ###############################################################################

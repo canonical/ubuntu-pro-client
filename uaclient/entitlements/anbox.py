@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, Tuple
 
-from uaclient import contract, event_logger, messages, system
+from uaclient import api, contract, event_logger, messages, system
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
@@ -51,8 +51,8 @@ class AnboxEntitlement(RepoEntitlement):
 
         return True, None
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        ret = super()._perform_enable(silent=silent)
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
+        ret = super()._perform_enable(progress)
 
         if not ret:
             return ret

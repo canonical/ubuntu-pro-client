@@ -15,7 +15,6 @@ class OurServiceClient(UAServiceClient):
 
 
 class TestRequestUrl:
-
     # TODO: Non error-path tests
 
     @pytest.mark.parametrize(
