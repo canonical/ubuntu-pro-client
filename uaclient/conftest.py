@@ -1,6 +1,8 @@
 import datetime
 import io
 import logging
+import os
+import shutil
 from enum import Enum
 from typing import Any, Dict
 
@@ -15,6 +17,11 @@ try:
     from uaclient.files.state_files import UserConfigData
 except ImportError:
     raise
+
+
+shutil.get_terminal_size = mock.MagicMock(
+    return_value=os.terminal_size((80, 20))
+)
 
 
 @pytest.yield_fixture(scope="session", autouse=True)

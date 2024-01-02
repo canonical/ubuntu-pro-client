@@ -74,7 +74,6 @@ class TestActionSecurityStatus:
                 ):
                     main()
         out, _err = capsys.readouterr()
-        print(out)
         assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize("output_format", ("json", "yaml", "text"))
