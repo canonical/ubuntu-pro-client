@@ -1,8 +1,6 @@
 """Tests related to uaclient.entitlement.livepatch module."""
 
-import contextlib
 import copy
-import io
 import logging
 from functools import partial
 
@@ -248,6 +246,7 @@ class TestLivepatchProcessContractDeltas:
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(
+                    progress=mock.ANY,
                     process_directives=process_directives,
                     process_token=process_token,
                 )
@@ -281,6 +280,7 @@ class TestLivepatchProcessContractDeltas:
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(
+                    progress=mock.ANY,
                     process_directives=process_directives,
                     process_token=process_token,
                 )
@@ -400,19 +400,26 @@ class TestLivepatchEntitlementEnable:
 
         m_update_sources_list.side_effect = fake_update_sources_list
 
-        assert entitlement.enable()
+        progress_mock = mock.MagicMock()
+        assert entitlement.enable(progress_mock)
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
         assert self.mocks_apt_update == m_run_apt_update.call_args_list
         assert 1 == m_update_sources_list.call_count
-        msg = (
-            "Installing snapd\n"
-            "Updating standard Ubuntu package lists\n"
-            "Installing snapd snap\n"
-            "Installing canonical-livepatch snap\n"
-            "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical Livepatch enabled\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+        assert [
+            mock.call("Installing Livepatch"),
+            mock.call("Setting up Livepatch"),
+        ] == progress_mock.progress.call_args_list
+        assert [
+            mock.call("message_operation", None),
+            mock.call("message_operation", None),
+            mock.call("info", "Installing snapd"),
+            mock.call("info", "Installing snapd snap"),
+            mock.call("info", "Installing canonical-livepatch snap"),
+            mock.call(
+                "info", "Disabling Livepatch prior to re-attach with new token"
+            ),
+        ] == progress_mock.emit.call_args_list
+        assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
         expected_log = (
             "DEBUG    Trying to install snapd."
             " Ignoring apt-get update failure: This is a test"
@@ -475,20 +482,26 @@ class TestLivepatchEntitlementEnable:
             None,
         ]
 
-        assert entitlement.enable()
+        progress_mock = mock.MagicMock()
+        assert entitlement.enable(progress_mock)
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
         assert self.mocks_apt_update == m_run_apt_update.call_args_list
         assert 1 == m_update_sources_list.call_count
-        msg = (
-            "Installing snapd\n"
-            "Updating standard Ubuntu package lists\n"
-            "Installing snapd snap\n"
-            "Executing `snap install snapd` failed.\n"
-            "Installing canonical-livepatch snap\n"
-            "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical Livepatch enabled\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+        assert [
+            mock.call("Installing Livepatch"),
+            mock.call("Setting up Livepatch"),
+        ] == progress_mock.progress.call_args_list
+        assert [
+            mock.call("message_operation", None),
+            mock.call("message_operation", None),
+            mock.call("info", "Installing snapd"),
+            mock.call("info", "Installing snapd snap"),
+            mock.call("info", "Executing `snap install snapd` failed."),
+            mock.call("info", "Installing canonical-livepatch snap"),
+            mock.call(
+                "info", "Disabling Livepatch prior to re-attach with new token"
+            ),
+        ] == progress_mock.emit.call_args_list
         assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
@@ -524,7 +537,8 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = application_status, "enabled"
         m_is_snapd_installed.return_value = True
 
-        assert entitlement.enable()
+        progress_mock = mock.MagicMock()
+        assert entitlement.enable(progress_mock)
         assert (
             self.mocks_snap_wait_seed
             + self.mocks_snapd_refresh
@@ -532,12 +546,18 @@ class TestLivepatchEntitlementEnable:
             + self.mocks_config
             in m_subp.call_args_list
         )
-        msg = (
-            "Installing canonical-livepatch snap\n"
-            "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical Livepatch enabled\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+        assert [
+            mock.call("Installing Livepatch"),
+            mock.call("Setting up Livepatch"),
+        ] == progress_mock.progress.call_args_list
+        assert [
+            mock.call("message_operation", None),
+            mock.call("message_operation", None),
+            mock.call("info", "Installing canonical-livepatch snap"),
+            mock.call(
+                "info", "Disabling Livepatch prior to re-attach with new token"
+            ),
+        ] == progress_mock.emit.call_args_list
         assert [mock.call(livepatch.LIVEPATCH_CMD)] == m_which.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
@@ -575,7 +595,8 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = application_status, "enabled"
         m_is_snapd_installed.return_value = True
 
-        assert entitlement.enable()
+        progress_mock = mock.MagicMock()
+        assert entitlement.enable(progress_mock)
         subp_calls = [
             mock.call(
                 [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
@@ -596,11 +617,13 @@ class TestLivepatchEntitlementEnable:
             ),
         ]
         assert subp_calls == m_subp.call_args_list
-        assert (
-            "Disabling Livepatch prior to re-attach with new token\n"
-            "Canonical Livepatch enabled\n",
-            "",
-        ) == capsys.readouterr()
+        assert [
+            mock.call("message_operation", None),
+            mock.call("message_operation", None),
+            mock.call(
+                "info", "Disabling Livepatch prior to re-attach with new token"
+            ),
+        ] == progress_mock.emit.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
@@ -635,7 +658,7 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = ApplicationStatus.DISABLED, "nope"
         m_is_snapd_installed.return_value = True
 
-        assert entitlement.enable()
+        assert entitlement.enable(mock.MagicMock())
         subp_no_livepatch_disable = [
             mock.call(
                 [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
@@ -655,7 +678,6 @@ class TestLivepatchEntitlementEnable:
             ),
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
-        assert ("Canonical Livepatch enabled\n", "") == capsys.readouterr()
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
@@ -697,22 +719,21 @@ class TestLivepatchEntitlementEnable:
             True,
         ]
 
-        fake_stdout = io.StringIO()
+        progress_mock = mock.MagicMock()
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
             m_can_enable.return_value = (True, None)
             with mock.patch.object(
                 entitlement, "setup_livepatch_config"
             ) as m_setup_livepatch:
-                with contextlib.redirect_stdout(fake_stdout):
-                    entitlement.enable()
+                entitlement.enable(progress_mock)
 
                 assert 1 == m_can_enable.call_count
                 assert 1 == m_setup_livepatch.call_count
 
         assert (
-            "Installing canonical-livepatch snap"
-            in fake_stdout.getvalue().strip()
+            mock.call("info", "Installing canonical-livepatch snap")
+            in progress_mock.emit.call_args_list
         )
 
         assert (
@@ -751,7 +772,7 @@ class TestLivepatchEntitlementEnable:
                 entitlement, "setup_livepatch_config"
             ) as m_setup_livepatch:
                 with pytest.raises(exceptions.CannotInstallSnapdError):
-                    entitlement.enable()
+                    entitlement.enable(mock.MagicMock())
 
             assert 1 == m_can_enable.call_count
             assert 0 == m_setup_livepatch.call_count
@@ -793,7 +814,7 @@ class TestLivepatchEntitlementEnable:
                 with pytest.raises(
                     exceptions.ProcessExecutionError
                 ) as excinfo:
-                    entitlement.enable()
+                    entitlement.enable(mock.MagicMock())
 
             assert 1 == m_can_enable.call_count
             assert 0 == m_setup_livepatch.call_count

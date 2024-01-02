@@ -7,13 +7,18 @@ import mock
 import pytest
 
 from uaclient import entitlements, event_logger, exceptions, lock, messages
+from uaclient.api.u.pro.services.dependencies.v1 import (
+    ServiceWithDependencies,
+    ServiceWithReason,
+)
 from uaclient.cli import main, main_error_handler
-from uaclient.cli.enable import action_enable
+from uaclient.cli.enable import action_enable, prompt_for_dependency_handling
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
 from uaclient.files.user_config_file import UserConfigData
+from uaclient.testing.helpers import does_not_raise
 
 HELP_OUTPUT = """\
 usage: pro enable <service> [<service>] [flags]
@@ -44,6 +49,7 @@ Flags:
     new_callable=mock.PropertyMock,
     return_value=UserConfigData(),
 )
+@mock.patch("uaclient.contract.UAContractClient.update_activity_token")
 @mock.patch("uaclient.contract.refresh")
 class TestActionEnable:
     @mock.patch("uaclient.log.setup_cli_logging")
@@ -53,6 +59,7 @@ class TestActionEnable:
         _m_resources,
         _m_setup_logging,
         _refresh,
+        _m_update_activity_token,
         _m_public_config,
         capsys,
         FakeConfig,
@@ -76,6 +83,7 @@ class TestActionEnable:
         _refresh,
         we_are_currently_root,
         m_setup_logging,
+        _m_update_activity_token,
         _m_public_config,
         capsys,
         event,
@@ -149,6 +157,7 @@ class TestActionEnable:
         m_sleep,
         m_check_lock_info,
         _refresh,
+        _m_update_activity_token,
         _m_public_config,
         capsys,
         event,
@@ -209,6 +218,7 @@ class TestActionEnable:
         self,
         m_we_are_currently_root,
         _refresh,
+        _m_update_activity_token,
         _m_public_config,
         root,
         expected_error_template,
@@ -281,6 +291,7 @@ class TestActionEnable:
         m_we_are_currently_root,
         _m_check_lock_info,
         _refresh,
+        _m_update_activity_token,
         _m_public_config,
         root,
         expected_error_template,
@@ -318,9 +329,15 @@ class TestActionEnable:
         args.command = "enable"
         args.access_only = False
 
-        with pytest.raises(exceptions.UbuntuProError) as err:
+        fake_stdout = io.StringIO()
+        if root and is_attached:
+            expected_err = does_not_raise()
+        else:
+            expected_err = pytest.raises(exceptions.UbuntuProError)
+        with expected_err as err:
             with mock.patch.object(lock, "lock_data_file"):
-                action_enable(args, cfg)
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args, cfg=cfg)
 
         if root:
             expected_error = expected_error_template.format(
@@ -337,9 +354,18 @@ class TestActionEnable:
             expected_error = expected_error_template
             expected_info = None
 
-        assert expected_error.msg == err.value.msg
+        if root and is_attached:
+            assert expected_error.msg in fake_stdout.getvalue()
+        else:
+            assert expected_error.msg == err.value.msg
 
-        with pytest.raises(SystemExit):
+        args.assume_yes = True
+        args.format = "json"
+        if root and is_attached:
+            expected_err = does_not_raise()
+        else:
+            expected_err = pytest.raises(SystemExit)
+        with expected_err:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
@@ -380,6 +406,7 @@ class TestActionEnable:
         self,
         m_we_are_currently_root,
         _refresh,
+        _m_update_activity_token,
         _m_public_config,
         root,
         expected_error_template,
@@ -447,19 +474,16 @@ class TestActionEnable:
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
-    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.valid_services")
     def test_assume_yes_passed_to_service_init(
         self,
         m_valid_services,
         _m_get_available_resources,
-        _m_update_activity_token,
         _m_check_lock_info,
         _m_status_cache_file,
         m_refresh,
+        _m_update_activity_token,
         _m_public_config,
         assume_yes,
         FakeConfig,
@@ -510,34 +534,41 @@ class TestActionEnable:
         _m_check_lock_info,
         _m_refresh,
         _m_status_cache_file,
+        _m_update_activity_token,
         _m_public_config,
         event,
         FakeConfig,
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.Mock()
+        m_ent1_cls = mock.MagicMock()
         m_ent1_obj = m_ent1_cls.return_value
+        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
         m_ent1_obj.enable.return_value = (False, None)
+        m_ent1_obj._check_for_reboot.return_value = False
 
-        m_ent2_cls = mock.Mock()
+        m_ent2_cls = mock.MagicMock()
         m_ent2_cls.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
+        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
+        m_ent2_obj._check_for_reboot.return_value = False
         m_ent2_obj.enable.return_value = (
             False,
             CanEnableFailure(CanEnableFailureReason.IS_BETA),
         )
 
-        m_ent3_cls = mock.Mock()
+        m_ent3_cls = mock.MagicMock()
         m_ent3_cls.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
+        type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
         m_ent3_obj.enable.return_value = (True, None)
+        m_ent3_obj._check_for_reboot.return_value = False
 
-        def factory_side_effect(cfg, name, variant):
+        def factory_side_effect(cfg, name, variant=""):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -556,13 +587,16 @@ class TestActionEnable:
         args_mock.beta = False
         args_mock.variant = ""
 
-        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg = (
+            "One moment, checking your subscription first\n"
+            "Could not enable Ent2.\n"
+            "Ent3 enabled\n"
+        )
 
-        with pytest.raises(exceptions.UbuntuProError) as err:
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg=cfg)
 
         service_msg = (
             "Try "
@@ -574,8 +608,9 @@ class TestActionEnable:
             invalid_service="ent1, ent2",
             service_msg=service_msg,
         )
-        assert expected_error.msg == err.value.msg
-        assert expected_msg == fake_stdout.getvalue()
+        assert (
+            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
+        )
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
@@ -589,21 +624,19 @@ class TestActionEnable:
                 )
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(mock.ANY)
         for m_ent in [m_ent2_obj, m_ent3_obj]:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
 
         event.reset()
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(lock, "lock_data_file"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg)
+        args_mock.assume_yes = True
+        args_mock.format = "json"
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -642,6 +675,7 @@ class TestActionEnable:
         _m_check_lock_info,
         _m_status_cache_file,
         _m_refresh,
+        _m_update_activity_token,
         _m_public_config,
         beta_flag,
         event,
@@ -649,27 +683,33 @@ class TestActionEnable:
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.Mock()
+        m_ent1_cls = mock.MagicMock()
         m_ent1_obj = m_ent1_cls.return_value
+        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
         m_ent1_obj.enable.return_value = (False, None)
+        m_ent1_obj._check_for_reboot.return_value = False
 
-        m_ent2_cls = mock.Mock()
+        m_ent2_cls = mock.MagicMock()
         m_ent2_cls.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls)._is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
+        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
+        m_ent2_obj._check_for_reboot.return_value = False
         failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
         if beta_flag:
             m_ent2_obj.enable.return_value = (True, None)
         else:
             m_ent2_obj.enable.return_value = (False, failure_reason)
 
-        m_ent3_cls = mock.Mock()
+        m_ent3_cls = mock.MagicMock()
         m_ent3_cls.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls)._is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
+        type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
         m_ent3_obj.enable.return_value = (True, None)
+        m_ent3_obj._check_for_reboot.return_value = False
 
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
@@ -680,7 +720,7 @@ class TestActionEnable:
         args_mock.beta = beta_flag
         args_mock.variant = ""
 
-        def factory_side_effect(cfg, name, variant):
+        def factory_side_effect(cfg, name, variant=""):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -696,7 +736,18 @@ class TestActionEnable:
 
         m_valid_services.side_effect = valid_services_side_effect
 
-        expected_msg = "One moment, checking your subscription first\n"
+        if beta_flag:
+            expected_msg = (
+                "One moment, checking your subscription first\n"
+                "Ent2 enabled\n"
+                "Ent3 enabled\n"
+            )
+        else:
+            expected_msg = (
+                "One moment, checking your subscription first\n"
+                "Could not enable Ent2.\n"
+                "Ent3 enabled\n"
+            )
         not_found_name = "ent1"
         mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
@@ -717,19 +768,19 @@ class TestActionEnable:
             )
         )
 
-        with pytest.raises(exceptions.UbuntuProError) as err:
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg=cfg)
 
         expected_error = expected_error_tmpl.format(
             operation="enable",
             invalid_service=not_found_name,
             service_msg=service_msg,
         )
-        assert expected_error.msg == err.value.msg
-        assert expected_msg == fake_stdout.getvalue()
+        assert (
+            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
+        )
 
         for m_ent_cls in mock_ent_list:
             assert [
@@ -743,21 +794,19 @@ class TestActionEnable:
                 )
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(mock.ANY)
         for m_ent in mock_obj_list:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
 
         event.reset()
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(lock, "lock_data_file"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg=cfg)
+        args_mock.assume_yes = True
+        args_mock.format = "json"
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg=cfg)
 
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
@@ -790,24 +839,22 @@ class TestActionEnable:
 
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
-    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
-        _m_update_activity_token,
         _m_check_lock_info,
         _m_status_cache_file,
         _m_refresh,
+        _m_update_activity_token,
         _m_public_config,
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.Mock()
+        m_entitlement_cls = mock.MagicMock()
         type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
         m_entitlement_obj = m_entitlement_cls.return_value
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="Title")
         m_entitlement_obj.enable.return_value = (
             False,
             CanEnableFailure(
@@ -832,20 +879,21 @@ class TestActionEnable:
             with mock.patch.object(lock, "lock_data_file"):
                 fake_stdout = io.StringIO()
                 with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
+                    action_enable(args_mock, cfg=cfg)
 
             assert (
                 "One moment, checking your subscription first\nmsg\n"
-                == fake_stdout.getvalue()
-            )
+                "Could not enable Title.\n"
+            ) == fake_stdout.getvalue()
+
+        args_mock.assume_yes = True
+        args_mock.format = "json"
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
-        ), mock.patch.object(
-            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(lock, "lock_data_file"):
                 fake_stdout = io.StringIO()
@@ -881,6 +929,7 @@ class TestActionEnable:
         self,
         _m_check_lock_info,
         _m_refresh,
+        _m_update_activity_token,
         _m_public_config,
         service,
         beta,
@@ -896,13 +945,10 @@ class TestActionEnable:
         args_mock.beta = beta
         args_mock.access_only = False
 
-        with pytest.raises(exceptions.UbuntuProError) as err:
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
-
-        assert expected_msg == fake_stdout.getvalue()
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg=cfg)
 
         service_names = entitlements.valid_services(cfg=cfg, allow_beta=beta)
         ent_str = "Try " + ", ".join(service_names) + "."
@@ -919,16 +965,17 @@ class TestActionEnable:
             invalid_service=", ".join(sorted(service)),
             service_msg=service_msg,
         )
-        assert expected_error.msg == err.value.msg
+        assert (
+            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
+        )
 
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(lock, "lock_data_file"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg)
+        args_mock.assume_yes = True
+        args_mock.format = "json"
+
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -955,35 +1002,34 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
-    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_enabled(
         self,
         m_status,
         _m_get_available_resources,
-        m_update_activity_token,
         _m_check_lock_info,
         _m_refresh,
+        m_update_activity_token,
         _m_public_config,
         allow_beta,
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.Mock()
+        m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (True, None)
+        m_entitlement_obj._check_for_reboot.return_value = False
 
         cfg = FakeConfig.for_attached_machine()
 
         args_mock = mock.MagicMock()
         args_mock.access_only = False
-        args_mock.assume_yes = False
+        args_mock.assume_yes = True
         args_mock.beta = allow_beta
         args_mock.service = ["testitlement"]
         args_mock.variant = ""
+        args_mock.format = "json"
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
@@ -993,12 +1039,12 @@ class TestActionEnable:
             return_value=["testitlement"],
         ):
             with mock.patch.object(lock, "lock_data_file"):
-                ret = action_enable(args_mock, cfg)
+                ret = action_enable(args_mock, cfg=cfg)
 
         assert [
             mock.call(
                 cfg,
-                assume_yes=False,
+                assume_yes=True,
                 allow_beta=allow_beta,
                 called_name="testitlement",
                 access_only=False,
@@ -1007,7 +1053,7 @@ class TestActionEnable:
         ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(mock.ANY)
         expected_ret = 0
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert expected_ret == ret
@@ -1020,8 +1066,6 @@ class TestActionEnable:
         ), mock.patch(
             "uaclient.entitlements.valid_services",
             return_value=["testitlement"],
-        ), mock.patch.object(
-            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(lock, "lock_data_file"):
                 fake_stdout = io.StringIO()
@@ -1041,7 +1085,11 @@ class TestActionEnable:
         assert expected_ret == ret
 
     def test_format_json_fails_when_assume_yes_flag_not_used(
-        self, _m_get_available_resources, _m_public_config, event
+        self,
+        _m_get_available_resources,
+        _m_update_activity_token,
+        _m_public_config,
+        event,
     ):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
@@ -1080,6 +1128,7 @@ class TestActionEnable:
         self,
         _m_check_lock_info,
         _m_get_available_resources,
+        _m_update_activity_token,
         _m_public_config,
         FakeConfig,
     ):
@@ -1091,3 +1140,308 @@ class TestActionEnable:
         with pytest.raises(exceptions.InvalidOptionCombination):
             with mock.patch.object(lock, "lock_data_file"):
                 action_enable(args_mock, cfg)
+
+
+class TestPromptForDependencyHandling:
+    @pytest.mark.parametrize(
+        [
+            "service",
+            "all_dependencies",
+            "enabled_service_names",
+            "called_name",
+            "cfg_block_disable_on_enable",
+            "prompt_side_effects",
+            "expected_prompts",
+            "expected_raise",
+        ],
+        [
+            # no dependencies
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one", incompatible_with=[], depends_on=[]
+                    )
+                ],
+                [],
+                "one",
+                False,
+                [],
+                [],
+                does_not_raise(),
+            ),
+            # incompatible with "two", but two not enabled
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                        depends_on=[],
+                    )
+                ],
+                [],
+                "one",
+                False,
+                [],
+                [],
+                does_not_raise(),
+            ),
+            # incompatible with "two", two enabled, successful prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                        depends_on=[],
+                    )
+                ],
+                ["two"],
+                "one",
+                False,
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+            # incompatible with "two", two enabled, cfg denies
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                        depends_on=[],
+                    )
+                ],
+                ["two"],
+                "one",
+                True,
+                [],
+                [],
+                pytest.raises(exceptions.IncompatibleServiceStopsEnable),
+            ),
+            # incompatible with "two", two enabled, denied prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                        depends_on=[],
+                    )
+                ],
+                ["two"],
+                "one",
+                False,
+                [False],
+                [mock.call(msg=mock.ANY)],
+                pytest.raises(exceptions.IncompatibleServiceStopsEnable),
+            ),
+            # incompatible with "two" and "three", three enabled, success
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="three", reason=mock.MagicMock()
+                            ),
+                        ],
+                        depends_on=[],
+                    )
+                ],
+                ["three"],
+                "one",
+                False,
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+            # depends on "two", but two already enabled
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                ["two"],
+                "one",
+                False,
+                [],
+                [],
+                does_not_raise(),
+            ),
+            # depends on "two", two not enabled, successful prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                [],
+                "one",
+                False,
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+            # depends on "two", two not enabled, denied prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                [],
+                "one",
+                False,
+                [False],
+                [mock.call(msg=mock.ANY)],
+                pytest.raises(exceptions.RequiredServiceStopsEnable),
+            ),
+            # depends on "two" and "three", three not enabled, success prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="three", reason=mock.MagicMock()
+                            ),
+                        ],
+                    )
+                ],
+                ["two"],
+                "one",
+                False,
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+            # lots of stuff
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="one",
+                        incompatible_with=[
+                            ServiceWithReason(
+                                name="two", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="three", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="four", reason=mock.MagicMock()
+                            ),
+                        ],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="five", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="six", reason=mock.MagicMock()
+                            ),
+                            ServiceWithReason(
+                                name="seven", reason=mock.MagicMock()
+                            ),
+                        ],
+                    )
+                ],
+                ["two", "four", "six"],
+                "one",
+                False,
+                [True, True, True, True],
+                [
+                    mock.call(msg=mock.ANY),
+                    mock.call(msg=mock.ANY),
+                    mock.call(msg=mock.ANY),
+                    mock.call(msg=mock.ANY),
+                ],
+                does_not_raise(),
+            ),
+        ],
+    )
+    @mock.patch.object(entitlements, "ENTITLEMENT_NAME_TO_TITLE")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    @mock.patch("uaclient.util.is_config_value_true")
+    def test_prompt_for_dependency_handling(
+        self,
+        m_is_config_value_true,
+        m_prompt_for_confirmation,
+        m_entitlement_name_to_title,
+        service,
+        all_dependencies,
+        enabled_service_names,
+        called_name,
+        cfg_block_disable_on_enable,
+        prompt_side_effects,
+        expected_prompts,
+        expected_raise,
+        FakeConfig,
+    ):
+        m_entitlement_name_to_title.return_value = {
+            "one": "One",
+            "two": "Two",
+            "three": "Three",
+        }
+        m_is_config_value_true.return_value = cfg_block_disable_on_enable
+        m_prompt_for_confirmation.side_effect = prompt_side_effects
+
+        with expected_raise:
+            prompt_for_dependency_handling(
+                FakeConfig(),
+                service,
+                all_dependencies,
+                enabled_service_names,
+                called_name,
+            )
+
+        assert expected_prompts == m_prompt_for_confirmation.call_args_list

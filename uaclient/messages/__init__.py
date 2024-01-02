@@ -338,6 +338,7 @@ ENABLE_REBOOT_REQUIRED_TMPL = t.gettext(
     """\
 A reboot is required to complete {operation}."""
 )
+CONFIGURING_APT_ACCESS = t.gettext("Configuring APT access to {service}")
 
 # DISABLE
 DISABLE_FAILED_TMPL = t.gettext("Could not disable {title}.")
@@ -1421,6 +1422,8 @@ LIVEPATCH_DISABLE_REATTACH = t.gettext(
 LIVEPATCH_LTS_REBOOT_REQUIRED = t.gettext(
     "Livepatch support requires a system reboot across LTS upgrade."
 )
+INSTALLING_LIVEPATCH = t.gettext("Installing Livepatch")
+SETTING_UP_LIVEPATCH = t.gettext("Setting up Livepatch")
 
 REALTIME_TITLE = t.gettext("Real-time kernel")
 REALTIME_DESCRIPTION = t.gettext(
@@ -1643,22 +1646,6 @@ REPO_PURGE_FAIL_NO_ORIGIN = FormattedNamedMessage(
 ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
     "error-enabling-required-service",
     t.gettext("Cannot enable required service: {service}{error}"),
-)
-REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "required-service-stops-enable",
-    t.gettext(
-        """\
-Cannot enable {service_being_enabled} when {required_service} is disabled.
-"""
-    ),
-)
-INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
-    "incompatible-service-stops-enable",
-    t.gettext(
-        """\
-Cannot enable {service_being_enabled} when \
-{incompatible_service} is enabled."""
-    ),
 )
 
 SERVICE_ERROR_INSTALL_ON_CONTAINER = FormattedNamedMessage(
@@ -2260,6 +2247,23 @@ E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
     t.gettext("Could not determine contract delta service type {orig} {new}"),
 )
 
+E_REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "required-service-stops-enable",
+    t.gettext(
+        """\
+Cannot enable {service_being_enabled} when {required_service} is disabled.
+"""
+    ),
+)
+E_INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "incompatible-service-stops-enable",
+    t.gettext(
+        """\
+Cannot enable {service_being_enabled} when \
+{incompatible_service} is enabled."""
+    ),
+)
+
 E_INVALID_PRO_IMAGE = FormattedNamedMessage(
     name="invalid-pro-image",
     msg=t.gettext(
@@ -2472,6 +2476,11 @@ Include the token in the attach-config file instead.
 E_API_ERROR_ARGS_AND_DATA_TOGETHER = NamedMessage(
     "api-error-args-and-data-together",
     t.gettext("Cannot provide both --args and --data at the same time"),
+)
+
+E_PROMPT_DENIED = NamedMessage(
+    "prompt-denied",
+    t.gettext("Operation cancelled by user"),
 )
 
 E_LOCK_HELD_ERROR = FormattedNamedMessage(

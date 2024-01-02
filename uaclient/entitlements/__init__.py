@@ -36,6 +36,8 @@ ENTITLEMENT_CLASSES = [
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
 
+ENTITLEMENT_NAME_TO_TITLE = {e.name: e.title for e in ENTITLEMENT_CLASSES}
+
 
 def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
     """Returns a UAEntitlement class based on the provided name.

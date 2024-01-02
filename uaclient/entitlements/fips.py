@@ -4,7 +4,7 @@ import re
 from itertools import groupby
 from typing import Callable, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt, event_logger, exceptions, messages, system, util
+from uaclient import api, apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import EntitlementWithMessage
@@ -207,30 +207,31 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def install_packages(
         self,
+        progress: api.ProgressWrapper,
         package_list: Optional[List[str]] = None,
         cleanup_on_failure: bool = True,
-        verbose: bool = True,
     ) -> None:
         """Install contract recommended packages for the entitlement.
 
         :param package_list: Optional package list to use instead of
             self.packages.
         :param cleanup_on_failure: Cleanup apt files if apt install fails.
-        :param verbose: If true, print messages to stdout
         """
-
-        if verbose:
-            event.info(
-                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
-            )
-
         # We need to guarantee that the metapackage is installed.
         # While the other packages should still be installed, if they
         # fail, we should not block the enable operation.
         mandatory_packages = self.packages
-        super().install_packages(
-            package_list=mandatory_packages, verbose=False
-        )
+        if mandatory_packages:
+            super().install_packages(
+                progress,
+                package_list=mandatory_packages,
+            )
+        else:
+            # then this won't get printed by install_packages, so do it here
+            # instead
+            progress.progress(
+                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
+            )
 
         # Any conditional packages should still be installed, but if
         # they fail to install we should not block the enable operation.
@@ -257,11 +258,20 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     ],
                 )
             except exceptions.UbuntuProError:
-                event.info(
+                progress.emit(
+                    "info",
                     messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                         service=self.title, pkg=pkg
-                    )
+                    ),
                 )
+        if self._check_for_reboot():
+            notices.add(
+                Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
+            )
+
+    def _check_for_reboot(self) -> bool:
+        """Check if system needs to be rebooted because of this service."""
+        return system.should_reboot()
 
     def _check_for_reboot_msg(
         self, operation: str, silent: bool = False
@@ -271,7 +281,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         @param operation: The operation being executed.
         @param silent: Boolean set True to silence print/log of messages
         """
-        reboot_required = system.should_reboot()
+        reboot_required = self._check_for_reboot()
         event.needs_reboot(reboot_required)
         if reboot_required:
             if not silent:
@@ -280,11 +290,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                         operation=operation
                     )
                 )
-            if operation == "install":
-                notices.add(
-                    Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
-                )
-            elif operation == "disable operation":
+            if operation == "disable operation":
                 notices.add(
                     Notice.FIPS_DISABLE_REBOOT_REQUIRED,
                 )
@@ -404,8 +410,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 messages.DISABLE_FAILED_TMPL.format(title=self.title),
             )
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        if super()._perform_enable(silent=silent):
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
+        if super()._perform_enable(progress):
             notices.remove(
                 Notice.WRONG_FIPS_METAPACKAGE_ON_CLOUD,
             )
@@ -415,7 +421,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return False
 
-    def setup_apt_config(self, silent: bool = False) -> None:
+    def setup_apt_config(self, progress: api.ProgressWrapper) -> None:
         """Setup apt config based on the resourceToken and directives.
 
         FIPS-specifically handle apt-mark unhold
@@ -440,7 +446,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     command=" ".join(unhold_cmd)
                 ),
             )
-        super().setup_apt_config(silent=silent)
+        super().setup_apt_config(progress)
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):
@@ -548,7 +554,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             "pre_disable": pre_disable,
         }
 
-    def _perform_enable(self, silent: bool = False) -> bool:
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
             LOG.warning(
@@ -556,7 +562,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 "defaulting to generic FIPS package."
             )
             event.info(messages.FIPS_COULD_NOT_DETERMINE_CLOUD_DEFAULT_PACKAGE)
-        if super()._perform_enable(silent=silent):
+        if super()._perform_enable(progress):
             notices.remove(
                 Notice.FIPS_INSTALL_OUT_OF_DATE,
             )
@@ -632,8 +638,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             "pre_disable": pre_disable,
         }
 
-    def _perform_enable(self, silent: bool = False) -> bool:
-        if super()._perform_enable(silent=silent):
+    def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
+        if super()._perform_enable(progress=progress):
             services_once_enabled_file.write(
                 ServicesOnceEnabledData(fips_updates=True)
             )

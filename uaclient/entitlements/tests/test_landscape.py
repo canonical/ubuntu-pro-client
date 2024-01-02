@@ -93,7 +93,7 @@ class TestLandscapeEntitlement:
         landscape = LandscapeEntitlement(
             FakeConfig(), assume_yes=assume_yes, extra_args=extra_args
         )
-        assert expected_result == landscape._perform_enable()
+        assert expected_result == landscape._perform_enable(mock.MagicMock())
         assert expected_subp_calls == m_subp.call_args_list
 
     @pytest.mark.parametrize(

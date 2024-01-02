@@ -16,11 +16,13 @@ Feature: Enable anbox on Ubuntu
       One moment, checking your subscription first
       It is only possible to enable Anbox Cloud on a container using
       the --access-only flag.
+      Could not enable Anbox Cloud.
       """
     When I run `pro enable anbox-cloud --access-only` with sudo
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
+      Configuring APT access to Anbox Cloud
       Updating Anbox Cloud package lists
       Anbox Cloud access enabled
       """

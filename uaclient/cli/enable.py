@@ -1,7 +1,9 @@
+import json
 import logging
+from typing import List, Optional
 
 from uaclient import (
-    actions,
+    api,
     config,
     contract,
     entitlements,
@@ -11,25 +13,144 @@ from uaclient import (
     status,
     util,
 )
+from uaclient.api.u.pro.services.dependencies.v1 import (
+    ServiceWithDependencies,
+    _dependencies,
+)
+from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.cli import cli_util, constants
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
 
-event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+
+class CLIEnableProgress(api.AbstractProgress):
+    def progress(
+        self,
+        *,
+        total_steps: int,
+        done_steps: int,
+        previous_step_message: Optional[str],
+        current_step_message: Optional[str]
+    ):
+        if current_step_message is not None:
+            print(current_step_message)
+
+    def _on_event(self, event: str, payload):
+        if event == "info":
+            print(payload)
+            return
+        elif event == "message_operation":
+            if not util.handle_message_operations(payload, print):
+                raise exceptions.PromptDeniedError()
+
+
+def prompt_for_dependency_handling(
+    cfg: config.UAConfig,
+    service: str,
+    all_dependencies: List[ServiceWithDependencies],
+    enabled_service_names: List[str],
+    called_name: str,
+):
+    incompatible_services = []
+    required_services = []
+    service_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
+        service, service
+    )
+
+    dependencies = next(
+        (s for s in all_dependencies if s.name == service), None
+    )
+    if dependencies is not None:
+        incompatible_services = [
+            s.name
+            for s in dependencies.incompatible_with
+            if s.name in enabled_service_names
+        ]
+        required_services = [
+            s.name
+            for s in dependencies.depends_on
+            if s.name not in enabled_service_names
+        ]
+
+    for incompatible_service in incompatible_services:
+        cfg_block_disable_on_enable = util.is_config_value_true(
+            config=cfg.cfg,
+            path_to_value="features.block_disable_on_enable",
+        )
+        incompatible_service_title = (
+            entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
+                incompatible_service, incompatible_service
+            )
+        )
+        user_msg = messages.INCOMPATIBLE_SERVICE.format(
+            service_being_enabled=service_title,
+            incompatible_service=incompatible_service_title,
+        )
+        if cfg_block_disable_on_enable or not util.prompt_for_confirmation(
+            msg=user_msg
+        ):
+            raise exceptions.IncompatibleServiceStopsEnable(
+                service_being_enabled=service_title,
+                incompatible_service=incompatible_service_title,
+            )
+
+    for required_service in required_services:
+        required_service_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
+            required_service, required_service
+        )
+        user_msg = messages.REQUIRED_SERVICE.format(
+            service_being_enabled=service_title,
+            required_service=required_service_title,
+        )
+        if not util.prompt_for_confirmation(msg=user_msg):
+            raise exceptions.RequiredServiceStopsEnable(
+                service_being_enabled=service_title,
+                required_service=required_service_title,
+            )
+
+
+def _null_print(*args, **kwargs):
+    pass
+
+
+def _create_print_function(json_output: bool):
+    if json_output:
+        return _null_print
+    else:
+        return print
 
 
 @cli_util.verify_json_format_args
 @cli_util.assert_root
 @cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
 @cli_util.assert_lock_file("pro enable")
-def action_enable(args, *, cfg, **kwargs):
+def action_enable(args, *, cfg, **kwargs) -> int:
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
+    processed_services = []
+    failed_services = []
+    errors = []
+    warnings = []
+
+    json_response = {
+        "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+        "result": "success",
+        "needs_reboot": False,
+    }
+
+    json_output = args.format == "json"
+    # HACK NOTICE: interactive_only_print here will be a no-op "null_print"
+    # function defined above if args.format == "json". We use this function
+    # throughout enable for things that should get printed in the normal
+    # interactive output so that they don't get printed for the json output.
+    interactive_only_print = _create_print_function(json_output)
+
     variant = getattr(args, "variant", "")
     access_only = args.access_only
 
@@ -38,31 +159,82 @@ def action_enable(args, *, cfg, **kwargs):
             option1="--access-only", option2="--variant"
         )
 
-    event.info(messages.REFRESH_CONTRACT_ENABLE)
+    interactive_only_print(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.refresh(cfg)
     except (exceptions.ConnectivityError, exceptions.UbuntuProError):
         # Inability to refresh is not a critical issue during enable
         LOG.warning("Failed to refresh contract", exc_info=True)
-        event.warning(warning_msg=messages.E_REFRESH_CONTRACT_FAILURE)
+        warnings.append(
+            {
+                "type": "system",
+                "message": messages.E_REFRESH_CONTRACT_FAILURE.msg,
+                "message_code": messages.E_REFRESH_CONTRACT_FAILURE.name,
+            }
+        )
 
     names = getattr(args, "service", [])
     (
         entitlements_found,
         entitlements_not_found,
     ) = entitlements.get_valid_entitlement_names(names, cfg)
+    enabled_service_names = [
+        s.name for s in _enabled_services(cfg).enabled_services
+    ]
+    all_dependencies = _dependencies(cfg).services
+
     ret = True
-    for ent_name in entitlements_found:
+    for ent_name in entitlements.order_entitlements_for_enabling(
+        cfg, entitlements_found
+    ):
         try:
-            ent_ret, reason = actions.enable_entitlement_by_name(
+            real_name = entitlements.entitlement_factory(cfg, ent_name).name
+        except exceptions.UbuntuProError:
+            real_name = ent_name
+
+        ent_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
+            real_name, ent_name
+        )
+
+        if not args.assume_yes:
+            # this never happens for json output because we assert earlier that
+            # assume_yes must be True for json output
+            try:
+                prompt_for_dependency_handling(
+                    cfg,
+                    real_name,
+                    all_dependencies,
+                    enabled_service_names,
+                    called_name=ent_name,
+                )
+            except exceptions.UbuntuProError as e:
+                LOG.exception(e)
+                interactive_only_print(e.msg)
+                interactive_only_print(
+                    messages.ENABLE_FAILED.format(title=ent_title)
+                )
+                ret = False
+                continue
+
+        try:
+            if json_output:
+                progress = api.ProgressWrapper()
+            else:
+                progress = api.ProgressWrapper(CLIEnableProgress())
+
+            ent = entitlements.entitlement_factory(
+                cfg, ent_name, variant=variant
+            )(
                 cfg,
-                ent_name,
                 assume_yes=args.assume_yes,
                 allow_beta=args.beta,
+                called_name=ent_name,
                 access_only=access_only,
-                variant=variant,
                 extra_args=kwargs.get("extra_args"),
             )
+            progress.total_steps = ent.calculate_total_enable_steps()
+            ent_ret, reason = ent.enable(progress)
+
             status.status(cfg=cfg)  # Update the status cache
 
             if (
@@ -71,42 +243,106 @@ def action_enable(args, *, cfg, **kwargs):
                 and isinstance(reason, CanEnableFailure)
             ):
                 if reason.message is not None:
-                    event.info(reason.message.msg)
-                    event.error(
-                        error_msg=reason.message.msg,
-                        error_code=reason.message.name,
-                        service=ent_name,
+                    interactive_only_print(reason.message.msg)
+                    failed_services.append(ent_name)
+                    errors.append(
+                        {
+                            "type": "service",
+                            "service": ent_name,
+                            "message": reason.message.msg,
+                            "message_code": reason.message.name,
+                        }
                     )
                 if reason.reason == CanEnableFailureReason.IS_BETA:
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist
                     entitlements_not_found.append(ent_name)
+                interactive_only_print(
+                    messages.ENABLE_FAILED.format(title=ent.title)
+                )
             elif ent_ret:
-                event.service_processed(service=ent_name)
+                processed_services.append(ent_name)
+                if args.access_only:
+                    interactive_only_print(
+                        messages.ACCESS_ENABLED_TMPL.format(title=ent.title)
+                    )
+                else:
+                    interactive_only_print(
+                        messages.ENABLED_TMPL.format(title=ent.title)
+                    )
+                ent_reboot_required = ent._check_for_reboot()
+                if ent_reboot_required:
+                    json_response["needs_reboot"] = True
+                    interactive_only_print(
+                        messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                            operation="install"
+                        )
+                    )
+                progress.emit(
+                    "message_operation", ent.messaging.get("post_enable")
+                )
             elif not ent_ret and reason is None:
-                event.service_failed(service=ent_name)
+                failed_services.append(ent_name)
+                interactive_only_print(
+                    messages.ENABLE_FAILED.format(title=ent.title)
+                )
 
             ret &= ent_ret
         except exceptions.UbuntuProError as e:
-            event.info(e.msg)
-            event.error(
-                error_msg=e.msg,
-                error_code=e.msg_code,
-                service=ent_name,
-                additional_info=e.additional_info,
+            failed_services.append(ent_name)
+            interactive_only_print(e.msg)
+            interactive_only_print(
+                messages.ENABLE_FAILED.format(title=ent_title)
+            )
+            errors.append(
+                {
+                    "type": "service",
+                    "service": ent_name,
+                    "message": e.msg,
+                    "message_code": e.msg_code,
+                    "additional_info": e.additional_info,
+                }
             )
             ret = False
 
     if entitlements_not_found:
-        event.services_failed(entitlements_not_found)
-        raise entitlements.create_enable_entitlements_not_found_error(
+        ret = False
+        failed_services += entitlements_not_found
+        err = entitlements.create_enable_entitlements_not_found_error(
             entitlements_not_found, cfg=cfg, allow_beta=args.beta
+        )
+        interactive_only_print(err.msg)
+        errors.append(
+            {
+                "type": "system",
+                "service": None,
+                "message": err.msg,
+                "message_code": err.msg_code,
+                "additional_info": err.additional_info,
+            }
         )
 
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()
 
-    event.process_events()
+    if json_output:
+        processed_services.sort()
+        failed_services.sort()
+
+        json_response["result"] = "success" if ret else "failure"
+        json_response["processed_services"] = processed_services
+        json_response["failed_services"] = failed_services
+        json_response["errors"] = errors
+        json_response["warnings"] = warnings
+
+        print(
+            json.dumps(
+                json_response,
+                cls=util.DatetimeAwareJSONEncoder,
+                sort_keys=True,
+            )
+        )
+
     return 0 if ret else 1
 
 
