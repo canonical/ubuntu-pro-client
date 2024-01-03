@@ -468,3 +468,33 @@ class TestReplaceLoggerName:
         assert (
             util.replace_top_level_logger_name(logger_name) == new_logger_name
         )
+
+
+class TestSetFilenameExtension:
+    @pytest.mark.parametrize(
+        "input_string,extension,output_string",
+        (
+            ("virus.exe", "test", "virus.test"),
+            (
+                "/many/dots.and.slashes/in/this.file",
+                "test",
+                "/many/dots.and.slashes/in/this.test",
+            ),
+            ("/no/change/when.same", "same", "/no/change/when.same"),
+            ("no_extension", "test", "no_extension.test"),
+            (
+                "/with.previous.dots/no_extension",
+                "test",
+                "/with.previous.dots/no_extension.test",
+            ),
+            ("d.o.t.s", "test", "d.o.t.test"),
+            (".dotfile", "test", ".dotfile.test"),
+        ),
+    )
+    def test_set_filename_extension(
+        self, input_string, extension, output_string
+    ):
+        assert (
+            util.set_filename_extension(input_string, extension)
+            == output_string
+        )
