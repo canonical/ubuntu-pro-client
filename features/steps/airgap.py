@@ -75,6 +75,11 @@ def set_apt_mirror_file_with_credentials(
         )
 
         apt_mirror_file += "\n" + apt_mirror_cfg + "\n"
+        context.service_mirror_cfg[service.replace("-", "_")][
+            "path"
+        ] = "/var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/".format(
+            service_type
+        )
 
     apt_mirror_file += "clean http://archive.ubuntu.com/ubuntu"
 
@@ -90,10 +95,8 @@ def set_apt_mirror_file_with_credentials(
     "I serve the `{service}` mirror using port `{port}` on the `{machine_name}` machine"  # noqa
 )
 def serve_apt_mirror(context, service, port, machine_name):
-    service_type = service.split("-")[1]
-    path = "/var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/".format(
-        service_type
-    )
+    service_type = service.replace("-", "_")
+    path = context.service_mirror_cfg[service_type]["path"]
     cmd = "nohup sh -c 'python3 -m http.server --directory {} {} > /dev/null 2>&1 &'".format(  # noqa
         path, port
     )
@@ -105,7 +108,8 @@ def serve_apt_mirror(context, service, port, machine_name):
         machine_name=machine_name,
     )
 
-    context.service_mirror_cfg[service.replace("-", "_")]["port"] = port
+    if service_type in context.service_mirror_cfg:
+        context.service_mirror_cfg[service_type]["port"] = port
 
 
 @when(
@@ -120,9 +124,9 @@ def create_contract_overrides(context, service_list, machine_name):
             "directives": {
                 "aptURL": "http://{}:{}".format(
                     context.machines[machine_name].instance.ip,
-                    context.service_mirror_cfg[service.replace("-", "_")][
-                        "port"
-                    ],
+                    context.service_mirror_cfg.get(
+                        service.replace("-", "_"), {}
+                    ).get("port", "8000"),
                 )
             }
         }
@@ -188,3 +192,23 @@ def i_start_the_contracts_airgapped_service(context, machine_name):
     )
 
     when_i_run_command(context, cmd, "with sudo", machine_name=machine_name)
+
+
+@when(
+    "I consolidate `{services_list}` on a single mirror on the `{machine_name}` machine"  # noqa
+)  # noqa
+def then_i_consolidate_services_on_the_same_mirror(
+    context, services_list, machine_name
+):
+    services = services_list.split(",")
+    all_mirrors_path = "/var/spool/apt-mirror/mirror/all-mirrors/"
+
+    for service in services:
+        cmd = "rsync -a /var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/ {}".format(  # noqa
+            service.split("-")[1], all_mirrors_path
+        )
+        when_i_run_command(
+            context, cmd, "with sudo", machine_name=machine_name
+        )
+
+    context.service_mirror_cfg["all_mirrors"] = {"path": all_mirrors_path}

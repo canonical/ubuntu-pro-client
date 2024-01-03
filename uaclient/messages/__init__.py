@@ -1683,6 +1683,10 @@ NO_APT_URL_FOR_SERVICE = FormattedNamedMessage(
     "no-apt-url-for-service",
     t.gettext("{title} does not have an aptURL directive"),
 )
+NO_SUITES_FOR_SERVICE = FormattedNamedMessage(
+    "no-suites-for-service",
+    t.gettext("{title} does not have a suites directive"),
+)
 ALREADY_DISABLED = FormattedNamedMessage(
     "service-already-disabled",
     t.gettext(

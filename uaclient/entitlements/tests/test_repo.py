@@ -1290,7 +1290,10 @@ class TestApplicationStatus:
         """Report ENABLED when apt-policy lists specific aptURL."""
         entitlement = entitlement_factory(
             RepoTestEntitlement,
-            directives={"aptURL": "https://esm.ubuntu.com"},
+            directives={
+                "aptURL": "https://esm.ubuntu.com",
+                "suites": ["bionic-updates", "bionic-security"],
+            },
         )
 
         policy_lines = [
