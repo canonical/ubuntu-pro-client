@@ -461,6 +461,11 @@ def we_are_currently_root() -> bool:
     return os.getuid() == 0
 
 
+def set_filename_extension(filename: str, new_extension: str) -> str:
+    name, _extension = os.path.splitext(filename)
+    return name + "." + new_extension
+
+
 def print_package_list(
     package_list: List[str],
 ):
