@@ -63,15 +63,6 @@ Components: main
 Signed-By: {keyrings_dir}/{keyring_file}
 """
 
-ESM_REPO_FILE_CONTENT = """\
-# Written by ubuntu-advantage-tools
-
-deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
-# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-security main
-
-deb https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
-# deb-src https://esm.ubuntu.com/{name}/ubuntu {series}-{name}-updates main
-"""
 
 ESM_BASIC_FILE_STRUCTURE = {
     "files": [
