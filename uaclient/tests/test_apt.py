@@ -722,15 +722,20 @@ def remove_auth_apt_repo_kwargs(request):
     return kwargs
 
 
+@mock.patch("uaclient.apt.system.subp")
+@mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
+@mock.patch("uaclient.apt.system.ensure_file_absent")
 class TestRemoveAuthAptRepo:
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
     def test_repo_file_deleted(
-        self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
+        self,
+        m_ensure_file_absent,
+        _m_remove_repo,
+        _m_subp,
+        remove_auth_apt_repo_kwargs,
     ):
         """Ensure that repo_filename is deleted, regardless of other params."""
-        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+        repo_filename = "/etc/apt/sources.list.d/pro-repofile.list"
+        repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
             repo_filename, repo_url, **remove_auth_apt_repo_kwargs
@@ -738,14 +743,36 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
 
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
+    def test_old_repo_file_deleted_when_deb822(
+        self,
+        m_ensure_file_absent,
+        _m_remove_repo,
+        _m_subp,
+        remove_auth_apt_repo_kwargs,
+    ):
+        repo_filename = "/etc/apt/sources.list.d/pro-repofile.sources"
+        repo_url = mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs
+        )
+
+        assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
+        assert (
+            mock.call("/etc/apt/sources.list.d/pro-repofile.list")
+            in m_ensure_file_absent.call_args_list
+        )
+
     def test_remove_from_auth_file_called(
-        self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs
+        self,
+        _m_ensure_file_absent,
+        m_remove_repo,
+        _m_subp,
+        remove_auth_apt_repo_kwargs,
     ):
         """Ensure that remove_repo_from_apt_auth_file is called."""
-        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+        repo_filename = "/etc/apt/sources.list.d/pro-repofile.list"
+        repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
             repo_filename, repo_url, **remove_auth_apt_repo_kwargs
@@ -753,14 +780,16 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_url) in m_remove_repo.call_args_list
 
-    @mock.patch("uaclient.apt.system.subp")
-    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
-    @mock.patch("uaclient.apt.system.ensure_file_absent")
     def test_keyring_file_deleted_if_given(
-        self, m_ensure_file_absent, _mock, __mock, remove_auth_apt_repo_kwargs
+        self,
+        m_ensure_file_absent,
+        _m_remove_repo,
+        _m_subp,
+        remove_auth_apt_repo_kwargs,
     ):
         """We should always delete the keyring file if it is given"""
-        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+        repo_filename = "/etc/apt/sources.list.d/pro-repofile.list"
+        repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
             repo_filename, repo_url, **remove_auth_apt_repo_kwargs

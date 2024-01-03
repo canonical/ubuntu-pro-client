@@ -658,6 +658,12 @@ def remove_auth_apt_repo(
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     system.ensure_file_absent(repo_filename)
+    # Also try to remove old .list files for compatibility with older releases.
+    if repo_filename.endswith(".sources"):
+        system.ensure_file_absent(
+            util.set_filename_extension(repo_filename, "list")
+        )
+
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
         system.ensure_file_absent(keyring_file)
