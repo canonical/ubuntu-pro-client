@@ -5,6 +5,7 @@ import pytest
 
 from uaclient import apt
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
+from uaclient.util import set_filename_extension
 
 M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
@@ -98,12 +99,8 @@ class TestUpdateESMCaches:
     @mock.patch("uaclient.apt.os.path.exists")
     @mock.patch("uaclient.apt.system.get_release_info")
     @mock.patch("uaclient.apt.system.write_file")
-    @mock.patch("uaclient.apt.os.makedirs")
-    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     def test_setup_local_esm_repo(
         self,
-        m_export_gpg,
-        m_makedirs,
         m_write_file,
         m_get_release_info,
         m_exists,
@@ -117,57 +114,55 @@ class TestUpdateESMCaches:
 
         if file_exists:
             assert m_write_file.call_count == 0
-            assert m_makedirs.call_count == 0
-            assert m_export_gpg.call_count == 0
 
         else:
+            suites = "{series}-{name}-security {series}-{name}-updates".format(
+                name=entitlement.name[4:], series="example"
+            )
             assert m_write_file.call_args_list == [
                 mock.call(
-                    os.path.normpath(
-                        apt.ESM_APT_ROOTDIR + entitlement.repo_file,
-                    ),
-                    apt.ESM_REPO_FILE_CONTENT.format(
-                        name=entitlement.name[4:], series="example"
-                    ),
-                )
-            ]
-
-            assert m_makedirs.call_args_list == [
-                mock.call(
-                    os.path.dirname(
+                    set_filename_extension(
                         os.path.normpath(
-                            apt.ESM_APT_ROOTDIR
-                            + apt.APT_KEYS_DIR
-                            + entitlement.repo_key_file
+                            apt.ESM_APT_ROOTDIR + entitlement.repo_file,
                         ),
+                        "sources",
                     ),
-                    exist_ok=True,
-                )
-            ]
-
-            assert m_export_gpg.call_args_list == [
-                mock.call(
-                    os.path.join(apt.KEYRINGS_DIR, entitlement.repo_key_file),
-                    os.path.normpath(
-                        apt.ESM_APT_ROOTDIR
-                        + apt.APT_KEYS_DIR
-                        + entitlement.repo_key_file
+                    apt.DEB822_REPO_FILE_CONTENT.format(
+                        url="https://esm.ubuntu.com/{name}/ubuntu".format(
+                            name=entitlement.name[4:]
+                        ),
+                        suites=suites,
+                        keyrings_dir=apt.KEYRINGS_DIR,
+                        keyring_file=entitlement.repo_key_file,
                     ),
                 )
             ]
 
     @mock.patch("uaclient.apt.system.ensure_file_absent")
-    def disable_local_esm_repo(self, m_ensure_file_absent, entitlement):
+    def test_disable_local_esm_repo(self, m_ensure_file_absent, entitlement):
         entitlement.disable_local_esm_repo()
         assert m_ensure_file_absent.call_args_list == [
             mock.call(
                 os.path.normpath(
-                    apt.ESM_APT_ROOTDIR + self.repo_file,
+                    apt.ESM_APT_ROOTDIR
+                    + apt.APT_KEYS_DIR
+                    + entitlement.repo_key_file
                 )
             ),
             mock.call(
-                os.path.normpath(
-                    apt.ESM_APT_ROOTDIR + apt.APT_KEYS_DIR + self.repo_key_file
-                )
+                set_filename_extension(
+                    os.path.normpath(
+                        apt.ESM_APT_ROOTDIR + entitlement.repo_file,
+                    ),
+                    "sources",
+                ),
+            ),
+            mock.call(
+                set_filename_extension(
+                    os.path.normpath(
+                        apt.ESM_APT_ROOTDIR + entitlement.repo_file,
+                    ),
+                    "list",
+                ),
             ),
         ]
