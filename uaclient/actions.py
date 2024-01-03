@@ -295,9 +295,13 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
 
     # get apparmor logs
     # can't use journalctl's --grep, because xenial doesn't support it :/
-    kernel_logs, _ = system.subp(
-        ["journalctl", "-b", "-k", "--since=1 day ago"]
-    )
+    try:
+        kernel_logs, _ = system.subp(
+            ["journalctl", "-b", "-k", "--since=1 day ago"]
+        )
+    except exceptions.ProcessExecutionError as e:
+        LOG.warning("Failed to collect kernel logs:\n%s", str(e))
+        kernel_logs = None
     apparmor_logs = []
     if kernel_logs:
         # filter out only what interests us
