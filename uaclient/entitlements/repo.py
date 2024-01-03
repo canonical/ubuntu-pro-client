@@ -34,6 +34,7 @@ class RepoEntitlement(base.UAEntitlement):
     repo_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.{extension}"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
+    repo_policy_check_tmpl = repo_url_tmpl + " {}"
 
     # The repo Origin value defined in apt metadata
     origin = None  # type: Optional[str]
@@ -296,13 +297,24 @@ class RepoEntitlement(base.UAEntitlement):
                 ApplicationStatus.DISABLED,
                 messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
-        policy = apt.get_apt_cache_policy(error_msg=messages.APT_POLICY_FAILED)
-        match = re.search(self.repo_url_tmpl.format(repo_url), policy)
-        if match:
-            current_status = (
-                ApplicationStatus.ENABLED,
-                messages.SERVICE_IS_ACTIVE.format(title=self.title),
+        repo_suites = directives.get("suites")
+        if not repo_suites:
+            return (
+                ApplicationStatus.DISABLED,
+                messages.NO_SUITES_FOR_SERVICE.format(title=self.title),
             )
+
+        policy = apt.get_apt_cache_policy(error_msg=messages.APT_POLICY_FAILED)
+        for suite in repo_suites:
+            service_match = re.search(
+                self.repo_policy_check_tmpl.format(repo_url, suite), policy
+            )
+            if service_match:
+                current_status = (
+                    ApplicationStatus.ENABLED,
+                    messages.SERVICE_IS_ACTIVE.format(title=self.title),
+                )
+                break
 
         if self.check_packages_are_installed:
             for package in self.packages:
