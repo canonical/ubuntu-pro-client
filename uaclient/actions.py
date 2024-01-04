@@ -20,10 +20,10 @@ from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.defaults import (
+    APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
-    APPARMOR_PROFILES,
 )
 from uaclient.files.state_files import (
     AttachmentData,
