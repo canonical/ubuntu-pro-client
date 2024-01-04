@@ -1,7 +1,7 @@
 # How to troubleshoot apt_news security confinement
 
 The `apt-news` service uses two types of security confinements:
-  - [systemd sandboxing features](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing)
+  - [Systemd sandboxing features](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing)
   - [AppArmor profile](https://ubuntu.com/server/docs/security-apparmor)
 
 In the git repository, these are located at:
@@ -28,7 +28,7 @@ To completely remove the security features and make sure they are or are not the
 
 An alternative to removing `AppArmorProfile` from the unit file is to just disable it on the system, or put it in complain mode. See "Troubleshooting Apparmor" below for details.
 
-2. Reload the systemd units:
+2. Reload the Systemd units:
 
 ```
   sudo systemctl daemon-reload
@@ -90,9 +90,9 @@ Explaining the full syntax of the AppArmor profiles is out of scope for this doc
 ATTENTION: be mindful of the differences in Ubuntu Releases regarding the AppArmor profile syntax!
 
 
-## Troubleshooting systemd sandboxing
+## Troubleshooting Systemd sandboxing
 
-Troubleshooting systemd sandboxing is not as straightforward as with AppArmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle it. There is no "system" log to help with troubleshooting the sandbox rules.
+Troubleshooting Systemd sandboxing is not as straightforward as with AppArmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle it. There is no "system" log to help with troubleshooting the sandbox rules.
 
 The only way to troubleshoot this sandboxing is to methodically disable rule by rule in the `apt-news.service` file and test the service.
 
@@ -202,7 +202,7 @@ jan 03 16:36:31 nsnx2 systemd[1]: run-u3002.service: Failed with result 'exit-co
 
 ## Cheat sheet
 
-Here are a few handful Apparmor and Systemd tips.
+Here are a few handful AppArmor and Systemd tips.
 
 | What                                    | How                                    |
 |-----------------------------------------|----------------------------------------|
@@ -212,4 +212,4 @@ Here are a few handful Apparmor and Systemd tips.
 | List loaded profiles                    | `sudo aa-status`                       |
 | Check AppArmor logs                     | `sudo dmesg -wT \| grep apparmor=`     |
 | Run a command under an AppArmor profile | `sudo aa-exec -p <profile> <cmd>`      |
-| Run a command with a systemd sanboxing property | `sudo systemd-run -qt -p <property> <cmd>` |
+| Run a command with a Systemd sanboxing property | `sudo systemd-run -qt -p <property> <cmd>` |
