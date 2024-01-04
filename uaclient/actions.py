@@ -181,6 +181,30 @@ def status(
     return status, ret
 
 
+def _write_apparmor_logs_to_file(filename: str) -> None:
+    """
+    Helper which gets ubuntu_pro apparmor logs from the kernel from the last
+    day and writes them to the specified filename.
+    """
+    # can't use journalctl's --grep, because xenial doesn't support it :/
+    cmd = ["journalctl", "-b", "-k", "--since=1 day ago"]
+    apparmor_re = r"apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)"
+    kernel_logs = None
+    try:
+        kernel_logs, _ = system.subp(cmd)
+    except exceptions.ProcessExecutionError as e:
+        LOG.warning("Failed to collect kernel logs:\n%s", str(e))
+        system.write_file("{}-error".format(filename), str(e))
+    else:
+        if kernel_logs:  # some unit tests mock subp to return (None,None)
+            apparmor_logs = []
+            # filter out only what interests us
+            for kernel_line in kernel_logs.split("\n"):
+                if re.search(apparmor_re, kernel_line):
+                    apparmor_logs.append(kernel_line)
+            system.write_file(filename, "\n".join(apparmor_logs))
+
+
 def _write_command_output_to_file(
     cmd, filename: str, return_codes: Optional[List[int]] = None
 ) -> None:
@@ -290,26 +314,7 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             )
 
     # get apparmor logs
-    # can't use journalctl's --grep, because xenial doesn't support it :/
-    try:
-        kernel_logs, _ = system.subp(
-            ["journalctl", "-b", "-k", "--since=1 day ago"]
-        )
-    except exceptions.ProcessExecutionError as e:
-        LOG.warning("Failed to collect kernel logs:\n%s", str(e))
-        kernel_logs = None
-    apparmor_logs = []
-    if kernel_logs:
-        # filter out only what interests us
-        for kernel_line in kernel_logs.split("\n"):
-            if re.search(
-                r"apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)",
-                kernel_line,
-            ):
-                apparmor_logs.append(kernel_line)
-    system.write_file(
-        "{}/apparmor_logs.txt".format(output_dir), "\n".join(apparmor_logs)
-    )
+    _write_apparmor_logs_to_file("{}/apparmor_logs.txt".format(output_dir))
 
     # include apparmor profiles
     for f in APPARMOR_PROFILES:
