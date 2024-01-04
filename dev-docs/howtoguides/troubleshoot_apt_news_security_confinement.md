@@ -2,7 +2,7 @@
 
 The `apt-news` service uses two types of security confinements:
   - [systemd sandboxing features](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing)
-  - [apparmor profile](https://ubuntu.com/server/docs/security-apparmor)
+  - [AppArmor profile](https://ubuntu.com/server/docs/security-apparmor)
 
 In the git repository, these are located at:
   - [apt-news.service](https://github.com/canonical/ubuntu-pro-client/blob/main/systemd/apt-news.service)
@@ -47,7 +47,7 @@ The Apparmor profile for the `apt-news` service is loaded via the `AppArmorProfi
   AppArmorProfile=ubuntu_pro_apt_news
 ```
 
-This will apply the specified apparmor profile on service startup. If the profile does not exist, the service startup will fail. The actual profile is located in `/etc/apparmor.d/ubuntu_pro_apt_news`, and is loaded into the kernel at package install/upgrade time, or when the system boots.
+This will apply the specified AppArmor profile on service startup. If the profile does not exist, the service startup will fail. The actual profile is located in `/etc/apparmor.d/ubuntu_pro_apt_news`, and is loaded into the kernel at package install/upgrade time, or when the system boots.
 
 To verify if the Apparmor profile is causing the issues you are observing, the first troubleshooting attempt should be to put it in "complain" mode. In that mode, it will allow everything, but log if something would have been blocked had the profile been in "enforce" mode.
 
@@ -78,21 +78,21 @@ And then start the service:
 sudo systemctl start apt-news.service
 ```
 
-If you see any logs with `ALLOWED` in them, then that action is something that would have been blocked by the apparmor profile had it not been in "complain" mode, and is something you should add to the apparmor profile.
+If you see any logs with `ALLOWED` in them, then that action is something that would have been blocked by the AppArmor profile had it not been in "complain" mode, and is something you should add to the AppArmor profile.
 
-To make changes to the apparmor profile, edit the `/etc/apparmor.d/ubuntu_pro_apt_news` file, save, and reload the profile with the following command:
+To make changes to the AppArmor profile, edit the `/etc/apparmor.d/ubuntu_pro_apt_news` file, save, and reload the profile with the following command:
 ```
 sudo apparmor_parser -r -W -T /etc/apparmor.d/ubuntu_pro_apt_news
 ```
 
-Explaining the full syntax of the apparmor profiles is out of scope for this document. You can find more information in the [apparmor.d manpage](https://manpages.ubuntu.com/manpages/noble/man5/apparmor.d.5.html). The Ubuntu Server Guide also has a good introduction on the topic in the [Security - AppArmor](https://ubuntu.com/server/docs/security-apparmor) page.
+Explaining the full syntax of the AppArmor profiles is out of scope for this document. You can find more information in the [apparmor.d manpage](https://manpages.ubuntu.com/manpages/noble/man5/apparmor.d.5.html). The Ubuntu Server Guide also has a good introduction on the topic in the [Security - AppArmor](https://ubuntu.com/server/docs/security-apparmor) page.
 
-ATTENTION: be mindful of the differences in Ubuntu Releases regarding the apparmor profile syntax!
+ATTENTION: be mindful of the differences in Ubuntu Releases regarding the AppArmor profile syntax!
 
 
 ## Troubleshooting systemd sandboxing
 
-Troubleshooting systemd sandboxing is not as straightforward as with apparmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle it. There is no "system" log to help with troubleshooting the sandbox rules.
+Troubleshooting systemd sandboxing is not as straightforward as with AppArmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle it. There is no "system" log to help with troubleshooting the sandbox rules.
 
 The only way to troubleshoot this sandboxing is to methodically disable rule by rule in the `apt-news.service` file and test the service.
 
@@ -137,7 +137,7 @@ sudo systemctl start apt-news.service
 
 If whatever incorrect behavior that you were observing is now gone, then it's likely that that restriction was causing it.
 
-The exact meaning of each sandboxing feature is well documented upstream, in the [systemd.exec sandboxing](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing) section of the manpage. But as with apparmor, be mindful of differences between Ubuntu Releases: not all features from the latest releases will be available in, say, Ubuntu Xenial, for example.
+The exact meaning of each sandboxing feature is well documented upstream, in the [systemd.exec sandboxing](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing) section of the manpage. But as with AppArmor, be mindful of differences between Ubuntu Releases: not all features from the latest releases will be available in, say, Ubuntu Xenial, for example.
 
 There is one additional troubleshooting tip that can be helpful, and that is to run any command with specific sandboxing features enabled.
 
@@ -206,10 +206,10 @@ Here are a few handful Apparmor and Systemd tips.
 
 | What                                    | How                                    |
 |-----------------------------------------|----------------------------------------|
-| Reload an apparmor profile from disk    | `sudo apparmor_parser -r -W -T <file>` |
+| Reload an AppArmor profile from disk    | `sudo apparmor_parser -r -W -T <file>` |
 | Place a profile in complain mode        | `sudo aa-complain <file>`              |
 | Place a profile in enforce mode         | `sudo aa-enforce <file>`               |
 | List loaded profiles                    | `sudo aa-status`                       |
-| Check apparmor logs                     | `sudo dmesg -wT \| grep apparmor=`     |
-| Run a command under an apparmor profile | `sudo aa-exec -p <profile> <cmd>`      |
+| Check AppArmor logs                     | `sudo dmesg -wT \| grep apparmor=`     |
+| Run a command under an AppArmor profile | `sudo aa-exec -p <profile> <cmd>`      |
 | Run a command with a systemd sanboxing property | `sudo systemd-run -qt -p <property> <cmd>` |
