@@ -60,3 +60,8 @@ NOTICES_TEMPORARY_DIRECTORY = UAC_RUN_PATH + "notices/"
 USER_CACHE_SUBDIR = "ubuntu-pro"
 
 SSL_CERTS_PATH = "/etc/ssl/certs/ca-certificates.crt"
+
+# used by apport, collect-logs, and tests
+APPARMOR_PROFILES = [
+    "/etc/apparmor.d/ubuntu_pro_apt_news",
+]
