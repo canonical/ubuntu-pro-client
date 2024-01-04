@@ -4,13 +4,13 @@ import textwrap
 import mock
 import pytest
 
-from uaclient.actions import APPARMOR_PROFILES
 from uaclient.cli import (
     action_collect_logs,
     collect_logs_parser,
     get_parser,
     main,
 )
+from uaclient.defaults import APPARMOR_PROFILES
 
 M_PATH = "uaclient.cli."
 
