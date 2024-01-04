@@ -23,6 +23,7 @@ from uaclient.defaults import (
     CLOUD_BUILD_INFO,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
+    APPARMOR_PROFILES,
 )
 from uaclient.files.state_files import (
     AttachmentData,
@@ -45,11 +46,6 @@ UA_SERVICES = (
 )
 
 USER_LOG_COLLECTED_LIMIT = 10
-
-# XXX handle /etc/apparmor.d/local/<name>, which has the local admin overrides
-APPARMOR_PROFILES = [
-    "/etc/apparmor.d/ubuntu_pro_apt_news",
-]
 
 
 def attach_with_token(
