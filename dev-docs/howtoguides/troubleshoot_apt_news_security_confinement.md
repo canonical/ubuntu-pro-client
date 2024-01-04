@@ -8,7 +8,7 @@ In the git repository, these are located at:
   - [apt-news.service](https://github.com/canonical/ubuntu-pro-client/blob/main/systemd/apt-news.service)
   - `debian/apparmor/ubuntu_pro_apt_news.jinja2`
 
-These security features restrict what the service can do on the system, and it's quite common that an application faced with unexpected permission denied errors, or unavailability of resources, will just crash, or behave unexpectedly.
+These security features restrict what the service can do on the system, and it's quite common that an application faced with unexpected "permission denied" errors, or unavailability of resources, will either crash or behave unexpectedly.
 
 If you suspect the security confinement might be impacting the `apt-news` service, here are some troubleshooting tips.
 
