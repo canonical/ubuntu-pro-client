@@ -121,7 +121,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I dry run apt upgrade
+        When I apt upgrade on a dry run 
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -178,7 +178,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and \d+ not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I dry run apt upgrade
+        When I apt upgrade on a dry run 
         Then stdout matches regexp:
         """
         Reading package lists...
@@ -679,7 +679,7 @@ Feature: APT Messages
         When I apt install `ansible`
         # Update after installing to make sure messages are there
         When I apt update
-        When I dry run apt upgrade
+        When I apt upgrade on a dry run 
         Then stdout contains substring:
         """
         <msg>
@@ -720,7 +720,7 @@ Feature: APT Messages
         0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         """
         When I attach `contract_token` with sudo
-        When I dry run apt upgrade
+        When I apt upgrade on a dry run 
         Then stdout matches regexp:
         """
         Reading package lists...
