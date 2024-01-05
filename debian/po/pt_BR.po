@@ -3114,9 +3114,9 @@ msgid "failed to enable some services"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2193
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "failed to enable {service}"
-msgstr "Habilite {service} com: pro enable {service}"
+msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2199
 msgid "Failed to enable default services, check: sudo pro status"
@@ -3454,9 +3454,8 @@ msgstr ""
 "{values}"
 
 #: ../../uaclient/messages/__init__.py:2558
-#, fuzzy
 msgid "The operation is not supported"
-msgstr "A atualização ainda não está instalada"
+msgstr "A operação não é suportada"
 
 #~ msgid "Detach this machine from Ubuntu Pro services."
 #~ msgstr "Desvincule esta máquina de uma assinatura Ubuntu Pro"
