@@ -134,6 +134,7 @@ class TestUpdateESMCaches:
                         suites=suites,
                         keyrings_dir=apt.KEYRINGS_DIR,
                         keyring_file=entitlement.repo_key_file,
+                        deb_src="",
                     ),
                 )
             ]
