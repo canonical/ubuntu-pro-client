@@ -56,7 +56,7 @@ SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy", "mantic")
 DEB822_REPO_FILE_CONTENT = """\
 # Written by ubuntu-advantage-tools
 
-Types: deb
+Types: deb{deb_src}
 URIs: {url}
 Suites: {suites}
 Components: main
@@ -506,6 +506,7 @@ def _get_sources_file_content(
     updates_enabled: bool,
     repo_url: str,
     keyring_file: str,
+    include_deb_src: bool = False,
 ) -> str:
     appliable_suites = [suite for suite in suites if series in suite]
     if not updates_enabled:
@@ -518,11 +519,14 @@ def _get_sources_file_content(
             suite for suite in appliable_suites if "-updates" not in suite
         ]
 
+    deb_src = " deb-src" if include_deb_src else ""
+
     content = DEB822_REPO_FILE_CONTENT.format(
         url=repo_url,
         suites=" ".join(appliable_suites),
         keyrings_dir=KEYRINGS_DIR,
         keyring_file=keyring_file,
+        deb_src=deb_src,
     )
 
     return content

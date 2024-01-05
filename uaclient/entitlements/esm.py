@@ -68,6 +68,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
                 suites=suites,
                 keyrings_dir=KEYRINGS_DIR,
                 keyring_file=self.repo_key_file,
+                deb_src="",
             ),
         )
 
