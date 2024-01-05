@@ -46,9 +46,9 @@ def when_i_apt_update(context, machine_name=SUT):
     )
 
 
-@when("I {dry} run {command} upgrade")
 @when("I {command} upgrade")
 @when("I {command} upgrade including {phased} updates")
+@when("I {command} upgrade on a {dry} run")
 def when_i_apt_upgrade(context, command="apt", dry="", phased=""):
     cmd_list = [
         command,
