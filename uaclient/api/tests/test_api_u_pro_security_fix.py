@@ -273,8 +273,8 @@ class TestCVE:
             (None, []),
             ([], []),
             (  # USNs are properly sorted by id
-                [{"id": "1"}, {"id": "2"}],
-                [USN(None, {"id": "2"}), USN(None, {"id": "1"})],
+                [{"id": "USN-1"}, {"id": "USN-2"}, {"id": "LSN-3"}],
+                [USN(None, {"id": "USN-2"}), USN(None, {"id": "USN-1"})],
             ),
         ),
     )
