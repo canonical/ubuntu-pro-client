@@ -296,6 +296,7 @@ class CVE:
                 [
                     USN(self.client, notice)
                     for notice in self.response.get("notices", [])
+                    if notice and notice.get("id", "").startswith("USN-")
                 ],
                 key=lambda n: n.id,
                 reverse=True,
