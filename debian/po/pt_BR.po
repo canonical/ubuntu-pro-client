@@ -365,7 +365,7 @@ msgstr ""
 "novamente."
 
 #: ../../uaclient/messages/__init__.py:104
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 " A new version is available: {version}\n"
 "Please run:\n"
@@ -374,7 +374,7 @@ msgid ""
 msgstr ""
 " Uma nova versão está disponível: {version}\n"
 "Por favor, execute:\n"
-"    sudo apt install ubuntu-advantage-tools\n"
+"    sudo apt install ubuntu-pro-client\n"
 "para obter as últimas correções de erros e novas funcionalidades."
 
 #. ##############################################################################
