@@ -13,30 +13,11 @@ include /etc/os-release
 # versus Xenial to make those contraints applicable on each series.
 DISTRO_INFO_DEPS="distro-info (>= 0.18ubuntu0.18.04.1),"
 
-# Xenial, Bionic, Focal, Jammy, and Mantic all began with only the
-# ubuntu-advantage-tools. Even after the rename to ubuntu-pro-client, those
-# releases need to keep ubuntu-advantage-tools installed, because the prerm
-# script will break ESM access. In order to force ubuntu-advantage-tools to
-# stay installed, we add ubuntu-advantage-tools to the Depends list for
-# ubuntu-pro-client on those releases.
-# On Noble onward, only ubuntu-pro-client needs to be installed, because it
-# will have been there from the beginning of the release. ubuntu-advantage-tools
-# still can be installed, but it will no longer cause any harm.
-SELF_DEPS=""
-
 ifeq (${VERSION_ID},"16.04")
 APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32),"
 DISTRO_INFO_DEPS="distro-info (>= 0.14ubuntu0.2),"
-SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
 else ifeq (${VERSION_ID},"18.04")
 APT_PKG_DEPS="apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11),"
-SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
-else ifeq (${VERSION_ID},"20.04")
-SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
-else ifeq (${VERSION_ID},"22.04")
-SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
-else ifeq (${VERSION_ID},"23.10")
-SELF_DEPS="ubuntu-advantage-tools (>= 31~),"
 endif
 
 %:
@@ -58,7 +39,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	echo extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS) $(SELF_DEPS) >> debian/ubuntu-pro-client.substvars
+	echo extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS) >> debian/ubuntu-pro-client.substvars
 	dh_gencontrol
 
 override_dh_systemd_enable:
