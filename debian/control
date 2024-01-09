@@ -35,7 +35,7 @@ Vcs-Browser: https://github.com/canonical/ubuntu-pro-client
 Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools
-Depends: ubuntu-pro-client, ${misc:Depends}
+Depends: ubuntu-pro-client (= ${binary:Version}), ${misc:Depends}
 Architecture: all
 Priority: optional
 Section: oldlibs
@@ -54,7 +54,8 @@ Depends: ${misc:Depends},
 Recommends: ubuntu-pro-client-l10n
 Breaks: ubuntu-advantage-tools (<<31~)
 Replaces: ubuntu-advantage-tools (<<31~)
-Provides: ubuntu-advantage-tools
+# IMPORTANT: ubuntu-pro-client does not "Provide" ubuntu-advantage-tools
+# TODO fill this in with rationale after testing.
 Description: Management tools for Ubuntu Pro
  Ubuntu Pro is a suite of additional services provided by Canonical on
  top of Ubuntu. Whether you're an enterprise customer deploying systems
