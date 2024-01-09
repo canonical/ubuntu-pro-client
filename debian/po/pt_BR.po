@@ -1669,9 +1669,8 @@ msgid "tarball where the logs will be stored. (Defaults to ./ua_logs.tar.gz)"
 msgstr "tarball onde os logs serão guardados. (Valor padrão ./ua_logs.tar.gz)"
 
 #: ../../uaclient/messages/__init__.py:901
-#, fuzzy
 msgid "Show customizable configuration settings"
-msgstr "Mostre as opções personalizáveis da configuração"
+msgstr "Mostra opções personalizáveis da configuração"
 
 #: ../../uaclient/messages/__init__.py:903
 msgid "Optional key or key(s) to show configuration settings."
@@ -1821,7 +1820,6 @@ msgid "List and present information about esm-apps packages"
 msgstr "Lista e mostra informações sobre pacotes esm-apps"
 
 #: ../../uaclient/messages/__init__.py:988
-#, fuzzy
 msgid ""
 "Refresh three distinct Ubuntu Pro related artifacts in the system:\n"
 "\n"
@@ -1833,16 +1831,14 @@ msgid ""
 "by passing the target name to the command.  If no `target`\n"
 "is specified, all targets are refreshed.\n"
 msgstr ""
-"Atualize três artefatos distintos no seu sistema relacionados ao Ubuntu "
+"Atualiza três artefatos distintos no seu sistema relacionados ao Ubuntu "
 "Pro:\n"
 "\n"
-"* contract: Atualize detalhes do contratos através do servidor.\n"
-"* config: Recarregue as configurações encontradas no arquivo de "
-"configuração.\n"
-"* messages: Atualized as mensagens APT e MOTD relacionados ao Ubuntu Pro.\n"
+"* contract: Atualiza detalhes do contrato a partir do servidor.\n"
+"* config: Recarrega o arquivo de configuração.\n"
+"* messages: Atualiza as mensagens do APT e MOTD relacionados ao Ubuntu Pro.\n"
 "\n"
-"Você pode individualmente executar o comando para qualquer ums das três "
-"opções,\n"
+"Você pode executar individualmente qualquer uma das três opções,\n"
 "ao fornecer o nome da opção para o comando. Se nenhuma `opção` for "
 "especificada,\n"
 "todas as opções serão atualizadas.\n"
@@ -2887,7 +2883,7 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1883
 msgid "unattended-upgrades package is not installed"
-msgstr ""
+msgstr "O pacote unattended-upgrades não está instalado"
 
 #: ../../uaclient/messages/__init__.py:1889
 msgid ""
