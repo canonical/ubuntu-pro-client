@@ -1,3 +1,60 @@
+ubuntu-advantage-tools (31) noble; urgency=medium
+
+  * d/*:
+    - rename ubuntu-advantage-tools to ubuntu-pro-client
+    - rename ubuntu-advantage-pro to ubuntu-pro-image-auto-attach
+  * d/apparmor:
+    - introduce new ubuntu_pro_apt_news apparmor policy
+  * d/control:
+    - update descriptions and homepages
+    - update ubuntu-pro-client-l10n to Depend on same binary version
+      of ubuntu-pro-client
+  * d/rules:
+    - install ubuntu_pro_apt_news apparmor policy
+  * d/ubuntu-pro-client.prerm:
+    - removed dependency on python3 by reimplementing in sh (LP: #2021988)
+  * apport:
+    - collect logs related to ubuntu_pro_apt_news apparmor policy
+  * release-upgrades.d/ubuntu-advantage-upgrades.cfg:
+    - convert APT list files to deb822 files when upgrading to noble
+  * systemd/apt-news.service:
+    - add apparmor profile and capability restrictions
+  * New upstream release 31 (LP: #2048921)
+    - api:
+      + u.pro.attach.auto.full_auto_attach.v1: new cloud_override param
+      + u.pro.status.enabled_services.v1:
+        * include services in "warning" state
+        * include "usg"
+      + u.pro.security.fix.*.plan.v1: export common objects from
+        endpoint modules (GH: #2714)
+    - cli:
+      + add autocomplete for api subcommand
+      + autocomplete multiple services for enable/disable subcommands
+      + if lock is held, cli will retry over the course of a few seconds
+    - collect-logs:
+      + include logs related to ubuntu_pro_apt_news apparmor policy
+      + include logs of apt-news.service
+      + include logs of esm-cache.service
+    - enable:
+      + use deb822 apt source file format when on noble or later
+    - fix:
+      + avoid insinuating that CVEs were found on the machine (GH: #1522)
+      + ignore LSNs when considering related USNs
+      + pick CVE description based on what packages are installed
+    - landscape:
+      + don't disable landscape on ubuntu releases where it cannot be
+        enabled (GH: #2743)
+      + no longer assume landscape-client gets removed on disable (GH: #2840)
+      + leave client.conf in place instead of renaming
+      + require service to be running to consider "enabled"
+      + new explanatory message when disabling
+    - motd: properly pluralize messages about updates (GH: #1579)
+    - status: show warning when canonical-livepatch command fails
+      (LP: #2019997)
+    - timer jobs: jobs-status.json is now world readable (GH: #2601)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 09 Jan 2024 14:24:33 -0500
+
 ubuntu-advantage-tools (30.1) noble; urgency=medium
 
   * fix UnboundLocalError in update-check error handling (LP: #2043836)
