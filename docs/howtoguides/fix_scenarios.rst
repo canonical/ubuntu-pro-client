@@ -370,8 +370,9 @@ situations.
 
 There are further options to control what exactly will happen when
 running ``pro fix``, read about them in:
-:ref:`How to know what the fix command would change? <pro-fix-dry-run>`
-:ref:`How to skip fixing related USNs <pro-fix-skip-related>`
+
+* :ref:`How to know what the fix command would change? <pro-fix-dry-run>`
+* :ref:`How to skip fixing related USNs <pro-fix-skip-related>`
 
 .. Instructions for how to connect with us
 .. include:: ../includes/contact.txt
