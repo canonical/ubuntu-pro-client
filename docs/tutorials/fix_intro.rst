@@ -53,7 +53,7 @@ As mentioned at the beginning, there might be more scenarios that you may
 encounter using ``pro fix`` as well as options to control what exactly will
 happen, those are covered in detail in:
 
-* :ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`
+* In :ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>` you can continue using your test environment created here to explore difference scenarios you might encounter.
 * :ref:`How to know what the fix command would change? <pro-fix-dry-run>`
 * :ref:`How to skip fixing related USNs <pro-fix-skip-related>`
 
