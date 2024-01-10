@@ -1,0 +1,60 @@
+This is best demonstrated in a ``pro fix`` call that *does* fix a package.
+
+Therefore let us install an older package on the VM that we know is associated
+with `CVE-2020-25686`_. You can install the package by running these commands:
+
+.. code-block:: bash
+
+    $ sudo apt update
+    $ sudo apt install dnsmasq=2.75-1
+
+Now, let's run ``pro fix`` on the CVE:
+
+.. code-block:: bash
+
+    $ sudo pro fix CVE-2020-25686
+
+You will then see the following output:
+
+.. code-block:: text
+
+    CVE-2020-25686: Dnsmasq vulnerabilities
+    https://ubuntu.com/security/CVE-2020-25686
+
+    1 affected package is installed: dnsmasq
+    (1/1) dnsmasq:
+    A fix is available in Ubuntu standard updates.
+    { apt update && apt install --only-upgrade -y dnsmasq }
+
+    ✔ CVE-2020-25686 is resolved.
+
+.. note::
+
+    We need to run the command with ``sudo`` because it will be installing a
+    package on the system.
+
+Whenever ``pro fix`` has a package to upgrade, it follows a consistent
+structure and displays the following, in this order:
+
+1. The affected package
+2. The availability of a fix
+3. The location of the fix, if one is available
+4. The command that will fix the issue
+
+Also, at the end of the output you can see confirmation that the CVE was fixed
+by the command. Just to confirm that the fix was successfully applied, let's
+run the ``pro fix`` command again, and we should now see the following:
+
+.. code-block:: text
+
+    CVE-2020-25686: Dnsmasq vulnerabilities
+    https://ubuntu.com/security/CVE-2020-25686
+
+    1 affected package is installed: dnsmasq
+    (1/1) dnsmasq:
+    A fix is available in Ubuntu standard updates.
+    The update is already installed.
+
+    ✔ CVE-2020-25686 is resolved.
+
+

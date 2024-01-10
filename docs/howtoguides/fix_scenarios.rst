@@ -1,23 +1,20 @@
-Use ``pro fix`` to solve a CVE/USN
-**********************************
+.. _pro-fix-howto:
 
-The Ubuntu Pro Client (``pro``) can be used to inspect and resolve
-`Common Vulnerabilities and Exposures <cve_>`_ (CVEs) and
-`Ubuntu Security Notices <usn_>`_ (USNs) on your machine.
+Understand scenarios encountered using ``pro fix`` to solve a CVE/USN
+*********************************************************************
 
-Every CVE/USN is fixed by trying to upgrade all of the affected packages
-described by the CVE or USN. Sometimes, the package fixes can only be applied
-if an Ubuntu Pro service is already enabled on your machine.
+.. Into "what is pro fix" shared with the related tutorial
+.. include:: ../includes/pro-fix-intro.txt
 
-In this tutorial, we will introduce the ``pro fix`` command and test some
-common scenarios you may encounter.
+This howto will go a bit deeper and after introducing the ``pro fix``
+command it will go in more details about the differen scenarios you may
+encounter using ``pro fix``.
 
-.. Why we use Multipass + command to install it
-.. include:: ./common/install-multipass.txt
+.. note::
 
-.. Commands for launching and updating a Xenial VM
-.. include:: ./common/create-vm.txt
-
+   If instead you look for a simpler guided tutorial to get started with
+   ``pro fix`` please start at
+   :ref:`Use pro fix to solve a CVE/USN <pro-fix-tutorial>`.
 
 
 Use ``pro fix``
@@ -52,64 +49,8 @@ Every ``pro fix`` output has a similar output structure. It:
 * fixes the affected packages; and
 * at the end, shows if the CVE/USN is fully fixed in the machine.
 
-This is better demonstrated in a ``pro fix`` call that *does* fix a package!
-
-Let's install a package on the VM that we know is associated with
-`CVE-2020-25686`_. You can install the package by running these commands:
-
-.. code-block:: bash
-
-    $ sudo apt update
-    $ sudo apt install dnsmasq=2.75-1
-
-Now, let's run ``pro fix`` on the package:
-
-.. code-block:: bash
-
-    $ sudo pro fix CVE-2020-25686
-
-You will then see the following output:
-
-.. code-block:: text
-
-    CVE-2020-25686: Dnsmasq vulnerabilities
-    https://ubuntu.com/security/CVE-2020-25686
-
-    1 affected package is installed: dnsmasq
-    (1/1) dnsmasq:
-    A fix is available in Ubuntu standard updates.
-    { apt update && apt install --only-upgrade -y dnsmasq }
-
-    ✔ CVE-2020-25686 is resolved.
-
-.. note::
-
-    We need to run the command with ``sudo`` because we are now installing a
-    package on the system.
-
-Whenever ``pro fix`` has a package to upgrade, it follows a consistent
-structure and displays the following, in this order:
-
-1. The affected package
-2. The availability of a fix
-3. The location of the fix, if one is available
-4. The command that will fix the issue
-
-Also, at the end of the output you can see confirmation that the CVE was fixed
-by the command. Just to confirm that the fix was successfully applied, let's
-run the ``pro fix`` command again, and we should now see the following:
-
-.. code-block:: text
-
-    CVE-2020-25686: Dnsmasq vulnerabilities
-    https://ubuntu.com/security/CVE-2020-25686
-
-    1 affected package is installed: dnsmasq
-    (1/1) dnsmasq:
-    A fix is available in Ubuntu standard updates.
-    The update is already installed.
-
-    ✔ CVE-2020-25686 is resolved.
+.. # The basic case is shared between Howto and Tutorial
+.. include:: ../includes/pro-fix-simple-case.txt
 
 CVE/USN without a released fix
 ==============================
@@ -423,8 +364,9 @@ and resolve the main scenarios that you might find when you run ``pro fix``.
 Next steps
 ----------
 
-We have successfully encountered and resolved the main scenarios that you might
-find when you run ``pro fix``.
+You have learned about the various scenarios that ``pro fix`` might encounter
+to be ready to undertand what is happening when using it in a variety of
+situations.
 
 If you need more information about this command, please feel free to reach out
 to the Ubuntu Pro Client team on ``#ubuntu-server`` on
