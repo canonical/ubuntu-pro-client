@@ -48,7 +48,8 @@ tooling: the ``ubuntu-advantage-pro`` package.
 Ease handling of CVEs and USNs
 ==============================
 
-In this section we explain output and interactions related to CVEs and USNs.
+In this section we explain the output of ``pro fix`` and its API interface
+as well as some details related to it like CVEs and USNs.
 
 ..  toctree::
     :maxdepth: 1

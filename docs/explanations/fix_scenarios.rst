@@ -15,15 +15,16 @@ encounter using ``pro fix``.
    If instead you look for a simpler guided tutorial to get started with
    ``pro fix`` please start at
    :ref:`Use pro fix to solve a CVE/USN <pro-fix-tutorial>`.
+   You can even use the VM based environment created in that tutorial
+   to recreate the output shown below yourself.
 
 
 Use ``pro fix``
 ===============
 
 First, let's see what happens to your system when ``pro fix`` runs. We will
-choose to fix a CVE that does not affect the VM -- in this case,
-`CVE-2020-15180`_. This CVE addresses security issues for the ``MariaDB``
-package, which is not installed on the system.
+choose to fix a CVE that does not affect the system -- for example if you
+do not have ``MariaDB`` installed `CVE-2020-15180`_.
 
 Let's first confirm that it doesn't affect the system by running this command:
 
@@ -56,8 +57,10 @@ CVE/USN without a released fix
 ==============================
 
 Some CVEs/USNs do not have a fix released yet. When that happens, ``pro fix``
-will let you know! Before we reproduce this scenario, let us first install a
-package that we know has no fix available by running:
+will let you know! This is example output created in the past, there
+might be fixes for it later on. To create this scenario we installed a
+known affected package with no fix at the time and then checked for an
+available fix:
 
 .. code-block:: bash
 
@@ -117,11 +120,11 @@ The command will prompt you for a response, like this:
     subscription.
 
     Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel
-    > 
+    >
 
 We can see that the prompt is asking for an Ubuntu Pro subscription token. Any
 user with a Ubuntu One account is entitled to a free personal token to use with
-Ubuntu Pro. 
+Ubuntu Pro.
 
 If you choose the ``Subscribe`` option on the prompt, the command will ask you
 to go to the `Ubuntu Pro portal <Pro_>`_. In the portal, you can get a free
@@ -212,7 +215,7 @@ we observe that the USN is indeed fixed, which you can confirm by running the
 
     ✔ USN-5079-2 is resolved.
 
-.. note:: 
+.. note::
 
     Even though we are not covering this scenario here, if you have an expired
     contract, ``pro fix`` will detect that and prompt you to attach a new token
@@ -315,8 +318,8 @@ affected packages. This happens when only a subset of the packages have
 available updates to fix for that CVE/USN.
 
 In this case, ``pro fix`` will tell you which package(s) it can or cannot fix.
-But first, let's install a package so we can run ``pro fix`` to demonstrate
-this scenario.
+In the example, we install a package so we can run ``pro fix`` against to
+demonstrate this scenario.
 
 .. code-block:: bash
 
