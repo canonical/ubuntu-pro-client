@@ -52,7 +52,6 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Understand scenarios encountered using `pro fix` to solve a CVE/USN <howtoguides/fix_scenarios>
    How to know what the `fix` command would change? <howtoguides/how_to_know_what_the_fix_command_would_change>
    Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns>
 

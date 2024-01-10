@@ -1,7 +1,7 @@
 .. _pro-fix-howto:
 
-Understand scenarios encountered using ``pro fix`` to solve a CVE/USN
-*********************************************************************
+Scenarios encountered using ``pro fix`` to solve a CVE/USN
+**********************************************************
 
 .. Into "what is pro fix" shared with the related tutorial
 .. include:: ../includes/pro-fix-intro.txt
