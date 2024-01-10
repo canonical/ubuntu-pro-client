@@ -6,8 +6,8 @@ Scenarios encountered using ``pro fix`` to solve a CVE/USN
 .. Into "what is pro fix" shared with the related tutorial
 .. include:: ../includes/pro-fix-intro.txt
 
-This howto will go a bit deeper and after introducing the ``pro fix``
-command it will go in more details about the differen scenarios you may
+This page will go a bit deeper and after introducing the ``pro fix``
+command it will go in more details about the different scenarios you may
 encounter using ``pro fix``.
 
 .. note::
@@ -356,7 +356,7 @@ Success!
 ========
 
 Congratulations!  You have learned about the various scenarios that ``pro fix``
-might encounter to be ready to undertand what is happening when using it in a
+might encounter to be ready to understand what is happening when using it in a
 variety of situations.
 
 Next steps
