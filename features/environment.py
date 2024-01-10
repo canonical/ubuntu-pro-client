@@ -365,6 +365,21 @@ def before_scenario(context: Context, scenario: Scenario):
         )
         return
 
+    install_from = context.pro_config.install_from
+    if install_from == InstallationSource.LOCAL:
+        if "skip_local_environment" in scenario.effective_tags:
+            scenario.skip(
+                reason="Scenario does not support install_from local"
+            )
+            return
+
+    if install_from == InstallationSource.PREBUILT:
+        if "skip_prebuilt_environment" in scenario.effective_tags:
+            scenario.skip(
+                reason="Scenario does not support install_from prebuilt"
+            )
+            return
+
     # before_step doesn't execute early enough to modify the step
     # so we perform step text surgery here
     # Also, logging capture is not set up when before_scenario is called,
