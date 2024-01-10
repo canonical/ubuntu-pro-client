@@ -52,6 +52,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
+   Understand scenarios encountered using `pro fix` to solve a CVE/USN <howtoguides/fix_scenarios>
    Run `fix` in "dry run" mode <howtoguides/how_to_run_fix_in_dry_run_mode>
    Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns>
 
