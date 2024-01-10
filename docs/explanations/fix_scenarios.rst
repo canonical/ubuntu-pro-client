@@ -355,18 +355,12 @@ resolved.
 Success!
 ========
 
-Congratulations! You successfully ran a Multipass VM and used it to encounter
-and resolve the main scenarios that you might find when you run ``pro fix``.
-
-.. Instructions for closing down and deleting the VM
-.. include:: ./common/shutdown-vm.txt
+Congratulations!  You have learned about the various scenarios that ``pro fix``
+might encounter to be ready to undertand what is happening when using it in a
+variety of situations.
 
 Next steps
 ----------
-
-You have learned about the various scenarios that ``pro fix`` might encounter
-to be ready to undertand what is happening when using it in a variety of
-situations.
 
 There are further options to control what exactly will happen when
 running ``pro fix``, read about them in:
