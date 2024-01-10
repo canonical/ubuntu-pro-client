@@ -50,8 +50,11 @@ We have successfully encountered and resolved the main scenarios that you might
 find when you run ``pro fix``.
 
 As mentioned at the beginning, there might be more scenarios that you may
-encounter using ``pro fix``, those are covered in detail in
-:ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`.
+encounter using ``pro fix`` as well as options to control what exactly will
+happen, those are covered in detail in:
+:ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`
+:ref:`How to know what the fix command would change? <pro-fix-dry-run>`
+:ref:`How to skip fixing related USNs <pro-fix-skip-related>`
 
 .. Instructions for how to connect with us
 .. include:: ../includes/contact.txt
