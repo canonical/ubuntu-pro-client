@@ -82,3 +82,31 @@ Feature: Pro Install and Uninstall related tests
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
+
+    @skip_local_environment
+    @skip_prebuilt_environment
+    Scenario Outline: Package ubuntu-advantage-tools now install 
+        Given a `<release>` `<machine_type>` machine
+        When I install transition package ubuntu-advantage-tools
+        Then I verify that `ubuntu-pro-client` is installed
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+
+    @skip_local_environment
+    @skip_prebuilt_environment
+    Scenario Outline: Package ubuntu-advantage-tools now install 
+        Given a `<release>` `<machine_type>` machine
+        When I install transition package ubuntu-advantage-tools
+        Then I verify that `ubuntu-pro-image-auto-attach` is installed
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | aws.pro       |
+           | bionic  | aws.pro       |
+           | focal   | aws.pro       |
+           | jammy   | aws.pro       |
+           | jammy   | aws.pro       |
