@@ -1,7 +1,7 @@
 import re
 
 from behave import then, when
-from hamcrest import assert_that, contains_string, matches_regexp
+from hamcrest import assert_that, contains_string, matches_regexp, not_
 
 from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
@@ -159,6 +159,15 @@ def verify_package_not_installed(context, package):
         )
     # If no output or it doesn't contain installation information,
     # then the package is neither installed nor known
+
+
+@then("I verify that `{package}` is installed")
+def verify_package_installed(context, package):
+    when_i_run_command(context, "dpkg -l {}".format(package), "as non-root")
+    assert_that(
+        context.process.stdout.strip(),
+        not_(contains_string("no packages found matching {}".format(package))),
+    )
 
 
 @then("I verify that `{package}` is installed from apt source `{apt_source}`")
