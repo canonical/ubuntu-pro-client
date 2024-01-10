@@ -53,12 +53,8 @@ As mentioned at the beginning, there might be more scenarios that you may
 encounter using ``pro fix``, those are covered in detail in
 :ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`.
 
-If you need more information about this command, please feel free to reach out
-to the Ubuntu Pro Client team on ``#ubuntu-server`` on
-`Libera IRC <pro_IRC_>`_ -- we're happy to help! 
-
-Alternatively, if you have a GitHub account, click on the "Give feedback"
-link at the top of this page to leave us a message. We'd love to hear from you!
+.. Instructions for how to connect with us
+.. include:: ../includes/contact.txt
 
 .. LINKS
 

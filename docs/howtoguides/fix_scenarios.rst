@@ -368,12 +368,8 @@ You have learned about the various scenarios that ``pro fix`` might encounter
 to be ready to undertand what is happening when using it in a variety of
 situations.
 
-If you need more information about this command, please feel free to reach out
-to the Ubuntu Pro Client team on ``#ubuntu-server`` on
-`Libera IRC <pro_IRC_>`_ -- we're happy to help! 
-
-Alternatively, if you have a GitHub account, click on the "Give feedback"
-link at the top of this page to leave us a message. We'd love to hear from you!
+.. Instructions for how to connect with us
+.. include:: ../includes/contact.txt
 
 .. LINKS
 
