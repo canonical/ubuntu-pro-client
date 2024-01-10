@@ -1,3 +1,5 @@
+.. _pro-fix-dry-run:
+
 How to know what the ``fix`` command would change?
 **************************************************
 
