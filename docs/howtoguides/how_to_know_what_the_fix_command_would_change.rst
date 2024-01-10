@@ -1,7 +1,12 @@
-How to run the ``fix`` command in "dry run" mode
-************************************************
+How to know what the ``fix`` command would change?
+**************************************************
 
-If you are unsure what changes will happen to your system after you run
+As outlined in
+:ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`
+``pro fix`` can encounter many conditions
+and running it might or might not lead to upgrades of packages on your system.
+
+If you are unsure what changes will happen to your system when you run
 ``pro fix`` to address a CVE/USN, you can simulate a run using the
 ``--dry-run`` flag to see which packages will be installed on the system. For
 example, this is the output of running ``pro fix USN-5079-2 --dry-run``:
