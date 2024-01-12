@@ -6,6 +6,7 @@ remove_apt_files() {
     # This list should be kept up to date with the list of available apt-repo-based services
     for service in anbox cc-eal cis esm-apps esm-infra fips fips-preview fips-updates realtime-kernel ros ros-updates; do
         rm -f /etc/apt/sources.list.d/ubuntu-${service}.list
+        rm -f /etc/apt/sources.list.d/ubuntu-${service}.sources
     done
     # preferences are only dynamically created for fips services
     for fips_service in fips fips-preview fips-updates; do
