@@ -100,7 +100,11 @@ def when_i_install_uat(context, machine_name=SUT):
         )
         logging.info("using debs: {}".format(deb_paths))
         for deb_path in deb_paths:
-            if "advantage-pro" not in deb_path or is_pro:
+            if (
+                "ubuntu-pro-client-l10n" in deb_path
+                or "ubuntu-advantage-tools" in deb_path
+                or ("ubuntu-advantage-pro" in deb_path and is_pro)
+            ):
                 instance.push_file(deb_path, "/tmp/behave_ua.deb")
                 when_i_apt_install(
                     context, "/tmp/behave_ua.deb", machine_name=machine_name
