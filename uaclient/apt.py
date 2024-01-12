@@ -1013,3 +1013,13 @@ def get_apt_config_values(
             apt_cfg_dict[cfg_name] = cfg_value
 
     return apt_cfg_dict
+
+
+def get_system_sources_file() -> str:
+    old_sources_path = "/etc/apt/sources.list"
+    new_sources_path = "/etc/apt/sources.list.d/ubuntu.sources"
+    return (
+        new_sources_path
+        if os.path.exists(new_sources_path)
+        else old_sources_path
+    )

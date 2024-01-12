@@ -36,6 +36,7 @@ from uaclient.apt import (
     get_installed_packages_names,
     get_pkg_candidate_version,
     get_remote_versions_for_package,
+    get_system_sources_file,
     is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
@@ -1617,3 +1618,19 @@ class TestEsmCacheStructure:
                 tmpdir + "/var/lib/apt/lists/partial", exist_ok=True, mode=755
             ),
         ]
+
+
+class TestGetSystemSourcesFile:
+    @pytest.mark.parametrize(
+        "new_source_exists,expected_return",
+        (
+            (True, "/etc/apt/sources.list.d/ubuntu.sources"),
+            (False, "/etc/apt/sources.list"),
+        ),
+    )
+    @mock.patch("uaclient.apt.os.path.exists")
+    def test_get_system_sources_file(
+        self, m_exists, new_source_exists, expected_return
+    ):
+        m_exists.return_value = new_source_exists
+        assert get_system_sources_file() == expected_return
