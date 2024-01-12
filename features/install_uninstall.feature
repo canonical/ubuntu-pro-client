@@ -82,3 +82,33 @@ Feature: Pro Install and Uninstall related tests
            | bionic  | lxd-container |
            | focal   | lxd-container |
            | jammy   | lxd-container |
+
+    @skip.install_from.local
+    @skip.install_from.prebuilt
+    Scenario Outline: ubuntu-pro-client brings up-to-date ubuntu-advantage-tools
+        Given a `<release>` `<machine_type>` machine
+        When I set up the apt source for ubuntu-advantage-tools
+        When I apt install `ubuntu-pro-client`
+        Then I verify that the version of `ubuntu-pro-client` equals the version of `ubuntu-advantage-tools`
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | mantic  | lxd-container |
+
+    @skip.install_from.local
+    @skip.install_from.prebuilt
+    Scenario Outline: ubuntu-pro-image-auto-attach brings up-to-date ubuntu-advantage-pro
+        Given a `<release>` `<machine_type>` machine
+        When I set up the apt source for ubuntu-advantage-tools
+        When I apt install `ubuntu-pro-image-auto-attach`
+        Then I verify that the version of `ubuntu-pro-image-auto-attach` equals the version of `ubuntu-advantage-pro`
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | aws.pro       |
+           | bionic  | aws.pro       |
+           | focal   | aws.pro       |
+           | jammy   | aws.pro       |
+           | mantic  | aws.pro       |

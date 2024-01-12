@@ -14,13 +14,79 @@ from features.util import (
 )
 
 
+@when("I set up the apt source for ubuntu-advantage-tools")
+def when_i_setup_uat_source(context, machine_name=SUT):
+    instance = context.machines[machine_name].instance
+    series = context.machines[machine_name].series
+    if context.pro_config.install_from is InstallationSource.ARCHIVE:
+        instance.execute("sudo apt update")
+    elif context.pro_config.install_from is InstallationSource.DAILY:
+        instance.execute("sudo add-apt-repository ppa:ua-client/daily")
+        instance.execute("sudo apt update")
+    elif context.pro_config.install_from is InstallationSource.STAGING:
+        instance.execute("sudo add-apt-repository ppa:ua-client/staging")
+        instance.execute("sudo apt update")
+    elif context.pro_config.install_from is InstallationSource.STABLE:
+        instance.execute("sudo add-apt-repository ppa:ua-client/stable")
+        instance.execute("sudo apt update")
+    elif context.pro_config.install_from is InstallationSource.PROPOSED:
+        context.text = "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\n".format(  # noqa: E501
+            series=series
+        )
+        when_i_create_file_with_content(
+            context,
+            "/etc/apt/sources.list.d/uaclient-proposed.list",
+            machine_name=machine_name,
+        )
+
+        context.text = "Package: *\nPin: release a={series}-proposed\nPin-Priority: 400\n".format(  # noqa: E501
+            series=series
+        )
+        when_i_create_file_with_content(
+            context,
+            "/etc/apt/preferences.d/lower-proposed",
+            machine_name=machine_name,
+        )
+
+        context.text = "Package: ubuntu-advantage-tools\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
+            series=series
+        )
+        when_i_create_file_with_content(
+            context,
+            "/etc/apt/preferences.d/uatools-proposed",
+            machine_name=machine_name,
+        )
+
+        context.text = "Package: ubuntu-advantage-pro\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
+            series=series
+        )
+        when_i_create_file_with_content(
+            context,
+            "/etc/apt/preferences.d/uapro-proposed",
+            machine_name=machine_name,
+        )
+
+        instance.execute("sudo apt update")
+    elif context.pro_config.install_from is InstallationSource.CUSTOM:
+        instance.execute(
+            "sudo add-apt-repository {}".format(context.pro_config.custom_ppa)
+        )
+        instance.execute("sudo apt update")
+
+
 @when("I install ubuntu-advantage-tools")
 def when_i_install_uat(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
     series = context.machines[machine_name].series
     is_pro = "pro" in context.machines[machine_name].machine_type
-    if context.pro_config.install_from is InstallationSource.ARCHIVE:
-        instance.execute("sudo apt update")
+    if context.pro_config.install_from in [
+        InstallationSource.ARCHIVE,
+        InstallationSource.DAILY,
+        InstallationSource.STAGING,
+        InstallationSource.STABLE,
+        InstallationSource.PROPOSED,
+        InstallationSource.CUSTOM,
+    ]:
         when_i_apt_install(
             context, "ubuntu-advantage-tools", machine_name=machine_name
         )
@@ -61,93 +127,6 @@ def when_i_install_uat(context, machine_name=SUT):
                 context, "/tmp/behave_ua.deb", machine_name=machine_name
             )
             instance.execute("sudo rm /tmp/behave_ua.deb")
-    elif context.pro_config.install_from is InstallationSource.DAILY:
-        instance.execute("sudo add-apt-repository ppa:ua-client/daily")
-        instance.execute("sudo apt update")
-        when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
-        )
-        if is_pro:
-            when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
-            )
-    elif context.pro_config.install_from is InstallationSource.STAGING:
-        instance.execute("sudo add-apt-repository ppa:ua-client/staging")
-        instance.execute("sudo apt update")
-        when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
-        )
-        if is_pro:
-            when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
-            )
-    elif context.pro_config.install_from is InstallationSource.STABLE:
-        instance.execute("sudo add-apt-repository ppa:ua-client/stable")
-        instance.execute("sudo apt update")
-        when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
-        )
-        if is_pro:
-            when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
-            )
-    elif context.pro_config.install_from is InstallationSource.PROPOSED:
-        context.text = "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/sources.list.d/uaclient-proposed.list",
-            machine_name=machine_name,
-        )
-
-        context.text = "Package: *\nPin: release a={series}-proposed\nPin-Priority: 400\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/lower-proposed",
-            machine_name=machine_name,
-        )
-
-        context.text = "Package: ubuntu-advantage-tools\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/uatools-proposed",
-            machine_name=machine_name,
-        )
-
-        context.text = "Package: ubuntu-advantage-pro\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/uapro-proposed",
-            machine_name=machine_name,
-        )
-
-        instance.execute("sudo apt update")
-        when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
-        )
-        if is_pro:
-            when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
-            )
-    elif context.pro_config.install_from is InstallationSource.CUSTOM:
-        instance.execute(
-            "sudo add-apt-repository {}".format(context.pro_config.custom_ppa)
-        )
-        instance.execute("sudo apt update")
-        when_i_apt_install(
-            context, "ubuntu-advantage-tools", machine_name=machine_name
-        )
-        if is_pro:
-            when_i_apt_install(
-                context, "ubuntu-advantage-pro", machine_name=machine_name
-            )
 
 
 @when("I have the `{series}` debs under test in `{dest}`")

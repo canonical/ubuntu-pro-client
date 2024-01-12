@@ -365,6 +365,21 @@ def before_scenario(context: Context, scenario: Scenario):
         )
         return
 
+    # skip scenario based on install_from value
+    for tag in scenario.effective_tags:
+        parts = tag.split(".")
+        if all(
+            [len(parts) == 3, parts[0] == "skip", parts[1] == "install_from"]
+        ):
+            to_skip = InstallationSource(parts[2])
+            if context.pro_config.install_from == to_skip:
+                scenario.skip(
+                    reason="Scenario does not support install_from={}".format(
+                        to_skip.value
+                    )
+                )
+                return
+
     # before_step doesn't execute early enough to modify the step
     # so we perform step text surgery here
     # Also, logging capture is not set up when before_scenario is called,

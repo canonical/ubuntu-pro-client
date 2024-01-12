@@ -7,7 +7,10 @@ from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
 
 from features.steps.shell import when_i_run_command
-from features.steps.ubuntu_advantage_tools import when_i_install_uat
+from features.steps.ubuntu_advantage_tools import (
+    when_i_install_uat,
+    when_i_setup_uat_source,
+)
 from features.util import (
     BUILDER_NAME_PREFIX,
     SUT,
@@ -190,6 +193,7 @@ def given_a_sut_machine(context, series, machine_type):
                 machine_name=builder_name,
                 cleanup=False,
             )
+            when_i_setup_uat_source(context, machine_name=builder_name)
             when_i_install_uat(context, machine_name=builder_name)
             when_i_take_a_snapshot(
                 context,
@@ -205,6 +209,7 @@ def given_a_sut_machine(context, series, machine_type):
         )
     else:
         given_a_machine(context, series, machine_type=machine_type)
+        when_i_setup_uat_source(context)
         when_i_install_uat(context)
 
     logging.info(
@@ -219,6 +224,7 @@ def given_a_sut_machine_with_user_data(context, series, machine_type):
     # doesn't support snapshot strategy because the test depends on
     # custom user data
     given_a_machine(context, series, machine_type, user_data=context.text)
+    when_i_setup_uat_source(context)
     when_i_install_uat(context)
 
 

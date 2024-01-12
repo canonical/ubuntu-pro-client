@@ -1,7 +1,7 @@
 import re
 
 from behave import then, when
-from hamcrest import assert_that, contains_string, matches_regexp
+from hamcrest import assert_that, contains_string, equal_to, matches_regexp
 
 from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
@@ -254,3 +254,23 @@ def store_candidate_version(context, package):
         context.stored_vars["candidate"] = candidate_version_match.group(
             1
         ).strip()
+
+
+@then(
+    "I verify that the version of `{package1}` equals the version of `{package2}`"  # noqa: E501
+)
+def verify_package_version_equality(context, package1, package2):
+    when_i_run_command(
+        context,
+        "dpkg-query --showformat='${{Version}}' --show {}".format(package1),
+        "as non-root",
+    )
+    package1_version_str = context.process.stdout.strip()
+    when_i_run_command(
+        context,
+        "dpkg-query --showformat='${{Version}}' --show {}".format(package2),
+        "as non-root",
+    )
+    package2_version_str = context.process.stdout.strip()
+
+    assert_that(package1_version_str, equal_to(package2_version_str))
