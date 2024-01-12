@@ -7,16 +7,18 @@ Feature: Upgrade between releases when uaclient is unattached
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Local PPAs are prepared and served only when testing with local debs
         When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+        # in case this still exists
+        And I delete the file `/var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.list`
         And I apt update
         And I run `sleep 30` as non-root
-        And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.list || true` with sudo
-        Then if `<release>` in `xenial` and stdout matches regexp:
+        And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.sources || true` with sudo
+        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
-        deb https://esm.ubuntu.com/infra/ubuntu <release>-infra-security main
-        """
-        And if `<release>` in `xenial` and stdout matches regexp:
-        """
-        deb https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates main
+        Types: deb
+        URIs: https://esm.ubuntu.com/infra/ubuntu
+        Suites: <release>-infra-security <release>-infra-updates
+        Components: main
+        Signed-By: /usr/share/keyrings/ubuntu-pro-esm-infra.gpg
         """
         When I apt dist-upgrade
         # Some packages upgrade may require a reboot
@@ -40,14 +42,14 @@ Feature: Upgrade between releases when uaclient is unattached
         """
         And I verify that the folder `/var/lib/ubuntu-advantage/apt-esm` does not exist
         When I apt update
-        And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.list || true` with sudo
+        And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.sources || true` with sudo
         Then if `<next_release>` not in `mantic or noble` and stdout matches regexp:
         """
-        deb https://esm.ubuntu.com/apps/ubuntu <next_release>-apps-security main
-        """
-        And if `<next_release>` not in `mantic or noble` and stdout matches regexp:
-        """
-        deb https://esm.ubuntu.com/apps/ubuntu <next_release>-apps-updates main
+        Types: deb
+        URIs: https://esm.ubuntu.com/apps/ubuntu
+        Suites: <next_release>-apps-security <next_release>-apps-updates
+        Components: main
+        Signed-By: /usr/share/keyrings/ubuntu-pro-esm-apps.gpg
         """
         When I attach `contract_token` with sudo
         And I run `pro status --all` with sudo
