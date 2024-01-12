@@ -34,6 +34,21 @@ Vcs-Git: https://github.com/canonical/ubuntu-pro-client.git
 Vcs-Browser: https://github.com/canonical/ubuntu-pro-client
 Rules-Requires-Root: no
 
+# ubuntu-pro-client is the new name, implemented as a meta package that
+# Depends: ubuntu-advantage-tools. ubuntu-advantage-tools is the package
+# that actually contains the pro-client.
+# Note: Homepage and Description should be kept in sync with ubuntu-advantage-tools
+Package: ubuntu-pro-client
+Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/
+Architecture: any
+Depends: ubuntu-advantage-tools (=${binary:Version}), ${misc:Depends}
+Description: Management tools for Ubuntu Pro
+ Ubuntu Pro is a suite of additional services provided by Canonical on
+ top of Ubuntu. Whether you're an enterprise customer deploying systems
+ at scale or want security patching for your personal Ubuntu LTS
+ at home, the Ubuntu Pro Client (pro) is the command-line tool that
+ will help you manage the services you need.
+
 Package: ubuntu-advantage-tools
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/
 Architecture: any
@@ -57,6 +72,19 @@ Depends: ${misc:Depends}, ubuntu-advantage-tools (>=30~)
 Description: Translations for Ubuntu Pro Client
  This package delivers translations of Ubuntu Pro Client for various
  languages.
+
+# ubuntu-pro-image-auto-attach is the new name, implemented as a meta package that
+# Depends: ubuntu-advantage-pro. ubuntu-advantage-pro is the package
+# that actually contains the auto-attach systemd service.
+# Note: Homepage and Description should be kept in sync with ubuntu-advantage-pro
+Package: ubuntu-pro-image-auto-attach
+Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances/
+Architecture: all
+Depends: ubuntu-advantage-pro (=${binary:Version}), ${misc:Depends}
+Description: Service to auto-attach Ubuntu Pro cloud images
+ This package delivers an additional service that performs an auto-attach
+ operation for Ubuntu Pro cloud instances. This package should not be manually
+ installed, as it is already present on the cloud instances that require it.
 
 Package: ubuntu-advantage-pro
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances/
