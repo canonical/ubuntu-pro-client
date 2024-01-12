@@ -511,7 +511,6 @@ class TestMain:
         m_log_exception,
         m_event_info,
         m_delete_cache_key,
-        # _m_get_user_or_root_log_path,
         event,
         exception,
         expected_error_msg,

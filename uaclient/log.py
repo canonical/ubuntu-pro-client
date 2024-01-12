@@ -70,7 +70,7 @@ def get_user_or_root_log_file_path() -> str:
     if util.we_are_currently_root():
         return UAConfig().log_file
     else:
-        return "~/.cache/" + defaults.USER_CACHE_SUBDIR + "/ubuntu-pro.log"
+        return get_user_log_file()
 
 
 def get_user_log_file() -> str:
