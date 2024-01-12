@@ -1322,5 +1322,5 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if self._is_sources_list_updated:
             return
         event.info(messages.APT_UPDATING_LIST.format(name="standard Ubuntu"))
-        apt.update_sources_list("/etc/apt/sources.list")
+        apt.update_sources_list(apt.get_system_sources_file())
         self._is_sources_list_updated = True
