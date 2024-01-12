@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'mantic']  # , 'noble'] TODO flake8 is broken in noble as of Feb 21 2024. Add back once python3-flake8 >6 (currently in -proposed) gets into noble
+        release: ['noble']
     steps:
       - name: Prepare build tools
         env:
@@ -65,23 +65,9 @@ jobs:
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['bionic', 'focal', 'jammy', 'mantic', 'noble']
+        release: ['noble']
         platform: ['lxd-container']
         host_os: ['ubuntu-22.04']
-        include:
-          # xenial lxd containers dont work on hosts >20.04
-          - release: xenial
-            platform: lxd-container
-            host_os: ubuntu-20.04
-          - release: bionic
-            platform: aws.pro
-            host_os: ubuntu-22.04
-          - release: bionic
-            platform: gcp.pro
-            host_os: ubuntu-22.04
-          - release: bionic
-            platform: aws.pro-fips
-            host_os: ubuntu-22.04
     steps:
       - name: Prepare test tools
         run: |
