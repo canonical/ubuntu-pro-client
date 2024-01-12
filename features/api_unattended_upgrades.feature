@@ -3,9 +3,36 @@ Feature: api.u.unattended_upgrades.status.v1
     Scenario Outline: v1 unattended upgrades status
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.unattended_upgrades.status.v1` as non-root
-        Then stdout matches regexp:
+        Then API data field output matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"apt_periodic_job_enabled": true, "package_lists_refresh_frequency_days": 1, "systemd_apt_timer_enabled": true, "unattended_upgrades_allowed_origins": \["\$\{distro_id\}:\$\{distro_codename\}", "\$\{distro_id\}:\$\{distro_codename\}\-security", "\$\{distro_id\}ESMApps:\$\{distro_codename\}\-apps-security", "\$\{distro_id\}ESM:\$\{distro_codename\}\-infra-security"\], "unattended_upgrades_disabled_reason": null, "unattended_upgrades_frequency_days": 1, "unattended_upgrades_last_run": null, "unattended_upgrades_running": true}, "meta": {"environment_vars": \[\], "raw_config": {"APT::Periodic::Enable": "1", "APT::Periodic::Unattended-Upgrade": "1", "APT::Periodic::Update-Package-Lists": "1", "Unattended-Upgrade::Allowed-Origins": \["\$\{distro_id\}:\$\{distro_codename\}", "\$\{distro_id\}:\$\{distro_codename\}\-security", "\$\{distro_id\}ESMApps:\$\{distro_codename\}\-apps-security", "\$\{distro_id\}ESM:\$\{distro_codename\}\-infra-security"\][,]?\s*<extra_field>}}, "type": "UnattendedUpgradesStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {
+          "attributes": {
+            "apt_periodic_job_enabled": true,
+            "package_lists_refresh_frequency_days": 1,
+            "systemd_apt_timer_enabled": true,
+            "unattended_upgrades_allowed_origins": [
+              "\$\{distro_id\}:\$\{distro_codename\}",
+              "\$\{distro_id\}:\$\{distro_codename\}-security",
+              "\$\{distro_id\}ESMApps:\$\{distro_codename\}-apps-security",
+              "\$\{distro_id\}ESM:\$\{distro_codename\}-infra-security"
+            ],
+            "unattended_upgrades_disabled_reason": null,
+            "unattended_upgrades_frequency_days": 1,
+            "unattended_upgrades_last_run": null,
+            "unattended_upgrades_running": true
+          },
+          "meta": {
+            "environment_vars": [],
+            "raw_config": {
+              "APT::Periodic::Enable": "1",
+              "APT::Periodic::Unattended-Upgrade": "1",
+              "APT::Periodic::Update-Package-Lists": "1",
+              "Unattended-Upgrade::Allowed-Origins": [
+                "\$\{distro_id\}:\$\{distro_codename\}",
+                "\$\{distro_id\}:\$\{distro_codename\}-security",
+                "\$\{distro_id\}ESMApps:\$\{distro_codename\}-apps-security",
+                "\$\{distro_id\}ESM:\$\{distro_codename\}-infra-security"
+              ]
         """
         When I create the file `/etc/apt/apt.conf.d/99test` with the following:
         """
@@ -196,15 +223,33 @@ Feature: api.u.unattended_upgrades.status.v1
         """
         When I apt remove `unattended-upgrades`
         And I run `pro api u.unattended_upgrades.status.v1` as non-root
-        Then stdout matches regexp:
+        Then API data field output matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"apt_periodic_job_enabled": false, "package_lists_refresh_frequency_days": 0, "systemd_apt_timer_enabled": false, "unattended_upgrades_allowed_origins": \[\], "unattended_upgrades_disabled_reason": {"code": "unattended-upgrades-uninstalled", "msg": "unattended-upgrades package is not installed"}, "unattended_upgrades_frequency_days": 0, "unattended_upgrades_last_run": null, "unattended_upgrades_running": false}, "meta": {"environment_vars": \[\]}, "type": "UnattendedUpgradesStatus"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
+        {
+          "attributes": {
+            "apt_periodic_job_enabled": false,
+            "package_lists_refresh_frequency_days": 0,
+            "systemd_apt_timer_enabled": false,
+            "unattended_upgrades_allowed_origins": [],
+            "unattended_upgrades_disabled_reason": {
+              "code": "unattended-upgrades-uninstalled",
+              "msg": "unattended-upgrades package is not installed"
+            },
+            "unattended_upgrades_frequency_days": 0,
+            "unattended_upgrades_last_run": null,
+            "unattended_upgrades_running": false
+          },
+          "meta": {
+            "environment_vars": []
+          },
+          "type": "UnattendedUpgradesStatus"
+        }
         """
 
         Examples: ubuntu release
-           | release | machine_type  | extra_field                               |
-           | xenial  | lxd-container |                                           |
-           | bionic  | lxd-container | "Unattended-Upgrade::DevRelease": "false" |
-           | focal   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
-           | jammy   | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
-           | mantic  | lxd-container | "Unattended-Upgrade::DevRelease": "auto"  |
+           | release | machine_type  | extra_field                                  |
+           | xenial  | lxd-container |                                              |
+           | bionic  | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "false" |
+           | focal   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+           | jammy   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+           | mantic  | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
