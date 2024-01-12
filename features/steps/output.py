@@ -61,16 +61,63 @@ def then_stream_does_not_match_regexp(context, stream):
         )
 
 
+def compare_regexp(expected_regex, actual_output):
+    if re.compile(expected_regex).search(actual_output) is None:
+        raise AssertionError(
+            "Expected to match regexp:\n{}\nBut got:\n{}".format(
+                textwrap.indent(expected_regex, "  "),
+                textwrap.indent(actual_output, "  "),
+            )
+        )
+
+
+def process_api_data(context, api_key=None):
+    json_data = json.loads(context.process.stdout.strip())
+    context.text = context.text.replace("[", "\\[")
+    context.text = context.text.replace("]", "\\]")
+    context.text = context.text.replace("(", "\\(")
+    context.text = context.text.replace(")", "\\)")
+    context.text = context.text.replace("\\n", "\\\\n")
+
+    if api_key is None:
+        return json.dumps(json_data, indent=2)
+    else:
+        return json.dumps(json_data[api_key], indent=2)
+
+
+@then("API full output matches regexp")
+def then_api_output_matches_regexp(context):
+    content = process_api_data(context)
+    text = process_template_vars(context, context.text)
+    compare_regexp(text, content)
+
+
+@then("API data field output matches regexp")
+def then_api_data_output_matches_regexp(context):
+    content = process_api_data(context, api_key="data")
+    text = process_template_vars(context, context.text)
+    compare_regexp(text, content)
+
+
+@then("API errors field output matches regexp")
+def then_api_errors_output_matches_regexp(context):
+    content = process_api_data(context, api_key="errors")
+    text = process_template_vars(context, context.text)
+    compare_regexp(text, content)
+
+
+@then("API warnings field output matches regexp")
+def then_api_warnings_output_matches_regexp(context):
+    content = process_api_data(context, api_key="warnings")
+    text = process_template_vars(context, context.text)
+    compare_regexp(text, content)
+
+
 @then("{stream} matches regexp")
 def then_stream_matches_regexp(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
-    if re.compile(text).search(content) is None:
-        raise AssertionError(
-            "Expected to match regexp:\n{}\nBut got:\n{}".format(
-                textwrap.indent(text, "  "), textwrap.indent(content, "  ")
-            )
-        )
+    compare_regexp(text, content)
 
 
 @then("{stream} contains substring")
