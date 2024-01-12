@@ -2,7 +2,7 @@
 behave
 jsonschema
 PyHamcrest
-pycloudlib==1!5.6.0
+pycloudlib==1!5.12.1
 toml==0.10
 
 ipdb
