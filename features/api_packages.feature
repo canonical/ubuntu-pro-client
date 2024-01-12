@@ -4,9 +4,27 @@ Feature: Package related API endpoints
     Scenario Outline: Call packages API endpoints to see information in a Ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I run `pro api u.pro.packages.summary.v1` as non-root
-        Then stdout matches regexp:
+        Then API data field output matches regexp:
         """
-        {"_schema_version": "v1", "data": {"attributes": {"summary": {"num_esm_apps_packages": \d+, "num_esm_infra_packages": \d+, "num_installed_packages": \d+, "num_main_packages": \d+, "num_multiverse_packages": \d+, "num_restricted_packages": \d+, "num_third_party_packages": \d+, "num_universe_packages": \d+, "num_unknown_packages": \d+}}, "meta": {"environment_vars": \[\]}, "type": "PackageSummary"}, "errors": \[\], "result": "success", "version": ".+", "warnings": \[\]}
+        {
+          "attributes": {
+            "summary": {
+              "num_esm_apps_packages": \d+,
+              "num_esm_infra_packages": \d+,
+              "num_installed_packages": \d+,
+              "num_main_packages": \d+,
+              "num_multiverse_packages": \d+,
+              "num_restricted_packages": \d+,
+              "num_third_party_packages": \d+,
+              "num_universe_packages": \d+,
+              "num_unknown_packages": \d+
+            }
+          },
+          "meta": {
+            "environment_vars": []
+          },
+          "type": "PackageSummary"
+        }
         """
         When I run `pro api u.pro.packages.updates.v1` as non-root
         Then stdout matches regexp:
