@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-19 16:55-0500\n"
+"POT-Creation-Date: 2024-01-15 09:09-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -475,7 +475,7 @@ msgid "The following package(s) will be reinstalled from the archive:"
 msgstr "O(s) pacote(s) à seguir serão reinstalados:"
 
 #: ../../uaclient/messages/__init__.py:162
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
 "{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' "
@@ -487,7 +487,7 @@ msgid_plural ""
 "'{{service}}' enabled.\n"
 "Renew your subscription at {url}"
 msgstr[0] ""
-"*Sua assinatura do Ubuntu PRO EXPIROU*\n"
+"*Sua assinatura do Ubuntu Pro EXPIROU*\n"
 "{{pkg_num}} atualização de segurança necessita do ubuntu Pro com "
 "'{{service}}' habilitado.\n"
 "Renove sua assinatura em {url}"
@@ -544,12 +544,12 @@ msgstr[1] ""
 "carência vai expirar em {{remaining_days}} dias"
 
 #: ../../uaclient/messages/__init__.py:202
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
 "Renew your subscription at {url}"
 msgstr ""
-"*Sua assinatura do Ubuntu PRO EXPIROU*\n"
+"*Sua assinatura do Ubuntu Pro EXPIROU*\n"
 "Renove sua assinatura em {url}"
 
 #. ##############################################################################
@@ -644,13 +644,12 @@ msgstr ""
 "configuração:"
 
 #: ../../uaclient/messages/__init__.py:272
-#, fuzzy
 msgid ""
 "Currently attempting to automatically attach this machine to an Ubuntu Pro "
 "subscription"
 msgstr ""
-"Tentando agora vincular automaticamente essa máquina aos serviços do Ubuntu "
-"Pro"
+"Tentando agora vincular automaticamente esta máquina a uma assinatura do "
+"Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:276
 #, python-brace-format
@@ -824,7 +823,7 @@ msgid ""
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:386
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "Failed to automatically attach to an Ubuntu Pro subscription {num_attempts} "
 "time(s).\n"
@@ -832,14 +831,14 @@ msgid ""
 "The next attempt is scheduled for {next_run_datestring}.\n"
 "You can try manually with `sudo pro auto-attach`."
 msgstr ""
-"{num_attempts} falha(s) ao vincular automaticamente aos serviços do Ubuntu "
-"Pro.\n"
+"{num_attempts} falha(s) ao vincular automaticamente a uma assinatura "
+"do Ubuntu Pro.\n"
 "A falha ocorreu devido a: {reason}.\n"
 "A próxima tentativa está agendada para {next_run_datestring}.\n"
 "Você pode tentar manualmente executando `sudo pro auto-attach`."
 
 #: ../../uaclient/messages/__init__.py:394
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "Failed to automatically attach to an Ubuntu Pro subscription {num_attempts} "
 "time(s).\n"
@@ -848,8 +847,8 @@ msgid ""
 "ubuntu-advantage-tools`\n"
 "You can try manually with `sudo pro auto-attach`."
 msgstr ""
-"{num_attempts} falha(s) ao vincular automaticamente aos serviços do Ubuntu "
-"Pro.\n"
+"{num_attempts} falha(s) ao vincular automaticamente a uma assinatura "
+"do Ubuntu Pro.\n"
 "A falha mais recente ocorreu devido a: {reason}.\n"
 "Tenter criar uma nova instância ou reporte esse problema executando `ubuntu-"
 "bug ubuntu-advantage-tools`\n"
@@ -1703,7 +1702,7 @@ msgid "Manage Ubuntu Pro configuration"
 msgstr "Gerencie a configuração do Ubuntu Pro"
 
 #: ../../uaclient/messages/__init__.py:919
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "Attach this machine to an Ubuntu Pro subscription with a token obtained "
 "from:\n"
@@ -1713,13 +1712,13 @@ msgid ""
 "and prompt you to attach the machine to your Ubuntu Pro account using\n"
 "a web browser."
 msgstr ""
-"Vincule esta máquina a uma assinatura Ubuntu Pro com um token obtido de:\n"
+"Vincule esta máquina a uma assinatura do Ubuntu Pro com um token obtido de:\n"
 "{url}\n"
 "\n"
-"Ao executar este comando sem um token, um código pequeno será gerado\n"
+"Ao executar este comando sem um token, um código curto será gerado\n"
 "e um prompt surgirá pedindo para vincular esta máquina usando sua conta do "
 "Ubuntu Pro por meio\n"
-"de um web browser."
+"de um navegador."
 
 #: ../../uaclient/messages/__init__.py:927
 msgid "token obtained for Ubuntu Pro authentication"
@@ -1848,9 +1847,8 @@ msgid "Target to refresh."
 msgstr "Opção para atualizar"
 
 #: ../../uaclient/messages/__init__.py:1003
-#, fuzzy
 msgid "Detach this machine from an Ubuntu Pro subscription."
-msgstr "vincule esta máquina a uma assinatura Ubuntu Pro"
+msgstr "Desvincule esta máquina de uma assinatura do Ubuntu Pro."
 
 #: ../../uaclient/messages/__init__.py:1007
 msgid "Provide detailed information about Ubuntu Pro services."
