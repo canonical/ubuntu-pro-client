@@ -3,8 +3,7 @@ Feature: Security status command behavior
     @uses.config.contract_token
     Scenario Outline: Run security status with JSON/YAML format
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
-        And I apt install `ansible`
+        When I apt install `ansible`
         And I run `pro security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
