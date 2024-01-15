@@ -159,7 +159,6 @@ Feature: Livepatch
         # It should be kept up to date so that it runs on the latest LTS and installs the latest
         # HWE kernel for that release.
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt install `linux-generic-hwe-<release_num>`
         When I apt remove `linux-image*-kvm`
         When I run `update-grub` with sudo

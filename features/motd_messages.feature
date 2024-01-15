@@ -3,7 +3,6 @@ Feature: MOTD Messages
     @uses.config.contract_token
     Scenario Outline: Contract update prevents contract expiration messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I attach `contract_token` with sudo
         When I update contract to use `effectiveTo` as `$behave_var{today +2}`
         When I run `pro refresh messages` with sudo
@@ -54,8 +53,7 @@ Feature: MOTD Messages
 
     Scenario Outline: Contract Expiration Messages
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
-        And I apt install `ansible`
+        When I apt install `ansible`
         And I attach `contract_token` with sudo
         And I set the machine token overlay to the following yaml
         """
