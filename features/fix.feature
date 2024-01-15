@@ -2,7 +2,6 @@ Feature: Ua fix command behaviour
 
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt remove `ca-certificates`
         When I run `rm -f /etc/ssl/certs/ca-certificates.crt` with sudo
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
@@ -31,7 +30,6 @@ Feature: Ua fix command behaviour
 
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """
@@ -204,7 +202,11 @@ Feature: Ua fix command behaviour
         """
         Error: USN-12345-12 not found.
         """
-        When I verify that running `pro fix USN-5079-2 --dry-run` `as non-root` exits `1`
+        # Make sure esm cache is empty
+        # Technically a folder right, but this works
+        When I delete the file `/var/lib/ubuntu-advantage/apt-esm/`
+        When I delete the file `/var/lib/apt/periodic/update-success-stamp`
+        And I verify that running `pro fix USN-5079-2 --dry-run` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         .*WARNING: The option --dry-run is being used.
@@ -575,7 +577,6 @@ Feature: Ua fix command behaviour
 
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
         Then I will see the following on stderr:
         """

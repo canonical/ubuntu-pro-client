@@ -20,7 +20,6 @@ def when_i_install_uat(context, machine_name=SUT):
     series = context.machines[machine_name].series
     is_pro = "pro" in context.machines[machine_name].machine_type
     if context.pro_config.install_from is InstallationSource.ARCHIVE:
-        instance.execute("sudo apt update")
         when_i_apt_install(
             context, "ubuntu-advantage-tools", machine_name=machine_name
         )
