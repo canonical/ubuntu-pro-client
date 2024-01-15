@@ -753,9 +753,11 @@ def get_user_cache_dir() -> str:
 
     xdg_cache_home = os.environ.get("XDG_CACHE_HOME")
     if xdg_cache_home:
-        return xdg_cache_home + "/" + defaults.USER_CACHE_SUBDIR
+        return os.path.join(xdg_cache_home, defaults.USER_CACHE_SUBDIR)
 
-    return os.path.expanduser("~") + "/.cache/" + defaults.USER_CACHE_SUBDIR
+    return os.path.join(
+        os.path.expanduser("~"), ".cache", defaults.USER_CACHE_SUBDIR
+    )
 
 
 def get_reboot_required_pkgs() -> Optional[RebootRequiredPkgs]:
