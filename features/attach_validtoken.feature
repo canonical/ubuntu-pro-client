@@ -40,8 +40,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
 
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
-        And I apt install `update-motd`
+        When I apt install `update-motd`
         And I apt install `<downrev_pkg>`
         And I run `pro refresh messages` with sudo
         Then stdout matches regexp:

@@ -47,8 +47,7 @@ Feature: Pro Install and Uninstall related tests
     Scenario Outline: Do not fail during postinst with nonstandard python setup
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         # Works when in a python virtualenv
-        When I apt update
-        And I apt install `python3-venv`
+        When I apt install `python3-venv`
         And I run `python3 -m venv env` with sudo
         Then I verify that running `bash -c ". env/bin/activate && python3 -c 'import uaclient'"` `with sudo` exits `1`
         Then stderr matches regexp:

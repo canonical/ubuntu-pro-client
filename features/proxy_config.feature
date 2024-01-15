@@ -253,8 +253,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I apt update on the `proxy` machine
-        And I apt install `squid apache2-utils` on the `proxy` machine
+        When I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -347,8 +346,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I apt update on the `proxy` machine
-        And I apt install `squid apache2-utils` on the `proxy` machine
+        When I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -535,8 +533,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I apt update on the `proxy` machine
-        And I apt install `squid apache2-utils` on the `proxy` machine
+        When I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -768,8 +765,7 @@ Feature: Proxy configuration
     Scenario Outline: Attach command when authenticated proxy is configured globally
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         Given a `focal` `lxd-container` machine named `proxy`
-        When I apt update on the `proxy` machine
-        And I apt install `squid apache2-utils` on the `proxy` machine
+        When I apt install `squid apache2-utils` on the `proxy` machine
         And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
         """
@@ -1180,8 +1176,7 @@ Feature: Proxy configuration
 
         # set up a HTTPS proxy
         Given a `jammy` `<machine_type>` machine named `proxy`
-        When I apt update on the `proxy` machine
-        And I apt install `openssl libssl-dev ssl-cert squid-openssl apache2-utils` on the `proxy` machine
+        When I apt install `openssl libssl-dev ssl-cert squid-openssl apache2-utils` on the `proxy` machine
         And I run `openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes -out ca.crt -keyout ca.key -subj "/C=CN/ST=BJ/O=STS/CN=CA"` `with sudo` on the `proxy` machine
         And I run `openssl genrsa -out $behave_var{machine-name proxy}.lxd.key` `with sudo` on the `proxy` machine
         And I run `openssl req -new -key $behave_var{machine-name proxy}.lxd.key -out $behave_var{machine-name proxy}.lxd.csr -subj "/C=CN/ST=BJ/O=STS/CN=$behave_var{machine-name proxy}.lxd"` `with sudo` on the `proxy` machine

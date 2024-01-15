@@ -365,8 +365,7 @@ Feature: Command behaviour when unattached
     # Services fail, degraded systemctl, but no crashes.
     Scenario Outline: services fail gracefully when yaml is broken/absent
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
-        And I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
+        When I run `rm -rf /usr/lib/python3/dist-packages/yaml` with sudo
         And I verify that running `pro status` `with sudo` exits `1`
         Then stderr matches regexp:
         """

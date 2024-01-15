@@ -4,7 +4,6 @@ Feature: APT Messages
     Scenario Outline: APT JSON Hook prints package counts correctly on xenial
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I apt update
         When I apt upgrade
         When I apt install `<standard-pkg>`
         When I apt upgrade
@@ -94,7 +93,6 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-infra on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt upgrade
         When I apt autoremove
         When I run `pro config set apt_news=false` with sudo
@@ -151,7 +149,6 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook advertises esm-apps on upgrade
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt upgrade including phased updates
         When I apt autoremove
         When I apt install `<package>`
@@ -212,15 +209,12 @@ Feature: APT Messages
     Scenario Outline: APT News
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        # On interim releases we will not enable any service, so we need a manual apt update
-        When I apt update
         When I apt upgrade including phased updates
         When I apt autoremove
         When I apt install `jq`
         When I run `pro detach --assume-yes` with sudo
 
         Given a `focal` `<machine_type>` machine named `apt-news-server`
-        When I apt update on the `apt-news-server` machine
         When I apt install `nginx` on the `apt-news-server` machine
         When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
         When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
@@ -678,7 +672,6 @@ Feature: APT Messages
 
     Scenario Outline: Cloud and series-specific URLs
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt install `ansible`
         # Update after installing to make sure messages are there
         When I apt update
@@ -702,7 +695,6 @@ Feature: APT Messages
     @uses.config.contract_token
     Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        When I apt update
         When I apt upgrade including phased updates
         When I apt autoremove
         When I apt install `hello`
