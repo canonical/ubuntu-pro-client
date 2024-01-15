@@ -75,7 +75,7 @@ def get_user_or_root_log_file_path() -> str:
 
 def get_user_log_file() -> str:
     """Gets the correct user log_file storage location"""
-    return system.get_user_cache_dir() + "/ubuntu-pro.log"
+    return os.path.join(system.get_user_cache_dir(), "ubuntu-pro.log")
 
 
 def get_all_user_log_files() -> List[str]:
@@ -86,12 +86,12 @@ def get_all_user_log_files() -> List[str]:
     user_directories = os.listdir("/home")
     log_files = []
     for user_directory in user_directories:
-        user_path = (
-            "/home/"
-            + user_directory
-            + "/.cache/"
-            + defaults.USER_CACHE_SUBDIR
-            + "/ubuntu-pro.log"
+        user_path = os.path.join(
+            "/home",
+            user_directory,
+            ".cache",
+            defaults.USER_CACHE_SUBDIR,
+            "ubuntu-pro.log",
         )
         if os.path.isfile(user_path):
             log_files.append(user_path)
