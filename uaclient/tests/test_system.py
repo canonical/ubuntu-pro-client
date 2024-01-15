@@ -1418,7 +1418,7 @@ class TestGetUserCacheDir:
             "expected",
         ],
         (
-            (True, None, None, "/run/ubuntu-advantage/"),
+            (True, None, None, "/run/ubuntu-advantage"),
             (False, None, "/home/user", "/home/user/.cache/ubuntu-pro"),
             (False, "/something", "/home/user", "/something/ubuntu-pro"),
         ),
