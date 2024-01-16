@@ -88,7 +88,9 @@ class TestProcessContractDeltas:
 
     @pytest.mark.parametrize("entitled", (False, util.DROPPED_KEY))
     @mock.patch.object(RepoTestEntitlement, "disable")
-    @mock.patch.object(RepoTestEntitlement, "can_disable", return_value=True)
+    @mock.patch.object(
+        RepoTestEntitlement, "can_disable", return_value=(True, None)
+    )
     @mock.patch.object(RepoTestEntitlement, "application_status")
     def test_disable_when_delta_to_unentitled(
         self,
@@ -682,11 +684,18 @@ class TestPerformDisable:
         purge_value,
         entitlement_factory,
     ):
-        m_get_installed_packages.return_value = [1, 2, 3, 4, 5]
 
-        def return_alternatives(p, _exclude_origins):
-            if p % 2:
-                return [p]
+        m_packages = []
+        for i in range(1, 6):
+            package = mock.MagicMock()
+            type(package).name = mock.PropertyMock(return_value=str(i))
+            m_packages.append(package)
+
+        m_get_installed_packages.return_value = m_packages
+
+        def return_alternatives(p, exclude_origin):
+            if not int(p.name) % 2:
+                return [int(p.name)]
             return []
 
         m_get_remote_versions.side_effect = return_alternatives
@@ -703,29 +712,34 @@ class TestPerformDisable:
             ]
 
             if purge_value:
-                m_get_installed_packages.call_args_list = [
+                assert m_get_installed_packages.call_args_list == [
                     mock.call("TestOrigin")
                 ]
-                m_get_remote_versions.call_args_list = [
-                    mock.call(1, exclude_origin="TestOrigin"),
-                    mock.call(2, exclude_origin="TestOrigin"),
-                    mock.call(3, exclude_origin="TestOrigin"),
-                    mock.call(4, exclude_origin="TestOrigin"),
-                    mock.call(5, exclude_origin="TestOrigin"),
+                assert m_get_remote_versions.call_args_list == [
+                    mock.call(m_packages[0], exclude_origin="TestOrigin"),
+                    mock.call(m_packages[1], exclude_origin="TestOrigin"),
+                    mock.call(m_packages[2], exclude_origin="TestOrigin"),
+                    mock.call(m_packages[3], exclude_origin="TestOrigin"),
+                    mock.call(m_packages[4], exclude_origin="TestOrigin"),
                 ]
-                m_prompt_for_purge.call_args_list = [
-                    mock.call([1, 3, 5], [(2, 2), (4, 4)])
+                assert m_prompt_for_purge.call_args_list == [
+                    mock.call(
+                        [m_packages[0], m_packages[2], m_packages[4]],
+                        [(m_packages[1], 2), (m_packages[3], 4)],
+                    )
                 ]
-                m_execute_removal.call_args_list = [mock.call([1, 3, 5])]
-                m_execute_reinstall.call_args_list = [
-                    mock.call([(2, 2), (4, 4)])
+                assert m_execute_removal.call_args_list == [
+                    mock.call([m_packages[0], m_packages[2], m_packages[4]])
+                ]
+                assert m_execute_reinstall.call_args_list == [
+                    mock.call([(m_packages[1], 2), (m_packages[3], 4)])
                 ]
             else:
-                m_get_installed_packages.call_args_list = []
-                m_get_remote_versions.call_args_list = []
-                m_prompt_for_purge.call_args_list = []
-                m_execute_removal.call_args_list = []
-                m_execute_reinstall.call_args_list = []
+                assert m_get_installed_packages.call_args_list == []
+                assert m_get_remote_versions.call_args_list == []
+                assert m_prompt_for_purge.call_args_list == []
+                assert m_execute_removal.call_args_list == []
+                assert m_execute_reinstall.call_args_list == []
 
 
 class TestPurge:
