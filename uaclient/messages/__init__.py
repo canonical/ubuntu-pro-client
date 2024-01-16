@@ -1426,6 +1426,10 @@ REALTIME_NVIDIA_TITLE = t.gettext("Real-time NVIDIA Tegra Kernel")
 REALTIME_NVIDIA_DESCRIPTION = t.gettext(
     "RT kernel optimized for NVIDIA Tegra platform"
 )
+REALTIME_RASPI_TITLE = t.gettext("Raspberry Pi Real-time for Pi5/Pi4")
+REALTIME_RASPI_DESCRIPTION = t.gettext(
+    "24.04 Real-time kernel optimised for Raspberry Pi"
+)
 REALTIME_INTEL_TITLE = t.gettext("Real-time Intel IOTG Kernel")
 REALTIME_INTEL_DESCRIPTION = t.gettext(
     "RT kernel optimized for Intel IOTG platform"
