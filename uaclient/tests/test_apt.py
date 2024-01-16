@@ -391,7 +391,6 @@ class TestAddAuthAptRepo:
         else:
             expected_content = (
                 "# Written by ubuntu-advantage-tools\n"
-                "\n"
                 "Types: deb\n"
                 "URIs: http://fakerepo\n"
                 "Suites: {series}\n"
@@ -461,7 +460,6 @@ class TestAddAuthAptRepo:
             expected_content = dedent(
                 """\
                 # Written by ubuntu-advantage-tools
-
                 Types: deb
                 URIs: http://fakerepo
                 Suites: {series}-one {series}-updates
@@ -524,7 +522,6 @@ class TestAddAuthAptRepo:
             expected_content = dedent(
                 """\
                 # Written by ubuntu-advantage-tools
-
                 Types: deb
                 URIs: http://fakerepo
                 Suites: {series}-one
