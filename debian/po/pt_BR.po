@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 17:38-0300\n"
+"POT-Creation-Date: 2024-01-16 08:56-0500\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -2593,10 +2593,11 @@ msgid ""
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1559
+#, python-brace-format
 msgid ""
-"Unexpected error(s) occurred.\n"
-"For more details, see the log: /var/log/ubuntu-advantage.log\n"
-"To file a bug run: ubuntu-bug ubuntu-advantage-tools"
+"An unexpected error occurred: {error_msg}\n"
+"For more details, see the log: {log_path}\n"
+"If you think this is a bug, please run: ubuntu-bug ubuntu-advantage-tools"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:1569
