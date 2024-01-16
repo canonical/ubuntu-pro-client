@@ -37,6 +37,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
         return {
             GenericRealtime.variant_name: GenericRealtime,
             NvidiaTegraRealtime.variant_name: NvidiaTegraRealtime,
+            RaspberryPiRealtime.variant_name: RaspberryPiRealtime,
             IntelIotgRealtime.variant_name: IntelIotgRealtime,
         }
 
@@ -145,6 +146,14 @@ class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"
     title = messages.REALTIME_NVIDIA_TITLE
     description = messages.REALTIME_NVIDIA_DESCRIPTION
+    is_variant = True
+    check_packages_are_installed = True
+
+
+class RaspberryPiRealtime(RealtimeVariant):
+    variant_name = "rpi"
+    title = messages.REALTIME_RASPI_TITLE
+    description = messages.REALTIME_RASPI_DESCRIPTION
     is_variant = True
     check_packages_are_installed = True
 
