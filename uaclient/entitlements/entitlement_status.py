@@ -132,3 +132,7 @@ class CanDisableFailure:
     ) -> None:
         self.reason = reason
         self.message = message
+
+    @property
+    def message_value(self) -> str:
+        return self.message.msg if self.message else ""
