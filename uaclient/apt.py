@@ -55,7 +55,6 @@ SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy", "mantic")
 
 DEB822_REPO_FILE_CONTENT = """\
 # Written by ubuntu-advantage-tools
-
 Types: deb{deb_src}
 URIs: {url}
 Suites: {suites}
