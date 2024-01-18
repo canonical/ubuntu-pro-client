@@ -109,12 +109,15 @@ num
 OKGREEN
 openssl
 OPENSSL
+optimised
 option1
 option2
 param
 PARAM
 params
 PCI
+Pi4
+Pi5
 pid
 pkgs
 PKGS
@@ -128,6 +131,7 @@ PycURL
 PYCURL
 python3
 PYTHONPATH
+RASPI
 realtime
 Realtime
 REALTIME
