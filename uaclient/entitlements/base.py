@@ -1272,23 +1272,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 application_status, _ = self.application_status()
 
             if application_status != ApplicationStatus.DISABLED:
-                if self.can_disable():
+                can_disable, fail = self.can_disable()
+                if can_disable:
                     LOG.info(
-                        "Disabling %s after refresh transition to unentitled"
+                        "Disabling %s after refresh transition to unentitled",
+                        self.name,
                     )
                     self.disable()
-                    msg = (
-                        "Due to contract refresh, " "'{}' is now disabled."
-                    ).format(self.name)
                     event.info(
                         messages.DISABLE_DURING_CONTRACT_REFRESH.format(
                             service=self.name
                         )
                     )
                 else:
+                    fail_msg = fail.message_value if fail else ""
+
                     LOG.warning(
                         "Cannot disable %s after refresh transition to "
-                        "unentitled"
+                        "unentitled.\nReason: %s",
+                        self.name,
+                        fail_msg,
                     )
                     event.info(
                         messages.UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH.format(  # noqa: E501
