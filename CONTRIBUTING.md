@@ -5,9 +5,12 @@
 Developer documentation for the Ubuntu Pro Client project. The topics cover
 from the architecture of the project to how you should test any code changes.
 
+### Tutorials
+
+* [Get started developing for Ubuntu Pro Client](./dev-docs/tutorials/getting-started.md)
+
 ### How to Guides
 
-* [How to build](./dev-docs/howtoguides/building.md)
 * [How to run the code formatting tools](./dev-docs/howtoguides/code_formatting.md)
 * [How to run the tests](./dev-docs/howtoguides/testing.md)
 * [How to release a new version](./dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
