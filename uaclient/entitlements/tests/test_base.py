@@ -1354,21 +1354,22 @@ class TestHandleRequiredPackages:
             ),
             (
                 [{"name": "package"}],
-                [mock.call("/etc/apt/sources.list")],
+                [mock.call()],
                 [mock.call(["package"])],
                 True,
             ),
             (
                 [{"name": "package"}, {"name": "package2"}],
-                [mock.call("/etc/apt/sources.list")],
+                [mock.call()],
                 [mock.call(["package", "package2"])],
                 True,
             ),
         ],
     )
-    @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.run_apt_install_command")
-    @mock.patch("uaclient.apt.run_apt_update_command")
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement._update_sources_list"
+    )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.entitlement_cfg",
         new_callable=mock.PropertyMock,
@@ -1376,9 +1377,8 @@ class TestHandleRequiredPackages:
     def test_handle_required_packages(
         self,
         m_entitlement_cfg,
-        m_apt_update,
-        m_apt_install,
         m_update_sources_list,
+        m_apt_install,
         required_packages_directive,
         expected_apt_update_calls,
         expected_apt_install_calls,
@@ -1393,7 +1393,6 @@ class TestHandleRequiredPackages:
         }
 
         assert expected_result == entitlement.handle_required_packages()
-        assert [] == m_apt_update.call_args_list
         assert (
             expected_apt_update_calls == m_update_sources_list.call_args_list
         )
