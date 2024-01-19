@@ -1,10 +1,14 @@
 # We are silencing this issue because of this LP: #1930121
 ubuntu-advantage-tools: command-with-path-in-maintainer-script
 
-# Ubuntu doesn't support sysv init.d
-ubuntu-advantage-tools: package-supports-alternative-init-but-no-init.d-script
-
-# We have made the decision of delivering those files
-ubuntu-advantage-tools: package-installs-apt-preferences
-
 ubuntu-advantage-tools: possible-bashism-in-maintainer-script
+
+# python3 is a transitive dependency via ubuntu-pro-client
+ubuntu-advantage-tools: python3-script-but-no-python3-dep
+
+# This is only to cleanup an old tmp file
+ubuntu-advantage-tools: possibly-insecure-handling-of-tmp-files-in-maintainer-script /tmp [postinst:61]
+
+# systemctl is the only way to do these calls, and we do the required check before calling it
+ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:260]
+ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:263]
