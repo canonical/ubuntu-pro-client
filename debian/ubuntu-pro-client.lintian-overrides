@@ -1,10 +1,8 @@
-# We are silencing this issue because of this LP: #1930121
-ubuntu-pro-client: command-with-path-in-maintainer-script
-
 # Ubuntu doesn't support sysv init.d
 ubuntu-pro-client: package-supports-alternative-init-but-no-init.d-script
 
 # We have made the decision of delivering those files
 ubuntu-pro-client: package-installs-apt-preferences
 
-ubuntu-pro-client: possible-bashism-in-maintainer-script
+# This is intentional
+ubuntu-pro-client: uses-dpkg-database-directly [usr/lib/ubuntu-advantage/apt-esm-json-hook]
