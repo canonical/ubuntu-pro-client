@@ -92,4 +92,3 @@ endif
 override_dh_auto_clean:
 	dh_auto_clean
 	make clean
-	rm -f debian/apparmor/ubuntu_pro_apt_news
