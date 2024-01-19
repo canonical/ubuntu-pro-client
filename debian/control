@@ -56,7 +56,21 @@ Recommends: ubuntu-pro-client-l10n
 Breaks: ubuntu-advantage-tools (<<31~)
 Replaces: ubuntu-advantage-tools (<<31~)
 # IMPORTANT: ubuntu-pro-client does not "Provide" ubuntu-advantage-tools
-# TODO fill this in with rationale after testing.
+# At the time of the rename, existing releases with ubuntu-advantage-tools
+# include xenial, bionic, focal, jammy, and mantic.
+# We cannot allow ubuntu-advantage-tools <<31 to be removed on those releases,
+# because it could break ESM (remove sources.list entries in prerm).
+# On those releases, ubuntu-minimal (and ubuntu-cloud-minimal) Depends on
+# ubuntu-advantage-tools, which prevents it from being removed without also
+# removing ubuntu-minimal or ubuntu-cloud-minimal. We consider that to be a
+# sufficient warning to users that removing ubuntu-advantage-tools is not
+# supported.
+# If ubuntu-pro-client were to "Provide" ubuntu-advantage-tools, then that
+# mechanism would not work, and users could remove ubuntu-advantage-tools
+# accidentally.
+# ubuntu-pro-client could "Provide" ubuntu-advantage-tools in releases in the
+# future, but it would not add any value over having the ubuntu-advantage-tools
+# transitional dummy package.
 Description: Management tools for Ubuntu Pro
  Ubuntu Pro is a suite of additional services provided by Canonical on
  top of Ubuntu. Whether you're an enterprise customer deploying systems
