@@ -35,12 +35,13 @@ Vcs-Browser: https://github.com/canonical/ubuntu-pro-client
 Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools
-Depends: ubuntu-pro-client (= ${binary:Version}), ${misc:Depends}
+Depends: ubuntu-pro-client (>= ${binary:Version}), ${misc:Depends}
 Architecture: all
 Priority: optional
 Section: oldlibs
-Description: transitional package
- This is a transitional package. It can safely be removed.
+Description: transitional dummy package for ubuntu-pro-client
+ This is a transitional dummy package for ubuntu-pro-client. It can safely be
+ removed.
 
 Package: ubuntu-pro-client
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/
@@ -75,8 +76,9 @@ Depends: ubuntu-pro-image-auto-attach, ${misc:Depends}
 Architecture: all
 Priority: optional
 Section: oldlibs
-Description: transitional package
- This is a transitional package. It can safely be removed.
+Description: transitional dummy package for ubuntu-pro-image-auto-attach
+ This is a transitional dummy package for ubuntu-pro-image-auto-attach. It can
+ safely be removed.
 
 Package: ubuntu-pro-image-auto-attach
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances/
