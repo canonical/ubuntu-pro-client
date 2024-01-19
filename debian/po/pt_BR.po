@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-17 16:08-0500\n"
+"POT-Creation-Date: 2024-01-19 16:55-0500\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -365,11 +365,11 @@ msgstr ""
 "novamente."
 
 #: ../../uaclient/messages/__init__.py:104
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 " A new version is available: {version}\n"
 "Please run:\n"
-"    sudo apt install ubuntu-advantage-tools\n"
+"    sudo apt install ubuntu-pro-client\n"
 "to get the latest bug fixes and new features."
 msgstr ""
 " Uma nova versão está disponível: {version}\n"
