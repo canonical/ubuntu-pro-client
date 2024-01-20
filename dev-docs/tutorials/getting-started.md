@@ -29,22 +29,29 @@ Initialize `pre-commit`.
 ```bash
 pre-commit install
 ```
+`pre-commit` will run `black`, `isort`, and `shellcheck` on any files you edit in a commit. If it makes any changes or finds problems, it will abort the commit. You can then `git add` the changes it made, or fix the issues, and then `git commit` again.
 
 Run the unit tests and other checks.
 ```bash
 tox
 ```
+`tox` manages separate virtual environments for each of the different jobs we run. It will install all of the dependencies for each job into the virtual environment for that job, and then run the job. This ensures that the dependencies for each job don't interfere with each other.
 
 > **Note**
 > You can run individual jobs (or "environments" in tox terminology) with the `-e` flag.
 >
-> For example, `tox -e test` will only run the unit tests.
+> For example:
+> - `tox -e test` will run the unit tests.
+> - `tox -e flake8` will run the python linter.
+> - `tox -e mypy` will run the type checker.
+> - `tox -e shellcheck` will run the bash script linter.
+> - `tox -e behave` will run the integration tests (discussed more later).
 >
 > Explore `tox.ini` to see what tox environments are available and how they're configured.
 
 # Getting to basic behave tests
 We use [`behave`](https://behave.readthedocs.io/en/stable/) as a framework for writing integration/acceptance/regression tests. Behave tests are in the `features/` folder and generally follow the pattern of:
-1. Launch a VM or container on a platform
+1. Launch a VM or container on a platform (LXD, AWS, Azure, GCP, etc.)
 2. Install the version of Ubuntu Pro Client we want to test
 3. Run commands on the system to exercise some feature of Pro Client
 4. Assert that the expected results occurred
@@ -66,9 +73,12 @@ Initialise `lxd` - use the defaults.
 lxd init
 ```
 
-Ubuntu Pro Client is unique in that it supports very old releases of Ubuntu, including 16.04 Xenial Xerus (Xenial). We test this support by using Xenial LXD containers. In order for hosts running newer releases of Ubuntu to run Xenial containers, we need to configure systemd to use an older cgroup hierarchy for compatibility. This is configured by editing the Linux kernel boot parameters.
+Ubuntu Pro Client is unique in that it supports very old releases of Ubuntu, including 16.04 Xenial Xerus (Xenial). We test this support by using Xenial LXD containers. In order for hosts running newer releases of Ubuntu to run Xenial containers, we need to configure systemd to use an older cgroup version for compatibility. This is configured by editing the Linux kernel boot parameters.
 
 We need the boot parameter `systemd.unified_cgroup_hierarchy=0`.
+
+> **Note**
+> Unfortunately, this means your host will miss out on the benefits and safety features of cgroup v2, but it is necessary to develop and support Ubuntu Pro Client for Xenial.
 
 Use [this how-to guide](https://wiki.ubuntu.com/Kernel/KernelBootParameters) to edit your Linux kernel boot parameter. First make the change temporarily, and ensure your system still boots and works. Then make the change permanently.
 
@@ -121,7 +131,7 @@ To get started, we just need a basic configuration of pycloudlib. Copy the conte
 wget https://raw.githubusercontent.com/canonical/pycloudlib/main/pycloudlib.toml.template -O ~/.config/pycloudlib.toml
 ```
 
-## Run a behave test
+## Run a simple behave test
 
 ```bash
 tox -e behave -- features/config.feature -D releases=xenial -D machine_types=lxd-container
@@ -129,10 +139,30 @@ tox -e behave -- features/config.feature -D releases=xenial -D machine_types=lxd
 
 All of the arguments after the `--` are passed to behave. In this case, we're telling behave to only run the `config.feature` test, and to filter the tests in that file to only those for Xenial LXD containers. Note that the `-D` options are specific to our behave tests and are not behave options.
 
-# Interacting with local changes in a container
-With all of the above in place, you can now make changes to the code and run a local version of Ubuntu Pro Client in a LXD container to try out your changes.
+## Configuring a contract token
+
+Now that you have `behave` working, ask a member of the Ubuntu Pro Client team for the testing contract tokens. There are three of them. You will need to set them as values of environment variables in your shell.
+
+```bash
+export UACLIENT_BEHAVE_CONTRACT_TOKEN=contract_token
+export UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING=contract_token_staging
+export UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED=contract_token_staging_expired
+```
+
+Now you can run tests that use `pro` to attach to an Ubuntu Pro contract.
+
+```bash
+tox -e behave -- -n "snapd installed as a snap if necessary"
+```
+
+Notice that we're using the `-n` option to behave to filter the tests to only the one that matches the given string. This particular test happens to also be a test that uses a LXD VM, so it is a good test to run to ensure that your LXD VMs are working.
+
+# Interacting with local changes
+With all of the above in place, you can now make changes to the code and run a local version of Ubuntu Pro Client in a LXD container or Multipass VM to try out your changes.
 
 Edit `uaclient/version.py` and modify the `get_version()` function to return a fake version string. For example, change the first line of the function to `return "42:42"`.
+
+## Try it out in a container
 
 Now use our helper script to build a deb with your changes, launch a LXD container, install your deb, and drop you into a shell on the container.
 ```bash
@@ -141,3 +171,20 @@ Now use our helper script to build a deb with your changes, launch a LXD contain
 In the container, you can now run `pro version` and see your changes in action.
 
 When you're done with the container, `exit` and remember to delete the container. The name of the container contains a unique hash of the version of `pro` you built; you can find it as the hostname of the container in the prompt of your shell, or by running `lxc list` on your host machine.
+
+## Try it out in a VM
+
+While we use LXD VMs for behave tests, it is difficult to set up Xenial and Bionic VMs manually for interactive testing. Instead, we use [Multipass](https://multipass.run/) to launch VMs for interactive testing.
+
+Install Multipass.
+```bash
+sudo snap install multipass
+```
+
+Now use our helper script to build a deb with your changes, launch a Multipass VM, install your deb, and drop you into a shell on the VM.
+```bash
+./tools/test-in-multipass.sh xenial
+```
+In the VM, you can now run `pro version` and see your changes in action.
+
+When you're done with the VM, `exit` and remember to delete the VM. The name of the VM contains a unique hash of the version of `pro` you built; you can find it as the hostname of the VM in the prompt of your shell, or by running `multipass list` on your host machine.
