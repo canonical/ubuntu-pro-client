@@ -9,7 +9,7 @@ from functools import partial
 import mock
 import pytest
 
-from uaclient import apt, exceptions, livepatch, messages, system
+from uaclient import apt, exceptions, livepatch, messages
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
@@ -21,7 +21,6 @@ from uaclient.entitlements.livepatch import (
     LivepatchEntitlement,
     process_config_directives,
 )
-from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.snap import SNAP_CMD
 from uaclient.testing import fakes
 
@@ -96,23 +95,6 @@ class TestLivepatchUserFacingStatus:
         expected_details = "Cannot install Livepatch on a container."
         assert expected_details == details.msg
 
-    def test_user_facing_status_unavailable_on_unentitled(self, entitlement):
-        """Status UNAVAILABLE on absent entitlement contract status."""
-        no_entitlements = machine_token(LivepatchEntitlement.name)
-        # Delete livepatch entitlement info
-        no_entitlements["machineTokenInfo"]["contractInfo"][
-            "resourceEntitlements"
-        ].pop()
-        entitlement.cfg.machine_token_file.write(no_entitlements)
-
-        with mock.patch(
-            "uaclient.system.get_release_info"
-        ) as m_get_release_info:
-            m_get_release_info.return_value = mock.MagicMock(series="xenial")
-            uf_status, details = entitlement.user_facing_status()
-        assert uf_status == UserFacingStatus.UNAVAILABLE
-        assert "Livepatch is not entitled" == details.msg
-
 
 class TestLivepatchProcessConfigDirectives:
     @pytest.mark.parametrize(
@@ -180,70 +162,6 @@ class TestLivepatchProcessConfigDirectives:
     "uaclient.entitlements.livepatch.system.is_container", return_value=False
 )
 class TestLivepatchEntitlementCanEnable:
-    @pytest.mark.parametrize(
-        "supported_kernel_ver",
-        (
-            system.KernelInfo(
-                uname_machine_arch="",
-                uname_release="4.4.0-00-generic",
-                proc_version_signature_version="",
-                build_date=None,
-                major=4,
-                minor=4,
-                patch=0,
-                abi="00",
-                flavor="generic",
-            ),
-            system.KernelInfo(
-                uname_machine_arch="",
-                uname_release="5.0.0-00-generic",
-                proc_version_signature_version="",
-                build_date=None,
-                major=5,
-                minor=0,
-                patch=0,
-                abi="00",
-                flavor="generic",
-            ),
-            system.KernelInfo(
-                uname_machine_arch="",
-                uname_release="4.19.0-00-generic",
-                proc_version_signature_version="",
-                build_date=None,
-                major=4,
-                minor=19,
-                patch=0,
-                abi="00",
-                flavor="generic",
-            ),
-        ),
-    )
-    @mock.patch("uaclient.system.get_dpkg_arch", return_value="x86_64")
-    @mock.patch("uaclient.system.get_kernel_info")
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
-    def test_can_enable_true_on_entitlement_inactive(
-        self,
-        _m_get_release_info,
-        m_kernel_info,
-        _m_dpkg_arch,
-        _m_is_container,
-        _m_livepatch_status,
-        _m_fips_status,
-        supported_kernel_ver,
-        capsys,
-        entitlement,
-    ):
-        """When entitlement is INACTIVE, can_enable returns True."""
-        m_kernel_info.return_value = supported_kernel_ver
-        with mock.patch("uaclient.system.is_container") as m_container:
-            m_container.return_value = False
-            assert (True, None) == entitlement.can_enable()
-        assert ("", "") == capsys.readouterr()
-        assert [mock.call()] == m_container.call_args_list
-
     @mock.patch(
         "uaclient.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),

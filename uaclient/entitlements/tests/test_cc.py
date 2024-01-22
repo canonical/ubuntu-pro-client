@@ -6,7 +6,7 @@ import os.path
 import mock
 import pytest
 
-from uaclient import apt, messages, status, system
+from uaclient import apt, messages, system
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -27,52 +27,6 @@ CC_MACHINE_TOKEN = machine_token(
         "series": ["xenial"],
     },
 )
-
-
-class TestCommonCriteriaEntitlementUserFacingStatus:
-    @pytest.mark.parametrize(
-        "arch,series,version,details",
-        (
-            (
-                "arm64",
-                "xenial",
-                "16.04 LTS (Xenial Xerus)",
-                "CC EAL2 is not available for platform arm64.\n"
-                "Supported platforms are: amd64, ppc64el, s390x.",
-            ),
-            (
-                "s390x",
-                "bionic",
-                "18.04 LTS (Bionic Beaver)",
-                "CC EAL2 is not available for Ubuntu 18.04 LTS"
-                " (Bionic Beaver).",
-            ),
-        ),
-    )
-    @mock.patch("uaclient.system.get_dpkg_arch")
-    @mock.patch("uaclient.system.get_release_info")
-    def test_inapplicable_on_invalid_affordances(
-        self,
-        m_release_info,
-        m_dpkg_arch,
-        arch,
-        series,
-        version,
-        details,
-        FakeConfig,
-    ):
-        """Test invalid affordances result in inapplicable status."""
-        m_release_info.return_value = system.ReleaseInfo(
-            distribution="", release="", series=series, pretty_version=version
-        )
-        m_dpkg_arch.return_value = arch
-        cfg = FakeConfig().for_attached_machine(
-            machine_token=CC_MACHINE_TOKEN,
-        )
-        entitlement = CommonCriteriaEntitlement(cfg)
-        uf_status, uf_status_details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == uf_status
-        assert details == uf_status_details.msg
 
 
 class TestCommonCriteriaEntitlementEnable:

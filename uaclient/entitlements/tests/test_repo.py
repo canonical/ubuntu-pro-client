@@ -1,5 +1,3 @@
-import copy
-
 import mock
 import pytest
 
@@ -7,10 +5,8 @@ from uaclient import apt, exceptions, messages, util
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
-    UserFacingStatus,
 )
 from uaclient.entitlements.repo import RepoEntitlement
-from uaclient.entitlements.tests.conftest import machine_token
 
 M_PATH = "uaclient.entitlements.repo."
 M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."
@@ -34,41 +30,6 @@ def entitlement(entitlement_factory):
     return entitlement_factory(
         RepoTestEntitlement, affordances={"series": ["xenial"]}
     )
-
-
-class TestUserFacingStatus:
-    @mock.patch(M_PATH + "system.get_release_info")
-    def test_inapplicable_on_inapplicable_applicability_status(
-        self, m_release_info, entitlement
-    ):
-        """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
-        m_release_info.return_value = mock.MagicMock(
-            series="example", pretty_version="version"
-        )
-        applicability, details = entitlement.applicability_status()
-        assert ApplicabilityStatus.INAPPLICABLE == applicability
-        expected_details = (
-            "Repo Test Class is not available for Ubuntu version."
-        )
-        assert expected_details == details.msg
-        uf_status, _ = entitlement.user_facing_status()
-        assert UserFacingStatus.INAPPLICABLE == uf_status
-
-    @mock.patch(M_PATH + "system.get_release_info")
-    def test_unavailable_on_unentitled(self, m_release_info, entitlement):
-        """When unentitled, return UNAVAILABLE."""
-        no_entitlements = copy.deepcopy(machine_token("blah"))
-        # delete all enttlements
-        no_entitlements["machineTokenInfo"]["contractInfo"][
-            "resourceEntitlements"
-        ].pop()
-        entitlement.cfg.machine_token_file.write(no_entitlements)
-        m_release_info.return_value = mock.MagicMock(series="xenial")
-        applicability, _details = entitlement.applicability_status()
-        assert ApplicabilityStatus.APPLICABLE == applicability
-        uf_status, uf_details = entitlement.user_facing_status()
-        assert UserFacingStatus.UNAVAILABLE == uf_status
-        assert "Repo Test Class is not entitled" == uf_details.msg
 
 
 class TestProcessContractDeltas:

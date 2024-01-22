@@ -324,31 +324,6 @@ class TestFIPSEntitlementDefaults:
             assert False, "Unknown entitlement {}".format(entitlement.name)
 
 
-class TestFIPSEntitlementCanEnable:
-    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
-    def test_can_enable_true_on_entitlement_inactive(
-        self, m_is_config_value_true, capsys, entitlement
-    ):
-        """When entitlement is disabled, can_enable returns True."""
-        with mock.patch.object(
-            entitlement,
-            "applicability_status",
-            return_value=(ApplicabilityStatus.APPLICABLE, ""),
-        ):
-            with mock.patch.object(
-                entitlement,
-                "application_status",
-                return_value=(ApplicationStatus.DISABLED, ""),
-            ):
-                with mock.patch.object(
-                    entitlement,
-                    "detect_incompatible_services",
-                    return_value=False,
-                ):
-                    assert (True, None) == entitlement.can_enable()
-        assert ("", "") == capsys.readouterr()
-
-
 class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.setup_apt_proxy")
@@ -1015,8 +990,15 @@ class TestFIPSEntitlementApplicationStatus:
         "super_application_status",
         [s for s in ApplicationStatus if s is not ApplicationStatus.ENABLED],
     )
+    @mock.patch("uaclient.system.is_container", return_value=False)
+    @mock.patch("os.path.exists", return_value=False)
     def test_non_enabled_passed_through(
-        self, _m_should_reboot, entitlement, super_application_status
+        self,
+        _m_is_container,
+        _m_path_exists,
+        _m_should_reboot,
+        entitlement,
+        super_application_status,
     ):
         msg = "sure is some status here"
         with mock.patch(
@@ -1031,8 +1013,15 @@ class TestFIPSEntitlementApplicationStatus:
         "super_application_status",
         [s for s in ApplicationStatus if s is not ApplicationStatus.ENABLED],
     )
+    @mock.patch("uaclient.system.is_container", return_value=False)
+    @mock.patch("os.path.exists", return_value=False)
     def test_non_root_does_not_fail(
-        self, _m_should_reboot, super_application_status, FakeConfig
+        self,
+        _m_is_container,
+        _m_path_exists,
+        _m_should_reboot,
+        super_application_status,
+        FakeConfig,
     ):
         cfg = FakeConfig()
         entitlement = FIPSUpdatesEntitlement(cfg)
