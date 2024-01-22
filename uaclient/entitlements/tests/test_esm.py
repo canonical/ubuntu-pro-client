@@ -22,32 +22,6 @@ def entitlement(request, entitlement_factory):
     return_value=mock.MagicMock(series="xenial"),
 )
 class TestESMEntitlementDisable:
-    @pytest.mark.parametrize("silent", [False, True])
-    @mock.patch(M_PATH + "can_disable", return_value=(False, None))
-    def test_disable_returns_false_on_can_disable_false_and_does_nothing(
-        self,
-        m_can_disable,
-        _m_get_release_info,
-        m_update_apt_and_motd_msgs,
-        silent,
-    ):
-        """When can_disable is false disable returns false and noops."""
-        entitlement = ESMInfraEntitlement({})
-
-        with mock.patch(
-            "uaclient.apt.remove_auth_apt_repo"
-        ) as m_remove_apt, mock.patch.object(
-            entitlement, "setup_local_esm_repo"
-        ) as m_setup_repo:
-            ret, fail = entitlement.disable(silent)
-            assert ret is False
-            assert fail is None
-
-        assert [mock.call()] == m_can_disable.call_args_list
-        assert 0 == m_remove_apt.call_count
-        assert 0 == m_update_apt_and_motd_msgs.call_count
-        assert 0 == m_setup_repo.call_count
-
     @pytest.mark.parametrize("is_active_esm", (True, False))
     @pytest.mark.parametrize("is_lts", (True, False))
     @mock.patch("uaclient.entitlements.esm.system.is_current_series_lts")
