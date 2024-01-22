@@ -35,7 +35,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         cfg=None,
         disable=None,
         enable=None,
-        applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+        applicability_status=None,
         application_status=(ApplicationStatus.DISABLED, ""),
         allow_beta=False,
         assume_yes=False,
@@ -80,7 +80,10 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         return self._enable
 
     def applicability_status(self):
-        return self._applicability_status
+        if self._applicability_status is not None:
+            return self._applicability_status
+        else:
+            return super().applicability_status()
 
     def application_status(self):
         return self._application_status
@@ -148,7 +151,7 @@ class TestEntitlementNames:
         assert "something_else" == entitlement.presentation_name
 
 
-class TestUaEntitlementCanEnable:
+class TestEntitlementCanEnable:
     def test_can_enable_false_on_unentitled(self, entitlement_factory):
         """When entitlement contract is not enabled, can_enable is False."""
         entitlement = entitlement_factory(
@@ -742,7 +745,7 @@ class TestEntitlementCanDisable:
         assert fail is None
 
 
-class TestUaEntitlementDisable:
+class TestEntitlementDisable:
     @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_disable_when_dependent_service_found(
         self, m_prompt, entitlement_factory, mock_entitlement
@@ -828,8 +831,26 @@ class TestUaEntitlementDisable:
         assert expected_msg == fail.message.msg
         assert 1 == m_can_disable.call_count
 
+    @pytest.mark.parametrize("silent", [False, True])
+    def test_disable_returns_false_on_can_disable_false_and_does_nothing(
+        self,
+        silent,
+        entitlement_factory,
+    ):
+        """When can_disable is false disable returns false and noops."""
+        entitlement = entitlement_factory(ConcreteTestEntitlement)
 
-class TestUaEntitlementContractStatus:
+        with mock.patch.object(
+            entitlement, "can_disable", return_value=(False, None)
+        ) as m_can_disable:
+            ret, fail = entitlement.disable(silent)
+
+        assert ret is False
+        assert fail is None
+        assert [mock.call()] == m_can_disable.call_args_list
+
+
+class TestEntitlementContractStatus:
     @pytest.mark.parametrize(
         "entitled,expected_contract_status",
         (
@@ -958,6 +979,134 @@ class TestUserFacingStatus:
             title=entitlement.title
         ).msg
         assert expected_details == details.msg
+
+
+class TestApplicabilityStatus:
+    @pytest.mark.parametrize(
+        (
+            "arch,series,version,min_kernel,kernel_flavors,"
+            "expected_status,expected_message"
+        ),
+        (
+            (
+                "arm64",
+                "xenial",
+                "16.04 LTS (Xenial Xerus)",
+                "4.4",
+                ["generic", "lowlatency"],
+                ApplicabilityStatus.INAPPLICABLE,
+                messages.INAPPLICABLE_ARCH.format(
+                    title=ConcreteTestEntitlement.title,
+                    arch="arm64",
+                    supported_arches=", ".join(["amd64", "s390x"]),
+                ),
+            ),
+            (
+                "s390x",
+                "bionic",
+                "18.04 LTS (Bionic Beaver)",
+                "4.4",
+                ["generic", "lowlatency"],
+                ApplicabilityStatus.INAPPLICABLE,
+                messages.INAPPLICABLE_SERIES.format(
+                    title=ConcreteTestEntitlement.title,
+                    series="18.04 LTS (Bionic Beaver)",
+                ),
+            ),
+            (
+                "s390x",
+                "xenial",
+                "16.04 LTS (Xenial Xerus)",
+                "5.0",
+                ["generic", "lowlatency"],
+                ApplicabilityStatus.INAPPLICABLE,
+                messages.INAPPLICABLE_KERNEL_VER.format(
+                    title=ConcreteTestEntitlement.title,
+                    kernel="4.19.0-00-generic",
+                    min_kernel="5.0",
+                ),
+            ),
+            (
+                "s390x",
+                "xenial",
+                "16.04 LTS (Xenial Xerus)",
+                "5.0",
+                ["lowlatency"],
+                ApplicabilityStatus.INAPPLICABLE,
+                messages.INAPPLICABLE_KERNEL.format(
+                    title=ConcreteTestEntitlement.title,
+                    kernel="4.19.0-00-generic",
+                    supported_kernels="lowlatency",
+                ),
+            ),
+            (
+                "s390x",
+                "xenial",
+                "16.04 LTS (Xenial Xerus)",
+                "4.4",
+                ["generic", "lowlatency"],
+                ApplicabilityStatus.APPLICABLE,
+                None,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.system.get_dpkg_arch")
+    @mock.patch("uaclient.system.get_release_info")
+    def test_applicability_status(
+        self,
+        m_release_info,
+        m_dpkg_arch,
+        m_get_kernel_info,
+        arch,
+        series,
+        version,
+        min_kernel,
+        kernel_flavors,
+        expected_status,
+        expected_message,
+        entitlement_factory,
+    ):
+        m_release_info.return_value = system.ReleaseInfo(
+            distribution="", release="", series=series, pretty_version=version
+        )
+        m_get_kernel_info.return_value = system.KernelInfo(
+            uname_machine_arch="",
+            uname_release="4.19.0-00-generic",
+            proc_version_signature_version="",
+            build_date=None,
+            major=4,
+            minor=19,
+            patch=0,
+            abi="00",
+            flavor="generic",
+        )
+
+        m_dpkg_arch.return_value = arch
+
+        entitlement = entitlement_factory(
+            ConcreteTestEntitlement,
+            directives={
+                "aptURL": "http://CC",
+                "aptKey": "APTKEY",
+                "suites": ["xenial"],
+                "additionalPackages": ["test-package"],
+            },
+            affordances={
+                "architectures": ["x86_64", "s390x"],
+                "series": ["xenial"],
+                "minKernelVersion": min_kernel,
+                "kernelFlavors": kernel_flavors,
+            },
+        )
+
+        actual_status, actual_message = entitlement.applicability_status()
+        assert expected_status == actual_status
+
+        if expected_message:
+            assert expected_message.msg == actual_message.msg
+        else:
+            assert actual_message is None
 
 
 class TestEntitlementProcessContractDeltas:
