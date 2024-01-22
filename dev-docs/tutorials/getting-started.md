@@ -42,7 +42,7 @@ tox
 >
 > For example:
 > - `tox -e test` will run the unit tests.
-> - `tox -e flake8` will run the python linter.
+> - `tox -e flake8` will run the Python linter.
 > - `tox -e mypy` will run the type checker.
 > - `tox -e shellcheck` will run the bash script linter.
 > - `tox -e behave` will run the integration tests (discussed more later).
