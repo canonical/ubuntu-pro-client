@@ -25,6 +25,11 @@ class RepoTestEntitlementRepoWithPin(RepoTestEntitlement):
     repo_pin_priority = 1000
 
 
+class RepoTestEntitlementRepoWithRemovePackages(RepoTestEntitlement):
+    def remove_packages(self):
+        pass
+
+
 @pytest.fixture
 def entitlement(entitlement_factory):
     return entitlement_factory(
@@ -626,7 +631,7 @@ class TestPerformEnable:
             )
 
 
-class TestPerformDisable:
+class TestRepoPerformDisable:
     @pytest.mark.parametrize("purge_value", (True, False))
     @mock.patch(M_PATH + "apt.get_installed_packages_by_origin")
     @mock.patch(M_PATH + "apt.get_remote_versions_for_package")
@@ -701,6 +706,46 @@ class TestPerformDisable:
                 assert m_prompt_for_purge.call_args_list == []
                 assert m_execute_removal.call_args_list == []
                 assert m_execute_reinstall.call_args_list == []
+
+    @pytest.mark.parametrize(
+        "repo_cls",
+        (
+            (RepoTestEntitlement),
+            (RepoTestEntitlementRepoWithRemovePackages),
+        ),
+    )
+    @mock.patch("uaclient.system.should_reboot", return_value=False)
+    def test_disable_on_can_disable_true_removes_apt_config_and_packages(
+        self,
+        _m_should_reboot,
+        repo_cls,
+        entitlement_factory,
+    ):
+        """When can_disable, disable removes apt config and packages."""
+        entitlement = entitlement_factory(repo_cls)
+
+        if isinstance(entitlement, RepoTestEntitlementRepoWithRemovePackages):
+            mock_remove_packages = mock.patch.object(
+                entitlement, "remove_packages"
+            )
+        else:
+            mock_remove_packages = mock.MagicMock()
+
+        with mock.patch.object(
+            entitlement, "can_disable", return_value=(True, None)
+        ):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                with mock_remove_packages as m_remove_packages:
+                    assert entitlement.disable(True)
+
+        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
+
+        if isinstance(entitlement, RepoTestEntitlementRepoWithRemovePackages):
+            assert [mock.call()] == m_remove_packages.call_args_list
+        else:
+            assert 0 == m_remove_packages.call_count
 
 
 class TestPurge:

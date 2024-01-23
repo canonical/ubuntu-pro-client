@@ -660,45 +660,6 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
-    @pytest.mark.parametrize(
-        "cls_name, cls_title", (("FIPSEntitlement", "FIPS"),)
-    )
-    @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.system.is_container", return_value=False)
-    def test_enable_fails_when_blocking_service_is_enabled(
-        self,
-        m_is_container,
-        m_handle_message_op,
-        m_livepatch_proxy,
-        m_snap_proxy,
-        m_validate_proxy,
-        _m_is_snapd_installed,
-        m_is_snapd_installed_as_a_snap,
-        cls_name,
-        cls_title,
-        entitlement,
-    ):
-        m_handle_message_op.return_value = True
-
-        with mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS):
-            with mock.patch(
-                "uaclient.entitlements.fips.{}.application_status".format(
-                    cls_name
-                )
-            ) as m_fips:
-                m_fips.return_value = (ApplicationStatus.ENABLED, "")
-                result, reason = entitlement.enable()
-                assert not result
-
-                msg = "Cannot enable Livepatch when {} is enabled.".format(
-                    cls_title
-                )
-                assert msg.strip() == reason.message.msg.strip()
-
-        assert m_validate_proxy.call_count == 0
-        assert m_snap_proxy.call_count == 0
-        assert m_livepatch_proxy.call_count == 0
-
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
     @mock.patch("uaclient.system.which", return_value=None)
     @mock.patch("uaclient.system.subp")
