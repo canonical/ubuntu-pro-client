@@ -25,6 +25,7 @@ from uaclient.entitlements.fips import (
     UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL,
     UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL,
     FIPSEntitlement,
+    FIPSPreviewEntitlement,
     FIPSUpdatesEntitlement,
 )
 from uaclient.files.notices import Notice, NoticesManager
@@ -325,155 +326,6 @@ class TestFIPSEntitlementDefaults:
 
 
 class TestFIPSEntitlementEnable:
-    @mock.patch("uaclient.apt.update_sources_list")
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch(M_PATH + "get_cloud_type", return_value=("", None))
-    def test_enable_configures_apt_sources_and_auth_files(
-        self,
-        _m_get_cloud_type,
-        m_setup_apt_proxy,
-        m_update_sources_list,
-        entitlement,
-    ):
-        """When entitled, configure apt repo auth token, pinning and url."""
-        notice_ent_cls = NoticesManager()
-        patched_packages = ["a", "b"]
-        expected_conditional_packages = [
-            "openssh-server",
-            "openssh-server-hmac",
-            "strongswan",
-            "strongswan-hmac",
-        ]
-
-        with contextlib.ExitStack() as stack:
-            m_add_apt = stack.enter_context(
-                mock.patch("uaclient.apt.add_auth_apt_repo")
-            )
-            m_add_pinning = stack.enter_context(
-                mock.patch("uaclient.apt.add_ppa_pinning")
-            )
-            m_installed_pkgs = stack.enter_context(
-                mock.patch(
-                    "uaclient.apt.get_installed_packages_names",
-                    return_value=["openssh-server", "strongswan"],
-                )
-            )
-            m_subp = stack.enter_context(
-                mock.patch("uaclient.system.subp", return_value=("", ""))
-            )
-            m_can_enable = stack.enter_context(
-                mock.patch.object(entitlement, "can_enable")
-            )
-            stack.enter_context(
-                mock.patch("uaclient.util.handle_message_operations")
-            )
-            stack.enter_context(
-                mock.patch(
-                    "uaclient.system.get_release_info",
-                    return_value=mock.MagicMock(series="xenial"),
-                )
-            )
-            stack.enter_context(
-                mock.patch(
-                    "uaclient.entitlements.fips.system.should_reboot",
-                    return_value=True,
-                )
-            )
-            stack.enter_context(mock.patch(M_REPOPATH + "exists"))
-            stack.enter_context(
-                mock.patch.object(fips, "services_once_enabled_file")
-            )
-            # Note that this patch uses a PropertyMock and happens on the
-            # entitlement's type because packages is a property
-            m_packages = mock.PropertyMock(return_value=patched_packages)
-            stack.enter_context(
-                mock.patch.object(type(entitlement), "packages", m_packages)
-            )
-            stack.enter_context(
-                mock.patch("uaclient.system.is_container", return_value=False)
-            )
-
-            m_can_enable.return_value = (True, None)
-            assert (True, None) == entitlement.enable()
-
-        repo_url = "http://{}".format(entitlement.name.upper())
-        add_apt_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
-                    entitlement.name
-                ),
-                "{}/ubuntu".format(repo_url),
-                "{}-token".format(entitlement.name),
-                ["xenial"],
-                entitlement.repo_key_file,
-            )
-        ]
-        apt_pinning_calls = [
-            mock.call(
-                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name),
-                repo_url,
-                entitlement.origin,
-                1001,
-            )
-        ]
-
-        install_cmd = []
-        install_cmd.append(
-            mock.call(
-                [
-                    "apt-get",
-                    "install",
-                    "--assume-yes",
-                    "--allow-downgrades",
-                    '-o Dpkg::Options::="--force-confdef"',
-                    '-o Dpkg::Options::="--force-confold"',
-                ]
-                + patched_packages,
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-            )
-        )
-
-        for pkg in expected_conditional_packages:
-            install_cmd.append(
-                mock.call(
-                    [
-                        "apt-get",
-                        "install",
-                        "--assume-yes",
-                        "--allow-downgrades",
-                        '-o Dpkg::Options::="--force-confdef"',
-                        '-o Dpkg::Options::="--force-confold"',
-                        pkg,
-                    ],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-                )
-            )
-
-        subp_calls = [
-            mock.call(
-                ["apt-mark", "showholds"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                override_env_vars=None,
-            ),
-        ]
-        subp_calls += install_cmd
-
-        assert [mock.call()] == m_can_enable.call_args_list
-        assert 1 == m_setup_apt_proxy.call_count
-        assert 1 == m_installed_pkgs.call_count
-        assert add_apt_calls == m_add_apt.call_args_list
-        assert apt_pinning_calls == m_add_pinning.call_args_list
-        assert subp_calls == m_subp.call_args_list
-        assert 2 == m_update_sources_list.call_count
-        assert [
-            messages.FIPS_SYSTEM_REBOOT_REQUIRED,
-        ] == notice_ent_cls.list()
-
     @pytest.mark.parametrize(
         "fips_common_enable_return_value, expected_remove_notice_calls",
         [
@@ -534,84 +386,6 @@ class TestFIPSEntitlementEnable:
         assert (
             expected_remove_notice_calls == m_remove_notice.call_args_list[:2]
         )
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.apt.add_auth_apt_repo")
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
-    def test_enable_returns_false_on_missing_suites_directive(
-        self,
-        m_get_release_info,
-        m_add_apt,
-        _m_setup_apt_proxy,
-        fips_entitlement_factory,
-    ):
-        """When directives do not contain suites returns false."""
-        entitlement = fips_entitlement_factory(suites=[])
-
-        with mock.patch.object(
-            entitlement, "can_enable", return_value=(True, None)
-        ):
-            with mock.patch("uaclient.util.handle_message_operations"):
-                with pytest.raises(exceptions.UbuntuProError) as excinfo:
-                    entitlement.enable()
-        error_msg = (
-            "Ubuntu Pro server provided no suites directive for {}".format(
-                entitlement.name
-            )
-        )
-        assert error_msg == excinfo.value.msg
-        assert 0 == m_add_apt.call_count
-
-    @mock.patch("uaclient.apt.setup_apt_proxy")
-    def test_enable_errors_on_repo_pin_but_invalid_origin(
-        self, _m_setup_apt_proxy, entitlement
-    ):
-        """Error when no valid origin is provided on a pinned entitlemnt."""
-        entitlement.origin = None  # invalid value
-
-        with contextlib.ExitStack() as stack:
-            m_add_apt = stack.enter_context(
-                mock.patch("uaclient.apt.add_auth_apt_repo")
-            )
-            m_add_pinning = stack.enter_context(
-                mock.patch("uaclient.apt.add_ppa_pinning")
-            )
-            stack.enter_context(
-                mock.patch.object(
-                    entitlement, "can_enable", return_value=(True, None)
-                )
-            )
-            stack.enter_context(
-                mock.patch("uaclient.util.handle_message_operations")
-            )
-            m_remove_apt_config = stack.enter_context(
-                mock.patch.object(entitlement, "remove_apt_config")
-            )
-            stack.enter_context(
-                mock.patch(
-                    "uaclient.system.get_release_info",
-                    return_value=mock.MagicMock(series="xenial"),
-                )
-            )
-            stack.enter_context(mock.patch(M_REPOPATH + "exists"))
-
-            with pytest.raises(exceptions.UbuntuProError) as excinfo:
-                entitlement.enable()
-
-        error_msg = (
-            "Cannot setup apt pin. Empty apt repo origin value for {}\n"
-            "Could not enable {}."
-        ).format(
-            entitlement.name,
-            entitlement.title,
-        )
-        assert error_msg == excinfo.value.msg
-        assert 0 == m_add_apt.call_count
-        assert 0 == m_add_pinning.call_count
-        assert 0 == m_remove_apt_config.call_count
 
     @mock.patch(
         "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
@@ -950,38 +724,32 @@ class TestFIPSEntitlementRemovePackages:
         assert exc_info.value.msg.strip() == expected_msg
 
 
-@mock.patch("uaclient.util.handle_message_operations", return_value=True)
-@mock.patch("uaclient.system.should_reboot", return_value=True)
-@mock.patch(
-    "uaclient.system.get_release_info",
-    return_value=mock.MagicMock(series="xenial"),
-)
-class TestFIPSEntitlementDisable:
-    def test_disable_on_can_disable_true_removes_apt_config_and_packages(
+class TestFIPSCheckForRebootMsg:
+    @pytest.mark.parametrize(
+        "operation,expected",
+        (
+            (
+                "install",
+                messages.FIPS_SYSTEM_REBOOT_REQUIRED,
+            ),
+            (
+                "disable operation",
+                messages.FIPS_DISABLE_REBOOT_REQUIRED,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.system.should_reboot", return_value=True)
+    def test_check_for_reboot_message(
         self,
-        _m_get_release_info,
         _m_should_reboot,
-        m_handle_message_operations,
+        operation,
+        expected,
         entitlement,
     ):
         """When can_disable, disable removes apt config and packages."""
         notice_ent_cls = NoticesManager()
-
-        with mock.patch.object(
-            entitlement, "can_disable", return_value=(True, None)
-        ):
-            with mock.patch.object(
-                entitlement, "remove_apt_config"
-            ) as m_remove_apt_config:
-                with mock.patch.object(
-                    entitlement, "remove_packages"
-                ) as m_remove_packages:
-                    assert entitlement.disable(True)
-        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
-        assert [mock.call()] == m_remove_packages.call_args_list
-        assert [
-            messages.FIPS_DISABLE_REBOOT_REQUIRED,
-        ] == notice_ent_cls.list()
+        entitlement._check_for_reboot_msg(operation=operation)
+        assert [expected] == notice_ent_cls.list()
 
 
 @mock.patch("uaclient.system.should_reboot")
@@ -994,8 +762,8 @@ class TestFIPSEntitlementApplicationStatus:
     @mock.patch("os.path.exists", return_value=False)
     def test_non_enabled_passed_through(
         self,
-        _m_is_container,
         _m_path_exists,
+        _m_is_container,
         _m_should_reboot,
         entitlement,
         super_application_status,
@@ -1017,8 +785,8 @@ class TestFIPSEntitlementApplicationStatus:
     @mock.patch("os.path.exists", return_value=False)
     def test_non_root_does_not_fail(
         self,
-        _m_is_container,
         _m_path_exists,
+        _m_is_container,
         _m_should_reboot,
         super_application_status,
         FakeConfig,
@@ -1037,8 +805,10 @@ class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize("should_reboot", ((True), (False)))
     @pytest.mark.parametrize("path_exists", ((True), (False)))
     @pytest.mark.parametrize("proc_content", (("0"), ("1")))
+    @mock.patch("uaclient.system.is_container", return_value=False)
     def test_proc_file_is_used_to_determine_application_status_message(
         self,
+        _m_is_container,
         m_should_reboot,
         proc_content,
         path_exists,
@@ -1134,6 +904,35 @@ class TestFIPSEntitlementApplicationStatus:
         assert actual_status == expected_status
         assert expected_msg.msg == actual_msg.msg
         assert expected_msg.name == actual_msg.name
+
+    @mock.patch("uaclient.system.is_container", return_value=True)
+    def test_application_status_inside_container(
+        self,
+        _m_is_container,
+        m_should_reboot,
+        entitlement,
+    ):
+        m_should_reboot.return_value = False
+        notice_ent_cls = NoticesManager()
+        notice_ent_cls.add(
+            Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
+            messages.FIPS_SYSTEM_REBOOT_REQUIRED,
+        )
+        expected_status = ApplicationStatus.ENABLED
+        expected_msg = "test"
+
+        with mock.patch(
+            M_PATH + "repo.RepoEntitlement.application_status",
+            return_value=(
+                expected_status,
+                messages.NamedMessage("test", expected_msg),
+            ),
+        ):
+            actual_status, actual_message = entitlement.application_status()
+
+        assert expected_status == actual_status
+        assert expected_msg == actual_message.msg
+        assert [] == notice_ent_cls.list()
 
     def test_fips_does_not_show_enabled_when_fips_updates_is(
         self, _m_should_reboot, entitlement
@@ -1286,6 +1085,12 @@ class TestFipsEntitlementPackages:
 
         assert isinstance(entitlement.packages, list)
 
+    @mock.patch("uaclient.system.is_container", return_value=True)
+    def test_packages_is_empty_if_running_on_container(
+        self, _m_is_container, entitlement
+    ):
+        assert [] == entitlement.packages
+
     @mock.patch(M_PATH + "apt.get_installed_packages_names", return_value=[])
     @mock.patch("uaclient.system.get_release_info")
     def test_fips_required_packages_included(
@@ -1365,13 +1170,20 @@ class TestFIPSUpdatesEntitlementEnable:
             assert not m_services_once_enabled.write.call_count
 
 
-class TestFIPSUpdatesEntitlementCanEnable:
+class TestFIPSEntitlementCanEnable:
+    @pytest.mark.parametrize(
+        "fips_cls",
+        (
+            (FIPSUpdatesEntitlement),
+            (FIPSPreviewEntitlement),
+        ),
+    )
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     def test_can_enable_false_if_fips_enabled(
-        self, m_is_config_value_true, capsys, entitlement_factory
+        self, m_is_config_value_true, fips_cls, capsys, entitlement_factory
     ):
         """When entitlement is disabled, can_enable returns True."""
-        entitlement = entitlement_factory(FIPSUpdatesEntitlement)
+        entitlement = entitlement_factory(fips_cls)
         with mock.patch.object(
             entitlement,
             "applicability_status",
@@ -1395,3 +1207,11 @@ class TestFIPSUpdatesEntitlementCanEnable:
                         reason.reason
                         == CanEnableFailureReason.INCOMPATIBLE_SERVICE
                     )
+
+
+class TestFipsPreview:
+    def test_allow_fips_on_cloud_is_always_true(self, entitlement_factory):
+        entitlement = entitlement_factory(FIPSPreviewEntitlement)
+        assert entitlement._allow_fips_on_cloud_instance(
+            series="test", cloud_id="test"
+        )
