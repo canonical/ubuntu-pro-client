@@ -17,12 +17,7 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailureReason,
     UserFacingStatus,
 )
-from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.status import ContractStatus
-
-base_entitlement_machine_token = partial(
-    machine_token, "testconcreteentitlement"
-)
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
@@ -103,6 +98,11 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         return False if not self._variant_name else True
 
 
+@pytest.fixture
+def base_entitlement_factory(entitlement_factory):
+    return partial(entitlement_factory, ConcreteTestEntitlement)
+
+
 class TestEntitlement:
     def test_entitlement_abstract_class(self):
         """UAEntitlement is abstract requiring concrete methods."""
@@ -129,9 +129,8 @@ class TestEntitlementNames:
             ("testconcreteentitlement", ["testconcreteentitlement"]),
         ),
     )
-    def test_valid_names(self, p_name, expected, entitlement_factory):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+    def test_valid_names(self, p_name, expected, base_entitlement_factory):
+        entitlement = base_entitlement_factory(
             entitled=True,
             affordances={"presentedAs": p_name},
         )
@@ -152,10 +151,9 @@ class TestEntitlementNames:
 
 
 class TestEntitlementCanEnable:
-    def test_can_enable_false_on_unentitled(self, entitlement_factory):
+    def test_can_enable_false_on_unentitled(self, base_entitlement_factory):
         """When entitlement contract is not enabled, can_enable is False."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=False,
         )
 
@@ -170,11 +168,10 @@ class TestEntitlementCanEnable:
         )
 
     def test_can_enable_false_on_access_only_not_supported(
-        self, entitlement_factory
+        self, base_entitlement_factory
     ):
         """When entitlement contract is not enabled, can_enable is False."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "supports_access_only": False,
@@ -200,27 +197,29 @@ class TestEntitlementCanEnable:
         self,
         m_refresh,
         caplog_text,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         """When entitlement contract is not enabled, can_enable is False."""
-        ent = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=False,
         )
 
-        with mock.patch.object(ent, "is_access_expired", return_value=True):
-            assert not ent.can_enable()[0]
+        with mock.patch.object(
+            entitlement, "is_access_expired", return_value=True
+        ):
+            assert not entitlement.can_enable()[0]
 
-        assert [mock.call(ent.cfg)] == m_refresh.call_args_list
+        assert [mock.call(entitlement.cfg)] == m_refresh.call_args_list
         assert (
             "Updating contract on service 'testconcreteentitlement' expiry"
             in caplog_text()
         )
 
-    def test_can_enable_false_on_entitlement_active(self, entitlement_factory):
+    def test_can_enable_false_on_entitlement_active(
+        self, base_entitlement_factory
+    ):
         """When entitlement is ENABLED, can_enable returns False."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.ENABLED, ""),
@@ -257,11 +256,10 @@ class TestEntitlementCanEnable:
         applicability_status,
         expected_ret,
         expected_reason,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         """When entitlement is INAPPLICABLE, can_enable returns False."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.DISABLED, ""),
@@ -282,10 +280,9 @@ class TestEntitlementCanEnable:
     @pytest.mark.parametrize("allow_beta", (True, False))
     @pytest.mark.parametrize("allow_beta_cfg", (True, False))
     def test_can_enable_on_beta_service(
-        self, allow_beta_cfg, allow_beta, is_beta, entitlement_factory
+        self, allow_beta_cfg, allow_beta, is_beta, base_entitlement_factory
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             allow_beta=allow_beta,
             cfg_features={"allow_beta": allow_beta_cfg},
@@ -306,10 +303,9 @@ class TestEntitlementCanEnable:
             assert reason.message is None
 
     def test_can_enable_when_incompatible_service_found(
-        self, entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -333,14 +329,13 @@ class TestEntitlementCanEnable:
         assert reason.message is None
 
     def test_can_enable_when_required_service_found(
-        self, entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
         m_required_service_cls, _ = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, "")
         )
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -371,13 +366,12 @@ class TestEntitlementEnable:
         m_is_config_value_true,
         block_disable_on_enable,
         assume_yes,
-        entitlement_factory,
+        base_entitlement_factory,
         mock_entitlement,
     ):
         m_prompt.return_value = assume_yes
         m_is_config_value_true.return_value = block_disable_on_enable
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -421,7 +415,7 @@ class TestEntitlementEnable:
     @pytest.mark.parametrize("assume_yes", ((False), (True)))
     @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_enable_when_required_service_found(
-        self, m_prompt, assume_yes, entitlement_factory, mock_entitlement
+        self, m_prompt, assume_yes, base_entitlement_factory, mock_entitlement
     ):
         m_prompt.return_value = assume_yes
 
@@ -430,8 +424,7 @@ class TestEntitlementEnable:
             enable=(True, None),
         )
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -518,14 +511,12 @@ class TestEntitlementEnable:
         can_enable_fail,
         handle_incompat_calls,
         enable_req_calls,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         """When can_enable returns False enable returns False."""
         m_can_enable.return_value = (False, can_enable_fail)
         m_handle_incompat.return_value = (False, None)
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement, entitled=True
-        )
+        entitlement = base_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
 
         assert (False, can_enable_fail) == entitlement.enable()
@@ -546,7 +537,7 @@ class TestEntitlementEnable:
         m_handle_msg,
         m_prompt_for_confirmation,
         enable_fail_message,
-        entitlement_factory,
+        base_entitlement_factory,
         mock_entitlement,
     ):
         m_handle_msg.return_value = True
@@ -572,8 +563,7 @@ class TestEntitlementEnable:
             enable=(False, enable_fail_reason),
         )
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.DISABLED, ""),
@@ -623,10 +613,10 @@ class TestEntitlementEnable:
         can_enable_call_count,
         perform_enable_call_count,
         expected_result,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         m_handle_messaging_hooks.side_effect = msg_ops_results
-        entitlement = entitlement_factory(ConcreteTestEntitlement)
+        entitlement = base_entitlement_factory()
         assert expected_result == entitlement.enable()
         assert can_enable_call_count == m_can_enable.call_count
         assert perform_enable_call_count == m_perform_enable.call_count
@@ -673,11 +663,10 @@ class TestEntitlementEnable:
 
 class TestEntitlementCanDisable:
     def test_can_disable_false_on_purge_not_supported(
-        self, entitlement_factory
+        self, base_entitlement_factory
     ):
         """When the entitlement doesn't support purge, can_disable is FALSE."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             purge=True,
             extra_args={
@@ -721,10 +710,9 @@ class TestEntitlementCanDisable:
         application_status,
         expected_ret,
         expected_fail,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": application_status,
@@ -741,14 +729,13 @@ class TestEntitlementCanDisable:
             assert expected_fail is None
 
     def test_can_disable_false_on_dependent_service(
-        self, entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
         m_required_service_cls, _ = mock_entitlement(
             application_status=(ApplicationStatus.ENABLED, None)
         )
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.ENABLED, ""),
@@ -763,10 +750,9 @@ class TestEntitlementCanDisable:
 
     @mock.patch("uaclient.entitlements.entitlement_factory")
     def test_can_disable_when_ignoring_dependent_service(
-        self, m_ent_factory, entitlement_factory, mock_entitlement
+        self, m_ent_factory, base_entitlement_factory, mock_entitlement
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.ENABLED, ""),
@@ -787,15 +773,14 @@ class TestEntitlementCanDisable:
 class TestEntitlementDisable:
     @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_disable_when_dependent_service_found(
-        self, m_prompt, entitlement_factory, mock_entitlement
+        self, m_prompt, base_entitlement_factory, mock_entitlement
     ):
         m_prompt.return_value = True
         m_dependent_service_cls, m_dependent_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.ENABLED, ""),
             disable=(True, None),
         )
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.ENABLED, ""),
@@ -825,7 +810,7 @@ class TestEntitlementDisable:
         m_handle_msg,
         m_prompt_for_confirmation,
         disable_fail_message,
-        entitlement_factory,
+        base_entitlement_factory,
         mock_entitlement,
     ):
         m_handle_msg.return_value = True
@@ -849,8 +834,7 @@ class TestEntitlementDisable:
             application_status=(ApplicationStatus.ENABLED, ""),
         )
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.DISABLED, ""),
@@ -874,10 +858,10 @@ class TestEntitlementDisable:
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
         silent,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         """When can_disable is false disable returns false and noops."""
-        entitlement = entitlement_factory(ConcreteTestEntitlement)
+        entitlement = base_entitlement_factory()
 
         with mock.patch.object(
             entitlement, "can_disable", return_value=(False, None)
@@ -904,11 +888,9 @@ class TestEntitlementContractStatus:
         ),
     )
     def test_contract_status(
-        self, entitled, expected_contract_status, entitlement_factory
+        self, entitled, expected_contract_status, base_entitlement_factory
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement, entitled=entitled
-        )
+        entitlement = base_entitlement_factory(entitled=entitled)
         assert expected_contract_status == entitlement.contract_status()
 
 
@@ -979,10 +961,9 @@ class TestUserFacingStatus:
         application_status,
         expected_status,
         expected_details,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=entitled,
             extra_args={
                 "applicability_status": applicability_status,
@@ -999,10 +980,9 @@ class TestUserFacingStatus:
             assert expected_details is None
 
     def test_unavailable_when_applicable_but_no_entitlement_cfg(
-        self, entitlement_factory
+        self, base_entitlement_factory
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=False,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, "")
@@ -1104,7 +1084,7 @@ class TestApplicabilityStatus:
         kernel_flavors,
         expected_status,
         expected_message,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
         m_release_info.return_value = system.ReleaseInfo(
             distribution="", release="", series=series, pretty_version=version
@@ -1123,8 +1103,7 @@ class TestApplicabilityStatus:
 
         m_dpkg_arch.return_value = arch
 
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             directives={
                 "aptURL": "http://CC",
                 "aptKey": "APTKEY",
@@ -1154,11 +1133,10 @@ class TestEntitlementProcessContractDeltas:
         (({}, {}), ({}, {"entitlement": {"entitled": False}})),
     )
     def test_process_contract_deltas_does_nothing_on_empty_orig_access(
-        self, entitlement_factory, orig_access, delta
+        self, base_entitlement_factory, orig_access, delta
     ):
         """When orig_acccess dict is empty perform no work."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -1195,11 +1173,10 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
-        self, m_platform_info, entitlement_factory, orig_access, delta
+        self, m_platform_info, base_entitlement_factory, orig_access, delta
     ):
         """If deltas do not represent transition to unentitled, do nothing."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -1228,11 +1205,10 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_clean_cache_on_inactive_unentitled(
-        self, entitlement_factory, orig_access, delta, caplog_text
+        self, base_entitlement_factory, orig_access, delta, caplog_text
     ):
         """Only clear cache when deltas transition inactive to unentitled."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.DISABLED, ""),
@@ -1263,11 +1239,10 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_disable_on_active_unentitled(
-        self, entitlement_factory, orig_access, delta
+        self, base_entitlement_factory, orig_access, delta
     ):
         """Disable when deltas transition from active to unentitled."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.ENABLED, ""),
@@ -1305,11 +1280,10 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_enable_beta_if_enabled_by_default_turned(
-        self, entitlement_factory, orig_access, delta
+        self, base_entitlement_factory, orig_access, delta
     ):
         """Disable when deltas transition from active to unentitled."""
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
@@ -1335,10 +1309,9 @@ class TestEntitlementCfg:
         "variant_name", ((""), ("test-variant"), ("invalid-variant"))
     )
     def test_entitlement_cfg_respects_variant(
-        self, variant_name, entitlement_factory
+        self, variant_name, base_entitlement_factory
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             entitled=True,
             obligations={"enableByDefault": False},
             affordances={
@@ -1404,9 +1377,9 @@ class TestVariant:
         m_get_contract_variants,
         m_get_variants,
         contract_variants,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(ConcreteTestEntitlement)
+        entitlement = base_entitlement_factory()
         service_variants = {"test_variant": "test", "generic": "generic"}
         m_get_contract_variants.return_value = contract_variants
         m_get_variants.return_value = service_variants
@@ -1446,10 +1419,8 @@ class TestGetContractVariant:
             ),
         ),
     )
-    def test_get_contract_variant(self, overrides, entitlement_factory):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement, overrides=overrides
-        )
+    def test_get_contract_variant(self, overrides, base_entitlement_factory):
+        entitlement = base_entitlement_factory(overrides=overrides)
         actual_contract_variants = entitlement._get_contract_variants()
         expected_contract_variants = (
             set() if not overrides else set(["test1", "test2"])
@@ -1496,12 +1467,9 @@ class TestHandleRequiredSnaps:
         m_is_snapd_installed,
         m_is_snapd_installed_as_a_snap,
         directives,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
-            directives=directives,
-        )
+        entitlement = base_entitlement_factory(directives=directives)
         m_get_snap_info.side_effect = [
             exceptions.SnapNotInstalledError(snap="snap"),
             exceptions.SnapNotInstalledError(snap="snap"),
@@ -1581,10 +1549,9 @@ class TestHandleRequiredPackages:
         expected_apt_update_calls,
         expected_apt_install_calls,
         expected_result,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             directives={"requiredPackages": required_packages_directive},
         )
 
@@ -1648,10 +1615,9 @@ class TestHandleRequiredPackages:
         required_packages_directive,
         expected_apt_remove_calls,
         expected_result,
-        entitlement_factory,
+        base_entitlement_factory,
     ):
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
+        entitlement = base_entitlement_factory(
             directives={"requiredPackages": required_packages_directive},
         )
 
