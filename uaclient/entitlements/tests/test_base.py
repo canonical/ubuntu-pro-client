@@ -388,7 +388,7 @@ class TestEntitlementEnable:
 
         m_incompatible_cls, m_incompatible_obj = mock_entitlement(
             application_status=(ApplicationStatus.ENABLED, ""),
-            disable=True,
+            disable=(True, None),
         )
         entitlement._incompatible_services = (
             base.IncompatibleService(
@@ -630,6 +630,45 @@ class TestEntitlementEnable:
         assert expected_result == entitlement.enable()
         assert can_enable_call_count == m_can_enable.call_count
         assert perform_enable_call_count == m_perform_enable.call_count
+
+    @mock.patch("uaclient.util.handle_message_operations")
+    def test_enable_fails_when_blocking_service_is_enabled(
+        self,
+        _m_handle_message_op,
+        mock_entitlement,
+        base_entitlement_factory,
+    ):
+        expected_msg = messages.INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+            service_being_enabled=ConcreteTestEntitlement.title,
+            incompatible_service="Test",
+        )
+        incompatible_service_cls, _ = mock_entitlement(
+            application_status=(ApplicationStatus.ENABLED, ""),
+            title="Test",
+            disable=(
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES,
+                    message=expected_msg,
+                ),
+            ),
+        )
+        incompatible_services_definition = base.IncompatibleService(
+            incompatible_service_cls, messages.NamedMessage("code", "msg")
+        )
+        entitlement = base_entitlement_factory(
+            assume_yes=True,
+            extra_args={
+                "blocking_incompatible_services": [
+                    incompatible_services_definition
+                ],
+                "incompatible_services": [incompatible_services_definition],
+            },
+        )
+
+        result, reason = entitlement.enable()
+        assert not result
+        assert expected_msg.msg == reason.message.msg.strip()
 
 
 class TestEntitlementCanDisable:

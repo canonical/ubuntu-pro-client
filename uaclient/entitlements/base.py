@@ -759,9 +759,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 )
             )
 
-            ret = ent.disable(silent=True)
+            ret, fail = ent.disable(silent=True)
             if not ret:
-                return ret, None
+                return (ret, fail.message if fail else None)
 
         return True, None
 
