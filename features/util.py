@@ -37,7 +37,7 @@ UA_DEB_BUILD_CACHE = os.path.join(UA_TMP_DIR, "deb-cache")
 ALL_BINARY_PACKAGE_NAMES = [
     "ubuntu-pro-client",
     "ubuntu-pro-client-l10n",
-    "ubuntu-pro-image-auto-attach",
+    "ubuntu-pro-auto-attach",
     "ubuntu-advantage-tools",
     "ubuntu-advantage-pro",
 ]
@@ -61,7 +61,7 @@ class ProDebPaths:
     def cloud_pro_image_debs(self) -> List[Tuple[str, str]]:
         return [
             (
-                "ubuntu-pro-image-auto-attach",
+                "ubuntu-pro-auto-attach",
                 self.ubuntu_pro_image_auto_attach,
             ),
             ("ubuntu-advantage-pro", self.ubuntu_advantage_pro),
@@ -165,7 +165,7 @@ def get_debs_for_series(debs_path: str, series: str) -> ProDebPaths:
                 ubuntu_pro_client_l10n = full_path
             elif "ubuntu-pro-client" in deb_file:
                 ubuntu_pro_client = full_path
-            elif "ubuntu-pro-image-auto-attach" in deb_file:
+            elif "ubuntu-pro-auto-attach" in deb_file:
                 ubuntu_pro_image_auto_attach = full_path
             elif "ubuntu-advantage-tools" in deb_file:
                 ubuntu_advantage_tools = full_path
@@ -206,7 +206,7 @@ def build_debs(
     deb_paths = ProDebPaths(
         ubuntu_pro_client=_create_deb_path(deb_prefix, "ubuntu-pro-client"),
         ubuntu_pro_image_auto_attach=_create_deb_path(
-            deb_prefix, "ubuntu-pro-image-auto-attach"
+            deb_prefix, "ubuntu-pro-auto-attach"
         ),
         ubuntu_pro_client_l10n=_create_deb_path(
             deb_prefix, "ubuntu-pro-client-l10n"
@@ -317,7 +317,7 @@ def build_debs(
                 dest = deb_paths.ubuntu_pro_client_l10n
             elif "ubuntu-pro-client" in f:
                 dest = deb_paths.ubuntu_pro_client
-            elif "ubuntu-pro-image-auto-attach" in f:
+            elif "ubuntu-pro-auto-attach" in f:
                 dest = deb_paths.ubuntu_pro_image_auto_attach
             elif "ubuntu-advantage-tools" in f:
                 dest = deb_paths.ubuntu_advantage_tools
