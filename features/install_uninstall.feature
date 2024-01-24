@@ -101,7 +101,7 @@ Feature: Pro Install and Uninstall related tests
     Scenario Outline: Package ubuntu-advantage-tools now install 
         Given a `<release>` `<machine_type>` machine
         When I install transition package ubuntu-advantage-tools
-        Then I verify that `ubuntu-pro-image-auto-attach` is installed
+        Then I verify that `ubuntu-pro-auto-attach` is installed
 
         Examples: ubuntu release
            | release | machine_type  |

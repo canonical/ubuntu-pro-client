@@ -86,15 +86,15 @@ Description: Translations for Ubuntu Pro Client
  languages.
 
 Package: ubuntu-advantage-pro
-Depends: ubuntu-pro-image-auto-attach, ${misc:Depends}
+Depends: ubuntu-pro-auto-attach, ${misc:Depends}
 Architecture: all
 Priority: optional
 Section: oldlibs
-Description: transitional dummy package for ubuntu-pro-image-auto-attach
- This is a transitional dummy package for ubuntu-pro-image-auto-attach. It can
+Description: transitional dummy package for ubuntu-pro-auto-attach
+ This is a transitional dummy package for ubuntu-pro-auto-attach. It can
  safely be removed.
 
-Package: ubuntu-pro-image-auto-attach
+Package: ubuntu-pro-auto-attach
 Homepage: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances/
 Architecture: all
 Depends: ${misc:Depends}, ubuntu-pro-client (>=31~)

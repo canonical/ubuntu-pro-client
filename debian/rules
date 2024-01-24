@@ -43,7 +43,7 @@ override_dh_gencontrol:
 	dh_gencontrol
 
 override_dh_systemd_enable:
-	dh_systemd_enable -pubuntu-pro-image-auto-attach ua-auto-attach.service
+	dh_systemd_enable -pubuntu-pro-auto-attach ua-auto-attach.service
 	dh_systemd_enable -pubuntu-pro-client ua-reboot-cmds.service
 	dh_systemd_enable -pubuntu-pro-client ua-timer.timer
 	dh_systemd_enable -pubuntu-pro-client ua-timer.service
@@ -79,9 +79,9 @@ ifneq (${VERSION_ID},"16.04")
 	rm $(CURDIR)/debian/ubuntu-pro-client/lib/systemd/system/ubuntu-advantage-cloud-id-shim.service
 endif
 
-	# Move ua-auto-attach.service out to ubuntu-pro-image-auto-attach
-	mkdir -p debian/ubuntu-pro-image-auto-attach/lib/systemd/system
-	mv debian/ubuntu-pro-client/lib/systemd/system/ua-auto-attach.* debian/ubuntu-pro-image-auto-attach/lib/systemd/system
+	# Move ua-auto-attach.service out to ubuntu-pro-auto-attach
+	mkdir -p debian/ubuntu-pro-auto-attach/lib/systemd/system
+	mv debian/ubuntu-pro-client/lib/systemd/system/ua-auto-attach.* debian/ubuntu-pro-auto-attach/lib/systemd/system
 
 	# move migration scripts from before the package rename into ubuntu-advantage-tools
 	mkdir -p debian/ubuntu-advantage-tools/usr/lib/ubuntu-advantage
