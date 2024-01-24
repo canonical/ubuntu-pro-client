@@ -116,7 +116,7 @@ def when_i_install_uat(context, machine_name=SUT):
         if is_pro:
             when_i_apt_install(
                 context,
-                "ubuntu-pro-image-auto-attach",
+                "ubuntu-pro-auto-attach",
                 machine_name=machine_name,
             )
 
