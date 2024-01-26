@@ -1336,6 +1336,31 @@ class TestIsSystemdServiceActive:
         assert expected_return == system.is_systemd_unit_active("test")
 
 
+class TestGetSystemdUnitActiveState:
+    @pytest.mark.parametrize(
+        [
+            "subp_side_effect",
+            "expected",
+        ],
+        (
+            ([("ActiveState=active\n", "")], "active"),
+            ([("ActiveState=activating\n", "")], "activating"),
+            ([("", "")], None),
+            ([("anything=anything", "")], None),
+            (exceptions.ProcessExecutionError("test"), None),
+        ),
+    )
+    @mock.patch("uaclient.system.subp")
+    def test_get_systemd_unit_active_state(
+        self,
+        m_subp,
+        subp_side_effect,
+        expected,
+    ):
+        m_subp.side_effect = subp_side_effect
+        assert expected == system.get_systemd_unit_active_state("test.service")
+
+
 class TestGetCpuInfo:
     @pytest.mark.parametrize(
         "cpuinfo,vendor_id,model,stepping",

@@ -7,15 +7,14 @@ Feature: api.u.pro.attach.auto.configure_retry_service
         """
         [Unit]
         Description=test
-        Before=cloud-config.service
-        After=cloud-config.target
+        Before=ubuntu-advantage.service
 
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/pro api u.pro.attach.auto.configure_retry_service.v1
 
         [Install]
-        WantedBy=cloud-config.service multi-user.target
+        WantedBy=multi-user.target
         """
         When I run `systemctl enable apitest.service` with sudo
         When I reboot the machine
