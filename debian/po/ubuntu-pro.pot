@@ -1437,7 +1437,7 @@ msgid "Collect logs and relevant system information into a tarball."
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:898
-msgid "tarball where the logs will be stored. (Defaults to ./ua_logs.tar.gz)"
+msgid "tarball where the logs will be stored. (Defaults to ./pro_logs.tar.gz)"
 msgstr ""
 
 #: ../../uaclient/messages/__init__.py:901
