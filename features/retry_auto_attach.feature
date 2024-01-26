@@ -169,6 +169,7 @@ Feature: auto-attach retries periodically on failures
         """
         Active: active \(running\)
         """
+        When I wait `20` seconds
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
@@ -324,6 +325,7 @@ Feature: auto-attach retries periodically on failures
         """
         Active: active \(running\)
         """
+        When I wait `20` seconds
         When I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
