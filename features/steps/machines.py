@@ -1,5 +1,6 @@
 import datetime
 import logging
+import subprocess
 import sys
 from typing import NamedTuple
 
@@ -226,3 +227,20 @@ def given_a_sut_machine_with_user_data(context, series, machine_type):
 @when("I reboot the machine")
 def when_i_reboot_the_machine(context, machine_name=SUT):
     context.machines[machine_name].instance.restart(wait=True)
+
+
+@when("I set lxd user-data to the following")
+def when_i_set_lxd_user_data(context, machine_name=SUT):
+    assert context.machines[machine_name].cloud.startswith("lxd")
+    lxd_name = context.machines[machine_name].instance.name
+    user_data = context.text.replace(
+        "<contract_token>", context.pro_config.contract_token
+    )
+    cmd = [
+        "lxc",
+        "config",
+        "set",
+        lxd_name,
+        "cloud-init.user-data={}".format(user_data),
+    ]
+    subprocess.check_call(cmd)

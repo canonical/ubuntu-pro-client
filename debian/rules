@@ -55,7 +55,15 @@ endif
 
 override_dh_systemd_start:
 	dh_systemd_start -pubuntu-pro-client ua-timer.timer
-	dh_systemd_start -pubuntu-pro-client ubuntu-advantage.service
+	#################################################################
+	# This is intentionally commented out. We do start              #
+	# ubuntu-advantage.service on install, but we need to use       #
+	# --no-block, so we can't use dh_systemd_start.                 #
+	# Instead, we copied what dh_systemd_start does and added it    #
+	# directly to the maintainer scripts, adding --no-block.        #
+	# dh_systemd_start -pubuntu-pro-client ubuntu-advantage.service #
+	#################################################################
+
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-pro-client

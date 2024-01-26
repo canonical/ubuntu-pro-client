@@ -110,3 +110,24 @@ Feature: Pro Install and Uninstall related tests
            | focal   | aws.pro       |
            | jammy   | aws.pro       |
            | jammy   | aws.pro       |
+
+    @skip_local_environment
+    @skip_prebuilt_environment
+    Scenario Outline: Does not cause deadlock when cloud-init installs ubuntu-advantage-tools
+        Given a `<release>` `<machine_type>` machine
+        When I set up the test source for ubuntu-advantage-tools
+        When I apt remove `ubuntu-advantage-tools ubuntu-pro-client`
+        When I set lxd user-data to the following:
+        """
+        #cloud-config
+        ubuntu_advantage:
+          token: <contract_token>
+        """
+        When I run `cloud-init clean --logs` with sudo
+        When I reboot the machine
+        When I run `cloud-init status` with sudo
+        Then I verify that `ubuntu-advantage-tools` is installed
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | jammy   | lxd-container |

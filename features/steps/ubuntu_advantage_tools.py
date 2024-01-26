@@ -15,6 +15,7 @@ from features.util import (
 )
 
 
+@when("I set up the test source for ubuntu-advantage-tools")
 def setup_pro_package_sources(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
 
