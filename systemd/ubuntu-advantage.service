@@ -10,7 +10,11 @@
 [Unit]
 Description=Ubuntu Pro Background Auto Attach
 Documentation=man:ubuntu-advantage https://ubuntu.com/advantage
-After=network.target network-online.target systemd-networkd.service ua-auto-attach.service cloud-config.service ubuntu-advantage-cloud-id-shim.service
+# Note: This is NOT After=cloud-config.service to avoid deadlock when
+# cloud-init installs this package.
+# The python script will wait until cloud-config.service is done
+# before doing anything.
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service ubuntu-advantage-cloud-id-shim.service
 
 # Only run if not already attached
 ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json

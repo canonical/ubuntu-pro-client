@@ -747,6 +747,33 @@ def is_systemd_unit_active(service_name: str) -> bool:
     return True
 
 
+def get_systemd_unit_active_state(service_name: str) -> Optional[str]:
+    try:
+        out, _ = subp(
+            [
+                "systemctl",
+                "show",
+                "--property=ActiveState",
+                "--no-pager",
+                service_name,
+            ]
+        )
+        if out and out.startswith("ActiveState="):
+            return out.split("=")[1].strip()
+        else:
+            LOG.warning(
+                "Couldn't find ActiveState in systemctl show output for %s",
+                service_name,
+            )
+    except exceptions.ProcessExecutionError as e:
+        LOG.warning(
+            "Failed to get ActiveState for systemd unit %s",
+            service_name,
+            exc_info=e,
+        )
+    return None
+
+
 def get_user_cache_dir() -> str:
     if util.we_are_currently_root():
         return defaults.UAC_RUN_PATH
