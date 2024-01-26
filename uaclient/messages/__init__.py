@@ -895,7 +895,7 @@ CLI_COLLECT_LOGS_DESC = t.gettext(
     "Collect logs and relevant system information into a tarball."
 )
 CLI_COLLECT_LOGS_OUTPUT = t.gettext(
-    "tarball where the logs will be stored. (Defaults to " "./ua_logs.tar.gz)"
+    "tarball where the logs will be stored. (Defaults to " "./pro_logs.tar.gz)"
 )
 
 CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings")

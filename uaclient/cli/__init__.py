@@ -74,7 +74,7 @@ UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
-UA_COLLECT_LOGS_FILE = "ua_logs.tar.gz"
+UA_COLLECT_LOGS_FILE = "pro_logs.tar.gz"
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
