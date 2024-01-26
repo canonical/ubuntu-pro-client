@@ -24,7 +24,7 @@ Collect logs and relevant system information into a tarball.
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
                         tarball where the logs will be stored. \(Defaults to
-                        ./ua_logs.tar.gz\)
+                        ./pro_logs.tar.gz\)
 """  # noqa
 )
 
