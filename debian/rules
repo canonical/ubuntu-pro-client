@@ -55,7 +55,7 @@ endif
 
 override_dh_systemd_start:
 	dh_systemd_start -pubuntu-pro-client ua-timer.timer
-	dh_systemd_start -pubuntu-pro-client ubuntu-advantage.service
+	dh_systemd_start -pubuntu-pro-client ubuntu-advantage-install.service
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-pro-client

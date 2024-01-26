@@ -1,8 +1,9 @@
 import logging
 import os
 import sys
+import time
 
-from uaclient import http
+from uaclient import http, system
 from uaclient.config import UAConfig
 from uaclient.daemon import poll_for_pro_license, retry_auto_attach
 from uaclient.log import setup_journald_logging
