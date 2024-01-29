@@ -78,7 +78,7 @@ def _full_auto_attach(
     mode: event_logger.EventLoggerMode = event_logger.EventLoggerMode.JSON
 ) -> FullAutoAttachResult:
     try:
-        with lock.SpinLock(
+        with lock.RetryLock(
             cfg=cfg,
             lock_holder="pro.api.u.pro.attach.auto.full_auto_attach.v1",
         ):

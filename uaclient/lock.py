@@ -21,14 +21,14 @@ def clear_lock_file_if_present():
         clear_lock_file()
 
 
-class SpinLock:
+class RetryLock:
     """
     Context manager for gaining exclusive access to the lock file.
 
     Create a lock file if absent. The lock file will contain a pid of the
     running process, and a customer-visible description of the lock holder.
 
-    The SpinLock will try several times to acquire the lock before giving up.
+    The RetryLock will try several times to acquire the lock before giving up.
     The number of times to try and how long to sleep in between tries is
     configurable.
 
@@ -82,7 +82,7 @@ class SpinLock:
                 break
             except exceptions.LockHeldError as e:
                 LOG.debug(
-                    "SpinLock Attempt %d. %s. Spinning...", tries + 1, e.msg
+                    "RetryLock Attempt %d. %s. Spinning...", tries + 1, e.msg
                 )
                 tries += 1
                 if tries >= self.max_retries:

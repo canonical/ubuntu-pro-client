@@ -91,7 +91,7 @@ class TestFixProPkgHolds:
 )  # noqa: E501
 @mock.patch("lib.reboot_cmds.refresh_contract")
 @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
-@mock.patch("uaclient.lock.SpinLock")
+@mock.patch("uaclient.lock.RetryLock")
 @mock.patch("lib.reboot_cmds._is_attached")
 @mock.patch(
     "uaclient.files.state_files.reboot_cmd_marker_file",
