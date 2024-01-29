@@ -26,7 +26,7 @@ def time_mock_side_effect_increment_by(increment):
 
 @mock.patch(M_PATH + "LOG.debug")
 @mock.patch(M_PATH + "actions.auto_attach")
-@mock.patch(M_PATH + "lock.SpinLock")
+@mock.patch(M_PATH + "lock.RetryLock")
 class TestAttemptAutoAttach:
     def test_success(
         self, m_spin_lock, m_auto_attach, m_log_debug, FakeConfig
