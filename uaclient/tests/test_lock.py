@@ -3,14 +3,14 @@ import pytest
 
 from uaclient.exceptions import LockHeldError
 from uaclient.files.notices import Notice
-from uaclient.lock import SpinLock
+from uaclient.lock import RetryLock
 from uaclient.messages import LOCK_HELD
 
 M_PATH = "uaclient.lock."
 M_PATH_UACONFIG = "uaclient.config.UAConfig."
 
 
-class TestSpinLock:
+class TestRetryLock:
     @mock.patch("os.getpid", return_value=123)
     @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch("uaclient.files.notices.NoticesManager.add")
@@ -30,7 +30,7 @@ class TestSpinLock:
             assert arg == mock.sentinel.arg
             return mock.sentinel.success
 
-        with SpinLock(cfg=cfg, lock_holder="some operation"):
+        with RetryLock(cfg=cfg, lock_holder="some operation"):
             ret = test_function(arg)
 
         assert mock.sentinel.success == ret
@@ -61,7 +61,7 @@ class TestSpinLock:
             raise RuntimeError("test")
 
         with pytest.raises(RuntimeError) as exc:
-            with SpinLock(cfg=cfg, lock_holder="some operation"):
+            with RetryLock(cfg=cfg, lock_holder="some operation"):
                 test_function()
 
         assert "test" == str(exc.value)
@@ -76,7 +76,7 @@ class TestSpinLock:
 
     @mock.patch(M_PATH + "time.sleep")
     @mock.patch(
-        M_PATH + "SpinLock.grab_lock",
+        M_PATH + "RetryLock.grab_lock",
         side_effect=[
             LockHeldError(
                 lock_request="request", lock_holder="holder", pid=10
@@ -92,7 +92,7 @@ class TestSpinLock:
     ):
         cfg = FakeConfig()
 
-        with SpinLock(
+        with RetryLock(
             cfg=cfg, lock_holder="request", sleep_time=1, max_retries=3
         ):
             pass
@@ -106,7 +106,7 @@ class TestSpinLock:
 
     @mock.patch(M_PATH + "time.sleep")
     @mock.patch(
-        M_PATH + "SpinLock.grab_lock",
+        M_PATH + "RetryLock.grab_lock",
         side_effect=[
             LockHeldError(
                 lock_request="request", lock_holder="holder", pid=10
@@ -123,7 +123,7 @@ class TestSpinLock:
         cfg = FakeConfig()
 
         with pytest.raises(LockHeldError) as exc:
-            with SpinLock(
+            with RetryLock(
                 cfg=cfg, lock_holder="request", sleep_time=1, max_retries=2
             ):
                 pass

@@ -234,7 +234,7 @@ class TestFullAutoAttachV1:
         assert 4 == enable_ent_by_name.call_count
 
     @mock.patch(
-        "uaclient.lock.SpinLock.__enter__",
+        "uaclient.lock.RetryLock.__enter__",
         side_effect=[
             exceptions.LockHeldError(
                 lock_request="request", lock_holder="holder", pid=10
@@ -242,7 +242,7 @@ class TestFullAutoAttachV1:
         ],
     )
     def test_lock_held(
-        self, _m_spinlock_enter, _notice_remove, _notice_read, FakeConfig
+        self, _m_retrylock_enter, _notice_remove, _notice_read, FakeConfig
     ):
         with pytest.raises(exceptions.LockHeldError):
             _full_auto_attach(FullAutoAttachOptions, FakeConfig())
