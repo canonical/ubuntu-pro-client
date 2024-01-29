@@ -246,3 +246,13 @@ a daily ubuntu-advantage-tools image.
 ```sh
 UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave-gcppro-20.04
 ```
+
+## Documentation tests
+
+When working with a `docs` branch and making updates, you can run the documentation tests using the Makefile. The `make` command should display all targets to test.
+
+Before running the `make` command, make sure to download the python venv module by running the following command:
+
+```sh
+apt install python3-venv
+```
