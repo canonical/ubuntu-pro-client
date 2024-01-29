@@ -256,7 +256,13 @@ class UAClientBehaveConfig:
                 kwargs[key] = bool_value
 
         if "install_from" in kwargs:
-            kwargs["install_from"] = InstallationSource(kwargs["install_from"])
+            if str(kwargs["install_from"]).startswith("ppa:"):
+                kwargs["custom_ppa"] = kwargs["install_from"]
+                kwargs["install_from"] = InstallationSource.CUSTOM
+            else:
+                kwargs["install_from"] = InstallationSource(
+                    kwargs["install_from"]
+                )
 
         return cls(**kwargs)  # type: ignore
 
