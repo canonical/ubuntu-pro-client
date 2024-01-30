@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'mantic']  # , 'noble'] TODO flake8 is broken in noble as of Feb 21 2024. Add back once python3-flake8 >6 (currently in -proposed) gets into noble
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'mantic', 'noble']
     steps:
       - name: Prepare build tools
         env:
@@ -47,7 +47,12 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          sg sbuild -c "mk-sbuild --skip-proposed ${{ matrix.release }}"
+          if [ \"${{ matrix.release }}\" = \"noble\" ]; then  # TODO update this for the new devel after noble is released
+            SKIP_PROPOSED=""
+          else
+            SKIP_PROPOSED="--skip-proposed"
+          fi
+          sg sbuild -c "mk-sbuild $SKIP_PROPOSED ${{ matrix.release }}"
           sg sbuild -c "sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
           mv ../*.deb '${{ runner.temp }}'  # Workaround for Debbug: #990734, drop in Jammy
       - name: Archive debs as artifacts
@@ -65,7 +70,7 @@ jobs:
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['bionic', 'focal', 'jammy', 'mantic']
+        release: ['bionic', 'focal', 'jammy', 'mantic', 'noble']
         platform: ['lxd-container']
         host_os: ['ubuntu-22.04']
         include:
