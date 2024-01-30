@@ -1,0 +1,7 @@
+contract_token: <token for testing>
+contract_token_staging: <staging token for testing>
+contract_token_staging_expired: <expired staging token for testing>
+
+landscape_registration_key: <landscape registration key>
+landscape_api_access_key: <landscape access key>
+landscape_api_secret_key: <landscape secret key>
