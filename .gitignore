@@ -36,6 +36,7 @@ test-results*
 
 # credentials - don't commit credentials
 tools/ua-test-credentials.yaml
+features/config/protest.yaml
 
 # apt-hook build artifacts
 apt-hook/hook
