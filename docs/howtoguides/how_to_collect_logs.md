@@ -23,5 +23,5 @@ It puts together:
 Sensitive data is redacted from all files included in the tarball. As of now,
 the command must be run as root.
 
-Running the command creates a `ua_logs.tar.gz` file in the current directory.
+Running the command creates a `pro_logs.tar.gz` file in the current directory.
 The output file path/name can be changed using the `-o` option.
