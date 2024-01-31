@@ -17,8 +17,8 @@ def add_info(report, ui=None):
         auto_include_log_files = {
             "cloud-id.txt",
             "cloud-id.txt-error",
-            "ua-status.json",
-            "ua-status.json-error",
+            "pro-status.json",
+            "pro-status.json-error",
             "livepatch-status.txt",
             "livepatch-status.txt-error",
             "pro-journal.txt",

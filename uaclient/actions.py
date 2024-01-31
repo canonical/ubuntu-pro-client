@@ -1,5 +1,6 @@
 import datetime
 import glob
+import json
 import logging
 import os
 import re
@@ -235,9 +236,6 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
         "cloud-id", "{}/cloud-id.txt".format(output_dir)
     )
     _write_command_output_to_file(
-        "pro status --format json", "{}/ua-status.json".format(output_dir)
-    )
-    _write_command_output_to_file(
         "{} status".format(livepatch.LIVEPATCH_CMD),
         "{}/livepatch-status.txt".format(output_dir),
     )
@@ -268,6 +266,11 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
             "{}/{}.txt".format(output_dir, service),
             return_codes=[0, 3],
         )
+    pro_status, _ = status(cfg=cfg, show_all=False)
+    system.write_file(
+        "{}/pro-status.json".format(output_dir),
+        json.dumps(pro_status),
+    )
 
     state_files = _get_state_files(cfg)
     user_log_files = (

@@ -23,12 +23,12 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         jobs-status.json
         livepatch-status.txt-error
         pro-journal.txt
+        pro-status.json
         systemd-timers.txt
         ua-auto-attach.path.txt(-error)?
         ua-auto-attach.service.txt(-error)?
         uaclient.conf
         ua-reboot-cmds.service.txt
-        ua-status.json
         ua-timer.service.txt
         ua-timer.timer.txt
         ubuntu-advantage.log
@@ -69,12 +69,12 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         jobs-status.json
         livepatch-status.txt-error
         pro-journal.txt
+        pro-status.json
         systemd-timers.txt
         ua-auto-attach.path.txt(-error)?
         ua-auto-attach.service.txt(-error)?
         uaclient.conf
         ua-reboot-cmds.service.txt
-        ua-status.json
         ua-timer.service.txt
         ua-timer.timer.txt
         ubuntu-advantage.log

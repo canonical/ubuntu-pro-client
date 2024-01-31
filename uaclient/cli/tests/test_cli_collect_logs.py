@@ -67,6 +67,7 @@ class TestActionCollectLogs:
     @mock.patch("os.chown")
     @mock.patch("os.path.isfile", return_value=True)
     @mock.patch("shutil.copy")
+    @mock.patch("uaclient.actions.status")
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
     @mock.patch("uaclient.system.subp", return_value=(None, None))
@@ -81,6 +82,7 @@ class TestActionCollectLogs:
         m_subp,
         _load_file,
         _write_file,
+        m_status,
         m_shutilcopy,
         m_isfile,
         _chown,
@@ -96,6 +98,7 @@ class TestActionCollectLogs:
         FakeConfig,
         tmpdir,
     ):
+        m_status.return_value = {"user-id": ""}, 0
         m_get_release_info.return_value.series = series
         util_we_are_currently_root.return_value = is_root
         m_get_user.return_value = tmpdir.join("user-log").strpath
@@ -116,7 +119,6 @@ class TestActionCollectLogs:
 
         assert m_subp.call_args_list == [
             mock.call(["cloud-id"], rcs=None),
-            mock.call(["pro", "status", "--format", "json"], rcs=None),
             mock.call(["/snap/bin/canonical-livepatch", "status"], rcs=None),
             mock.call(["systemctl", "list-timers", "--all"], rcs=None),
             mock.call(
