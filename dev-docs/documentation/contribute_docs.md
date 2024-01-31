@@ -61,6 +61,18 @@ This will build *and serve* the documentation at http://127.0.0.1:8000 -- this
 gives you a live preview of any changes you make (and save) to the
 documentation without needing to continually rebuild.
 
+## Doc testing
+
+Before running the `make` command, make sure to download the Python venv module by running the following command:
+```sh
+apt install python3-venv
+```
+When working with any `docs` branch and making updates, you can run the documentation tests using the Makefile. 
+The `make` command lists all targets to test. You can run individual targets using the command:
+```bash
+make target
+```
+
 ## Docs structure and organisation
 
 We follow the [principles of Diataxis](https://diataxis.fr/) in our
