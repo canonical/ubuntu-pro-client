@@ -58,6 +58,9 @@ def attach_with_token(
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
     """
+    from uaclient.entitlements import (
+        check_entitlement_apt_directives_are_unique,
+    )
     from uaclient.timer.update_messaging import update_motd_messages
 
     contract_client = contract.UAContractClient(cfg)
@@ -67,6 +70,12 @@ def attach_with_token(
     )
 
     cfg.machine_token_file.write(new_machine_token)
+
+    try:
+        check_entitlement_apt_directives_are_unique(cfg)
+    except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
+        cfg.machine_token_file.delete()
+        raise e
 
     system.get_machine_id.cache_clear()
     machine_id = new_machine_token.get("machineTokenInfo", {}).get(
