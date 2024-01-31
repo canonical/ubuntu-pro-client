@@ -585,7 +585,7 @@ class UAConfig:
             LOG.warning('legacy "ua_config" found in uaclient.conf')
             LOG.warning("Please do the following:")
             LOG.warning(
-                "  1. run `pro config set field=value` for each"
+                "  1. run `sudo pro config set field=value` for each"
                 ' field/value pair present under "ua_config" in'
                 " /etc/ubuntu-advantage/uaclient.conf"
             )

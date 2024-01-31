@@ -51,7 +51,7 @@ Feature: Livepatch
         NOTICES
         The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-        Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
+        Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
 
         """
         When I run `pro disable livepatch` with sudo
@@ -65,7 +65,7 @@ Feature: Livepatch
         NOTICES
         The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-        Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning.
+        Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
 
         """
         When I apt install `linux-generic`
