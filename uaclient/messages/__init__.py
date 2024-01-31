@@ -1826,7 +1826,7 @@ LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
         """\
 The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch support.
 Supported kernels are listed here: {url}
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning."""  # noqa: E501
+Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
     ).format(url=urls.LIVEPATCH_SUPPORTED_KERNELS),
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
@@ -1835,7 +1835,7 @@ LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
         """\
 The current kernel ({{version}}, {{arch}}) is not supported by livepatch.
 Supported kernels are listed here: {url}
-Either switch to a supported kernel or `pro disable livepatch` to dismiss this warning."""  # noqa: E501
+Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
     ).format(
         url=urls.LIVEPATCH_SUPPORTED_KERNELS
     ),  # noqa: E501
