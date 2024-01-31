@@ -375,6 +375,10 @@ class InvalidContractDeltasServiceType(UbuntuProError):
     _formatted_msg = messages.E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE
 
 
+class EntitlementsAPTDirectivesAreNotUnique(UbuntuProError):
+    _formatted_msg = messages.E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE
+
+
 ###############################################################################
 #                              CLOUD PRO                                      #
 ###############################################################################
