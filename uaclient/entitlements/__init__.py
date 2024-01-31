@@ -1,6 +1,7 @@
 import enum
 import textwrap
-from typing import Dict, List, Type  # noqa: F401
+from collections import defaultdict
+from typing import Dict, List, NamedTuple, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import exceptions
 from uaclient.config import UAConfig
@@ -9,10 +10,12 @@ from uaclient.entitlements.anbox import AnboxEntitlement
 from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
+from uaclient.entitlements.entitlement_status import ApplicabilityStatus
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.landscape import LandscapeEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.realtime import RealtimeKernelEntitlement
+from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
 from uaclient.exceptions import EntitlementNotFoundError
 from uaclient.util import is_config_value_true
@@ -217,3 +220,55 @@ def create_enable_entitlements_not_found_error(
         invalid_service=", ".join(entitlements_not_found),
         service_msg=service_msg,
     )
+
+
+# This function is just here to simplify our unittests, as
+# mocking isinstance directly doesn't work here
+def _is_repo_entitlement(ent):
+    return isinstance(ent, RepoEntitlement)
+
+
+def check_entitlement_apt_directives_are_unique(
+    cfg: UAConfig,
+) -> bool:
+    entitlement_directives = defaultdict(list)
+
+    for ent_name in valid_services(cfg):
+        ent = entitlement_factory(cfg, ent_name)(cfg)
+
+        if not _is_repo_entitlement(ent):
+            continue
+
+        applicability_status, _ = ent.applicability_status()
+
+        if applicability_status == ApplicabilityStatus.APPLICABLE:
+            apt_url = ent.apt_url
+            apt_suites = ent.apt_suites or ()
+
+            for suite in apt_suites:
+                entitlement_directive = ent.repo_policy_check_tmpl.format(
+                    apt_url, suite
+                )
+                entitlement_directives[entitlement_directive].append(
+                    {
+                        "from": ent_name,
+                        "apt_url": apt_url,
+                        "suite": suite,
+                    }
+                )
+
+        for def_path, ent_directive in entitlement_directives.items():
+            if len(ent_directive) > 1:
+                apt_url = ent_directive[0]["apt_url"]
+                suite = ent_directive[0]["suite"]
+
+                raise exceptions.EntitlementsAPTDirectivesAreNotUnique(
+                    url=cfg.contract_url,
+                    names=", ".join(
+                        sorted(ent["from"] for ent in ent_directive)
+                    ),
+                    apt_url=apt_url,
+                    suite=suite,
+                )
+
+    return True

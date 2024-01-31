@@ -278,3 +278,59 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
            #| xenial  | lxd-container |
            #| bionic  | lxd-container |
            #| focal   | lxd-container |
+
+    Scenario Outline: Attach and Check for contract change in status checking
+       Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+       When I create the file `/tmp/response-overlay.json` with the following:
+       """
+       {
+           "https://contracts.canonical.com/v1/context/machines/token": [
+           {
+             "code": 200,
+             "response": {
+               "machineTokenInfo": {
+                 "contractInfo": {
+                   "resourceEntitlements": [
+                     {
+                       "type": "esm-infra",
+                       "directives": {
+                         "aptURL": "test",
+                         "suites": ["<release>"]
+                       }
+                     },
+                     {
+                       "type": "esm-apps",
+                       "directives": {
+                         "aptURL": "test",
+                         "suites": ["<release>"]
+                       }
+                     }
+                   ]
+                 }
+               }
+             }
+          }]
+       }
+       """
+       And I append the following on uaclient config:
+       """
+       features:
+         serviceclient_url_responses: "/tmp/response-overlay.json"
+       """
+       And I verify that running `pro attach TOKEN` `with sudo` exits `1`
+       Then I will see the following on stderr:
+       """
+       There is a problem with the resource directives provided by https://contracts.canonical.com
+       These entitlements: esm-apps, esm-infra are sharing the following directives
+        - APT url: test
+        - Suite: <release>
+       These directives need to be unique for every entitlement.
+       """
+       And the machine is unattached
+
+       Examples: ubuntu release livepatch status
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
