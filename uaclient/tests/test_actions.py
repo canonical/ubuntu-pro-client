@@ -180,6 +180,10 @@ class TestAttachWithToken:
             ),
         ],
     )
+    @mock.patch(
+        "uaclient.entitlements.check_entitlement_apt_directives_are_unique",
+        return_value=(True, None),
+    )
     @mock.patch(M_PATH + "timer.start")
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch(
@@ -211,6 +215,7 @@ class TestAttachWithToken:
         m_update_activity_token,
         m_get_instance_id,
         m_timer_start,
+        _m_check_ent_apt_directives,
         token,
         allow_enable,
         add_contract_machine_side_effect,
@@ -282,6 +287,31 @@ class TestAttachWithToken:
             == m_get_instance_id.call_args_list
         )
         assert expected_timer_start_call_args == m_timer_start.call_args_list
+
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.add_contract_machine",
+        return_value={},
+    )
+    @mock.patch(
+        "uaclient.entitlements.check_entitlement_apt_directives_are_unique",
+        side_effect=exceptions.EntitlementsAPTDirectivesAreNotUnique(
+            url="test_url",
+            names="ent1, ent2",
+            apt_url="test",
+            suite="release",
+        ),
+    )
+    def test_attach_with_token_with_non_unique_entitlement_directives(
+        self,
+        _m_check_ent_apt_directives,
+        _m_add_contract_machine,
+    ):
+        with pytest.raises(exceptions.EntitlementsAPTDirectivesAreNotUnique):
+            attach_with_token(
+                cfg=mock.MagicMock(),
+                token="token",
+                allow_enable=True,
+            )
 
 
 class TestAutoAttach:

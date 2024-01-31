@@ -3,6 +3,7 @@ import mock
 import pytest
 
 from uaclient import entitlements, exceptions, messages
+from uaclient.entitlements.entitlement_status import ApplicabilityStatus
 
 
 class TestValidServices:
@@ -262,3 +263,113 @@ class TestSortEntitlements:
                 cfg=FakeConfig(),
                 ents=["ent4", "notthere", "ent2", "ent6typo", "ent5"],
             )
+
+
+class TestCheckEntitlementAPTDefinitionsAreUnique:
+    @pytest.mark.parametrize(
+        (
+            "applicability_status1,applicability_status2,"
+            "apt_url1,suite1,apt_url2,suite2,expected"
+        ),
+        (
+            (
+                (ApplicabilityStatus.APPLICABLE, None),
+                (ApplicabilityStatus.APPLICABLE, None),
+                "test",
+                ("release",),
+                "test",
+                ("release",),
+                exceptions.EntitlementsAPTDirectivesAreNotUnique(
+                    url="test_url",
+                    names="ent1, ent2",
+                    apt_url="test",
+                    suite="release",
+                ),
+            ),
+            (
+                (ApplicabilityStatus.APPLICABLE, None),
+                (ApplicabilityStatus.INAPPLICABLE, None),
+                "test",
+                ("release",),
+                "test",
+                ("release",),
+                True,
+            ),
+            (
+                (ApplicabilityStatus.APPLICABLE, None),
+                (ApplicabilityStatus.APPLICABLE, None),
+                "test1",
+                ("release1",),
+                "test2",
+                ("release2",),
+                True,
+            ),
+            (
+                (ApplicabilityStatus.APPLICABLE, None),
+                (ApplicabilityStatus.APPLICABLE, None),
+                "test1",
+                ("release",),
+                "test1",
+                ("release2",),
+                True,
+            ),
+            (
+                (ApplicabilityStatus.APPLICABLE, None),
+                (ApplicabilityStatus.APPLICABLE, None),
+                "test1",
+                ("release",),
+                "test2",
+                ("release",),
+                True,
+            ),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements._is_repo_entitlement", return_value=True
+    )
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.entitlements.valid_services")
+    def test_check_entitlement_definitions_are_unique(
+        self,
+        m_valid_services,
+        m_ent_factory,
+        _m_is_repo_ent,
+        applicability_status1,
+        applicability_status2,
+        apt_url1,
+        suite1,
+        apt_url2,
+        suite2,
+        expected,
+    ):
+        m_valid_services.return_value = ["ent1", "ent2"]
+
+        m_ent1 = mock.MagicMock()
+        m_ent1_obj = mock.MagicMock()
+        m_ent1_obj.applicability_status.return_value = applicability_status1
+        type(m_ent1_obj).apt_url = apt_url1
+        type(m_ent1_obj).apt_suites = suite1
+        type(m_ent1_obj).repo_policy_check_tmpl = "{}/ubuntu {}"
+        m_ent1.return_value = m_ent1_obj
+
+        m_ent2 = mock.MagicMock()
+        m_ent2_obj = mock.MagicMock()
+        m_ent2_obj.applicability_status.return_value = applicability_status2
+        type(m_ent2_obj).apt_url = apt_url2
+        type(m_ent2_obj).apt_suites = suite2
+        type(m_ent2_obj).repo_policy_check_tmpl = "{}/ubuntu {}"
+        m_ent2.return_value = m_ent2_obj
+
+        m_ent_factory.side_effect = [m_ent1, m_ent2]
+
+        if expected is True:
+            assert entitlements.check_entitlement_apt_directives_are_unique(
+                mock.MagicMock()
+            )
+        else:
+            with pytest.raises(
+                exceptions.EntitlementsAPTDirectivesAreNotUnique
+            ):
+                entitlements.check_entitlement_apt_directives_are_unique(
+                    mock.MagicMock(url="test_url")
+                )

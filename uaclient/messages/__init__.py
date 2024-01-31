@@ -2562,3 +2562,13 @@ E_UPDATING_ESM_CACHE = FormattedNamedMessage(
     "error-updating-esm-cache",
     t.gettext("Error updating ESM services cache: {error}"),
 )
+
+E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE = FormattedNamedMessage(
+    "entitlements-apt-directives-are-not-unique",
+    t.gettext(
+        "There is a problem with the resource directives provided by {url}\n"
+        "These entitlements: {names} are sharing the following directives\n"
+        " - APT url: {apt_url}\n - Suite: {suite}\n"
+        "These directives need to be unique for every entitlement."
+    ),
+)

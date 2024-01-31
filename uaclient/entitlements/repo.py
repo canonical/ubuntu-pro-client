@@ -79,6 +79,22 @@ class RepoEntitlement(base.UAEntitlement):
 
         return packages
 
+    @property
+    def apt_url(self) -> Optional[str]:
+        return (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("aptURL")
+        )
+
+    @property
+    def apt_suites(self) -> Optional[str]:
+        return (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("suites")
+        )
+
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
         reboot_required = system.should_reboot(
