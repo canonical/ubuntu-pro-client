@@ -19,6 +19,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         build.info
         cloud-id.txt
         cloud-init-journal.txt
+        environment_vars.json
         esm-cache.service.txt
         jobs-status.json
         livepatch-status.txt-error
@@ -65,6 +66,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
         build.info
         cloud-id.txt
         cloud-init-journal.txt
+        environment_vars.json
         esm-cache.service.txt
         jobs-status.json
         livepatch-status.txt-error
