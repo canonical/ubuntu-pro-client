@@ -269,7 +269,12 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
     pro_status, _ = status(cfg=cfg, show_all=False)
     system.write_file(
         "{}/pro-status.json".format(output_dir),
-        json.dumps(pro_status),
+        json.dumps(pro_status, cls=util.DatetimeAwareJSONEncoder),
+    )
+    env_vars = util.get_pro_environment()
+    system.write_file(
+        "{}/environment_vars.json".format(output_dir),
+        json.dumps(env_vars),
     )
 
     state_files = _get_state_files(cfg)

@@ -336,6 +336,7 @@ class TestAutoAttach:
 class TestCollectLogs:
     @mock.patch("uaclient.actions.status")
     @mock.patch("uaclient.actions.LOG.warning")
+    @mock.patch("uaclient.util.get_pro_environment")
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     @mock.patch("uaclient.system.write_file")
     @mock.patch("uaclient.system.load_file")
@@ -352,11 +353,13 @@ class TestCollectLogs:
         m_load_file,
         m_write_file,
         m_we_are_currently_root,
+        m_env_vars,
         m_log_warning,
         m_status,
         m_write_cmd,
         tmpdir,
     ):
+        m_env_vars.return_value = {"test": "test"}
         m_status.return_value = ({"test": "test"}, 0)
         log_file = tmpdir.join("user-log").strpath
         m_get_user.return_value = log_file
@@ -373,7 +376,7 @@ class TestCollectLogs:
             mock.call("a"),
             mock.call("b"),
         ] == m_load_file.call_args_list
-        assert 4 == m_write_file.call_count
+        assert 5 == m_write_file.call_count
 
         # apparmor checks
         assert 1 == m_system_subp.call_count
@@ -384,6 +387,7 @@ class TestCollectLogs:
         print(m_write_file.call_args_list)
         assert [
             mock.call("test/pro-status.json", '{"test": "test"}'),
+            mock.call("test/environment_vars.json", '{"test": "test"}'),
             mock.call("test/user0.log", "test"),
             mock.call("test/b", "test"),
             mock.call("test/apparmor_logs.txt", APPARMOR_DENIED),
