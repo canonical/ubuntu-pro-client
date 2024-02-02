@@ -406,42 +406,48 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
             | focal   | azure.pro     |
             | focal   | gcp.pro       |
 
-    @skip_local_environment
-    @skip_prebuilt_environment
     @uses.config.contract_token
-    Scenario Outline: daemon should wait for cloud-config.service to finish
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
+    Scenario Outline: ubuntu-advantage-install.service and ubuntu-advantage.service run when appropriate
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        # verify ubuntu-advantage-install.service running after install
+        When I run `systemctl is-active ubuntu-advantage-install.service` with sudo
+        Then I will see the following on stdout:
         """
-        ubuntu_advantage: {}
+        active
         """
-        When I apt remove `ubuntu-advantage-tools ubuntu-pro-client`
-        When I run `cloud-init clean --logs` with sudo
-        When I reboot the machine
-        When I run `journalctl -b -o cat -u ubuntu-advantage.service` with sudo
+        When I run `journalctl -o cat -u ubuntu-advantage-install.service` with sudo
         Then stdout contains substring:
         """
         daemon starting
         """
-        Then stdout contains substring:
+        When I run `systemctl is-enabled ubuntu-advantage-install.service` with sudo
+        Then I will see the following on stdout:
         """
-        cloud-config.service is activating. waiting to check again
+        disabled
         """
+
+        When I run `systemctl is-active ubuntu-advantage.service` with sudo
+        Then I will see the following on stdout:
+        """
+        inactive
+        """
+        When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout does not contain substring:
         """
-        cloud-config.service is not activating. continuing
+        daemon starting
         """
-        When I wait `70` seconds
-        When I run `journalctl -b -o cat -u ubuntu-advantage.service` with sudo
-        Then stdout contains substring:
+        When I run `systemctl is-enabled ubuntu-advantage.service` with sudo
+        Then I will see the following on stdout:
         """
-        cloud-config.service is not activating. continuing
+        enabled
         """
-        Then stdout contains substring:
-        """
-        checking for condition files
-        """
+
+        # on reboot ubuntu-advantage.service runs
+        # TODO
+
         Examples: version
-            | release | machine_type  |
+            | release | machine_type |
+            | xenial  | gcp.generic  |
             | bionic  | gcp.generic  |
             | focal   | gcp.generic  |
             | jammy   | gcp.generic  |
