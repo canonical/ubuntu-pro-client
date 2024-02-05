@@ -45,7 +45,7 @@ tooling: the ``ubuntu-advantage-pro`` package.
     explanations/what_is_the_ubuntu_advantage_pro_package.md
 
 
-Ease handling of CVEs and USNs
+Handling CVEs and USNs
 ==============================
 
 In this section we explain the output of ``pro fix`` and its API interface
