@@ -33,6 +33,11 @@ from uaclient.files import state_files
 
 LOG = logging.getLogger("ubuntupro.lib.auto_attach")
 
+# All known cloud-config keys which provide ubuntu pro configuration directives
+CLOUD_INIT_UA_KEYS = set(
+    ["ubuntu-advantage", "ubuntu_advantage", "ubuntu_pro"]
+)
+
 try:
     import cloudinit.stages as ci_stages  # type: ignore
 except ImportError:
@@ -54,10 +59,7 @@ def check_cloudinit_userdata_for_ua_info():
     if init is None:
         return False
 
-    if init.cfg and (
-        "ubuntu_advantage" in init.cfg.keys()
-        or "ubuntu-advantage" in init.cfg.keys()
-    ):
+    if init.cfg and CLOUD_INIT_UA_KEYS.intersection(init.cfg):
         return True
 
     return False
