@@ -194,7 +194,33 @@ sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-advanta
 2. That hook will update the information in `/var/lib/update-notifier/updates-available` matching the new package information that was just fetched by using `/usr/lib/update-notifier/apt-check --human-readable`.
 3. At MOTD generation time, the script located at `/etc/update-motd.d/90-updates-available` checks if `/var/lib/update-notifier/updates-available` exists and if it does, inserts the message into the full MOTD.
 
-If you want to disable any message of update-notifier (not just related to Ubuntu Pro and ESM) about potentially available updates remove `/etc/update-motd.d/90-updates-available`.
+If you want to remove the messages about Ubuntu Pro and ESM from the MOTD
+output, but still want to keep the messages about the regular and security
+updates, edit the `/etc/update-motd.d/90-updates-available` file. Add the
+`--no-esm-messages` flag to all calls of the update script. For example,
+change the following line from:
+
+```sh
+APT::Update::Post-Invoke-Success {"/usr/lib/update-notifier/update-motd-updates-available 2>/dev/null || true";};
+```
+
+to:
+
+```sh
+APT::Update::Post-Invoke-Success {"/usr/lib/update-notifier/update-motd-updates-available --no-esm-messages 2>/dev/null || true";};
+```
+
+Keep in mind that the change in the MOTD message may take some time - if you
+want to remove the ESM related messages immediately, run the script yourself
+using `--force `:
+
+```sh
+$ sudo /usr/lib/update-notifier/update-motd-updates-available --no-esm-messages --force
+```
+
+If you want to disable all messages from update-notifier (not just related to
+Ubuntu Pro and ESM) about potentially available updates, just remove the
+`/etc/update-motd.d/90-updates-available` file.
 
 ## Source: MOTD about important subscription conditions
 
