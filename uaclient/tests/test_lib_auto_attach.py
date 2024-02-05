@@ -41,6 +41,20 @@ class TestCheckCloudinitUserdataForUAInfo:
                     "cloud_config_modules": ["ubuntu-advantage", "test"],
                 },
             ),
+            (
+                True,
+                {
+                    "ubuntu_pro": {"token": "TOKEN"},
+                    "cloud_config_modules": ["ubuntu-advantage", "test"],
+                },
+            ),
+            (
+                True,
+                {
+                    "ubuntu-advantage": {"token": "TOKEN"},
+                    "cloud_config_modules": ["ubuntu-advantage", "test"],
+                },
+            ),
         ),
     )
     @mock.patch("lib.auto_attach.get_cloudinit_init_stage")
