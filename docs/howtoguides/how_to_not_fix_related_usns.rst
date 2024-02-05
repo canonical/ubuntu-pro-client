@@ -4,8 +4,8 @@ How to skip fixing related USNs
 *******************************
 
 The general scenarios you might encounter when running ``pro fix`` are
-outlined in
-:ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>`
+outlined in our explanation of
+:ref:`using pro fix to solve a CVE/USN <pro-fix-howto>`.
 
 When running the ``pro fix`` command for a USN, by default we also try to fix
 any related USNs as well. To better understand the concept of related USNs,

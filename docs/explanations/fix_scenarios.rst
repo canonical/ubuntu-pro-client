@@ -1,22 +1,20 @@
 .. _pro-fix-howto:
 
-Scenarios encountered using ``pro fix`` to solve a CVE/USN
+Common scenarios when using ``pro fix`` to solve a CVE/USN
 **********************************************************
 
 .. Into "what is pro fix" shared with the related tutorial
 .. include:: ../includes/pro-fix-intro.txt
 
-This page will go a bit deeper and after introducing the ``pro fix``
-command it will go in more details about the different scenarios you may
-encounter using ``pro fix``.
+In this article we will introduce the ``pro fix`` command, and then go into more details about the different scenarios you may encounter when using ``pro fix`` to resolve CVEs/USNs.
 
 .. note::
 
    If instead you look for a simpler guided tutorial to get started with
    ``pro fix`` please start at
    :ref:`Use pro fix to solve a CVE/USN <pro-fix-tutorial>`.
-   You can even use the VM based environment created in that tutorial
-   to recreate the output shown below yourself.
+   You can use the same VM-based environment created in that tutorial
+   to recreate the output shown below yourself. If you have already completed the tutorial, you may want to :ref:`skip this section <CVE-no-fix>`.
 
 
 Use ``pro fix``
@@ -52,14 +50,14 @@ Every ``pro fix`` output has a similar output structure. It:
 
 .. # The basic case is shared between Howto and Tutorial
 .. include:: ../includes/pro-fix-simple-case.txt
-
+.. _CVE-no-fix:
 CVE/USN without a released fix
 ==============================
 
 Some CVEs/USNs do not have a fix released yet. When that happens, ``pro fix``
-will let you know! This is example output created in the past, there
-might be fixes for it later on. To create this scenario we installed a
-known affected package with no fix at the time and then checked for an
+will let you know! This is example output created in the past, for which there
+might be fixes later on. To create this scenario we installed a
+known affected package with no fix (at the time) and then checked for an
 available fix:
 
 .. code-block:: bash
@@ -318,7 +316,7 @@ affected packages. This happens when only a subset of the packages have
 available updates to fix for that CVE/USN.
 
 In this case, ``pro fix`` will tell you which package(s) it can or cannot fix.
-In the example, we install a package so we can run ``pro fix`` against to
+In the example, we install a package so we can run ``pro fix`` against it to
 demonstrate this scenario.
 
 .. code-block:: bash
@@ -368,7 +366,7 @@ Next steps
 There are further options to control what exactly will happen when
 running ``pro fix``, read about them in:
 
-* :ref:`How to know what the fix command would change? <pro-fix-dry-run>`
+* :ref:`How to know what the fix command would change <pro-fix-dry-run>`
 * :ref:`How to skip fixing related USNs <pro-fix-skip-related>`
 
 .. Instructions for how to connect with us

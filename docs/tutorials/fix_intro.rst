@@ -7,7 +7,7 @@ Use ``pro fix`` to solve a CVE/USN
 .. include:: ../includes/pro-fix-intro.txt
 
 In this tutorial, we will introduce the ``pro fix`` command and guide
-you to a simple example of using it to solve a CVE/USN.
+you through a simple example of using it to solve a CVE/USN.
 
 There might be more scenarios that you may encounter using ``pro fix``,
 but those are distracting from this tutorial and therefore available
@@ -31,7 +31,7 @@ Every ``pro fix`` output has a similar output structure. It:
 * fixes the affected packages; and
 * at the end, shows if the CVE/USN is fully fixed in the machine.
 
-.. # The basic case is shared between Howto and Tutorial
+.. # The basic case is shared between Explanation and Tutorial
 .. include:: ../includes/pro-fix-simple-case.txt
 
 Success!
@@ -49,13 +49,11 @@ Next steps
 We have successfully encountered and resolved the main scenarios that you might
 find when you run ``pro fix``.
 
-As mentioned at the beginning, there might be more scenarios that you may
-encounter using ``pro fix`` as well as options to control what exactly will
-happen, those are covered in detail in:
+This is not the only scenario where you might want to use ``pro fix``. To find out about the other situations where it can be useful, as well as which options can be used to give you greater control over the command, you can refer to the following guides: 
 
-* In :ref:`How to Understand scenarios encountered using pro fix to solve a CVE/USN <pro-fix-howto>` you can continue using your test environment created here to explore difference scenarios you might encounter.
-* :ref:`How to know what the fix command would change? <pro-fix-dry-run>`
-* :ref:`How to skip fixing related USNs <pro-fix-skip-related>`
+* In :ref:`Understanding scenarios encountered when using pro fix to solve a CVE/USN <pro-fix-howto>` you can continue using the test environment you created here to explore different scenarios you might encounter and understand the different outputs you will find.
+* :ref:`How do I know what the pro fix command would change? <pro-fix-dry-run>` will show you how to use ``pro fix`` in ``--dry-run`` mode to safely simulate the changes before they're applied.
+* :ref:`How to skip fixing related USNs <pro-fix-skip-related>` will show you how to only fix a single USN, even if other fixes are available.
 
 .. Instructions for how to connect with us
 .. include:: ../includes/contact.txt
