@@ -75,7 +75,7 @@ lxd init
 
 Ubuntu Pro Client is unique in that it supports very old releases of Ubuntu, including 16.04 Xenial Xerus (Xenial). We test this support by using Xenial LXD containers. In order for hosts running newer releases of Ubuntu to run Xenial containers, we need to configure systemd to use an older cgroup version for compatibility. This is configured by editing the Linux kernel boot parameters.
 
-We need the boot parameter `systemd.unified_cgroup_hierarchy=0`.
+We need the boot parameters `systemd.unified_cgroup_hierarchy=0` and `systemd.legacy_systemd_cgroup_controller`.
 
 > **Note**
 > Unfortunately, this means your host will miss out on the benefits and safety features of cgroup v2, but it is necessary to develop and support Ubuntu Pro Client for Xenial.
