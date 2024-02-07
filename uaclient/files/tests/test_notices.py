@@ -14,8 +14,8 @@ class TestNotices:
         "label,content",
         (
             (
-                FakeNotice.a,
-                "notice_a",
+                FakeNotice.reboot_script_failed,
+                "notice_a2",
             ),
         ),
     )
@@ -30,7 +30,10 @@ class TestNotices:
         notice.add(label, content)
         assert [
             mock.call(
-                os.path.join(defaults.NOTICES_PERMANENT_DIRECTORY, "01-a"),
+                os.path.join(
+                    defaults.NOTICES_PERMANENT_DIRECTORY,
+                    "12-reboot_script_failed",
+                ),
                 content,
             )
         ] == sys_write_file.call_args_list
@@ -44,15 +47,18 @@ class TestNotices:
         caplog_text,
     ):
         notice = NoticesManager()
-        notice.add(FakeNotice.a, "content")
+        notice.add(FakeNotice.reboot_required, "content")
         assert [] == m_sys_write_file.call_args_list
-        assert "NoticesManager.add(a) called as non-root user" in caplog_text()
+        assert (
+            "NoticesManager.add(reboot_required) called as non-root user"
+            in caplog_text()
+        )
 
     @pytest.mark.parametrize(
         "label,content",
         (
             (
-                FakeNotice.a,
+                FakeNotice.reboot_required,
                 "notice_a",
             ),
         ),
@@ -74,8 +80,8 @@ class TestNotices:
         "label,content",
         (
             (
-                FakeNotice.a,
-                "notice_a",
+                FakeNotice.reboot_script_failed,
+                "notice_a2",
             ),
         ),
     )
@@ -91,7 +97,10 @@ class TestNotices:
         notice.remove(label)
         assert [
             mock.call(
-                os.path.join(defaults.NOTICES_PERMANENT_DIRECTORY, "01-a"),
+                os.path.join(
+                    defaults.NOTICES_PERMANENT_DIRECTORY,
+                    "12-reboot_script_failed",
+                ),
             )
         ] == sys_file_absent.call_args_list
 
@@ -104,10 +113,11 @@ class TestNotices:
         caplog_text,
     ):
         notice = NoticesManager()
-        notice.remove(FakeNotice.a)
+        notice.remove(FakeNotice.reboot_required)
         assert [] == m_sys_file_absent.call_args_list
         assert (
-            "NoticesManager.remove(a) called as non-root user" in caplog_text()
+            "NoticesManager.remove(reboot_required) called as non-root user"
+            in caplog_text()
         )
 
     @mock.patch("uaclient.files.notices.NoticesManager.list")
@@ -116,11 +126,37 @@ class TestNotices:
     def test_notice_module(
         self, notice_cls_add, notice_cls_remove, notice_cls_read
     ):
-        notices.add(FakeNotice.a)
+        notices.add(FakeNotice.reboot_required)
         assert [
-            mock.call(FakeNotice.a, "notice_a"),
+            mock.call(FakeNotice.reboot_required, "notice_a"),
         ] == notice_cls_add.call_args_list
-        notices.remove(FakeNotice.a)
-        assert [mock.call(FakeNotice.a)] == notice_cls_remove.call_args_list
+        notices.remove(FakeNotice.reboot_required)
+        assert [
+            mock.call(FakeNotice.reboot_required)
+        ] == notice_cls_remove.call_args_list
         notices.list()
         assert 1 == notice_cls_read.call_count
+
+    @mock.patch("uaclient.files.notices.NoticesManager._get_notice_file_names")
+    def test_get_notice_file_names(self, m_get_notice_file_names):
+        notice = NoticesManager()
+        m_get_notice_file_names.return_value = []
+        assert [] == notice._get_notice_file_names("directory")
+        m_get_notice_file_names.return_value = ["file1", "file2", "file3"]
+        assert ["file1", "file2", "file3"] == notice._get_notice_file_names(
+            "directory"
+        )
+
+    @mock.patch("uaclient.files.notices.NoticesManager._get_notice_file_names")
+    @mock.patch("uaclient.system.load_file")
+    def test_list(self, m_load_file, m_get_notice_file_names):
+        notice = NoticesManager()
+
+        m_get_notice_file_names.side_effect = (
+            lambda directory: []
+            if directory == defaults.NOTICES_TEMPORARY_DIRECTORY
+            else ["fakeNotice1"]
+        )
+        m_load_file.return_value = "test"
+
+        assert ["test"] == notice.list()

@@ -74,13 +74,13 @@ class TestNotices:
         (
             ([], ()),
             (
-                [[FakeNotice.a2, "a1"]],
+                [[FakeNotice.reboot_script_failed, "a1"]],
                 ["a1"],
             ),
             (
                 [
-                    [FakeNotice.a, "a1"],
-                    [FakeNotice.a2, "a2"],
+                    [FakeNotice.reboot_required, "a1"],
+                    [FakeNotice.reboot_script_failed, "a2"],
                 ],
                 [
                     "a1",
@@ -89,8 +89,8 @@ class TestNotices:
             ),
             (
                 [
-                    [FakeNotice.a, "a1"],
-                    [FakeNotice.a, "a1"],
+                    [FakeNotice.reboot_required, "a1"],
+                    [FakeNotice.reboot_required, "a1"],
                 ],
                 [
                     "a1",
@@ -116,11 +116,11 @@ class TestNotices:
         "_notices",
         (
             ([]),
-            ([[FakeNotice.a]]),
+            ([[FakeNotice.reboot_required]]),
             (
                 [
-                    [FakeNotice.a],
-                    [FakeNotice.a2],
+                    [FakeNotice.reboot_required],
+                    [FakeNotice.reboot_script_failed],
                 ]
             ),
         ),
@@ -139,29 +139,29 @@ class TestNotices:
     @pytest.mark.parametrize(
         "notices_,removes,expected",
         (
-            ([], [FakeNotice.a], []),
+            ([], [FakeNotice.reboot_required], []),
             (
-                [[FakeNotice.a2]],
-                [FakeNotice.a2],
+                [[FakeNotice.reboot_script_failed]],
+                [FakeNotice.reboot_script_failed],
                 [],
             ),
             (
                 [
-                    [FakeNotice.a],
-                    [FakeNotice.a2],
+                    [FakeNotice.reboot_required],
+                    [FakeNotice.reboot_script_failed],
                 ],
-                [FakeNotice.a],
+                [FakeNotice.reboot_required],
                 ["notice_a2"],
             ),
             (
                 [
-                    [FakeNotice.a],
-                    [FakeNotice.a2],
-                    [FakeNotice.b],
+                    [FakeNotice.reboot_required],
+                    [FakeNotice.reboot_script_failed],
+                    [FakeNotice.enable_reboot_required],
                 ],
                 [
-                    FakeNotice.a,
-                    FakeNotice.a2,
+                    FakeNotice.reboot_required,
+                    FakeNotice.reboot_script_failed,
                 ],
                 ["notice_b"],
             ),
