@@ -51,6 +51,7 @@ Every ``pro fix`` output has a similar output structure. It:
 .. # The basic case is shared between Howto and Tutorial
 .. include:: ../includes/pro-fix-simple-case.txt
 .. _CVE-no-fix:
+
 CVE/USN without a released fix
 ==============================
 
