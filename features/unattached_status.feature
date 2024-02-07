@@ -599,3 +599,26 @@ Feature: Unattached status
         Examples: ubuntu release
            | release | machine_type  |
            | jammy   | lxd-container |
+
+    Scenario Outline: Check notice file read permission
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run `mkdir -p /run/ubuntu-advantage/notices` with sudo
+        When I run `touch /run/ubuntu-advantage/notices/crasher` with sudo
+        When I run `chmod 0 /run/ubuntu-advantage/notices/crasher` with sudo
+        When I run `mkdir -p /var/lib/ubuntu-advantage/notices` with sudo
+        When I run `touch /var/lib/ubuntu-advantage/notices/crasher` with sudo
+        When I run `chmod 0 /var/lib/ubuntu-advantage/notices/crasher` with sudo
+        When I run `touch /run/ubuntu-advantage/notices/10-reboot_required` with sudo
+        When I run `pro status` as non-root
+        Then stdout matches regexp:
+        """
+        NOTICES
+        System reboot required
+        """
+        Examples: ubuntu release
+          | release | machine_type  |
+          | xenial  | lxd-container |
+          | bionic  | lxd-container |
+          | focal   | lxd-container |
+          | jammy   | lxd-container |
+          | mantic  | lxd-container |
