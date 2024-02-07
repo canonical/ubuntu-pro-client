@@ -160,6 +160,45 @@ class NoticesManager:
         )
         system.ensure_file_absent(os.path.join(directory, filename))
 
+    def _get_notice_file_names(self, directory: str) -> List[str]:
+        """Gets the list of notice file names in the given directory.
+
+        :param directory: The directory to search for notice files.
+        :returns: List of notice file names.
+        """
+        return [
+            file_name
+            for file_name in os.listdir(directory)
+            if os.path.isfile(os.path.join(directory, file_name))
+            and self._is_valid_notice_file(directory, file_name)
+        ]
+
+    def _is_valid_notice_file(self, directory: str, file_name: str) -> bool:
+        """Checks if the notice file is valid.
+
+        :param file_name: The name of the notice file.
+        :returns: True if the file is valid, False otherwise.
+        """
+        is_permanent_dir = directory == defaults.NOTICES_PERMANENT_DIRECTORY
+        valid_file_names = {
+            "{}-{}".format(n.order_id, n.label)
+            for n in Notice
+            if n.is_permanent == is_permanent_dir
+        }
+        return file_name in valid_file_names
+
+    def _get_default_message(self, file_name: str) -> str:
+        """Gets the default message for a notice file.
+
+        :param file_name: The name of the notice file.
+        :returns: The default message defined in the enum.
+        """
+        order_id, label = file_name.split("-")
+        for notice in Notice:
+            if notice.order_id == order_id and notice.label == label:
+                return notice.value.message
+        return ""
+
     def list(self) -> List[str]:
         """Gets all the notice files currently saved.
 
@@ -173,35 +212,24 @@ class NoticesManager:
         for notice_directory in notice_directories:
             if not os.path.exists(notice_directory):
                 continue
-            notice_file_names = [
-                file_name
-                for file_name in os.listdir(notice_directory)
-                if os.path.isfile(os.path.join(notice_directory, file_name))
-            ]
+            notice_file_names = self._get_notice_file_names(notice_directory)
             for notice_file_name in notice_file_names:
-                notice_file_contents = system.load_file(
-                    os.path.join(notice_directory, notice_file_name)
-                )
+                try:
+                    notice_file_contents = system.load_file(
+                        os.path.join(notice_directory, notice_file_name)
+                    )
+                except PermissionError:
+                    LOG.warning(
+                        "Permission error while reading " + notice_file_name
+                    )
+                    continue
                 if notice_file_contents:
                     notices.append(notice_file_contents)
                 else:
-                    # if no contents of file, default to message
-                    # defined in the enum
-                    try:
-                        order_id, label = notice_file_name.split("-")
-                        notice = None
-                        for n in Notice:
-                            if n.order_id == order_id and n.label == label:
-                                notice = n
-                        if notice is None:
-                            raise Exception()
-                        notices.append(notice.value.message)
-                    except Exception:
-                        LOG.warning(
-                            "Something went wrong while processing"
-                            " notice: %s.",
-                            notice_file_name,
-                        )
+                    default_message = self._get_default_message(
+                        notice_file_name
+                    )
+                    notices.append(default_message)
         notices.sort()
         return notices
 

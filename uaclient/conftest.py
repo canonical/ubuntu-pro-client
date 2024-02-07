@@ -285,9 +285,15 @@ def event():
 
 
 class FakeNotice(NoticeFileDetails, Enum):
-    a = NoticeFileDetails("01", "a", True, "notice_a")
-    a2 = NoticeFileDetails("03", "a2", True, "notice_a2")
-    b = NoticeFileDetails("02", "b2", False, "notice_b")
+    reboot_required = NoticeFileDetails(
+        "10", "reboot_required", False, "notice_a"
+    )
+    reboot_script_failed = NoticeFileDetails(
+        "12", "reboot_script_failed", True, "notice_a2"
+    )
+    enable_reboot_required = NoticeFileDetails(
+        "11", "enable_reboot_required", False, "notice_b"
+    )
 
 
 @pytest.yield_fixture(autouse=True)

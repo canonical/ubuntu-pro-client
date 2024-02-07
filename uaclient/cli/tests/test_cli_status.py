@@ -372,8 +372,8 @@ class TestActionStatus:
             ([], ""),
             (
                 [
-                    [FakeNotice.a, "adesc"],
-                    [FakeNotice.b, "bdesc"],
+                    [FakeNotice.reboot_required, "adesc"],
+                    [FakeNotice.enable_reboot_required, "bdesc"],
                 ],
                 "\nNOTICES\nadesc\nbdesc\n",
             ),
