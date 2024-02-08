@@ -156,3 +156,12 @@ def root_vs_nonroot_cmd_comparison(context, cmd):
 
     assert_that(root_status_stdout, nonroot_status_stdout)
     assert root_status_stderr == nonroot_status_stderr
+
+
+@when("I verify that `{field}` field is redacted in the logs")
+def i_verify_field_is_redacted_in_the_logs(context, field):
+    when_i_run_command(
+        context, "cat /var/log/ubuntu-advantage.log", "with sudo"
+    )
+    context.text = field + "<REDACTED>"
+    then_stream_contains_substring(context, "stdout")
