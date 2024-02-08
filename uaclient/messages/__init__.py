@@ -162,7 +162,7 @@ CONTRACT_EXPIRED_WITH_PKGS = P(
     lambda n: t.ngettext(
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
-{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' enabled.
+{{pkg_num}} additional security update requires Ubuntu Pro with '{{service}}' enabled.
 Renew your subscription at {url}""",  # noqa: E501
         """\
 *Your Ubuntu Pro subscription has EXPIRED*
@@ -2642,4 +2642,9 @@ E_NON_INTERACTIVE_KERNEL_PURGE_DISALLOWED = NamedMessage(
 E_NOT_SUPPORTED = NamedMessage(
     "not-supported",
     t.gettext("The operation is not supported"),
+)
+
+E_CONTRACT_EXPIRED = NamedMessage(
+    "contract-expired",
+    CONTRACT_EXPIRED,
 )

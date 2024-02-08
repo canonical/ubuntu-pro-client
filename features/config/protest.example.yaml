@@ -1,6 +1,10 @@
 contract_token: <token for testing>
 contract_token_staging: <staging token for testing>
 contract_token_staging_expired: <expired staging token for testing>
+contract_token_staging_expired_sometimes: <staging token to be modified during tests>
+
+contract_staging_service_account_username: pro-client-ci
+contract_staging_service_account_password: <staging service account password>
 
 landscape_registration_key: <landscape registration key>
 landscape_api_access_key: <landscape access key>

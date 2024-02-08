@@ -248,6 +248,10 @@ UrlError = ConnectivityError
 ###############################################################################
 
 
+class ContractExpiredError(UbuntuProError):
+    _msg = messages.E_CONTRACT_EXPIRED
+
+
 class InvalidServiceOpError(UbuntuProError):
     _formatted_msg = messages.E_INVALID_SERVICE_OP_FAILURE
 
