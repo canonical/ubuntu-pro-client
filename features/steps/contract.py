@@ -1,5 +1,8 @@
 import json
+import logging
+import urllib
 
+import requests
 import yaml
 from behave import then, when
 from hamcrest import assert_that, equal_to, not_
@@ -134,3 +137,29 @@ def when_i_set_the_machine_token_overlay(context):
         "{ machine_token_overlay: "
         "/var/lib/ubuntu-advantage/machine-token-overlay.json}",
     )
+
+
+@when("I set the test contract expiration date to `{date_str}`")
+def when_i_set_the_test_contract_expiration_date_to(context, date_str):
+    date_str = process_template_vars(context, date_str)
+    resp = requests.put(
+        "https://contracts.staging.canonical.com/v1/contract-items",
+        auth=(
+            context.pro_config.contract_staging_service_account_username,
+            context.pro_config.contract_staging_service_account_password,
+        ),
+        json=[
+            {
+                # Do not delete any of these fields. They are all required.
+                "contractID": "cAOEJ9Vymiwr47-HZ3FnYR_YDCPILpaTfdloKpojyNPE",
+                "id": 39398,
+                "effectiveFrom": "2024-01-01T00:00:00Z",
+                "effectiveTo": date_str,
+                "metric": "units",
+                "reason": "contract_created",
+                "value": 1000,
+            }
+        ],
+    )
+    logging.debug(resp.json())
+    assert resp.status_code == 200

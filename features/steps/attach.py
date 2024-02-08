@@ -31,6 +31,7 @@ def when_i_attach_staging_token(
     if (
         token_type == "contract_token_staging"
         or token_type == "contract_token_staging_expired"
+        or token_type == "contract_token_staging_expired_sometimes"
     ):
         change_contract_endpoint_to_staging(context, user_spec)
     cmd = "pro attach {} {}".format(token, options).strip()
