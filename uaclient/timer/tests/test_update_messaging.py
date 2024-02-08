@@ -10,6 +10,7 @@ from uaclient.api.u.pro.packages.updates.v1 import (
 )
 from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
 from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.files import notices
 from uaclient.timer.update_messaging import (
     update_contract_expiry,
     update_motd_messages,
@@ -80,8 +81,10 @@ class TestUpdateMotdMessages:
             "updates",
             "expected",
             "update_contract_expiry_calls",
+            "notices_remove_calls",
             "ensure_file_absent_calls",
             "write_file_calls",
+            "notices_add_calls",
         ],
         [
             (
@@ -103,6 +106,8 @@ class TestUpdateMotdMessages:
                 [],
                 [],
                 [],
+                [],
+                [],
             ),
             (
                 # somehow attached but none contract status
@@ -121,7 +126,9 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [mock.call(mock.ANY)],
+                [],
                 [],
             ),
             (
@@ -141,7 +148,9 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [mock.call(mock.ANY)],
+                [],
                 [],
             ),
             (
@@ -167,7 +176,9 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [mock.call(mock.ANY)],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [mock.call(mock.ANY)],
+                [],
                 [],
             ),
             (
@@ -193,7 +204,9 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [mock.call(mock.ANY)],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [mock.call(mock.ANY)],
+                [],
                 [],
             ),
             (
@@ -219,7 +232,9 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [mock.call(mock.ANY)],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [mock.call(mock.ANY)],
+                [],
                 [],
             ),
             (
@@ -245,6 +260,7 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [mock.call(mock.ANY)],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [],
                 [
                     mock.call(
@@ -255,6 +271,7 @@ class TestUpdateMotdMessages:
                         + "\n\n",
                     )
                 ],
+                [],
             ),
             (
                 # expired grace period for real
@@ -279,6 +296,7 @@ class TestUpdateMotdMessages:
                 None,
                 True,
                 [mock.call(mock.ANY)],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
                 [],
                 [
                     mock.call(
@@ -289,6 +307,7 @@ class TestUpdateMotdMessages:
                         + "\n\n",
                     )
                 ],
+                [],
             ),
             (
                 # expired, eol release, esm-infra not enabled
@@ -314,7 +333,9 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
+                [],
                 [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
             ),
             (
                 # expired, lts release, esm-apps not enabled
@@ -340,7 +361,9 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
+                [],
                 [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
             ),
             (
                 # expired, interim release
@@ -366,7 +389,9 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
+                [],
                 [mock.call(mock.ANY, messages.CONTRACT_EXPIRED + "\n\n")],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
             ),
             (
                 # expired, eol release, esm-infra enabled
@@ -392,6 +417,7 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
+                [],
                 [
                     mock.call(
                         mock.ANY,
@@ -401,6 +427,7 @@ class TestUpdateMotdMessages:
                         + "\n\n",
                     )
                 ],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
             ),
             (
                 # expired, lts release, esm-apps enabled
@@ -426,6 +453,7 @@ class TestUpdateMotdMessages:
                 True,
                 [mock.call(mock.ANY)],
                 [],
+                [],
                 [
                     mock.call(
                         mock.ANY,
@@ -435,6 +463,7 @@ class TestUpdateMotdMessages:
                         + "\n\n",
                     )
                 ],
+                [mock.call(notices.Notice.CONTRACT_EXPIRED)],
             ),
         ],
     )
@@ -443,20 +472,24 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.is_current_series_lts")
     @mock.patch(M_PATH + "ESMInfraEntitlement.application_status")
     @mock.patch(M_PATH + "system.is_current_series_active_esm")
+    @mock.patch(M_PATH + "notices.add")
     @mock.patch(
         M_PATH + "UAConfig.machine_token_file", new_callable=mock.PropertyMock
     )
     @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "system.ensure_file_absent")
+    @mock.patch(M_PATH + "notices.remove")
     @mock.patch(M_PATH + "update_contract_expiry")
     @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,
         m_is_attached,
         m_update_contract_expiry,
+        m_notices_remove,
         m_ensure_file_absent,
         m_write_file,
         m_machine_token_file,
+        m_notices_add,
         m_is_current_series_active_esm,
         m_infra_status,
         m_is_current_series_lts,
@@ -470,8 +503,10 @@ class TestUpdateMotdMessages:
         updates,
         expected,
         update_contract_expiry_calls,
+        notices_remove_calls,
         ensure_file_absent_calls,
         write_file_calls,
+        notices_add_calls,
         FakeConfig,
     ):
 
@@ -496,5 +531,7 @@ class TestUpdateMotdMessages:
             update_contract_expiry_calls
             == m_update_contract_expiry.call_args_list
         )
+        assert notices_remove_calls == m_notices_remove.call_args_list
         assert ensure_file_absent_calls == m_ensure_file_absent.call_args_list
         assert write_file_calls == m_write_file.call_args_list
+        assert notices_add_calls == m_notices_add.call_args_list

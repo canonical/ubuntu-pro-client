@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 from uaclient import (
     api,
@@ -18,6 +18,7 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
     _dependencies,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util, constants
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
@@ -86,6 +87,34 @@ def prompt_for_dependency_handling(
             )
 
 
+def print_json_output(
+    json_output: bool,
+    json_response: Dict[str, Any],
+    processed_services: List[str],
+    failed_services: List[str],
+    errors: List[Dict[str, Any]],
+    warnings: List[Dict[str, Any]],
+    success: bool,
+):
+    if json_output:
+        processed_services.sort()
+        failed_services.sort()
+
+        json_response["result"] = "success" if success else "failure"
+        json_response["processed_services"] = processed_services
+        json_response["failed_services"] = failed_services
+        json_response["errors"] = errors
+        json_response["warnings"] = warnings
+
+        print(
+            json.dumps(
+                json_response,
+                cls=util.DatetimeAwareJSONEncoder,
+                sort_keys=True,
+            )
+        )
+
+
 @cli_util.verify_json_format_args
 @cli_util.assert_root
 @cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
@@ -95,8 +124,8 @@ def action_enable(args, *, cfg, **kwargs) -> int:
 
     @return: 0 on success, 1 otherwise
     """
-    processed_services = []
-    failed_services = []
+    processed_services = []  # type: List[str]
+    failed_services = []  # type: List[str]
     errors = []
     warnings = []
 
@@ -136,6 +165,27 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                 "message_code": messages.E_REFRESH_CONTRACT_FAILURE.name,
             }
         )
+
+    if not _is_attached(cfg).is_attached_and_contract_valid:
+        expired_err = exceptions.ContractExpiredError()
+        interactive_only_print(expired_err.msg)
+        errors.append(
+            {
+                "type": "system",
+                "message": expired_err.msg,
+                "message_code": expired_err.msg_code,
+            }
+        )
+        print_json_output(
+            json_output,
+            json_response,
+            processed_services,
+            failed_services,
+            errors,
+            warnings,
+            success=False,
+        )
+        return 1
 
     names = getattr(args, "service", [])
     (
@@ -284,23 +334,15 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()
 
-    if json_output:
-        processed_services.sort()
-        failed_services.sort()
-
-        json_response["result"] = "success" if ret else "failure"
-        json_response["processed_services"] = processed_services
-        json_response["failed_services"] = failed_services
-        json_response["errors"] = errors
-        json_response["warnings"] = warnings
-
-        print(
-            json.dumps(
-                json_response,
-                cls=util.DatetimeAwareJSONEncoder,
-                sort_keys=True,
-            )
-        )
+    print_json_output(
+        json_output,
+        json_response,
+        processed_services,
+        failed_services,
+        errors,
+        warnings,
+        success=ret,
+    )
 
     return 0 if ret else 1
 

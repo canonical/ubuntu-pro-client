@@ -83,6 +83,9 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "contract_token_staging_expired_sometimes",
+        "contract_staging_service_account_username",
+        "contract_staging_service_account_password",
         "landscape_registration_key",
         "landscape_api_access_key",
         "landscape_api_secret_key",
@@ -105,6 +108,8 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "contract_token_staging_expired_sometimes",
+        "contract_staging_service_account_password",
         "landscape_registration_key",
         "landscape_api_access_key",
         "landscape_api_secret_key",
@@ -130,6 +135,9 @@ class UAClientBehaveConfig:
         contract_token: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
+        contract_token_staging_expired_sometimes: Optional[str] = None,
+        contract_staging_service_account_username: Optional[str] = None,
+        contract_staging_service_account_password: Optional[str] = None,
         landscape_registration_key: Optional[str] = None,
         landscape_api_access_key: Optional[str] = None,
         landscape_api_secret_key: Optional[str] = None,
@@ -153,6 +161,15 @@ class UAClientBehaveConfig:
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
+        self.contract_token_staging_expired_sometimes = (
+            contract_token_staging_expired_sometimes
+        )
+        self.contract_staging_service_account_username = (
+            contract_staging_service_account_username
+        )
+        self.contract_staging_service_account_password = (
+            contract_staging_service_account_password
+        )
         self.landscape_registration_key = landscape_registration_key
         self.landscape_api_access_key = landscape_api_access_key
         self.landscape_api_secret_key = landscape_api_secret_key

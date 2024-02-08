@@ -14,6 +14,12 @@ NoticeFileDetails = namedtuple(
 
 
 class Notice(NoticeFileDetails, Enum):
+    CONTRACT_EXPIRED = NoticeFileDetails(
+        label="contract_expired",
+        order_id="5",
+        is_permanent=True,
+        message=messages.CONTRACT_EXPIRED,
+    )
     REBOOT_REQUIRED = NoticeFileDetails(
         label="reboot_required",
         order_id="10",

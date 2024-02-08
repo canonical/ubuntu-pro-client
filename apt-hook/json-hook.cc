@@ -147,6 +147,92 @@ bool count_security_packages_from_apt_stats_json(json_object *stats, security_pa
     return true;
 }
 
+bool version_from_origin(json_object *version, std::string from_origin) {
+    bool has_key = false;
+    json_object *origins;
+    has_key = json_object_object_get_ex(version, "origins", &origins);
+    if (!has_key) {
+        return false;
+    }
+    int64_t origins_length = json_object_array_length(origins);
+
+    for (int64_t i = 0; i < origins_length; i++) {
+        json_object *origin = json_object_array_get_idx(origins, i);
+
+        json_object *tmp;
+        has_key = json_object_object_get_ex(origin, "origin", &tmp);
+        if (!has_key) {
+            continue;
+        }
+        std::string origin_origin(json_object_get_string(tmp));
+
+        if (origin_origin == from_origin) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool collect_pro_packages_from_pre_prompt_json(json_object *pre_prompt, std::vector<std::string> *expired_packages) {
+    bool has_key = false;
+
+    json_object *packages;
+    has_key = json_object_object_get_ex(pre_prompt, "packages", &packages);
+    if (!has_key) {
+        return false;
+    }
+    int64_t packages_length = json_object_array_length(packages);
+
+    for (int64_t i = 0; i < packages_length; i++) {
+        json_object *package = json_object_array_get_idx(packages, i);
+
+        json_object *tmp;
+        has_key = json_object_object_get_ex(package, "mode", &tmp);
+        if (!has_key) {
+            continue;
+        }
+        std::string package_mode(json_object_get_string(tmp));
+        
+        has_key = json_object_object_get_ex(package, "name", &tmp);
+        if (!has_key) {
+            continue;
+        }
+        std::string package_name(json_object_get_string(tmp));
+
+        if (package_mode == "upgrade") {
+            json_object *versions;
+            has_key = json_object_object_get_ex(package, "versions", &versions);
+            if (!has_key) {
+                continue;
+            }
+
+            json_object *install;
+            has_key = json_object_object_get_ex(versions, "install", &install);
+            if (!has_key) {
+                continue;
+            }
+
+            if (
+                version_from_origin(install, "UbuntuESM")
+                || version_from_origin(install, "UbuntuESMApps")
+                || version_from_origin(install, "UbuntuCC")
+                || version_from_origin(install, "UbuntuCIS")
+                || version_from_origin(install, "UbuntuFIPS")
+                || version_from_origin(install, "UbuntuFIPSUpdates")
+                || version_from_origin(install, "UbuntuFIPSPreview")
+                || version_from_origin(install, "UbuntuRealtimeKernel")
+                || version_from_origin(install, "UbuntuROS")
+                || version_from_origin(install, "UbuntuROSUpdates")
+            ) {
+                expired_packages->push_back(package_name);
+            }
+        }
+    }
+
+    return true;
+}
+
 #define MAX_COUNT_MESSAGE_LEN 256
 std::string create_count_message(security_package_counts &counts) {
     char buf[MAX_COUNT_MESSAGE_LEN] = {0};
@@ -477,8 +563,21 @@ void print_learn_more_with_context() {
     return;
 }
 
-void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names) {
+void print_package_names(std::vector<std::string> package_names) {
+    std::string curr_line = " ";
+    for (std::string &name : package_names) {
+        if ((curr_line.length() + 1 + name.length()) >= 79) {
+            std::cout << curr_line << std::endl;
+            curr_line = " ";
+        }
+        curr_line = curr_line + " " + name;
+    }
+    if (curr_line.length() > 1) {
+        std::cout << curr_line << std::endl;
+    }
+}
 
+void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names) {
     if (esm_type == APPS) {
         printf(
             ngettext(
@@ -499,19 +598,27 @@ void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names
         printf("\n");
     }
 
-    std::string curr_line = " ";
-    for (std::string &name : package_names) {
-        if ((curr_line.length() + 1 + name.length()) >= 79) {
-            std::cout << curr_line << std::endl;
-            curr_line = " ";
-        }
-        curr_line = curr_line + " " + name;
-    }
-    if (curr_line.length() > 1) {
-        std::cout << curr_line << std::endl;
-    }
+    print_package_names(package_names);
 
     print_learn_more_with_context();
+}
+
+void print_expired_pro_packages(std::vector<std::string> package_names) {
+    printf(
+        gettext(
+            "The following packages will fail to download because your Ubuntu Pro subscription has expired"
+        )
+    );
+    printf("\n");
+
+    print_package_names(package_names);
+
+    printf(
+        gettext(
+            "Renew your subscription or `sudo pro detach` to remove these errors"
+        )
+    );
+    printf("\n");
 }
 
 int run()
@@ -605,6 +712,16 @@ int run()
         if (apt_news_file.is_open()) {
             std::cout << apt_news_file.rdbuf();
             apt_news_file.close();
+        }
+
+        // Expired explanation
+        std::ifstream expired_notice("/var/lib/ubuntu-advantage/notices/5-contract_expired");
+        if (expired_notice.is_open()) {
+            std::vector<std::string> expired_packages;
+            bool success = collect_pro_packages_from_pre_prompt_json(hook_req.params, &expired_packages);
+            if (success && expired_packages.size() > 0) {
+                print_expired_pro_packages(expired_packages);
+            }
         }
     }
     json_object_put(hook_req.root_msg);

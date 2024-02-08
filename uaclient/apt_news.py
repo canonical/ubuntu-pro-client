@@ -23,7 +23,7 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.files import state_files
+from uaclient.files import notices, state_files
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -227,6 +227,12 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
     expiry_status = is_attached_info.contract_status
     remaining_days = is_attached_info.contract_remaining_days
 
+    if expiry_status == ContractExpiryStatus.EXPIRED.value:
+        notices.add(notices.Notice.CONTRACT_EXPIRED)
+        return messages.CONTRACT_EXPIRED
+
+    notices.remove(notices.Notice.CONTRACT_EXPIRED)
+
     if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value:
         return messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
             remaining_days=remaining_days
@@ -246,9 +252,6 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
         ).format(
             expired_date=exp_dt_str, remaining_days=grace_period_remaining
         )
-
-    if expiry_status == ContractExpiryStatus.EXPIRED.value:
-        return messages.CONTRACT_EXPIRED
 
     return None
 

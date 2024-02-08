@@ -210,6 +210,8 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     """Return configuration of attached status as a dictionary."""
     notices.remove(Notice.AUTO_ATTACH_RETRY_FULL_NOTICE)
     notices.remove(Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE)
+    if _is_attached(cfg).is_attached_and_contract_valid:
+        notices.remove(Notice.CONTRACT_EXPIRED)
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machineTokenInfo = cfg.machine_token["machineTokenInfo"]

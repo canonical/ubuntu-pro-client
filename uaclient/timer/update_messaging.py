@@ -21,6 +21,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.files import notices
 
 MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
@@ -87,8 +88,10 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         ContractExpiryStatus.ACTIVE.value,
         ContractExpiryStatus.NONE.value,
     ):
+        notices.remove(notices.Notice.CONTRACT_EXPIRED)
         system.ensure_file_absent(motd_contract_status_msg_path)
     elif expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value:
+        notices.remove(notices.Notice.CONTRACT_EXPIRED)
         system.write_file(
             motd_contract_status_msg_path,
             messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
@@ -97,6 +100,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
             + "\n\n",
         )
     elif expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD.value:
+        notices.remove(notices.Notice.CONTRACT_EXPIRED)
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
@@ -116,6 +120,8 @@ def update_motd_messages(cfg: UAConfig) -> bool:
             + "\n\n",
         )
     elif expiry_status == ContractExpiryStatus.EXPIRED.value:
+        notices.add(notices.Notice.CONTRACT_EXPIRED)
+
         service = "n/a"
         pkg_num = 0
 
