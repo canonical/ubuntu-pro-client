@@ -1671,7 +1671,6 @@ def setup_logging(log_level, log_file=None, logger=None):
     if not logger:
         logger = logging.getLogger("ubuntupro")
     logger.setLevel(log_level)
-    logger.addFilter(pro_log.RedactionFilter())
 
     # Clear all handlers, so they are replaced for this logger
     logger.handlers = []
@@ -1685,6 +1684,7 @@ def setup_logging(log_level, log_file=None, logger=None):
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
     file_handler.set_name("upro-file")
+    file_handler.addFilter(pro_log.RedactionFilter())
     logger.addHandler(file_handler)
 
 

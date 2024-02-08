@@ -88,8 +88,8 @@ def get_all_user_log_files() -> List[str]:
 
 def setup_journald_logging(log_level, logger):
     logger.setLevel(log_level)
-    logger.addFilter(RedactionFilter())
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JsonArrayFormatter())
     console_handler.setLevel(log_level)
+    console_handler.addFilter(RedactionFilter())
     logger.addHandler(console_handler)
