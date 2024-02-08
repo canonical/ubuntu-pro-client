@@ -4,6 +4,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached refresh in a ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I verify that `Bearer ` field is redacted in the logs
+        And I verify that `'attach', '` field is redacted in the logs
+        And I verify that `'machineToken': '` field is redacted in the logs
         Then I verify that running `pro refresh` `as non-root` exits `1`
         And stderr matches regexp:
         """
@@ -167,6 +170,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        And I verify that `Bearer ` field is redacted in the logs
+        And I verify that `'attach', '` field is redacted in the logs
+        And I verify that `'machineToken': '` field is redacted in the logs
         And I run `pro api u.pro.status.enabled_services.v1` as non-root
         Then stdout matches regexp:
         """
