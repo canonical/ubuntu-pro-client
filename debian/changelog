@@ -19,6 +19,8 @@ ubuntu-advantage-tools (31) noble; urgency=medium
     - convert APT list files to deb822 files when upgrading to noble
   * systemd/apt-news.service:
     - add apparmor profile and capability restrictions
+  * systemd/ubuntu-advantage.service:
+    - avoid deadlock when started during cloud-config.service (LP: #2050022)
   * New upstream release 31 (LP: #2048921)
     - api:
       + u.pro.attach.auto.full_auto_attach.v1: new cloud_override param
