@@ -47,6 +47,14 @@ def _get_data_files():
             "/usr/share/apport/package-hooks",
             ["apport/source_ubuntu-advantage-tools.py"],
         ),
+        (
+            "/usr/share/dbus-1/system-services",
+            ["dbus/com.ubuntu.BikeshedService.service"],
+        ),
+        (
+            "/etc/dbus-1/system.d",
+            ["dbus/com.ubuntu.BikeshedService.conf"],
+        ),
     ]
 
 

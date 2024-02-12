@@ -1,0 +1,12 @@
+[Unit]
+Description=Pro dbus experiment
+
+[Service]
+Type=dbus
+BusName=com.ubuntu.BikeshedService
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/dbus-experiment.py
+WorkingDirectory=/var/lib/ubuntu-advantage/
+User=root
+
+[Install]
+WantedBy=multi-user.target

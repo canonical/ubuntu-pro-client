@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=com.ubuntu.BikeshedService
+Exec=/usr/bin/python3 /usr/lib/ubuntu-advantage/dbus-experiment.py
+User=root
+SystemdService=pro-experiment-dbus.service
