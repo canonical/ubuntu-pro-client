@@ -1,4 +1,5 @@
 import datetime
+import os
 from typing import Any, Dict, List, Optional
 
 from uaclient import defaults
@@ -226,9 +227,20 @@ class UserConfigData(DataObject):
         self.update_messaging_timer = update_messaging_timer
 
 
-user_config_file = DataObjectFile(
+user_config_file_private = DataObjectFile(
     UserConfigData,
-    UAFile("user-config.json", private=True),
+    UAFile(
+        "user-config.json",
+        os.path.join(defaults.DEFAULT_DATA_DIR, defaults.PRIVATE_SUBDIR),
+        private=True,
+    ),
+    DataObjectFileFormat.JSON,
+    optional_type_errors_become_null=True,
+)
+
+user_config_file_public = DataObjectFile(
+    UserConfigData,
+    UAFile("user-config.json", private=False),
     DataObjectFileFormat.JSON,
     optional_type_errors_become_null=True,
 )
