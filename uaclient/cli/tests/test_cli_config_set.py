@@ -83,12 +83,18 @@ class TestMainConfigSet:
         assert err_msg in err
 
 
-@mock.patch("uaclient.config.state_files.user_config_file.write")
+@mock.patch("uaclient.config.state_files.user_config_file_private.write")
+@mock.patch("uaclient.config.state_files.user_config_file_public.write")
 @mock.patch("uaclient.cli.contract.get_available_resources")
 class TestActionConfigSet:
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_set_error_on_non_root_user(
-        self, _m_resources, _we_are_currently_root, _write, FakeConfig
+        self,
+        _m_resources,
+        _we_are_currently_root,
+        _write_public,
+        _write_private,
+        FakeConfig,
     ):
         """Root is required to run pro config set."""
         args = mock.MagicMock(key_value_pair="something=1")
@@ -116,7 +122,8 @@ class TestActionConfigSet:
         livepatch_status,
         configure_livepatch_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         livepatch_enabled,
@@ -179,7 +186,8 @@ class TestActionConfigSet:
         validate_proxy,
         configure_apt_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         scope,
@@ -286,7 +294,8 @@ class TestActionConfigSet:
         validate_proxy,
         configure_apt_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         scope,
@@ -396,7 +405,8 @@ class TestActionConfigSet:
         validate_proxy,
         configure_apt_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         scope,
@@ -459,7 +469,8 @@ class TestActionConfigSet:
         self,
         setup_apt_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         scope,
@@ -498,7 +509,8 @@ class TestActionConfigSet:
         self,
         setup_apt_proxy,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         key,
         value,
         scope,
@@ -516,7 +528,9 @@ class TestActionConfigSet:
         assert 1 == setup_apt_proxy.call_count
         assert [mock.call(**kwargs)] == setup_apt_proxy.call_args_list
 
-    def test_set_timer_interval(self, _m_resources, _write, FakeConfig):
+    def test_set_timer_interval(
+        self, _m_resources, _write_public, _write_private, FakeConfig
+    ):
         args = mock.MagicMock(key_value_pair="update_messaging_timer=28800")
         cfg = FakeConfig()
         action_config_set(args, cfg=cfg)
@@ -526,7 +540,8 @@ class TestActionConfigSet:
     def test_error_when_interval_is_not_valid(
         self,
         _m_resources,
-        _write,
+        _write_public,
+        _write_private,
         FakeConfig,
         invalid_value,
     ):

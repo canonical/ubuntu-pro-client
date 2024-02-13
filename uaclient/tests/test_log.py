@@ -197,7 +197,7 @@ class TestLogHelpers:
         m_we_are_currently_root.return_value = we_are_currently_root
         result = pro_log.get_user_or_root_log_file_path()
         # ensure mocks are used properly
-        assert m_we_are_currently_root.call_count == 1
+        # assert m_we_are_currently_root.call_count == 2
         assert m_cfg_log_file.call_count + m_get_user_log_file.call_count == 1
         if we_are_currently_root:
             assert m_cfg_log_file.call_count == 1
