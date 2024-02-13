@@ -40,6 +40,18 @@ MERGE_ID_KEY_MAP = {
 }
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
+# Proxy fields that are visible and configurable
+PROXY_FIELDS = [
+    "apt_http_proxy",
+    "apt_https_proxy",
+    "global_apt_http_proxy",
+    "global_apt_https_proxy",
+    "ua_apt_http_proxy",
+    "ua_apt_https_proxy",
+    "http_proxy",
+    "https_proxy",
+]
+
 # Keys visible and configurable using `pro config set|unset|show` subcommands
 UA_CONFIGURABLE_KEYS = (
     "http_proxy",
@@ -114,8 +126,7 @@ class UAConfig:
         else:
             try:
                 self.user_config = (
-                    state_files.user_config_file.read()
-                    or state_files.UserConfigData()
+                    read_user_config() or state_files.UserConfigData()
                 )
             except Exception as e:
                 LOG.warning("Error loading user config", exc_info=e)
@@ -163,7 +174,7 @@ class UAConfig:
     @http_proxy.setter
     def http_proxy(self, value: str):
         self.user_config.http_proxy = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def https_proxy(self) -> Optional[str]:
@@ -172,7 +183,7 @@ class UAConfig:
     @https_proxy.setter
     def https_proxy(self, value: str):
         self.user_config.https_proxy = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def ua_apt_https_proxy(self) -> Optional[str]:
@@ -181,7 +192,7 @@ class UAConfig:
     @ua_apt_https_proxy.setter
     def ua_apt_https_proxy(self, value: str):
         self.user_config.ua_apt_https_proxy = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def ua_apt_http_proxy(self) -> Optional[str]:
@@ -190,7 +201,7 @@ class UAConfig:
     @ua_apt_http_proxy.setter
     def ua_apt_http_proxy(self, value: str):
         self.user_config.ua_apt_http_proxy = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property  # type: ignore
     @lru_cache(maxsize=None)
@@ -214,7 +225,7 @@ class UAConfig:
         self.user_config.global_apt_http_proxy = value
         self.user_config.apt_http_proxy = None
         UAConfig.global_apt_http_proxy.fget.cache_clear()  # type: ignore
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property  # type: ignore
     @lru_cache(maxsize=None)
@@ -238,7 +249,7 @@ class UAConfig:
         self.user_config.global_apt_https_proxy = value
         self.user_config.apt_https_proxy = None
         UAConfig.global_apt_https_proxy.fget.cache_clear()  # type: ignore
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def update_messaging_timer(self) -> int:
@@ -250,7 +261,7 @@ class UAConfig:
     @update_messaging_timer.setter
     def update_messaging_timer(self, value: int):
         self.user_config.update_messaging_timer = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def metering_timer(self) -> int:
@@ -262,7 +273,7 @@ class UAConfig:
     @metering_timer.setter
     def metering_timer(self, value: int):
         self.user_config.metering_timer = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def poll_for_pro_license(self) -> bool:
@@ -277,7 +288,7 @@ class UAConfig:
     @poll_for_pro_license.setter
     def poll_for_pro_license(self, value: bool):
         self.user_config.poll_for_pro_license = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def polling_error_retry_delay(self) -> int:
@@ -291,7 +302,7 @@ class UAConfig:
     @polling_error_retry_delay.setter
     def polling_error_retry_delay(self, value: int):
         self.user_config.polling_error_retry_delay = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def apt_news(self) -> bool:
@@ -303,7 +314,7 @@ class UAConfig:
     @apt_news.setter
     def apt_news(self, value: bool):
         self.user_config.apt_news = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     @property
     def apt_news_url(self) -> str:
@@ -315,7 +326,7 @@ class UAConfig:
     @apt_news_url.setter
     def apt_news_url(self, value: str):
         self.user_config.apt_news_url = value
-        state_files.user_config_file.write(self.user_config)
+        write_user_config(self.user_config)
 
     def check_lock_info(self) -> Tuple[int, str]:
         """Return lock info if config lock file is present the lock is active.
@@ -698,3 +709,38 @@ def apply_config_settings_override(override_key: str):
         return new_f
 
     return wrapper
+
+
+def redact_config_data(
+    user_config: Optional[state_files.UserConfigData],
+) -> Optional[state_files.UserConfigData]:
+    """Redact the user-config.json file and return its contents."""
+    if user_config:
+        redacted_data = user_config
+        for field in PROXY_FIELDS:
+            value = getattr(redacted_data, field)
+            if value:
+                setattr(
+                    redacted_data, field, util.redact_sensitive_proxy(value)
+                )
+        return redacted_data
+    return None
+
+
+def read_user_config() -> Optional[state_files.UserConfigData]:
+    """Read the user-config.json file and return its contents."""
+    try:
+        if util.we_are_currently_root():
+            return state_files.user_config_file_private.read()
+        public_config = state_files.user_config_file_public.read()
+        return redact_config_data(public_config)
+    except Exception as e:
+        LOG.warning("Error loading user config", exc_info=e)
+        LOG.warning("Using default config values")
+        return None
+
+
+def write_user_config(user_config: state_files.UserConfigData) -> None:
+    """Write the user-config.json file with the given contents."""
+    state_files.user_config_file_public.write(user_config)
+    state_files.user_config_file_private.write(user_config)
