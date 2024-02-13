@@ -968,7 +968,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         """
         Examples: ubuntu release
            | release | machine_type  |
-           | xenial  | aws.generic   |
+           | xenial  | lxd-container |
 
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

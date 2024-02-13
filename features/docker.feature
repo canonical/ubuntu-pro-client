@@ -11,12 +11,13 @@ Feature: Build docker images with pro services
         FROM ubuntu:<container_release>
 
         COPY ./ubuntu-advantage-tools.deb /ua.deb
+        COPY ./ubuntu-pro-client.deb /pro.deb
 
         RUN --mount=type=secret,id=ua-attach-config \
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && ((dpkg -i /ua.deb || true)) \
+            && ((apt install /ua.deb /pro.deb -y || true)) \
 
             && apt-get install -f \
 
@@ -86,12 +87,13 @@ Feature: Build docker images with pro services
         ARG PRO_CLOUD_OVERRIDE=
 
         COPY ./ubuntu-advantage-tools.deb /ua.deb
+        COPY ./ubuntu-pro-client.deb /pro.deb
 
         RUN --mount=type=secret,id=ua-attach-config \
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && ((dpkg -i /ua.deb || true)) \
+            && ((apt install /ua.deb /pro.deb -y || true)) \
 
             && apt-get install -f \
 
@@ -131,12 +133,13 @@ Feature: Build docker images with pro services
         ARG PRO_CLOUD_OVERRIDE=
 
         COPY ./ubuntu-advantage-tools.deb /ua.deb
+        COPY ./ubuntu-pro-client.deb /pro.deb
 
         RUN --mount=type=secret,id=ua-attach-config \
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && ((dpkg -i /ua.deb || true)) \
+            && ((apt install /ua.deb /pro.deb -y || true)) \
 
             && apt-get install -f \
 

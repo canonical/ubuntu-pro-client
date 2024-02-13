@@ -260,6 +260,7 @@ Feature: Attached status
         esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         livepatch       +yes      +enabled  +Canonical Livepatch service
         usg             +yes      +disabled +Security compliance and audit tools
         """
@@ -274,7 +275,7 @@ Feature: Attached status
         esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
         fips            +yes      +n/a      +NIST-certified FIPS crypto packages
         fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
-        fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+        fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
         livepatch       +yes      +enabled  +Canonical Livepatch service
         usg             +yes      +disabled +Security compliance and audit tools
         """
