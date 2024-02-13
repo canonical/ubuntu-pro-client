@@ -14,6 +14,7 @@ Feature: auto-attach retries periodically on failures
         """
         creating flag file to trigger retries
         """
+        When I wait `20` seconds
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
