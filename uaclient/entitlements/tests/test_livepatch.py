@@ -398,6 +398,12 @@ class TestLivepatchEntitlementEnable:
             ["/usr/bin/snap", "wait", "system", "seed.loaded"], capture=True
         )
     ]
+    mocks_snapd_refresh = [
+        mock.call(
+            ["/usr/bin/snap", "refresh", "snapd"],
+            capture=True,
+        )
+    ]
     mocks_livepatch_install = [
         mock.call(
             ["/usr/bin/snap", "install", "canonical-livepatch"],
@@ -409,6 +415,7 @@ class TestLivepatchEntitlementEnable:
         mocks_snapd_install
         + mocks_snapd_install_as_a_snap
         + mocks_snap_wait_seed
+        + mocks_snapd_refresh
         + mocks_livepatch_install
     )
     mocks_config = [
@@ -547,6 +554,7 @@ class TestLivepatchEntitlementEnable:
             None,
             None,
             None,
+            None,
         ]
 
         assert entitlement.enable()
@@ -601,6 +609,7 @@ class TestLivepatchEntitlementEnable:
         assert entitlement.enable()
         assert (
             self.mocks_snap_wait_seed
+            + self.mocks_snapd_refresh
             + self.mocks_livepatch_install
             + self.mocks_config
             in m_subp.call_args_list
@@ -653,6 +662,7 @@ class TestLivepatchEntitlementEnable:
             mock.call(
                 [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
             ),
+            mock.call([SNAP_CMD, "refresh", "snapd"], capture=True),
             mock.call(
                 [
                     livepatch.LIVEPATCH_CMD,
@@ -712,6 +722,7 @@ class TestLivepatchEntitlementEnable:
             mock.call(
                 [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
             ),
+            mock.call([SNAP_CMD, "refresh", "snapd"], capture=True),
             mock.call(
                 [
                     livepatch.LIVEPATCH_CMD,
@@ -803,6 +814,7 @@ class TestLivepatchEntitlementEnable:
                 stdout="",
                 stderr=stderr_msg,
             ),
+            True,
             True,
         ]
 
