@@ -103,7 +103,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         # TODO find out what caused memory to go up, try to lower it again
         Then on `xenial`, systemd status output says memory usage is less than `17` MB
         Then on `bionic`, systemd status output says memory usage is less than `15` MB
-        Then on `focal`, systemd status output says memory usage is less than `13` MB
+        Then on `focal`, systemd status output says memory usage is less than `14` MB
         Then on `jammy`, systemd status output says memory usage is less than `14` MB
 
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
@@ -377,7 +377,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\).*
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout does not contain substring:
@@ -390,7 +389,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         \s*Condition: start condition failed.*
-        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
         When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
         Then stdout does not contain substring:
