@@ -15,6 +15,7 @@ from uaclient.config import (
     DataPath,
     get_config_path,
     parse_config,
+    redact_config_data,
 )
 from uaclient.conftest import FakeNotice
 from uaclient.defaults import DEFAULT_CONFIG_FILE, PRIVATE_SUBDIR
@@ -354,9 +355,10 @@ USER_CFG_DICT = {
 
 class TestUserConfigKeys:
     @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
-    @mock.patch("uaclient.config.state_files.user_config_file.write")
+    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
+    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
     def test_user_configurable_keys_set_user_config(
-        self, write, attr_name, tmpdir, FakeConfig
+        self, write_public, write_private, attr_name, tmpdir, FakeConfig
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
         cfg = FakeConfig()
@@ -830,10 +832,12 @@ class TestProcessConfig:
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.snap.is_snapd_installed")
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.config.state_files.user_config_file.write")
+    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
+    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
     def test_process_config(
         self,
-        m_write,
+        m_write_public,
+        m_write_private,
         m_apt_configure_proxy,
         m_snap_is_snapd_installed,
         m_snap_configure_proxy,
@@ -1340,3 +1344,19 @@ class TestCheckLockInfo:
         assert expected_msg.msg == exc_info.value.msg
         assert m_load_file.call_count == 1
         assert _m_path_exists.call_count == 1
+
+
+class TestConfigShow:
+    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
+    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
+    def test_redact_config_data(
+        self, _write_public, _write_private, FakeConfig
+    ):
+        cfg = FakeConfig()
+        setattr(
+            cfg.user_config,
+            "http_proxy",
+            "http://username:password@proxy:port",
+        )
+        redacted_config = redact_config_data(cfg.user_config)
+        assert getattr(redacted_config, "http_proxy") == "<REDACTED>"
