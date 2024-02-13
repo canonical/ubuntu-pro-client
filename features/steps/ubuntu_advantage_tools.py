@@ -167,7 +167,7 @@ def when_i_have_the_debs_under_test(context, series, dest):
         for package in ALL_BINARY_PACKAGE_NAMES:
             when_i_run_shell_command(
                 context,
-                "cp {package}*.deb {package}.deb".format(package=package),
+                "cp {package}_*.deb {package}.deb".format(package=package),
                 "with sudo",
             )
 
@@ -254,8 +254,8 @@ def when_i_install_pro(context, machine_name=SUT):
             context, " ".join(to_install), machine_name=machine_name
         )
     else:
-        when_i_run_command(
-            context, "apt-get install ubuntu-advantage-pro", "with sudo"
+        when_i_apt_install(
+            context, "ubuntu-pro-auto-attach", machine_name=machine_name
         )
 
 
