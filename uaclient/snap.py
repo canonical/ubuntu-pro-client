@@ -176,6 +176,10 @@ def install_snap(
     )
 
 
+def refresh_snap(snap: str):
+    system.subp([SNAP_CMD, "refresh", snap], capture=True)
+
+
 def get_snap_info(snap: str) -> SnapPackage:
     snap_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     snap_sock.connect(SNAPD_SOCKET_PATH)

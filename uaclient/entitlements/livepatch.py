@@ -106,6 +106,16 @@ class LivepatchEntitlement(UAEntitlement):
 
         snap.run_snapd_wait_cmd()
 
+        try:
+            snap.refresh_snap("snapd")
+        except exceptions.ProcessExecutionError as e:
+            LOG.warning("Failed to refresh snapd snap", exc_info=e)
+            event.info(
+                messages.EXECUTING_COMMAND_FAILED.format(
+                    command="snap refresh snapd"
+                )
+            )
+
         http_proxy = http.validate_proxy(
             "http", self.cfg.http_proxy, http.PROXY_VALIDATION_SNAP_HTTP_URL
         )
