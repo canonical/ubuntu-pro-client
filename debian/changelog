@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (31.1) noble; urgency=medium
+
+  * fix unit test that failed on newer version of python
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Wed, 14 Feb 2024 13:51:44 -0500
+
 ubuntu-advantage-tools (31) noble; urgency=medium
 
   * d/*:
