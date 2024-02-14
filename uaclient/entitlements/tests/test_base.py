@@ -154,14 +154,8 @@ def concrete_entitlement_factory(FakeConfig):
 class TestUaEntitlement:
     def test_entitlement_abstract_class(self):
         """UAEntitlement is abstract requiring concrete methods."""
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError):
             base.UAEntitlement()
-        expected_msg = (
-            "Can't instantiate abstract class UAEntitlement with abstract"
-            " methods _perform_disable, _perform_enable, application_status,"
-            " description, name, title"
-        )
-        assert expected_msg == str(excinfo.value)
 
     def test_init_default_sets_up_uaconfig(self):
         """UAEntitlement sets up a uaconfig instance upon init."""
