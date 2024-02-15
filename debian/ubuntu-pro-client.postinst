@@ -41,6 +41,24 @@ mark_reboot_cmds_as_needed() {
     fi
 }
 
+#
+# Migration functions
+#
+create_public_user_config_file() {
+    # When we perform the write operation through
+    # UserConfigFile we already write the public
+    # version of the user-config file with all the
+    # sensitive data removed.
+    /usr/bin/python3 -c "
+from uaclient.files import UserConfigFileObject, UserConfigData
+try:
+    user_config_file = UserConfigFileObject()
+    content = UserConfigData()
+    user_config_file.write(content)
+except Exception as e:
+    print('Error while creating public user-config file: {}'.format(e))
+"
+}
 
 case "$1" in
     configure)
@@ -59,8 +77,9 @@ case "$1" in
       #   fi
       #
 
-      # none yet for ubuntu-pro-client package
-
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "32~"; then
+          create_public_user_config_file
+      fi
 
       #
       # do-release-upgrade migrations from previous Ubuntu release ubuntu-pro-client package versions

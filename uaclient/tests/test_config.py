@@ -15,13 +15,12 @@ from uaclient.config import (
     DataPath,
     get_config_path,
     parse_config,
-    redact_config_data,
 )
 from uaclient.conftest import FakeNotice
 from uaclient.defaults import DEFAULT_CONFIG_FILE, PRIVATE_SUBDIR
 from uaclient.entitlements import valid_services
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.files import notices
+from uaclient.files import notices, user_config_file
 from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
 from uaclient.yaml import safe_dump
@@ -355,10 +354,9 @@ USER_CFG_DICT = {
 
 class TestUserConfigKeys:
     @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
-    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
-    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
+    @mock.patch("uaclient.config.user_config_file.user_config.write")
     def test_user_configurable_keys_set_user_config(
-        self, write_public, write_private, attr_name, tmpdir, FakeConfig
+        self, write, attr_name, tmpdir, FakeConfig
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
         cfg = FakeConfig()
@@ -832,12 +830,10 @@ class TestProcessConfig:
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.snap.is_snapd_installed")
     @mock.patch("uaclient.apt.setup_apt_proxy")
-    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
-    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
+    @mock.patch("uaclient.config.user_config_file.user_config.write")
     def test_process_config(
         self,
-        m_write_public,
-        m_write_private,
+        m_write,
         m_apt_configure_proxy,
         m_snap_is_snapd_installed,
         m_snap_configure_proxy,
@@ -1347,16 +1343,19 @@ class TestCheckLockInfo:
 
 
 class TestConfigShow:
-    @mock.patch("uaclient.config.state_files.user_config_file_private.write")
-    @mock.patch("uaclient.config.state_files.user_config_file_public.write")
-    def test_redact_config_data(
-        self, _write_public, _write_private, FakeConfig
-    ):
+    @mock.patch("uaclient.config.user_config_file.user_config.write")
+    def test_redact_config_data(self, _write, FakeConfig):
         cfg = FakeConfig()
-        setattr(
-            cfg.user_config,
-            "http_proxy",
-            "http://username:password@proxy:port",
+
+        for field in user_config_file.PROXY_FIELDS:
+            setattr(
+                cfg.user_config, field, "http://username:password@proxy:port"
+            )
+
+        user_config_file_object = user_config_file.UserConfigFileObject()
+        redacted_config = user_config_file_object.redact_config_data(
+            cfg.user_config
         )
-        redacted_config = redact_config_data(cfg.user_config)
-        assert getattr(redacted_config, "http_proxy") == "<REDACTED>"
+
+        for field in user_config_file.PROXY_FIELDS:
+            assert getattr(redacted_config, field) == "<REDACTED>"
