@@ -218,11 +218,7 @@ def _handle_pycurl_error(
         code = error.args[0]
     if len(error.args) > 1:
         msg = error.args[1]
-    if (
-        code == authentication_error_code
-        and msg
-        and "HTTP code 407 from proxy" in msg
-    ):
+    if code == authentication_error_code and msg and "407" in msg:
         raise exceptions.ProxyAuthenticationFailed()
     elif code == ca_certificates_error_code:
         raise exceptions.PycurlCACertificatesError(url=url)
