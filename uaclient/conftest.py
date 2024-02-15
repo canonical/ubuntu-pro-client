@@ -14,7 +14,7 @@ try:
     from uaclient import event_logger
     from uaclient.config import UAConfig
     from uaclient.files.notices import NoticeFileDetails
-    from uaclient.files.state_files import UserConfigData
+    from uaclient.files.user_config_file import UserConfigData
 except ImportError:
     raise
 

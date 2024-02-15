@@ -254,11 +254,6 @@ REDACT_SENSITIVE_LOGS = [
     r"(-p )[^\s]+",
 ]
 
-REDACT_SENSITIVE_PROXY = [
-    r"(http://)[^:@]+:[^@]+",
-    r"(https://)[^:@]+:[^@]+",
-]
-
 
 def redact_sensitive_logs(
     log, redact_regexs: List[str] = REDACT_SENSITIVE_LOGS
@@ -268,16 +263,6 @@ def redact_sensitive_logs(
     for redact_regex in redact_regexs:
         redacted_log = re.sub(redact_regex, r"\g<1><REDACTED>", redacted_log)
     return redacted_log
-
-
-def redact_sensitive_proxy(
-    content: str, redact_regexs: List[str] = REDACT_SENSITIVE_PROXY
-) -> str:
-    """Redact sensistive content from config proxy settings."""
-    for regex in redact_regexs:
-        if re.search(regex, content):
-            return "<REDACTED>"
-    return content
 
 
 def handle_message_operations(

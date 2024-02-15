@@ -73,12 +73,11 @@ class TestMainConfigUnSet:
         assert err_msg in err
 
 
-@mock.patch("uaclient.config.state_files.user_config_file_private.write")
-@mock.patch("uaclient.config.state_files.user_config_file_public.write")
+@mock.patch("uaclient.config.user_config_file.user_config.write")
 class TestActionConfigUnSet:
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_set_error_on_non_root_user(
-        self, we_are_currently_root, _write_public, _write_private, FakeConfig
+        self, we_are_currently_root, _write, FakeConfig
     ):
         """Root is required to run pro config unset."""
         args = mock.MagicMock(key="https_proxy")
@@ -103,8 +102,7 @@ class TestActionConfigUnSet:
         unconfigure_snap_proxy,
         livepatch_status,
         unconfigure_livepatch_proxy,
-        _write_public,
-        _write_private,
+        _write,
         key,
         livepatch_enabled,
         FakeConfig,
