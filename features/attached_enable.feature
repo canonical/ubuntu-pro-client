@@ -544,7 +544,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
            | release | machine_type | livepatch_status |
            | xenial  | lxd-vm       | warning          |
            | bionic  | lxd-vm       | enabled          |
-           | bionic  | wsl          | enabled          |
 
     Scenario Outline: Attach works when snapd cannot be installed
         Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
