@@ -26,8 +26,8 @@ from uaclient.util import depth_first_merge_overlay_dict
 from uaclient.yaml import safe_dump
 
 KNOWN_DATA_PATHS = (
-    ("machine-access-cis", "machine-access-cis.json"),
-    ("instance-id", "instance-id"),
+    ("lock", "lock"),
+    ("status-cache", "status.json"),
 )
 M_PATH = "uaclient.entitlements."
 
@@ -281,7 +281,7 @@ class TestDataPath:
     ):
         """When key is defined in Config.data_paths return data_path value."""
         cfg = FakeConfig({"data_dir": "/my/dir"})
-        private_path = "/my/dir/{}/{}".format(PRIVATE_SUBDIR, path_basename)
+        private_path = "/my/dir/{}".format(path_basename)
         assert private_path == cfg.data_path(key=key)
 
     @pytest.mark.parametrize(
@@ -468,8 +468,7 @@ class TestReadCache:
         self, tmpdir, FakeConfig, key, path_basename
     ):
         cfg = FakeConfig()
-        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
-        data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
+        data_path = tmpdir.join(path_basename)
         with open(data_path.strpath, "w") as f:
             f.write("content{}".format(key))
 
@@ -480,8 +479,7 @@ class TestReadCache:
         self, tmpdir, FakeConfig, key, path_basename
     ):
         cfg = FakeConfig()
-        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
-        data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
+        data_path = tmpdir.join(path_basename)
         expected = {key: "content{}".format(key)}
         with open(data_path.strpath, "w") as f:
             f.write(json.dumps(expected))

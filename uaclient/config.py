@@ -78,8 +78,6 @@ event = event_logger.get_event_logger()
 
 class UAConfig:
     data_paths = {
-        "instance-id": DataPath("instance-id", True),
-        "machine-access-cis": DataPath("machine-access-cis.json", True),
         "lock": DataPath("lock", False),
         "status-cache": DataPath("status.json", False),
     }  # type: Dict[str, DataPath]
