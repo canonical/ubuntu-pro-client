@@ -140,7 +140,6 @@ Feature: auto-attach retries periodically on failures
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-
         """
         When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
@@ -229,7 +228,6 @@ Feature: auto-attach retries periodically on failures
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-
         """
         When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
@@ -296,7 +294,6 @@ Feature: auto-attach retries periodically on failures
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
-
         """
         When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
         """
