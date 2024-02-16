@@ -52,7 +52,6 @@ Feature: Livepatch
         The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
-
         """
         When I run `pro disable livepatch` with sudo
         When I run `pro status` with sudo
@@ -66,7 +65,6 @@ Feature: Livepatch
         The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
         Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
         Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
-
         """
         When I apt install `linux-generic`
         When I apt remove `linux-image*-kvm`
@@ -106,7 +104,6 @@ Feature: Livepatch
         NOTICES
         The running kernel has reached the end of its active livepatch window.
         Please upgrade the kernel with apt and reboot for continued livepatch support.
-
         """
         When I apt install `linux-headers-generic linux-image-generic`
         When I reboot the machine
@@ -121,7 +118,6 @@ Feature: Livepatch
         NOTICES
         The running kernel has reached the end of its active livepatch window.
         Please upgrade the kernel with apt and reboot for continued livepatch support.
-
         """
         Examples: ubuntu release
             | release | machine_type | old_kernel_version |

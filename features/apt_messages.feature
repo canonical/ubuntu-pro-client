@@ -11,7 +11,6 @@ Feature: APT Messages
         """
         1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         1 standard LTS security update
-
         """
 
         When I apt install `<infra-pkg>`
@@ -20,7 +19,6 @@ Feature: APT Messages
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         2 esm-infra security updates
-
         """
 
         When I apt install `<apps-pkg>`
@@ -29,7 +27,6 @@ Feature: APT Messages
         """
         1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         1 esm-apps security update
-
         """
 
         When I apt install `<standard-pkg> <infra-pkg>`
@@ -38,7 +35,6 @@ Feature: APT Messages
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         1 standard LTS security update and 2 esm-infra security updates
-
         """
 
         When I apt install `<standard-pkg> <apps-pkg>`
@@ -47,7 +43,6 @@ Feature: APT Messages
         """
         2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         1 standard LTS security update and 1 esm-apps security update
-
         """
 
         When I apt install `<infra-pkg> <apps-pkg>`
@@ -56,7 +51,6 @@ Feature: APT Messages
         """
         3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         2 esm-infra security updates and 1 esm-apps security update
-
         """
 
         When I apt install `<standard-pkg> <infra-pkg> <apps-pkg>`
@@ -65,7 +59,6 @@ Feature: APT Messages
         """
         4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
         1 standard LTS security update, 2 esm-infra security updates and 1 esm-apps security update
-
         """
 
         When I apt upgrade
