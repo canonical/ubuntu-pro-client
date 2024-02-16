@@ -19,7 +19,6 @@ from uaclient import log as pro_log
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
-from uaclient.clouds import identity
 from uaclient.defaults import (
     APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
@@ -101,10 +100,6 @@ def attach_with_token(
         update_motd_messages(cfg)
         contract_client.update_activity_token()
         raise exc
-
-    current_iid = identity.get_instance_id()
-    if current_iid:
-        cfg.write_cache("instance-id", current_iid)
 
     attachment_data_file.write(AttachmentData(attached_at=attached_at))
     update_motd_messages(cfg)
