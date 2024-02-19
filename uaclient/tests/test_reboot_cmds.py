@@ -148,7 +148,7 @@ class TestMain:
 
         if expected_calls:
             assert [
-                mock.call(cfg=mock.ANY, lock_holder="pro-reboot-cmds")
+                mock.call(lock_holder="pro-reboot-cmds")
             ] == m_spin_lock.call_args_list
             assert [mock.call(mock.ANY)] == m_fix_pro_pkg_holds.call_args_list
             assert [mock.call(mock.ANY)] == m_refresh_contract.call_args_list

@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, lock, messages
 from uaclient.cli import action_disable, main, main_error_handler
 from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
@@ -75,6 +75,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -87,6 +88,7 @@ class TestDisable:
         m_valid_services,
         m_entitlement_factory,
         m_update_activity_token,
+        _m_check_lock_info,
         disable_return,
         return_code,
         assume_yes,
@@ -135,7 +137,7 @@ class TestDisable:
         args_mock.assume_yes = assume_yes
         args_mock.purge = False
 
-        with mock.patch.object(cfg, "check_lock_info", return_value=(-1, "")):
+        with mock.patch.object(lock, "lock_data_file"):
             ret = action_disable(args_mock, cfg=cfg)
 
         for m_entitlement_cls in entitlements_cls:
@@ -160,9 +162,7 @@ class TestDisable:
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(event, "set_event_mode"):
-                with mock.patch.object(
-                    cfg, "check_lock_info", return_value=(-1, "")
-                ):
+                with mock.patch.object(lock, "lock_data_file"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
                         ret = action_disable(args_mock, cfg=cfg)
@@ -192,6 +192,7 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
     @mock.patch("uaclient.status.status")
@@ -200,6 +201,7 @@ class TestDisable:
         m_status,
         m_valid_services,
         m_entitlement_factory,
+        _m_check_lock_info,
         assume_yes,
         tmpdir,
         event,
@@ -255,9 +257,7 @@ class TestDisable:
         args_mock.purge = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            with mock.patch.object(
-                cfg, "check_lock_info", return_value=(-1, "")
-            ):
+            with mock.patch.object(lock, "lock_data_file"):
                 action_disable(args_mock, cfg=cfg)
 
         assert (
@@ -289,9 +289,7 @@ class TestDisable:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
-                    with mock.patch.object(
-                        cfg, "check_lock_info", return_value=(-1, "")
-                    ):
+                    with mock.patch.object(lock, "lock_data_file"):
                         fake_stdout = io.StringIO()
                         with contextlib.redirect_stdout(fake_stdout):
                             main_error_handler(action_disable)(
@@ -338,10 +336,12 @@ class TestDisable:
             (False, messages.E_NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
+        _m_check_lock_info,
         root,
         expected_error_template,
         FakeConfig,
@@ -371,8 +371,10 @@ class TestDisable:
             expected_info = None
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            args.service = ["bogus"]
-            action_disable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                args.service = ["bogus"]
+                action_disable(args, cfg)
+
         assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
@@ -384,7 +386,8 @@ class TestDisable:
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                        with mock.patch.object(lock, "lock_data_file"):
+                            main_error_handler(action_disable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -407,8 +410,10 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_invalid_service_names(
         self,
+        _m_check_lock_info,
         service,
         FakeConfig,
         event,
@@ -425,8 +430,9 @@ class TestDisable:
             service_msg=all_service_msg,
         )
         with pytest.raises(exceptions.UbuntuProError) as err:
-            args.service = service
-            action_disable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                args.service = service
+                action_disable(args, cfg)
 
         assert expected_error.msg == err.value.msg
 
@@ -437,9 +443,10 @@ class TestDisable:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                    with mock.patch.object(lock, "lock_data_file"):
+                        fake_stdout = io.StringIO()
+                        with contextlib.redirect_stdout(fake_stdout):
+                            main_error_handler(action_disable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -532,12 +539,14 @@ class TestDisable:
             expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
         m_sleep,
+        m_check_lock_info,
         FakeConfig,
         event,
     ):
@@ -547,11 +556,11 @@ class TestDisable:
         expected_error = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro disable", lock_holder="pro enable", pid="123"
         )
-        cfg.write_cache("lock", "123:pro enable")
+        m_check_lock_info.return_value = (123, "pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
-        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
+        assert 12 == m_check_lock_info.call_count
         assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
@@ -621,7 +630,8 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    def test_purge_assume_yes_incompatible(self, capsys):
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
+    def test_purge_assume_yes_incompatible(self, _m_check_lock_info, capsys):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
         args_mock.service = "test"
@@ -629,9 +639,7 @@ class TestDisable:
         args_mock.purge = True
 
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                cfg, "check_lock_info", return_value=(-1, "")
-            ):
+            with mock.patch.object(lock, "lock_data_file"):
                 main_error_handler(action_disable)(args_mock, cfg)
 
         _out, err = capsys.readouterr()

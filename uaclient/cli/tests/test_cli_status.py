@@ -10,7 +10,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, messages, status, util
+from uaclient import exceptions, lock, messages, status, util
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
@@ -497,6 +497,7 @@ class TestActionStatus:
         )
         assert expected == capsys.readouterr()[0]
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("uaclient.version.get_version", return_value="test_version")
     @mock.patch("uaclient.system.subp")
     @mock.patch(M_PATH + "time.sleep")
@@ -505,6 +506,7 @@ class TestActionStatus:
         m_sleep,
         _m_subp,
         _m_get_version,
+        m_check_lock_info,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -516,19 +518,20 @@ class TestActionStatus:
         """Check that --wait will will block and poll until lock released."""
         cfg = FakeConfig()
         mock_notice = NoticesManager()
-        lock_file = cfg.data_path("lock")
-        cfg.write_cache("lock", "123:pro auto-attach")
+        m_check_lock_info.return_value = (123, "pro disable")
 
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:
-                os.unlink(lock_file)
+                m_check_lock_info.return_value = (-1, "")
                 mock_notice.remove(Notice.OPERATION_IN_PROGRESS)
 
         m_sleep.side_effect = fake_sleep
 
-        assert 0 == action_status(
-            mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
-        )
+        with mock.patch.object(lock, "lock_data_file"):
+            assert 0 == action_status(
+                mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
+            )
+
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 

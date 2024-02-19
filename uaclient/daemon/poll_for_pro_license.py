@@ -15,9 +15,7 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
     try:
-        with lock.RetryLock(
-            cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach"
-        ):
+        with lock.RetryLock(lock_holder="pro.daemon.attempt_auto_attach"):
             actions.auto_attach(cfg, cloud)
     except Exception as e:
         LOG.error(e)

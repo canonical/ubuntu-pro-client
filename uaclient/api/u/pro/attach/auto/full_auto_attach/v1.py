@@ -79,7 +79,6 @@ def _full_auto_attach(
 ) -> FullAutoAttachResult:
     try:
         with lock.RetryLock(
-            cfg=cfg,
             lock_holder="pro.api.u.pro.attach.auto.full_auto_attach.v1",
         ):
             ret = _full_auto_attach_in_lock(options, cfg, mode=mode)

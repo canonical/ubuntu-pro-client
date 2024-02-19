@@ -6,7 +6,7 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import event_logger, exceptions, messages
+from uaclient import event_logger, exceptions, lock, messages
 from uaclient.cli import (
     action_detach,
     detach_parser,
@@ -103,12 +103,14 @@ class TestActionDetach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
         m_sleep,
+        m_check_lock_info,
         m_prompt,
         FakeConfig,
         capsys,
@@ -117,10 +119,12 @@ class TestActionDetach:
         """Check when an operation holds a lock file, detach cannot run."""
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        cfg.write_cache("lock", "123:pro enable")
+        m_check_lock_info.return_value = (123, "pro enable")
+
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
-        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
+
+        assert 12 == m_check_lock_info.call_count
         expected_error_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro detach", lock_holder="pro enable", pid="123"
         )
@@ -159,6 +163,7 @@ class TestActionDetach:
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.cli.entitlements_disable_order")
@@ -169,6 +174,7 @@ class TestActionDetach:
         m_disable_order,
         m_update_apt_and_motd_msgs,
         m_client,
+        _m_check_lock_info,
         m_prompt,
         prompt_response,
         assume_yes,
@@ -195,7 +201,8 @@ class TestActionDetach:
         m_ent_factory.return_value = disabled_cls
 
         args = mock.MagicMock(assume_yes=assume_yes)
-        return_code = action_detach(args, cfg=cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            return_code = action_detach(args, cfg=cfg)
 
         assert [
             mock.call(ignore_dependent_services=True)
@@ -223,7 +230,8 @@ class TestActionDetach:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_detach)(args, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -236,82 +244,28 @@ class TestActionDetach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_config_cache_deleted(
         self,
         m_update_apt_and_motd_msgs,
-        m_client,
         m_disable_order,
-        _m_prompt,
-        FakeConfig,
-        tmpdir,
-    ):
-        m_disable_order.return_value = []
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
-
-        m_cfg = mock.MagicMock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
-        action_detach(mock.MagicMock(), m_cfg)
-
-        assert [mock.call()] == m_cfg.delete_cache.call_args_list
-        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
-
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    def test_correct_message_emitted(
-        self,
-        m_update_apt_and_motd_msgs,
-        m_client,
-        m_disable_order,
+        _m_check_lock_info,
         _m_prompt,
         capsys,
-        FakeConfig,
-        tmpdir,
     ):
         m_disable_order.return_value = []
 
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
-
         m_cfg = mock.MagicMock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
-        action_detach(mock.MagicMock(), m_cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            ret = action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
-
         assert messages.DETACH_SUCCESS + "\n" == out
-        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
-
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    def test_returns_zero(
-        self,
-        m_update_apt_and_motd_msgs,
-        m_client,
-        m_disable_order,
-        _m_prompt,
-        FakeConfig,
-        tmpdir,
-    ):
-        m_disable_order.return_value = []
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
-
-        m_cfg = mock.MagicMock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
-        ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
+        assert [mock.call()] == m_cfg.delete_cache.call_args_list
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @pytest.mark.parametrize(
@@ -347,7 +301,7 @@ class TestActionDetach:
             ),
         ],
     )
-    @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements_disable_order")
@@ -356,7 +310,7 @@ class TestActionDetach:
         m_disable_order,
         m_ent_factory,
         m_update_apt_and_motd_msgs,
-        m_client,
+        _m_check_lock_info,
         _m_prompt,
         capsys,
         classes,
@@ -370,15 +324,11 @@ class TestActionDetach:
         m_ent_factory.side_effect = classes
         m_disable_order.return_value = disable_order
 
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
-
         m_cfg = mock.MagicMock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         args = mock.MagicMock()
 
-        action_detach(args, m_cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            action_detach(args, m_cfg)
 
         out, _err = capsys.readouterr()
 
@@ -392,7 +342,8 @@ class TestActionDetach:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_detach)(args, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
