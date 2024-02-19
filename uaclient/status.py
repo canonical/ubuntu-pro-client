@@ -10,6 +10,7 @@ from uaclient import (
     event_logger,
     exceptions,
     livepatch,
+    lock,
     messages,
     util,
     version,
@@ -372,7 +373,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     userStatus = UserFacingConfigStatus
     status_val = userStatus.INACTIVE.value
     status_desc = messages.NO_ACTIVE_OPERATIONS
-    (lock_pid, lock_holder) = cfg.check_lock_info()
+    (lock_pid, lock_holder) = lock.check_lock_info()
     notices_list = notices.list() or []
     if lock_pid > 0:
         status_val = userStatus.ACTIVE.value

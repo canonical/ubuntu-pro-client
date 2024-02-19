@@ -25,10 +25,7 @@ from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
 from uaclient.yaml import safe_dump
 
-KNOWN_DATA_PATHS = (
-    ("lock", "lock"),
-    ("status-cache", "status.json"),
-)
+KNOWN_DATA_PATHS = (("status-cache", "status.json"),)
 M_PATH = "uaclient.entitlements."
 
 
@@ -1312,32 +1309,6 @@ class TestGetConfigPath:
     def test_get_default_config_path(self):
         with mock.patch.dict("uaclient.config.os.environ", values={}):
             assert DEFAULT_CONFIG_FILE == get_config_path()
-
-
-class TestCheckLockInfo:
-    @pytest.mark.parametrize("lock_content", ((""), ("corrupted")))
-    @mock.patch("os.path.exists", return_value=True)
-    @mock.patch("uaclient.system.load_file")
-    def test_raise_exception_for_corrupted_lock(
-        self,
-        m_load_file,
-        _m_path_exists,
-        lock_content,
-        FakeConfig,
-    ):
-        cfg = FakeConfig()
-        m_load_file.return_value = lock_content
-
-        expected_msg = messages.E_INVALID_LOCK_FILE.format(
-            lock_file_path=cfg.data_dir + "/lock"
-        )
-
-        with pytest.raises(exceptions.InvalidLockFile) as exc_info:
-            cfg.check_lock_info()
-
-        assert expected_msg.msg == exc_info.value.msg
-        assert m_load_file.call_count == 1
-        assert _m_path_exists.call_count == 1
 
 
 class TestConfigShow:

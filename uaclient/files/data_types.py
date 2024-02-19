@@ -80,3 +80,7 @@ class DataObjectFile(Generic[DOFType]):
 
     def delete(self):
         self.ua_file.delete()
+
+    @property
+    def path(self):
+        return self.ua_file.path
