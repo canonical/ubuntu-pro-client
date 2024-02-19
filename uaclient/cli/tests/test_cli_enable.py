@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, lock, messages
 from uaclient.cli import main, main_error_handler
 from uaclient.cli.enable import action_enable
 from uaclient.entitlements.entitlement_status import (
@@ -140,12 +140,14 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
         m_sleep,
+        m_check_lock_info,
         _refresh,
         _m_public_config,
         capsys,
@@ -154,40 +156,33 @@ class TestActionEnable:
     ):
         """Check inability to enable if operation holds lock file."""
         cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("lock", "123:pro disable")
+        m_check_lock_info.return_value = (123, "pro disable")
         args = mock.MagicMock()
 
         with pytest.raises(exceptions.LockHeldError) as err:
             action_enable(args, cfg=cfg)
-        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
+        assert 12 == m_check_lock_info.call_count
 
-        expected_message = messages.E_LOCK_HELD_ERROR.format(
+        expected_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro enable", lock_holder="pro disable", pid="123"
         )
-        assert expected_message.msg == err.value.msg
+        assert expected_msg.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                with mock.patch.object(
-                    cfg, "check_lock_info"
-                ) as m_check_lock_info:
-                    m_check_lock_info.return_value = (1, "lock_holder")
-                    main_error_handler(action_enable)(args, cfg)
+                main_error_handler(action_enable)(args, cfg)
 
-        expected_msg = messages.E_LOCK_HELD_ERROR.format(
-            lock_request="pro enable", lock_holder="lock_holder", pid=1
-        )
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
                     "additional_info": {
-                        "lock_holder": "lock_holder",
+                        "lock_holder": "pro disable",
                         "lock_request": "pro enable",
-                        "pid": 1,
+                        "pid": 123,
                     },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
@@ -279,10 +274,12 @@ class TestActionEnable:
             (False, messages.E_NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
+        _m_check_lock_info,
         _refresh,
         _m_public_config,
         root,
@@ -322,7 +319,8 @@ class TestActionEnable:
         args.access_only = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            action_enable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args, cfg)
 
         if root:
             expected_error = expected_error_template.format(
@@ -345,9 +343,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -446,6 +445,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -456,6 +456,7 @@ class TestActionEnable:
         m_valid_services,
         _m_get_available_resources,
         _m_update_activity_token,
+        _m_check_lock_info,
         m_refresh,
         _m_public_config,
         assume_yes,
@@ -480,7 +481,8 @@ class TestActionEnable:
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
-            action_enable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args, cfg)
 
         assert [
             mock.call(
@@ -493,6 +495,7 @@ class TestActionEnable:
             )
         ] == m_entitlement_cls.call_args_list
 
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -501,6 +504,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_check_lock_info,
         _m_refresh,
         _m_public_config,
         event,
@@ -551,9 +555,10 @@ class TestActionEnable:
         expected_msg = "One moment, checking your subscription first\n"
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         service_msg = (
             "Try "
@@ -591,9 +596,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -619,6 +625,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -627,6 +634,7 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_check_lock_info,
         _m_refresh,
         _m_public_config,
         beta_flag,
@@ -704,9 +712,10 @@ class TestActionEnable:
         )
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         expected_error = expected_error_tmpl.format(
             operation="enable",
@@ -739,9 +748,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg=cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg=cfg)
 
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
@@ -772,6 +782,7 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -780,6 +791,7 @@ class TestActionEnable:
         self,
         _m_get_available_resources,
         _m_update_activity_token,
+        _m_check_lock_info,
         _m_refresh,
         _m_public_config,
         event,
@@ -809,9 +821,10 @@ class TestActionEnable:
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
             assert (
                 "One moment, checking your subscription first\nmsg\n"
@@ -826,9 +839,10 @@ class TestActionEnable:
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                ret = action_enable(args_mock, cfg=cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    ret = action_enable(args_mock, cfg=cfg)
 
         expected_ret = 1
         expected = {
@@ -854,8 +868,10 @@ class TestActionEnable:
         "service, beta",
         ((["bogus"], False), (["bogus"], True), (["bogus1", "bogus2"], False)),
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_invalid_service_names(
         self,
+        _m_check_lock_info,
         _m_refresh,
         _m_public_config,
         service,
@@ -873,9 +889,10 @@ class TestActionEnable:
         args_mock.access_only = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         assert expected_msg == fake_stdout.getvalue()
 
@@ -900,9 +917,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -928,6 +946,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -938,6 +957,7 @@ class TestActionEnable:
         m_status,
         _m_get_available_resources,
         m_update_activity_token,
+        _m_check_lock_info,
         _m_refresh,
         _m_public_config,
         allow_beta,
@@ -964,7 +984,8 @@ class TestActionEnable:
             "uaclient.entitlements.valid_services",
             return_value=["testitlement"],
         ):
-            ret = action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                ret = action_enable(args_mock, cfg)
 
         assert [
             mock.call(
@@ -994,9 +1015,10 @@ class TestActionEnable:
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                ret = action_enable(args_mock, cfg=cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    ret = action_enable(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -1045,8 +1067,13 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_access_only_cannot_be_used_together_with_variant(
-        self, _m_get_available_resources, _m_public_config, FakeConfig
+        self,
+        _m_check_lock_info,
+        _m_get_available_resources,
+        _m_public_config,
+        FakeConfig,
     ):
         cfg = FakeConfig.for_attached_machine()
         args_mock = mock.MagicMock()
@@ -1054,4 +1081,5 @@ class TestActionEnable:
         args_mock.variant = "variant"
 
         with pytest.raises(exceptions.InvalidOptionCombination):
-            action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args_mock, cfg)

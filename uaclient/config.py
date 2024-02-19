@@ -4,7 +4,7 @@ import logging
 import os
 from collections import namedtuple
 from functools import lru_cache, wraps
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from uaclient import (
     apt,
@@ -78,7 +78,6 @@ event = event_logger.get_event_logger()
 
 class UAConfig:
     data_paths = {
-        "lock": DataPath("lock", False),
         "status-cache": DataPath("status.json", False),
     }  # type: Dict[str, DataPath]
 
@@ -311,49 +310,6 @@ class UAConfig:
     def apt_news_url(self, value: str):
         self.user_config.apt_news_url = value
         user_config_file.user_config.write(self.user_config)
-
-    def check_lock_info(self) -> Tuple[int, str]:
-        """Return lock info if config lock file is present the lock is active.
-
-        If process claiming the lock is no longer present, remove the lock file
-        and log a warning.
-
-        :param lock_path: Full path to the lock file.
-
-        :return: A tuple (pid, string describing lock holder)
-            If no active lock, pid will be -1.
-        """
-        lock_path = self.data_path("lock")
-        no_lock = (-1, "")
-        if not os.path.exists(lock_path):
-            return no_lock
-        lock_content = system.load_file(lock_path)
-
-        try:
-            [lock_pid, lock_holder] = lock_content.split(":")
-        except ValueError:
-            raise exceptions.InvalidLockFile(
-                lock_file_path=os.path.join(self.data_dir, "lock")
-            )
-
-        try:
-            system.subp(["ps", lock_pid])
-            return (int(lock_pid), lock_holder)
-        except exceptions.ProcessExecutionError:
-            if not util.we_are_currently_root():
-                LOG.debug(
-                    "Found stale lock file previously held by %s:%s",
-                    lock_pid,
-                    lock_holder,
-                )
-                return (int(lock_pid), lock_holder)
-            LOG.warning(
-                "Removing stale lock file previously held by %s:%s",
-                lock_pid,
-                lock_holder,
-            )
-            system.ensure_file_absent(lock_path)
-            return no_lock
 
     @property
     def data_dir(self):
