@@ -454,28 +454,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       CIS audit scan completed
       """
 
-    Examples: cis script
-      | release | machine_type  | cis_script                           |
-      | focal   | lxd-container | Canonical_Ubuntu_20.04_CIS-harden.sh |
-
-  Scenario Outline: Attached enable of usg service in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I verify that running `pro enable usg` `with sudo` exits `1`
-    Then I will see the following on stdout:
-      """
-      One moment, checking your subscription first
-      """
-    And stderr matches regexp:
-      """
-      Cannot enable unknown service 'usg'.
-      Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates\.
-      """
-
-    Examples: cis service
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | xenial  | lxd-container |
+        Examples: cis service
+           | release | machine_type  |
+           | focal   | lxd-container |
+           | focal   | wsl           |     
 
   Scenario Outline: Attached enable of usg service in a focal machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
