@@ -1294,4 +1294,3 @@ Feature: Proxy configuration
            | bionic  | lxd-vm       |
            | focal   | lxd-vm       |
            | jammy   | lxd-vm       |
-           | mantic  | lxd-vm       |
