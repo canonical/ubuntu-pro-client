@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'mantic', 'noble']
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'mantic']  # , 'noble'] TODO flake8 is broken in noble as of Feb 21 2024. Add back once python3-flake8 >6 (currently in -proposed) gets into noble
     steps:
       - name: Prepare build tools
         env:
