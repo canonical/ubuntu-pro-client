@@ -7,7 +7,8 @@ import mock
 import pytest
 
 from uaclient import entitlements, event_logger, exceptions, messages
-from uaclient.cli import action_enable, main, main_error_handler
+from uaclient.cli import main, main_error_handler
+from uaclient.cli.enable import action_enable
 from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
