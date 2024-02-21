@@ -8,43 +8,45 @@ from uaclient.api.u.pro.packages.updates.v1 import (
     PackageUpdatesResult,
     UpdateSummary,
 )
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
+from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.timer.update_messaging import update_motd_messages
+from uaclient.timer.update_messaging import (
+    update_contract_expiry,
+    update_motd_messages,
+)
 
 M_PATH = "uaclient.timer.update_messaging."
 
 
 class TestGetContractExpiryStatus:
     @pytest.mark.parametrize(
-        "contract_remaining_days,expected_status",
-        (
-            (21, ContractExpiryStatus.ACTIVE),
-            (20, ContractExpiryStatus.ACTIVE_EXPIRED_SOON),
-            (-1, ContractExpiryStatus.EXPIRED_GRACE_PERIOD),
-            (-20, ContractExpiryStatus.EXPIRED),
-        ),
-    )
-    def test_contract_expiry_status_based_on_remaining_days(
-        self, contract_remaining_days, expected_status, FakeConfig
-    ):
-        """Return a tuple of ContractExpiryStatus and remaining_days"""
-        now = datetime.datetime.utcnow()
-        expire_date = now + datetime.timedelta(days=contract_remaining_days)
-        cfg = FakeConfig.for_attached_machine()
-        m_token = cfg.machine_token
-        m_token["machineTokenInfo"]["contractInfo"][
-            "effectiveTo"
-        ] = expire_date
-
-        assert (
-            expected_status,
-            contract_remaining_days,
-        ) == get_contract_expiry_status(cfg)
-
-    @pytest.mark.parametrize(
         "expiry,is_updated",
-        (("2040-05-08T19:02:26Z", False), ("2042-05-08T19:02:26Z", True)),
+        (
+            (
+                datetime.datetime(
+                    2040,
+                    5,
+                    8,
+                    19,
+                    2,
+                    26,
+                    tzinfo=datetime.timezone.utc,
+                ),
+                False,
+            ),
+            (
+                datetime.datetime(
+                    2042,
+                    5,
+                    8,
+                    19,
+                    2,
+                    26,
+                    tzinfo=datetime.timezone.utc,
+                ),
+                True,
+            ),
+        ),
     )
     @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.get_contract_machine")
@@ -54,21 +56,23 @@ class TestGetContractExpiryStatus:
         m_machine_token_write,
         expiry,
         is_updated,
+        FakeConfig,
     ):
         m_get_contract_machine.return_value = {
             "machineTokenInfo": {"contractInfo": {"effectiveTo": expiry}}
         }
+        cfg = FakeConfig.for_attached_machine()
+        update_contract_expiry(cfg)
         if is_updated:
-            1 == m_machine_token_write.call_count
+            assert 1 == m_machine_token_write.call_count
         else:
-            0 == m_machine_token_write.call_count
+            assert 0 == m_machine_token_write.call_count
 
 
 class TestUpdateMotdMessages:
     @pytest.mark.parametrize(
         [
-            "attached",
-            "contract_expiry_statuses",
+            "is_attached_side_effect",
             "is_current_series_active_esm",
             "infra_status",
             "is_current_series_lts",
@@ -82,8 +86,14 @@ class TestUpdateMotdMessages:
         [
             (
                 # not attached
-                False,
-                [],
+                [
+                    mock.MagicMock(
+                        is_attached=False,
+                        contract_status=None,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=False,
+                    )
+                ],
                 False,
                 None,
                 False,
@@ -96,8 +106,14 @@ class TestUpdateMotdMessages:
             ),
             (
                 # somehow attached but none contract status
-                True,
-                [(ContractExpiryStatus.NONE, None)],
+                [
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.NONE.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=False,
+                    )
+                ],
                 False,
                 None,
                 False,
@@ -110,8 +126,14 @@ class TestUpdateMotdMessages:
             ),
             (
                 # active contract
-                True,
-                [(ContractExpiryStatus.ACTIVE, None)],
+                [
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    )
+                ],
                 False,
                 None,
                 False,
@@ -124,10 +146,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expiring soon contract, updated to be active
-                True,
                 [
-                    (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, None),
-                    (ContractExpiryStatus.ACTIVE, None),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value,  # noqa
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -141,10 +172,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired grace period contract, updated to be active
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, None),
-                    (ContractExpiryStatus.ACTIVE, None),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED_GRACE_PERIOD.value,  # noqa
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -158,10 +198,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired contract, updated to be active
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, None),
-                    (ContractExpiryStatus.ACTIVE, None),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE.value,
+                        contract_remaining_days=0,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -175,10 +224,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expiring soon for real
-                True,
                 [
-                    (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 3),
-                    (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value,  # noqa
+                        contract_remaining_days=3,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value,  # noqa
+                        contract_remaining_days=3,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -200,10 +258,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired grace period for real
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -3),
-                    (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED_GRACE_PERIOD.value,  # noqa
+                        contract_remaining_days=-3,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED_GRACE_PERIOD.value,  # noqa
+                        contract_remaining_days=-3,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -225,10 +292,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired, eol release, esm-infra not enabled
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, 3),
-                    (ContractExpiryStatus.EXPIRED, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 True,
                 (ApplicationStatus.DISABLED, None),
@@ -242,10 +318,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired, lts release, esm-apps not enabled
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, 3),
-                    (ContractExpiryStatus.EXPIRED, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -259,10 +344,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired, interim release
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, 3),
-                    (ContractExpiryStatus.EXPIRED, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -276,10 +370,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired, eol release, esm-infra enabled
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, 3),
-                    (ContractExpiryStatus.EXPIRED, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 True,
                 (ApplicationStatus.ENABLED, None),
@@ -301,10 +404,19 @@ class TestUpdateMotdMessages:
             ),
             (
                 # expired, lts release, esm-apps enabled
-                True,
                 [
-                    (ContractExpiryStatus.EXPIRED, 3),
-                    (ContractExpiryStatus.EXPIRED, 3),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
+                    mock.MagicMock(
+                        is_attached=True,
+                        contract_status=ContractExpiryStatus.EXPIRED.value,
+                        contract_remaining_days=-30,
+                        is_attached_and_contract_valid=True,
+                    ),
                 ],
                 False,
                 None,
@@ -337,12 +449,10 @@ class TestUpdateMotdMessages:
     @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "update_contract_expiry")
-    @mock.patch("uaclient.contract.get_contract_expiry_status")
     @mock.patch(M_PATH + "_is_attached")
     def test_update_motd_messages(
         self,
         m_is_attached,
-        m_get_contract_expiry_status,
         m_update_contract_expiry,
         m_ensure_file_absent,
         m_write_file,
@@ -352,8 +462,7 @@ class TestUpdateMotdMessages:
         m_is_current_series_lts,
         m_apps_status,
         m_api_updates_v1,
-        attached,
-        contract_expiry_statuses,
+        is_attached_side_effect,
         is_current_series_active_esm,
         infra_status,
         is_current_series_lts,
@@ -365,8 +474,8 @@ class TestUpdateMotdMessages:
         write_file_calls,
         FakeConfig,
     ):
-        m_is_attached.return_value = mock.MagicMock(is_attached=attached)
-        m_get_contract_expiry_status.side_effect = contract_expiry_statuses
+
+        m_is_attached.side_effect = is_attached_side_effect
         m_is_current_series_active_esm.return_value = (
             is_current_series_active_esm
         )

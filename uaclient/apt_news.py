@@ -8,11 +8,13 @@ from typing import List, Optional
 import apt_pkg
 
 from uaclient import defaults, messages, system, util
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.api.u.pro.status.is_attached.v1 import (
+    ContractExpiryStatus,
+    _is_attached,
+)
 from uaclient.apt import ensure_apt_pkg_init
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -178,14 +180,16 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
     """
     :return: str if local news, None otherwise
     """
-    expiry_status, remaining_days = get_contract_expiry_status(cfg)
+    is_attached_info = _is_attached(cfg)
+    expiry_status = is_attached_info.contract_status
+    remaining_days = is_attached_info.contract_remaining_days
 
-    if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
+    if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value:
         return messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
             remaining_days=remaining_days
         )
 
-    if expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
+    if expiry_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD.value:
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
@@ -200,7 +204,7 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
             expired_date=exp_dt_str, remaining_days=grace_period_remaining
         )
 
-    if expiry_status == ContractExpiryStatus.EXPIRED:
+    if expiry_status == ContractExpiryStatus.EXPIRED.value:
         return messages.CONTRACT_EXPIRED
 
     return None

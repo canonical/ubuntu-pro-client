@@ -53,7 +53,10 @@ from uaclient.api.u.pro.security.fix.cve.plan.v1 import CVEFixPlanOptions
 from uaclient.api.u.pro.security.fix.cve.plan.v1 import _plan as cve_plan
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import USNFixPlanOptions
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import _plan as usn_plan
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.api.u.pro.status.is_attached.v1 import (
+    ContractExpiryStatus,
+    _is_attached,
+)
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
@@ -61,7 +64,6 @@ from uaclient.clouds.identity import (
     get_cloud_type,
 )
 from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
 from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
 from uaclient.entitlements.entitlement_status import (
@@ -450,8 +452,11 @@ def _check_subscription_is_expired(cfg: UAConfig, dry_run: bool) -> bool:
 
     :returns: True if subscription is expired and not renewed.
     """
-    contract_expiry_status = get_contract_expiry_status(cfg)
-    if contract_expiry_status[0] == ContractExpiryStatus.EXPIRED:
+    contract_expiry_status = _is_attached(cfg).contract_status
+    if (
+        contract_expiry_status
+        and contract_expiry_status == ContractExpiryStatus.EXPIRED.value
+    ):
         if dry_run:
             print(messages.SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION)
             return False

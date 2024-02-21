@@ -236,22 +236,23 @@ class TestActionDetach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.cli.cli_util._is_attached")
     @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_config_cache_deleted(
         self,
         m_update_apt_and_motd_msgs,
-        m_client,
         m_disable_order,
+        m_is_attached,
         _m_prompt,
-        FakeConfig,
         tmpdir,
     ):
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status="active",
+            contract_remaining_days=100,
+        )
         m_disable_order.return_value = []
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
 
         m_cfg = mock.MagicMock()
         m_cfg.check_lock_info.return_value = (-1, "")
@@ -261,23 +262,24 @@ class TestActionDetach:
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
+    @mock.patch("uaclient.cli.cli_util._is_attached")
     @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_correct_message_emitted(
         self,
         m_update_apt_and_motd_msgs,
-        m_client,
         m_disable_order,
+        m_is_attached,
         _m_prompt,
         capsys,
-        FakeConfig,
         tmpdir,
     ):
         m_disable_order.return_value = []
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status="active",
+            contract_remaining_days=100,
+        )
 
         m_cfg = mock.MagicMock()
         m_cfg.check_lock_info.return_value = (-1, "")
@@ -289,22 +291,23 @@ class TestActionDetach:
         assert messages.DETACH_SUCCESS + "\n" == out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
+    @mock.patch("uaclient.cli.cli_util._is_attached")
     @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
     def test_returns_zero(
         self,
         m_update_apt_and_motd_msgs,
-        m_client,
         m_disable_order,
+        m_is_attached,
         _m_prompt,
-        FakeConfig,
         tmpdir,
     ):
         m_disable_order.return_value = []
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status="active",
+            contract_remaining_days=100,
+        )
 
         m_cfg = mock.MagicMock()
         m_cfg.check_lock_info.return_value = (-1, "")
@@ -347,7 +350,7 @@ class TestActionDetach:
             ),
         ],
     )
-    @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.cli.cli_util._is_attached")
     @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements_disable_order")
@@ -356,22 +359,24 @@ class TestActionDetach:
         m_disable_order,
         m_ent_factory,
         m_update_apt_and_motd_msgs,
-        m_client,
+        m_is_attached,
         _m_prompt,
         capsys,
         classes,
         disable_order,
         expected_message,
         disabled_services,
-        FakeConfig,
         tmpdir,
+        FakeConfig,
         event,
     ):
         m_ent_factory.side_effect = classes
         m_disable_order.return_value = disable_order
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status="active",
+            contract_remaining_days=100,
+        )
 
         m_cfg = mock.MagicMock()
         m_cfg.check_lock_info.return_value = (-1, "")
