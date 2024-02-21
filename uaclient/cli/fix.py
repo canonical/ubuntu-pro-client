@@ -138,7 +138,7 @@ class FixContext:
             )
 
 
-def set_fix_parser(subparsers):
+def add_parser(subparsers):
     parser_fix = subparsers.add_parser("fix", help=messages.CLI_ROOT_FIX)
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
