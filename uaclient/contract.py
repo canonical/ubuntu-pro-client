@@ -1,5 +1,4 @@
 import copy
-import enum
 import logging
 import socket
 from typing import Any, Dict, List, Optional, Tuple
@@ -17,11 +16,7 @@ from uaclient import (
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
-from uaclient.defaults import (
-    ATTACH_FAIL_DATE_FORMAT,
-    CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
-    CONTRACT_EXPIRY_PENDING_DAYS,
-)
+from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.files.state_files import attachment_data_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
@@ -58,15 +53,6 @@ OVERRIDE_SELECTOR_WEIGHTS = {
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
-
-
-@enum.unique
-class ContractExpiryStatus(enum.Enum):
-    NONE = 0
-    ACTIVE = 1
-    ACTIVE_EXPIRED_SOON = 2
-    EXPIRED_GRACE_PERIOD = 3
-    EXPIRED = 4
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -821,30 +807,3 @@ def apply_contract_overrides(
             else:
                 # Otherwise, replace it wholesale
                 orig_access["entitlement"][key] = value
-
-
-def get_contract_expiry_status(
-    cfg: UAConfig,
-) -> Tuple[ContractExpiryStatus, int]:
-    """Return a tuple [ContractExpiryStatus, num_days]"""
-    if not _is_attached(cfg).is_attached:
-        return ContractExpiryStatus.NONE, 0
-
-    grace_period = CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
-    pending_expiry = CONTRACT_EXPIRY_PENDING_DAYS
-    remaining_days = cfg.machine_token_file.contract_remaining_days
-
-    # if unknown assume the worst
-    if remaining_days is None:
-        LOG.warning(
-            "contract effectiveTo date is null - assuming it is expired"
-        )
-        return ContractExpiryStatus.EXPIRED, -grace_period
-
-    if 0 <= remaining_days <= pending_expiry:
-        return ContractExpiryStatus.ACTIVE_EXPIRED_SOON, remaining_days
-    elif -grace_period <= remaining_days < 0:
-        return ContractExpiryStatus.EXPIRED_GRACE_PERIOD, remaining_days
-    elif remaining_days < -grace_period:
-        return ContractExpiryStatus.EXPIRED, remaining_days
-    return ContractExpiryStatus.ACTIVE, remaining_days

@@ -22,9 +22,11 @@ from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.api.u.pro.status.is_attached.v1 import (
+    ContractExpiryStatus,
+    _is_attached,
+)
 from uaclient.config import UAConfig
-from uaclient.contract import ContractExpiryStatus, get_contract_expiry_status
 from uaclient.data_types import (
     DataObject,
     Field,
@@ -985,8 +987,8 @@ def _generate_fix_plan(
                     },
                 )
             else:
-                contract_expiry_status, _ = get_contract_expiry_status(cfg)
-                if contract_expiry_status != ContractExpiryStatus.ACTIVE:
+                contract_expiry_status = _is_attached(cfg).contract_status
+                if contract_expiry_status != ContractExpiryStatus.ACTIVE.value:
                     fix_plan.register_step(
                         operation=FixStepType.ATTACH,
                         data={

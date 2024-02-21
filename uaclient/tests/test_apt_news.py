@@ -4,8 +4,8 @@ import mock
 import pytest
 
 from uaclient import apt_news, messages
+from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
 from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient.contract import ContractExpiryStatus
 
 M_PATH = "uaclient.apt_news."
 
@@ -466,50 +466,62 @@ class TestAptNews:
     @pytest.mark.parametrize(
         [
             "expiry_status",
+            "remaining_days",
             "expected",
         ],
         [
             (
-                (ContractExpiryStatus.ACTIVE, 0),
+                ContractExpiryStatus.ACTIVE,
+                0,
                 None,
             ),
             (
-                (ContractExpiryStatus.NONE, 0),
+                ContractExpiryStatus.NONE,
+                0,
                 None,
             ),
             (
-                (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10),
+                ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
+                10,
                 messages.CONTRACT_EXPIRES_SOON.pluralize(10).format(
                     remaining_days=10
                 ),
             ),
             (
-                (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 15),
+                ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
+                15,
                 messages.CONTRACT_EXPIRES_SOON.pluralize(15).format(
                     remaining_days=15
                 ),
             ),
             (
-                (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -4),
+                ContractExpiryStatus.EXPIRED_GRACE_PERIOD,
+                -4,
                 messages.CONTRACT_EXPIRED_GRACE_PERIOD.pluralize(10).format(
                     remaining_days=10, expired_date="21 Dec 2012"
                 ),
             ),
             (
-                (ContractExpiryStatus.EXPIRED, -15),
+                ContractExpiryStatus.EXPIRED,
+                -15,
                 messages.CONTRACT_EXPIRED,
             ),
         ],
     )
-    @mock.patch(M_PATH + "get_contract_expiry_status")
+    @mock.patch(M_PATH + "_is_attached")
     def test_local_apt_news(
         self,
-        m_get_contract_expiry_status,
+        m_is_attached,
         expiry_status,
+        remaining_days,
         expected,
         FakeConfig,
     ):
-        m_get_contract_expiry_status.return_value = expiry_status
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status=expiry_status.value,
+            contract_remaining_days=remaining_days,
+        )
 
         cfg = FakeConfig.for_attached_machine(
             effective_to=datetime(2012, 12, 21, tzinfo=timezone.utc)

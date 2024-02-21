@@ -621,12 +621,19 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    def test_purge_assume_yes_incompatible(self, capsys):
+    @mock.patch("uaclient.cli.cli_util._is_attached")
+    def test_purge_assume_yes_incompatible(self, m_is_attached, capsys):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
         args_mock.service = "test"
         args_mock.assume_yes = True
         args_mock.purge = True
+
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=True,
+            contract_status="active",
+            contract_remaining_days=100,
+        )
 
         with pytest.raises(SystemExit):
             with mock.patch.object(

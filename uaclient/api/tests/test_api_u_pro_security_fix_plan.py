@@ -38,7 +38,6 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     fix_plan_usn,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import EnabledService
-from uaclient.contract import ContractExpiryStatus
 from uaclient.messages import INVALID_SECURITY_ISSUE
 
 M_PATH = "uaclient.api.u.pro.security.fix._common.plan.v1."
@@ -257,7 +256,6 @@ class TestFixPlan:
     @mock.patch(M_PATH + "get_cve_affected_source_packages_status")
     @mock.patch(M_PATH + "_enabled_services")
     @mock.patch(M_PATH + "_is_attached")
-    @mock.patch(M_PATH + "get_contract_expiry_status")
     @mock.patch("uaclient.apt.get_pkg_candidate_version")
     @mock.patch(M_PATH + "_get_cve_data")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
@@ -268,7 +266,6 @@ class TestFixPlan:
         m_query_installed_pkgs,
         m_get_cve_data,
         m_get_pkg_candidate_version,
-        m_get_contract_expiry_status,
         m_is_attached,
         m_enabled_services,
         m_get_cve_affected_pkgs,
@@ -367,13 +364,22 @@ class TestFixPlan:
             "1.6~esm1",
             "1.8.1~esm1",
         ]
-        m_get_contract_expiry_status.return_value = (
-            ContractExpiryStatus.ACTIVE,
-            None,
-        )
         m_is_attached.side_effect = [
-            mock.MagicMock(is_attached=False),
-            mock.MagicMock(is_attached=True),
+            mock.MagicMock(
+                is_attached=False,
+                contract_status="none",
+                contract_remaining_days=0,
+            ),
+            mock.MagicMock(
+                is_attached=True,
+                contract_status="active",
+                contract_remaining_days=100,
+            ),
+            mock.MagicMock(
+                is_attached=True,
+                contract_status="active",
+                contract_remaining_days=100,
+            ),
         ]
         m_enabled_services.side_effect = [
             mock.MagicMock(enabled_services=None),
@@ -920,6 +926,7 @@ class TestFixPlan:
             issue_id="cve-1234-1235", cfg=mock.MagicMock()
         )
 
+    @mock.patch(M_PATH + "_enabled_services")
     @mock.patch(M_PATH + "_is_attached")
     @mock.patch("uaclient.apt.update_esm_caches")
     @mock.patch(M_PATH + "_should_update_esm_cache", return_value=True)
@@ -940,9 +947,15 @@ class TestFixPlan:
         m_should_update_esm_cache,
         m_update_esm_caches,
         m_is_attached,
+        m_enabled_services,
     ):
         m_update_esm_caches.side_effect = Exception("test")
-        m_is_attached.return_value = mock.MagicMock(is_attached=False)
+        m_is_attached.return_value = mock.MagicMock(
+            is_attached=False,
+            contract_status="none",
+            contract_remaining_days=0,
+        )
+        m_enabled_services.return_value = mock.MagicMock(enabled_services=None)
         m_check_cve_fixed_by_livepatch.return_value = (None, None)
         m_query_installed_pkgs.return_value = {
             "pkg1": {

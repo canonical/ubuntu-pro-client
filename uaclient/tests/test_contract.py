@@ -717,7 +717,12 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                IsAttachedResult(is_attached=False),
+                IsAttachedResult(
+                    is_attached=False,
+                    contract_status="none",
+                    contract_remaining_days=0,
+                    is_attached_and_contract_valid=False,
+                ),
                 None,
                 None,
                 None,
@@ -755,7 +760,12 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                IsAttachedResult(is_attached=True),
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="active",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
                 mock.MagicMock(
                     enabled_services=[
                         helpers.mock_with_name_attr(
@@ -810,7 +820,12 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                IsAttachedResult(is_attached=True),
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="active",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
                 mock.MagicMock(
                     enabled_services=[
                         helpers.mock_with_name_attr(
