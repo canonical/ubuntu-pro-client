@@ -177,6 +177,34 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container | cis        |
       | focal   | lxd-container | usg        |
 
+  Scenario Outline: Auto enable by default and attached disable of livepatch in a lxd vm
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that `esm-infra` is enabled
+    And I verify that `esm-apps` is enabled
+    And I verify that `livepatch` status is `<livepatch_status>`
+    When I run `pro disable livepatch` with sudo
+    Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
+    And stderr matches regexp:
+      """
+      Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
+      token obtained from https://ubuntu.com/livepatch.
+      """
+    And I verify that `livepatch` is disabled
+    When I verify that running `pro enable livepatch --access-only` `with sudo` exits `1`
+    Then I will see the following on stdout:
+      """
+      One moment, checking your subscription first
+      Livepatch does not support being enabled with --access-only
+      """
+
+    Examples: ubuntu release
+      | release | machine_type | livepatch_status |
+      | xenial  | lxd-vm       | warning          |
+      | bionic  | lxd-vm       | enabled          |
+      | focal   | lxd-vm       | enabled          |
+      | jammy   | lxd-vm       | enabled          |
+
   Scenario Outline: Attach command in an generic cloud images
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
