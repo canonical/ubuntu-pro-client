@@ -10,4 +10,12 @@ pytest-cov
 # python3-apt
 # We know it is in the distro, but for testing in venvs we need to install it
 # And well, there is no pypi package
-git+https://salsa.debian.org/apt-team/python-apt@main
+# We are using git-ubuntu to get the proper version by python version.
+# We try to support the latest LTS, the latest released version,
+# and the devel version.
+# fixme: This may cause weird behavior in the future, or even break, if
+# two releases have the same python_version.
+git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/jammy-updates ; python_version == '3.10'
+git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/mantic ; python_version == '3.11'
+# need to keep an aye to bump this when python-apt is in noble-updates
+git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/noble ; python_version == '3.12'
