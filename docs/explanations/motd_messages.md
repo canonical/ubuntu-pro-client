@@ -196,8 +196,8 @@ sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-advanta
 
 If you want to remove the messages about Ubuntu Pro and ESM from the MOTD
 output, but still want to keep the messages about the regular and security
-updates, edit the `/etc/update-motd.d/90-updates-available` file. Add the
-`--no-esm-messages` flag to all calls of the update script. For example,
+updates, edit the `/etc/apt/apt.conf.d/99update-notifier` file. Add the
+`--no-esm-messages` flag to **all calls** of the update script. For example,
 change the following line from:
 
 ```sh
