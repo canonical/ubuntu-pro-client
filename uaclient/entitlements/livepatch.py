@@ -11,7 +11,7 @@ from uaclient import (
     system,
     util,
 )
-from uaclient.entitlements.base import IncompatibleService, UAEntitlement
+from uaclient.entitlements.base import EntitlementWithMessage, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import StaticAffordance
 
@@ -41,15 +41,15 @@ class LivepatchEntitlement(UAEntitlement):
     affordance_check_arch = True
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.fips import FIPSEntitlement
         from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
-            IncompatibleService(
+            EntitlementWithMessage(
                 FIPSEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
             ),
-            IncompatibleService(
+            EntitlementWithMessage(
                 RealtimeKernelEntitlement,
                 messages.REALTIME_LIVEPATCH_INCOMPATIBLE,
             ),

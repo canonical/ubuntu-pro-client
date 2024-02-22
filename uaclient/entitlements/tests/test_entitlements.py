@@ -155,14 +155,17 @@ class TestSortEntitlements:
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
         type(m_obj_1).required_services = mock.PropertyMock(
-            return_value=(m_cls_2,)
+            return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
         type(m_obj_3).required_services = mock.PropertyMock(
-            return_value=(m_cls_1, m_cls_2)
+            return_value=(
+                mock.MagicMock(entitlement=m_cls_1),
+                mock.MagicMock(entitlement=m_cls_2),
+            )
         )
         type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
 
@@ -179,7 +182,10 @@ class TestSortEntitlements:
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
         type(m_obj_4).required_services = mock.PropertyMock(
-            return_value=(m_cls_5, m_cls_6)
+            return_value=(
+                mock.MagicMock(entitlement=m_cls_5),
+                mock.MagicMock(entitlement=m_cls_6),
+            )
         )
         type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
 
@@ -213,14 +219,17 @@ class TestSortEntitlements:
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
         type(m_obj_1).required_services = mock.PropertyMock(
-            return_value=(m_cls_2,)
+            return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
         type(m_obj_3).required_services = mock.PropertyMock(
-            return_value=(m_cls_1, m_cls_2)
+            return_value=(
+                mock.MagicMock(entitlement=m_cls_1),
+                mock.MagicMock(entitlement=m_cls_2),
+            )
         )
         type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
 
@@ -237,7 +246,10 @@ class TestSortEntitlements:
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
         type(m_obj_4).required_services = mock.PropertyMock(
-            return_value=(m_cls_5, m_cls_6)
+            return_value=(
+                mock.MagicMock(entitlement=m_cls_5),
+                mock.MagicMock(entitlement=m_cls_6),
+            )
         )
         type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
 

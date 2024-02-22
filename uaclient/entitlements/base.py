@@ -35,7 +35,7 @@ event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
-class IncompatibleService:
+class EntitlementWithMessage:
     def __init__(
         self,
         entitlement: Type["UAEntitlement"],
@@ -65,10 +65,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     help_text = ""
 
     # List of services that are incompatible with this service
-    _incompatible_services = ()  # type: Tuple[IncompatibleService, ...]
+    _incompatible_services = ()  # type: Tuple[EntitlementWithMessage, ...]
 
     # List of services that must be active before enabling this service
-    _required_services = ()  # type: Tuple[Type[UAEntitlement], ...]
+    _required_services = ()  # type: Tuple[EntitlementWithMessage, ...]
 
     # List of services that depend on this service
     _dependent_services = ()  # type: Tuple[Type[UAEntitlement], ...]
@@ -163,7 +163,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ()
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         """
         Return a list of packages that aren't compatible with the entitlement.
         When we are enabling the entitlement we can directly ask the user
@@ -173,7 +173,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._incompatible_services
 
     @property
-    def required_services(self) -> Tuple[Type["UAEntitlement"], ...]:
+    def required_services(self) -> Tuple[EntitlementWithMessage, ...]:
         """
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
@@ -669,14 +669,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if all required services are active
             False is at least one of the required services is disabled
         """
-        for required_service_cls in self.required_services:
-            ent_status, _ = required_service_cls(self.cfg).application_status()
+        for required_service in self.required_services:
+            ent_status, _ = required_service.entitlement(
+                self.cfg
+            ).application_status()
             if ent_status != ApplicationStatus.ENABLED:
                 return False
 
         return True
 
-    def blocking_incompatible_services(self) -> List[IncompatibleService]:
+    def blocking_incompatible_services(self) -> List[EntitlementWithMessage]:
         """
         :return: List of incompatible services that are enabled
         """
@@ -765,8 +767,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         that must be enabled first. In that situation, we can ask the user
         if the required service should be enabled before proceeding.
         """
-        for required_service_cls in self.required_services:
-            ent = required_service_cls(self.cfg, allow_beta=True)
+        for required_service in self.required_services:
+            ent = required_service.entitlement(self.cfg, allow_beta=True)
 
             is_service_disabled = (
                 ent.application_status()[0] == ApplicationStatus.DISABLED
