@@ -34,7 +34,6 @@ class RepoEntitlement(base.UAEntitlement):
     repo_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.{extension}"
     repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
     repo_url_tmpl = "{}/ubuntu"
-    repo_policy_check_tmpl = repo_url_tmpl + " {}"
 
     # The repo Origin value defined in apt metadata
     origin = None  # type: Optional[str]
@@ -61,6 +60,10 @@ class RepoEntitlement(base.UAEntitlement):
         if series in apt.SERIES_NOT_USING_DEB822:
             extension = "list"
         return self.repo_file_tmpl.format(name=self.name, extension=extension)
+
+    @property
+    def repo_policy_check_tmpl(self) -> str:
+        return self.repo_url_tmpl + " {}"
 
     @property
     def packages(self) -> List[str]:
