@@ -13,7 +13,7 @@ from uaclient.entitlements import (
     entitlement_factory,
     valid_services,
 )
-from uaclient.entitlements.base import IncompatibleService
+from uaclient.entitlements.base import EntitlementWithMessage
 from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
     ContractStatus,
@@ -1024,7 +1024,7 @@ class TestAttachedServiceStatus:
             ([], []),
             (
                 [
-                    IncompatibleService(
+                    EntitlementWithMessage(
                         FIPSEntitlement, messages.NamedMessage("code", "msg")
                     )
                 ],
@@ -1032,10 +1032,10 @@ class TestAttachedServiceStatus:
             ),
             (
                 [
-                    IncompatibleService(
+                    EntitlementWithMessage(
                         FIPSEntitlement, messages.NamedMessage("code", "msg")
                     ),
-                    IncompatibleService(
+                    EntitlementWithMessage(
                         ROSEntitlement, messages.NamedMessage("code2", "msg2")
                     ),
                 ],

@@ -145,9 +145,9 @@ def _sort_entitlements_visit(
         return
 
     if sort_order == SortOrder.REQUIRED_SERVICES:
-        cls_list = ent_cls(cfg).required_services
+        cls_list = [e.entitlement for e in ent_cls(cfg).required_services]
     else:
-        cls_list = ent_cls(cfg).dependent_services
+        cls_list = list(ent_cls(cfg).dependent_services)
 
     for cls_dependency in cls_list:
         if ent_cls.name not in visited:

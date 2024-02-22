@@ -7,7 +7,7 @@ from typing import Callable, List, Optional, Tuple, Union  # noqa: F401
 from uaclient import apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
-from uaclient.entitlements.base import IncompatibleService
+from uaclient.entitlements.base import EntitlementWithMessage
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices
 from uaclient.files.notices import Notice
@@ -452,18 +452,18 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     pre_enable_msg = messages.PROMPT_FIPS_PRE_ENABLE
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.livepatch import LivepatchEntitlement
         from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
-            IncompatibleService(
+            EntitlementWithMessage(
                 LivepatchEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
             ),
-            IncompatibleService(
+            EntitlementWithMessage(
                 FIPSUpdatesEntitlement, messages.FIPS_UPDATES_INVALIDATES_FIPS
             ),
-            IncompatibleService(
+            EntitlementWithMessage(
                 RealtimeKernelEntitlement, messages.REALTIME_FIPS_INCOMPATIBLE
             ),
         )
@@ -573,14 +573,14 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     help_text = messages.FIPS_UPDATES_HELP_TEXT
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
-            IncompatibleService(
+            EntitlementWithMessage(
                 FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
             ),
-            IncompatibleService(
+            EntitlementWithMessage(
                 RealtimeKernelEntitlement,
                 messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE,
             ),
@@ -660,9 +660,9 @@ class FIPSPreviewEntitlement(FIPSEntitlement):
     repo_key_file = "ubuntu-pro-fips-preview.gpg"
 
     @property
-    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+    def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
         return super().incompatible_services + (
-            IncompatibleService(
+            EntitlementWithMessage(
                 FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
             ),
         )
