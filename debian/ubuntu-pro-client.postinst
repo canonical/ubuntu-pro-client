@@ -49,11 +49,22 @@ create_public_user_config_file() {
     # UserConfigFile we already write the public
     # version of the user-config file with all the
     # sensitive data removed.
+    # We also move the user-config.json file to the private 
+    # directory
+    source_file="/var/lib/ubuntu-advantage/user-config.json"
+    destination_dir="/var/lib/ubuntu-advantage/private"
+    # Check if the source file exists
+    if [ -f "$source_file" ]; then
+        mkdir -p "$destination_dir"
+        # Move the user-config.json file to the private directory
+        mv "$source_file" "$destination_dir/user-config.json"
+    fi
+
     /usr/bin/python3 -c "
-from uaclient.files import UserConfigFileObject, UserConfigData
+from uaclient.files import UserConfigFileObject
 try:
     user_config_file = UserConfigFileObject()
-    content = UserConfigData()
+    content = user_config_file.read()
     user_config_file.write(content)
 except Exception as e:
     print('Error while creating public user-config file: {}'.format(e))

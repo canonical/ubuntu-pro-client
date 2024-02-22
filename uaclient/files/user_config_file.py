@@ -2,8 +2,9 @@ import copy
 import logging
 import os
 from typing import Optional
+from urllib.parse import urlparse
 
-from uaclient import defaults, event_logger, exceptions, util
+from uaclient import defaults, event_logger, util
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
@@ -109,11 +110,13 @@ class UserConfigFileObject:
         for field in PROXY_FIELDS:
             value = getattr(redacted_data, field)
             if value:
-                setattr(
-                    redacted_data,
-                    field,
-                    "<REDACTED>",
-                )
+                parsed_url = urlparse(value)
+                if parsed_url.username and parsed_url.password:
+                    setattr(
+                        redacted_data,
+                        field,
+                        "<REDACTED>",
+                    )
         return redacted_data
 
     def read(self) -> Optional[UserConfigData]:
