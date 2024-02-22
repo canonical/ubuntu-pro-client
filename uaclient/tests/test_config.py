@@ -1347,15 +1347,67 @@ class TestConfigShow:
     def test_redact_config_data(self, _write, FakeConfig):
         cfg = FakeConfig()
 
-        for field in user_config_file.PROXY_FIELDS:
-            setattr(
-                cfg.user_config, field, "http://username:password@proxy:port"
-            )
+        setattr(
+            cfg.user_config,
+            "apt_http_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "apt_https_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "global_apt_http_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "global_apt_https_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "ua_apt_http_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "ua_apt_https_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(
+            cfg.user_config,
+            "http_proxy",
+            "http://username:password@proxy:port",
+        )
+        setattr(cfg.user_config, "https_proxy", "https://www.example.com")
 
         user_config_file_object = user_config_file.UserConfigFileObject()
         redacted_config = user_config_file_object.redact_config_data(
             cfg.user_config
         )
 
-        for field in user_config_file.PROXY_FIELDS:
-            assert getattr(redacted_config, field) == "<REDACTED>"
+        # Assert that proxy configurations are redacted
+        assert getattr(redacted_config, "apt_http_proxy") == "<REDACTED>"
+        assert getattr(redacted_config, "apt_https_proxy") == "<REDACTED>"
+        assert (
+            getattr(redacted_config, "global_apt_http_proxy") == "<REDACTED>"
+        )
+        assert (
+            getattr(redacted_config, "global_apt_https_proxy") == "<REDACTED>"
+        )
+        assert getattr(redacted_config, "ua_apt_http_proxy") == "<REDACTED>"
+        assert getattr(redacted_config, "ua_apt_https_proxy") == "<REDACTED>"
+        assert getattr(redacted_config, "http_proxy") == "<REDACTED>"
+        assert (
+            getattr(redacted_config, "https_proxy")
+            == "https://www.example.com"
+        )
+
+        # Assert that redacting multiple times does not change the result
+        redacted_again = user_config_file_object.redact_config_data(
+            redacted_config
+        )
+        assert redacted_config == redacted_again
