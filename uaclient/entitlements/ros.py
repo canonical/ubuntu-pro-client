@@ -2,7 +2,7 @@ from typing import Tuple, Type  # noqa: F401
 
 from uaclient import messages
 from uaclient.entitlements import repo
-from uaclient.entitlements.base import UAEntitlement
+from uaclient.entitlements.base import EntitlementWithMessage, UAEntitlement
 
 
 class ROSCommonEntitlement(repo.RepoEntitlement):
@@ -18,15 +18,21 @@ class ROSEntitlement(ROSCommonEntitlement):
     origin = "UbuntuROS"
 
     @property
-    def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
+    def required_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.esm import (
             ESMAppsEntitlement,
             ESMInfraEntitlement,
         )
 
         return (
-            ESMInfraEntitlement,
-            ESMAppsEntitlement,
+            EntitlementWithMessage(
+                ESMInfraEntitlement,
+                messages.ROS_REQUIRES_ESM,
+            ),
+            EntitlementWithMessage(
+                ESMAppsEntitlement,
+                messages.ROS_REQUIRES_ESM,
+            ),
         )
 
     @property
@@ -42,14 +48,23 @@ class ROSUpdatesEntitlement(ROSCommonEntitlement):
     origin = "UbuntuROSUpdates"
 
     @property
-    def required_services(self) -> Tuple[Type[UAEntitlement], ...]:
+    def required_services(self) -> Tuple[EntitlementWithMessage, ...]:
         from uaclient.entitlements.esm import (
             ESMAppsEntitlement,
             ESMInfraEntitlement,
         )
 
         return (
-            ESMInfraEntitlement,
-            ESMAppsEntitlement,
-            ROSEntitlement,
+            EntitlementWithMessage(
+                ESMInfraEntitlement,
+                messages.ROS_REQUIRES_ESM,
+            ),
+            EntitlementWithMessage(
+                ESMAppsEntitlement,
+                messages.ROS_REQUIRES_ESM,
+            ),
+            EntitlementWithMessage(
+                ROSEntitlement,
+                messages.ROS_UPDATES_REQUIRES_ROS,
+            ),
         )

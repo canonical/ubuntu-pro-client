@@ -1887,6 +1887,17 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     t.gettext("Cannot install Real-time kernel on a container."),
 )
 
+ROS_REQUIRES_ESM = NamedMessage(
+    "ros-requires-esm",
+    t.gettext("ROS packages assume ESM updates are enabled."),
+)
+ROS_UPDATES_REQUIRES_ROS = NamedMessage(
+    "ros-updates-requires-ros",
+    t.gettext(
+        "ROS bug-fix updates assume ROS security fix updates are enabled."
+    ),
+)
+
 UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED = NamedMessage(
     "unattended-upgrades-systemd-job-disabled",
     t.gettext("apt-daily.timer jobs are not running"),
