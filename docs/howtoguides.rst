@@ -92,3 +92,11 @@ Create a ``pro`` Golden Image
    :maxdepth: 1
 
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image.md>
+
+Fixing multiple CVEs
+==================================================
+
+.. toctree::
+   :maxdepth: 1
+
+   Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves.rst>
