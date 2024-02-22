@@ -35,7 +35,7 @@ You should see an output like this:
 .. code-block:: text
 
     CVE-2020-15180: MariaDB vulnerabilities
-    https://ubuntu.com/security/CVE-2020-15180
+     - https://ubuntu.com/security/CVE-2020-15180
 
     No affected source packages are installed.
 
@@ -76,7 +76,7 @@ You will see the following output:
 .. code-block:: text
 
     CVE-2017-9233: Coin3D vulnerability
-    - https://ubuntu.com/security/CVE-2017-9233
+     - https://ubuntu.com/security/CVE-2017-9233
 
     3 affected source packages are installed: expat, matanza, swish-e
     (1/3, 2/3) matanza, swish-e:
@@ -108,8 +108,8 @@ The command will prompt you for a response, like this:
 
     USN-5079-2: curl vulnerabilities
     Associated CVEs:
-    https://ubuntu.com/security/CVE-2021-22946
-    https://ubuntu.com/security/CVE-2021-22947
+     - https://ubuntu.com/security/CVE-2021-22946
+     - https://ubuntu.com/security/CVE-2021-22947
 
     Fixing requested USN-5079-2
     1 affected package is installed: curl
@@ -138,8 +138,8 @@ token you should now see the following output:
 
     USN-5079-2: curl vulnerabilities
     Associated CVEs:
-    https://ubuntu.com/security/CVE-2021-22946
-    https://ubuntu.com/security/CVE-2021-22947
+     - https://ubuntu.com/security/CVE-2021-22946
+     - https://ubuntu.com/security/CVE-2021-22947
 
     1 affected package is installed: curl
     (1/1) curl:
@@ -148,34 +148,21 @@ token you should now see the following output:
     subscription.
 
     Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel
-    >S
-    Open a browser to: https://ubuntu.com/pro
-    Hit [Enter] when subscription is complete.
+    >A
     Enter your token (from https://ubuntu.com/pro) to attach this system:
     > TOKEN
     { pro attach TOKEN }
+    Updating Ubuntu Pro: ESM Apps package lists
+    Ubuntu Pro: ESM Apps enabled
     Enabling default service esm-infra
-    Updating package lists
+    Updating Ubuntu Pro: ESM Infra package lists
     Ubuntu Pro: ESM Infra enabled
-    This machine is now attached to 'SUBSCRIPTION'
-
-    SERVICE       ENTITLED  STATUS    DESCRIPTION
-    cis           yes       disabled  Center for Internet Security Audit Tools
-    esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-    fips          yes       n/a       NIST-certified core packages
-    fips-updates  yes       n/a       NIST-certified core packages with priority security updates
-    livepatch     yes       n/a       Canonical Livepatch service
-
-    NOTICES
-    Operation in progress: pro attach
-
-    Enable services with: pro enable <service>
-
-                    Account: Ubuntu Pro Client Test
-            Subscription: SUBSCRIPTION
-                Valid until: 9999-12-31 00:00:00+00:00
-    Technical support level: essential
+    Enabling default service livepatch
+    Installing snapd snap
+    Installing canonical-livepatch snap
+    Canonical Livepatch enabled
     { apt update && apt install --only-upgrade -y curl libcurl3-gnutls }
+
     ✔ USN-5079-2 is resolved.
 
     Found related USNs:
@@ -204,15 +191,29 @@ we observe that the USN is indeed fixed, which you can confirm by running the
 
     USN-5079-2: curl vulnerabilities
     Associated CVEs:
-    https://ubuntu.com/security/CVE-2021-22946
-    https://ubuntu.com/security/CVE-2021-22947
+     - https://ubuntu.com/security/CVE-2021-22946
+     - https://ubuntu.com/security/CVE-2021-22947
 
+    Fixing requested USN-5079-2
     1 affected package is installed: curl
     (1/1) curl:
     A fix is available in Ubuntu Pro: ESM Infra.
     The update is already installed.
 
     ✔ USN-5079-2 is resolved.
+
+    Found related USNs:
+     - USN-5079-1
+
+    Fixing related USNs:
+     - USN-5079-1
+    No affected source packages are installed.
+
+    ✔ USN-5079-1 does not affect your system.
+
+    Summary:
+    ✔ USN-5079-2 [requested] is resolved.
+    ✔ USN-5079-1 [related] does not affect your system.
 
 .. note::
 
@@ -238,16 +239,16 @@ Now, you can run the following command:
 
 .. code-block:: bash
 
-    $ sudo pro fix CVE-2021-44731
+    $ sudo pro fix CVE-2023-1523
 
 And you should see the following output (if you type :kbd:`E` when prompted):
 
 .. code-block:: text
 
-    CVE-2021-44731: snapd vulnerabilities
-    https://ubuntu.com/security/CVE-2021-44731
+    CVE-2023-1523: snapd vulnerability
+     - https://ubuntu.com/security/CVE-2023-1523
 
-    1 affected package is installed: snapd
+    1 affected source package is installed: snapd
     (1/1) snapd:
     A fix is available in Ubuntu Pro: ESM Infra.
     The update is not installed because this system does not have
@@ -256,12 +257,11 @@ And you should see the following output (if you type :kbd:`E` when prompted):
     Choose: [E]nable esm-infra [C]ancel
     > E
     { pro enable esm-infra }
-    One moment, checking your subscription first
-    Updating package lists
+    Updating Ubuntu Pro: ESM Infra package lists
     Ubuntu Pro: ESM Infra enabled
-    { apt update && apt install --only-upgrade -y ubuntu-core-launcher snapd }
+    { apt update && apt install --only-upgrade -y snapd ubuntu-core-launcher }
 
-    ✔ CVE-2021-44731 is resolved.
+    ✔ CVE-2023-1523 is resolved.
 
 We can observe that the required service was enabled and ``pro fix`` was able
 to successfully upgrade the affected package.
@@ -277,37 +277,37 @@ You can confirm this by running the following fix command:
 
 .. code-block:: bash
 
-    $ sudo pro fix CVE-2022-0778
+    $ sudo pro fix CVE-2023-3817
 
 Then you will see the following output:
 
 .. code-block:: text
 
-    CVE-2022-0778: OpenSSL vulnerability
-    https://ubuntu.com/security/CVE-2022-0778
+    CVE-2023-3817: OpenSSL vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-3817
 
-    1 affected package is installed: openssl
+    1 affected source package is installed: openssl
     (1/1) openssl:
     A fix is available in Ubuntu Pro: ESM Infra.
     { apt update && apt install --only-upgrade -y libssl1.0.0 openssl }
-    A reboot is required to complete fix operation.
 
-    ✘ CVE-2022-0778 is not resolved.
+    A reboot is required to complete fix operation.
+    ✘ CVE-2023-3817 is not resolved.
 
 If we reboot the machine and run the command again, you will see that it is
 indeed fixed:
 
 .. code-block:: text
 
-    CVE-2022-0778: OpenSSL vulnerability
-    https://ubuntu.com/security/CVE-2022-0778
+    CVE-2023-3817: OpenSSL vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-3817
 
-    1 affected package is installed: openssl
+    1 affected source package is installed: openssl
     (1/1) openssl:
     A fix is available in Ubuntu Pro: ESM Infra.
     The update is already installed.
 
-    ✔ CVE-2022-0778 is resolved.
+    ✔ CVE-2023-3817 is resolved.
 
 Partially resolved CVEs/USNs
 ============================
@@ -335,16 +335,16 @@ And you will see the following output:
 .. code-block:: text
 
     CVE-2017-9233: Expat vulnerability
-    https://ubuntu.com/security/CVE-2017-9233
+     - https://ubuntu.com/security/CVE-2017-9233
 
-    3 affected packages are installed: expat, matanza, swish-e
+    3 affected source packages are installed: expat, matanza, swish-e
     (1/3, 2/3) matanza, swish-e:
-    Sorry, no fix is available.
+    Ubuntu security engineers are investigating this issue.
     (3/3) expat:
     A fix is available in Ubuntu standard updates.
     { apt update && apt install --only-upgrade -y expat }
-    2 packages are still affected: matanza, swish-e
 
+    2 packages are still affected: matanza, swish-e
     ✘ CVE-2017-9233 is not resolved.
 
 We can see that two packages, ``matanza`` and ``swish-e``, don't have any fixes

@@ -13,11 +13,13 @@ Furo
 Grafana
 IAM
 installable
+jq
 JSON
 Juju
 Kubernetes
 Kubeflow
 Makefile
+manpage
 MyST
 namespace
 namespaces
