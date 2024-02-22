@@ -46,6 +46,9 @@ class EntitlementWithMessage:
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
+    # Required: short name of the entitlement
+    name = None  # type: str
+
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
@@ -80,12 +83,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # Determine if the service is a variant of an existing service
     is_variant = False
-
-    @property
-    @abc.abstractmethod
-    def name(self) -> str:
-        """The lowercase name of this entitlement"""
-        pass
 
     @property
     def variant_name(self) -> str:
