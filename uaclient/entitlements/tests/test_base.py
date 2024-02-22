@@ -317,7 +317,7 @@ class TestEntitlementCanEnable:
         )
 
         entitlement._incompatible_services = (
-            base.IncompatibleService(
+            base.EntitlementWithMessage(
                 m_incompatible_cls, messages.NamedMessage("test", "test")
             ),
         )
@@ -340,7 +340,9 @@ class TestEntitlementCanEnable:
             extra_args={
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
                 "application_status": (ApplicationStatus.DISABLED, ""),
-                "required_services": (m_required_service_cls,),
+                "required_services": (
+                    mock.MagicMock(entitlement=m_required_service_cls),
+                ),
             },
         )
 
@@ -385,7 +387,7 @@ class TestEntitlementEnable:
             disable=(True, None),
         )
         entitlement._incompatible_services = (
-            base.IncompatibleService(
+            base.EntitlementWithMessage(
                 m_incompatible_cls, messages.NamedMessage("test", "test")
             ),
         )
@@ -430,7 +432,9 @@ class TestEntitlementEnable:
                 "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
                 "application_status": (ApplicationStatus.DISABLED, ""),
                 "enable": True,
-                "required_services": (m_required_service_cls,),
+                "required_services": (
+                    mock.MagicMock(entitlement=m_required_service_cls),
+                ),
             },
         )
 
@@ -567,7 +571,9 @@ class TestEntitlementEnable:
             entitled=True,
             extra_args={
                 "application_status": (ApplicationStatus.DISABLED, ""),
-                "required_services": (m_required_service_cls,),
+                "required_services": (
+                    mock.MagicMock(entitlement=m_required_service_cls),
+                ),
             },
         )
 
@@ -643,7 +649,7 @@ class TestEntitlementEnable:
                 ),
             ),
         )
-        incompatible_services_definition = base.IncompatibleService(
+        incompatible_services_definition = base.EntitlementWithMessage(
             incompatible_service_cls, messages.NamedMessage("code", "msg")
         )
         entitlement = base_entitlement_factory(
