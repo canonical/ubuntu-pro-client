@@ -163,6 +163,7 @@ The currently available endpoints are:
 - `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
+- `u.pro.services.dependencies.v1`_
 - `u.pro.status.enabled_services.v1`_
 - `u.pro.status.is_attached.v1`_
 - `u.apt_news.current_news.v1`_
@@ -2325,6 +2326,140 @@ are:
            {
                "reboot_required": "yes|no|yes-kernel-livepatches-applied"
            }
+
+u.pro.services.dependencies.v1
+========================================
+
+This endpoint will return a full list of all service dependencies,
+regardless of the current system state. That means it will always return
+the same thing until new services are added, or until we add/remove
+dependencies between services.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.services.dependencies.v1 import dependencies
+           result = dependencies()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.services.dependencies.v1.DependenciesResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``services``
+               - ``List[ServiceWithDependencies]``
+               - Each Pro service gets an item in this list
+
+        - ``uaclient.api.u.pro.services.dependencies.v1.ServiceWithDependencies``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - ``str``
+               - Name of the Pro service this item corresponds to
+             * - ``incompatible_with``
+               - ``List[ServiceWithReason]``
+               - List of Pro services this service is incompatible with. That means they cannot be enabled at the same time.
+             * - ``depends_on``
+               - ``List[ServiceWithReason]``
+               - List of Pro services this service depends on. The services in this list must be enabled for this service to be enabled.
+
+        - ``uaclient.api.u.pro.services.dependencies.v1.ServiceWithReason``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - ``str``
+               - Name of the Pro service this item corresponds to
+             * - ``reason``
+               - ``Reason``
+               - Reason that this service is in the list it is in.
+
+        - ``uaclient.api.u.pro.services.dependencies.v1.Reason``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``code``
+               - ``str``
+               - Short string that represents the reason.
+             * - ``title``
+               - ``str``
+               - Longer string describing the reason - possibly translated.
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.services.dependencies.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+            {
+              "services": [
+                {
+                  "name": "one",
+                  "depends_on": [
+                    {
+                      "name": "zero",
+                      "reason": {
+                        "code": "one-and-zero",
+                        "title": "Service One requires service Zero."
+                      }
+                    },
+                    ...
+                  ],
+                  "incompatible_with": [
+                    {
+                      "name": "two",
+                      "reason": {
+                        "code": "one-and-two",
+                        "title": "Services One and Two don't go together."
+                      }
+                    },
+                    ...
+                  ]
+                },
+                ...
+              ]
+            }
+
 
 u.pro.status.enabled_services.v1
 ================================
