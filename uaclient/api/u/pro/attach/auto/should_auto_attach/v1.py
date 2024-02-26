@@ -29,7 +29,8 @@ def _should_auto_attach(cfg: UAConfig) -> ShouldAutoAttachResult:
         )
 
     return ShouldAutoAttachResult(
-        should_auto_attach=is_installed("ubuntu-advantage-pro"),
+        should_auto_attach=is_installed("ubuntu-advantage-pro")
+        or is_installed("ubuntu-pro-auto-attach"),
     )
 
 
