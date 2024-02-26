@@ -80,3 +80,51 @@ Feature: Logs in Json Array Formatter
           | focal   | lxd-container |
           | jammy   | lxd-container |
           | mantic  | lxd-container |
+
+    Scenario Outline: logrotate configuration works
+        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+        When I run `pro status` with sudo
+        And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
+        Then stdout contains substring:
+        """
+        /var/log/ubuntu-advantage.log
+        """
+        Then stdout does not contain substring:
+        """
+        /var/log/ubuntu-advantage.log.1
+        """
+        When I run `logrotate --force /etc/logrotate.d/ubuntu-pro-client` with sudo
+        And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
+        Then stdout contains substring:
+        """
+        /var/log/ubuntu-advantage.log
+        /var/log/ubuntu-advantage.log.1
+        """
+        # reset and run logrotate with full config
+        When I run `rm /var/log/ubuntu-advantage.log.1` with sudo
+        When I run `pro status` with sudo
+        And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
+        Then stdout contains substring:
+        """
+        /var/log/ubuntu-advantage.log
+        """
+        Then stdout does not contain substring:
+        """
+        /var/log/ubuntu-advantage.log.1
+        """
+        # This uses all logrotate config files on the system
+        When I run `logrotate --force /etc/logrotate.conf` with sudo
+        And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
+        Then stdout contains substring:
+        """
+        /var/log/ubuntu-advantage.log
+        /var/log/ubuntu-advantage.log.1
+        """
+
+        Examples: ubuntu release
+           | release | machine_type  |
+           | xenial  | lxd-container |
+           | bionic  | lxd-container |
+           | focal   | lxd-container |
+           | jammy   | lxd-container |
+           | mantic  | lxd-container |
