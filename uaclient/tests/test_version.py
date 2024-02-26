@@ -86,7 +86,7 @@ class TestGetLastKnownCandidate:
 class TestCheckForNewVersion:
     @pytest.mark.parametrize("compare_return", (-1, 0, 1))
     @mock.patch("uaclient.version.version_compare")
-    @mock.patch("uaclient.version.get_pkg_candidate_version")
+    @mock.patch("uaclient.version.get_last_known_candidate")
     def test_check_for_new_version(
         self, m_candidate, m_compare, compare_return
     ):
