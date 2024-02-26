@@ -547,6 +547,7 @@ class TestActionAttach:
             ),
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.entitlements.check_entitlement_apt_directives_are_unique",
@@ -574,6 +575,7 @@ class TestActionAttach:
         _m_attachment_data_file_write,
         _m_check_ent_apt_directives,
         _m_check_lock_info,
+        _m_status_cache_file,
         expected_exception,
         expected_msg,
         expected_outer_msg,

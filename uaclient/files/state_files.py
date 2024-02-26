@@ -12,7 +12,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
-from uaclient.files.files import UAFile, UserCacheFile
+from uaclient.files.files import ProJSONFile, UAFile, UserCacheFile
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
 
@@ -222,4 +222,12 @@ attachment_data_file = DataObjectFile(
     AttachmentData,
     UAFile("attachment.json", private=False),
     DataObjectFileFormat.JSON,
+)
+
+
+status_cache_file = ProJSONFile(
+    pro_file=UAFile(
+        name="status.json",
+        private=False,
+    )
 )

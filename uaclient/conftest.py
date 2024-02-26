@@ -266,7 +266,6 @@ def FakeConfig(tmpdir):
 
             config = cls()
             config.machine_token_file._machine_token = machine_token
-            config.write_cache("status-cache", status_cache)
             return config
 
         def override_features(self, features_override):

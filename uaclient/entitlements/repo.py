@@ -21,6 +21,7 @@ from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
 )
+from uaclient.files.state_files import status_cache_file
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -398,7 +399,7 @@ class RepoEntitlement(base.UAEntitlement):
         delta_directives = delta_entitlement.get("directives", {})
         delta_apt_url = delta_directives.get("aptURL")
         delta_packages = delta_directives.get("additionalPackages")
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         if delta_directives and status_cache:
             application_status = self._check_application_status_on_cache()
