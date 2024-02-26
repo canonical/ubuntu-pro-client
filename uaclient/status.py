@@ -421,7 +421,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
     response.update(_get_config_status(cfg))
 
     if util.we_are_currently_root():
-        cfg.write_cache("status-cache", response)
+        state_files.status_cache_file.write(response)
 
     response = _handle_beta_resources(cfg, show_all, response)
 

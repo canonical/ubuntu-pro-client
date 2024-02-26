@@ -77,9 +77,7 @@ event = event_logger.get_event_logger()
 
 
 class UAConfig:
-    data_paths = {
-        "status-cache": DataPath("status.json", False),
-    }  # type: Dict[str, DataPath]
+    data_paths = {}  # type: Dict[str, DataPath]
 
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
     global_scoped_proxy_options = (

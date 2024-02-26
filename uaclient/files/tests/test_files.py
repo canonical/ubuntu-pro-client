@@ -1,4 +1,5 @@
 import os
+import stat
 
 import mock
 
@@ -16,6 +17,17 @@ class TestUAFile:
         res = system.load_file(path)
         assert res == file.read()
         assert res == content
+
+    def test_non_private_file_world_readable(
+        self,
+        tmpdir,
+    ):
+        file = UAFile("test", tmpdir.strpath, False)
+        file.write("dummy file words")
+
+        assert 0o644 == stat.S_IMODE(
+            os.lstat(os.path.join(tmpdir.strpath, "test")).st_mode
+        )
 
 
 class TestMachineTokenFile:
