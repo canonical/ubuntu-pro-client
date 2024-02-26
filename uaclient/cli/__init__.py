@@ -938,6 +938,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
     cfg.delete_cache()
+    state_files.status_cache_file.delete()
     cfg.machine_token_file.delete()
     update_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)

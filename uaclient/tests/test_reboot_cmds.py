@@ -50,8 +50,10 @@ class TestFixProPkgHolds:
             ),
         ],
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.read")
     def test_fix_pro_pkg_holds(
         self,
+        m_status_cache_file_read,
         m_fips_status,
         m_fips_setup_apt_config,
         m_fips_install_packages,
@@ -66,10 +68,9 @@ class TestFixProPkgHolds:
         m_fips_setup_apt_config.side_effect = fips_setup_apt_config_side_effect
         m_fips_install_packages.side_effect = fips_install_packages_side_effect
         cfg = FakeConfig()
-        fake_status_cache = {
+        m_status_cache_file_read.return_value = {
             "services": [{"name": "fips", "status": fips_status}]
         }
-        cfg.write_cache("status-cache", fake_status_cache)
 
         with expected_raises:
             fix_pro_pkg_holds(cfg)

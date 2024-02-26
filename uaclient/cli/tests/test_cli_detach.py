@@ -163,6 +163,7 @@ class TestActionDetach:
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.delete")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.contract.UAContractClient")
     @mock.patch("uaclient.cli.update_motd_messages")
@@ -175,6 +176,7 @@ class TestActionDetach:
         m_update_apt_and_motd_msgs,
         m_client,
         _m_check_lock_info,
+        _m_status_cache_delete,
         m_prompt,
         prompt_response,
         assume_yes,
@@ -244,6 +246,7 @@ class TestActionDetach:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.delete")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.cli.entitlements_disable_order")
     @mock.patch("uaclient.cli.update_motd_messages")
@@ -252,6 +255,7 @@ class TestActionDetach:
         m_update_apt_and_motd_msgs,
         m_disable_order,
         _m_check_lock_info,
+        _m_status_cache_delete,
         _m_prompt,
         capsys,
     ):
@@ -301,6 +305,7 @@ class TestActionDetach:
             ),
         ],
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.delete")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.cli.update_motd_messages")
     @mock.patch("uaclient.entitlements.entitlement_factory")
@@ -311,6 +316,7 @@ class TestActionDetach:
         m_ent_factory,
         m_update_apt_and_motd_msgs,
         _m_check_lock_info,
+        _m_status_cache_delete,
         _m_prompt,
         capsys,
         classes,

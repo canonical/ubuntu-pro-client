@@ -28,6 +28,7 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
+from uaclient.files.state_files import status_cache_file
 from uaclient.types import MessagingOperationsDict, StaticAffordance
 from uaclient.util import is_config_value_true
 
@@ -1205,7 +1206,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def _check_application_status_on_cache(self) -> ApplicationStatus:
         """Check on the state of application on the status cache."""
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         if status_cache is None:
             return ApplicationStatus.DISABLED
@@ -1252,7 +1253,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
         if not transition_to_unentitled:

@@ -1,7 +1,5 @@
 import copy
 import datetime
-import os
-import stat
 import string
 
 import mock
@@ -314,10 +312,12 @@ class TestStatus:
         return False
 
     @pytest.mark.parametrize("show_all", (True, False))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources")
     def test_root_unattached(
         self,
         m_get_available_resources,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -397,6 +397,7 @@ class TestStatus:
             ),
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch(
         M_PATH + "livepatch.LivepatchEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
@@ -406,6 +407,7 @@ class TestStatus:
         self,
         m_get_avail_resources,
         _m_livepatch_status,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -564,12 +566,14 @@ class TestStatus:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=True)
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
         m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -588,12 +592,14 @@ class TestStatus:
 
         assert root_unattached_status == nonroot_status
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_root_and_non_root_are_same_attached(
         self,
         m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -606,22 +612,6 @@ class TestStatus:
         normal_cfg = FakeConfig.for_attached_machine()
         normal_status = status.status(cfg=normal_cfg)
         assert normal_status == root_status
-
-    @mock.patch("uaclient.status.get_available_resources", return_value=[])
-    def test_cache_file_is_written_world_readable(
-        self,
-        _m_get_available_resources,
-        _m_should_reboot,
-        m_remove_notice,
-        m_on_supported_kernel,
-        FakeConfig,
-    ):
-        cfg = FakeConfig()
-        status.status(cfg=cfg)
-
-        assert 0o644 == stat.S_IMODE(
-            os.lstat(cfg.data_path("status-cache")).st_mode
-        )
 
     @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
@@ -642,6 +632,7 @@ class TestStatus:
         ),
     )
     @pytest.mark.usefixtures("all_resources_available")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch(
         M_PATH + "fips.FIPSCommonEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
@@ -672,6 +663,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_livepatch_status,
         _m_fips_status,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -871,12 +863,14 @@ class TestStatus:
         assert expected_calls == mock_notice.remove.call_args_list
 
     @pytest.mark.usefixtures("all_resources_available")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_expires_handled_appropriately(
         self,
         _m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -927,10 +921,14 @@ class TestStatus:
         "uaclient.files.state_files.reboot_cmd_marker_file",
         new_callable=mock.PropertyMock,
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.read")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_nonroot_user_does_not_use_cache(
         self,
         _m_get_available_resources,
+        _m_status_cache_file_write,
+        m_status_cache_file_read,
         m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
@@ -939,8 +937,8 @@ class TestStatus:
     ):
         m_reboot_cmd_marker_file.is_present = True
         cached_status = {"pass": True}
+        m_status_cache_file_read.return_value = cached_status
         cfg = FakeConfig()
-        cfg.write_cache("status-cache", cached_status)
         before = status.status(cfg=cfg)
 
         # Even non-root users can update execution_status details

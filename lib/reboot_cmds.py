@@ -35,7 +35,7 @@ LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
 
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):
-    status_cache = cfg.read_cache("status-cache")
+    status_cache = state_files.status_cache_file.read()
     if not status_cache:
         return
     for service in status_cache.get("services", []):

@@ -64,6 +64,34 @@ class UAFile:
         system.ensure_file_absent(self.path)
 
 
+class ProJSONFile:
+    def __init__(
+        self,
+        pro_file: UAFile,
+    ):
+        self.pro_file = pro_file
+
+    def write(self, content: Dict[str, Any]):
+        self.pro_file.write(
+            content=json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
+        )
+
+    def read(self) -> Optional[Dict[str, Any]]:
+        content = self.pro_file.read()
+
+        if content:
+            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
+
+        return None
+
+    def delete(self):
+        return self.pro_file.delete()
+
+    @property
+    def is_present(self):
+        return self.pro_file.is_present
+
+
 class UserCacheFile(UAFile):
     def __init__(self, name: str):
         super().__init__(
@@ -78,32 +106,30 @@ class MachineTokenFile:
         machine_token_overlay_path: Optional[str] = None,
     ):
         file_name = defaults.MACHINE_TOKEN_FILE
-        self.private_file = UAFile(
-            file_name, os.path.join(directory, defaults.PRIVATE_SUBDIR)
+        self.private_file = ProJSONFile(
+            pro_file=UAFile(
+                file_name, os.path.join(directory, defaults.PRIVATE_SUBDIR)
+            ),
         )
-        self.public_file = UAFile(file_name, directory, False)
+        self.public_file = ProJSONFile(
+            pro_file=UAFile(file_name, directory, False)
+        )
         self.machine_token_overlay_path = machine_token_overlay_path
         self._machine_token = None  # type: Optional[Dict[str, Any]]
         self._entitlements = None
         self._contract_expiry_datetime = None
 
-    def write(self, private_content: dict):
+    def write(self, private_content: Dict[str, Any]):
         """Update the machine_token file for both pub/private files"""
         if util.we_are_currently_root():
-            private_content_str = json.dumps(
-                private_content, cls=util.DatetimeAwareJSONEncoder
-            )
-            self.private_file.write(private_content_str)
+            self.private_file.write(private_content)
 
             # PublicMachineTokenData only has public fields defined and
             # ignores all other (private) fields in from_dict
             public_content = PublicMachineTokenData.from_dict(
                 private_content
             ).to_dict(keep_none=False)
-            public_content_str = json.dumps(
-                public_content, cls=util.DatetimeAwareJSONEncoder
-            )
-            self.public_file.write(public_content_str)
+            self.public_file.write(public_content)
 
             self._machine_token = None
             self._entitlements = None
@@ -128,14 +154,7 @@ class MachineTokenFile:
             file_handler = self.private_file
         else:
             file_handler = self.public_file
-        content = file_handler.read()
-        if not content:
-            return None
-        try:
-            content = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
-        except Exception:
-            pass
-        return content  # type: ignore
+        return file_handler.read()
 
     @property
     def is_present(self):

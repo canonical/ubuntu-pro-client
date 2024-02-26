@@ -389,10 +389,12 @@ class TestActionStatus:
             ),
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_attached(
         self,
         _m_format_expires,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -449,8 +451,10 @@ class TestActionStatus:
             (False),
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     def test_unattached(
         self,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -497,6 +501,7 @@ class TestActionStatus:
         )
         assert expected == capsys.readouterr()[0]
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("uaclient.version.get_version", return_value="test_version")
     @mock.patch("uaclient.system.subp")
@@ -507,6 +512,7 @@ class TestActionStatus:
         _m_subp,
         _m_get_version,
         m_check_lock_info,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -558,8 +564,10 @@ class TestActionStatus:
             },
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     def test_unattached_formats(
         self,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -668,8 +676,10 @@ class TestActionStatus:
         ),
     )
     @pytest.mark.parametrize("use_all", (True, False))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     def test_attached_formats(
         self,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -978,10 +988,12 @@ class TestActionStatus:
         "encoding,expected_dash",
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.format_expires", return_value="formatteddate")
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_format_expires,
+        _m_status_cache_file,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,

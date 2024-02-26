@@ -25,7 +25,7 @@ from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
 from uaclient.yaml import safe_dump
 
-KNOWN_DATA_PATHS = (("status-cache", "status.json"),)
+KNOWN_DATA_PATHS = (("machine-id", "machine-id"),)
 M_PATH = "uaclient.entitlements."
 
 
@@ -272,15 +272,6 @@ class TestDataPath:
         cfg = FakeConfig({"data_dir": "/my/dir"})
         assert "/my/dir/{}".format(PRIVATE_SUBDIR) == cfg.data_path()
 
-    @pytest.mark.parametrize("key,path_basename", KNOWN_DATA_PATHS)
-    def test_data_path_returns_file_path_with_defined_data_paths(
-        self, key, path_basename, FakeConfig
-    ):
-        """When key is defined in Config.data_paths return data_path value."""
-        cfg = FakeConfig({"data_dir": "/my/dir"})
-        private_path = "/my/dir/{}".format(path_basename)
-        assert private_path == cfg.data_path(key=key)
-
     @pytest.mark.parametrize(
         "key,path_basename", (("notHere", "notHere"), ("anything", "anything"))
     )
@@ -459,29 +450,6 @@ class TestReadCache:
         cfg = FakeConfig()
         assert None is cfg.read_cache(key)
         assert not tmpdir.join(path_basename).check()
-
-    @pytest.mark.parametrize("key,path_basename", KNOWN_DATA_PATHS)
-    def test_read_cache_returns_content_when_data_path_present(
-        self, tmpdir, FakeConfig, key, path_basename
-    ):
-        cfg = FakeConfig()
-        data_path = tmpdir.join(path_basename)
-        with open(data_path.strpath, "w") as f:
-            f.write("content{}".format(key))
-
-        assert "content{}".format(key) == cfg.read_cache(key)
-
-    @pytest.mark.parametrize("key,path_basename", KNOWN_DATA_PATHS)
-    def test_read_cache_returns_stuctured_content_when_json_data_path_present(
-        self, tmpdir, FakeConfig, key, path_basename
-    ):
-        cfg = FakeConfig()
-        data_path = tmpdir.join(path_basename)
-        expected = {key: "content{}".format(key)}
-        with open(data_path.strpath, "w") as f:
-            f.write(json.dumps(expected))
-
-        assert expected == cfg.read_cache(key)
 
     def test_datetimes_are_unserialised(self, tmpdir, FakeConfig):
         cfg = FakeConfig()

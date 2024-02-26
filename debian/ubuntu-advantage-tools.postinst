@@ -114,15 +114,16 @@ redact_ubuntu_release_from_ua_apt_filenames() {
 check_service_is_enabled() {
     service_name=$1
     _RET=$(/usr/bin/python3 -c "
-import os
-import json
-from uaclient.config import UAConfig
-cfg = UAConfig()
-status = cfg.read_cache('status-cache')
-if status:
-    for service in status.get('services', []):
-       if service.get('name', '') == '${service_name}':
-           print(service.get('status', ''))
+from uaclient.files.state_files import status_cache_file
+try:
+    status = status_cache_file.read()
+    if status:
+        for service in status.get('services', []):
+            if service.get('name', '') == '${service_name}':
+                print(service.get('status', ''))
+except Exception:
+    # Assume not enabled
+    pass
 ")
    if [ "${_RET}" = "enabled" ]; then
        return  0

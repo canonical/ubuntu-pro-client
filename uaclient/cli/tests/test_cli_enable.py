@@ -433,6 +433,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
@@ -445,6 +446,7 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_update_activity_token,
         _m_check_lock_info,
+        _m_status_cache_file,
         m_refresh,
         assume_yes,
         FakeConfig,
@@ -482,6 +484,7 @@ class TestActionEnable:
             )
         ] == m_entitlement_cls.call_args_list
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
@@ -493,6 +496,7 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_check_lock_info,
         _m_refresh,
+        _m_status_cache_file,
         event,
         FakeConfig,
     ):
@@ -611,6 +615,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
@@ -621,6 +626,7 @@ class TestActionEnable:
         m_entitlement_factory,
         _m_get_available_resources,
         _m_check_lock_info,
+        _m_status_cache_file,
         _m_refresh,
         beta_flag,
         event,
@@ -767,6 +773,7 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
@@ -777,6 +784,7 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_update_activity_token,
         _m_check_lock_info,
+        _m_status_cache_file,
         _m_refresh,
         event,
         FakeConfig,

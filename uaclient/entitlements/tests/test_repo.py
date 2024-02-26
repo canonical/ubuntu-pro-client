@@ -168,6 +168,9 @@ class TestProcessContractDeltas:
         assert expected_msg in capsys.readouterr()[1]
 
     @pytest.mark.parametrize("packages", ([], ["extremetuxracer"]))
+    @mock.patch(
+        "uaclient.files.state_files.status_cache_file.read", return_value=None
+    )
     @mock.patch.object(RepoTestEntitlement, "install_packages")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
@@ -182,6 +185,7 @@ class TestProcessContractDeltas:
         m_setup_apt_config,
         m_remove_auth_apt_repo,
         m_install_packages,
+        _m_status_cache,
         packages,
         entitlement,
     ):
@@ -215,10 +219,10 @@ class TestProcessContractDeltas:
     @pytest.mark.parametrize(
         "series,file_extension", (("jammy", "list"), ("noble", "sources"))
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.read")
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
-    @mock.patch("uaclient.config.UAConfig.read_cache")
     @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
@@ -231,8 +235,8 @@ class TestProcessContractDeltas:
         m_setup_apt_config,
         m_remove_auth_apt_repo,
         m_release_info,
-        m_read_cache,
         m_process_contract_deltas,
+        m_status_cache_read,
         series,
         file_extension,
         entitlement,
@@ -240,7 +244,7 @@ class TestProcessContractDeltas:
         """Remove old apt url when aptURL delta occurs on active service."""
         m_check_apt_url_applied.return_value = False
         m_process_contract_deltas.return_value = False
-        m_read_cache.return_value = {
+        m_status_cache_read.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
         }
         m_release_info.return_value.series = series
@@ -271,9 +275,9 @@ class TestProcessContractDeltas:
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
         assert [
-            mock.call("status-cache"),
-            mock.call("status-cache"),
-        ] == m_read_cache.call_args_list
+            mock.call(),
+            mock.call(),
+        ] == m_status_cache_read.call_args_list
         assert 1 == m_process_contract_deltas.call_count
 
         assert [
@@ -284,7 +288,7 @@ class TestProcessContractDeltas:
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
-    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.files.state_files.status_cache_file.read")
     @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
@@ -297,14 +301,14 @@ class TestProcessContractDeltas:
         m_setup_apt_config,
         m_remove_auth_apt_repo,
         m_release_info,
-        m_read_cache,
+        m_status_cache_read,
         m_process_contract_deltas,
         entitlement,
     ):
         """Do not change system if apt url delta is already applied."""
         m_check_apt_url_applied.return_value = True
         m_process_contract_deltas.return_value = False
-        m_read_cache.return_value = {
+        m_status_cache_read.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
         }
         assert entitlement.process_contract_deltas(
@@ -327,9 +331,9 @@ class TestProcessContractDeltas:
         assert m_remove_auth_apt_repo.call_count == 0
 
         assert [
-            mock.call("status-cache"),
-            mock.call("status-cache"),
-        ] == m_read_cache.call_args_list
+            mock.call(),
+            mock.call(),
+        ] == m_status_cache_read.call_args_list
         assert 1 == m_process_contract_deltas.call_count
 
         assert [
