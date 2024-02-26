@@ -2,6 +2,8 @@ ubuntu-advantage-tools (31.2) noble; urgency=medium
 
   * properly rename logrotate conffile to avoid duplicate confiles, keep user changes
     and avoid unnecessary prompts (LP: #2055046)
+  * fix regression in api u.pro.attach.auto.should_auto_attach.v1 so that it works with
+    the new package names
 
  -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 26 Feb 2024 11:47:55 -0500
 
