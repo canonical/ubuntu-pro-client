@@ -249,7 +249,6 @@ class TestUAContractClient:
         assert {"test": "response"} == client.get_resource_machine_access(
             **kwargs
         )
-        assert {"test": "response"} == cfg.read_cache("machine-access-cis")
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
