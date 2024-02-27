@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from uaclient import exceptions, http, system, util
+from uaclient import exceptions, http, secret_manager, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
@@ -43,7 +43,9 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     @property  # type: ignore
     @util.retry(exceptions.CloudMetadataError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
-        return {"pkcs7": self._get_imds_url_response()}
+        imds_url_response = self._get_imds_url_response()
+        secret_manager.secrets.add_secret(imds_url_response)
+        return {"pkcs7": imds_url_response}
 
     def _request_imds_v2_token_headers(self):
         for address in IMDS_IP_ADDRESS:
@@ -79,6 +81,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         )
         if response.code == 200:
             self._api_token = response.body
+            secret_manager.secrets.add_secret(self._api_token)
             return {AWS_TOKEN_PUT_HEADER: self._api_token}
         if response.code == 404:
             self._api_token = "IMDSv1"

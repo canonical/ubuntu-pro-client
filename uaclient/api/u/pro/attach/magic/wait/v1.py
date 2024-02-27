@@ -1,6 +1,6 @@
 import time
 
-from uaclient import exceptions
+from uaclient import exceptions, secret_manager
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
@@ -66,6 +66,7 @@ def _wait(
     num_connection_errors = 0
     wait_time = 10
 
+    secret_manager.secrets.add_secret(options.magic_token)
     while num_attempts < MAXIMUM_ATTEMPTS:
         wait_resp = None
 

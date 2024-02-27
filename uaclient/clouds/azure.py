@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Dict
 
-from uaclient import exceptions, http, system, util
+from uaclient import exceptions, http, secret_manager, system, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -37,7 +37,9 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
                     code=response.code, body=response.body
                 )
             if key == "pkcs7":
-                responses[key] = response.json_dict["signature"]
+                signature = response.json_dict["signature"]
+                responses[key] = signature
+                secret_manager.secrets.add_secret(signature)
             else:
                 responses[key] = response.json_dict
         return responses

@@ -1,3 +1,4 @@
+from uaclient import secret_manager
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
@@ -38,7 +39,8 @@ def initiate() -> MagicAttachInitiateResult:
 def _initiate(cfg: UAConfig) -> MagicAttachInitiateResult:
     contract = UAContractClient(cfg)
     initiate_resp = contract.new_magic_attach_token()
-
+    secret_manager.secrets.add_secret(initiate_resp["token"])
+    secret_manager.secrets.add_secret(initiate_resp["userCode"])
     return MagicAttachInitiateResult(
         user_code=initiate_resp["userCode"],
         token=initiate_resp["token"],
