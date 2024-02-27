@@ -184,7 +184,6 @@ class TestAttachWithToken:
         "uaclient.files.MachineTokenFile.entitlements",
         new_callable=mock.PropertyMock,
     )
-    @mock.patch(M_PATH + "config.UAConfig.write_cache")
     @mock.patch(M_PATH + "system.get_machine_id")
     @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
@@ -193,7 +192,6 @@ class TestAttachWithToken:
         m_add_contract_machine,
         m_machine_token_file_write,
         m_get_machine_id,
-        m_config_write_cache,
         m_entitlements,
         m_process_entitlements_delta,
         m_attachment_data_file_write,

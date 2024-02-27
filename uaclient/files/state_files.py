@@ -237,3 +237,12 @@ machine_id_file = UAFile(
     defaults.DEFAULT_PRIVATE_DATA_DIR,
     private=True,
 )
+
+
+def delete_state_files():
+    machine_id_file.delete()
+    status_cache_file.delete()
+    attachment_data_file.delete()
+    anbox_cloud_credentials_file.delete()
+    reboot_cmd_marker_file.delete()
+    status_cache_file.delete()
