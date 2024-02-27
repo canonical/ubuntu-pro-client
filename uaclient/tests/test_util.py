@@ -5,7 +5,23 @@ import json
 import mock
 import pytest
 
-from uaclient import exceptions, messages, util
+from uaclient import exceptions, messages, secret_manager, util
+
+
+@pytest.fixture
+def secret_manager_fixture():
+    manager = secret_manager.SecretManager()
+    secrets = [
+        "SEKRET",
+        "S3-Kr3T",
+        "S3kR3T",
+        "SEket.124-_ys",
+        "reg key",
+        "reg-key",
+    ]
+    for secret in secrets:
+        manager.add_secret(secret)
+    return manager
 
 
 class TestGetDictDeltas:
@@ -294,6 +310,126 @@ class TestRedactSensitiveLogs:
     def test_redact_all_matching_regexs(self, raw_log, expected):
         """Redact all sensitive matches from log messages."""
         assert expected == util.redact_sensitive_logs(raw_log)
+
+    @pytest.mark.parametrize(
+        "raw_log,expected",
+        (
+            ("Super valuable", "Super valuable"),
+            (
+                "Executed with sys.argv: ['/usr/bin/ua', 'attach', 'SEKRET']",
+                "Executed with sys.argv:"
+                " ['/usr/bin/ua', 'attach', '<REDACTED>']",
+            ),
+            (
+                "'resourceTokens': [{'token': 'SEKRET', 'type': 'cc-eal'}]'",
+                "'resourceTokens':"
+                " [{'token': '<REDACTED>', 'type': 'cc-eal'}]'",
+            ),
+            (
+                "'machineToken': 'SEKRET', 'machineTokenInfo': 'blah'",
+                "'machineToken': '<REDACTED>', 'machineTokenInfo': 'blah'",
+            ),
+            (
+                "Failed running command '/usr/lib/apt/apt-helper download-file"
+                "https://bearer:S3-Kr3T@esm.ubuntu.com/infra/ubuntu/pool/ "
+                "[exit(100)]. Message: Download of file failed"
+                " pkgAcquire::Run (13: Permission denied)",
+                "Failed running command '/usr/lib/apt/apt-helper download-file"
+                "https://bearer:<REDACTED>@esm.ubuntu.com/infra/ubuntu/pool/ "
+                "[exit(100)]. Message: Download of file failed"
+                " pkgAcquire::Run (13: Permission denied)",
+            ),
+            (
+                "/snap/bin/canonical-livepatch enable S3-Kr3T, foobar",
+                "/snap/bin/canonical-livepatch enable <REDACTED>, foobar",
+            ),
+            (
+                "Contract value for 'resourceToken' changed to S3kR3T",
+                "Contract value for 'resourceToken' changed to <REDACTED>",
+            ),
+            (
+                "data: {'contractToken': 'SEKRET', "
+                "'contractTokenInfo':{'expiry'}}",
+                "data: {'contractToken': '<REDACTED>', "
+                "'contractTokenInfo':{'expiry'}}",
+            ),
+            (
+                "data: {'resourceToken': 'SEKRET', "
+                "'entitlement': {'affordances':'blah blah' }}",
+                "data: {'resourceToken': '<REDACTED>', "
+                "'entitlement': {'affordances':'blah blah' }}",
+            ),
+            (
+                "https://contracts.canonical.com/v1/resources/livepatch"
+                "?token=SEKRET: invalid token",
+                "https://contracts.canonical.com/v1/resources/livepatch"
+                "?token=<REDACTED>: invalid token",
+            ),
+            (
+                'data: {"identityToken": "SEket.124-_ys"}',
+                'data: {"identityToken": "<REDACTED>"}',
+            ),
+            (
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: none",
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: none",
+            ),
+            (
+                "'token': 'SEKRET'",
+                "'token': '<REDACTED>'",
+            ),
+            (
+                "'userCode': 'SEKRET'",
+                "'userCode': '<REDACTED>'",
+            ),
+            (
+                "'magic_token=SEKRET'",
+                "'magic_token=<REDACTED>'",
+            ),
+            (
+                "--account-name name --registration-key=reg-key --silent",
+                "--account-name name --registration-key=<REDACTED> --silent",
+            ),
+            (
+                '--account-name name --registration-key="reg key" --silent',
+                '--account-name name --registration-key="<REDACTED>" --silent',
+            ),
+            (
+                "--account-name name --registration-key='reg key' --silent",
+                "--account-name name --registration-key='<REDACTED>' --silent",
+            ),
+            (
+                "--account-name name --registration-key reg-key --silent",
+                "--account-name name --registration-key <REDACTED> --silent",
+            ),
+            (
+                '--account-name name --registration-key "reg key" --silent',
+                '--account-name name --registration-key "<REDACTED>" --silent',
+            ),
+            (
+                "--account-name name --registration-key 'reg key' --silent",
+                "--account-name name --registration-key '<REDACTED>' --silent",
+            ),
+            (
+                "--account-name name -p reg-key --silent",
+                "--account-name name -p <REDACTED> --silent",
+            ),
+            (
+                '--account-name name -p "reg key" --silent',
+                '--account-name name -p "<REDACTED>" --silent',
+            ),
+            (
+                "--account-name name -p 'reg key' --silent",
+                "--account-name name -p '<REDACTED>' --silent",
+            ),
+        ),
+    )
+    def test_secret_redaction_filter(
+        self, secret_manager_fixture, raw_log, expected
+    ):
+        """Redact all sensitive matches from log messages."""
+        assert expected == secret_manager_fixture.redact_secrets(raw_log)
 
 
 class TestParseRFC3339Date:

@@ -5,7 +5,7 @@ import pathlib
 from collections import OrderedDict
 from typing import Any, Dict, List, Union  # noqa: F401
 
-from uaclient import defaults, system, util
+from uaclient import defaults, secret_manager, system, util
 from uaclient.config import UAConfig
 
 
@@ -14,6 +14,14 @@ class RedactionFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord):
         record.msg = util.redact_sensitive_logs(str(record.msg))
+        return True
+
+
+class SecretRedactionFilter(logging.Filter):
+    """A logging filter to redact confidential info"""
+
+    def filter(self, record: logging.LogRecord):
+        record.msg = secret_manager.secrets.redact_secrets(str(record.msg))
         return True
 
 
