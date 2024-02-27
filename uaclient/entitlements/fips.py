@@ -634,14 +634,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
-            services_once_enabled = (
-                self.cfg.read_cache("services-once-enabled") or {}
-            )
-            services_once_enabled.update({self.name: True})
-            self.cfg.write_cache(
-                key="services-once-enabled", content=services_once_enabled
-            )
-
             services_once_enabled_file.write(
                 ServicesOnceEnabledData(fips_updates=True)
             )
