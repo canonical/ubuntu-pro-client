@@ -22,7 +22,7 @@ from uaclient.defaults import (
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
     CONTRACT_EXPIRY_PENDING_DAYS,
 )
-from uaclient.files.state_files import attachment_data_file
+from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
 
@@ -672,7 +672,7 @@ def refresh(cfg):
     machine_id = resp.get("machineTokenInfo", {}).get(
         "machineId", system.get_machine_id(cfg)
     )
-    cfg.write_cache("machine-id", machine_id)
+    machine_id_file.write(machine_id)
 
     process_entitlements_delta(
         cfg,

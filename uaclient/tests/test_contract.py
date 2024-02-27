@@ -1234,13 +1234,9 @@ class TestRefresh:
     @pytest.mark.parametrize(
         [
             "update_contract_machine_result",
-            "expected_write_cache_call_args",
         ],
         [
-            (
-                {"response": "val"},
-                [mock.call("machine-id", mock.sentinel.system_machine_id)],
-            ),
+            ({"response": "val"},),
             (
                 {
                     "response": "val",
@@ -1248,12 +1244,11 @@ class TestRefresh:
                         "machineId": mock.sentinel.response_machine_id
                     },
                 },
-                [mock.call("machine-id", mock.sentinel.response_machine_id)],
             ),
         ],
     )
     @mock.patch(M_PATH + "process_entitlements_delta")
-    @mock.patch(M_PATH + "UAConfig.write_cache")
+    @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch(M_PATH + "system.get_machine_id")
     @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "UAContractClient.update_contract_machine")
@@ -1271,10 +1266,9 @@ class TestRefresh:
         m_update_contract_machine,
         m_machine_token_file_write,
         m_get_machine_id,
-        m_write_cache,
+        m_machine_id_file_write,
         m_process_entitlements_deltas,
         update_contract_machine_result,
-        expected_write_cache_call_args,
         FakeConfig,
     ):
         m_entitlements.side_effect = [
@@ -1296,7 +1290,7 @@ class TestRefresh:
         assert [
             mock.call(update_contract_machine_result)
         ] == m_machine_token_file_write.call_args_list
-        assert expected_write_cache_call_args == m_write_cache.call_args_list
+        assert 1 == m_machine_id_file_write.call_count
         assert [
             mock.call(
                 mock.ANY,

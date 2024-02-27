@@ -34,7 +34,7 @@ class TestAttachWithToken:
             "expected_add_contract_machine_call_args",
             "expected_machine_token_file_write_call_args",
             "expected_get_machine_id_call_args",
-            "expected_config_write_cache_call_args",
+            "expected_machine_id_file_call_count",
             "expected_process_entitlements_delta_call_args",
             "expected_attachment_data_file_write_call_args",
             "expected_status_call_args",
@@ -55,7 +55,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [],
                 [],
-                [],
+                0,
                 [],
                 [],
                 [],
@@ -75,7 +75,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
+                1,
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
@@ -95,7 +95,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
+                1,
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
@@ -115,7 +115,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
+                1,
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [],
@@ -135,9 +135,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [
-                    mock.call("machine-id", "machine-id"),
-                ],
+                1,
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [],
@@ -157,9 +155,7 @@ class TestAttachWithToken:
                 [mock.call(contract_token="token2", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [
-                    mock.call("machine-id", "machine-id"),
-                ],
+                1,
                 [mock.call(mock.ANY, {}, mock.sentinel.entitlements, False)],
                 [mock.call(mock.ANY)],
                 [],
@@ -181,6 +177,7 @@ class TestAttachWithToken:
     )
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "ua_status.status")
+    @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch(M_PATH + "contract.process_entitlements_delta")
     @mock.patch(
@@ -200,6 +197,7 @@ class TestAttachWithToken:
         m_entitlements,
         m_process_entitlements_delta,
         m_attachment_data_file_write,
+        m_machine_id_file_write,
         m_status,
         m_update_motd_messages,
         m_update_activity_token,
@@ -214,7 +212,7 @@ class TestAttachWithToken:
         expected_add_contract_machine_call_args,
         expected_machine_token_file_write_call_args,
         expected_get_machine_id_call_args,
-        expected_config_write_cache_call_args,
+        expected_machine_id_file_call_count,
         expected_process_entitlements_delta_call_args,
         expected_attachment_data_file_write_call_args,
         expected_status_call_args,
@@ -249,8 +247,8 @@ class TestAttachWithToken:
             == m_get_machine_id.call_args_list
         )
         assert (
-            expected_config_write_cache_call_args
-            == m_config_write_cache.call_args_list
+            expected_machine_id_file_call_count
+            == m_machine_token_file_write.call_count
         )
         assert (
             expected_process_entitlements_delta_call_args

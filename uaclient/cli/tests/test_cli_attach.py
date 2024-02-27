@@ -256,6 +256,7 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
+    @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
@@ -270,6 +271,7 @@ class TestActionAttach:
         _m_remove_notice,
         _m_should_reboot,
         _m_attachment_data_file_write,
+        _m_machine_id_file_write,
         m_update_activity_token,
         _m_check_ent_apt_directives,
         _m_check_lock_info,
@@ -552,6 +554,10 @@ class TestActionAttach:
         "uaclient.entitlements.check_entitlement_apt_directives_are_unique",
         return_value=True,
     )
+    @mock.patch(
+        "uaclient.files.state_files.machine_id_file.read", return_value=None
+    )
+    @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
     @mock.patch("uaclient.contract.process_entitlement_delta")
@@ -566,6 +572,8 @@ class TestActionAttach:
         m_process_entitlement_delta,
         m_enable_order,
         _m_attachment_data_file_write,
+        _m_machine_id_file_write,
+        _m_machine_id_file_read,
         _m_check_ent_apt_directives,
         _m_check_lock_info,
         _m_status_cache_file,
