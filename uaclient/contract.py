@@ -171,7 +171,6 @@ class UAContractClient(serviceclient.UAServiceClient):
                 body=response.body,
             )
 
-        self.cfg.write_cache("contract-token", response.json_dict)
         return response.json_dict
 
     def get_resource_machine_access(
