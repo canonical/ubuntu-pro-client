@@ -1,9 +1,6 @@
 import copy
-import datetime
-import itertools
 import json
 import os
-import stat
 
 import mock
 import pytest
@@ -12,12 +9,11 @@ from uaclient import apt, exceptions, http, messages
 from uaclient.config import (
     UA_CONFIGURABLE_KEYS,
     VALID_UA_CONFIG_KEYS,
-    DataPath,
     get_config_path,
     parse_config,
 )
 from uaclient.conftest import FakeNotice
-from uaclient.defaults import DEFAULT_CONFIG_FILE, PRIVATE_SUBDIR
+from uaclient.defaults import DEFAULT_CONFIG_FILE
 from uaclient.entitlements import valid_services
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices, user_config_file
@@ -266,32 +262,6 @@ class TestAccounts:
         assert accountInfo == cfg.machine_token_file.account
 
 
-class TestDataPath:
-    def test_data_path_returns_data_dir_path_without_key(self, FakeConfig):
-        """The data_path method returns the data_dir when key is absent."""
-        cfg = FakeConfig({"data_dir": "/my/dir"})
-        assert "/my/dir/{}".format(PRIVATE_SUBDIR) == cfg.data_path()
-
-    @pytest.mark.parametrize(
-        "key,path_basename", (("notHere", "notHere"), ("anything", "anything"))
-    )
-    def test_data_path_returns_file_path_with_undefined_data_paths(
-        self, key, path_basename, FakeConfig
-    ):
-        """When key is not in Config.data_paths the key is used to data_dir"""
-        cfg = FakeConfig({"data_dir": "/my/d"})
-        assert "/my/d/{}/{}".format(PRIVATE_SUBDIR, key) == cfg.data_path(
-            key=key
-        )
-
-    def test_data_path_returns_public_path_for_public_datapath(
-        self, FakeConfig
-    ):
-        cfg = FakeConfig({"data_dir": "/my/d"})
-        cfg.data_paths["test_path"] = DataPath("test_path", False)
-        assert "/my/d/test_path" == cfg.data_path("test_path")
-
-
 CFG_BASE_CONTENT = """\
 # Ubuntu Pro client config file.
 # If you modify this file, run "pro refresh config" to ensure changes are
@@ -354,254 +324,6 @@ class TestUserConfigKeys:
             setattr(cfg, attr_name, attr_name + "value")
             assert attr_name + "value" == getattr(cfg, attr_name)
             assert attr_name + "value" == getattr(cfg.user_config, attr_name)
-
-
-class TestWriteCache:
-    @pytest.mark.parametrize(
-        "key,content",
-        (("unknownkey", "content1"), ("another-one", "content2")),
-    )
-    def test_write_cache_write_key_name_in_data_dir_when_data_path_absent(
-        self, tmpdir, FakeConfig, key, content
-    ):
-        """When key is not in data_paths, write content to data_dir/key."""
-        cfg = FakeConfig()
-        expected_path = tmpdir.join(PRIVATE_SUBDIR, key)
-
-        assert not expected_path.check(), "Found unexpected file {}".format(
-            expected_path
-        )
-        assert None is cfg.write_cache(key, content)
-        assert expected_path.check(), "Missing expected file {}".format(
-            expected_path
-        )
-        assert content == cfg.read_cache(key)
-
-    def test_write_cache_creates_secure_private_dir(self, tmpdir, FakeConfig):
-        """private_dir is created with permission 0o700."""
-        cfg = FakeConfig()
-        # unknown keys are written to the private dir
-        expected_dir = tmpdir.join(PRIVATE_SUBDIR)
-        assert None is cfg.write_cache("somekey", "somevalue")
-        assert True is os.path.isdir(
-            expected_dir.strpath
-        ), "Missing expected directory {}".format(expected_dir)
-        assert 0o700 == stat.S_IMODE(os.lstat(expected_dir.strpath).st_mode)
-
-    def test_write_cache_creates_dir_when_data_dir_does_not_exist(
-        self, tmpdir, FakeConfig
-    ):
-        """When data_dir doesn't exist, create it."""
-        tmp_subdir = tmpdir.join("does/not/exist")
-        cfg = FakeConfig({"data_dir": tmp_subdir.strpath})
-
-        assert False is os.path.isdir(
-            tmp_subdir.strpath
-        ), "Found unexpected directory {}".format(tmp_subdir)
-        assert None is cfg.write_cache("somekey", "someval")
-        assert True is os.path.isdir(
-            tmp_subdir.strpath
-        ), "Missing expected directory {}".format(tmp_subdir)
-        assert "someval" == cfg.read_cache("somekey")
-
-    @pytest.mark.parametrize(
-        "key,value", (("dictkey", {"1": "v1"}), ("listkey", [1, 2, 3]))
-    )
-    def test_write_cache_writes_json_string_when_content_not_a_string(
-        self, tmpdir, FakeConfig, key, value
-    ):
-        """When content is not a string, write a json string."""
-        cfg = FakeConfig()
-
-        expected_json_content = json.dumps(value)
-        assert None is cfg.write_cache(key, value)
-        with open(tmpdir.join(PRIVATE_SUBDIR, key).strpath, "r") as stream:
-            assert expected_json_content == stream.read()
-        assert value == cfg.read_cache(key)
-
-    @pytest.mark.parametrize(
-        "datapath,mode",
-        (
-            (DataPath("path", False), 0o644),
-            (DataPath("path", True), 0o600),
-        ),
-    )
-    def test_permissions(self, FakeConfig, datapath, mode):
-        cfg = FakeConfig()
-        cfg.data_paths = {"path": datapath}
-        cfg.write_cache("path", "")
-        assert mode == stat.S_IMODE(os.lstat(cfg.data_path("path")).st_mode)
-
-    def test_write_datetime(self, FakeConfig):
-        cfg = FakeConfig()
-        key = "test_key"
-        dt = datetime.datetime.now()
-        cfg.write_cache(key, dt)
-        with open(cfg.data_path(key)) as f:
-            assert dt.isoformat() == f.read().strip('"')
-
-
-class TestReadCache:
-    @pytest.mark.parametrize("key,path_basename", KNOWN_DATA_PATHS)
-    def test_read_cache_returns_none_when_data_path_absent(
-        self, tmpdir, FakeConfig, key, path_basename
-    ):
-        """Return None when the specified key data_path is not cached."""
-        cfg = FakeConfig()
-        assert None is cfg.read_cache(key)
-        assert not tmpdir.join(path_basename).check()
-
-    def test_datetimes_are_unserialised(self, tmpdir, FakeConfig):
-        cfg = FakeConfig()
-        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
-        data_path = tmpdir.join(PRIVATE_SUBDIR, "dt_test")
-        with open(data_path.strpath, "w") as f:
-            f.write('{"dt": "2019-07-25T14:35:51"}')
-
-        actual = cfg.read_cache("dt_test")
-        assert {
-            "dt": datetime.datetime(
-                2019, 7, 25, 14, 35, 51, tzinfo=datetime.timezone.utc
-            )
-        } == actual
-
-
-class TestDeleteCacheKey:
-    @pytest.mark.parametrize("property_name", ("status-cache", "lock"))
-    def test_delete_cache_key_removes_public_or_private_data_path_files(
-        self, property_name, FakeConfig
-    ):
-        cfg = FakeConfig()
-        cfg.write_cache(property_name, "himom")
-        assert True is os.path.exists(cfg.data_path(property_name))
-        cfg.delete_cache_key(property_name)
-        assert False is os.path.exists(cfg.data_path(property_name))
-        assert None is cfg.read_cache(property_name)
-
-    @pytest.mark.parametrize(
-        "property_name,clears_cache",
-        (
-            ("machine-token", True),
-            ("machine-access-cis", True),
-            ("machine", False),
-        ),
-    )
-    def test_delete_cache_key_clears_machine_token_and_entitlements(
-        self, property_name, clears_cache, FakeConfig, all_resources_available
-    ):
-        cfg = FakeConfig()
-        token = {
-            "availableResources": all_resources_available,
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {"type": "entitlement1", "entitled": True},
-                        {"type": "entitlement2", "entitled": True},
-                    ]
-                }
-            },
-        }
-        cfg.machine_token_file.write(token)
-        # sets config _entitlements and _machine_token cache
-        cfg.machine_token_file.entitlements
-        assert cfg.machine_token_file._entitlements is not None
-        assert cfg.machine_token_file._machine_token is not None
-        if property_name == "machine-token":
-            cfg.machine_token_file.delete()
-        else:
-            cfg.delete_cache_key(property_name)
-        if clears_cache:
-            # internal cache is cleared
-            assert cfg.machine_token_file._entitlements is None
-            assert cfg.machine_token_file._machine_token is None
-
-        # Reconstitutes _entitlements and _machine_token caches
-        entitlements = cfg.machine_token_file.entitlements
-        if property_name == "machine-token":
-            # We performed delete_cache_key("machine-token") above, so None now
-            assert None is cfg.machine_token_file._entitlements
-            assert None is cfg.machine_token
-        else:
-            # re-constitute from cache
-            assert entitlements is cfg.machine_token_file._entitlements
-            assert cfg.machine_token_file._machine_token is cfg.machine_token
-
-
-class TestDeleteCache:
-    def test_delete_cache_unsets_entitlements(
-        self, FakeConfig, all_resources_available
-    ):
-        """The delete_cache unsets any cached entitlements content."""
-        cfg = FakeConfig()
-        token = {
-            "availableResources": all_resources_available,
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {"type": "entitlement1", "entitled": True}
-                    ]
-                }
-            },
-        }
-        cfg.machine_token_file.write(token)
-        previous_entitlements = {
-            "entitlement1": {
-                "entitlement": {"type": "entitlement1", "entitled": True}
-            }
-        }
-        assert previous_entitlements == cfg.machine_token_file.entitlements
-        cfg.delete_cache()
-        cfg.machine_token_file.delete()
-        assert {} == cfg.machine_token_file.entitlements
-
-    def test_delete_cache_removes_all_data_path_files(
-        self, tmpdir, FakeConfig
-    ):
-        """Any cached files defined in cfg.data_paths will be removed."""
-        cfg = FakeConfig()
-        # Create half of the cached files, but not all
-        odd_keys = list(sorted(cfg.data_paths.keys()))[::2]
-        for odd_key in odd_keys:
-            if odd_key == "notices":
-                # notices key expects specific list or lists format
-                value = [[odd_key, odd_key]]
-            else:
-                value = odd_key
-            cfg.write_cache(odd_key, value)
-
-        present_files = list(
-            itertools.chain(
-                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
-            )
-        )
-        assert len(odd_keys) == len(present_files)
-        cfg.delete_cache()
-        dirty_files = list(
-            itertools.chain(
-                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
-            )
-        )
-        assert 0 == len(dirty_files), "{} files not deleted".format(
-            ", ".join(dirty_files)
-        )
-
-    def test_delete_cache_ignores_files_not_defined_in_data_paths(
-        self, tmpdir, FakeConfig
-    ):
-        """Any files in data_dir undefined in cfg.data_paths will remain."""
-        cfg = FakeConfig()
-        t_file = tmpdir.join(PRIVATE_SUBDIR, "otherfile")
-        os.makedirs(os.path.dirname(t_file.strpath))
-        with open(t_file.strpath, "w") as f:
-            f.write("content")
-        assert [os.path.basename(t_file.strpath)] == os.listdir(
-            tmpdir.join(PRIVATE_SUBDIR).strpath
-        )
-        cfg.delete_cache()
-        cfg.machine_token_file.delete()
-        assert [os.path.basename(t_file.strpath)] == os.listdir(
-            tmpdir.join(PRIVATE_SUBDIR).strpath
-        )
 
 
 class TestProcessConfig:

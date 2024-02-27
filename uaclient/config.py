@@ -1,8 +1,6 @@
 import copy
-import json
 import logging
 import os
-from collections import namedtuple
 from functools import lru_cache, wraps
 from typing import Any, Dict, Optional
 
@@ -26,10 +24,8 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
-    PRIVATE_SUBDIR,
 )
-from uaclient.files import notices, user_config_file
-from uaclient.files.notices import Notice
+from uaclient.files import user_config_file
 from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -69,16 +65,11 @@ VALID_UA_CONFIG_KEYS = (
     "livepatch_url",
 )
 
-# A data path is a filename, an attribute ("private") indicating whether it
-# should only be readable by root.
-DataPath = namedtuple("DataPath", ("filename", "private"))
 
 event = event_logger.get_event_logger()
 
 
 class UAConfig:
-    data_paths = {}  # type: Dict[str, DataPath]
-
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
     global_scoped_proxy_options = (
         "global_apt_http_proxy",
@@ -344,80 +335,6 @@ class UAConfig:
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
         return self.machine_token_file.machine_token
-
-    def data_path(self, key: Optional[str] = None) -> str:
-        """Return the file path in the data directory represented by the key"""
-        data_dir = self.data_dir
-        if not key:
-            return os.path.join(data_dir, PRIVATE_SUBDIR)
-        if key in self.data_paths:
-            data_path = self.data_paths[key]
-            if data_path.private:
-                return os.path.join(
-                    data_dir, PRIVATE_SUBDIR, data_path.filename
-                )
-            return os.path.join(data_dir, data_path.filename)
-        return os.path.join(data_dir, PRIVATE_SUBDIR, key)
-
-    def cache_key_exists(self, key: str) -> bool:
-        cache_path = self.data_path(key)
-        return os.path.exists(cache_path)
-
-    def delete_cache_key(self, key: str) -> None:
-        """Remove specific cache file."""
-        if not key:
-            raise RuntimeError(
-                "Invalid or empty key provided to delete_cache_key"
-            )
-        if key.startswith("machine-access"):
-            self._machine_token_file = None
-        elif key == "lock":
-            notices.remove(Notice.OPERATION_IN_PROGRESS)
-        cache_path = self.data_path(key)
-        system.ensure_file_absent(cache_path)
-
-    def delete_cache(self):
-        """
-        Remove configuration cached response files class attributes.
-        """
-        for path_key in self.data_paths.keys():
-            self.delete_cache_key(path_key)
-
-    def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
-        cache_path = self.data_path(key)
-        try:
-            content = system.load_file(cache_path)
-        except Exception:
-            if not os.path.exists(cache_path) and not silent:
-                LOG.debug("File does not exist: %s", cache_path)
-            return None
-        try:
-            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
-        except ValueError:
-            return content
-
-    def write_cache(self, key: str, content: Any) -> None:
-        filepath = self.data_path(key)
-        data_dir = os.path.dirname(filepath)
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir, exist_ok=True)
-            if os.path.basename(data_dir) == PRIVATE_SUBDIR:
-                os.chmod(data_dir, 0o700)
-        if key.startswith("machine-access"):
-            self._machine_token_file = None
-        elif key == "lock":
-            if ":" in content:
-                notices.add(
-                    Notice.OPERATION_IN_PROGRESS,
-                    operation=content.split(":")[1],
-                )
-        if not isinstance(content, str):
-            content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
-        mode = 0o600
-        if key in self.data_paths:
-            if not self.data_paths[key].private:
-                mode = 0o644
-        system.write_file(filepath, content, mode=mode)
 
     def process_config(self):
         for prop in (
