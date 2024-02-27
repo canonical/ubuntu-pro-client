@@ -28,6 +28,7 @@ from uaclient.defaults import (
 from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
+    machine_id_file,
     timer_jobs_state_file,
 )
 
@@ -81,7 +82,7 @@ def attach_with_token(
     machine_id = new_machine_token.get("machineTokenInfo", {}).get(
         "machineId", system.get_machine_id(cfg)
     )
-    cfg.write_cache("machine-id", machine_id)
+    machine_id_file.write(machine_id)
 
     try:
         contract.process_entitlements_delta(

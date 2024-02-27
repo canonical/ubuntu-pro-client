@@ -968,15 +968,26 @@ class TestGetReleaseInfo:
         assert expected == system.get_release_info.__wrapped__()
 
 
+@mock.patch("uaclient.files.state_files.machine_id_file.write")
 class TestGetMachineId:
-    def test_get_machine_id_from_config(self, FakeConfig):
+    def test_get_machine_id_from_config(
+        self, _m_machine_id_file_write, FakeConfig
+    ):
         cfg = FakeConfig.for_attached_machine()
         value = system.get_machine_id(cfg)
         assert "test_machine_id" == value
 
-    def test_get_machine_id_from_etc_machine_id(self, FakeConfig, tmpdir):
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
+    def test_get_machine_id_from_etc_machine_id(
+        self,
+        m_machine_id_file_read,
+        _m_machine_id_file_write,
+        FakeConfig,
+        tmpdir,
+    ):
         """Presence of /etc/machine-id is returned if it exists."""
         etc_machine_id = tmpdir.join("etc-machine-id")
+        m_machine_id_file_read.return_value = None
         assert "/etc/machine-id" == system.ETC_MACHINE_ID
         etc_machine_id.write("etc-machine-id")
         cfg = FakeConfig()
@@ -990,10 +1001,16 @@ class TestGetMachineId:
             assert value == cached_value
         assert "etc-machine-id" == value
 
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
     def test_get_machine_id_from_var_lib_dbus_machine_id(
-        self, FakeConfig, tmpdir
+        self,
+        m_machine_id_file_read,
+        _m_machine_id_file_write,
+        FakeConfig,
+        tmpdir,
     ):
         """fallback to /var/lib/dbus/machine-id"""
+        m_machine_id_file_read.return_value = None
         etc_machine_id = tmpdir.join("etc-machine-id")
         dbus_machine_id = tmpdir.join("dbus-machine-id")
         assert "/var/lib/dbus/machine-id" == system.DBUS_MACHINE_ID
@@ -1008,30 +1025,26 @@ class TestGetMachineId:
                 value = system.get_machine_id(cfg)
         assert "dbus-machine-id" == value
 
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
     def test_get_machine_id_uses_machine_id_from_data_dir(
-        self, FakeConfig, tmpdir
+        self, m_machine_id_file_read, _m_machine_id_file_write, FakeConfig
     ):
-        """When no machine-id is found, use machine-id from data_dir."""
-        data_machine_id = tmpdir.mkdir("private").join("machine-id")
-        data_machine_id.write("data-machine-id")
-
         cfg = FakeConfig()
-
-        def fake_exists(path):
-            return bool(path == data_machine_id.strpath)
+        m_machine_id_file_read.return_value = "data-machine-id"
 
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
-            m_exists.side_effect = fake_exists
+            m_exists.return_value = False
             value = system.get_machine_id(cfg)
         assert "data-machine-id" == value
 
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
     def test_get_machine_id_create_machine_id_in_data_dir(
-        self, FakeConfig, tmpdir
+        self, m_machine_id_file_read, m_machine_id_file_write, FakeConfig
     ):
         """When no machine-id is found, create one in data_dir using uuid4."""
-        data_machine_id = tmpdir.mkdir("private").join("machine-id")
 
         cfg = FakeConfig()
+        m_machine_id_file_read.return_value = None
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             with mock.patch("uaclient.system.uuid.uuid4") as m_uuid4:
                 m_exists.return_value = False
@@ -1039,14 +1052,22 @@ class TestGetMachineId:
                     "0123456789abcdef0123456789abcdef"
                 )
                 value = system.get_machine_id(cfg)
+
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
-        assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
+        assert [
+            mock.call("01234567-89ab-cdef-0123-456789abcdef")
+        ] == m_machine_id_file_write.call_args_list
 
     @pytest.mark.parametrize("empty_value", ["", "\n"])
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
     def test_fallback_used_if_all_other_files_are_empty(
-        self, FakeConfig, tmpdir, empty_value
+        self,
+        m_machine_id_file_read,
+        m_machine_id_file_write,
+        FakeConfig,
+        empty_value,
     ):
-        data_machine_id = tmpdir.mkdir("private").join("machine-id")
+        m_machine_id_file_read.return_value = None
         cfg = FakeConfig().for_attached_machine(
             machine_token={"some": "thing"},
         )
@@ -1064,7 +1085,9 @@ class TestGetMachineId:
                     )
                     value = system.get_machine_id(cfg)
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
-        assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
+        assert [
+            mock.call("01234567-89ab-cdef-0123-456789abcdef")
+        ] == m_machine_id_file_write.call_args_list
 
 
 class TestShouldReboot:
