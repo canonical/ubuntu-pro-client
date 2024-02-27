@@ -231,3 +231,9 @@ status_cache_file = ProJSONFile(
         private=False,
     )
 )
+
+machine_id_file = UAFile(
+    "machine-id",
+    defaults.DEFAULT_PRIVATE_DATA_DIR,
+    private=True,
+)
