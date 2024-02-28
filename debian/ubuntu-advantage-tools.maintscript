@@ -6,3 +6,9 @@ rm_conffile /etc/init/ua-auto-attach.conf 20.2~ ubuntu-advantage-tools
 rm_conffile /etc/update-motd.d/88-esm-announce 27.14~ ubuntu-advantage-tools
 rm_conffile /etc/ubuntu-advantage/help_data.yaml 30~ ubuntu-advantage-tools
 mv_conffile /etc/logrotate.d/ubuntu-advantage-tools /etc/logrotate.d/ubuntu-pro-client 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/apt/apt.conf.d/20apt-esm-hook.conf /etc/apt/apt.conf.d/20apt-esm-hook.conf 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/apt/preferences.d/ubuntu-pro-esm-apps /etc/apt/preferences.d/ubuntu-pro-esm-apps 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/apt/preferences.d/ubuntu-pro-esm-infra /etc/apt/preferences.d/ubuntu-pro-esm-infra 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/ubuntu-advantage/uaclient.conf /etc/ubuntu-advantage/uaclient.conf 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/update-manager/release-upgrades.d/ubuntu-advantage-upgrades.cfg /etc/update-manager/release-upgrades.d/ubuntu-advantage-upgrades.cfg 31.2~ ubuntu-advantage-tools
+mv_conffile /etc/update-motd.d/91-contract-ua-esm-status /etc/update-motd.d/91-contract-ua-esm-status 31.2~ ubuntu-advantage-tools
