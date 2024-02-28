@@ -634,7 +634,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       "update_messaging": null
       """
     When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-    And I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    And I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       { "metering_timer": 0 }
       """
@@ -645,7 +645,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       "metering": null
       """
     When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-    And I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    And I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       { "metering_timer": "notanumber", "update_messaging_timer": -10 }
       """

@@ -305,7 +305,6 @@ create_public_user_config_file() {
         mkdir -p "$destination_dir"
         # Move the user-config.json file to the private directory
         mv "$source_file" "$destination_dir/user-config.json"
-    fi
 
     /usr/bin/python3 -c "
 from uaclient.files import UserConfigFileObject
@@ -316,6 +315,7 @@ try:
 except Exception as e:
     print('Error while creating public user-config file: {}'.format(e))
 "
+    fi
 }
 
 migrate_ubuntu_pro_beta_banner() {
