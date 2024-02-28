@@ -2,6 +2,8 @@ ubuntu-advantage-tools (31.2) noble; urgency=medium
 
   * properly rename logrotate conffile to avoid duplicate confiles, keep user changes
     and avoid unnecessary prompts (LP: #2055046)
+  * use mv_conffile on all ubuntu-advantage-tools conffiles to avoid "obsolete" dpkg
+    conffile statuses
   * fix regression in api u.pro.attach.auto.should_auto_attach.v1 so that it works with
     the new package names
 
