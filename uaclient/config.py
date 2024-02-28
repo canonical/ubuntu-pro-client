@@ -113,10 +113,7 @@ class UAConfig:
             self.user_config = user_config
         else:
             try:
-                self.user_config = (
-                    user_config_file.user_config.read()
-                    or user_config_file.UserConfigData()
-                )
+                self.user_config = user_config_file.user_config.read()
             except Exception as e:
                 LOG.warning("Error loading user config", exc_info=e)
                 LOG.warning("Using default config values")
