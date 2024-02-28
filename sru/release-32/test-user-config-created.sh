@@ -58,6 +58,7 @@ if [ "$http_proxy_value" == "$private_http_proxy_value" ]; then
   echo "Contents of private/user-config.json have not changed"
 fi
 # Check if the file permissions are root
+echo "Checking file permissions for private/user-config.json:"
 lxc exec $name -- stat -c %A /var/lib/ubuntu-advantage/private/user-config.json | grep -- "-rw-------"
 
 # Check if a new public file is created
@@ -69,6 +70,7 @@ if [ "$public_http_proxy_value" = "<REDACTED>" ]; then
   echo "public_http_proxy_value is <REDACTED>"
 fi
 # Check if file permissions are public
+echo "Checking file permissions for public/user-config.json:"
 lxc exec $name -- stat -c %A /var/lib/ubuntu-advantage/user-config.json | grep -- "-rw-r--r--"
 
 cleanup

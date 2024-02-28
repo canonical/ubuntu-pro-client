@@ -103,6 +103,13 @@ class UserConfigFileObject:
             optional_type_errors_become_null=True,
         )
 
+    @property
+    def public_config(self) -> UserConfigData:
+        public_config = self._public.read()
+        if public_config is None:
+            public_config = UserConfigData()
+        return public_config
+
     def redact_config_data(
         self, user_config: UserConfigData
     ) -> UserConfigData:
@@ -111,7 +118,7 @@ class UserConfigFileObject:
             value = getattr(redacted_data, field)
             if value:
                 parsed_url = urlparse(value)
-                if parsed_url.username and parsed_url.password:
+                if parsed_url.username or parsed_url.password:
                     setattr(
                         redacted_data,
                         field,
@@ -119,14 +126,15 @@ class UserConfigFileObject:
                     )
         return redacted_data
 
-    def read(self) -> Optional[UserConfigData]:
-        try:
-            if util.we_are_currently_root():
-                return self._private.read()
-            return self._public.read()
-        except Exception as e:
-            LOG.warning("Error reading user config", exc_info=e)
-            return None
+    def read(self) -> UserConfigData:
+        if util.we_are_currently_root():
+            private_config = self._private.read()
+            if private_config is not None:
+                return private_config
+        public_config = self._public.read()
+        if public_config is not None:
+            return public_config
+        return UserConfigData()
 
     def write(self, content: UserConfigData):
         self._private.write(content)

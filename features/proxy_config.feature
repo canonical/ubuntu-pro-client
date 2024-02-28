@@ -216,118 +216,41 @@ Feature: Proxy configuration
       """
       No proxy set in config; however, proxy is configured for: snap, livepatch.
       See https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/configure_proxies.html for more information on pro proxy configuration.
-      
-      Examples: ubuntu release
+
+      Successfully processed your pro configuration.
+      """
+    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+      """
+      {
+        "http_proxy": "invalidurl",
+        "https_proxy": "invalidurls"
+      }
+      """
+    And I apt install `python3-pycurl`
+    And I verify that running `pro refresh config` `with sudo` exits `1`
+    Then stderr matches regexp:
+      """
+      \"invalidurl\" is not a valid url. Not setting as proxy.
+      """
+    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+      """
+      {
+        "https_proxy": "https://localhost:12345"
+      }
+      """
+    And I verify that running `pro refresh config` `with sudo` exits `1`
+    Then stderr matches regexp:
+      """
+      \"https://localhost:12345\" is not working. Not setting as proxy.
+      """
+
+    Examples: ubuntu release
       | release | machine_type |
       | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
 
-    @slow
-    Scenario Outline: Attach and config show command when authenticated proxy is configured for uaclient
-        Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-        Given a `focal` `lxd-container` machine named `proxy`
-        When I apt install `squid apache2-utils` on the `proxy` machine
-        And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
-        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-        """
-        dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-        """
-        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-        And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-        Then stdout matches regexp:
-        """
-        Setting snap proxy
-        """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT api.snapcraft.io.*
-        """
-        When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-        Then stdout matches regexp:
-        """
-        Setting snap proxy
-        """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*HEAD http://api.snapcraft.io.*
-        """
-        When I attach `contract_token` with sudo
-        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT contracts.canonical.com.*
-        """
-        When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        When I run `pro config set ua_apt_http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-        Then stdout matches regexp:
-        """
-        Setting UA-scoped APT proxy
-        """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*HEAD http://archive.ubuntu.com.*
-        """
-        When I run `pro config set ua_apt_https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-        Then stdout matches regexp:
-        """
-        Setting UA-scoped APT proxy
-        """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        .*CONNECT esm.ubuntu.com.*
-        """
-        When I run `pro refresh config` with sudo
-        And I apt update
-        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
-        """
-        CONNECT esm.ubuntu.com:443
-        """
-        Then stdout does not match regexp:
-        """
-        .*GET.*ubuntu.com/ubuntu/dists.*
-        """
-        Then stdout does not match regexp:
-        """
-        .*GET.*archive.ubuntu.com.*
-        """
-        Then stdout does not match regexp:
-        """
-        .*GET.*security.ubuntu.com.*
-        """
-        And I verify that running `pro config set ua_apt_https_proxy=http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128` `with sudo` exits `1`
-        Then stderr matches regexp:
-        """
-        \"http://wronguser:wrongpassword@.*:3128\" is not working. Not setting as proxy.
-        """
-        When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-        When I run `pro config show` with sudo
-        Then stdout matches regexp:
-        """
-        http_proxy              http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
-        """
-        When I run `pro config show` as non-root
-        Then stdout matches regexp:
-        """
-        http_proxy              <REDACTED>
-        """
-
-        Examples: ubuntu release
-           | release | machine_type  |
-           | xenial  | lxd-container |
-           | bionic  | lxd-container |
-           | focal   | lxd-container |
-           | jammy   | lxd-container |
-
   @slow
-  Scenario Outline: Attach command when authenticated proxy is configured for uaclient
+  Scenario Outline: Attach and config show command when authenticated proxy is configured for uaclient
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     Given a `focal` `lxd-container` machine named `proxy`
     When I apt install `squid apache2-utils` on the `proxy` machine
@@ -410,6 +333,23 @@ Feature: Proxy configuration
     Then stderr matches regexp:
       """
       \"http://wronguser:wrongpassword@.*:3128\" is not working. Not setting as proxy.
+      """
+    When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
+    When I run `pro config show` with sudo
+    Then stdout matches regexp:
+      """
+      http_proxy              http://someuser:somepassword@$behave_var{machine-ip proxy}:3128
+      """
+    When I run `pro config show` as non-root
+    Then stdout matches regexp:
+      """
+      http_proxy              <REDACTED>
+      """
+    When I run `pro status --all` as non-root
+    And I run `cat /var/lib/ubuntu-advantage/status.json` with sudo
+    Then stdout matches regexp:
+      """
+      \"http_proxy\": \"<REDACTED>\"
       """
 
     Examples: ubuntu release
