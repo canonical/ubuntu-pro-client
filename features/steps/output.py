@@ -71,13 +71,14 @@ def compare_regexp(expected_regex, actual_output):
         )
 
 
-def process_api_data(context, api_key=None):
+def process_api_data(context, api_key=None, escape=True):
     json_data = json.loads(context.process.stdout.strip())
-    context.text = context.text.replace("[", "\\[")
-    context.text = context.text.replace("]", "\\]")
-    context.text = context.text.replace("(", "\\(")
-    context.text = context.text.replace(")", "\\)")
-    context.text = context.text.replace("\\n", "\\\\n")
+    if escape:
+        context.text = context.text.replace("[", "\\[")
+        context.text = context.text.replace("]", "\\]")
+        context.text = context.text.replace("(", "\\(")
+        context.text = context.text.replace(")", "\\)")
+        context.text = context.text.replace("\\n", "\\\\n")
 
     if api_key is None:
         return json.dumps(json_data, indent=2)
@@ -97,6 +98,18 @@ def then_api_data_output_matches_regexp(context):
     content = process_api_data(context, api_key="data")
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
+
+
+@then("API data field output is")
+def then_api_data_output_is(context):
+    content = process_api_data(context, api_key="data", escape=False)
+    text = process_template_vars(context, context.text)
+    if not text == content:
+        raise AssertionError(
+            "Expected to find exactly:\n{}\nBut got:\n{}".format(
+                textwrap.indent(text, "  "), textwrap.indent(content, "  ")
+            )
+        )
 
 
 @then("API errors field output matches regexp")
