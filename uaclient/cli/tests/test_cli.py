@@ -388,7 +388,7 @@ class TestMain:
         exc = excinfo.value
         assert 1 == exc.code
         assert [
-            mock.call(info_msg=expected_error_msg, file_type=mock.ANY)
+            mock.call(info_msg=expected_error_msg.msg, file_type=mock.ANY)
         ] == m_event_info.call_args_list
         assert [mock.call(expected_log)] == m_log_exception.call_args_list
 
