@@ -1488,7 +1488,7 @@ def main_error_handler(func):
                 info_msg=messages.UNEXPECTED_ERROR.format(
                     error_msg=str(e),
                     log_path=get_user_or_root_log_file_path(),
-                ),
+                ).msg,
                 file_type=sys.stderr,
             )
             event.error(
