@@ -1934,10 +1934,6 @@ LANDSCAPE_SERVICE_NOT_ACTIVE = NamedMessage(
         "landscape-client is either not installed or installed but disabled."
     ),
 )
-LANDSCAPE_CONFIG_FAILED = NamedMessage(
-    "landscape-config-failed",
-    t.gettext("""landscape-config command failed"""),
-)
 
 INVALID_SECURITY_ISSUE = FormattedNamedMessage(
     "invalid-security-issue",
@@ -2593,4 +2589,9 @@ E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE = FormattedNamedMessage(
         " - APT url: {apt_url}\n - Suite: {suite}\n"
         "These directives need to be unique for every entitlement."
     ),
+)
+
+E_LANDSCAPE_CONFIG_FAILED = NamedMessage(
+    "landscape-config-failed",
+    t.gettext("landscape-config command failed"),
 )

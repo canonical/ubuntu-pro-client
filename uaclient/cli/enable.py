@@ -90,7 +90,10 @@ def action_enable(args, *, cfg, **kwargs):
         except exceptions.UbuntuProError as e:
             event.info(e.msg)
             event.error(
-                error_msg=e.msg, error_code=e.msg_code, service=ent_name
+                error_msg=e.msg,
+                error_code=e.msg_code,
+                service=ent_name,
+                additional_info=e.additional_info,
             )
             ret = False
 
