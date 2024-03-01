@@ -18,8 +18,8 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
     And I run `pro status --format yaml` with sudo
     Then stdout matches regexp:
       """
-      name: fips-updates
-      status: enabled
+      \s*name: fips-updates
+      \s*status: enabled
       """
     When I reboot the machine
     When I take a snapshot of the machine
@@ -37,15 +37,15 @@ Feature: Creating golden images based on Cloud Ubuntu Pro instances
     When I run `pro status --format yaml` `with sudo` on the `clone` machine
     Then stdout matches regexp:
       """
-      name: fips-updates
-      status: enabled
+      \s*name: fips-updates
+      \s*status: enabled
       """
     When I reboot the `clone` machine
     When I run `pro status --format yaml` `with sudo` on the `clone` machine
     Then stdout matches regexp:
       """
-      name: fips-updates
-      status: enabled
+      \s*name: fips-updates
+      \s*status: enabled
       """
 
     Examples: ubuntu release
