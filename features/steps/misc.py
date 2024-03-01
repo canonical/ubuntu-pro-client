@@ -27,7 +27,7 @@ expect -exact "$ $command"
 
 @when("I append the following on uaclient config")
 def when_i_append_to_uaclient_config(context):
-    cmd = "printf '{}\n' > /tmp/uaclient.conf".format(context.text)
+    cmd = "printf '\n{}\n' > /tmp/uaclient.conf".format(context.text)
     cmd = 'sh -c "{}"'.format(cmd)
     when_i_run_command(context, cmd, "as non-root")
 
