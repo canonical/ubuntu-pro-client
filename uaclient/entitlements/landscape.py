@@ -30,19 +30,13 @@ class LandscapeEntitlement(UAEntitlement):
         try:
             system.subp(cmd, pipe_stdouterr=self.assume_yes)
         except exceptions.ProcessExecutionError as e:
+            LOG.exception(e)
             if self.assume_yes:
-                err_msg = messages.LANDSCAPE_CONFIG_FAILED
-                event.error(
-                    err_msg.msg,
-                    err_msg.name,
-                    service=self.name,
-                    additional_info={
-                        "stdout": e.stdout.strip(),
-                        "stderr": e.stderr.strip(),
-                    },
-                )
                 event.info(e.stderr.strip())
                 event.info(messages.ENABLE_FAILED.format(title=self.title))
+                raise exceptions.LandscapeConfigFailed(
+                    stdout=e.stdout.strip(), stderr=e.stderr.strip()
+                )
             return False
 
         if self.assume_yes:

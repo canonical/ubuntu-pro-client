@@ -54,6 +54,7 @@ Feature: Enable landscape on Ubuntu
       Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       Invalid account name or registration key.
       Could not enable Landscape.
+      landscape-config command failed
       """
     # This will become obsolete soon: #2864
     When I run `pro status` with sudo

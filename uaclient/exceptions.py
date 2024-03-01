@@ -378,6 +378,10 @@ class EntitlementsAPTDirectivesAreNotUnique(UbuntuProError):
     _formatted_msg = messages.E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE
 
 
+class LandscapeConfigFailed(UbuntuProError):
+    _msg = messages.E_LANDSCAPE_CONFIG_FAILED
+
+
 ###############################################################################
 #                              CLOUD PRO                                      #
 ###############################################################################
