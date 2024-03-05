@@ -255,12 +255,9 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
 
     for resource in resources:
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=resource.get("name", "")
-            )
+            ent = entitlement_factory(cfg=cfg, name=resource.get("name", ""))
         except exceptions.EntitlementNotFoundError:
             continue
-        ent = ent_cls(cfg)
         response["services"].append(
             _attached_service_status(ent, inapplicable_resources, cfg)
         )
@@ -288,9 +285,7 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
         else:
             available = UserFacingAvailability.UNAVAILABLE.value
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=resource.get("name", "")
-            )
+            ent = entitlement_factory(cfg=cfg, name=resource.get("name", ""))
 
         except exceptions.EntitlementNotFoundError:
             LOG.debug(
@@ -303,19 +298,18 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
         # FIXME: we need a better generic unattached availability status
         # that takes into account local information.
         if (
-            ent_cls.name == "livepatch"
+            ent.name == "livepatch"
             and livepatch.on_supported_kernel()
             == livepatch.LivepatchSupport.UNSUPPORTED
         ):
-            lp = ent_cls(cfg)
-            descr_override = lp.status_description_override()
+            descr_override = ent.status_description_override()
         else:
             descr_override = None
 
         response["services"].append(
             {
                 "name": resource.get("presentedAs", resource["name"]),
-                "description": ent_cls.description,
+                "description": ent.description,
                 "description_override": descr_override,
                 "available": available,
             }
@@ -340,7 +334,7 @@ def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
     for resource in new_response.get("services", {}):
         resource_name = resource["name"]
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=resource_name)
+            ent = entitlement_factory(cfg=cfg, name=resource_name)
         except exceptions.EntitlementNotFoundError:
             """
             Here we cannot know the status of a service,
@@ -352,7 +346,7 @@ def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
             continue
 
         enabled_status = UserFacingStatus.ACTIVE.value
-        if not ent_cls.is_beta or resource.get("status", "") == enabled_status:
+        if not ent.is_beta or resource.get("status", "") == enabled_status:
             released_resources.append(resource)
 
     if released_resources:
@@ -534,10 +528,9 @@ def simulate_status(
     for resource in resources:
         entitlement_name = resource.get("name", "")
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=entitlement_name)
+            ent = entitlement_factory(cfg=cfg, name=entitlement_name)
         except exceptions.EntitlementNotFoundError:
             continue
-        ent = ent_cls(cfg=cfg)
         entitlement_information = _get_entitlement_information(
             entitlements, entitlement_name
         )

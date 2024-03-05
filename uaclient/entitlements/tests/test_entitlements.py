@@ -53,23 +53,26 @@ class TestEntitlementFactory:
     def test_entitlement_factory(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_variant = mock.MagicMock()
+        m_variant_obj = m_variant.return_value
         m_cls_1.return_value.valid_names = ["ent1", "othername"]
         m_cls_1.return_value.variants = {"variant1": m_variant}
+        m_obj_1 = m_cls_1.return_value
 
         m_cls_2 = mock.MagicMock()
         m_cls_2.return_value.valid_names = ["ent2"]
+        m_obj_2 = m_cls_2.return_value
 
         ents = {m_cls_1, m_cls_2}
         cfg = FakeConfig()
 
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
-            assert m_cls_1 == entitlements.entitlement_factory(
+            assert m_obj_1 == entitlements.entitlement_factory(
                 cfg=cfg, name="othername"
             )
-            assert m_cls_2 == entitlements.entitlement_factory(
+            assert m_obj_2 == entitlements.entitlement_factory(
                 cfg=cfg, name="ent2"
             )
-            assert m_variant == entitlements.entitlement_factory(
+            assert m_variant_obj == entitlements.entitlement_factory(
                 cfg=cfg, name="ent1", variant="variant1"
             )
         with pytest.raises(exceptions.EntitlementNotFoundError):

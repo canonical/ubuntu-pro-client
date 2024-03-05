@@ -598,14 +598,18 @@ def process_entitlement_delta(
             .get("use_selector", "")
         )
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=name, variant=variant)
+            entitlement = entitlement_factory(
+                cfg=cfg,
+                name=name,
+                variant=variant,
+                assume_yes=allow_enable,
+            )
         except exceptions.EntitlementNotFoundError as exc:
             LOG.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             raise exc
 
-        entitlement = ent_cls(cfg=cfg, assume_yes=allow_enable)
         ret = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
