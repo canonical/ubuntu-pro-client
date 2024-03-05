@@ -81,4 +81,5 @@ SSL_CERTS_PATH = "/etc/ssl/certs/ca-certificates.crt"
 # used by apport, collect-logs, and tests
 APPARMOR_PROFILES = [
     "/etc/apparmor.d/ubuntu_pro_apt_news",
+    "/etc/apparmor.d/ubuntu_pro_esm_cache",
 ]
