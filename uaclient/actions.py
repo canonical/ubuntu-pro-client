@@ -192,6 +192,7 @@ def _write_apparmor_logs_to_file(filename: str) -> None:
     """
     # can't use journalctl's --grep, because xenial doesn't support it :/
     cmd = ["journalctl", "-b", "-k", "--since=1 day ago"]
+    # all profiles are prefixed with "ubuntu_pro_"
     apparmor_re = r"apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)"
     kernel_logs = None
     try:
