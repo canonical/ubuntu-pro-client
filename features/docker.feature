@@ -31,7 +31,7 @@ Feature: Build docker images with pro services
             && apt-get install -y <test_package_name> \
 
             # If you need ca-certificates, remove it from this line
-            && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
+            && apt-get purge --auto-remove -y ubuntu-advantage-tools ubuntu-pro-client ca-certificates \
 
             && rm -rf /var/lib/apt/lists/*
         """
