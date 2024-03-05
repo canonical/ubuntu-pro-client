@@ -230,14 +230,12 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=name, variant=variant
-    )
-    entitlement = ent_cls(
-        cfg,
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=name,
+        variant=variant,
         assume_yes=assume_yes,
         allow_beta=allow_beta,
-        called_name=name,
         access_only=access_only,
         extra_args=extra_args,
     )

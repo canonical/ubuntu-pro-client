@@ -1297,8 +1297,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         m_attach_with_token.side_effect = fake_attach
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             service_status,
             "",
@@ -1311,7 +1310,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         with mock.patch(
             "uaclient.cli.fix.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1474,8 +1473,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_enable_ent.return_value = (True, None)
         m_prompt.return_value = prompt_value
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
@@ -1488,7 +1486,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         with mock.patch(
             "uaclient.cli.fix.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1884,8 +1882,7 @@ class TestExecuteEnableStep:
             cfg=FakeConfig(),
         )
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
@@ -1902,7 +1899,7 @@ class TestExecuteEnableStep:
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
             with mock.patch(
                 "uaclient.cli.fix.entitlement_factory",
-                return_value=m_entitlement_cls,
+                return_value=m_entitlement_obj,
             ):
                 _execute_enable_step(context, step)
 
@@ -1922,8 +1919,7 @@ class TestHandleSubscriptionForRequiredService:
         ((True), (False)),
     )
     def test_handle_subscription_when_service_enabled(self, dry_run, capsys):
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -1936,7 +1932,7 @@ class TestHandleSubscriptionForRequiredService:
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
             with mock.patch(
                 "uaclient.cli.fix.entitlement_factory",
-                return_value=m_entitlement_cls,
+                return_value=m_entitlement_obj,
             ):
                 assert _handle_subscription_for_required_service(
                     service="esm-infra",

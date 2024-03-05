@@ -69,11 +69,12 @@ def _detach_in_lock(cfg: UAConfig) -> DetachResult:
     warnings = []  # type: List[ErrorWarningObject]
     for ent_name in entitlements.entitlements_disable_order(cfg):
         try:
-            ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
+            ent = entitlements.entitlement_factory(
+                cfg=cfg, name=ent_name, assume_yes=True
+            )
         except exceptions.EntitlementNotFoundError:
             continue
 
-        ent = ent_cls(cfg=cfg, assume_yes=True)
         # For detach, we should not consider that a service
         # cannot be disabled because of dependent services,
         # since we are going to disable all of them anyway

@@ -62,9 +62,14 @@ def _disable(
     if not _is_attached(cfg).is_attached:
         raise exceptions.UnattachedError()
 
-    enabled_services_before = _enabled_services_names(cfg)
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=options.service,
+        assume_yes=True,
+        purge=options.purge,
+    )
 
-    ent_cls = entitlements.entitlement_factory(cfg=cfg, name=options.service)
+    enabled_services_before = _enabled_services_names(cfg)
 
     # Do this after getting the class so that the factory can raise an
     # exception for invalid service names
@@ -74,12 +79,6 @@ def _disable(
             disabled=[],
         )
 
-    entitlement = ent_cls(
-        cfg,
-        assume_yes=True,
-        called_name=options.service,
-        purge=options.purge,
-    )
     variant = entitlement.enabled_variant
     if variant is not None:
         entitlement = variant

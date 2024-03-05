@@ -96,14 +96,12 @@ def _enable(
             messages=[],
         )
 
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=options.service, variant=options.variant or ""
-    )
-    entitlement = ent_cls(
-        cfg,
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=options.service,
+        variant=options.variant or "",
         assume_yes=True,
         allow_beta=True,
-        called_name=options.service,
         access_only=options.access_only,
     )
 

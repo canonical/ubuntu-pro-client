@@ -25,7 +25,7 @@ def entitlement_cls_mock_factory(can_disable, name=None):
     if name:
         type(m_instance).name = mock.PropertyMock(return_value=name)
 
-    return mock.Mock(return_value=m_instance)
+    return m_instance
 
 
 @mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
@@ -197,10 +197,10 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_prompt.return_value = prompt_response
-        disabled_cls = entitlement_cls_mock_factory(True, name="test")
 
         m_disable_order.return_value = ["test"]
-        m_ent_factory.return_value = disabled_cls
+        m_ent = entitlement_cls_mock_factory(True, name="test")
+        m_ent_factory.return_value = m_ent
 
         args = mock.MagicMock(assume_yes=assume_yes)
         with mock.patch.object(lock, "lock_data_file"):
@@ -208,15 +208,13 @@ class TestActionDetach:
 
         assert [
             mock.call(ignore_dependent_services=True)
-        ] == disabled_cls.return_value.can_disable.call_args_list
+        ] == m_ent.can_disable.call_args_list
 
         if expect_disable:
-            assert [
-                mock.call(mock.ANY)
-            ] == disabled_cls.return_value.disable.call_args_list
+            assert [mock.call(mock.ANY)] == m_ent.disable.call_args_list
             assert 0 == return_code
         else:
-            assert 0 == disabled_cls.return_value.disable.call_count
+            assert 0 == m_ent.disable.call_count
             assert 1 == return_code
         assert [mock.call(assume_yes=assume_yes)] == m_prompt.call_args_list
         if expect_disable:
