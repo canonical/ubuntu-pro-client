@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import mock
 import pytest
 
-from uaclient import apt_news, messages
+from uaclient import apt, apt_news, messages
 from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
 from uaclient.clouds.identity import NoCloudTypeReason
 
@@ -14,14 +14,33 @@ NOW = datetime.now(timezone.utc)
 
 class TestAptNews:
     @pytest.mark.parametrize(
-        ["selectors", "series", "cloud_type", "attached", "expected"],
+        [
+            "selectors",
+            "series",
+            "cloud_type",
+            "attached",
+            "architecture",
+            "packages",
+            "expected",
+        ],
         [
             (
                 apt_news.AptNewsMessageSelectors(),
                 "xenial",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
+                None,
+                None,
                 True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(codenames=["bionic"]),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                None,
+                False,
             ),
             (
                 apt_news.AptNewsMessageSelectors(
@@ -30,14 +49,9 @@ class TestAptNews:
                 "xenial",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
+                None,
+                None,
                 True,
-            ),
-            (
-                apt_news.AptNewsMessageSelectors(codenames=["bionic"]),
-                "xenial",
-                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
-                False,
-                False,
             ),
             (
                 apt_news.AptNewsMessageSelectors(
@@ -46,6 +60,8 @@ class TestAptNews:
                 "xenial",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
+                None,
+                None,
                 False,
             ),
             (
@@ -55,24 +71,8 @@ class TestAptNews:
                 "xenial",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 True,
-                True,
-            ),
-            (
-                apt_news.AptNewsMessageSelectors(
-                    codenames=["bionic"], pro=False
-                ),
-                "xenial",
-                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
-                False,
-                False,
-            ),
-            (
-                apt_news.AptNewsMessageSelectors(
-                    codenames=["bionic"], pro=False
-                ),
-                "bionic",
-                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
-                False,
+                None,
+                None,
                 True,
             ),
             (
@@ -84,6 +84,8 @@ class TestAptNews:
                 "bionic",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
+                None,
+                None,
                 False,
             ),
             (
@@ -95,17 +97,124 @@ class TestAptNews:
                 "bionic",
                 (None, NoCloudTypeReason.CLOUD_ID_ERROR),
                 False,
+                None,
+                None,
                 False,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, architectures=["amd64"]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                "amd64",
+                None,
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, architectures=["arm64"]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                "amd64",
+                None,
+                False,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, packages=[["not-desktop", "==", "1.0.0"]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="1.0.0", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, packages=[["not-desktop", "=="]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="1.0.0", arch=""
+                    ),
+                ],
+                False,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, packages=[["not-desktop", "==", "1.0.0"]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="1.0.1", arch=""
+                    ),
+                ],
+                False,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, packages=[["not-desktop", ">", "1.0.0"]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="1.0.1", arch=""
+                    ),
+                ],
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=False, packages=[["not-desktop", "<", "1.0.0"]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                False,
+                None,
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="0.0.1", arch=""
+                    ),
+                ],
+                True,
             ),
             (
                 apt_news.AptNewsMessageSelectors(
                     codenames=["bionic"],
                     pro=False,
                     clouds=["gce"],
+                    architectures=["amd64"],
+                    packages=[["not-desktop", ">", "1.0.0"]],
                 ),
                 "bionic",
                 ("aws", None),
                 False,
+                "arm4",
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="0.0.7", arch=""
+                    ),
+                ],
                 False,
             ),
             (
@@ -113,24 +222,38 @@ class TestAptNews:
                     codenames=["bionic"],
                     pro=False,
                     clouds=["gce"],
+                    architectures=["amd64"],
+                    packages=[["not-desktop", ">", "1.0.0"]],
                 ),
                 "bionic",
                 ("gce", None),
                 False,
+                "amd64",
+                [
+                    apt.InstalledAptPackage(
+                        name="not-desktop", version="1.0.1", arch=""
+                    ),
+                ],
                 True,
             ),
         ],
     )
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch(M_PATH + "system.get_release_info")
+    @mock.patch(M_PATH + "system.get_dpkg_arch")
+    @mock.patch(M_PATH + "get_installed_packages")
     def test_do_selectors_apply(
         self,
+        m_installed_packages,
+        m_get_dpkg_arch,
         m_get_platform_info,
         m_get_cloud_type,
         selectors,
         series,
         cloud_type,
         attached,
+        architecture,
+        packages,
         expected,
         FakeConfig,
     ):
@@ -140,6 +263,8 @@ class TestAptNews:
             cfg = FakeConfig()
         m_get_platform_info.return_value = mock.MagicMock(series=series)
         m_get_cloud_type.return_value = cloud_type
+        m_get_dpkg_arch.return_value = architecture
+        m_installed_packages.return_value = packages
         assert expected == apt_news.do_selectors_apply(cfg, selectors)
 
     @pytest.mark.parametrize(
