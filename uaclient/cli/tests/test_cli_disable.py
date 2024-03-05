@@ -98,7 +98,6 @@ class TestDisable:
         event,
         FakeConfig,
     ):
-        entitlements_cls = []
         entitlements_obj = []
         ent_dict = {}
         m_valid_services.return_value = []
@@ -112,21 +111,18 @@ class TestDisable:
             fail = None
 
         for entitlement_name in service:
-            m_entitlement_cls = mock.Mock()
-
-            m_entitlement = m_entitlement_cls.return_value
+            m_entitlement = mock.MagicMock()
             m_entitlement.enabled_variant = None
             m_entitlement.disable.return_value = (disable_return, fail)
 
             entitlements_obj.append(m_entitlement)
-            entitlements_cls.append(m_entitlement_cls)
             m_valid_services.return_value.append(entitlement_name)
-            ent_dict[entitlement_name] = m_entitlement_cls
             type(m_entitlement).name = mock.PropertyMock(
                 return_value=entitlement_name
             )
+            ent_dict[entitlement_name] = m_entitlement
 
-        def factory_side_effect(cfg, name, ent_dict=ent_dict):
+        def factory_side_effect(cfg, name, **kwargs):
             return ent_dict.get(name)
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -140,11 +136,6 @@ class TestDisable:
         with mock.patch.object(lock, "lock_data_file"):
             ret = action_disable(args_mock, cfg=cfg)
 
-        for m_entitlement_cls in entitlements_cls:
-            assert [
-                mock.call(cfg, assume_yes=assume_yes, purge=False)
-            ] == m_entitlement_cls.call_args_list
-
         expected_disable_call = mock.call()
         for m_entitlement in entitlements_obj:
             assert [
@@ -152,7 +143,7 @@ class TestDisable:
             ] == m_entitlement.disable.call_args_list
 
         assert return_code == ret
-        assert len(entitlements_cls) == m_status.call_count
+        assert len(entitlements_obj) == m_status.call_count
         assert 1 == m_update_activity_token.call_count
 
         cfg = FakeConfig.for_attached_machine()
@@ -210,8 +201,7 @@ class TestDisable:
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
         num_calls = 2
 
-        m_ent1_cls = mock.Mock()
-        m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enabled_variant = None
         m_ent1_obj.disable.return_value = (
             False,
@@ -222,8 +212,7 @@ class TestDisable:
         )
         type(m_ent1_obj).name = mock.PropertyMock(return_value="ent1")
 
-        m_ent2_cls = mock.Mock()
-        m_ent2_obj = m_ent2_cls.return_value
+        m_ent2_obj = mock.MagicMock()
         m_ent2_obj.enabled_variant = None
         m_ent2_obj.disable.return_value = (
             False,
@@ -234,17 +223,17 @@ class TestDisable:
         )
         type(m_ent2_obj).name = mock.PropertyMock(return_value="ent2")
 
-        m_ent3_cls = mock.Mock()
+        m_ent3_cls = mock.MagicMock()
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enabled_variant = None
         m_ent3_obj.disable.return_value = (True, None)
         type(m_ent3_obj).name = mock.PropertyMock(return_value="ent3")
 
-        def factory_side_effect(cfg, name):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -268,11 +257,6 @@ class TestDisable:
             ).msg
             == err.value.msg
         )
-
-        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
-            assert [
-                mock.call(cfg, assume_yes=assume_yes, purge=False)
-            ] == m_ent_cls.call_args_list
 
         expected_disable_call = mock.call()
         for m_ent in [m_ent2_obj, m_ent3_obj]:
