@@ -201,11 +201,12 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     for ent_name in entitlements.order_entitlements_for_enabling(
         cfg, entitlements_found
     ):
-        ent = entitlements.entitlement_factory(cfg, ent_name, variant=variant)(
-            cfg,
+        ent = entitlements.entitlement_factory(
+            cfg=cfg,
+            name=ent_name,
+            variant=variant,
             assume_yes=args.assume_yes,
             allow_beta=args.beta,
-            called_name=ent_name,
             access_only=access_only,
             extra_args=kwargs.get("extra_args"),
         )

@@ -528,8 +528,7 @@ def _handle_subscription_for_required_service(
     """
     Verify if the Ubuntu Pro subscription has the required service enabled.
     """
-    ent_cls = entitlement_factory(cfg=cfg, name=service)
-    ent = ent_cls(cfg)
+    ent = entitlement_factory(cfg=cfg, name=service)
     if ent:
         ent_status, _ = ent.user_facing_status()
 

@@ -102,8 +102,12 @@ def action_disable(args, *, cfg, **kwargs):
 
     ret = True
     for ent_name in entitlements_found:
-        ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
-        ent = ent_cls(cfg, assume_yes=args.assume_yes, purge=args.purge)
+        ent = entitlements.entitlement_factory(
+            cfg=cfg,
+            name=ent_name,
+            assume_yes=args.assume_yes,
+            purge=args.purge,
+        )
 
         variant = ent.enabled_variant
         if variant is not None:

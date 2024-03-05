@@ -203,9 +203,8 @@ class TestCLIParser:
         m_all = mock.PropertyMock(return_value=True)
         type(m_args).all = m_all
 
-        m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(return_value="Test")
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         type(m_entitlement_obj).help_info = m_ent_help_info
 
         m_attached.return_value = mock.MagicMock(is_attached=False)
@@ -217,7 +216,7 @@ class TestCLIParser:
         fake_stdout = io.StringIO()
         with mock.patch(
             "uaclient.status.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)
@@ -253,13 +252,12 @@ class TestCLIParser:
         m_all = mock.PropertyMock(return_value=True)
         type(m_args).all = m_all
 
-        m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(
             return_value="Test service\nService is being tested"
         )
         m_is_beta = mock.PropertyMock(return_value=is_beta)
-        type(m_entitlement_cls).is_beta = m_is_beta
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
+        type(m_entitlement_obj).is_beta = m_is_beta
         type(m_entitlement_obj).help_info = m_ent_help_info
 
         m_entitlement_obj.contract_status.return_value = ent_status
@@ -300,7 +298,7 @@ class TestCLIParser:
         fake_stdout = io.StringIO()
         with mock.patch(
             "uaclient.status.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)

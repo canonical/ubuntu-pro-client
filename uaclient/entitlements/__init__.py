@@ -37,25 +37,54 @@ ENTITLEMENT_CLASSES = [
 ]  # type: List[Type[UAEntitlement]]
 
 
-def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
-    """Returns a UAEntitlement class based on the provided name.
+def entitlement_factory(
+    cfg: UAConfig,
+    name: str,
+    variant: str = "",
+    assume_yes: bool = False,
+    allow_beta: bool = False,
+    purge: bool = False,
+    access_only: bool = False,
+    extra_args: Optional[List[str]] = None,
+):
+    """Returns a UAEntitlement object based on the provided name.
 
     The return type is Optional[Type[UAEntitlement]].
     It cannot be explicit because of the Python version on Xenial (3.5.2).
     :param cfg: UAConfig instance
     :param name: The name of the entitlement to return
-    :param not_found_okay: If True and no entitlement with the given name is
-        found, then returns None.
+    :param  variant: The variant name to be used
+    :param assume_yes: Assume a yes answer to any prompts requested.
+    :param allow_beta: If True, allow beta services to be used
+    :param purge: If purge operation is enabled
+    :param access_only: If entitlement should be set with access only
+    :param extra_args: Extra parameters to create the entitlement
+
     :raise EntitlementNotFoundError: If not_found_okay is False and no
         entitlement with the given name is found, then raises this error.
     """
     for entitlement in ENTITLEMENT_CLASSES:
-        ent = entitlement(cfg=cfg)
+        ent = entitlement(
+            cfg,
+            assume_yes=assume_yes,
+            allow_beta=allow_beta,
+            access_only=access_only,
+            called_name=name,
+            purge=purge,
+            extra_args=extra_args,
+        )
         if name in ent.valid_names:
             if not variant:
-                return entitlement
+                return ent
             elif variant in ent.variants:
-                return ent.variants[variant]
+                return ent.variants[variant](
+                    cfg,
+                    assume_yes=assume_yes,
+                    allow_beta=allow_beta,
+                    called_name=name,
+                    purge=purge,
+                    extra_args=extra_args,
+                )
             else:
                 raise EntitlementNotFoundError(entitlement_name=variant)
     raise EntitlementNotFoundError(entitlement_name=name)
@@ -234,7 +263,7 @@ def check_entitlement_apt_directives_are_unique(
     entitlement_directives = defaultdict(list)
 
     for ent_name in valid_services(cfg):
-        ent = entitlement_factory(cfg, ent_name)(cfg)
+        ent = entitlement_factory(cfg, ent_name)
 
         if not _is_repo_entitlement(ent):
             continue
@@ -276,8 +305,6 @@ def check_entitlement_apt_directives_are_unique(
 
 def get_title(cfg: UAConfig, ent_name: str, variant=""):
     try:
-        return entitlement_factory(cfg, ent_name, variant=variant)(
-            cfg, called_name=ent_name
-        ).title
+        return entitlement_factory(cfg, ent_name, variant=variant).title
     except exceptions.UbuntuProError:
         return ent_name

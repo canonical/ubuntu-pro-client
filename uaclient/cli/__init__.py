@@ -144,21 +144,21 @@ class UAArgumentParser(argparse.ArgumentParser):
         resources = contract.get_available_resources(config.UAConfig())
         for resource in resources:
             try:
-                ent_cls = entitlements.entitlement_factory(
+                ent = entitlements.entitlement_factory(
                     cfg=cfg, name=resource["name"]
                 )
             except exceptions.EntitlementNotFoundError:
                 continue
             # Because we don't know the presentation name if unattached
             presentation_name = resource.get("presentedAs", resource["name"])
-            if ent_cls.help_doc_url:
-                url = " ({})".format(ent_cls.help_doc_url)
+            if ent.help_doc_url:
+                url = " ({})".format(ent.help_doc_url)
             else:
                 url = ""
             service_info = textwrap.fill(
                 service_info_tmpl.format(
                     name=presentation_name,
-                    description=ent_cls.description,
+                    description=ent.description,
                     url=url,
                 ),
                 width=PRINT_WRAP_WIDTH,
@@ -166,7 +166,7 @@ class UAArgumentParser(argparse.ArgumentParser):
                 break_long_words=False,
                 break_on_hyphens=False,
             )
-            if ent_cls.is_beta:
+            if ent.is_beta:
                 beta_services_desc.append(service_info)
             else:
                 non_beta_services_desc.append(service_info)
@@ -816,11 +816,14 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     to_disable = []
     for ent_name in entitlements_disable_order(cfg):
         try:
-            ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
+            ent = entitlements.entitlement_factory(
+                cfg=cfg,
+                name=ent_name,
+                assume_yes=assume_yes,
+            )
         except exceptions.EntitlementNotFoundError:
             continue
 
-        ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
         # For detach, we should not consider that a service
         # cannot be disabled because of dependent services,
         # since we are going to disable all of them anyway

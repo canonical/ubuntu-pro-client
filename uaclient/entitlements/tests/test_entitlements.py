@@ -54,23 +54,26 @@ class TestEntitlementFactory:
     def test_entitlement_factory(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_variant = mock.MagicMock()
+        m_variant_obj = m_variant.return_value
         m_cls_1.return_value.valid_names = ["ent1", "othername"]
         m_cls_1.return_value.variants = {"variant1": m_variant}
+        m_obj_1 = m_cls_1.return_value
 
         m_cls_2 = mock.MagicMock()
         m_cls_2.return_value.valid_names = ["ent2"]
+        m_obj_2 = m_cls_2.return_value
 
         ents = {m_cls_1, m_cls_2}
         cfg = FakeConfig()
 
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
-            assert m_cls_1 == entitlements.entitlement_factory(
+            assert m_obj_1 == entitlements.entitlement_factory(
                 cfg=cfg, name="othername"
             )
-            assert m_cls_2 == entitlements.entitlement_factory(
+            assert m_obj_2 == entitlements.entitlement_factory(
                 cfg=cfg, name="ent2"
             )
-            assert m_variant == entitlements.entitlement_factory(
+            assert m_variant_obj == entitlements.entitlement_factory(
                 cfg=cfg, name="ent1", variant="variant1"
             )
         with pytest.raises(exceptions.EntitlementNotFoundError):
@@ -357,23 +360,19 @@ class TestCheckEntitlementAPTDefinitionsAreUnique:
     ):
         m_valid_services.return_value = ["ent1", "ent2"]
 
-        m_ent1 = mock.MagicMock()
         m_ent1_obj = mock.MagicMock()
         m_ent1_obj.applicability_status.return_value = applicability_status1
         type(m_ent1_obj).apt_url = apt_url1
         type(m_ent1_obj).apt_suites = suite1
         type(m_ent1_obj).repo_policy_check_tmpl = "{}/ubuntu {}"
-        m_ent1.return_value = m_ent1_obj
 
-        m_ent2 = mock.MagicMock()
         m_ent2_obj = mock.MagicMock()
         m_ent2_obj.applicability_status.return_value = applicability_status2
         type(m_ent2_obj).apt_url = apt_url2
         type(m_ent2_obj).apt_suites = suite2
         type(m_ent2_obj).repo_policy_check_tmpl = "{}/ubuntu {}"
-        m_ent2.return_value = m_ent2_obj
 
-        m_ent_factory.side_effect = [m_ent1, m_ent2]
+        m_ent_factory.side_effect = [m_ent1_obj, m_ent2_obj]
 
         if expected is True:
             assert entitlements.check_entitlement_apt_directives_are_unique(

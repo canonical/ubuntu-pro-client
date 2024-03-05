@@ -612,14 +612,18 @@ def process_entitlement_delta(
             .get("use_selector", "")
         )
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=name, variant=variant)
+            entitlement = entitlement_factory(
+                cfg=cfg,
+                name=name,
+                variant=variant,
+                assume_yes=allow_enable,
+            )
         except exceptions.EntitlementNotFoundError as exc:
             LOG.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             raise exc
 
-        entitlement = ent_cls(cfg=cfg, assume_yes=allow_enable)
         ret = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
@@ -841,13 +845,10 @@ def get_enabled_by_default_services(
         variant = ent_value.get("obligations", {}).get("use_selector", "")
 
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=ent_name, variant=variant
-            )
+            ent = entitlement_factory(cfg=cfg, name=ent_name, variant=variant)
         except exceptions.EntitlementNotFoundError:
             continue
 
-        ent = ent_cls(cfg)
         obligations = ent_value.get("entitlement", {}).get("obligations", {})
         resourceToken = ent_value.get("resourceToken")
 

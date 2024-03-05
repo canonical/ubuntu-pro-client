@@ -491,14 +491,13 @@ class TestActionEnable:
     ):
         """assume-yes parameter is passed to entitlement instantiation."""
 
-        m_entitlement_cls = mock.MagicMock()
-        m_valid_services.return_value = ["testitlement"]
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_valid_services.return_value = ["test"]
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        args.service = ["testitlement"]
+        args.service = ["test"]
         args.assume_yes = assume_yes
         args.beta = False
         args.access_only = False
@@ -506,21 +505,22 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ):
+            return_value=m_entitlement_obj,
+        ) as m_ent_factory:
             with mock.patch.object(lock, "lock_data_file"):
                 action_enable(args, cfg)
 
         assert [
             mock.call(
-                cfg,
+                cfg=cfg,
+                name="test",
+                variant="",
                 assume_yes=assume_yes,
                 allow_beta=False,
-                called_name="testitlement",
                 access_only=False,
                 extra_args=None,
-            ),
-        ] == m_entitlement_cls.call_args_list
+            )
+        ] == m_ent_factory.call_args_list
 
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
@@ -542,38 +542,31 @@ class TestActionEnable:
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.MagicMock()
-        m_ent1_obj = m_ent1_cls.return_value
-        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enable.return_value = (False, None)
         m_ent1_obj._check_for_reboot.return_value = False
 
-        m_ent2_cls = mock.MagicMock()
-        m_ent2_cls.name = "ent2"
+        m_ent2_obj = mock.MagicMock(title="Ent2")
+        m_ent2_obj.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls).is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
-        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
-        m_ent2_obj._check_for_reboot.return_value = False
+        type(m_ent2_obj).is_beta = m_ent2_is_beta
         m_ent2_obj.enable.return_value = (
             False,
             CanEnableFailure(CanEnableFailureReason.IS_BETA),
         )
 
-        m_ent3_cls = mock.MagicMock()
-        m_ent3_cls.name = "ent3"
+        m_ent3_obj = mock.MagicMock(title="Ent3")
+        m_ent3_obj.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls).is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
-        type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
+        type(m_ent3_obj).is_beta = m_ent3_is_beta
         m_ent3_obj.enable.return_value = (True, None)
         m_ent3_obj._check_for_reboot.return_value = False
 
-        def factory_side_effect(cfg, name, variant=""):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -612,18 +605,6 @@ class TestActionEnable:
         assert (
             expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
         )
-
-        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=False,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                ),
-            ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call(mock.ANY)
         for m_ent in [m_ent2_obj, m_ent3_obj]:
@@ -684,30 +665,29 @@ class TestActionEnable:
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.MagicMock()
-        m_ent1_obj = m_ent1_cls.return_value
-        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enable.return_value = (False, None)
         m_ent1_obj._check_for_reboot.return_value = False
+        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent2")
 
-        m_ent2_cls = mock.MagicMock()
-        m_ent2_cls.name = "ent2"
-        m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls)._is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
-        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
+        m_ent2_obj = mock.MagicMock(messaging={})
+        m_ent2_obj.name = "ent2"
         m_ent2_obj._check_for_reboot.return_value = False
+        m_ent2_is_beta = mock.PropertyMock(return_value=True)
+        type(m_ent2_obj)._is_beta = m_ent2_is_beta
+        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
+
         failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
         if beta_flag:
             m_ent2_obj.enable.return_value = (True, None)
         else:
             m_ent2_obj.enable.return_value = (False, failure_reason)
 
-        m_ent3_cls = mock.MagicMock()
-        m_ent3_cls.name = "ent3"
+        m_ent3_obj = mock.Mock(messaging={})
+        m_ent3_obj.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls)._is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
+        m_ent3_obj._check_for_reboot.return_value = False
+        type(m_ent3_obj)._is_beta = m_ent3_is_beta
         type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
         m_ent3_obj.enable.return_value = (True, None)
         m_ent3_obj._check_for_reboot.return_value = False
@@ -721,11 +701,11 @@ class TestActionEnable:
         args_mock.beta = beta_flag
         args_mock.variant = ""
 
-        def factory_side_effect(cfg, name, variant=""):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -750,7 +730,6 @@ class TestActionEnable:
                 "Ent3 enabled\n"
             )
         not_found_name = "ent1"
-        mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
 
         service_names = entitlements.valid_services(cfg, allow_beta=beta_flag)
@@ -758,7 +737,6 @@ class TestActionEnable:
         if not beta_flag:
             not_found_name += ", ent2"
         else:
-            mock_ent_list.append(m_ent2_cls)
             mock_obj_list.append(m_ent3_obj)
         service_msg = "\n".join(
             textwrap.wrap(
@@ -782,18 +760,6 @@ class TestActionEnable:
         assert (
             expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
         )
-
-        for m_ent_cls in mock_ent_list:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=beta_flag,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                ),
-            ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call(mock.ANY)
         for m_ent in mock_obj_list:
@@ -852,10 +818,8 @@ class TestActionEnable:
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.MagicMock()
-        type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
-        m_entitlement_obj = m_entitlement_cls.return_value
-        type(m_entitlement_obj).title = mock.PropertyMock(return_value="Title")
+        m_entitlement_obj = mock.Mock(title="Title")
+        type(m_entitlement_obj).is_beta = mock.PropertyMock(return_value=False)
         m_entitlement_obj.enable.return_value = (
             False,
             CanEnableFailure(
@@ -873,7 +837,7 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
@@ -892,7 +856,7 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
@@ -1017,8 +981,7 @@ class TestActionEnable:
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.enable.return_value = (True, None)
         m_entitlement_obj._check_for_reboot.return_value = False
 
@@ -1028,45 +991,37 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = True
         args_mock.beta = allow_beta
-        args_mock.service = ["testitlement"]
+        args_mock.service = ["test"]
         args_mock.variant = ""
         args_mock.format = "json"
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
+            return_value=["test"],
         ):
             with mock.patch.object(lock, "lock_data_file"):
                 ret = action_enable(args_mock, cfg=cfg)
 
-        assert [
-            mock.call(
-                cfg,
-                assume_yes=True,
-                allow_beta=allow_beta,
-                called_name="testitlement",
-                access_only=False,
-                extra_args=None,
-            ),
-        ] == m_entitlement_cls.call_args_list
-
-        m_entitlement = m_entitlement_cls.return_value
         expected_enable_call = mock.call(mock.ANY)
         expected_ret = 0
-        assert [expected_enable_call] == m_entitlement.enable.call_args_list
+        assert [
+            expected_enable_call
+        ] == m_entitlement_obj.enable.call_args_list
         assert expected_ret == ret
         assert 1 == m_status.call_count
         assert 1 == m_update_activity_token.call_count
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
+            return_value=["test"],
+        ), mock.patch.object(
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(lock, "lock_data_file"):
                 fake_stdout = io.StringIO()
@@ -1079,7 +1034,7 @@ class TestActionEnable:
             "errors": [],
             "failed_services": [],
             "needs_reboot": False,
-            "processed_services": ["testitlement"],
+            "processed_services": ["test"],
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
