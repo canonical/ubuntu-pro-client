@@ -6,7 +6,7 @@ from typing import NamedTuple
 from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
 
-from features.steps.packages import when_i_apt_update
+from features.steps.packages import when_i_apt_install, when_i_apt_update
 from features.steps.shell import when_i_run_command
 from features.steps.ubuntu_advantage_tools import when_i_install_uat
 from features.util import (
@@ -109,6 +109,23 @@ def given_a_machine(
 
     # make sure the machine has up-to-date apt data
     when_i_apt_update(context, machine_name=machine_name)
+
+    # add coverage
+    when_i_apt_install(context, "python3-coverage", machine_name=machine_name)
+
+    # Create the .coveragerc file in the lxd container
+    if hasattr(context, "machines") and SUT in context.machines:
+        context.machines[SUT].instance.execute(
+            [
+                "bash",
+                "-c",
+                "echo -e '[run]\nrelative_files = True\n\n[paths]\nsource = \
+                    \n\tuaclient/ \
+                    \n\tusr/lib/python3/dist-packages/uaclient/' > \
+                    /usr/lib/python3/dist-packages/uaclient/.coveragerc",
+            ],
+            use_sudo=True,
+        )
 
     if cleanup:
 
