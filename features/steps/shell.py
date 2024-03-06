@@ -64,7 +64,18 @@ def when_i_run_command(
 ):
     command = process_template_vars(context, command)
     prefix = get_command_prefix_for_user_spec(user_spec)
-    full_cmd = prefix + shlex.split(command)
+    if "pro" in command.split():
+        command = command.replace(
+            "pro",
+            "python3 -m coverage run \
+                --rcfile=/usr/lib/python3/dist-packages/uaclient/.coveragerc \
+                --source=/usr/lib/python3/dist-packages/uaclient /usr/bin/pro",
+            1,
+        )
+
+    split_command = shlex.split(command)
+    print(split_command)
+    full_cmd = prefix + split_command
 
     if stdin is not None:
         stdin = stdin.replace("\\n", "\n")
