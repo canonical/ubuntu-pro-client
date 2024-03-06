@@ -64,4 +64,4 @@ Feature: Upgrade between releases when uaclient is unattached
         | bionic  | lxd-container | focal        | lts    |                 | enabled        |
         | focal   | lxd-container | jammy        | lts    |                 | enabled        |
         | jammy   | lxd-container | mantic       | normal |                 | n/a            |
-        | mantic  | lxd-container | noble        | normal | --devel-release | n/a            |
+        | mantic  | lxd-container | noble        | normal | --devel-release | enabled        |
