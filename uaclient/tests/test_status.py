@@ -417,6 +417,7 @@ class TestStatus:
         uf_status,
         features_override,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         """Test we get the correct status dict when attached with basic conf"""
         resource_names = [resource["name"] for resource in avail_res]
@@ -490,11 +491,13 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=token,
-        )
+        cfg = FakeConfig()
         if features_override:
             cfg.override_features(features_override)
+
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
 
         expected_services = [
             {
@@ -604,13 +607,15 @@ class TestStatus:
         _m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         m_we_are_currently_root.return_value = True
-        root_cfg = FakeConfig.for_attached_machine()
-        root_status = status.status(cfg=root_cfg)
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        cfg = FakeConfig()
+        root_status = status.status(cfg=cfg)
         m_we_are_currently_root.return_value = False
-        normal_cfg = FakeConfig.for_attached_machine()
-        normal_status = status.status(cfg=normal_cfg)
+        normal_status = status.status(cfg=cfg)
         assert normal_status == root_status
 
     @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
@@ -673,6 +678,7 @@ class TestStatus:
         show_all,
         variants_in_contract,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         """When attached, return contract and service user-facing status."""
         m_repo_contract_status.return_value = ContractStatus.ENTITLED
@@ -718,10 +724,12 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+
+        cfg = FakeConfig()
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
+
         mock_notice = NoticesManager()
         if features_override:
             cfg.override_features(features_override)
@@ -876,6 +884,7 @@ class TestStatus:
         m_on_supported_kernel,
         all_resources_available,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         m_we_are_currently_root.return_value = True
         token = {
@@ -897,10 +906,10 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
 
         # Test that root's status works as expected (including the cache write)
         expected_dt = datetime.datetime(
@@ -911,10 +920,7 @@ class TestStatus:
         # Test that the read from the status cache work properly for non-root
         # users
         m_we_are_currently_root.return_value = False
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
     @mock.patch(
@@ -1050,9 +1056,11 @@ class TestAttachedServiceStatus:
         expected_blocked_by,
         tmpdir,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         cfg = FakeConfig()
         ent = ConcreteTestEntitlement(
+            machine_token_file=get_fake_machine_token_file,
             cfg=cfg,
             blocking_incompatible_services=blocking_incompatible_services,
         )

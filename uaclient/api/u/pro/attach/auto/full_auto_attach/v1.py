@@ -10,6 +10,7 @@ from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.entitlements import order_entitlements_for_enabling
 from uaclient.entitlements.entitlement_status import CanEnableFailure
+from uaclient.files.machine_token import get_machine_token_file
 
 event = event_logger.get_event_logger()
 
@@ -94,10 +95,11 @@ def _full_auto_attach_in_lock(
     mode: event_logger.EventLoggerMode,
 ) -> FullAutoAttachResult:
     event.set_event_mode(mode)
+    machine_token_file = get_machine_token_file(cfg)
 
     if _is_attached(cfg).is_attached:
         raise exceptions.AlreadyAttachedError(
-            account_name=cfg.machine_token_file.account.get("name", "")
+            account_name=machine_token_file.account.get("name", "")
         )
 
     if util.is_config_value_true(

@@ -14,10 +14,10 @@ from uaclient import contract, defaults, messages, system, util
 from uaclient.api.u.pro.packages.updates.v1 import (
     _updates as api_u_pro_packages_updates_v1,
 )
+from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
-from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.files.machine_token import get_machine_token_file
 
 MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
@@ -27,7 +27,8 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def update_contract_expiry(cfg: UAConfig):
-    orig_token = cfg.machine_token
+    machine_token_file = get_machine_token_file(cfg)
+    orig_token = machine_token_file.machine_token
     machine_token = orig_token.get("machineToken", "")
     contract_id = (
         orig_token.get("machineTokenInfo", {})
@@ -43,12 +44,12 @@ def update_contract_expiry(cfg: UAConfig):
     )
     if (
         resp_expiry is not None
-        and resp_expiry != cfg.machine_token_file.contract_expiry_datetime
+        and resp_expiry != machine_token_file.contract_expiry_datetime
     ):
         orig_token["machineTokenInfo"]["contractInfo"][
             "effectiveTo"
         ] = resp_expiry
-        cfg.machine_token_file.write(orig_token)
+        machine_token_file.write(orig_token)
 
 
 def update_motd_messages(cfg: UAConfig) -> bool:
@@ -66,6 +67,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         cfg.data_dir, "messages", MOTD_CONTRACT_STATUS_FILE_NAME
     )
 
+    machine_token_file = get_machine_token_file(cfg)
     expiry_status, remaining_days = contract.get_contract_expiry_status(cfg)
     if expiry_status in (
         contract.ContractExpiryStatus.ACTIVE_EXPIRED_SOON,
@@ -94,7 +96,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
-        exp_dt = cfg.machine_token_file.contract_expiry_datetime
+        exp_dt = machine_token_file.contract_expiry_datetime
         if exp_dt is None:
             exp_dt_str = "Unknown"
         else:
@@ -113,17 +115,20 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         service = "n/a"
         pkg_num = 0
 
+        enabled_services = _enabled_services(cfg).enabled_services
         if system.is_current_series_active_esm():
-            esm_infra_status, _ = ESMInfraEntitlement(cfg).application_status()
-            if esm_infra_status == ApplicationStatus.ENABLED:
-                service = "esm-infra"
+            service = "esm-infra"
+            if any(
+                ent.name for ent in enabled_services if ent.name == service
+            ):
                 pkg_num = api_u_pro_packages_updates_v1(
                     cfg
                 ).summary.num_esm_infra_updates
         elif system.is_current_series_lts():
-            esm_apps_status, _ = ESMAppsEntitlement(cfg).application_status()
-            if esm_apps_status == ApplicationStatus.ENABLED:
-                service = "esm-apps"
+            service = "esm-apps"
+            if any(
+                ent.name for ent in enabled_services if ent.name == service
+            ):
                 pkg_num = api_u_pro_packages_updates_v1(
                     cfg
                 ).summary.num_esm_apps_updates

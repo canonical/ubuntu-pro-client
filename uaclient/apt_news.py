@@ -22,6 +22,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
+from uaclient.files.machine_token import get_machine_token_file
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -179,6 +180,7 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
     :return: str if local news, None otherwise
     """
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
+    machine_token_file = get_machine_token_file(cfg)
 
     if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
         return messages.CONTRACT_EXPIRES_SOON.pluralize(remaining_days).format(
@@ -189,7 +191,7 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
         grace_period_remaining = (
             defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
         )
-        exp_dt = cfg.machine_token_file.contract_expiry_datetime
+        exp_dt = machine_token_file.contract_expiry_datetime
         if exp_dt is None:
             exp_dt_str = "Unknown"
         else:

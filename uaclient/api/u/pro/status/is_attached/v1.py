@@ -2,6 +2,7 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
 from uaclient.data_types import BoolDataValue, DataObject, Field
+from uaclient.files import machine_token
 
 
 class IsAttachedResult(DataObject, AdditionalInfo):
@@ -18,7 +19,8 @@ def is_attached() -> IsAttachedResult:
 
 
 def _is_attached(cfg: UAConfig) -> IsAttachedResult:
-    return IsAttachedResult(is_attached=bool(cfg.machine_token))
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    return IsAttachedResult(is_attached=bool(machine_token_file.machine_token))
 
 
 endpoint = APIEndpoint(

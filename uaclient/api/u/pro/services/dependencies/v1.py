@@ -67,7 +67,7 @@ def dependencies() -> DependenciesResult:
 def _dependencies(cfg: UAConfig) -> DependenciesResult:
     services = []
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls(cfg)
+        ent = entitlements.entitlement_factory(cfg, name=ent_cls.name)
         incompatible_with = []
         depends_on = []
         for ent_with_reason in ent.incompatible_services:

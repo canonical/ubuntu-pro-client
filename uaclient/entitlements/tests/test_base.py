@@ -27,6 +27,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def __init__(
         self,
+        machine_token_file=None,
         cfg=None,
         disable=None,
         enable=None,
@@ -46,6 +47,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         **kwargs
     ):
         super().__init__(
+            machine_token_file,
             cfg,
             allow_beta=allow_beta,
             assume_yes=assume_yes,
