@@ -6,6 +6,8 @@ from uaclient import defaults, exceptions, system, util
 from uaclient.contract_data_types import PublicMachineTokenData
 from uaclient.files.files import UAFile
 
+_machine_token_file = None
+
 
 class MachineTokenFile:
     def __init__(
@@ -98,6 +100,17 @@ class MachineTokenFile:
             self._machine_token = content
         return self._machine_token
 
+    @property
+    def contract_name(self) -> Optional[str]:
+        if self.machine_token:
+            return (
+                self.machine_token.get("machineTokenInfo", {})
+                .get("contractInfo", {})
+                .get("name")
+            )
+
+        return None
+
     def parse_machine_token_overlay(self, machine_token_overlay_path):
         machine_token_overlay_content = system.load_file(
             machine_token_overlay_path
@@ -108,25 +121,26 @@ class MachineTokenFile:
         )
 
     @property
-    def account(self) -> Optional[dict]:
+    def account(self) -> Dict[str, Any]:
         if bool(self.machine_token):
             return self.machine_token["machineTokenInfo"]["accountInfo"]
-        return None
+        return {}
 
-    @property
-    def entitlements(self):
+    def entitlements(self, series: Optional[str] = None):
         """Return configured entitlements keyed by entitlement named"""
         if self._entitlements:
             return self._entitlements
         if not self.machine_token:
             return {}
         self._entitlements = self.get_entitlements_from_token(
-            self.machine_token
+            self.machine_token, series
         )
         return self._entitlements
 
     @staticmethod
-    def get_entitlements_from_token(machine_token: Dict):
+    def get_entitlements_from_token(
+        machine_token: Dict[str, Any], series: Optional[str] = None
+    ):
         """Return a dictionary of entitlements keyed by entitlement name.
 
         Return an empty dict if no entitlements are present.
@@ -157,14 +171,14 @@ class MachineTokenFile:
                 entitlement_cfg["resourceToken"] = tokens_by_name[
                     entitlement_name
                 ]
-            apply_contract_overrides(entitlement_cfg)
+            apply_contract_overrides(entitlement_cfg, series=series)
             entitlements[entitlement_name] = entitlement_cfg
         return entitlements
 
     @property
     def contract_expiry_datetime(self) -> Optional[datetime]:
         """Return a datetime of the attached contract expiration."""
-        if not self._contract_expiry_datetime:
+        if not self._contract_expiry_datetime and self.is_attached:
             self._contract_expiry_datetime = (
                 self.machine_token.get("machineTokenInfo", {})
                 .get("contractInfo", {})
@@ -229,3 +243,22 @@ class MachineTokenFile:
             return self.machine_token.get("resourceTokens", [])
 
         return None
+
+
+def get_machine_token_file(cfg=None) -> MachineTokenFile:
+    from uaclient.config import UAConfig
+
+    global _machine_token_file
+
+    if not _machine_token_file:
+        if not cfg:
+            cfg = UAConfig()
+
+        _machine_token_file = MachineTokenFile(
+            directory=cfg.data_dir,
+            machine_token_overlay_path=cfg.features.get(
+                "machine_token_overlay"
+            ),
+        )
+
+    return _machine_token_file

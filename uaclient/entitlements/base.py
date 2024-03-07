@@ -29,9 +29,9 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
+from uaclient.files.machine_token import MachineTokenFile
 from uaclient.files.state_files import status_cache_file
 from uaclient.types import MessagingOperationsDict, StaticAffordance
-from uaclient.util import is_config_value_true
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -116,7 +116,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """The user-facing name shown for this entitlement"""
         if self.is_variant:
             return self.variant_name
-        elif self.cfg.machine_token_file.is_present:
+        elif self.machine_token_file.is_present:
             return (
                 self.entitlement_cfg.get("entitlement", {})
                 .get("affordances", {})
@@ -259,6 +259,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if variant_cls.variant_name == "generic":
                 continue
             variant = variant_cls(
+                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 assume_yes=self.assume_yes,
                 allow_beta=self.allow_beta,
@@ -278,6 +279,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def __init__(
         self,
+        machine_token_file: MachineTokenFile,
         cfg: Optional[config.UAConfig] = None,
         assume_yes: bool = False,
         allow_beta: bool = False,
@@ -293,6 +295,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not cfg:
             cfg = config.UAConfig()
         self.cfg = cfg
+        self.machine_token_file = machine_token_file
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
         self.access_only = access_only
@@ -309,17 +312,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def valid_service(self):
         """Check if the service is marked as valid (non-beta)"""
         if self._valid_service is None:
-            self._valid_service = (
-                not self.is_beta
-                or self.allow_beta
-                or is_config_value_true(self.cfg.cfg, "features.allow_beta")
-            )
+            self._valid_service = not self.is_beta or self.allow_beta
 
         return self._valid_service
 
     def _base_entitlement_cfg(self):
         return copy.deepcopy(
-            self.cfg.machine_token_file.entitlements.get(self.name, {})
+            self.machine_token_file.entitlements().get(self.name, {})
         )
 
     @property
@@ -369,7 +368,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             total_steps += 1
         for incompatible_service in self.blocking_incompatible_services():
             total_steps += incompatible_service.entitlement(
-                self.cfg
+                self.machine_token_file,
+                self.cfg,
             ).disable_steps()
         for required_service in self.blocking_required_services():
             total_steps += required_service.entitlement(
@@ -380,7 +380,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def calculate_total_disable_steps(self) -> int:
         total_steps = self.disable_steps()
         for dependent_service in self.blocking_dependent_services():
-            total_steps += dependent_service(self.cfg).disable_steps()
+            total_steps += dependent_service(
+                self.machine_token_file, self.cfg
+            ).disable_steps()
         return total_steps
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
@@ -708,7 +710,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         ret = []
         for service in self.incompatible_services:
-            ent_status, _ = service.entitlement(self.cfg).application_status()
+            ent_status, _ = service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+            ).application_status()
             if ent_status in (
                 ApplicationStatus.ENABLED,
                 ApplicationStatus.WARNING,
@@ -750,7 +755,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             path_to_value="features.block_disable_on_enable",
         )
         for service in self.blocking_incompatible_services():
-            ent = service.entitlement(self.cfg, assume_yes=True)
+            ent = service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                assume_yes=True,
+            )
 
             e_msg = messages.E_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
                 service_being_enabled=self.title,
@@ -789,7 +798,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         ret = []
         for service in self.required_services:
-            ent_status, _ = service.entitlement(self.cfg).application_status()
+            ent_status, _ = service.entitlement(
+                self.machine_token_file, self.cfg
+            ).application_status()
             if ent_status not in (
                 ApplicationStatus.ENABLED,
                 ApplicationStatus.WARNING,
@@ -809,7 +820,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if the required service should be enabled before proceeding.
         """
         for required_service in self.blocking_required_services():
-            ent = required_service.entitlement(self.cfg, allow_beta=True)
+            ent = required_service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                allow_beta=True,
+            )
             progress.emit(
                 "info",
                 messages.ENABLING_REQUIRED_SERVICE.format(service=ent.title),
@@ -963,7 +978,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         blocking = []
         for dependent_service_cls in self.dependent_services:
             ent_status, _ = dependent_service_cls(
-                self.cfg
+                self.machine_token_file, self.cfg
             ).application_status()
             if ent_status == ApplicationStatus.ENABLED:
                 blocking.append(dependent_service_cls)
@@ -985,8 +1000,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         @param silent: Boolean set True to silence print/log of messages
         """
         for dependent_service_cls in self.blocking_dependent_services():
-            ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
-
+            ent = dependent_service_cls(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                assume_yes=True,
+            )
             progress.emit(
                 "info",
                 messages.DISABLING_DEPENDENT_SERVICE.format(

@@ -83,7 +83,7 @@ def machine_access(
 
 
 @pytest.fixture
-def entitlement_factory(tmpdir, FakeConfig):
+def entitlement_factory(tmpdir, FakeConfig, get_fake_machine_token_file):
     """
     A pytest fixture that returns a function that instantiates an entitlement
 
@@ -123,7 +123,9 @@ def entitlement_factory(tmpdir, FakeConfig):
             if cfg_features is not None:
                 cfg_arg["features"] = cfg_features
             cfg = FakeConfig(cfg_overrides=cfg_arg)
-            cfg.machine_token_file.write(
+            machine_token_file = get_fake_machine_token_file
+            machine_token_file.attached = True
+            machine_token_file.token = (
                 machine_token(
                     cls.name,
                     affordances=affordances,
@@ -148,7 +150,7 @@ def entitlement_factory(tmpdir, FakeConfig):
         if extra_args:
             args = {**args, **extra_args}
 
-        return cls(cfg, **args)
+        return cls(machine_token_file, cfg, **args)
 
     return factory_func
 

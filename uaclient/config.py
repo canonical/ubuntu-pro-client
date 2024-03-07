@@ -8,7 +8,6 @@ from uaclient import (
     apt,
     event_logger,
     exceptions,
-    files,
     http,
     messages,
     snap,
@@ -114,18 +113,6 @@ class UAConfig:
             )
 
         self.series = series
-        self._machine_token_file = (
-            None
-        )  # type: Optional[files.MachineTokenFile]
-
-    @property
-    def machine_token_file(self):
-        if not self._machine_token_file:
-            self._machine_token_file = files.MachineTokenFile(
-                self.data_dir,
-                self.features.get("machine_token_overlay"),
-            )
-        return self._machine_token_file
 
     @property
     def contract_url(self) -> str:
@@ -331,11 +318,6 @@ class UAConfig:
                 )
         return {}
 
-    @property
-    def machine_token(self):
-        """Return the machine-token if cached in the machine token response."""
-        return self.machine_token_file.machine_token
-
     def process_config(self):
         for prop in (
             "update_messaging_timer",
@@ -408,13 +390,16 @@ class UAConfig:
                 services_with_proxies.append("snap")
 
         from uaclient import livepatch
-        from uaclient.entitlements.entitlement_status import ApplicationStatus
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
+        from uaclient.api.u.pro.status.enabled_services.v1 import (
+            _enabled_services,
+        )
 
-        livepatch_ent = LivepatchEntitlement(self)
-        livepatch_status, _ = livepatch_ent.application_status()
+        enabled_services = _enabled_services(self).enabled_services
+        livepatch_enabled = any(
+            ent for ent in enabled_services if ent.name == "livepatch"
+        )
 
-        if livepatch_status == ApplicationStatus.ENABLED:
+        if livepatch_enabled:
             livepatch.configure_livepatch_proxy(
                 self.http_proxy, self.https_proxy
             )

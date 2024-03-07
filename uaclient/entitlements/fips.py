@@ -478,7 +478,10 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         static_affordances = super().static_affordances
 
-        fips_updates = FIPSUpdatesEntitlement(self.cfg)
+        fips_updates = FIPSUpdatesEntitlement(
+            machine_token_file=self.machine_token_file,
+            cfg=self.cfg,
+        )
         enabled_status = ApplicationStatus.ENABLED
         is_fips_updates_enabled = bool(
             fips_updates.application_status()[0] == enabled_status

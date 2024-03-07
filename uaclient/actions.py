@@ -7,6 +7,7 @@ import re
 import shutil
 from typing import List, Optional  # noqa: F401
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     api,
     clouds,
@@ -153,18 +154,19 @@ def attach_with_token(
     from uaclient.timer.update_messaging import update_motd_messages
 
     secret_manager.secrets.add_secret(token)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
 
-    cfg.machine_token_file.write(new_machine_token)
+    machine_token_file.write(new_machine_token)
 
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
-        cfg.machine_token_file.delete()
+        machine_token_file.delete()
         raise e
 
     system.get_machine_id.cache_clear()
@@ -175,7 +177,7 @@ def attach_with_token(
 
     if allow_enable:
         services_to_be_enabled = contract.get_enabled_by_default_services(
-            cfg, cfg.machine_token_file.entitlements
+            cfg, machine_token_file.entitlements()
         )
         _enable_default_services(
             cfg=cfg,
@@ -309,7 +311,9 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlement(cfg).repo_file
+            entitlements.entitlement_factory(
+                cfg, name=entitlement.name
+            ).repo_file
             for entitlement in entitlements.ENTITLEMENT_CLASSES
             if issubclass(entitlement, entitlements.repo.RepoEntitlement)
         ),
