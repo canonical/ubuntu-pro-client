@@ -3,6 +3,7 @@ import textwrap
 from collections import defaultdict
 from typing import Dict, List, NamedTuple, Optional, Tuple, Type  # noqa: F401
 
+import uaclient.files.machine_token as machine_token
 from uaclient import exceptions
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
@@ -63,9 +64,13 @@ def entitlement_factory(
     :raise EntitlementNotFoundError: If not_found_okay is False and no
         entitlement with the given name is found, then raises this error.
     """
+    allow_beta = allow_beta or cfg.features.get("allow_beta")
+
     for entitlement in ENTITLEMENT_CLASSES:
+        machine_token_file = machine_token.get_machine_token_file()
         ent = entitlement(
-            cfg,
+            cfg=cfg,
+            machine_token_file=machine_token_file,
             assume_yes=assume_yes,
             allow_beta=allow_beta,
             access_only=access_only,
@@ -78,7 +83,8 @@ def entitlement_factory(
                 return ent
             elif variant in ent.variants:
                 return ent.variants[variant](
-                    cfg,
+                    cfg=cfg,
+                    machine_token_file=machine_token_file,
                     assume_yes=assume_yes,
                     allow_beta=allow_beta,
                     called_name=name,
@@ -114,13 +120,17 @@ def valid_services(
     if all_names:
         names = []
         for entitlement in entitlements:
-            names.extend(entitlement(cfg=cfg).valid_names)
+            names.extend(
+                entitlement_factory(cfg=cfg, name=entitlement.name).valid_names
+            )
 
         return sorted(names)
 
     return sorted(
         [
-            entitlement(cfg=cfg).presentation_name
+            entitlement_factory(
+                cfg=cfg, name=entitlement.name
+            ).presentation_name
             for entitlement in entitlements
         ]
     )
@@ -173,10 +183,12 @@ def _sort_entitlements_visit(
     if ent_cls.name in visited:
         return
 
+    ent = entitlement_factory(cfg, name=ent_cls.name)
+
     if sort_order == SortOrder.REQUIRED_SERVICES:
-        cls_list = [e.entitlement for e in ent_cls(cfg).required_services]
+        cls_list = [e.entitlement for e in ent.required_services]
     else:
-        cls_list = list(ent_cls(cfg).dependent_services)
+        cls_list = list(ent.dependent_services)
 
     for cls_dependency in cls_list:
         if ent_cls.name not in visited:

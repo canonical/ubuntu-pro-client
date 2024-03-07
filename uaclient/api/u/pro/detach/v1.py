@@ -25,6 +25,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files import state_files
+from uaclient.files.machine_token import get_machine_token_file
 from uaclient.timer.update_messaging import update_motd_messages
 
 
@@ -100,7 +101,7 @@ def _detach_in_lock(cfg: UAConfig) -> DetachResult:
                 disabled.append(ent_name)
 
     state_files.delete_state_files()
-    cfg.machine_token_file.delete()
+    get_machine_token_file().delete()
     update_motd_messages(cfg)
     daemon.start()
     timer.stop()

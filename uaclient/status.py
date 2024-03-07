@@ -6,6 +6,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     event_logger,
     exceptions,
@@ -156,6 +157,7 @@ def _attached_service_status(
     contract_status = ent.contract_status()
     available = "no" if ent.name in inapplicable_resources else "yes"
     variants = {}
+    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     if contract_status == ContractStatus.UNENTITLED:
         ent_status = UserFacingStatus.UNAVAILABLE
@@ -179,7 +181,9 @@ def _attached_service_status(
             if ent.variants:
                 variants = {
                     variant_name: _attached_service_status(
-                        variant_cls(cfg=cfg),
+                        variant_cls(
+                            machine_token_file=machine_token_file, cfg=cfg
+                        ),
                         inapplicable_resources,
                         cfg,
                     )
@@ -214,7 +218,8 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
         notices.remove(Notice.CONTRACT_EXPIRED)
 
     response = copy.deepcopy(DEFAULT_STATUS)
-    machineTokenInfo = cfg.machine_token["machineTokenInfo"]
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    machineTokenInfo = machine_token_file.machine_token["machineTokenInfo"]
     contractInfo = machineTokenInfo["contractInfo"]
     tech_support_level = UserFacingStatus.INAPPLICABLE.value
     response.update(
@@ -231,23 +236,21 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
                 "tech_support_level": tech_support_level,
             },
             "account": {
-                "name": cfg.machine_token_file.account["name"],
-                "id": cfg.machine_token_file.account["id"],
-                "created_at": cfg.machine_token_file.account.get(
-                    "createdAt", ""
-                ),
-                "external_account_ids": cfg.machine_token_file.account.get(
+                "name": machine_token_file.account["name"],
+                "id": machine_token_file.account["id"],
+                "created_at": machine_token_file.account.get("createdAt", ""),
+                "external_account_ids": machine_token_file.account.get(
                     "externalAccountIDs", []
                 ),
             },
         }
     )
     if contractInfo.get("effectiveTo"):
-        response["expires"] = cfg.machine_token_file.contract_expiry_datetime
+        response["expires"] = machine_token_file.contract_expiry_datetime
     if contractInfo.get("effectiveFrom"):
         response["effective"] = contractInfo["effectiveFrom"]
 
-    resources = cfg.machine_token.get("availableResources")
+    resources = machine_token_file.machine_token.get("availableResources")
     if not resources:
         resources = get_available_resources(cfg)
 
@@ -262,13 +265,14 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
             ent = entitlement_factory(cfg=cfg, name=resource.get("name", ""))
         except exceptions.EntitlementNotFoundError:
             continue
+
         response["services"].append(
             _attached_service_status(ent, inapplicable_resources, cfg)
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
-    support = cfg.machine_token_file.entitlements.get("support", {}).get(
-        "entitlement"
+    support = (
+        machine_token_file.entitlements().get("support", {}).get("entitlement")
     )
     if support:
         supportLevel = support.get("affordances", {}).get("supportLevel")

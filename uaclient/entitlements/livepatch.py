@@ -61,7 +61,9 @@ class LivepatchEntitlement(UAEntitlement):
         # Use a lambda so we can mock system.is_container in tests
         from uaclient.entitlements.fips import FIPSEntitlement
 
-        fips_ent = FIPSEntitlement(self.cfg)
+        fips_ent = FIPSEntitlement(
+            machine_token_file=self.machine_token_file, cfg=self.cfg
+        )
 
         is_fips_enabled = bool(
             fips_ent.application_status()[0] == ApplicationStatus.ENABLED
@@ -173,9 +175,7 @@ class LivepatchEntitlement(UAEntitlement):
         """
         progress.progress(messages.SETTING_UP_LIVEPATCH)
 
-        entitlement_cfg = self.cfg.machine_token_file.entitlements.get(
-            self.name
-        )
+        entitlement_cfg = self.machine_token_file.entitlements().get(self.name)
         if process_directives:
             try:
                 process_config_directives(entitlement_cfg)
@@ -196,7 +196,9 @@ class LivepatchEntitlement(UAEntitlement):
                     " %s credentials",
                     self.title,
                 )
-                livepatch_token = self.cfg.machine_token["machineToken"]
+                livepatch_token = self.machine_token_file.machine_token[
+                    "machineToken"
+                ]
             application_status, _details = self.application_status()
             if application_status != ApplicationStatus.DISABLED:
                 LOG.info("Disabling livepatch before re-enabling")
