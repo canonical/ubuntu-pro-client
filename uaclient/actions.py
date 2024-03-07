@@ -7,6 +7,7 @@ import re
 import shutil
 from typing import List, Optional  # noqa: F401
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     clouds,
     config,
@@ -64,18 +65,20 @@ def attach_with_token(
     )
     from uaclient.timer.update_messaging import update_motd_messages
 
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    machine_token_file.entitlements()
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
 
-    cfg.machine_token_file.write(new_machine_token)
+    machine_token_file.write(new_machine_token)
 
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
-        cfg.machine_token_file.delete()
+        machine_token_file.delete()
         raise e
 
     system.get_machine_id.cache_clear()
@@ -91,7 +94,7 @@ def attach_with_token(
             # we load from the file here instead of using the response
             # so that we get any machine_token_overlay present during testing
             # TODO: decide if there is a better way to do this
-            cfg.machine_token_file.entitlements,
+            machine_token_file.entitlements(),
             allow_enable,
         )
     except (exceptions.ConnectivityError, exceptions.UbuntuProError) as exc:
@@ -224,7 +227,9 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlement(cfg).repo_file
+            entitlements.entitlement_factory(
+                cfg, name=entitlement.name
+            ).repo_file
             for entitlement in entitlements.ENTITLEMENT_CLASSES
             if issubclass(entitlement, entitlements.repo.RepoEntitlement)
         ),

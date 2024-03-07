@@ -22,6 +22,7 @@ from uaclient.defaults import (
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
     CONTRACT_EXPIRY_PENDING_DAYS,
 )
+from uaclient.files.machine_token import get_machine_token_file
 from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
@@ -71,6 +72,13 @@ class ContractExpiryStatus(enum.Enum):
 
 class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = "contract_url"
+
+    def __init__(
+        self,
+        cfg: Optional[UAConfig] = None,
+    ) -> None:
+        super().__init__(cfg=cfg)
+        self.machine_token_file = get_machine_token_file()
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def add_contract_machine(
@@ -213,8 +221,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         This will report to the contracts backend all the current
         enabled services in the system.
         """
-        contract_id = self.cfg.machine_token_file.contract_id
-        machine_token = self.cfg.machine_token.get("machineToken")
+        contract_id = self.machine_token_file.contract_id
+        machine_token = self.machine_token_file.machine_token.get(
+            "machineToken"
+        )
         machine_id = system.get_machine_id(self.cfg)
 
         request_data = self._get_activity_info()
@@ -235,7 +245,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         # a full `activityInfo` object which belongs at the root of
         # `machine-token.json`
         if response.json_dict:
-            machine_token = self.cfg.machine_token
+            machine_token = self.machine_token_file.machine_token
             # The activity information received as a response here
             # will not provide the information inside an activityInfo
             # structure. However, this structure will be reflected when
@@ -243,7 +253,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             # Because of that, we will store the response directly on
             # the activityInfo key
             machine_token["activityInfo"] = response.json_dict
-            self.cfg.machine_token_file.write(machine_token)
+            self.machine_token_file.write(machine_token)
 
     def get_magic_attach_token_info(self, magic_token: str) -> Dict[str, Any]:
         """Request magic attach token info.
@@ -413,9 +423,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             enabled_services = _enabled_services(self.cfg).enabled_services
             attachment_data = attachment_data_file.read()
             activity_info = {
-                "activityID": self.cfg.machine_token_file.activity_id
+                "activityID": self.machine_token_file.activity_id
                 or system.get_machine_id(self.cfg),
-                "activityToken": self.cfg.machine_token_file.activity_token,
+                "activityToken": self.machine_token_file.activity_token,
                 "resources": [service.name for service in enabled_services],
                 "resourceVariants": {
                     service.name: service.variant_name
@@ -645,26 +655,25 @@ def _raise_attach_forbidden_message(
     raise exceptions.AttachExpiredToken()
 
 
-def refresh(cfg):
+def refresh(cfg: UAConfig):
     """Request contract refresh from ua-contracts service.
-
-    :param cfg: Instance of UAConfig for this machine.
 
     :raise UbuntuProError: on failure to update contract or error processing
         contract deltas
     :raise ConnectivityError: On failure during a connection
     """
-    orig_entitlements = cfg.machine_token_file.entitlements
-    orig_token = cfg.machine_token
+    machine_token_file = get_machine_token_file(cfg)
+    orig_entitlements = machine_token_file.entitlements()
+    orig_token = machine_token_file.machine_token
     machine_token = orig_token["machineToken"]
     contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
 
-    contract_client = UAContractClient(cfg)
+    contract_client = UAContractClient(cfg=cfg)
     resp = contract_client.update_contract_machine(
         machine_token=machine_token, contract_id=contract_id
     )
 
-    cfg.machine_token_file.write(resp)
+    machine_token_file.write(resp)
     system.get_machine_id.cache_clear()
     machine_id = resp.get("machineTokenInfo", {}).get(
         "machineId", system.get_machine_id(cfg)
@@ -674,7 +683,7 @@ def refresh(cfg):
     process_entitlements_delta(
         cfg,
         orig_entitlements,
-        cfg.machine_token_file.entitlements,
+        machine_token_file.entitlements(),
         allow_enable=False,
     )
 
@@ -692,9 +701,12 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     return client.get_contract_using_token(token)
 
 
-def is_contract_changed(cfg: UAConfig) -> bool:
-    orig_token = cfg.machine_token
-    orig_entitlements = cfg.machine_token_file.entitlements
+def is_contract_changed(
+    cfg: UAConfig,
+) -> bool:
+    contract_client = UAContractClient(cfg)
+    orig_token = contract_client.machine_token_file.machine_token
+    orig_entitlements = contract_client.machine_token_file.entitlements()
     machine_token = orig_token.get("machineToken", "")
     contract_id = (
         orig_token.get("machineTokenInfo", {})
@@ -704,7 +716,6 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     if not contract_id:
         return False
 
-    contract_client = UAContractClient(cfg)
     resp = contract_client.get_contract_machine(machine_token, contract_id)
     resp_expiry = (
         resp.get("machineTokenInfo", {})
@@ -714,12 +725,17 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     new_expiry = (
         resp_expiry
         if resp_expiry
-        else cfg.machine_token_file.contract_expiry_datetime
+        else contract_client.machine_token_file.contract_expiry_datetime
     )
-    if cfg.machine_token_file.contract_expiry_datetime != new_expiry:
+    if (
+        contract_client.machine_token_file.contract_expiry_datetime
+        != new_expiry
+    ):
         return True
-    curr_entitlements = cfg.machine_token_file.get_entitlements_from_token(
-        resp
+    curr_entitlements = (
+        contract_client.machine_token_file.get_entitlements_from_token(  # noqa
+            resp
+        )
     )
     for name, new_entitlement in sorted(curr_entitlements.items()):
         deltas = util.get_dict_deltas(
@@ -827,9 +843,10 @@ def get_contract_expiry_status(
     if not _is_attached(cfg).is_attached:
         return ContractExpiryStatus.NONE, 0
 
+    machine_token_file = get_machine_token_file(cfg)
     grace_period = CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
     pending_expiry = CONTRACT_EXPIRY_PENDING_DAYS
-    remaining_days = cfg.machine_token_file.contract_remaining_days
+    remaining_days = machine_token_file.contract_remaining_days
 
     # if unknown assume the worst
     if remaining_days is None:
