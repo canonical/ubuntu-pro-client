@@ -12,7 +12,7 @@ from uaclient.data_types import (
     data_list,
 )
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
-from uaclient.files.files import UAFile, UserCacheFile
+from uaclient.files.files import ProJSONFile, UAFile, UserCacheFile
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
 
@@ -283,3 +283,24 @@ attachment_data_file = DataObjectFile(
     UAFile("attachment.json", private=False),
     DataObjectFileFormat.JSON,
 )
+
+
+status_cache_file = ProJSONFile(
+    name="status.json",
+    private=False,
+)
+
+machine_id_file = UAFile(
+    "machine-id",
+    defaults.DEFAULT_PRIVATE_DATA_DIR,
+    private=True,
+)
+
+
+def delete_state_files():
+    machine_id_file.delete()
+    status_cache_file.delete()
+    attachment_data_file.delete()
+    anbox_cloud_credentials_file.delete()
+    reboot_cmd_marker_file.delete()
+    services_once_enabled_file.delete()

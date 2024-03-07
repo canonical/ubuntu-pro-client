@@ -1,16 +1,13 @@
 import copy
-import json
 import logging
 import os
-from collections import namedtuple
 from functools import lru_cache, wraps
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from uaclient import (
     apt,
     event_logger,
     exceptions,
-    files,
     http,
     messages,
     snap,
@@ -26,10 +23,8 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
-    PRIVATE_SUBDIR,
 )
-from uaclient.files import notices, state_files
-from uaclient.files.notices import Notice
+from uaclient.files import state_files
 from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -69,21 +64,11 @@ VALID_UA_CONFIG_KEYS = (
     "livepatch_url",
 )
 
-# A data path is a filename, an attribute ("private") indicating whether it
-# should only be readable by root.
-DataPath = namedtuple("DataPath", ("filename", "private"))
 
 event = event_logger.get_event_logger()
 
 
 class UAConfig:
-    data_paths = {
-        "instance-id": DataPath("instance-id", True),
-        "machine-access-cis": DataPath("machine-access-cis.json", True),
-        "lock": DataPath("lock", False),
-        "status-cache": DataPath("status.json", False),
-    }  # type: Dict[str, DataPath]
-
     ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
     global_scoped_proxy_options = (
         "global_apt_http_proxy",
@@ -131,18 +116,6 @@ class UAConfig:
             )
 
         self.series = series
-        self._machine_token_file = (
-            None
-        )  # type: Optional[files.MachineTokenFile]
-
-    @property
-    def machine_token_file(self):
-        if not self._machine_token_file:
-            self._machine_token_file = files.MachineTokenFile(
-                self.data_dir,
-                self.features.get("machine_token_overlay"),
-            )
-        return self._machine_token_file
 
     @property
     def contract_url(self) -> str:
@@ -317,49 +290,6 @@ class UAConfig:
         self.user_config.apt_news_url = value
         state_files.user_config_file.write(self.user_config)
 
-    def check_lock_info(self) -> Tuple[int, str]:
-        """Return lock info if config lock file is present the lock is active.
-
-        If process claiming the lock is no longer present, remove the lock file
-        and log a warning.
-
-        :param lock_path: Full path to the lock file.
-
-        :return: A tuple (pid, string describing lock holder)
-            If no active lock, pid will be -1.
-        """
-        lock_path = self.data_path("lock")
-        no_lock = (-1, "")
-        if not os.path.exists(lock_path):
-            return no_lock
-        lock_content = system.load_file(lock_path)
-
-        try:
-            [lock_pid, lock_holder] = lock_content.split(":")
-        except ValueError:
-            raise exceptions.InvalidLockFile(
-                lock_file_path=os.path.join(self.data_dir, "lock")
-            )
-
-        try:
-            system.subp(["ps", lock_pid])
-            return (int(lock_pid), lock_holder)
-        except exceptions.ProcessExecutionError:
-            if not util.we_are_currently_root():
-                LOG.debug(
-                    "Found stale lock file previously held by %s:%s",
-                    lock_pid,
-                    lock_holder,
-                )
-                return (int(lock_pid), lock_holder)
-            LOG.warning(
-                "Removing stale lock file previously held by %s:%s",
-                lock_pid,
-                lock_holder,
-            )
-            system.ensure_file_absent(lock_path)
-            return no_lock
-
     @property
     def data_dir(self):
         return self.cfg.get("data_dir", DEFAULT_DATA_DIR)
@@ -390,85 +320,6 @@ class UAConfig:
                     features,
                 )
         return {}
-
-    @property
-    def machine_token(self):
-        """Return the machine-token if cached in the machine token response."""
-        return self.machine_token_file.machine_token
-
-    def data_path(self, key: Optional[str] = None) -> str:
-        """Return the file path in the data directory represented by the key"""
-        data_dir = self.data_dir
-        if not key:
-            return os.path.join(data_dir, PRIVATE_SUBDIR)
-        if key in self.data_paths:
-            data_path = self.data_paths[key]
-            if data_path.private:
-                return os.path.join(
-                    data_dir, PRIVATE_SUBDIR, data_path.filename
-                )
-            return os.path.join(data_dir, data_path.filename)
-        return os.path.join(data_dir, PRIVATE_SUBDIR, key)
-
-    def cache_key_exists(self, key: str) -> bool:
-        cache_path = self.data_path(key)
-        return os.path.exists(cache_path)
-
-    def delete_cache_key(self, key: str) -> None:
-        """Remove specific cache file."""
-        if not key:
-            raise RuntimeError(
-                "Invalid or empty key provided to delete_cache_key"
-            )
-        if key.startswith("machine-access"):
-            self._machine_token_file = None
-        elif key == "lock":
-            notices.remove(Notice.OPERATION_IN_PROGRESS)
-        cache_path = self.data_path(key)
-        system.ensure_file_absent(cache_path)
-
-    def delete_cache(self):
-        """
-        Remove configuration cached response files class attributes.
-        """
-        for path_key in self.data_paths.keys():
-            self.delete_cache_key(path_key)
-
-    def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
-        cache_path = self.data_path(key)
-        try:
-            content = system.load_file(cache_path)
-        except Exception:
-            if not os.path.exists(cache_path) and not silent:
-                LOG.debug("File does not exist: %s", cache_path)
-            return None
-        try:
-            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
-        except ValueError:
-            return content
-
-    def write_cache(self, key: str, content: Any) -> None:
-        filepath = self.data_path(key)
-        data_dir = os.path.dirname(filepath)
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir, exist_ok=True)
-            if os.path.basename(data_dir) == PRIVATE_SUBDIR:
-                os.chmod(data_dir, 0o700)
-        if key.startswith("machine-access"):
-            self._machine_token_file = None
-        elif key == "lock":
-            if ":" in content:
-                notices.add(
-                    Notice.OPERATION_IN_PROGRESS,
-                    operation=content.split(":")[1],
-                )
-        if not isinstance(content, str):
-            content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
-        mode = 0o600
-        if key in self.data_paths:
-            if not self.data_paths[key].private:
-                mode = 0o644
-        system.write_file(filepath, content, mode=mode)
 
     def process_config(self):
         for prop in (
@@ -542,13 +393,16 @@ class UAConfig:
                 services_with_proxies.append("snap")
 
         from uaclient import livepatch
-        from uaclient.entitlements.entitlement_status import ApplicationStatus
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
+        from uaclient.api.u.pro.status.enabled_services.v1 import (
+            _enabled_services,
+        )
 
-        livepatch_ent = LivepatchEntitlement(self)
-        livepatch_status, _ = livepatch_ent.application_status()
+        enabled_services = _enabled_services(self).enabled_services
+        livepatch_enabled = any(
+            ent for ent in enabled_services if ent.name == "livepatch"
+        )
 
-        if livepatch_status == ApplicationStatus.ENABLED:
+        if livepatch_enabled:
             livepatch.configure_livepatch_proxy(
                 self.http_proxy, self.https_proxy
             )

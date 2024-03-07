@@ -6,10 +6,12 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     event_logger,
     exceptions,
     livepatch,
+    lock,
     messages,
     util,
     version,
@@ -153,6 +155,7 @@ def _attached_service_status(
     contract_status = ent.contract_status()
     available = "no" if ent.name in inapplicable_resources else "yes"
     variants = {}
+    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     if contract_status == ContractStatus.UNENTITLED:
         ent_status = UserFacingStatus.UNAVAILABLE
@@ -176,7 +179,9 @@ def _attached_service_status(
             if ent.variants:
                 variants = {
                     variant_name: _attached_service_status(
-                        variant_cls(cfg=cfg),
+                        variant_cls(
+                            machine_token_file=machine_token_file, cfg=cfg
+                        ),
                         inapplicable_resources,
                         cfg,
                     )
@@ -209,7 +214,8 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
     notices.remove(Notice.AUTO_ATTACH_RETRY_TOTAL_FAILURE)
 
     response = copy.deepcopy(DEFAULT_STATUS)
-    machineTokenInfo = cfg.machine_token["machineTokenInfo"]
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    machineTokenInfo = machine_token_file.machine_token["machineTokenInfo"]
     contractInfo = machineTokenInfo["contractInfo"]
     tech_support_level = UserFacingStatus.INAPPLICABLE.value
     response.update(
@@ -226,23 +232,21 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
                 "tech_support_level": tech_support_level,
             },
             "account": {
-                "name": cfg.machine_token_file.account["name"],
-                "id": cfg.machine_token_file.account["id"],
-                "created_at": cfg.machine_token_file.account.get(
-                    "createdAt", ""
-                ),
-                "external_account_ids": cfg.machine_token_file.account.get(
+                "name": machine_token_file.account["name"],
+                "id": machine_token_file.account["id"],
+                "created_at": machine_token_file.account.get("createdAt", ""),
+                "external_account_ids": machine_token_file.account.get(
                     "externalAccountIDs", []
                 ),
             },
         }
     )
     if contractInfo.get("effectiveTo"):
-        response["expires"] = cfg.machine_token_file.contract_expiry_datetime
+        response["expires"] = machine_token_file.contract_expiry_datetime
     if contractInfo.get("effectiveFrom"):
         response["effective"] = contractInfo["effectiveFrom"]
 
-    resources = cfg.machine_token.get("availableResources")
+    resources = machine_token_file.machine_token.get("availableResources")
     if not resources:
         resources = get_available_resources(cfg)
 
@@ -254,19 +258,17 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
 
     for resource in resources:
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=resource.get("name", "")
-            )
+            ent = entitlement_factory(cfg=cfg, name=resource.get("name", ""))
         except exceptions.EntitlementNotFoundError:
             continue
-        ent = ent_cls(cfg)
+
         response["services"].append(
             _attached_service_status(ent, inapplicable_resources, cfg)
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
-    support = cfg.machine_token_file.entitlements.get("support", {}).get(
-        "entitlement"
+    support = (
+        machine_token_file.entitlements().get("support", {}).get("entitlement")
     )
     if support:
         supportLevel = support.get("affordances", {}).get("supportLevel")
@@ -287,9 +289,7 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
         else:
             available = UserFacingAvailability.UNAVAILABLE.value
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=resource.get("name", "")
-            )
+            ent = entitlement_factory(cfg=cfg, name=resource.get("name", ""))
 
         except exceptions.EntitlementNotFoundError:
             LOG.debug(
@@ -302,19 +302,18 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
         # FIXME: we need a better generic unattached availability status
         # that takes into account local information.
         if (
-            ent_cls.name == "livepatch"
+            ent.name == "livepatch"
             and livepatch.on_supported_kernel()
             == livepatch.LivepatchSupport.UNSUPPORTED
         ):
-            lp = ent_cls(cfg)
-            descr_override = lp.status_description_override()
+            descr_override = ent.status_description_override()
         else:
             descr_override = None
 
         response["services"].append(
             {
                 "name": resource.get("presentedAs", resource["name"]),
-                "description": ent_cls.description,
+                "description": ent.description,
                 "description_override": descr_override,
                 "available": available,
             }
@@ -339,7 +338,7 @@ def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
     for resource in new_response.get("services", {}):
         resource_name = resource["name"]
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=resource_name)
+            ent = entitlement_factory(cfg=cfg, name=resource_name)
         except exceptions.EntitlementNotFoundError:
             """
             Here we cannot know the status of a service,
@@ -351,7 +350,7 @@ def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
             continue
 
         enabled_status = UserFacingStatus.ACTIVE.value
-        if not ent_cls.is_beta or resource.get("status", "") == enabled_status:
+        if not ent.is_beta or resource.get("status", "") == enabled_status:
             released_resources.append(resource)
 
     if released_resources:
@@ -372,7 +371,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     userStatus = UserFacingConfigStatus
     status_val = userStatus.INACTIVE.value
     status_desc = messages.NO_ACTIVE_OPERATIONS
-    (lock_pid, lock_holder) = cfg.check_lock_info()
+    (lock_pid, lock_holder) = lock.check_lock_info()
     notices_list = notices.list() or []
     if lock_pid > 0:
         status_val = userStatus.ACTIVE.value
@@ -420,7 +419,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
     response.update(_get_config_status(cfg))
 
     if util.we_are_currently_root():
-        cfg.write_cache("status-cache", response)
+        state_files.status_cache_file.write(response)
 
     response = _handle_beta_resources(cfg, show_all, response)
 
@@ -533,10 +532,9 @@ def simulate_status(
     for resource in resources:
         entitlement_name = resource.get("name", "")
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=entitlement_name)
+            ent = entitlement_factory(cfg=cfg, name=entitlement_name)
         except exceptions.EntitlementNotFoundError:
             continue
-        ent = ent_cls(cfg=cfg)
         entitlement_information = _get_entitlement_information(
             entitlements, entitlement_name
         )

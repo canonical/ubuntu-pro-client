@@ -7,6 +7,7 @@ import re
 import shutil
 from typing import List, Optional  # noqa: F401
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     clouds,
     config,
@@ -19,7 +20,6 @@ from uaclient import log as pro_log
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
-from uaclient.clouds import identity
 from uaclient.defaults import (
     APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
@@ -29,6 +29,7 @@ from uaclient.defaults import (
 from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
+    machine_id_file,
     timer_jobs_state_file,
 )
 
@@ -64,25 +65,27 @@ def attach_with_token(
     )
     from uaclient.timer.update_messaging import update_motd_messages
 
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    machine_token_file.entitlements()
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
 
-    cfg.machine_token_file.write(new_machine_token)
+    machine_token_file.write(new_machine_token)
 
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
-        cfg.machine_token_file.delete()
+        machine_token_file.delete()
         raise e
 
     system.get_machine_id.cache_clear()
     machine_id = new_machine_token.get("machineTokenInfo", {}).get(
         "machineId", system.get_machine_id(cfg)
     )
-    cfg.write_cache("machine-id", machine_id)
+    machine_id_file.write(machine_id)
 
     try:
         contract.process_entitlements_delta(
@@ -91,7 +94,7 @@ def attach_with_token(
             # we load from the file here instead of using the response
             # so that we get any machine_token_overlay present during testing
             # TODO: decide if there is a better way to do this
-            cfg.machine_token_file.entitlements,
+            machine_token_file.entitlements(),
             allow_enable,
         )
     except (exceptions.ConnectivityError, exceptions.UbuntuProError) as exc:
@@ -101,10 +104,6 @@ def attach_with_token(
         update_motd_messages(cfg)
         contract_client.update_activity_token()
         raise exc
-
-    current_iid = identity.get_instance_id()
-    if current_iid:
-        cfg.write_cache("instance-id", current_iid)
 
     attachment_data_file.write(AttachmentData(attached_at=attached_at))
     update_motd_messages(cfg)
@@ -150,14 +149,12 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=name, variant=variant
-    )
-    entitlement = ent_cls(
-        cfg,
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=name,
+        variant=variant,
         assume_yes=assume_yes,
         allow_beta=allow_beta,
-        called_name=name,
         access_only=access_only,
         extra_args=extra_args,
     )
@@ -230,7 +227,9 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlement(cfg).repo_file
+            entitlements.entitlement_factory(
+                cfg, name=entitlement.name
+            ).repo_file
             for entitlement in entitlements.ENTITLEMENT_CLASSES
             if issubclass(entitlement, entitlements.repo.RepoEntitlement)
         ),

@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions
+from uaclient import exceptions, lock
 from uaclient.clouds.aws import UAAutoAttachAWSInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.daemon.poll_for_pro_license import (
@@ -34,10 +34,11 @@ class TestAttemptAutoAttach:
         cfg = FakeConfig()
         cloud = mock.MagicMock()
 
-        attempt_auto_attach(cfg, cloud)
+        with mock.patch.object(lock, "lock_data_file"):
+            attempt_auto_attach(cfg, cloud)
 
         assert [
-            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
+            mock.call(lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [
@@ -67,7 +68,7 @@ class TestAttemptAutoAttach:
         attempt_auto_attach(cfg, cloud)
 
         assert [
-            mock.call(cfg=cfg, lock_holder="pro.daemon.attempt_auto_attach")
+            mock.call(lock_holder="pro.daemon.attempt_auto_attach")
         ] == m_spin_lock.call_args_list
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [mock.call(err)] == m_log_error.call_args_list

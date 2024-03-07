@@ -4,7 +4,7 @@ import tempfile
 
 import yaml
 from behave import then, when
-from hamcrest import assert_that, matches_regexp
+from hamcrest import assert_that, equal_to, matches_regexp
 
 from features.steps.shell import when_i_run_command
 from features.util import SUT, process_template_vars
@@ -160,3 +160,17 @@ def when_i_move_file_from_one_machine_to_another(
     when_i_create_file_with_content(
         context, dest_path, machine_name=dest_machine, text=content
     )
+
+
+@then("I verify that `{file_path}` is world readable")
+def then_i_verify_that_file_is_world_readable(
+    context, file_path, machine_name=SUT
+):
+    when_i_run_command(
+        context,
+        "stat -c '%a' {}".format(file_path),
+        "with sudo",
+        machine_name=machine_name,
+    )
+
+    assert_that(context.process.stdout.strip(), equal_to("644"))

@@ -15,6 +15,7 @@ from apt.progress.base import AcquireProgress  # type: ignore
 
 from uaclient import event_logger, exceptions, gpg, messages, system, util
 from uaclient.defaults import ESM_APT_ROOTDIR
+from uaclient.files.state_files import status_cache_file
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -850,7 +851,7 @@ def update_esm_caches(cfg) -> None:
     apps_available = False
     infra_available = False
 
-    current_status = cfg.read_cache("status-cache")
+    current_status = status_cache_file.read()
     if current_status is None:
         current_status = status(cfg)[0]
 

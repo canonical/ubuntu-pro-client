@@ -83,6 +83,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       This machine is already attached to '.+'
       To use a different subscription first run: sudo pro detach.
       """
+    And I verify that `/var/lib/ubuntu-advantage/status.json` is world readable
 
     Examples: ubuntu release packages
       | release | machine_type  | downrev_pkg            | cc_status | cis_or_usg | cis      | fips     | livepatch_desc              |

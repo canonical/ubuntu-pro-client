@@ -168,6 +168,7 @@ class TestEnableServicesByName:
 @mock.patch("uaclient.files.notices.add")
 @mock.patch("uaclient.files.notices.remove")
 class TestFullAutoAttachV1:
+    @mock.patch("uaclient.lock.SpinLock.__enter__")
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
@@ -182,6 +183,7 @@ class TestFullAutoAttachV1:
         _cloud_instance_factory,
         m_enable_ent_by_name,
         _m_update_activity_token,
+        _m_lock_enter,
         _notice_remove,
         _notice_add,
         FakeConfig,
@@ -204,6 +206,7 @@ class TestFullAutoAttachV1:
 
         assert 5 == m_enable_ent_by_name.call_count
 
+    @mock.patch("uaclient.lock.SpinLock.__enter__")
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
@@ -219,6 +222,7 @@ class TestFullAutoAttachV1:
         _cloud_instance_factory,
         enable_ent_by_name,
         _m_update_activity_token,
+        _m_lock_enter,
         _notice_remove,
         _notice_add,
         FakeConfig,

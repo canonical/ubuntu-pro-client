@@ -28,8 +28,9 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
+from uaclient.files.machine_token import MachineTokenFile
+from uaclient.files.state_files import status_cache_file
 from uaclient.types import MessagingOperationsDict, StaticAffordance
-from uaclient.util import is_config_value_true
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -114,7 +115,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """The user-facing name shown for this entitlement"""
         if self.is_variant:
             return self.variant_name
-        elif self.cfg.machine_token_file.is_present:
+        elif self.machine_token_file.is_present:
             return (
                 self.entitlement_cfg.get("entitlement", {})
                 .get("affordances", {})
@@ -257,6 +258,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if variant_cls.variant_name == "generic":
                 continue
             variant = variant_cls(
+                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 assume_yes=self.assume_yes,
                 allow_beta=self.allow_beta,
@@ -276,6 +278,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def __init__(
         self,
+        machine_token_file: MachineTokenFile,
         cfg: Optional[config.UAConfig] = None,
         assume_yes: bool = False,
         allow_beta: bool = False,
@@ -291,6 +294,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not cfg:
             cfg = config.UAConfig()
         self.cfg = cfg
+        self.machine_token_file = machine_token_file
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
         self.access_only = access_only
@@ -307,17 +311,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def valid_service(self):
         """Check if the service is marked as valid (non-beta)"""
         if self._valid_service is None:
-            self._valid_service = (
-                not self.is_beta
-                or self.allow_beta
-                or is_config_value_true(self.cfg.cfg, "features.allow_beta")
-            )
+            self._valid_service = not self.is_beta or self.allow_beta
 
         return self._valid_service
 
     def _base_entitlement_cfg(self):
         return copy.deepcopy(
-            self.cfg.machine_token_file.entitlements.get(self.name, {})
+            self.machine_token_file.entitlements().get(self.name, {})
         )
 
     @property
@@ -651,7 +651,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         for dependent_service_cls in self.dependent_services:
             ent_status, _ = dependent_service_cls(
-                self.cfg
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
             ).application_status()
             if ent_status == ApplicationStatus.ENABLED:
                 return True
@@ -668,7 +669,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         for required_service in self.required_services:
             ent_status, _ = required_service.entitlement(
-                self.cfg
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
             ).application_status()
             if ent_status != ApplicationStatus.ENABLED:
                 return False
@@ -681,7 +683,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         ret = []
         for service in self.incompatible_services:
-            ent_status, _ = service.entitlement(self.cfg).application_status()
+            ent_status, _ = service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+            ).application_status()
             if ent_status in (
                 ApplicationStatus.ENABLED,
                 ApplicationStatus.WARNING,
@@ -722,7 +727,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             path_to_value="features.block_disable_on_enable",
         )
         for service in self.blocking_incompatible_services():
-            ent = service.entitlement(self.cfg, assume_yes=True)
+            ent = service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                assume_yes=True,
+            )
 
             user_msg = messages.INCOMPATIBLE_SERVICE.format(
                 service_being_enabled=self.title,
@@ -765,7 +774,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if the required service should be enabled before proceeding.
         """
         for required_service in self.required_services:
-            ent = required_service.entitlement(self.cfg, allow_beta=True)
+            ent = required_service.entitlement(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                allow_beta=True,
+            )
 
             is_service_disabled = (
                 ent.application_status()[0] == ApplicationStatus.DISABLED
@@ -945,7 +958,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         @param silent: Boolean set True to silence print/log of messages
         """
         for dependent_service_cls in self.dependent_services:
-            ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
+            ent = dependent_service_cls(
+                machine_token_file=self.machine_token_file,
+                cfg=self.cfg,
+                assume_yes=True,
+            )
 
             is_service_enabled = (
                 ent.application_status()[0] == ApplicationStatus.ENABLED
@@ -1195,7 +1212,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def _check_application_status_on_cache(self) -> ApplicationStatus:
         """Check on the state of application on the status cache."""
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         if status_cache is None:
             return ApplicationStatus.DISABLED
@@ -1242,7 +1259,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
         if not transition_to_unentitled:
@@ -1287,10 +1304,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                             service=self.name
                         )
                     )
-            # Clean up former entitled machine-access-<name> response cache
-            # file because uaclient doesn't access machine-access-* routes or
-            # responses on unentitled services.
-            self.cfg.delete_cache_key("machine-access-{}".format(self.name))
             return True
 
         resourceToken = orig_access.get("resourceToken")

@@ -29,13 +29,11 @@ class TestAttachWithToken:
             "allow_enable",
             "add_contract_machine_side_effect",
             "machine_id",
-            "entitlements",
             "process_entitlements_delta_side_effect",
-            "instance_id",
             "expected_add_contract_machine_call_args",
             "expected_machine_token_file_write_call_args",
             "expected_get_machine_id_call_args",
-            "expected_config_write_cache_call_args",
+            "expected_machine_id_file_call_count",
             "expected_process_entitlements_delta_call_args",
             "expected_attachment_data_file_write_call_args",
             "expected_status_call_args",
@@ -52,12 +50,10 @@ class TestAttachWithToken:
                 exceptions.ConnectivityError(cause=Exception(), url="url"),
                 None,
                 None,
-                None,
-                None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [],
                 [],
-                [],
+                0,
                 [],
                 [],
                 [],
@@ -72,14 +68,12 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 exceptions.ConnectivityError(cause=Exception(), url="url"),
-                None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                1,
+                [mock.call(mock.ANY, {}, {}, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
@@ -93,14 +87,12 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 fakes.FakeUbuntuProError(),
-                None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                1,
+                [mock.call(mock.ANY, {}, {}, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
@@ -114,14 +106,12 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
-                None,
                 None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [mock.call("machine-id", "machine-id")],
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                1,
+                [mock.call(mock.ANY, {}, {}, True)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -135,17 +125,12 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 None,
-                "id",
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [
-                    mock.call("machine-id", "machine-id"),
-                    mock.call("instance-id", "id"),
-                ],
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
+                1,
+                [mock.call(mock.ANY, {}, {}, True)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -159,17 +144,12 @@ class TestAttachWithToken:
                 False,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 None,
-                "id",
                 [mock.call(contract_token="token2", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
-                [
-                    mock.call("machine-id", "machine-id"),
-                    mock.call("instance-id", "id"),
-                ],
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, False)],
+                1,
+                [mock.call(mock.ANY, {}, {}, False)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -185,48 +165,37 @@ class TestAttachWithToken:
         return_value=(True, None),
     )
     @mock.patch(M_PATH + "timer.start")
-    @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "ua_status.status")
+    @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch(M_PATH + "contract.process_entitlements_delta")
-    @mock.patch(
-        "uaclient.files.MachineTokenFile.entitlements",
-        new_callable=mock.PropertyMock,
-    )
-    @mock.patch(M_PATH + "config.UAConfig.write_cache")
     @mock.patch(M_PATH + "system.get_machine_id")
-    @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     def test_attach_with_token(
         self,
         m_add_contract_machine,
-        m_machine_token_file_write,
         m_get_machine_id,
-        m_config_write_cache,
-        m_entitlements,
         m_process_entitlements_delta,
         m_attachment_data_file_write,
+        m_machine_id_file_write,
         m_status,
         m_update_motd_messages,
         m_update_activity_token,
-        m_get_instance_id,
         m_timer_start,
         _m_check_ent_apt_directives,
         token,
         allow_enable,
         add_contract_machine_side_effect,
         machine_id,
-        entitlements,
         process_entitlements_delta_side_effect,
-        instance_id,
         expected_add_contract_machine_call_args,
         expected_machine_token_file_write_call_args,
         expected_get_machine_id_call_args,
-        expected_config_write_cache_call_args,
+        expected_machine_id_file_call_count,
         expected_process_entitlements_delta_call_args,
         expected_attachment_data_file_write_call_args,
         expected_status_call_args,
@@ -236,15 +205,15 @@ class TestAttachWithToken:
         expected_timer_start_call_args,
         expected_raises,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         cfg = FakeConfig()
+        fake_machine_token = get_fake_machine_token_file
         m_add_contract_machine.side_effect = add_contract_machine_side_effect
         m_get_machine_id.return_value = machine_id
-        m_entitlements.return_value = entitlements
         m_process_entitlements_delta.side_effect = (
             process_entitlements_delta_side_effect
         )
-        m_get_instance_id.return_value = instance_id
 
         with expected_raises:
             attach_with_token(cfg, token, allow_enable)
@@ -254,16 +223,16 @@ class TestAttachWithToken:
             == m_add_contract_machine.call_args_list
         )
         assert (
-            expected_machine_token_file_write_call_args
-            == m_machine_token_file_write.call_args_list
+            expected_machine_id_file_call_count
+            == fake_machine_token.write_calls
         )
         assert (
             expected_get_machine_id_call_args
             == m_get_machine_id.call_args_list
         )
         assert (
-            expected_config_write_cache_call_args
-            == m_config_write_cache.call_args_list
+            expected_machine_id_file_call_count
+            == m_machine_id_file_write.call_count
         )
         assert (
             expected_process_entitlements_delta_call_args
@@ -281,10 +250,6 @@ class TestAttachWithToken:
         assert (
             expected_update_activity_token_call_args
             == m_update_activity_token.call_args_list
-        )
-        assert (
-            expected_get_instance_id_call_args
-            == m_get_instance_id.call_args_list
         )
         assert expected_timer_start_call_args == m_timer_start.call_args_list
 
@@ -339,10 +304,8 @@ class TestAutoAttach:
         M_PATH
         + "contract.UAContractClient.get_contract_token_for_cloud_instance"  # noqa
     )
-    @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     def test_raise_unexpected_errors(
         self,
-        _m_get_instance_id,
         m_get_contract_token_for_cloud_instances,
         FakeConfig,
     ):

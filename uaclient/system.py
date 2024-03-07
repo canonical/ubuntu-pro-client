@@ -274,6 +274,7 @@ def get_machine_id(cfg) -> str:
     We first check for the machine-id in machine-token.json before
     looking at the system file.
     """
+    from uaclient.files.state_files import machine_id_file
 
     if cfg.machine_token:
         cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
@@ -282,15 +283,19 @@ def get_machine_id(cfg) -> str:
         if cfg_machine_id:
             return cfg_machine_id
 
-    fallback_machine_id_file = cfg.data_path("machine-id")
+    fallback_machine_id = machine_id_file.read()
 
-    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
+    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID]:
         if os.path.exists(path):
             content = load_file(path).rstrip("\n")
             if content:
                 return content
+
+        if fallback_machine_id:
+            return fallback_machine_id
+
     machine_id = str(uuid.uuid4())
-    cfg.write_cache("machine-id", machine_id)
+    machine_id_file.write(machine_id)
     return machine_id
 
 

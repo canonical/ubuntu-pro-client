@@ -359,7 +359,6 @@ class TestMain:
             ),
         ),
     )
-    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.LOG.exception")
     @mock.patch("uaclient.cli.setup_logging")
@@ -370,7 +369,6 @@ class TestMain:
         _m_setup_logging,
         m_log_exception,
         m_event_info,
-        m_delete_cache_key,
         event,
         exception,
         expected_error_msg,
@@ -387,7 +385,6 @@ class TestMain:
                     return_value=FakeConfig(),
                 ):
                     main()
-        assert 0 == m_delete_cache_key.call_count
 
         exc = excinfo.value
         assert 1 == exc.code
@@ -405,7 +402,6 @@ class TestMain:
             ),
         ),
     )
-    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch("uaclient.cli.LOG.error")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
@@ -414,7 +410,6 @@ class TestMain:
         m_get_parser,
         _m_setup_logging,
         m_log_error,
-        m_delete_cache_key,
         exception,
         expected_log,
         FakeConfig,
@@ -429,7 +424,6 @@ class TestMain:
                     return_value=FakeConfig(),
                 ):
                     main()
-        assert 0 == m_delete_cache_key.call_count
 
         exc = excinfo.value
         assert 1 == exc.code

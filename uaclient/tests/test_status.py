@@ -1,7 +1,5 @@
 import copy
 import datetime
-import os
-import stat
 import string
 
 import mock
@@ -314,10 +312,12 @@ class TestStatus:
         return False
 
     @pytest.mark.parametrize("show_all", (True, False))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources")
     def test_root_unattached(
         self,
         m_get_available_resources,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -397,6 +397,7 @@ class TestStatus:
             ),
         ),
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch(
         M_PATH + "livepatch.LivepatchEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
@@ -406,6 +407,7 @@ class TestStatus:
         self,
         m_get_avail_resources,
         _m_livepatch_status,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -415,6 +417,7 @@ class TestStatus:
         uf_status,
         features_override,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         """Test we get the correct status dict when attached with basic conf"""
         resource_names = [resource["name"] for resource in avail_res]
@@ -488,11 +491,13 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=token,
-        )
+        cfg = FakeConfig()
         if features_override:
             cfg.override_features(features_override)
+
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
 
         expected_services = [
             {
@@ -564,12 +569,14 @@ class TestStatus:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == status.status(cfg=cfg, show_all=True)
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
         m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -588,40 +595,28 @@ class TestStatus:
 
         assert root_unattached_status == nonroot_status
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_root_and_non_root_are_same_attached(
         self,
         m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         m_we_are_currently_root.return_value = True
-        root_cfg = FakeConfig.for_attached_machine()
-        root_status = status.status(cfg=root_cfg)
-        m_we_are_currently_root.return_value = False
-        normal_cfg = FakeConfig.for_attached_machine()
-        normal_status = status.status(cfg=normal_cfg)
-        assert normal_status == root_status
-
-    @mock.patch("uaclient.status.get_available_resources", return_value=[])
-    def test_cache_file_is_written_world_readable(
-        self,
-        _m_get_available_resources,
-        _m_should_reboot,
-        m_remove_notice,
-        m_on_supported_kernel,
-        FakeConfig,
-    ):
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
         cfg = FakeConfig()
-        status.status(cfg=cfg)
-
-        assert 0o644 == stat.S_IMODE(
-            os.lstat(cfg.data_path("status-cache")).st_mode
-        )
+        root_status = status.status(cfg=cfg)
+        m_we_are_currently_root.return_value = False
+        normal_status = status.status(cfg=cfg)
+        assert normal_status == root_status
 
     @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
@@ -642,6 +637,7 @@ class TestStatus:
         ),
     )
     @pytest.mark.usefixtures("all_resources_available")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch(
         M_PATH + "fips.FIPSCommonEntitlement.application_status",
         return_value=(ApplicationStatus.DISABLED, ""),
@@ -672,6 +668,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_livepatch_status,
         _m_fips_status,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
@@ -681,6 +678,7 @@ class TestStatus:
         show_all,
         variants_in_contract,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         """When attached, return contract and service user-facing status."""
         m_repo_contract_status.return_value = ContractStatus.ENTITLED
@@ -726,10 +724,12 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+
+        cfg = FakeConfig()
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
+
         mock_notice = NoticesManager()
         if features_override:
             cfg.override_features(features_override)
@@ -871,17 +871,20 @@ class TestStatus:
         assert expected_calls == mock_notice.remove.call_args_list
 
     @pytest.mark.usefixtures("all_resources_available")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     def test_expires_handled_appropriately(
         self,
         _m_get_available_resources,
         m_we_are_currently_root,
+        _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
         m_on_supported_kernel,
         all_resources_available,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         m_we_are_currently_root.return_value = True
         token = {
@@ -903,10 +906,10 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
+        fake_machine_token = get_fake_machine_token_file
+        fake_machine_token.attached = True
+        fake_machine_token.token = token
 
         # Test that root's status works as expected (including the cache write)
         expected_dt = datetime.datetime(
@@ -917,20 +920,21 @@ class TestStatus:
         # Test that the read from the status cache work properly for non-root
         # users
         m_we_are_currently_root.return_value = False
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
     @mock.patch(
         "uaclient.files.state_files.reboot_cmd_marker_file",
         new_callable=mock.PropertyMock,
     )
+    @mock.patch("uaclient.files.state_files.status_cache_file.read")
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_nonroot_user_does_not_use_cache(
         self,
         _m_get_available_resources,
+        _m_status_cache_file_write,
+        m_status_cache_file_read,
         m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
@@ -939,8 +943,8 @@ class TestStatus:
     ):
         m_reboot_cmd_marker_file.is_present = True
         cached_status = {"pass": True}
+        m_status_cache_file_read.return_value = cached_status
         cfg = FakeConfig()
-        cfg.write_cache("status-cache", cached_status)
         before = status.status(cfg=cfg)
 
         # Even non-root users can update execution_status details
@@ -1052,9 +1056,11 @@ class TestAttachedServiceStatus:
         expected_blocked_by,
         tmpdir,
         FakeConfig,
+        get_fake_machine_token_file,
     ):
         cfg = FakeConfig()
         ent = ConcreteTestEntitlement(
+            machine_token_file=get_fake_machine_token_file,
             cfg=cfg,
             blocking_incompatible_services=blocking_incompatible_services,
         )

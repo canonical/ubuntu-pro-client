@@ -1,6 +1,7 @@
 import mock
 import pytest
 
+from uaclient import lock
 from uaclient.cli.cli_util import (
     assert_attached,
     assert_lock_file,
@@ -18,16 +19,14 @@ M_PATH_UACONFIG = "uaclient.config.UAConfig."
 
 
 class TestAssertLockFile:
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("os.getpid", return_value=123)
-    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch("uaclient.files.notices.NoticesManager.add")
-    @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_assert_root_creates_lock_and_notice(
         self,
-        m_write_cache,
         m_add_notice,
-        m_delete_cache,
         _m_getpid,
+        _m_check_lock_info,
         FakeConfig,
     ):
         arg, kwarg = mock.sentinel.arg, mock.sentinel.kwarg
@@ -39,16 +38,20 @@ class TestAssertLockFile:
 
             return mock.sentinel.success
 
-        ret = test_function(arg, cfg=FakeConfig())
+        with mock.patch.object(lock, "lock_data_file") as m_lock_file:
+            ret = test_function(arg, cfg=mock.MagicMock())
+
         assert mock.sentinel.success == ret
         lock_msg = "Operation in progress: some operation"
         assert [
             mock.call(Notice.OPERATION_IN_PROGRESS, lock_msg)
         ] == m_add_notice.call_args_list
-        assert [mock.call("lock")] == m_delete_cache.call_args_list
         assert [
-            mock.call("lock", "123:some operation")
-        ] == m_write_cache.call_args_list
+            mock.call(
+                lock.LockData(lock_pid="123", lock_holder="some operation")
+            )
+        ] == m_lock_file.write.call_args_list
+        assert 1 == m_lock_file.delete.call_count
 
 
 class TestAssertRoot:

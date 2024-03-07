@@ -1160,6 +1160,9 @@ class TestAptCache:
     @pytest.mark.parametrize("is_esm", (True, False))
     @pytest.mark.parametrize("can_enable_infra", ("yes", "no"))
     @pytest.mark.parametrize("can_enable_apps", ("yes", "no"))
+    @mock.patch(
+        "uaclient.files.state_files.status_cache_file.read", return_value=None
+    )
     @mock.patch("uaclient.entitlements.esm.ESMAppsEntitlement")
     @mock.patch("uaclient.entitlements.esm.ESMInfraEntitlement")
     @mock.patch("uaclient.apt.system.is_current_series_lts")
@@ -1180,6 +1183,7 @@ class TestAptCache:
         m_is_lts,
         m_infra_entitlement,
         m_apps_entitlement,
+        m_status_cache_file_read,
         is_lts,
         cache_call_list,
         apps_status,
@@ -1223,11 +1227,9 @@ class TestAptCache:
         infra_disable_repo_count = 0
         apps_disable_repo_count = 0
         status_count = 0
-        status_cache_args_list = []
 
         if is_lts:
             status_count = 1
-            status_cache_args_list = [mock.call("status-cache")]
             if (
                 apps_status == ApplicationStatus.DISABLED
                 and can_enable_apps == "yes"
@@ -1246,10 +1248,9 @@ class TestAptCache:
                 infra_disable_repo_count = 1
 
         cfg = FakeConfig()
-        with mock.patch.object(cfg, "read_cache", return_value=None):
-            update_esm_caches(cfg)
-            assert cfg.read_cache.call_args_list == status_cache_args_list
+        update_esm_caches(cfg)
 
+        assert status_count == m_status_cache_file_read.call_count
         assert m_esm_cache.call_args_list == cache_call_list
         assert (
             m_infra.setup_local_esm_repo.call_count == infra_setup_repo_count

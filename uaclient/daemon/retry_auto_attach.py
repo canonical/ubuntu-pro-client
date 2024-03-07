@@ -119,7 +119,6 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         )
         try:
             with lock.SpinLock(
-                cfg=cfg,
                 lock_holder="pro.daemon.retry_auto_attach.notice_updates",
             ):
                 notices.add(

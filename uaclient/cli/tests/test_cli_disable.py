@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, lock, messages
 from uaclient.cli import action_disable, main, main_error_handler
 from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
@@ -75,6 +75,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -87,6 +88,7 @@ class TestDisable:
         m_valid_services,
         m_entitlement_factory,
         m_update_activity_token,
+        _m_check_lock_info,
         disable_return,
         return_code,
         assume_yes,
@@ -96,7 +98,6 @@ class TestDisable:
         event,
         FakeConfig,
     ):
-        entitlements_cls = []
         entitlements_obj = []
         ent_dict = {}
         m_valid_services.return_value = []
@@ -110,21 +111,18 @@ class TestDisable:
             fail = None
 
         for entitlement_name in service:
-            m_entitlement_cls = mock.Mock()
-
-            m_entitlement = m_entitlement_cls.return_value
+            m_entitlement = mock.MagicMock()
             m_entitlement.enabled_variant = None
             m_entitlement.disable.return_value = (disable_return, fail)
 
             entitlements_obj.append(m_entitlement)
-            entitlements_cls.append(m_entitlement_cls)
             m_valid_services.return_value.append(entitlement_name)
-            ent_dict[entitlement_name] = m_entitlement_cls
             type(m_entitlement).name = mock.PropertyMock(
                 return_value=entitlement_name
             )
+            ent_dict[entitlement_name] = m_entitlement
 
-        def factory_side_effect(cfg, name, ent_dict=ent_dict):
+        def factory_side_effect(cfg, name, **kwargs):
             return ent_dict.get(name)
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -135,13 +133,8 @@ class TestDisable:
         args_mock.assume_yes = assume_yes
         args_mock.purge = False
 
-        with mock.patch.object(cfg, "check_lock_info", return_value=(-1, "")):
+        with mock.patch.object(lock, "lock_data_file"):
             ret = action_disable(args_mock, cfg=cfg)
-
-        for m_entitlement_cls in entitlements_cls:
-            assert [
-                mock.call(cfg, assume_yes=assume_yes, purge=False)
-            ] == m_entitlement_cls.call_args_list
 
         expected_disable_call = mock.call()
         for m_entitlement in entitlements_obj:
@@ -150,7 +143,7 @@ class TestDisable:
             ] == m_entitlement.disable.call_args_list
 
         assert return_code == ret
-        assert len(entitlements_cls) == m_status.call_count
+        assert len(entitlements_obj) == m_status.call_count
         assert 1 == m_update_activity_token.call_count
 
         cfg = FakeConfig.for_attached_machine()
@@ -160,9 +153,7 @@ class TestDisable:
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(event, "set_event_mode"):
-                with mock.patch.object(
-                    cfg, "check_lock_info", return_value=(-1, "")
-                ):
+                with mock.patch.object(lock, "lock_data_file"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
                         ret = action_disable(args_mock, cfg=cfg)
@@ -192,6 +183,7 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
     @mock.patch("uaclient.status.status")
@@ -200,6 +192,7 @@ class TestDisable:
         m_status,
         m_valid_services,
         m_entitlement_factory,
+        _m_check_lock_info,
         assume_yes,
         tmpdir,
         event,
@@ -208,8 +201,7 @@ class TestDisable:
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
         num_calls = 2
 
-        m_ent1_cls = mock.Mock()
-        m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enabled_variant = None
         m_ent1_obj.disable.return_value = (
             False,
@@ -220,8 +212,7 @@ class TestDisable:
         )
         type(m_ent1_obj).name = mock.PropertyMock(return_value="ent1")
 
-        m_ent2_cls = mock.Mock()
-        m_ent2_obj = m_ent2_cls.return_value
+        m_ent2_obj = mock.MagicMock()
         m_ent2_obj.enabled_variant = None
         m_ent2_obj.disable.return_value = (
             False,
@@ -232,17 +223,17 @@ class TestDisable:
         )
         type(m_ent2_obj).name = mock.PropertyMock(return_value="ent2")
 
-        m_ent3_cls = mock.Mock()
+        m_ent3_cls = mock.MagicMock()
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enabled_variant = None
         m_ent3_obj.disable.return_value = (True, None)
         type(m_ent3_obj).name = mock.PropertyMock(return_value="ent3")
 
-        def factory_side_effect(cfg, name):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -255,9 +246,7 @@ class TestDisable:
         args_mock.purge = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            with mock.patch.object(
-                cfg, "check_lock_info", return_value=(-1, "")
-            ):
+            with mock.patch.object(lock, "lock_data_file"):
                 action_disable(args_mock, cfg=cfg)
 
         assert (
@@ -268,11 +257,6 @@ class TestDisable:
             ).msg
             == err.value.msg
         )
-
-        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
-            assert [
-                mock.call(cfg, assume_yes=assume_yes, purge=False)
-            ] == m_ent_cls.call_args_list
 
         expected_disable_call = mock.call()
         for m_ent in [m_ent2_obj, m_ent3_obj]:
@@ -289,9 +273,7 @@ class TestDisable:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
-                    with mock.patch.object(
-                        cfg, "check_lock_info", return_value=(-1, "")
-                    ):
+                    with mock.patch.object(lock, "lock_data_file"):
                         fake_stdout = io.StringIO()
                         with contextlib.redirect_stdout(fake_stdout):
                             main_error_handler(action_disable)(
@@ -338,10 +320,12 @@ class TestDisable:
             (False, messages.E_NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
+        _m_check_lock_info,
         root,
         expected_error_template,
         FakeConfig,
@@ -371,8 +355,10 @@ class TestDisable:
             expected_info = None
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            args.service = ["bogus"]
-            action_disable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                args.service = ["bogus"]
+                action_disable(args, cfg)
+
         assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
@@ -384,7 +370,8 @@ class TestDisable:
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                        with mock.patch.object(lock, "lock_data_file"):
+                            main_error_handler(action_disable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -407,8 +394,10 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_invalid_service_names(
         self,
+        _m_check_lock_info,
         service,
         FakeConfig,
         event,
@@ -425,8 +414,9 @@ class TestDisable:
             service_msg=all_service_msg,
         )
         with pytest.raises(exceptions.UbuntuProError) as err:
-            args.service = service
-            action_disable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                args.service = service
+                action_disable(args, cfg)
 
         assert expected_error.msg == err.value.msg
 
@@ -437,9 +427,10 @@ class TestDisable:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                    with mock.patch.object(lock, "lock_data_file"):
+                        fake_stdout = io.StringIO()
+                        with contextlib.redirect_stdout(fake_stdout):
+                            main_error_handler(action_disable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -532,12 +523,14 @@ class TestDisable:
             expected["errors"][0]["additional_info"] = expected_info
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
         m_sleep,
+        m_check_lock_info,
         FakeConfig,
         event,
     ):
@@ -547,11 +540,11 @@ class TestDisable:
         expected_error = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro disable", lock_holder="pro enable", pid="123"
         )
-        cfg.write_cache("lock", "123:pro enable")
+        m_check_lock_info.return_value = (123, "pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
-        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
+        assert 12 == m_check_lock_info.call_count
         assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
@@ -621,7 +614,8 @@ class TestDisable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    def test_purge_assume_yes_incompatible(self, capsys):
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
+    def test_purge_assume_yes_incompatible(self, _m_check_lock_info, capsys):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
         args_mock.service = "test"
@@ -629,9 +623,7 @@ class TestDisable:
         args_mock.purge = True
 
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                cfg, "check_lock_info", return_value=(-1, "")
-            ):
+            with mock.patch.object(lock, "lock_data_file"):
                 main_error_handler(action_disable)(args_mock, cfg)
 
         _out, err = capsys.readouterr()

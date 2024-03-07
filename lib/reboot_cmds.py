@@ -28,14 +28,14 @@ from uaclient import (
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import setup_logging
-from uaclient.entitlements.fips import FIPSEntitlement
+from uaclient.entitlements import entitlement_factory
 from uaclient.files import notices, state_files
 
 LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
 
 
 def fix_pro_pkg_holds(cfg: config.UAConfig):
-    status_cache = cfg.read_cache("status-cache")
+    status_cache = state_files.status_cache_file.read()
     if not status_cache:
         return
     for service in status_cache.get("services", []):
@@ -48,7 +48,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
                 return
 
     LOG.debug("Attempting to remove Ubuntu Pro FIPS package holds")
-    fips = FIPSEntitlement(cfg)
+    fips = entitlement_factory(cfg=cfg, name="fips")
     try:
         fips.setup_apt_config()  # Removes package holds
         LOG.debug("Successfully removed Ubuntu Pro FIPS package holds")
@@ -85,7 +85,7 @@ def main(cfg: config.UAConfig) -> int:
 
     LOG.debug("Running reboot commands...")
     try:
-        with lock.SpinLock(cfg=cfg, lock_holder="pro-reboot-cmds"):
+        with lock.SpinLock(lock_holder="pro-reboot-cmds"):
             fix_pro_pkg_holds(cfg)
             refresh_contract(cfg)
             upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)

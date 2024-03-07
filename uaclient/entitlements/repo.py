@@ -21,6 +21,7 @@ from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
 )
+from uaclient.files.state_files import status_cache_file
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -398,7 +399,7 @@ class RepoEntitlement(base.UAEntitlement):
         delta_directives = delta_entitlement.get("directives", {})
         delta_apt_url = delta_directives.get("aptURL")
         delta_packages = delta_directives.get("additionalPackages")
-        status_cache = self.cfg.read_cache("status-cache")
+        status_cache = status_cache_file.read()
 
         if delta_directives and status_cache:
             application_status = self._check_application_status_on_cache()
@@ -541,7 +542,9 @@ class RepoEntitlement(base.UAEntitlement):
         obligations = resource_cfg["entitlement"].get("obligations", {})
         token = resource_cfg.get("resourceToken")
         if not token:
-            machine_token = self.cfg.machine_token["machineToken"]
+            machine_token = self.machine_token_file.machine_token[
+                "machineToken"
+            ]
             if not obligations.get("enableByDefault"):
                 # services that are not enableByDefault need to obtain specific
                 # resource access for tokens. We want to refresh this every
@@ -629,7 +632,7 @@ class RepoEntitlement(base.UAEntitlement):
         """
         series = system.get_release_info().series
         repo_filename = self.repo_file
-        entitlement = self.cfg.machine_token_file.entitlements[self.name].get(
+        entitlement = self.machine_token_file.entitlements()[self.name].get(
             "entitlement", {}
         )
         access_directives = entitlement.get("directives", {})

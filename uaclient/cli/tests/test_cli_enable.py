@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages
+from uaclient import entitlements, event_logger, exceptions, lock, messages
 from uaclient.cli import main, main_error_handler
 from uaclient.cli.enable import action_enable
 from uaclient.entitlements.entitlement_status import (
@@ -132,12 +132,14 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch("uaclient.lock.check_lock_info")
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
         self,
         m_subp,
         m_sleep,
+        m_check_lock_info,
         _refresh,
         capsys,
         event,
@@ -145,40 +147,33 @@ class TestActionEnable:
     ):
         """Check inability to enable if operation holds lock file."""
         cfg = FakeConfig.for_attached_machine()
-        cfg.write_cache("lock", "123:pro disable")
+        m_check_lock_info.return_value = (123, "pro disable")
         args = mock.MagicMock()
 
         with pytest.raises(exceptions.LockHeldError) as err:
             action_enable(args, cfg=cfg)
-        assert [mock.call(["ps", "123"])] * 12 == m_subp.call_args_list
+        assert 12 == m_check_lock_info.call_count
 
-        expected_message = messages.E_LOCK_HELD_ERROR.format(
+        expected_msg = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro enable", lock_holder="pro disable", pid="123"
         )
-        assert expected_message.msg == err.value.msg
+        assert expected_msg.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                with mock.patch.object(
-                    cfg, "check_lock_info"
-                ) as m_check_lock_info:
-                    m_check_lock_info.return_value = (1, "lock_holder")
-                    main_error_handler(action_enable)(args, cfg)
+                main_error_handler(action_enable)(args, cfg)
 
-        expected_msg = messages.E_LOCK_HELD_ERROR.format(
-            lock_request="pro enable", lock_holder="lock_holder", pid=1
-        )
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
                     "additional_info": {
-                        "lock_holder": "lock_holder",
+                        "lock_holder": "pro disable",
                         "lock_request": "pro enable",
-                        "pid": 1,
+                        "pid": 123,
                     },
                     "message": expected_msg.msg,
                     "message_code": expected_msg.name,
@@ -269,10 +264,12 @@ class TestActionEnable:
             (False, messages.E_NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
+        _m_check_lock_info,
         _refresh,
         root,
         expected_error_template,
@@ -311,7 +308,8 @@ class TestActionEnable:
         args.access_only = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            action_enable(args, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args, cfg)
 
         if root:
             expected_error = expected_error_template.format(
@@ -334,9 +332,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -434,6 +433,8 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -444,20 +445,21 @@ class TestActionEnable:
         m_valid_services,
         _m_get_available_resources,
         _m_update_activity_token,
+        _m_check_lock_info,
+        _m_status_cache_file,
         m_refresh,
         assume_yes,
         FakeConfig,
     ):
         """assume-yes parameter is passed to entitlement instantiation."""
 
-        m_entitlement_cls = mock.MagicMock()
-        m_valid_services.return_value = ["testitlement"]
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_valid_services.return_value = ["test"]
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        args.service = ["testitlement"]
+        args.service = ["test"]
         args.assume_yes = assume_yes
         args.beta = False
         args.access_only = False
@@ -465,21 +467,25 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ):
-            action_enable(args, cfg)
+            return_value=m_entitlement_obj,
+        ) as m_ent_factory:
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args, cfg)
 
         assert [
             mock.call(
-                cfg,
+                cfg=cfg,
+                name="test",
+                variant="",
                 assume_yes=assume_yes,
                 allow_beta=False,
-                called_name="testitlement",
                 access_only=False,
                 extra_args=None,
             )
-        ] == m_entitlement_cls.call_args_list
+        ] == m_ent_factory.call_args_list
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -488,38 +494,37 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_check_lock_info,
         _m_refresh,
+        _m_status_cache_file,
         event,
         FakeConfig,
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.Mock()
-        m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enable.return_value = (False, None)
 
-        m_ent2_cls = mock.Mock()
-        m_ent2_cls.name = "ent2"
+        m_ent2_obj = mock.MagicMock()
+        m_ent2_obj.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls).is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
+        type(m_ent2_obj).is_beta = m_ent2_is_beta
         m_ent2_obj.enable.return_value = (
             False,
             CanEnableFailure(CanEnableFailureReason.IS_BETA),
         )
 
-        m_ent3_cls = mock.Mock()
-        m_ent3_cls.name = "ent3"
+        m_ent3_obj = mock.MagicMock()
+        m_ent3_obj.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls).is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
+        type(m_ent3_obj).is_beta = m_ent3_is_beta
         m_ent3_obj.enable.return_value = (True, None)
 
-        def factory_side_effect(cfg, name, variant):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -537,9 +542,10 @@ class TestActionEnable:
         expected_msg = "One moment, checking your subscription first\n"
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         service_msg = (
             "Try "
@@ -554,18 +560,6 @@ class TestActionEnable:
         assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
 
-        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=False,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                )
-            ] == m_ent_cls.call_args_list
-
         expected_enable_call = mock.call()
         for m_ent in [m_ent2_obj, m_ent3_obj]:
             assert [expected_enable_call] == m_ent.enable.call_args_list
@@ -577,9 +571,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -605,6 +600,8 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -613,6 +610,8 @@ class TestActionEnable:
         m_valid_services,
         m_entitlement_factory,
         _m_get_available_resources,
+        _m_check_lock_info,
+        _m_status_cache_file,
         _m_refresh,
         beta_flag,
         event,
@@ -620,26 +619,23 @@ class TestActionEnable:
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        m_ent1_cls = mock.Mock()
-        m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj = mock.MagicMock()
         m_ent1_obj.enable.return_value = (False, None)
 
-        m_ent2_cls = mock.Mock()
-        m_ent2_cls.name = "ent2"
+        m_ent2_obj = mock.MagicMock()
+        m_ent2_obj.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls)._is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
+        type(m_ent2_obj)._is_beta = m_ent2_is_beta
         failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
         if beta_flag:
             m_ent2_obj.enable.return_value = (True, None)
         else:
             m_ent2_obj.enable.return_value = (False, failure_reason)
 
-        m_ent3_cls = mock.Mock()
-        m_ent3_cls.name = "ent3"
+        m_ent3_obj = mock.Mock()
+        m_ent3_obj.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls)._is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
+        type(m_ent3_obj)._is_beta = m_ent3_is_beta
         m_ent3_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
@@ -651,11 +647,11 @@ class TestActionEnable:
         args_mock.beta = beta_flag
         args_mock.variant = ""
 
-        def factory_side_effect(cfg, name, variant):
+        def factory_side_effect(cfg, name, **kwargs):
             if name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             if name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             return None
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -669,7 +665,6 @@ class TestActionEnable:
 
         expected_msg = "One moment, checking your subscription first\n"
         not_found_name = "ent1"
-        mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
 
         service_names = entitlements.valid_services(cfg, allow_beta=beta_flag)
@@ -677,7 +672,6 @@ class TestActionEnable:
         if not beta_flag:
             not_found_name += ", ent2"
         else:
-            mock_ent_list.append(m_ent2_cls)
             mock_obj_list.append(m_ent3_obj)
         service_msg = "\n".join(
             textwrap.wrap(
@@ -689,9 +683,10 @@ class TestActionEnable:
         )
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         expected_error = expected_error_tmpl.format(
             operation="enable",
@@ -700,18 +695,6 @@ class TestActionEnable:
         )
         assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
-
-        for m_ent_cls in mock_ent_list:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=beta_flag,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                )
-            ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call()
         for m_ent in mock_obj_list:
@@ -724,9 +707,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg=cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg=cfg)
 
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
@@ -757,6 +741,8 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.files.state_files.status_cache_file.write")
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -765,13 +751,14 @@ class TestActionEnable:
         self,
         _m_get_available_resources,
         _m_update_activity_token,
+        _m_check_lock_info,
+        _m_status_cache_file,
         _m_refresh,
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.Mock()
-        type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.Mock()
+        type(m_entitlement_obj).is_beta = mock.PropertyMock(return_value=False)
         m_entitlement_obj.enable.return_value = (
             False,
             CanEnableFailure(
@@ -789,13 +776,14 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
             assert (
                 "One moment, checking your subscription first\nmsg\n"
@@ -804,15 +792,16 @@ class TestActionEnable:
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                ret = action_enable(args_mock, cfg=cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    ret = action_enable(args_mock, cfg=cfg)
 
         expected_ret = 1
         expected = {
@@ -838,8 +827,10 @@ class TestActionEnable:
         "service, beta",
         ((["bogus"], False), (["bogus"], True), (["bogus1", "bogus2"], False)),
     )
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_invalid_service_names(
         self,
+        _m_check_lock_info,
         _m_refresh,
         service,
         beta,
@@ -856,9 +847,10 @@ class TestActionEnable:
         args_mock.access_only = False
 
         with pytest.raises(exceptions.UbuntuProError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    action_enable(args_mock, cfg)
 
         assert expected_msg == fake_stdout.getvalue()
 
@@ -883,9 +875,10 @@ class TestActionEnable:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg)
+                with mock.patch.object(lock, "lock_data_file"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -911,6 +904,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
     )
@@ -921,13 +915,13 @@ class TestActionEnable:
         m_status,
         _m_get_available_resources,
         m_update_activity_token,
+        _m_check_lock_info,
         _m_refresh,
         allow_beta,
         event,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.Mock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
@@ -936,49 +930,41 @@ class TestActionEnable:
         args_mock.access_only = False
         args_mock.assume_yes = False
         args_mock.beta = allow_beta
-        args_mock.service = ["testitlement"]
+        args_mock.service = ["test"]
         args_mock.variant = ""
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
+            return_value=["test"],
         ):
-            ret = action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                ret = action_enable(args_mock, cfg)
 
-        assert [
-            mock.call(
-                cfg,
-                assume_yes=False,
-                allow_beta=allow_beta,
-                called_name="testitlement",
-                access_only=False,
-                extra_args=None,
-            )
-        ] == m_entitlement_cls.call_args_list
-
-        m_entitlement = m_entitlement_cls.return_value
         expected_enable_call = mock.call()
         expected_ret = 0
-        assert [expected_enable_call] == m_entitlement.enable.call_args_list
+        assert [
+            expected_enable_call
+        ] == m_entitlement_obj.enable.call_args_list
         assert expected_ret == ret
         assert 1 == m_status.call_count
         assert 1 == m_update_activity_token.call_count
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ), mock.patch(
             "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
+            return_value=["test"],
         ), mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                ret = action_enable(args_mock, cfg=cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    ret = action_enable(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -986,7 +972,7 @@ class TestActionEnable:
             "errors": [],
             "failed_services": [],
             "needs_reboot": False,
-            "processed_services": ["testitlement"],
+            "processed_services": ["test"],
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
@@ -1027,8 +1013,9 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
+    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_access_only_cannot_be_used_together_with_variant(
-        self, _m_get_available_resources, FakeConfig
+        self, _m_check_lock_info, _m_get_available_resources, FakeConfig
     ):
         cfg = FakeConfig.for_attached_machine()
         args_mock = mock.MagicMock()
@@ -1036,4 +1023,5 @@ class TestActionEnable:
         args_mock.variant = "variant"
 
         with pytest.raises(exceptions.InvalidOptionCombination):
-            action_enable(args_mock, cfg)
+            with mock.patch.object(lock, "lock_data_file"):
+                action_enable(args_mock, cfg)
