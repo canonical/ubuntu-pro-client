@@ -69,6 +69,7 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = [
+        "collect_coverage",
         "destroy_instances",
         "ephemeral_instance",
         "snapshot_strategy",
@@ -114,6 +115,7 @@ class UAClientBehaveConfig:
         self,
         *,
         cloud_credentials_path: Optional[str] = None,
+        collect_coverage: bool = False,
         destroy_instances: bool = True,
         ephemeral_instance: bool = False,
         snapshot_strategy: bool = False,
@@ -141,6 +143,7 @@ class UAClientBehaveConfig:
     ) -> None:
         # First, store the values we've detected
         self.cloud_credentials_path = cloud_credentials_path
+        self.collect_coverage = collect_coverage
         self.ephemeral_instance = ephemeral_instance
         self.snapshot_strategy = snapshot_strategy
         self.sbuild_output_to_terminal = sbuild_output_to_terminal
@@ -414,55 +417,52 @@ def before_scenario(context: Context, scenario: Scenario):
 
 def after_scenario(context, scenario):
     """Collect the coverage files after the scenario is run."""
-    cov_dir = os.path.join(context.pro_config.artifact_dir, "coverage")
-    if not os.path.exists(cov_dir):
-        os.makedirs(cov_dir)
+    if context.pro_config.collect_coverage:
+        cov_dir = os.path.join(context.pro_config.artifact_dir, "coverage")
+        os.makedirs(cov_dir, exist_ok=True)
 
-    inner_dir = os.path.join(
-        datetime.datetime.now().strftime("%Y-%m-%d"),
-        "{}".format(os.path.basename(scenario.filename.replace(".", "_"))),
-    )
-    new_artifacts_dir = os.path.join(
-        cov_dir,
-        inner_dir,
-    )
-    if not os.path.exists(new_artifacts_dir):
-        os.makedirs(new_artifacts_dir)
-    if hasattr(context, "machines") and SUT in context.machines:
-        try:
-            scenario_name = (
-                os.path.basename(scenario.filename.replace(".", "_"))
-                + "_"
-                + str(scenario.line)
-            )
-            cov_filename = ".coverage.{}".format(scenario_name)
-            context.machines[SUT].instance.execute(
-                [
-                    "bash",
-                    "-c",
-                    "mv .coverage /tmp/{cov_filename}".format(
-                        cov_filename=cov_filename
-                    ),
-                ],
-                use_sudo=True,
-            )
-            context.machines[SUT].instance.execute(
-                [
-                    "chmod",
-                    "666",
-                    "/tmp/{cov_filename}".format(cov_filename=cov_filename),
-                ],
-                use_sudo=True,
-            )
+        inner_dir = os.path.basename(scenario.filename.replace(".", "_"))
+        new_artifacts_dir = os.path.join(
+            cov_dir,
+            inner_dir,
+        )
+        os.makedirs(new_artifacts_dir, exist_ok=True)
+        if hasattr(context, "machines") and SUT in context.machines:
+            try:
+                scenario_name = (
+                    os.path.basename(scenario.filename.replace(".", "_"))
+                    + "_"
+                    + str(scenario.line)
+                )
+                cov_filename = ".coverage.{}".format(scenario_name)
+                tmp_covfile_path = "/tmp/{cov_filename}".format(
+                    cov_filename=cov_filename
+                )
+                context.machines[SUT].instance.execute(
+                    [
+                        "mv",
+                        "/home/ubuntu/.coverage",
+                        tmp_covfile_path,
+                    ],
+                    use_sudo=True,
+                )
+                context.machines[SUT].instance.execute(
+                    [
+                        "chmod",
+                        "666",
+                        tmp_covfile_path,
+                    ],
+                    use_sudo=True,
+                )
 
-            dest = os.path.join(new_artifacts_dir, cov_filename)
-            context.machines[SUT].instance.pull_file(
-                "/tmp/{cov_filename}".format(cov_filename=cov_filename), dest
-            )
-            logging.warning("Done collecting coverage.")
-        except Exception as e:
-            logging.error(str(e))
-            logging.warning("Failed to collect coverage")
+                dest = os.path.join(new_artifacts_dir, cov_filename)
+                context.machines[SUT].instance.pull_file(
+                    tmp_covfile_path, dest
+                )
+                logging.warning("Done collecting coverage.")
+            except Exception as e:
+                logging.error(str(e))
+                logging.warning("Failed to collect coverage")
 
 
 def after_step(context, step):
