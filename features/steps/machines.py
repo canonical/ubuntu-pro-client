@@ -111,20 +111,9 @@ def given_a_machine(
     when_i_apt_update(context, machine_name=machine_name)
 
     # add coverage
-    when_i_apt_install(context, "python3-coverage", machine_name=machine_name)
-
-    # Create the .coveragerc file in the lxd container
-    if hasattr(context, "machines") and SUT in context.machines:
-        context.machines[SUT].instance.execute(
-            [
-                "bash",
-                "-c",
-                "echo -e '[run]\nrelative_files = True\n\n[paths]\nsource = \
-                    \n\tuaclient/ \
-                    \n\tusr/lib/python3/dist-packages/uaclient/' > \
-                    /usr/lib/python3/dist-packages/uaclient/.coveragerc",
-            ],
-            use_sudo=True,
+    if context.pro_config.collect_coverage:
+        when_i_apt_install(
+            context, "python3-coverage", machine_name=machine_name
         )
 
     if cleanup:
