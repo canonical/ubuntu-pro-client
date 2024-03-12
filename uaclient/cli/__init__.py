@@ -690,6 +690,9 @@ def action_config_set(args, *, cfg, **kwargs):
         raise exceptions.InvalidArgChoice(
             arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)
         )
+    if not set_value.strip():
+        subparser.print_help()
+        raise exceptions.EmptyConfigValue(arg=set_key)
     if set_key in ("http_proxy", "https_proxy"):
         protocol_type = set_key.split("_")[0]
         if protocol_type == "http":

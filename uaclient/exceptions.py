@@ -335,7 +335,6 @@ class EntitlementNotFoundError(UbuntuProError):
 
 
 class EntitlementsNotEnabledError(UbuntuProError):
-
     exit_code = 4
     _msg = messages.E_ENTITLEMENTS_NOT_ENABLED_ERROR
 
@@ -494,6 +493,10 @@ class InvalidSecurityIssueIdFormat(UbuntuProError):
 
 class InvalidArgChoice(UbuntuProError):
     _formatted_msg = messages.E_CLI_VALID_CHOICES
+
+
+class EmptyConfigValue(UbuntuProError):
+    _formatted_msg = messages.E_CLI_EMPTY_CONFIG_VALUE
 
 
 class GenericInvalidFormat(UbuntuProError):
