@@ -2425,6 +2425,11 @@ E_CLI_VALID_CHOICES = FormattedNamedMessage(
     "invalid-arg-choice", "\n" + t.gettext("{arg} must be one of: {choices}")
 )
 
+E_CLI_EMPTY_CONFIG_VALUE = FormattedNamedMessage(
+    "empty-value",
+    t.gettext("Empty value provided for {arg}."),
+)
+
 E_CLI_EXPECTED_FORMAT = FormattedNamedMessage(
     "generic-invalid-format",
     "\n" + t.gettext("Expected {expected} but found: {actual}"),

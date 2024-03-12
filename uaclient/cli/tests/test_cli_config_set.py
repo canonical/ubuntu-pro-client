@@ -55,6 +55,14 @@ class TestMainConfigSet:
                 " global_apt_https_proxy, update_messaging_timer,"
                 " metering_timer",
             ),
+            (
+                "http_proxy=",
+                "Empty value provided for http_proxy.",
+            ),
+            (
+                "https_proxy=  ",
+                "Empty value provided for https_proxy.",
+            ),
         ),
     )
     @mock.patch("uaclient.cli.contract.get_available_resources")
@@ -274,13 +282,6 @@ class TestActionConfigSet:
                 "https://proxy",
                 "https://proxy",
             ),
-            (
-                "global_apt_http_proxy",
-                "",
-                apt.AptProxyScope.GLOBAL,
-                "https://proxy",
-                "https://proxy",
-            ),
         ),
     )
     @mock.patch("uaclient.cli.configure_apt_proxy")
@@ -380,13 +381,6 @@ class TestActionConfigSet:
             (
                 "ua_apt_http_proxy",
                 "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                "https://proxy",
-                "https://proxy",
-            ),
-            (
-                "ua_apt_https_proxy",
-                "",
                 apt.AptProxyScope.UACLIENT,
                 "https://proxy",
                 "https://proxy",
