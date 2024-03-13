@@ -13,7 +13,6 @@ Furo
 Grafana
 IAM
 installable
-jq
 JSON
 Juju
 Kubernetes
