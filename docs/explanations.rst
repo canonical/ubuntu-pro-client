@@ -28,7 +28,6 @@ selection of some of the commands -- what they do, and how they work.
 
     explanations/how_to_interpret_the_security_status_command.md
     explanations/how_to_interpret_output_of_unattended_upgrades.md
-    explanations/how_to_interpret_output_of_fix_plan_api.md
     explanations/status_columns.md
     explanations/what_refresh_does.md
     explanations/purging_services.md
@@ -45,13 +44,26 @@ tooling: the ``ubuntu-advantage-pro`` package.
     explanations/what_are_ubuntu_pro_cloud_instances.md
     explanations/what_is_the_ubuntu_advantage_pro_package.md
 
+
+Handling CVEs and USNs
+==============================
+
+In this section we explain the output of ``pro fix`` and its API interface
+as well as some details related to it like CVEs and USNs.
+
+..  toctree::
+    :maxdepth: 1
+
+    explanations/cves_and_usns_explained.md
+    explanations/fix_scenarios.rst
+    explanations/how_to_interpret_output_of_fix_plan_api.md
+
 Other Pro features explained
 ============================
 
 ..  toctree::
     :maxdepth: 1
 
-    explanations/cves_and_usns_explained.md
     explanations/about_esm.md
     explanations/what_are_the_timer_jobs.md
     explanations/using_pro_offline.rst

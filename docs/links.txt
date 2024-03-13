@@ -1,0 +1,52 @@
+.. LINKS
+
+.. _CLA: https://ubuntu.com/legal/contributors
+.. _code of conduct: https://ubuntu.com/community/ethos/code-of-conduct
+.. _Diataxis: https://diataxis.fr/
+.. _FAQ: https://discourse.ubuntu.com/t/ubuntu-pro-faq/34042
+.. _GitHub: https://github.com
+.. _Github quickstart: https://docs.github.com/en/get-started/quickstart
+.. _Launchpad: https://launchpad.net
+.. _Multipass: https://multipass.run/
+.. _Pro: https://ubuntu.com/pro
+.. _Pro_dashboard: https://ubuntu.com/pro/dashboard
+.. _pro_discourse: https://discourse.ubuntu.com/c/ubuntu-pro/116
+.. _pro_launchpad: https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
+.. _pro_IRC: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
+.. _tox: https://tox.readthedocs.io/en/latest/
+.. _Ubuntu One: https://login.ubuntu.com/
+
+.. SERVICES - security
+
+.. _CC: https://ubuntu.com/security/cc
+.. _certifications: https://ubuntu.com/security/certifications
+.. _cis: https://ubuntu.com/security/cis
+.. _usg: https://ubuntu.com/security/certifications/docs/usg
+.. _esm: https://ubuntu.com/security/esm
+
+.. _cve: https://ubuntu.com/security/cves
+.. _usn: https://ubuntu.com/security/notices
+
+.. SERVICES - other
+
+.. _anbox: https://anbox-cloud.io/
+.. _ROS ESM: https://ubuntu.com/robotics/ros-esm
+.. _fips: https://ubuntu.com/security/fips
+.. _Livepatch: https://ubuntu.com/security/livepatch
+.. _Landscape: https://ubuntu.com/landscape
+.. _landscape_saas: https://landscape.canonical.com
+.. _realtime: https://ubuntu.com/realtime-kernel
+.. _supported_kernels: https://ubuntu.com/security/livepatch/docs/livepatch/reference/kernels
+
+.. CLOUDS
+
+.. _pro_AWS: https://ubuntu.com/aws/pro
+.. _pro_Azure: https://ubuntu.com/azure/pro
+.. _pro_GCP: https://ubuntu.com/gcp/pro
+
+.. _fips_AWS: https://ubuntu.com/aws/fips
+.. _fips_Azure: https://ubuntu.com/azure/fips
+.. _fips_GCP: https://ubuntu.com/gcp/fips
+
+
+

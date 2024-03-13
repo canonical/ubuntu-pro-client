@@ -1,0 +1,35 @@
+Create the Xenial Multipass VM
+==============================
+
+Now that we have installed Multipass, we can launch our Multipass VM by running
+this command:
+
+.. code-block:: bash
+
+    $ multipass launch xenial --name dev-x
+
+Now we can access the VM by running the command:
+
+.. code-block:: bash
+
+    $ multipass shell dev-x
+
+Notice that when you run this command, your terminal username and hostname
+change to:
+
+.. code-block::
+
+    ubuntu@dev-x
+
+This indicates that you are now inside the VM.
+
+Finally, let's run ``apt update`` and ``apt upgrade`` on the VM to make sure we
+are operating on the correct version of Xenial:
+
+.. code-block:: bash
+
+    $ sudo apt update && sudo apt install ubuntu-advantage-tools
+    
+From now on, every time we say: "run the command" our intention is for you to
+run that command inside your VM.    
+

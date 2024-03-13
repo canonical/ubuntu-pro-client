@@ -1103,7 +1103,7 @@ This endpoint fixes the specified USNs on the machine.
       The target is the USN requested to be fixed by the user, while related USNs are USNs
       that are related to the main USN and an attempt to fix them will be performed by the
       endpoint too. To better understand that distinction, please refer to 
-      `our explanation of CVEs and USNs <../explanations/cves_and_usns_explained.md>`_.
+      :ref:`our explanation of CVEs and USNs <expl-cve-usn>`.
 
       With that said both **target_usn** object and any object from **related_usns**
       follow this structure:

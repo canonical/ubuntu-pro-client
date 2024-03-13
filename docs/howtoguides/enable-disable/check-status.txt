@@ -1,0 +1,21 @@
+Check the status of the services
+================================
+
+After you have :ref:`attached your subscription <get_token_and_attach>` and
+updated the ``ubuntu-advantage-tools`` package, you can check which services
+are enabled by running the following command:
+
+.. code-block:: bash
+
+    pro status
+
+This will show you which services are enabled or disabled on your machine
+(output truncated for brevity):
+
+.. code-block:: text
+
+    SERVICE          ENTITLED  STATUS    DESCRIPTION
+    esm-apps         yes       enabled   Expanded Security Maintenance for Applications
+    esm-infra        yes       enabled   Expanded Security Maintenance for Infrastructure
+    livepatch        yes       enabled   Canonical Livepatch service
+    realtime-kernel  yes       disabled  Ubuntu kernel with PREEMPT_RT patches integrated

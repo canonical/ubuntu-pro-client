@@ -1,3 +1,5 @@
+.. _how-to:
+
 Ubuntu Pro Client how-to guides
 *******************************
 
@@ -17,8 +19,8 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Get an Ubuntu Pro token and attach to a subscription <howtoguides/get_token_and_attach.md>
-   Attach with a configuration file <howtoguides/how_to_attach_with_config_file.md>
+   Get an Ubuntu Pro token and attach to a subscription <howtoguides/get_token_and_attach>
+   Attach with a configuration file <howtoguides/how_to_attach_with_config_file>
 
 ``pro collect-logs``
 --------------------
@@ -26,7 +28,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
    
-   Collect data logs for bug reporting <howtoguides/how_to_collect_logs.md>
+   Collect data logs for bug reporting <howtoguides/how_to_collect_logs>
 
 ``pro config``
 --------------
@@ -50,8 +52,8 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Run `fix` in "dry run" mode <howtoguides/how_to_run_fix_in_dry_run_mode.md>
-   Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns.md>
+   How to know what the `fix` command would change? <howtoguides/how_to_know_what_the_fix_command_would_change>
+   Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns>
 
 ``pro refresh``
 ---------------
@@ -59,7 +61,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Update MOTD and APT messages <howtoguides/update_motd_messages.md>
+   Update MOTD and APT messages <howtoguides/update_motd_messages>
 
 ``pro status``
 --------------
@@ -67,7 +69,7 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Simulate the `attach` operation <howtoguides/how_to_simulate_attach.md>
+   Simulate the `attach` operation <howtoguides/how_to_simulate_attach>
 
 ``pro version``
 ---------------
@@ -83,20 +85,29 @@ Corrupted lock files
 .. toctree::
    :maxdepth: 1
 
-   Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock.md>
-    
-Create a ``pro`` Golden Image
-=============================
+   Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock>
+
+Pro Client with Docker
+======================
 
 .. toctree::
    :maxdepth: 1
 
-   Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image.md>
+   Enable Ubuntu Pro services in a Dockerfile <howtoguides/enable_in_dockerfile>
+
+Ubuntu Pro Client for Clouds
+============================
+
+.. toctree::
+   :maxdepth: 1
+
+   Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
+   Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
 Fixing multiple CVEs
-==================================================
+====================
 
 .. toctree::
    :maxdepth: 1
 
-   Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves.rst>
+   Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
