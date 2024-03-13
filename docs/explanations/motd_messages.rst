@@ -220,27 +220,17 @@ Source: MOTD about available updates
 
 If you want to remove the messages about Ubuntu Pro and ESM from the MOTD
 output, but still want to keep the messages about the regular and security
-updates, edit the ``/etc/apt/apt.conf.d/99update-notifier`` file. Add the
-``--no-esm-messages`` flag to **all calls** of the update script. For example,
-change the following line from:
-
-.. code-block:: bash
-
-    APT::Update::Post-Invoke-Success {"/usr/lib/update-notifier/update-motd-updates-available 2>/dev/null || true";};
-
-to:
-
-.. code-block:: bash
-
-    APT::Update::Post-Invoke-Success {"/usr/lib/update-notifier/update-motd-updates-available --no-esm-messages 2>/dev/null || true";};
+updates, create a file named ``/var/lib/update-notifier/hide-esm-in-motd``.
+There is no need for any content in the file - its existence is enough to
+tell update-notifier, and the Pro Client, to suppress the messages.
 
 Keep in mind that the change in the MOTD message may take some time - if you
-want to remove the ESM related messages immediately, run the script yourself
-using `--force `:
+want to remove the ESM related messages immediately, create the file and run
+the script which generates the messages using ``--force``:
 
 .. code-block:: bash
 
-$ sudo /usr/lib/update-notifier/update-motd-updates-available --no-esm-messages --force
+    $ sudo /usr/lib/update-notifier/update-motd-updates-available --force
 
 If you want to disable all messages from update-notifier (not just related to
 Ubuntu Pro and ESM) about potentially available updates, just remove the
