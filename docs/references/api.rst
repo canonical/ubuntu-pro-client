@@ -159,6 +159,7 @@ The currently available endpoints are:
 - `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
+- `u.pro.services.dependencies.v1`_
 - `u.pro.packages.summary.v1`_
 - `u.pro.packages.updates.v1`_
 - `u.pro.status.is_attached.v1`_
@@ -1947,6 +1948,66 @@ are:
 
            {
                "reboot_required": "yes|no|yes-kernel-livepatches-applied"
+           }
+
+u.pro.services.dependencies.v1
+========================================
+
+This endpoint will return a full list of all service dependencies,
+regardless of the current system state. That means it will always return
+the same thing until new services are added, or until we add/remove
+dependencies between services.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.services.dependencies.v1 import dependencies
+           result = dependencies()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.services.dependencies.v1.DependenciesResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``services``
+               - *List[ServiceWithDependencies]*
+               - Each Pro service gets an item in this list
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.services.dependencies.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "services": []
            }
 
 u.pro.packages.summary.v1
