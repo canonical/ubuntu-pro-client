@@ -69,4 +69,4 @@ removing also the FIPS kernel, see
 
 .. include:: ../links.txt
 
-.. _16.04, 18.04 and 20.04: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
+.. _16.04, 18.04 and 20.04: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips

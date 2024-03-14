@@ -631,6 +631,8 @@ like ``systemctl start ubuntu-advantage.service``.
         - This endpoint currently has no CLI support. Only the Python-based
           version is available.
 
+.. _cve-execute-api-v1:
+
 u.pro.security.fix.cve.execute.v1
 ===================================
 

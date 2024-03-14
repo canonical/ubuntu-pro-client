@@ -19,20 +19,38 @@ example, this is the output of running ``pro fix USN-5079-2 --dry-run``:
     No packages will be installed when running this command.
     USN-5079-2: curl vulnerabilities
     Associated CVEs:
-    https://ubuntu.com/security/CVE-2021-22946
-    https://ubuntu.com/security/CVE-2021-22947
+     - https://ubuntu.com/security/CVE-2021-22946
+     - https://ubuntu.com/security/CVE-2021-22947
+
+    Fixing requested USN-5079-2
     1 affected source package is installed: curl
     (1/1) curl:
     A fix is available in Ubuntu Pro: ESM Infra.
+
     The machine is not attached to an Ubuntu Pro subscription.
     To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
     { pro attach TOKEN }
+
     Ubuntu Pro service: esm-infra is not enabled.
     To proceed with the fix, a prompt would ask permission to automatically enable
     this service.
     { pro enable esm-infra }
     { apt update && apt install --only-upgrade -y curl libcurl3-gnutls }
+
     ✔ USN-5079-2 is resolved.
+
+    Found related USNs:
+     - USN-5079-1
+
+    Fixing related USNs:
+     - USN-5079-1
+    No affected source packages are installed.
+
+    ✔ USN-5079-1 does not affect your system.
+
+    Summary:
+    ✔ USN-5079-2 [requested] is resolved.
+    ✔ USN-5079-1 [related] does not affect your system.
 
 You can see that using ``--dry-run`` will also indicate which actions would
 need to happen to completely address the USN/CVE. Here we can see that the
