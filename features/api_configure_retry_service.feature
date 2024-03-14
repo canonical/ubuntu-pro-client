@@ -18,8 +18,8 @@ Feature: api.u.pro.attach.auto.configure_retry_service
       """
     When I run `systemctl enable apitest.service` with sudo
     When I reboot the machine
-        # Cloud init may take a while here
-        And I wait `15` seconds
+    # Cloud init may take a while here
+    And I wait `15` seconds
     Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
     Then stdout matches regexp:
       """

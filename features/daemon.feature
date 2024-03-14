@@ -405,9 +405,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | focal   | azure.pro    |
       | focal   | gcp.pro      |
 
-  @skip_local_environment
-  @skip_prebuilt_environment
-  @uses.config.contract_token
+  @skip_local_environment @skip_prebuilt_environment @uses.config.contract_token
   Scenario Outline: daemon should wait for cloud-config.service to finish
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
       """
@@ -439,6 +437,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
       checking for condition files
       """
+
     Examples: version
       | release | machine_type |
       | bionic  | gcp.generic  |

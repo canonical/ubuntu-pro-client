@@ -454,10 +454,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       CIS audit scan completed
       """
 
-        Examples: cis service
-           | release | machine_type  |
-           | focal   | lxd-container |
-           | focal   | wsl           |     
+    Examples: cis service
+      | release | machine_type  |
+      | focal   | lxd-container |
+      | focal   | wsl           |
 
   Scenario Outline: Attached enable of usg service in a focal machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

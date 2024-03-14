@@ -24,7 +24,7 @@ Feature: Pro Install and Uninstall related tests
     And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-pro-esm-infra.gpg`
     And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
     And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
-    When I run `apt purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
+    When I run `apt purge ubuntu-advantage-tools ubuntu-pro-client -y` with sudo, retrying exit [100]
     Then stdout matches regexp:
       """
       Purging configuration files for ubuntu-advantage-tools
@@ -81,9 +81,8 @@ Feature: Pro Install and Uninstall related tests
       | focal   | lxd-container |
       | jammy   | lxd-container |
 
-  @skip_local_environment
-  @skip_prebuilt_environment
-  Scenario Outline: Package ubuntu-advantage-tools now install 
+  @skip_local_environment @skip_prebuilt_environment
+  Scenario Outline: Package ubuntu-advantage-tools now install
     Given a `<release>` `<machine_type>` machine
     When I install transition package ubuntu-advantage-tools
     Then I verify that `ubuntu-pro-client` is installed
@@ -94,23 +93,21 @@ Feature: Pro Install and Uninstall related tests
       | bionic  | lxd-container |
       | focal   | lxd-container |
 
-  @skip_local_environment
-  @skip_prebuilt_environment
-  Scenario Outline: Package ubuntu-advantage-tools now install 
+  @skip_local_environment @skip_prebuilt_environment
+  Scenario Outline: Package ubuntu-advantage-tools now install
     Given a `<release>` `<machine_type>` machine
     When I install transition package ubuntu-advantage-tools
     Then I verify that `ubuntu-pro-auto-attach` is installed
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | aws.pro       |
-      | bionic  | aws.pro       |
-      | focal   | aws.pro       |
-      | jammy   | aws.pro       |
-      | jammy   | aws.pro       |
+      | release | machine_type |
+      | xenial  | aws.pro      |
+      | bionic  | aws.pro      |
+      | focal   | aws.pro      |
+      | jammy   | aws.pro      |
+      | jammy   | aws.pro      |
 
-  @skip_local_environment
-  @skip_prebuilt_environment
+  @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Does not cause deadlock when cloud-init installs ubuntu-advantage-tools
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
       """

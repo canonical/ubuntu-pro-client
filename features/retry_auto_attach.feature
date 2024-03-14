@@ -151,7 +151,7 @@ Feature: auto-attach retries periodically on failures
           }]
       }
       """
-    And I append the following on uaclient config:
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
       """
       features:
         serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
@@ -179,7 +179,7 @@ Feature: auto-attach retries periodically on failures
       NOTICES
       Failed to automatically attach to an Ubuntu Pro subscription
       """
-    When I append the following on uaclient config:
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
       """
       features: {}
       """
@@ -240,7 +240,7 @@ Feature: auto-attach retries periodically on failures
           }]
       }
       """
-    And I append the following on uaclient config:
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
       """
       features:
         serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
@@ -306,7 +306,7 @@ Feature: auto-attach retries periodically on failures
           }]
       }
       """
-    And I append the following on uaclient config:
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
       """
       features:
         serviceclient_url_responses: "/var/lib/ubuntu-advantage/response-overlay.json"
@@ -334,7 +334,7 @@ Feature: auto-attach retries periodically on failures
       NOTICES
       Failed to automatically attach to an Ubuntu Pro subscription
       """
-    When I append the following on uaclient config:
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
       """
       features: {}
       """

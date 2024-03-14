@@ -159,27 +159,27 @@ Feature: FIPS enablement in cloud based machines
     Then I verify that `<fips-service>` is disabled
 
     Examples: ubuntu release
-      | release | machine_type  | fips-name    | fips-service | fips-package      | fips-kernel | fips-apt-source                                |
-      | xenial  | azure.generic | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
+      | release | machine_type  | fips-name    | fips-service | fips-package      | fips-kernel | fips-apt-source                                                |
+      | xenial  | azure.generic | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main                 |
       | xenial  | azure.generic | FIPS Updates | fips-updates | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
-      | xenial  | aws.generic   | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-      | bionic  | azure.generic | FIPS         | fips         | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+      | xenial  | aws.generic   | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main                 |
+      | bionic  | azure.generic | FIPS         | fips         | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main                 |
       | bionic  | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
-      | bionic  | aws.generic   | FIPS         | fips         | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+      | bionic  | aws.generic   | FIPS         | fips         | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips/ubuntu bionic/main                 |
       | bionic  | aws.generic   | FIPS Updates | fips-updates | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
-      | bionic  | gcp.generic   | FIPS         | fips         | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+      | bionic  | gcp.generic   | FIPS         | fips         | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips/ubuntu bionic/main                 |
       | bionic  | gcp.generic   | FIPS Updates | fips-updates | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
-      | focal   | azure.generic | FIPS         | fips         | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+      | focal   | azure.generic | FIPS         | fips         | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips/ubuntu focal/main                  |
       | focal   | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  |
-      | focal   | aws.generic   | FIPS         | fips         | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+      | focal   | aws.generic   | FIPS         | fips         | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips/ubuntu focal/main                  |
       | focal   | aws.generic   | FIPS Updates | fips-updates | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  |
-      | focal   | gcp.generic   | FIPS         | fips         | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+      | focal   | gcp.generic   | FIPS         | fips         | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips/ubuntu focal/main                  |
       | focal   | gcp.generic   | FIPS Updates | fips-updates | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  |
-      | jammy   | azure.generic | FIPS Preview | fips-preview | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main  |
+      | jammy   | azure.generic | FIPS Preview | fips-preview | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main          |
       | jammy   | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main  |
-      | jammy   | aws.generic   | FIPS Preview | fips-preview | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main  |
+      | jammy   | aws.generic   | FIPS Preview | fips-preview | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main          |
       | jammy   | aws.generic   | FIPS Updates | fips-updates | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main  |
-      | jammy   | gcp.generic   | FIPS Preview | fips-preview | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main  |
+      | jammy   | gcp.generic   | FIPS Preview | fips-preview | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips-preview/ubuntu jammy/main          |
       | jammy   | gcp.generic   | FIPS Updates | fips-updates | ubuntu-gcp-fips   | gcp-fips    | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main  |
 
   @slow
