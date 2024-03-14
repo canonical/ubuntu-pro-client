@@ -15,6 +15,7 @@ from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
 from uaclient.files.notices import Notice, NoticesManager
+from uaclient.files.user_config_file import UserConfigData
 from uaclient.yaml import safe_load
 
 M_PATH = "uaclient.cli."
@@ -341,11 +342,17 @@ Flags:
     "uaclient.status.get_contract_information",
     return_value=RESPONSE_CONTRACT_INFO,
 )
+@mock.patch(
+    "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+    new_callable=mock.PropertyMock,
+    return_value=UserConfigData(),
+)
 class TestActionStatus:
     @mock.patch(M_PATH + "setup_logging")
     def test_status_help(
         self,
         _m_setup_logging,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,
@@ -393,6 +400,7 @@ class TestActionStatus:
     def test_attached(
         self,
         _m_format_expires,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -451,6 +459,7 @@ class TestActionStatus:
     )
     def test_unattached(
         self,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -478,6 +487,7 @@ class TestActionStatus:
     )
     def test_simulated(
         self,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -505,6 +515,7 @@ class TestActionStatus:
         m_sleep,
         _m_subp,
         _m_get_version,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -557,6 +568,7 @@ class TestActionStatus:
     )
     def test_unattached_formats(
         self,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -667,6 +679,7 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_attached_formats(
         self,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -800,6 +813,7 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_simulated_formats(
         self,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -951,6 +965,7 @@ class TestActionStatus:
 
     def test_error_on_connectivity_errors(
         self,
+        _m_public_config,
         _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
@@ -979,6 +994,7 @@ class TestActionStatus:
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_format_expires,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -1040,6 +1056,7 @@ class TestActionStatus:
     )
     def test_errors_are_raised_appropriately(
         self,
+        _m_public_config,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -1101,6 +1118,7 @@ class TestActionStatus:
     )
     def test_errors_for_token_dates(
         self,
+        _m_public_config,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
