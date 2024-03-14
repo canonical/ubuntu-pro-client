@@ -1531,13 +1531,13 @@ class TestHandleRequiredPackages:
             ),
             (
                 [{"name": "package"}],
-                [mock.call()],
+                [mock.call("/etc/apt/sources.list")],
                 [mock.call(["package"])],
                 True,
             ),
             (
                 [{"name": "package"}, {"name": "package2"}],
-                [mock.call()],
+                [mock.call("/etc/apt/sources.list")],
                 [mock.call(["package", "package2"])],
                 True,
             ),
@@ -1562,6 +1562,7 @@ class TestHandleRequiredPackages:
         )
 
         assert expected_result == entitlement.handle_required_packages()
+        assert [] == m_apt_update.call_args_list
         assert (
             expected_apt_update_calls == m_update_sources_list.call_args_list
         )

@@ -10,7 +10,9 @@ def assert_lock_file(lock_holder=None):
     def wrapper(f):
         @wraps(f)
         def new_f(*args, cfg, **kwargs):
-            with lock.RetryLock(cfg=cfg, lock_holder=lock_holder, sleep_time=1):
+            with lock.RetryLock(
+                cfg=cfg, lock_holder=lock_holder, sleep_time=1
+            ):
                 retval = f(*args, cfg=cfg, **kwargs)
             return retval
 
