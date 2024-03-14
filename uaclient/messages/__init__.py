@@ -2265,7 +2265,13 @@ E_INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
 )
 
 E_INVALID_PRO_IMAGE = FormattedNamedMessage(
-    name="invalid-pro-image", msg=t.gettext("Error on Pro Image:\n{error_msg}")
+    name="invalid-pro-image",
+    msg=t.gettext(
+        """\
+Failed to identify this image as a valid Ubuntu Pro image.
+Details:
+{error_msg}"""
+    ),
 )
 
 E_CLOUD_METADATA_ERROR = FormattedNamedMessage(

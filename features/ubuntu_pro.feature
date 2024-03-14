@@ -254,7 +254,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     When I verify that running `pro auto-attach` `with sudo` exits `1`
     Then stderr matches regexp:
       """
-      Error on Pro Image:
+      Failed to identify this image as a valid Ubuntu Pro image.
+      Details:
       missing instance information
       """
 
