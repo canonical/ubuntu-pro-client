@@ -24,6 +24,7 @@ from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.entitlements.ros import ROSEntitlement
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 from uaclient.files.notices import Notice, NoticesManager
+from uaclient.files.user_config_file import UserConfigData
 from uaclient.status import (
     DEFAULT_STATUS,
     TxtColor,
@@ -566,8 +567,13 @@ class TestStatus:
 
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+    )
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
+        m_public_config,
         m_get_available_resources,
         m_we_are_currently_root,
         _m_should_reboot,
@@ -575,6 +581,7 @@ class TestStatus:
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
@@ -590,8 +597,13 @@ class TestStatus:
 
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+    )
     def test_root_and_non_root_are_same_attached(
         self,
+        m_public_config,
         m_get_available_resources,
         m_we_are_currently_root,
         _m_should_reboot,
@@ -599,6 +611,7 @@ class TestStatus:
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
         root_cfg = FakeConfig.for_attached_machine()
         root_status = status.status(cfg=root_cfg)
@@ -608,14 +621,20 @@ class TestStatus:
         assert normal_status == root_status
 
     @mock.patch("uaclient.status.get_available_resources", return_value=[])
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+    )
     def test_cache_file_is_written_world_readable(
         self,
+        m_public_config,
         _m_get_available_resources,
         _m_should_reboot,
         m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         cfg = FakeConfig()
         status.status(cfg=cfg)
 
@@ -873,8 +892,13 @@ class TestStatus:
     @pytest.mark.usefixtures("all_resources_available")
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+    )
     def test_expires_handled_appropriately(
         self,
+        m_public_config,
         _m_get_available_resources,
         m_we_are_currently_root,
         _m_should_reboot,
@@ -883,6 +907,7 @@ class TestStatus:
         all_resources_available,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
         token = {
             "availableResources": all_resources_available,
@@ -927,16 +952,22 @@ class TestStatus:
         "uaclient.files.state_files.reboot_cmd_marker_file",
         new_callable=mock.PropertyMock,
     )
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+    )
     @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_nonroot_user_does_not_use_cache(
         self,
         _m_get_available_resources,
+        m_public_config,
         m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_reboot_cmd_marker_file.is_present = True
         cached_status = {"pass": True}
         cfg = FakeConfig()

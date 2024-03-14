@@ -13,6 +13,7 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailure,
     CanEnableFailureReason,
 )
+from uaclient.files.user_config_file import UserConfigData
 
 HELP_OUTPUT = """\
 usage: pro enable <service> [<service>] [flags]
@@ -38,6 +39,11 @@ Flags:
 """
 
 
+@mock.patch(
+    "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+    new_callable=mock.PropertyMock,
+    return_value=UserConfigData(),
+)
 @mock.patch("uaclient.contract.refresh")
 class TestActionEnable:
     @mock.patch("uaclient.cli.setup_logging")
@@ -47,6 +53,7 @@ class TestActionEnable:
         _m_resources,
         _m_setup_logging,
         _refresh,
+        _m_public_config,
         capsys,
         FakeConfig,
     ):
@@ -69,6 +76,7 @@ class TestActionEnable:
         _refresh,
         we_are_currently_root,
         m_setup_logging,
+        _m_public_config,
         capsys,
         event,
         FakeConfig,
@@ -139,6 +147,7 @@ class TestActionEnable:
         m_subp,
         m_sleep,
         _refresh,
+        _m_public_config,
         capsys,
         event,
         FakeConfig,
@@ -205,6 +214,7 @@ class TestActionEnable:
         self,
         m_we_are_currently_root,
         _refresh,
+        _m_public_config,
         root,
         expected_error_template,
         capsys,
@@ -274,6 +284,7 @@ class TestActionEnable:
         self,
         m_we_are_currently_root,
         _refresh,
+        _m_public_config,
         root,
         expected_error_template,
         is_attached,
@@ -370,6 +381,7 @@ class TestActionEnable:
         self,
         m_we_are_currently_root,
         _refresh,
+        _m_public_config,
         root,
         expected_error_template,
         event,
@@ -445,6 +457,7 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_update_activity_token,
         m_refresh,
+        _m_public_config,
         assume_yes,
         FakeConfig,
     ):
@@ -489,6 +502,7 @@ class TestActionEnable:
         m_entitlement_factory,
         _m_get_available_resources,
         _m_refresh,
+        _m_public_config,
         event,
         FakeConfig,
     ):
@@ -614,6 +628,7 @@ class TestActionEnable:
         m_entitlement_factory,
         _m_get_available_resources,
         _m_refresh,
+        _m_public_config,
         beta_flag,
         event,
         FakeConfig,
@@ -766,6 +781,7 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_update_activity_token,
         _m_refresh,
+        _m_public_config,
         event,
         FakeConfig,
     ):
@@ -841,6 +857,7 @@ class TestActionEnable:
     def test_invalid_service_names(
         self,
         _m_refresh,
+        _m_public_config,
         service,
         beta,
         event,
@@ -922,6 +939,7 @@ class TestActionEnable:
         _m_get_available_resources,
         m_update_activity_token,
         _m_refresh,
+        _m_public_config,
         allow_beta,
         event,
         FakeConfig,
@@ -993,7 +1011,7 @@ class TestActionEnable:
         assert expected_ret == ret
 
     def test_format_json_fails_when_assume_yes_flag_not_used(
-        self, _m_get_available_resources, event
+        self, _m_get_available_resources, _m_public_config, event
     ):
         cfg = mock.MagicMock()
         args_mock = mock.MagicMock()
@@ -1028,7 +1046,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     def test_access_only_cannot_be_used_together_with_variant(
-        self, _m_get_available_resources, FakeConfig
+        self, _m_get_available_resources, _m_public_config, FakeConfig
     ):
         cfg = FakeConfig.for_attached_machine()
         args_mock = mock.MagicMock()

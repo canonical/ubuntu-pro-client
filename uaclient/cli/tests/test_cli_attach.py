@@ -24,6 +24,7 @@ from uaclient.exceptions import (
     NonRootUserError,
     UbuntuProError,
 )
+from uaclient.files.user_config_file import UserConfigData
 from uaclient.testing.fakes import FakeFile, FakeUbuntuProError
 from uaclient.yaml import safe_dump
 
@@ -538,8 +539,14 @@ class TestActionAttach:
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
+    @mock.patch(
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
+        return_value=UserConfigData(),
+    )
     def test_attach_when_one_service_fails_to_enable(
         self,
+        m_public_config,
         _m_update_messages,
         m_request_url,
         _m_apply_contract_overrides,
