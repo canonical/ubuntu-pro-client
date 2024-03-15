@@ -105,9 +105,9 @@ The process will use `$version` throughout in place of the version number, e.g.,
 
 ### 1. Write a changelog entry
 
-Create a PR against `main` finishing the changelog entry for the new version. The version number should only be `$version` and the target should be `$devel_release`. Also review the contents of the changelog entry and add anything that is missing. This PR should be reviewed and merged before starting the release process.
+Create a PR against `main` finishing the changelog entry for the new version. There should be an entry at the top for `UNRELEASED` with the version `1:1+devel`. Change the version to `$version` and change `UNRELEASED` to `$devel_release`. Also review the contents of the changelog entry and add anything that is missing. This PR should be reviewed and merged before starting the release process.
 
-You don't need to include all of the commits generated. Remember that the changelog should be read by the user to understand the new features/modifications in the package. If you think a commit will not add that much to the user experience, you can drop it from the changelog.
+You don't need to include a note for all of the commits included in the release. Remember that the changelog should be read by the user to understand the new features/modifications in the package. If you think a commit will not add that much to the user experience, you can drop it from the changelog.
 
 To structure the changelog you can use the other entries as example. But we basically try to keep this order: Debian changes; new features/modifications; testing. Within each section, bullet points should be alphabetised.
 
@@ -142,8 +142,9 @@ git push origin $version-rc
 
 # Create the next branch
 git switch -c next-v$((version+1))
-dch --newversion $((version+1))~1~devel
-git add debian/changelog
+dch --newversion "1:1+devel"
+sed -i 's/__VERSION__ = .*$/__VERSION__ = "1:1+devel"/' uaclient/version.py
+git add debian/changelog uaclient/version.py
 git commit -m "open next development version"
 git push origin next-v$((version+1))
 
