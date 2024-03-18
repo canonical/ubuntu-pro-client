@@ -29,6 +29,7 @@ Feature: Logs in Json Array Formatter
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `systemctl stop esm-cache.service` with sudo
     # Confirm user log file does not exist
     When I run `truncate -s 0 /var/log/ubuntu-advantage.log` with sudo
     And I verify `/var/log/ubuntu-advantage.log` is empty
