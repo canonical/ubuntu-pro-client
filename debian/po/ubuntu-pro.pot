@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-14 11:22-0400\n"
+"POT-Creation-Date: 2024-03-18 12:55-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2992,131 +2992,136 @@ msgstr ""
 
 #: ../../uaclient/messages/__init__.py:2430
 #, python-brace-format
+msgid "Empty value provided for {arg}."
+msgstr ""
+
+#: ../../uaclient/messages/__init__.py:2435
+#, python-brace-format
 msgid "Expected {expected} but found: {actual}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2434
+#: ../../uaclient/messages/__init__.py:2439
 msgid "Unable to process uaclient.conf"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2439
+#: ../../uaclient/messages/__init__.py:2444
 msgid "Unable to refresh your subscription"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2444
+#: ../../uaclient/messages/__init__.py:2449
 msgid "Unable to update Ubuntu Pro related APT and MOTD messages."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2450
+#: ../../uaclient/messages/__init__.py:2455
 msgid "json formatted response requires --assume-yes flag."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2458
+#: ../../uaclient/messages/__init__.py:2463
 msgid ""
 "Do not pass the TOKEN arg if you are using --attach-config.\n"
 "Include the token in the attach-config file instead.\n"
 "    "
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2467
+#: ../../uaclient/messages/__init__.py:2472
 msgid "Cannot provide both --args and --data at the same time"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2473
+#: ../../uaclient/messages/__init__.py:2478
 #, python-brace-format
 msgid "Unable to perform: {lock_request}.\n"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2482
+#: ../../uaclient/messages/__init__.py:2487
 msgid "This command must be run as root (try using sudo)."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2487
+#: ../../uaclient/messages/__init__.py:2492
 #, python-brace-format
 msgid "Metadata for {issue} is invalid. Error: {error_msg}."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2494
+#: ../../uaclient/messages/__init__.py:2499
 #, python-brace-format
 msgid "Error: {issue_id} not found."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2498
+#: ../../uaclient/messages/__init__.py:2503
 #, python-brace-format
 msgid "GPG key '{keyfile}' not found."
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2503
+#: ../../uaclient/messages/__init__.py:2508
 #, python-brace-format
 msgid "'{endpoint}' is not a valid endpoint"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2508
+#: ../../uaclient/messages/__init__.py:2513
 #, python-brace-format
 msgid "Missing argument '{arg}' for endpoint {endpoint}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2513
+#: ../../uaclient/messages/__init__.py:2518
 #, python-brace-format
 msgid "{endpoint} accepts no arguments"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2518
+#: ../../uaclient/messages/__init__.py:2523
 #, python-brace-format
 msgid ""
 "Error parsing API json data parameter:\n"
 "{data}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2523
+#: ../../uaclient/messages/__init__.py:2528
 #, python-brace-format
 msgid "'{arg}' is not formatted as 'key=value'"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2528
+#: ../../uaclient/messages/__init__.py:2533
 #, python-brace-format
 msgid "Unable to determine version: {error_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2533
+#: ../../uaclient/messages/__init__.py:2538
 msgid "features.disable_auto_attach set in config"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2538
+#: ../../uaclient/messages/__init__.py:2543
 #, python-brace-format
 msgid "Unable to determine unattended-upgrades status: {error_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2544
+#: ../../uaclient/messages/__init__.py:2549
 #, python-brace-format
 msgid "Expected value with type {expected_type} but got type: {got_type}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2550
+#: ../../uaclient/messages/__init__.py:2555
 #, python-brace-format
 msgid ""
 "Got value with incorrect type at index {index}:\n"
 "{nested_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2556
+#: ../../uaclient/messages/__init__.py:2561
 #, python-brace-format
 msgid ""
 "Got value with incorrect type for field \"{key}\":\n"
 "{nested_msg}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2563
+#: ../../uaclient/messages/__init__.py:2568
 #, python-brace-format
 msgid "Value provided was not found in {enum_class}'s allowed: value: {values}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2574
+#: ../../uaclient/messages/__init__.py:2579
 #, python-brace-format
 msgid "Error updating ESM services cache: {error}"
 msgstr ""
 
-#: ../../uaclient/messages/__init__.py:2580
+#: ../../uaclient/messages/__init__.py:2585
 #, python-brace-format
 msgid ""
 "There is a problem with the resource directives provided by {url}\n"
