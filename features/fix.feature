@@ -747,6 +747,7 @@ Feature: Ua fix command behaviour
       - USN-6256-1
       - USN-6385-1
       - USN-6460-1
+      - USN-6699-1
 
       Fixing related USNs:
       - USN-6033-1
@@ -839,6 +840,11 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-6460-1 does not affect your system.
 
+      - USN-6699-1
+      No affected source packages are installed.
+
+      .*✔.* USN-6699-1 does not affect your system.
+
       Summary:
       .*✔.* USN-6130-1 \[requested\] does not affect your system.
       .*✔.* USN-6033-1 \[related\] does not affect your system.
@@ -859,6 +865,7 @@ Feature: Ua fix command behaviour
       .*✔.* USN-6256-1 \[related\] does not affect your system.
       .*✔.* USN-6385-1 \[related\] does not affect your system.
       .*✔.* USN-6460-1 \[related\] does not affect your system.
+      .*✔.* USN-6699-1 \[related\] does not affect your system.
       """
     When I run `pro fix CVE-2023-42752` with sudo
     Then stdout matches regexp:
