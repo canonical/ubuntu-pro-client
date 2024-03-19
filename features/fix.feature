@@ -575,6 +575,7 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release | machine_type  |
       | xenial  | lxd-container |
+      | xenial  | lxd-vm        |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -881,6 +882,7 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release | machine_type  |
       | bionic  | lxd-container |
+      | bionic  | lxd-vm        |
       | bionic  | wsl           |
 
   Scenario Outline: Fix command on a machine without security/updates source lists
@@ -908,4 +910,5 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release | machine_type  |
       | bionic  | lxd-container |
+      | bionic  | lxd-vm        |
       | bionic  | wsl           |
