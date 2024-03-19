@@ -12,12 +12,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     ContractExpiryStatus,
     _is_attached,
 )
-from uaclient.apt import (
-    ensure_apt_pkg_init,
-    get_installed_packages,
-    is_installed,
-    version_compare,
-)
+from uaclient.apt import ensure_apt_pkg_init, get_pkg_version, version_compare
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -51,7 +46,7 @@ class AptNewsMessageSelectors(DataObject):
         clouds: Optional[List[str]] = None,
         pro: Optional[bool] = None,
         architectures: Optional[List[str]] = None,
-        packages: Optional[List[List[str]]] = None,
+        packages: Optional[List[List[str]]] = None
     ):
         self.codenames = codenames
         self.clouds = clouds
@@ -108,46 +103,35 @@ def do_selectors_apply(
             return False
 
     if selectors.packages is not None:
-        installed_packages = get_installed_packages()
-        installed_packages_names = [
-            package.name for package in installed_packages
-        ]
-        is_package_matched = False
-
         for package in selectors.packages:
             try:
                 package_name, version_operator, package_version = package
             except ValueError:
                 LOG.warning("Invalid package selector: %r", package)
                 return False
-            if not is_installed(package_name):
-                installed_package = installed_packages[
-                    installed_packages_names.index(package_name)
+            installed_package_version = get_pkg_version(package_name)
+            if installed_package_version is None:
+                return False
+            version_comparison = version_compare(
+                installed_package_version, package_version
+            )
+            if not any(
+                [
+                    (
+                        version_comparison == 0
+                        and version_operator in ["==", "<=", ">="]
+                    ),
+                    (
+                        version_comparison < 0
+                        and version_operator in ["<", "<="]
+                    ),
+                    (
+                        version_comparison > 0
+                        and version_operator in [">", ">="]
+                    ),
                 ]
-                version_comparison = version_compare(
-                    installed_package.version, package_version
-                )
-                if any(
-                    [
-                        (
-                            version_comparison == 0
-                            and version_operator in ["==", "<=", ">="]
-                        ),
-                        (
-                            version_comparison < 0
-                            and version_operator in ["<", "<="]
-                        ),
-                        (
-                            version_comparison > 0
-                            and version_operator in [">", ">="]
-                        ),
-                    ]
-                ):
-                    is_package_matched = True
-                    break
-
-        if not is_package_matched:
-            return False
+            ):
+                return False
 
     return True
 
