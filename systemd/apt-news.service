@@ -14,7 +14,7 @@ Description=Update APT News
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/apt_news.py
-AppArmorProfile=ubuntu_pro_apt_news
+AppArmorProfile=-ubuntu_pro_apt_news
 CapabilityBoundingSet=~CAP_SYS_ADMIN
 CapabilityBoundingSet=~CAP_NET_ADMIN
 CapabilityBoundingSet=~CAP_NET_BIND_SERVICE
