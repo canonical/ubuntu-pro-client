@@ -641,10 +641,15 @@ Feature: APT Messages
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |
+      | xenial  | lxd-vm        |
       | bionic  | lxd-container |
+      | bionic  | lxd-vm        |
       | focal   | lxd-container |
+      | focal   | lxd-vm        |
       | jammy   | lxd-container |
+      | jammy   | lxd-vm        |
       | mantic  | lxd-container |
+      | mantic  | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
