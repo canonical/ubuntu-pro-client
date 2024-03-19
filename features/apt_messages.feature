@@ -675,6 +675,352 @@ Feature: APT Messages
       | focal   | gcp.generic   | Learn more about Ubuntu Pro on GCP at https://ubuntu.com/gcp/pro                 |
 
   @uses.config.contract_token
+  Scenario Outline: APT news selectors
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    When I apt upgrade including phased updates
+    When I apt autoremove
+    When I apt install `jq`
+    When I run `pro detach --assume-yes` with sudo
+    Given a `mantic` `<machine_type>` machine named `apt-news-server`
+    When I apt install `nginx` on the `apt-news-server` machine
+    When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
+    When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
+    When I run `pro config set apt_news_url=http://$behave_var{machine-ip apt-news-server}/aptnews.json` with sudo
+    # Testing codename selector
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<wrong_release>"],
+            },
+            "lines": [
+              "one"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    # Testing architectures selector
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["amd64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["arm64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["arm64", "amd64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    # Testing packages selector when package is not installed
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["libcurl4", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+    # Testing package selector when package installed
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I apt install `<package>=<installed_version>`
+    And I run `apt-mark hold <package>` with sudo
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [["<package>", "<", "8.2.1-1ubuntu3.2"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    # Testing multiple selectors together
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<wrong_release>"],
+              "architectures": ["arm64"],
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      The following packages have been kept back:
+        <package>
+      0 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["<package>", ">", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      The following packages have been kept back:
+        <package>
+      0 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  | wrong_release | package         | installed_version |
+      | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
+      | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
+      | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
+      | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
+      | mantic  | lxd-container | jammy         | libcurl4        | 8.2.1-1ubuntu3    |
+
+  @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt upgrade including phased updates
