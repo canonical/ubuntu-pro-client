@@ -873,7 +873,7 @@ Feature: Ua fix command behaviour
 
     Examples: ubuntu release details
       | release | machine_type  |
-      | bionix  | lxd-container |
+      | bionic  | lxd-container |
       | bionic  | wsl           |
 
   Scenario Outline: Fix command on a machine without security/updates source lists
@@ -900,5 +900,5 @@ Feature: Ua fix command behaviour
 
     Examples: ubuntu release details
       | release | machine_type  |
-      | bionix  | lxd-container |
+      | bionic  | lxd-container |
       | bionic  | wsl           |
