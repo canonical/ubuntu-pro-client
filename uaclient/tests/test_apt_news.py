@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import mock
 import pytest
 
-from uaclient import apt, apt_news, messages
+from uaclient import apt_news, messages
 from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
 from uaclient.clouds.identity import NoCloudTypeReason
 
@@ -20,7 +20,7 @@ class TestAptNews:
             "cloud_type",
             "attached",
             "architecture",
-            "packages",
+            "package_version",
             "expected",
         ],
         [
@@ -125,18 +125,25 @@ class TestAptNews:
             ),
             (
                 apt_news.AptNewsMessageSelectors(
-                    pro=False, packages=[["not-desktop", "==", "1.0.0"]]
+                    pro=True, packages=[["not-desktop", "==", "1.0.0"]]
                 ),
                 "xenial",
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
-                False,
-                None,
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="1.0.0", arch=""
-                    ),
-                ],
                 True,
+                None,
+                "1.0.0",
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    pro=True, packages=[["desktop", "==", "1.0.0"]]
+                ),
+                "xenial",
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
+                True,
+                None,
+                None,
+                False,
             ),
             (
                 apt_news.AptNewsMessageSelectors(
@@ -146,11 +153,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="1.0.0", arch=""
-                    ),
-                ],
+                "1.0.0",
                 False,
             ),
             (
@@ -161,11 +164,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="1.0.1", arch=""
-                    ),
-                ],
+                "1.0.1",
                 False,
             ),
             (
@@ -176,11 +175,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="1.0.1", arch=""
-                    ),
-                ],
+                "1.0.1",
                 True,
             ),
             (
@@ -191,11 +186,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="0.0.1", arch=""
-                    ),
-                ],
+                "0.0.1",
                 True,
             ),
             (
@@ -210,11 +201,7 @@ class TestAptNews:
                 ("aws", None),
                 False,
                 "arm4",
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="0.0.7", arch=""
-                    ),
-                ],
+                "0.0.7",
                 False,
             ),
             (
@@ -229,11 +216,7 @@ class TestAptNews:
                 ("gce", None),
                 False,
                 "amd64",
-                [
-                    apt.InstalledAptPackage(
-                        name="not-desktop", version="1.0.1", arch=""
-                    ),
-                ],
+                "1.0.1",
                 True,
             ),
         ],
@@ -241,10 +224,10 @@ class TestAptNews:
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch(M_PATH + "system.get_release_info")
     @mock.patch(M_PATH + "system.get_dpkg_arch")
-    @mock.patch(M_PATH + "get_installed_packages")
+    @mock.patch(M_PATH + "get_pkg_version")
     def test_do_selectors_apply(
         self,
-        m_installed_packages,
+        m_get_pkg_version,
         m_get_dpkg_arch,
         m_get_platform_info,
         m_get_cloud_type,
@@ -253,7 +236,7 @@ class TestAptNews:
         cloud_type,
         attached,
         architecture,
-        packages,
+        package_version,
         expected,
         FakeConfig,
     ):
@@ -264,7 +247,7 @@ class TestAptNews:
         m_get_platform_info.return_value = mock.MagicMock(series=series)
         m_get_cloud_type.return_value = cloud_type
         m_get_dpkg_arch.return_value = architecture
-        m_installed_packages.return_value = packages
+        m_get_pkg_version.return_value = package_version
         assert expected == apt_news.do_selectors_apply(cfg, selectors)
 
     @pytest.mark.parametrize(
