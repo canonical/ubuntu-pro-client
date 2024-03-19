@@ -1427,6 +1427,13 @@ Feature: Fix execute API endpoints
                     "status": "not-affected",
                     "title": "USN-6460-1",
                     "upgraded_packages": []
+                  },
+                  {
+                    "description": "Linux kernel vulnerabilities",
+                    "errors": null,
+                    "status": "not-affected",
+                    "title": "USN-6699-1",
+                    "upgraded_packages": []
                   }
                 ],
                 "target_usn": {
