@@ -44,9 +44,7 @@ def check_lock_info() -> Tuple[int, str]:
     try:
         lock_data_obj = lock_data_file.read()
     except exceptions.InvalidFileFormatError:
-        raise exceptions.InvalidLockFile(
-            lock_file_path=os.path.join(lock_data_file.path)
-        )
+        raise exceptions.InvalidLockFile(lock_file_path=lock_data_file.path)
 
     no_lock = (-1, "")
     if not lock_data_obj:
