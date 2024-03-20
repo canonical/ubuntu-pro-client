@@ -80,7 +80,12 @@ class ProJSONFile:
         content = self.pro_file.read()
 
         if content:
-            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
+            try:
+                return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
+            except json.JSONDecodeError as e:
+                raise exceptions.InvalidJson(
+                    source=self.pro_file.path, out="\n" + str(e)
+                )
 
         return None
 
