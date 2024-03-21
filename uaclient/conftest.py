@@ -13,6 +13,7 @@ import pytest
 try:
     from uaclient import event_logger
     from uaclient.config import UAConfig
+    from uaclient.entitlements.entitlement_status import ApplicationStatus
     from uaclient.files.notices import NoticeFileDetails
     from uaclient.files.user_config_file import UserConfigData
 except ImportError:
@@ -308,3 +309,28 @@ def mock_notices_dir(tmpdir_factory):
             temp_dir.strpath,
         ):
             yield
+
+
+@pytest.fixture
+def mock_entitlement():
+    def factory_func(
+        *,
+        name="test",
+        title="test",
+        application_status=(ApplicationStatus.DISABLED, ""),
+        can_disable=(False, None),
+        disable=(False, None),
+        enable=(False, None)
+    ):
+        m_ent_cls = mock.MagicMock()
+        type(m_ent_cls).name = mock.PropertyMock(return_value=name)
+        m_ent_obj = m_ent_cls.return_value
+        type(m_ent_obj).title = mock.PropertyMock(return_value=title)
+        m_ent_obj.application_status.return_value = application_status
+        m_ent_obj.disable.return_value = disable
+        m_ent_obj.enable.return_value = enable
+        m_ent_obj.can_disable.return_value = can_disable
+
+        return (m_ent_cls, m_ent_obj)
+
+    return factory_func
