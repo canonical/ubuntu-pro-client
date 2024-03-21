@@ -1,10 +1,8 @@
 from typing import Any, Dict, List, Optional
 
-import mock
 import pytest
 
 from uaclient import config, event_logger
-from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 
 def machine_token(
@@ -161,26 +159,3 @@ def event():
     event.reset()
 
     return event
-
-
-@pytest.fixture
-def mock_entitlement():
-    def factory_func(
-        *,
-        name="test",
-        title="test",
-        application_status=(ApplicationStatus.DISABLED, ""),
-        disable=(False, None),
-        enable=(False, None)
-    ):
-        m_ent_cls = mock.MagicMock()
-        type(m_ent_cls).name = mock.PropertyMock(return_value=name)
-        m_ent_obj = m_ent_cls.return_value
-        type(m_ent_obj).title = mock.PropertyMock(return_value=title)
-        m_ent_obj.application_status.return_value = application_status
-        m_ent_obj.disable.return_value = disable
-        m_ent_obj.enable.return_value = enable
-
-        return (m_ent_cls, m_ent_obj)
-
-    return factory_func
