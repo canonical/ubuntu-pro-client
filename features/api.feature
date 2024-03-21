@@ -31,6 +31,7 @@ Feature: Client behaviour for the API endpoints
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: API invalid endpoint or args
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -79,6 +80,7 @@ Feature: Client behaviour for the API endpoints
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Basic endpoints
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -170,6 +172,7 @@ Feature: Client behaviour for the API endpoints
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: u.pro.status.is_attached.v1
@@ -281,3 +284,4 @@ Feature: Client behaviour for the API endpoints
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |

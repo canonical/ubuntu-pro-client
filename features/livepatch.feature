@@ -1,6 +1,15 @@
 @uses.config.contract_token
 Feature: Livepatch
 
+  Scenario Outline: Livepatch is enabled by default
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that `livepatch` is enabled
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | noble   | lxd-vm       |
+
   Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I change config key `livepatch_url` to use value `<livepatch_url>`

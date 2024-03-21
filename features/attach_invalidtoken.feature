@@ -27,6 +27,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
 
   @uses.config.contract_token_staging_expired
   Scenario Outline: Attach command failure on expired token
@@ -52,3 +53,4 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |

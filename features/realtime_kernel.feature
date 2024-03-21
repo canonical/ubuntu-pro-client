@@ -19,6 +19,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Enable Real-time kernel service on unsupported release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -348,6 +349,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+      | noble   | lxd-vm       |
 
   Scenario Outline: Enable Real-time kernel service access-only
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -384,3 +386,4 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+      | noble   | lxd-vm       |

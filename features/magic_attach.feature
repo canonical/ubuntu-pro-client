@@ -52,3 +52,4 @@ Feature: Magic attach flow related tests
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

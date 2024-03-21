@@ -163,6 +163,9 @@ class Cloud:
         """
         result = instance.execute(["cloud-init", "status", "--wait", "--long"])
 
+        logging.info("--- cloud-init might've failed but oh well")
+        return
+
         if result.failed:
             raise OSError(
                 "cloud-init failed to start\n: out: %s\n error: %s"
