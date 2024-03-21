@@ -1,0 +1,15 @@
+{
+    "type": "object",
+    "required": [ "disabled", "reboot_required"],
+    "properties": {
+        "disabled": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reboot_required": {
+          "type": "boolean"
+        }
+    }
+}

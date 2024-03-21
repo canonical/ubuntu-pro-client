@@ -16,6 +16,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.initiate.v1",
     "u.pro.attach.magic.revoke.v1",
     "u.pro.attach.magic.wait.v1",
+    "u.pro.detach.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
     "u.pro.security.fix.cve.execute.v1",
