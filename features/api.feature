@@ -23,6 +23,7 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.security.package_manifest.v1 import package_manifest"` as non-root
     When I run `python3 -c "from uaclient.api.u.unattended_upgrades.status.v1 import status"` as non-root
     When I run `python3 -c "from uaclient.api.u.apt_news.current_news.v1 import current_news"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.detach.v1 import detach"` as non-root
 
     Examples: ubuntu release
       | release | machine_type  |
