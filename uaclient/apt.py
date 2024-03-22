@@ -217,7 +217,7 @@ def run_apt_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.ProcessExecutionError as e:
-        if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
+        if "Could not get lock" in str(e.stderr):
             raise exceptions.APTProcessConflictError()
         else:
             """
