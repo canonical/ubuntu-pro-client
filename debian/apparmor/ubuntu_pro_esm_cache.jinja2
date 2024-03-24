@@ -46,6 +46,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /usr/lib/apt/methods/http Cx -> apt_methods,
   /usr/lib/apt/methods/https Cx -> apt_methods,
   /usr/lib/apt/methods/store Cx -> apt_methods,
+  # when there is no status.json cached, esm-cache.service will invoke "snap status"
+  /usr/bin/snap PUx,
 
   /usr/share/dpkg/** r,
   /usr/share/keyrings/* r,
