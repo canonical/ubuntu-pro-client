@@ -263,7 +263,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     capability sys_ptrace,
 
     ptrace read peer=unconfined,
-
+{% if ubuntu_codename ["xenial"] %}
+    ptrace trace peer=unconfined,
+{% endif %}
     /usr/bin/systemd-detect-virt mr,
 
     /run/systemd/** r,
