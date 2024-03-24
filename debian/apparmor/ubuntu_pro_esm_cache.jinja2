@@ -266,6 +266,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     /run/systemd/** r,
 
+    /sys/devices/virtual/** r,
     @{PROC}/@{pid}/status r,
     @{PROC}/@{pid}/stat r,
     @{PROC}/1/environ r,
