@@ -1,4 +1,4 @@
-# Ubuntu Pro Client releases
+# Ubuntu Pro Client full release process
 
 ## Background
 
@@ -103,7 +103,35 @@ When we reach a point in `main` where we are ready to release version 42, we do 
 
 The process will use `$version` throughout in place of the version number, e.g., `42`. The process will also use `$devel_release` in place of the current devel release, e.g., `noble`.
 
-### 1. Write a changelog entry
+### 1. Set up `review` and `next` branches
+
+```bash
+# Make sure you are up to date
+git switch main
+git pull
+
+# Tag the release candidate
+git tag $version-rc # e.g., 42-rc
+git push origin $version-rc
+
+# Create the next branch
+git switch -c next-v$((version+1))
+git push origin next-v$((version+1))
+
+# Create the review branch
+git switch main
+git switch -c review-v$version
+git push origin review-v$version
+```
+
+Now configure two things:
+1. Change GitHub's "default" branch to `next-v$((version+1))`
+    - This should automatically switch any open PRs against `main` to target `next-v$((version+1))`.
+2. Change the daily PPA build recipe to use `next-v$((version+1))`
+
+And finally, create a draft PR from `main` to `review-v$version` on GitHub.
+
+### 2. Write a changelog entry
 
 Create a PR against `main` finishing the changelog entry for the new version. There should be an entry at the top for `UNRELEASED` with the version `1:1+devel`. Change the version to `$version` and change `UNRELEASED` to `$devel_release`. Also review the contents of the changelog entry and add anything that is missing. This PR should be reviewed and merged before starting the release process.
 
@@ -127,39 +155,6 @@ When reviewing the release PR, please use the following guidelines when reviewin
     still unsure about the behaviour of a feature or when we fix a bug that removes the code
     that was added. We must verify each changelog entry that is added to be sure of their
     presence in the product.
-
-
-### 2. Set up `review` and `next` branches
-
-```bash
-# Make sure you are up to date
-git switch main
-git pull
-
-# Tag the release candidate
-git tag $version-rc # e.g., 42-rc
-git push origin $version-rc
-
-# Create the next branch
-git switch -c next-v$((version+1))
-dch --newversion "1:1+devel"
-sed -i 's/__VERSION__ = .*$/__VERSION__ = "1:1+devel"/' uaclient/version.py
-git add debian/changelog uaclient/version.py
-git commit -m "open next development version"
-git push origin next-v$((version+1))
-
-# Create the review branch
-git switch main
-git switch -c review-v$version
-git push origin review-v$version
-```
-
-Now configure two things:
-1. Change GitHub's "default" branch to `next-v$((version+1))`
-    - This should automatically switch any open PRs against `main` to target `next-v$((version+1))`.
-2. Change the daily PPA build recipe to use `next-v$((version+1))`
-
-And finally, create a draft PR from `main` to `review-v$version` on GitHub.
 
 ### 3. Release to our staging PPA
 
@@ -296,7 +291,14 @@ And finally, create a draft PR from `main` to `review-v$version` on GitHub.
       * Be sure the `Active` checkbox is checked, and the privacy level is set to `Public`.
       * *If* there were any changes applied only to `docs`, open a pull request merging the `docs` branch back to `docs-devel`.
 5. Rebase `next-v$((version+1))` on top of `main` and open a PR to merge it. Once it is merged, delete the `next-v$((version+1))` branch.
+    * You will likely need to re-add the `1:1+devel UNRELEASED` changelog entry.
+      ```
+      dch --newversion "1:1+devel"
+      sed -i 's/__VERSION__ = .*$/__VERSION__ = "1:1+devel"/' uaclient/version.py
+      git add debian/changelog uaclient/version.py
+      git commit -m "open next development version"
+      ```
 6. Change GitHub's "default" branch back to `main`.
-    - This should automatically switch any open PRs against `next-v$((version+1))` to target `main`.
+    * This should automatically switch any open PRs against `next-v$((version+1))` to target `main`.
 7. Change the daily PPA build recipe to use `main`.
 8. Open a PR moving any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
