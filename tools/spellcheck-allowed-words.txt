@@ -23,6 +23,7 @@ ARGS
 aws
 bootable
 Cancelling
+cancelled
 Canonical's
 cfg
 CFG
