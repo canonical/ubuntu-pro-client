@@ -1,6 +1,6 @@
 import time
 
-from uaclient import exceptions
+from uaclient import exceptions, secret_manager
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.config import UAConfig
@@ -54,6 +54,7 @@ class MagicAttachWaitResult(DataObject, AdditionalInfo):
 def wait(
     options: MagicAttachWaitOptions,
 ) -> MagicAttachWaitResult:
+    secret_manager.secrets.add_secret(options.magic_token)
     return _wait(options, UAConfig())
 
 

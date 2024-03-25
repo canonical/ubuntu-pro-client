@@ -25,6 +25,7 @@ from uaclient import (
     lock,
     log,
     messages,
+    secret_manager,
     security_status,
     status,
     timer,
@@ -1009,6 +1010,7 @@ def _magic_attach(args, *, cfg, **kwargs):
 
     event.info(messages.CLI_MAGIC_ATTACH_INIT)
     initiate_resp = _initiate(cfg=cfg)
+    secret_manager.secrets.add_secret(initiate_resp.token)
     event.info(
         "\n"
         + messages.CLI_MAGIC_ATTACH_SIGN_IN.format(
@@ -1044,6 +1046,7 @@ def action_attach(args, *, cfg, **kwargs):
         enable_services_override = None
     elif args.token:
         token = args.token
+        secret_manager.secrets.add_secret(token)
         enable_services_override = None
     else:
         try:

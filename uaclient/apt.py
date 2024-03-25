@@ -13,7 +13,15 @@ from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 import apt_pkg  # type: ignore
 from apt.progress.base import AcquireProgress  # type: ignore
 
-from uaclient import event_logger, exceptions, gpg, messages, system, util
+from uaclient import (
+    event_logger,
+    exceptions,
+    gpg,
+    messages,
+    secret_manager,
+    system,
+    util,
+)
 from uaclient.defaults import ESM_APT_ROOTDIR
 from uaclient.files.state_files import status_cache_file
 
@@ -546,9 +554,11 @@ def add_auth_apt_repo(
     """
     try:
         username, password = credentials.split(":")
+        secret_manager.secrets.add_secret(password)
     except ValueError:  # Then we have a bearer token
         username = "bearer"
         password = credentials
+        secret_manager.secrets.add_secret(password)
     series = system.get_release_info().series
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
@@ -597,6 +607,7 @@ def add_apt_auth_conf_entry(repo_url, login, password):
         orig_content = system.load_file(apt_auth_file)
     else:
         orig_content = ""
+
     repo_auth_line = (
         "machine {repo_path} login {login} password {password}"
         "{cmt}".format(

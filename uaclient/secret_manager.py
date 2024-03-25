@@ -1,4 +1,4 @@
-import re
+from typing import List
 
 
 class SecretManager:
@@ -6,10 +6,11 @@ class SecretManager:
         self._secrets = []
 
     def add_secret(self, secret: str) -> None:
-        self._secrets.append(secret)
+        if secret:  # Add only non-empty secrets
+            self._secrets.append(secret)
 
     @property
-    def secrets(self) -> list[str]:
+    def secrets(self) -> List[str]:
         return self._secrets
 
     def clear_secrets(self) -> None:
@@ -18,9 +19,7 @@ class SecretManager:
     def redact_secrets(self, log_record: str) -> str:
         redacted_record = log_record
         for secret in self._secrets:
-            redacted_record = re.sub(
-                f"({re.escape(secret)})", "<REDACTED>", redacted_record
-            )
+            redacted_record = redacted_record.replace(secret, "<REDACTED>")
         return redacted_record
 
 

@@ -4,7 +4,14 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional  # noqa: F401
 
-from uaclient import defaults, event_logger, exceptions, system, util
+from uaclient import (
+    defaults,
+    event_logger,
+    exceptions,
+    secret_manager,
+    system,
+    util,
+)
 from uaclient.contract_data_types import PublicMachineTokenData
 
 event = event_logger.get_event_logger()
@@ -159,7 +166,12 @@ class MachineTokenFile:
             file_handler = self.private_file
         else:
             file_handler = self.public_file
-        return file_handler.read()
+        content = file_handler.read()
+        if content:
+            secret_manager.secrets.add_secret(content.get("machineToken", ""))
+            for token in content.get("resourceTokens", []):
+                secret_manager.secrets.add_secret(token.get("token", ""))
+        return content
 
     @property
     def is_present(self):

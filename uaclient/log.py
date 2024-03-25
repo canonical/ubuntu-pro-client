@@ -9,7 +9,7 @@ from uaclient import defaults, secret_manager, system, util
 from uaclient.config import UAConfig
 
 
-class RedactionFilter(logging.Filter):
+class RegexRedactionFilter(logging.Filter):
     """A logging filter to redact confidential info"""
 
     def filter(self, record: logging.LogRecord):
@@ -17,7 +17,7 @@ class RedactionFilter(logging.Filter):
         return True
 
 
-class SecretRedactionFilter(logging.Filter):
+class KnownSecretRedactionFilter(logging.Filter):
     """A logging filter to redact confidential info"""
 
     def filter(self, record: logging.LogRecord):
@@ -113,7 +113,8 @@ def setup_journald_logging():
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JsonArrayFormatter())
     console_handler.setLevel(logging.INFO)
-    console_handler.addFilter(RedactionFilter())
+    console_handler.addFilter(RegexRedactionFilter())
+    console_handler.addFilter(KnownSecretRedactionFilter())
     logger.addHandler(console_handler)
 
 
@@ -144,6 +145,7 @@ def setup_cli_logging(log_level: Union[str, int], log_file: str):
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
-    file_handler.addFilter(RedactionFilter())
+    file_handler.addFilter(RegexRedactionFilter())
+    file_handler.addFilter(KnownSecretRedactionFilter())
 
     logger.addHandler(file_handler)
