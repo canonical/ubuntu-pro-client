@@ -41,6 +41,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /usr/bin/uname mrix,
 
   /usr/bin/cloud-id Cx -> cloud_id,
+  # in bionic, it's /bin/ps, so let's match both
   /{,usr/}bin/ps Cx -> ps,
   /usr/bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
   /usr/bin/dpkg Cx -> dpkg,
@@ -89,6 +90,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     capability sys_ptrace,
     ptrace read,
 
+    # in bionic, it's /bin/ps, so let's match both
     /{,usr/}bin/ps mrix,
 
     /dev/tty r,
