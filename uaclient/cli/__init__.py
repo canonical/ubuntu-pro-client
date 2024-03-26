@@ -33,7 +33,6 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.api import call_api
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
@@ -51,7 +50,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_util, disable, enable, fix
+from uaclient.cli import cli_api, cli_util, disable, enable, fix
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
@@ -173,26 +172,6 @@ class UAArgumentParser(argparse.ArgumentParser):
                 non_beta_services_desc.append(service_info)
 
         return (non_beta_services_desc, beta_services_desc)
-
-
-def api_parser(parser):
-    """Build or extend an arg parser for the api subcommand."""
-    parser.prog = "api"
-    parser.description = messages.CLI_API_DESC
-    parser.add_argument(
-        "endpoint_path", metavar="endpoint", help=messages.CLI_API_ENDPOINT
-    )
-    parser.add_argument(
-        "--args",
-        dest="options",
-        default=[],
-        nargs="*",
-        help=messages.CLI_API_ARGS,
-    )
-    parser.add_argument(
-        "--data", dest="data", default="", help=messages.CLI_API_DATA
-    )
-    return parser
 
 
 def auto_attach_parser(parser):
@@ -893,15 +872,6 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     event.process_events()
 
 
-def action_api(args, *, cfg, **kwargs):
-    if args.options and args.data:
-        raise exceptions.CLIAPIOptionsXORData()
-
-    result = call_api(args.endpoint_path, args.options, args.data, cfg)
-    print(result.to_json())
-    return 0 if result.result == "success" else 1
-
-
 @cli_util.assert_root
 def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
     try:
@@ -1066,9 +1036,7 @@ def get_parser(cfg: config.UAConfig):
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
 
-    parser_api = subparsers.add_parser("api", help=messages.CLI_ROOT_API)
-    api_parser(parser_api)
-    parser_api.set_defaults(action=action_api)
+    cli_api.add_parser(subparsers, cfg)
 
     parser_auto_attach = subparsers.add_parser(
         "auto-attach", help=messages.CLI_ROOT_AUTO_ATTACH
