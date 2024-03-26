@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
 import pycloudlib  # type: ignore  # noqa: F401
 from behave.model import Feature, Scenario
+from behave.model_core import Status
 from behave.runner import Context
 
 import features.cloud as cloud
@@ -464,9 +465,23 @@ def after_scenario(context, scenario):
                 logging.error(str(e))
                 logging.warning("Failed to collect coverage")
 
+def _get_apparmor_logs_from_host():
+    # get apparmor DENIED messages from the host
+    with open("/var/log/syslog", "r") as syslog_fd:
+        syslog_messages = syslog_fd.readlines()
+        apparmor_denied = [
+            msg.strip()
+            for msg in syslog_messages
+            if ("DENIED" in msg and "ubuntu_pro_" in msg)
+        ]
+    return apparmor_denied
 
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
+    apparmor_logs = _get_apparmor_logs_from_host()
+    if apparmor_logs:
+        # naughty
+        step.status = Status.failed
     if step.status == "failed":
         logging.warning("STEP FAILED. Collecting logs.")
         inner_dir = os.path.join(
@@ -499,18 +514,10 @@ def after_step(context, step):
                     )
                 )
 
-        # get apparmor DENIED messages from the host
-        # XXX
-        with open("/var/log/syslog", "r") as syslog_fd:
-            syslog_messages = syslog_fd.readlines()
-            apparmor_denied = [
-                msg.strip()
-                for msg in syslog_messages
-                if ("DENIED" in msg and "ubuntu_pro_" in msg)
-            ]
-        logging.warning("XXX apparmor DENIED from host begin")
-        logging.warning("\n".join(apparmor_denied))
-        logging.warning("XXX apparmor DENIED from host end")
+        if apparmor_logs:
+            logging.warning("XXX apparmor DENIED from host begin")
+            logging.warning("\n".join(apparmor_logs))
+            logging.warning("XXX apparmor DENIED from host end")
 
         if hasattr(context, "machines") and SUT in context.machines:
             try:
