@@ -5,7 +5,8 @@ import mock
 import pytest
 
 from uaclient import exceptions, messages
-from uaclient.cli import action_api, api_parser, get_parser, main
+from uaclient.cli import get_parser, main
+from uaclient.cli.cli_api import action_api, add_parser
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -39,7 +40,7 @@ class TestActionAPI:
     @pytest.mark.parametrize(
         "result,expected_return", (("success", 0), ("failure", 1))
     )
-    @mock.patch("uaclient.cli.call_api")
+    @mock.patch("uaclient.cli.cli_api.api.call_api")
     def test_api_action(self, m_call_api, result, expected_return, FakeConfig):
         m_call_api.return_value.result = result
         args = mock.MagicMock()
@@ -72,9 +73,9 @@ class TestActionAPI:
 
 
 class TestParser:
-    def test_security_status_parser_updates_parser_config(self, FakeConfig):
+    def test_api_parser_updates_parser_config(self, FakeConfig):
         """Update the parser configuration for 'api'."""
-        m_parser = api_parser(mock.Mock())
+        m_parser = add_parser(mock.MagicMock(), mock.MagicMock())
         assert "api" == m_parser.prog
 
         full_parser = get_parser(FakeConfig())
