@@ -166,4 +166,5 @@ endpoint = APIEndpoint(
     name="EnableService",
     fn=_enable,
     options_cls=EnableOptions,
+    supports_progress=True,
 )

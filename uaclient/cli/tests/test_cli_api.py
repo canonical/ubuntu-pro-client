@@ -10,7 +10,8 @@ from uaclient.cli.cli_api import action_api, add_parser
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: api \[-h\] \[--args \[OPTIONS .*\]\] \[--data DATA\] endpoint
+usage: api \[-h\] \[--show-progress\] \[--args \[OPTIONS .*\]\](.|\n)*\[--data DATA\](.|\n)*
+           endpoint
 
 Calls the Client API endpoints.
 
@@ -19,6 +20,8 @@ positional arguments:
 
 (optional arguments|options):
   -h, --help            show this help message and exit
+  --show-progress       For endpoints that support progress updates, show each(.|\n)*
+                        progress update on a new line in JSON format
   --args \[OPTIONS .*\](.|\n)*Options to pass to the API endpoint, formatted as(.|\n)*
                         key=value
   --data DATA           arguments in JSON format to the API endpoint
@@ -38,20 +41,29 @@ class TestActionAPI:
         assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize(
-        "result,expected_return", (("success", 0), ("failure", 1))
+        ["show_progress", "result", "expected_return"],
+        ((True, "success", 0), (False, "failure", 1)),
     )
-    @mock.patch("uaclient.cli.cli_api.api.call_api")
-    def test_api_action(self, m_call_api, result, expected_return, FakeConfig):
+    @mock.patch("uaclient.cli.cli_api.call_api")
+    def test_api_action(
+        self, m_call_api, show_progress, result, expected_return, FakeConfig
+    ):
         m_call_api.return_value.result = result
         args = mock.MagicMock()
         args.endpoint_path = "example_endpoint"
         args.options = []
         args.data = ""
+        args.show_progress = show_progress
         cfg = FakeConfig()
         return_code = action_api(args, cfg=cfg)
+
+        if show_progress:
+            expected_progress = mock.ANY
+        else:
+            expected_progress = None
         assert m_call_api.call_count == 1
         assert m_call_api.call_args_list == [
-            mock.call("example_endpoint", [], "", cfg)
+            mock.call("example_endpoint", [], "", cfg, expected_progress)
         ]
         assert m_call_api.return_value.to_json.call_count == 1
         assert return_code == expected_return
