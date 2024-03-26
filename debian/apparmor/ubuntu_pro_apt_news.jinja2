@@ -3,6 +3,9 @@ abi <abi/3.0>,
 {% endif %}
 include <tunables/global>
 
+# attach_disconnected is needed here because this service runs with systemd's
+# PrivateTmp=true
+
 profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   include <abstractions/base>
   include <abstractions/nameservice>
