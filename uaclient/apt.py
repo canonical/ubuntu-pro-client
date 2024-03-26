@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 from functools import lru_cache, wraps
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Union
 
@@ -83,6 +84,35 @@ APT_RETRIES = [1.0, 5.0, 10.0]
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+
+def check_apt_lock():
+    """Decorator to deal with apt locks when running apt commands."""
+
+    def wrapper(f):
+        @wraps(f)
+        def decorator(*args, **kwargs):
+            waiting = False
+            while True:
+                try:
+                    return f(*args, **kwargs)
+                except exceptions.APTProcessConflictError as e:
+                    if not waiting:
+                        choice = util.prompt_choices(
+                            "apt bail. [w]ait, [c]ancel, [t]ry again",
+                            ["w", "c", "t"],
+                        )
+                        if choice == "c":
+                            raise e
+                        if choice == "w":
+                            waiting = True
+                    else:
+                        time.sleep(1)
+                    continue
+
+        return decorator
+
+    return wrapper
 
 
 @enum.unique
