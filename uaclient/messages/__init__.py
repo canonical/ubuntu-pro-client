@@ -887,6 +887,10 @@ CLI_ASSUME_YES = t.gettext(
 
 CLI_API_DESC = t.gettext("Calls the Client API endpoints.")
 CLI_API_ENDPOINT = t.gettext("API endpoint to call")
+CLI_API_SHOW_PROGRESS = t.gettext(
+    "For endpoints that support progress updates, show each progress update "
+    "on a new line in JSON format"
+)
 CLI_API_ARGS = t.gettext(
     "Options to pass to the API endpoint, formatted as key=value"
 )

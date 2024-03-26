@@ -163,18 +163,30 @@ class TestAPICall:
         assert warning.meta == {}
 
     @pytest.mark.parametrize(
-        "options_cls,arguments",
-        ((None, []), (mock.MagicMock(), ["key=value"])),
+        ["options_cls", "supports_progress", "arguments"],
+        (
+            (None, False, []),
+            (mock.MagicMock(), False, ["key=value"]),
+            (None, True, []),
+            (mock.MagicMock(), True, ["key=value"]),
+        ),
     )
     @mock.patch("uaclient.api.api.import_module")
     def test_call_endpoint(
-        self, m_import_module, options_cls, arguments, FakeConfig
+        self,
+        m_import_module,
+        options_cls,
+        supports_progress,
+        arguments,
+        FakeConfig,
     ):
         mock_endpoint = mock.MagicMock()
         mock_endpoint.options_cls = options_cls
 
         mock_endpoint_fn = mock.MagicMock()
         mock_endpoint.fn = mock_endpoint_fn
+
+        mock_endpoint.supports_progress = supports_progress
 
         m_import_module.return_value.endpoint = mock_endpoint
         cfg = FakeConfig()
@@ -192,11 +204,25 @@ class TestAPICall:
             assert options_cls.from_dict.call_args_list == [
                 mock.call({"key": "value"})
             ]
-            assert mock_endpoint_fn.call_args_list == [
-                mock.call(options_cls.from_dict.return_value, cfg)
-            ]
+            if supports_progress:
+                assert mock_endpoint_fn.call_args_list == [
+                    mock.call(
+                        options_cls.from_dict.return_value,
+                        cfg,
+                        progress_object=mock.ANY,
+                    )
+                ]
+            else:
+                assert mock_endpoint_fn.call_args_list == [
+                    mock.call(options_cls.from_dict.return_value, cfg)
+                ]
         else:
-            assert mock_endpoint_fn.call_args_list == [mock.call(cfg)]
+            if supports_progress:
+                assert mock_endpoint_fn.call_args_list == [
+                    mock.call(cfg, progress_object=mock.ANY)
+                ]
+            else:
+                assert mock_endpoint_fn.call_args_list == [mock.call(cfg)]
 
     @mock.patch("uaclient.api.errors.error_out")
     @mock.patch("uaclient.api.api.import_module")
@@ -325,6 +351,7 @@ class TestAPICall:
         mock_endpoint = mock.MagicMock(options_cls=m_options_cls)
         mock_endpoint_fn = mock.MagicMock()
         mock_endpoint.fn = mock_endpoint_fn
+        mock_endpoint.supports_progress = False
 
         m_import_module.return_value.endpoint = mock_endpoint
         data = '{"test": ["1", "2"]}'
