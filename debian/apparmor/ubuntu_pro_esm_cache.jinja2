@@ -218,6 +218,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     / r,
     /etc/dpkg/** r,
 
+    # there are just too many shell script tools that are called, like head,
+    # tail, cut, sed, etc
     /{,usr/}bin/* mrix,
 
     /usr/lib/apt/methods/gpgv mr,
