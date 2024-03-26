@@ -465,6 +465,7 @@ def after_scenario(context, scenario):
                 logging.error(str(e))
                 logging.warning("Failed to collect coverage")
 
+
 def _get_apparmor_logs_from_host():
     # get apparmor DENIED messages from the host
     with open("/var/log/syslog", "r") as syslog_fd:
@@ -475,6 +476,7 @@ def _get_apparmor_logs_from_host():
             if ("DENIED" in msg and "ubuntu_pro_" in msg)
         ]
     return apparmor_denied
+
 
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
