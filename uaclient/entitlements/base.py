@@ -359,10 +359,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         )
         if required_packages is not None and len(required_packages) > 0:
             total_steps += 1
-        for incompatible_service in self.incompatible_services:
+        for incompatible_service in self.blocking_incompatible_services():
             # TODO: calculate disable steps when progress is added to disable
             total_steps += 1
-        for required_service in self.required_services:
+        for required_service in self.blocking_required_services():
             total_steps += required_service.entitlement(
                 self.cfg
             ).enable_steps()
@@ -704,23 +704,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def check_required_services_active(self):
-        """
-        Check if all required services are active
-
-        :return:
-            True if all required services are active
-            False is at least one of the required services is disabled
-        """
-        for required_service in self.required_services:
-            ent_status, _ = required_service.entitlement(
-                self.cfg
-            ).application_status()
-            if ent_status != ApplicationStatus.ENABLED:
-                return False
-
-        return True
-
     def blocking_incompatible_services(self) -> List[EntitlementWithMessage]:
         """
         :return: List of incompatible services that are enabled
@@ -791,6 +774,30 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True, None
 
+    def check_required_services_active(self):
+        """
+        Check if all required services are active
+
+        :return:
+            True if all required services are active
+            False is at least one of the required services is disabled
+        """
+        return len(self.blocking_required_services()) == 0
+
+    def blocking_required_services(self):
+        """
+        :return: List of required services that are disabled
+        """
+        ret = []
+        for service in self.required_services:
+            ent_status, _ = service.entitlement(self.cfg).application_status()
+            if ent_status not in (
+                ApplicationStatus.ENABLED,
+                ApplicationStatus.WARNING,
+            ):
+                ret.append(service)
+        return ret
+
     def _enable_required_services(
         self,
         progress: api.ProgressWrapper,
@@ -802,29 +809,22 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         that must be enabled first. In that situation, we can ask the user
         if the required service should be enabled before proceeding.
         """
-        for required_service in self.required_services:
+        for required_service in self.blocking_required_services():
             ent = required_service.entitlement(self.cfg, allow_beta=True)
-
-            is_service_disabled = (
-                ent.application_status()[0] == ApplicationStatus.DISABLED
+            progress.emit(
+                "info",
+                messages.ENABLING_REQUIRED_SERVICE.format(service=ent.title),
             )
+            ret, fail = ent.enable(progress)
+            if not ret:
+                error_msg = ""
+                if fail and fail.message and fail.message.msg:
+                    error_msg = "\n" + fail.message.msg
 
-            if is_service_disabled:
-                progress.progress(
-                    messages.ENABLING_REQUIRED_SERVICE.format(
-                        service=ent.title
-                    )
+                msg = messages.ERROR_ENABLING_REQUIRED_SERVICE.format(
+                    error=error_msg, service=ent.title
                 )
-                ret, fail = ent.enable(progress)
-                if not ret:
-                    error_msg = ""
-                    if fail and fail.message and fail.message.msg:
-                        error_msg = "\n" + fail.message.msg
-
-                    msg = messages.ERROR_ENABLING_REQUIRED_SERVICE.format(
-                        error=error_msg, service=ent.title
-                    )
-                    return ret, msg
+                return ret, msg
 
         return True, None
 
