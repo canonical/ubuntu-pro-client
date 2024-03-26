@@ -333,7 +333,7 @@ Feature: Command behaviour when unattached
     When I disable access to esm.ubuntu.com
     And I apt update
     # Wait for the hook to fail
-    When I wait `5` seconds
+    When I wait `10` seconds
     And I run `systemctl --failed` with sudo
     Then stdout does not match regexp:
       """
