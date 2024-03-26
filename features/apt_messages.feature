@@ -642,12 +642,16 @@ Feature: APT Messages
       | release | machine_type  |
       | xenial  | lxd-container |
       | xenial  | lxd-vm        |
+      | xenial  | aws.generic   |
       | bionic  | lxd-container |
       | bionic  | lxd-vm        |
+      | bionic  | aws.generic   |
       | focal   | lxd-container |
       | focal   | lxd-vm        |
+      | focal   | aws.generic   |
       | jammy   | lxd-container |
       | jammy   | lxd-vm        |
+      | jammy   | aws.generic   |
       | mantic  | lxd-container |
       | mantic  | lxd-vm        |
 
