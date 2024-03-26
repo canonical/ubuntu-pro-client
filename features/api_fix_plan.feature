@@ -2552,6 +2552,31 @@ Feature: Fix plan API endpoints
                     ],
                     "title": "USN-6460-1",
                     "warnings": []
+                  },
+                  {
+                    "additional_data": {
+                      "associated_cves": [
+                        "CVE-2024-24855",
+                        "CVE-2023-30456",
+                        "CVE-2023-4921"
+                      ],
+                      "associated_launchpad_bugs": []
+                    },
+                    "affected_packages": [],
+                    "description": "Linux kernel vulnerabilities",
+                    "error": null,
+                    "expected_status": "not-affected",
+                    "plan": [
+                      {
+                        "data": {
+                          "status": "system-not-affected"
+                        },
+                        "operation": "no-op",
+                        "order": 1
+                      }
+                    ],
+                    "title": "USN-6699-1",
+                    "warnings": []
                   }
                 ],
                 "target_usn_plan": {
