@@ -505,14 +505,12 @@ class TestUAContractClient:
     ):
         cfg = FakeConfig()
         client = UAContractClient(cfg)
-        magic_attach_token_resp = (
-            {
-                "token": "token",
-                "expires": "2100-06-09T18:14:55.323733Z",
-                "expiresIn": 600,
-                "userCode": "1234",
-            },
-        )
+        magic_attach_token_resp = {
+            "token": "token",
+            "expires": "2100-06-09T18:14:55.323733Z",
+            "expiresIn": 600,
+            "userCode": "1234",
+        }
         request_url.return_value = http.HTTPResponse(
             code=200,
             headers={},

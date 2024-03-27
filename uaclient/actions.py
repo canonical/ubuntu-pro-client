@@ -16,6 +16,7 @@ from uaclient import (
     livepatch,
 )
 from uaclient import log as pro_log
+from uaclient import secret_manager
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -64,6 +65,7 @@ def attach_with_token(
     )
     from uaclient.timer.update_messaging import update_motd_messages
 
+    secret_manager.secrets.add_secret(token)
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
     new_machine_token = contract_client.add_contract_machine(

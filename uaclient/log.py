@@ -5,15 +5,23 @@ import pathlib
 from collections import OrderedDict
 from typing import Any, Dict, List, Union  # noqa: F401
 
-from uaclient import defaults, system, util
+from uaclient import defaults, secret_manager, system, util
 from uaclient.config import UAConfig
 
 
-class RedactionFilter(logging.Filter):
+class RegexRedactionFilter(logging.Filter):
     """A logging filter to redact confidential info"""
 
     def filter(self, record: logging.LogRecord):
         record.msg = util.redact_sensitive_logs(str(record.msg))
+        return True
+
+
+class KnownSecretRedactionFilter(logging.Filter):
+    """A logging filter to redact confidential info"""
+
+    def filter(self, record: logging.LogRecord):
+        record.msg = secret_manager.secrets.redact_secrets(str(record.msg))
         return True
 
 
@@ -105,7 +113,8 @@ def setup_journald_logging():
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JsonArrayFormatter())
     console_handler.setLevel(logging.INFO)
-    console_handler.addFilter(RedactionFilter())
+    console_handler.addFilter(RegexRedactionFilter())
+    console_handler.addFilter(KnownSecretRedactionFilter())
     logger.addHandler(console_handler)
 
 
@@ -136,6 +145,7 @@ def setup_cli_logging(log_level: Union[str, int], log_file: str):
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(JsonArrayFormatter())
     file_handler.setLevel(log_level)
-    file_handler.addFilter(RedactionFilter())
+    file_handler.addFilter(RegexRedactionFilter())
+    file_handler.addFilter(KnownSecretRedactionFilter())
 
     logger.addHandler(file_handler)
