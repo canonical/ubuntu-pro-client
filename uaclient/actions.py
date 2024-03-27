@@ -13,11 +13,12 @@ from uaclient import (
     config,
     contract,
     entitlements,
+    event_logger,
     exceptions,
     livepatch,
 )
 from uaclient import log as pro_log
-from uaclient import secret_manager
+from uaclient import messages, secret_manager
 from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -34,6 +35,7 @@ from uaclient.files.state_files import (
     timer_jobs_state_file,
 )
 
+event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
@@ -51,8 +53,92 @@ UA_SERVICES = (
 USER_LOG_COLLECTED_LIMIT = 10
 
 
+def _handle_partial_attach(
+    cfg: config.UAConfig,
+    contract_client: contract.UAContractClient,
+    attached_at: datetime.datetime,
+):
+    from uaclient.timer.update_messaging import update_motd_messages
+
+    attachment_data_file.write(AttachmentData(attached_at=attached_at))
+    ua_status.status(cfg=cfg)
+    update_motd_messages(cfg)
+    contract_client.update_activity_token()
+
+
+def _enable_default_services(
+    cfg: config.UAConfig,
+    services_to_be_enabled: List[contract.EnableByDefaultService],
+    contract_client: contract.UAContractClient,
+    attached_at: datetime.datetime,
+    silent: bool = False,
+):
+    ret = True
+    failed_services = []
+    unexpected_errors = []
+
+    try:
+        for enable_by_default_service in services_to_be_enabled:
+            ent_ret, reason = enable_entitlement_by_name(
+                cfg=cfg,
+                name=enable_by_default_service.name,
+                assume_yes=True,
+                allow_beta=True,
+                variant=enable_by_default_service.variant,
+                silent=silent,
+            )
+            ret &= ent_ret
+
+            if not ent_ret:
+                failed_services.append(enable_by_default_service.name)
+            else:
+                event.service_processed(service=enable_by_default_service.name)
+    except exceptions.ConnectivityError as exc:
+        event.service_failed(enable_by_default_service.name)
+        _handle_partial_attach(cfg, contract_client, attached_at)
+        raise exc
+    except exceptions.UbuntuProError:
+        failed_services.append(enable_by_default_service.name)
+        ret = False
+    except Exception as e:
+        ret = False
+        failed_services.append(enable_by_default_service.name)
+        unexpected_errors.append(e)
+
+    if not ret:
+        # Persist updated status in the event of partial attach
+        _handle_partial_attach(cfg, contract_client, attached_at)
+        event.services_failed(failed_services)
+
+        if unexpected_errors:
+            raise exceptions.AttachFailureUnknownError(
+                failed_services=[
+                    (
+                        name,
+                        messages.UNEXPECTED_ERROR.format(
+                            error_msg=str(exception),
+                            log_path=pro_log.get_user_or_root_log_file_path(),
+                        ),
+                    )
+                    for name, exception in zip(
+                        failed_services, unexpected_errors
+                    )
+                ]
+            )
+        else:
+            raise exceptions.AttachFailureDefaultServices(
+                failed_services=[
+                    (name, messages.E_ATTACH_FAILURE_DEFAULT_SERVICES)
+                    for name in failed_services
+                ]
+            )
+
+
 def attach_with_token(
-    cfg: config.UAConfig, token: str, allow_enable: bool
+    cfg: config.UAConfig,
+    token: str,
+    allow_enable: bool,
+    silent: bool = False,
 ) -> None:
     """
     Common functionality to take a token and attach via contract backend
@@ -87,23 +173,17 @@ def attach_with_token(
     )
     machine_id_file.write(machine_id)
 
-    try:
-        contract.process_entitlements_delta(
-            cfg,
-            {},
-            # we load from the file here instead of using the response
-            # so that we get any machine_token_overlay present during testing
-            # TODO: decide if there is a better way to do this
-            cfg.machine_token_file.entitlements,
-            allow_enable,
+    if allow_enable:
+        services_to_be_enabled = contract.get_enabled_by_default_services(
+            cfg, cfg.machine_token_file.entitlements
         )
-    except (exceptions.ConnectivityError, exceptions.UbuntuProError) as exc:
-        # Persist updated status in the event of partial attach
-        attachment_data_file.write(AttachmentData(attached_at=attached_at))
-        ua_status.status(cfg=cfg)
-        update_motd_messages(cfg)
-        contract_client.update_activity_token()
-        raise exc
+        _enable_default_services(
+            cfg=cfg,
+            services_to_be_enabled=services_to_be_enabled,
+            contract_client=contract_client,
+            attached_at=attached_at,
+            silent=silent,
+        )
 
     attachment_data_file.write(AttachmentData(attached_at=attached_at))
     update_motd_messages(cfg)
@@ -141,6 +221,7 @@ def enable_entitlement_by_name(
     allow_beta: bool = False,
     access_only: bool = False,
     variant: str = "",
+    silent: bool = False,
     extra_args: Optional[List[str]] = None
 ):
     """

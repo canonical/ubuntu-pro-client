@@ -1,6 +1,7 @@
 import copy
 import logging
 import socket
+from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
@@ -54,6 +55,11 @@ OVERRIDE_SELECTOR_WEIGHTS = {
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+
+EnableByDefaultService = namedtuple(
+    "EnableByDefaultService", ["name", "variant"]
+)
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -822,3 +828,37 @@ def apply_contract_overrides(
             else:
                 # Otherwise, replace it wholesale
                 orig_access["entitlement"][key] = value
+
+
+def get_enabled_by_default_services(
+    cfg: UAConfig, entitlements: Dict[str, Any]
+) -> List[EnableByDefaultService]:
+    from uaclient.entitlements import entitlement_factory
+
+    enable_by_default_services = []
+
+    for ent_name, ent_value in entitlements.items():
+        variant = ent_value.get("obligations", {}).get("use_selector", "")
+
+        try:
+            ent_cls = entitlement_factory(
+                cfg=cfg, name=ent_name, variant=variant
+            )
+        except exceptions.EntitlementNotFoundError:
+            continue
+
+        ent = ent_cls(cfg)
+        obligations = ent_value.get("entitlement", {}).get("obligations", {})
+        resourceToken = ent_value.get("resourceToken")
+
+        if ent._should_enable_by_default(obligations, resourceToken):
+            can_enable, _ = ent.can_enable()
+            if can_enable:
+                enable_by_default_services.append(
+                    EnableByDefaultService(
+                        name=ent_name,
+                        variant=variant,
+                    )
+                )
+
+    return enable_by_default_services

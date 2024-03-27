@@ -561,7 +561,8 @@ class TestActionAttach:
     @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.entitlements.entitlements_enable_order")
-    @mock.patch("uaclient.contract.process_entitlement_delta")
+    @mock.patch("uaclient.actions.enable_entitlement_by_name")
+    @mock.patch("uaclient.contract.get_enabled_by_default_services")
     @mock.patch("uaclient.contract.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
@@ -576,7 +577,8 @@ class TestActionAttach:
         _m_update_messages,
         m_request_url,
         _m_apply_contract_overrides,
-        m_process_entitlement_delta,
+        m_get_enabled_by_default_services,
+        m_enable_ent_by_name,
         m_enable_order,
         _m_attachment_data_file_write,
         _m_machine_id_file_write,
@@ -594,10 +596,17 @@ class TestActionAttach:
         cfg = FakeConfig()
 
         m_enable_order.return_value = ["test1", "test2"]
-        m_process_entitlement_delta.side_effect = [
-            ({"test": 123}, True),
+        m_enable_ent_by_name.side_effect = [
+            (True, None),
             expected_exception,
         ]
+        m_ent1 = mock.MagicMock(variant="")
+        type(m_ent1).name = mock.PropertyMock(return_value="test1")
+
+        m_ent2 = mock.MagicMock(variant="")
+        type(m_ent2).name = mock.PropertyMock(return_value="test2")
+
+        m_get_enabled_by_default_services.return_value = [m_ent1, m_ent2]
         m_request_url.return_value = http.HTTPResponse(
             code=200,
             headers={},
