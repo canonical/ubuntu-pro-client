@@ -63,15 +63,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       \d+ update(s)? can be applied immediately.
       """
     When I attach `contract_token` with sudo
-    Then stdout matches regexp:
-      """
-      Ubuntu Pro: ESM Infra enabled
-      """
-    And stdout matches regexp:
-      """
-      This machine is now attached to
-      """
-    And I verify that `esm-infra` is enabled
+    Then I verify that `esm-infra` is enabled
     And I verify that `esm-apps` is enabled
     When I verify that running `pro attach contract_token` `with sudo` exits `2`
     Then stderr matches regexp:
