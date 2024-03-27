@@ -515,6 +515,34 @@ def after_step(context, step):
                 with tarfile.open(dest) as logs_tarfile:
                     logs_tarfile.extractall(new_artifacts_dir)
                 logging.warning("Done collecting logs.")
+
+                hosts_file = os.path.join(new_artifacts_dir, "hosts")
+                with open(hosts_file, "w") as stream:
+                    stream.write(
+                        context.machines[SUT].instance.execute(
+                            ["cat", "/etc/hosts"]
+                        )
+                    )
+                env_file = os.path.join(new_artifacts_dir, "env")
+                with open(env_file, "w") as stream:
+                    stream.write(
+                        context.machines[SUT].instance.execute(["env"])
+                    )
+                resolv_file = os.path.join(new_artifacts_dir, "resolv")
+                with open(resolv_file, "w") as stream:
+                    stream.write(
+                        context.machines[SUT].instance.execute(
+                            ["cat", "/etc/resolv.conf"]
+                        )
+                    )
+                nss_file = os.path.join(new_artifacts_dir, "nss")
+                with open(nss_file, "w") as stream:
+                    stream.write(
+                        context.machines[SUT].instance.execute(
+                            ["cat", "/etc/nsswitch.conf"]
+                        )
+                    )
+
             except Exception as e:
                 logging.error(str(e))
                 logging.warning("Failed to collect logs")
