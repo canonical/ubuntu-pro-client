@@ -19,8 +19,19 @@ def _wait_for_cloud_config():
     LOG.debug("waiting for cloud-config.service to finish")
     for i in range(WAIT_FOR_CLOUD_CONFIG_POLL_TIMES + 1):
         state = system.get_systemd_unit_active_state("cloud-config.service")
+        ci_state = system.get_systemd_unit_active_state("cloud-init.service")
         LOG.debug("cloud-config.service state: %r", state)
-        if state is not None and state == "activating":
+        LOG.debug("cloud-init.service state: %r", ci_state)
+        # if cloud-config.service is not yet activating but cloud-init is
+        # running, wait for cloud-config to start
+        if state is not None and (
+            state == "activating"
+            or (
+                state == "inactive"
+                and ci_state is not None
+                and (ci_state == "activating" or ci_state == "active")
+            )
+        ):
             if i < WAIT_FOR_CLOUD_CONFIG_POLL_TIMES:
                 LOG.debug(
                     "cloud-config.service is activating. "
