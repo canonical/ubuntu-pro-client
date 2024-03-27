@@ -803,7 +803,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         service=ent.title
                     )
                 )
-                ret, fail = ent.enable(silent=True)
+                ret, fail = ent.enable(silent=False)
                 if not ret:
                     error_msg = ""
                     if fail and fail.message and fail.message.msg:

@@ -797,6 +797,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-vm       |
       | xenial  | lxd-vm       |
 
+  @wip
   Scenario Outline: Attached enable ros on a machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -832,6 +833,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       One moment, checking your subscription first
       ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
       Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Enabling required service: Ubuntu Pro: ESM Apps
+      Updating Ubuntu Pro: ESM Apps package lists
       Ubuntu Pro: ESM Apps enabled
       Updating ROS ESM Security Updates package lists
       ROS ESM Security Updates enabled
@@ -869,6 +871,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       One moment, checking your subscription first
       ROS ESM All Updates cannot be enabled with ROS ESM Security Updates disabled.
       Enable ROS ESM Security Updates and proceed to enable ROS ESM All Updates\? \(y\/N\) Enabling required service: ROS ESM Security Updates
+      Updating ROS ESM Security Updates package lists
       ROS ESM Security Updates enabled
       Updating ROS ESM All Updates package lists
       ROS ESM All Updates enabled

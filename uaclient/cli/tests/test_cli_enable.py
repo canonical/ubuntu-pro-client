@@ -589,7 +589,7 @@ class TestActionEnable:
                 )
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(silent=False)
         for m_ent in [m_ent2_obj, m_ent3_obj]:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
@@ -743,7 +743,7 @@ class TestActionEnable:
                 )
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(silent=False)
         for m_ent in mock_obj_list:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
@@ -1007,7 +1007,7 @@ class TestActionEnable:
         ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value
-        expected_enable_call = mock.call()
+        expected_enable_call = mock.call(silent=False)
         expected_ret = 0
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert expected_ret == ret
