@@ -30,12 +30,11 @@ class TestAttachWithToken:
             "add_contract_machine_side_effect",
             "machine_id",
             "entitlements",
-            "process_entitlements_delta_side_effect",
+            "enable_entitlement_by_name_side_effect",
             "expected_add_contract_machine_call_args",
             "expected_machine_token_file_write_call_args",
             "expected_get_machine_id_call_args",
             "expected_machine_id_file_call_count",
-            "expected_process_entitlements_delta_call_args",
             "expected_attachment_data_file_write_call_args",
             "expected_status_call_args",
             "expected_update_motd_messages_call_args",
@@ -62,7 +61,6 @@ class TestAttachWithToken:
                 [],
                 [],
                 [],
-                [],
                 pytest.raises(exceptions.ConnectivityError),
             ),
             (
@@ -76,7 +74,6 @@ class TestAttachWithToken:
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
                 1,
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
@@ -96,7 +93,6 @@ class TestAttachWithToken:
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
                 1,
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [mock.call(cfg=mock.ANY)],
                 [mock.call(mock.ANY)],
@@ -111,12 +107,11 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                None,
+                [(True, None)],
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
                 1,
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -131,12 +126,11 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                None,
+                [(True, None)],
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
                 1,
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, True)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -151,12 +145,11 @@ class TestAttachWithToken:
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
                 mock.sentinel.entitlements,
-                None,
+                [(True, None)],
                 [mock.call(contract_token="token2", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
                 [mock.call(mock.ANY)],
                 1,
-                [mock.call(mock.ANY, {}, mock.sentinel.entitlements, False)],
                 [mock.call(mock.ANY)],
                 [],
                 [mock.call(mock.ANY)],
@@ -179,7 +172,8 @@ class TestAttachWithToken:
     @mock.patch(M_PATH + "ua_status.status")
     @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
-    @mock.patch(M_PATH + "contract.process_entitlements_delta")
+    @mock.patch("uaclient.actions.enable_entitlement_by_name")
+    @mock.patch("uaclient.contract.get_enabled_by_default_services")
     @mock.patch(
         "uaclient.files.MachineTokenFile.entitlements",
         new_callable=mock.PropertyMock,
@@ -193,7 +187,8 @@ class TestAttachWithToken:
         m_machine_token_file_write,
         m_get_machine_id,
         m_entitlements,
-        m_process_entitlements_delta,
+        m_get_enabled_by_default_services,
+        m_enable_ent_by_name,
         m_attachment_data_file_write,
         m_machine_id_file_write,
         m_status,
@@ -206,12 +201,11 @@ class TestAttachWithToken:
         add_contract_machine_side_effect,
         machine_id,
         entitlements,
-        process_entitlements_delta_side_effect,
+        enable_entitlement_by_name_side_effect,
         expected_add_contract_machine_call_args,
         expected_machine_token_file_write_call_args,
         expected_get_machine_id_call_args,
         expected_machine_id_file_call_count,
-        expected_process_entitlements_delta_call_args,
         expected_attachment_data_file_write_call_args,
         expected_status_call_args,
         expected_update_motd_messages_call_args,
@@ -225,9 +219,13 @@ class TestAttachWithToken:
         m_add_contract_machine.side_effect = add_contract_machine_side_effect
         m_get_machine_id.return_value = machine_id
         m_entitlements.return_value = entitlements
-        m_process_entitlements_delta.side_effect = (
-            process_entitlements_delta_side_effect
+        m_enable_ent_by_name.side_effect = (
+            enable_entitlement_by_name_side_effect
         )
+
+        m_ent1 = mock.MagicMock(variant="")
+        type(m_ent1).name = mock.PropertyMock(return_value="test1")
+        m_get_enabled_by_default_services.return_value = [m_ent1]
 
         with expected_raises:
             attach_with_token(cfg, token, allow_enable)
@@ -247,10 +245,6 @@ class TestAttachWithToken:
         assert (
             expected_machine_id_file_call_count
             == m_machine_token_file_write.call_count
-        )
-        assert (
-            expected_process_entitlements_delta_call_args
-            == m_process_entitlements_delta.call_args_list
         )
         assert (
             expected_attachment_data_file_write_call_args
