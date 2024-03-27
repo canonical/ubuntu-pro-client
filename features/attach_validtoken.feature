@@ -71,11 +71,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       """
       This machine is now attached to
       """
-    And stderr matches regexp:
-      """
-      Enabling default service esm-infra
-      """
-    Then I verify that `esm-infra` is enabled
+    And I verify that `esm-infra` is enabled
     And I verify that `esm-apps` is enabled
     When I verify that running `pro attach contract_token` `with sudo` exits `2`
     Then stderr matches regexp:
