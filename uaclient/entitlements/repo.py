@@ -152,7 +152,8 @@ class RepoEntitlement(base.UAEntitlement):
             event.info(messages.ACCESS_ENABLED_TMPL.format(title=self.title))
         else:
             self.install_packages()
-            event.info(messages.ENABLED_TMPL.format(title=self.title))
+            if not silent:
+                event.info(messages.ENABLED_TMPL.format(title=self.title))
             self._check_for_reboot_msg(operation="install")
         return True
 

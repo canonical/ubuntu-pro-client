@@ -91,3 +91,11 @@ def then_the_machine_is_attached(context):
 @then("the machine is unattached")
 def then_the_machine_is_unattached(context):
     assert_that(is_machine_attached(context), equal_to(False))
+
+
+@when("I attach using the API")
+def when_i_attach_using_the_api(context):
+    cmd = "pro api u.pro.attach.token.full_token_attach.v1 --args token={}".format(  # noqa
+        context.pro_config.contract_token
+    )
+    when_i_run_command(context, cmd, "with sudo")
