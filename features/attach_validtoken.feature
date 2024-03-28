@@ -197,6 +197,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       """
       One moment, checking your subscription first
       Livepatch does not support being enabled with --access-only
+      Could not enable Livepatch.
       """
 
     Examples: ubuntu release
