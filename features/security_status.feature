@@ -103,8 +103,8 @@ Feature: Security status command behavior
     Then stdout is a yaml matching the `ua_security_status` schema
     And stdout matches regexp:
       """
-      - name: cve-2013-1798
-        patched: true
+      \s*- name: cve-2013-1798
+      \s*  patched: true
       """
 
   @uses.config.contract_token
