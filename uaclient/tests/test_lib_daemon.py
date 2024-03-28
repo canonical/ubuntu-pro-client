@@ -17,24 +17,41 @@ class TestWaitForCloudConfig:
         (
             # not activating
             (
-                ["active"],
+                ["active"] * 2,
+                [],
+            ),
+            # inactive (all cloud-init)
+            (
+                ["inactive"] * 2,
                 [],
             ),
             (
-                ["inactive"],
+                [None] * 2,
                 [],
             ),
+            # cloud-config activating, then finishes
+            # cloud-init is active
             (
-                [None],
-                [],
-            ),
-            # activating, then finishes
-            (
-                (["activating"] * 11) + ["active"],
+                (["activating", "active"] * 11) + ["active"] * 2,
                 [mock.call(WAIT_FOR_CLOUD_CONFIG_SLEEP_TIME)] * 11,
             ),
             (
-                (["activating"] * 11) + ["failed"],
+                (["activating", "active"] * 11) + ["failed"] + ["active"],
+                [mock.call(WAIT_FOR_CLOUD_CONFIG_SLEEP_TIME)] * 11,
+            ),
+            # inactive cloud-config, active cloud-init
+            (
+                (["inactive", "active"] * 6)
+                + (["activating", "active"] * 5)
+                + ["active"] * 2,
+                [mock.call(WAIT_FOR_CLOUD_CONFIG_SLEEP_TIME)] * 11,
+            ),
+            # inactive cloud-config, activating cloud-init
+            (
+                (["inactive", "activating"] * 2)
+                + (["inactive", "active"] * 4)
+                + (["activating", "active"] * 5)
+                + ["active"] * 2,
                 [mock.call(WAIT_FOR_CLOUD_CONFIG_SLEEP_TIME)] * 11,
             ),
             # still activating after polling maximum times
