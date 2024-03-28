@@ -212,7 +212,7 @@ class TestActionDetach:
 
         if expect_disable:
             assert [
-                mock.call()
+                mock.call(mock.ANY)
             ] == disabled_cls.return_value.disable.call_args_list
             assert 0 == return_code
         else:

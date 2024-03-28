@@ -168,16 +168,25 @@ class RepoEntitlement(base.UAEntitlement):
             self.install_packages(progress)
         return True
 
-    def _perform_disable(self, silent=False):
+    def disable_steps(self) -> int:
+        if self.purge:
+            # 1. Unconfigure APT
+            # 2. Purge
+            return 2
+        else:
+            # 1. Unconfigure APT
+            return 1
+
+    def _perform_disable(self, progress: api.ProgressWrapper):
         if self.purge and self.origin:
-            print(messages.PURGE_EXPERIMENTAL)
-            print()
+            progress.emit("info", messages.PURGE_EXPERIMENTAL)
+            progress.emit("info", "")
 
             repo_origin_packages = apt.get_installed_packages_by_origin(
                 self.origin
             )
 
-            if not self.purge_kernel_check(repo_origin_packages):
+            if not self.purge_kernel_check(repo_origin_packages, progress):
                 return False
 
             packages_to_reinstall = []
@@ -196,20 +205,23 @@ class RepoEntitlement(base.UAEntitlement):
                     packages_to_remove.append(package)
 
             if not self.prompt_for_purge(
-                packages_to_remove, packages_to_reinstall
+                packages_to_remove, packages_to_reinstall, progress
             ):
                 return False
 
         if hasattr(self, "remove_packages"):
             self.remove_packages()
-        self.remove_apt_config(silent=silent)
+        self.remove_apt_config(progress)
 
         if self.purge and self.origin:
+            progress.progress(
+                messages.PURGING_PACKAGES.format(title=self.title)
+            )
             self.execute_reinstall(packages_to_reinstall)
             self.execute_removal(packages_to_remove)
         return True
 
-    def purge_kernel_check(self, package_list):
+    def purge_kernel_check(self, package_list, progress: api.ProgressWrapper):
         """
         Checks if the purge operation involves a kernel.
 
@@ -230,14 +242,24 @@ class RepoEntitlement(base.UAEntitlement):
             if m:
                 linux_image_versions.append(m.group(1))
         if linux_image_versions:
-            print(messages.PURGE_KERNEL_REMOVAL.format(service=self.title))
-            print(" ".join(linux_image_versions))
+            # A kernel needs to be removed to purge
+            # API will fail here, but we want CLI to allow it to continue
+            # after a prompt
+            if not progress.is_interactive():
+                raise exceptions.NonInteractiveKernelPurgeDisallowed()
+
+            progress.emit(
+                "info",
+                messages.PURGE_KERNEL_REMOVAL.format(service=self.title),
+            )
+            progress.emit("info", " ".join(linux_image_versions))
 
             current_kernel = system.get_kernel_info().uname_release
-            print(
+            progress.emit(
+                "info",
                 messages.PURGE_CURRENT_KERNEL.format(
                     kernel_version=current_kernel
-                )
+                ),
             )
 
             installed_kernels = system.get_installed_ubuntu_kernels()
@@ -249,34 +271,52 @@ class RepoEntitlement(base.UAEntitlement):
             ]
 
             if not alternative_kernels:
-                print(messages.PURGE_NO_ALTERNATIVE_KERNEL)
+                progress.emit("info", messages.PURGE_NO_ALTERNATIVE_KERNEL)
                 return False
 
-            if not util.prompt_for_confirmation(
-                messages.PURGE_KERNEL_CONFIRMATION
-            ):
-                return False
+            progress.emit(
+                "message_operation",
+                [
+                    (
+                        util.prompt_for_confirmation,
+                        {"msg": messages.PURGE_KERNEL_CONFIRMATION},
+                    )
+                ],
+            )
 
         return True
 
-    def prompt_for_purge(self, packages_to_remove, packages_to_reinstall):
+    def prompt_for_purge(
+        self,
+        packages_to_remove,
+        packages_to_reinstall,
+        progress: api.ProgressWrapper,
+    ):
         prompt = False
         if packages_to_remove:
-            print(messages.WARN_PACKAGES_REMOVAL)
+            progress.emit("info", messages.WARN_PACKAGES_REMOVAL)
             util.print_package_list(
                 [package.name for package in packages_to_remove]
             )
             prompt = True
 
         if packages_to_reinstall:
-            print(messages.WARN_PACKAGES_REINSTALL)
+            progress.emit("info", messages.WARN_PACKAGES_REINSTALL)
             util.print_package_list(
                 [package.name for (package, _) in packages_to_reinstall]
             )
             prompt = True
 
         if prompt:
-            return util.prompt_for_confirmation(messages.PROCEED_YES_NO)
+            progress.emit(
+                "message_operation",
+                [
+                    (
+                        util.prompt_for_confirmation,
+                        {"msg": messages.PROCEED_YES_NO},
+                    )
+                ],
+            )
         return True
 
     def execute_removal(self, packages_to_remove):
@@ -437,7 +477,7 @@ class RepoEntitlement(base.UAEntitlement):
                 # Remove original aptURL and auth and rewrite
                 apt.remove_auth_apt_repo(self.repo_file, old_url)
 
-            self.remove_apt_config()
+            self.remove_apt_config(api.ProgressWrapper())
             self.setup_apt_config(api.ProgressWrapper())
 
         if delta_packages:
@@ -478,7 +518,7 @@ class RepoEntitlement(base.UAEntitlement):
             self._update_sources_list(progress)
         except exceptions.UbuntuProError:
             if cleanup_on_failure:
-                self.remove_apt_config()
+                self.remove_apt_config(api.ProgressWrapper())
             raise
 
         progress.progress(
@@ -509,7 +549,7 @@ class RepoEntitlement(base.UAEntitlement):
                         self.name
                     )
                 )
-                self.remove_apt_config()
+                self.remove_apt_config(api.ProgressWrapper())
             raise
 
     def setup_apt_config(self, progress: api.ProgressWrapper) -> None:
@@ -613,7 +653,7 @@ class RepoEntitlement(base.UAEntitlement):
             try:
                 apt.run_apt_install_command(packages=prerequisite_pkgs)
             except exceptions.UbuntuProError:
-                self.remove_apt_config()
+                self.remove_apt_config(api.ProgressWrapper())
                 raise
         apt.add_auth_apt_repo(
             repo_filename,
@@ -630,11 +670,13 @@ class RepoEntitlement(base.UAEntitlement):
         try:
             apt.update_sources_list(repo_filename)
         except exceptions.UbuntuProError:
-            self.remove_apt_config(run_apt_update=False)
+            self.remove_apt_config(api.ProgressWrapper(), run_apt_update=False)
             raise
 
     def remove_apt_config(
-        self, run_apt_update: bool = True, silent: bool = False
+        self,
+        progress: api.ProgressWrapper,
+        run_apt_update: bool = True,
     ):
         """Remove any repository apt configuration files.
 
@@ -651,6 +693,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             raise exceptions.MissingAptURLDirective(entitlement_name=self.name)
 
+        progress.progress(
+            messages.REMOVING_APT_CONFIGURATION.format(title=self.title)
+        )
         apt.remove_auth_apt_repo(repo_filename, repo_url, self.repo_key_file)
         apt.remove_apt_list_files(repo_url, series)
 
@@ -659,6 +704,5 @@ class RepoEntitlement(base.UAEntitlement):
             system.ensure_file_absent(repo_pref_file)
 
         if run_apt_update:
-            if not silent:
-                event.info(messages.APT_UPDATING_LISTS)
+            progress.progress(messages.APT_UPDATING_LISTS)
             apt.run_apt_update_command()

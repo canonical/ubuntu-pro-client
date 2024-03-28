@@ -81,8 +81,8 @@ class AnboxEntitlement(RepoEntitlement):
 
         return True
 
-    def _perform_disable(self, silent=False):
-        super()._perform_disable(silent=silent)
+    def _perform_disable(self, progress: api.ProgressWrapper):
+        super()._perform_disable(progress)
         anbox_cloud_credentials_file.delete()
         return True
 

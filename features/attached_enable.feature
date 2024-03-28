@@ -822,6 +822,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       ROS ESM Security Updates depends on Ubuntu Pro: ESM Apps.
       Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Disabling dependent service: ROS ESM Security Updates
+      Removing APT access to ROS ESM Security Updates
+      Updating package lists
+      Removing APT access to Ubuntu Pro: ESM Apps
       Updating package lists
       """
     And I verify that `ros` is disabled
@@ -868,6 +871,9 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       ROS ESM All Updates depends on ROS ESM Security Updates.
       Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
+      Removing APT access to ROS ESM All Updates
+      Updating package lists
+      Removing APT access to ROS ESM Security Updates
       Updating package lists
       """
     And I verify that `ros-updates` is disabled
@@ -897,9 +903,13 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I run `pro detach` `with sudo` and stdin `y`
     Then stdout matches regexp:
       """
+      Removing APT access to ROS ESM All Updates
       Updating package lists
+      Removing APT access to ROS ESM Security Updates
       Updating package lists
+      Removing APT access to Ubuntu Pro: ESM Apps
       Updating package lists
+      Removing APT access to Ubuntu Pro: ESM Infra
       Updating package lists
       This machine is now detached.
       """

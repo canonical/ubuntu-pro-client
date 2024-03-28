@@ -66,7 +66,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       See: sudo pro status
       """
     When I verify that running `pro disable foobar` `with sudo` exits `1`
-    Then stderr matches regexp:
+    Then stdout matches regexp:
       """
       Cannot disable unknown service 'foobar'.
       <msg>
@@ -77,13 +77,10 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       This command must be run as root \(try using sudo\)
       """
     When I verify that running `pro disable livepatch foobar` `with sudo` exits `1`
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Livepatch is not currently enabled - nothing to do.
       See: sudo pro status
-      """
-    And stderr matches regexp:
-      """
       Cannot disable unknown service 'foobar'.
       <msg>
       """
@@ -179,7 +176,9 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       Detach will disable the following services:
           esm-apps
           esm-infra
+      Removing APT access to Ubuntu Pro: ESM Apps
       Updating package lists
+      Removing APT access to Ubuntu Pro: ESM Infra
       Updating package lists
       This machine is now detached.
       """

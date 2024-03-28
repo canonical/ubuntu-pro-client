@@ -7,12 +7,17 @@ import mock
 import pytest
 
 from uaclient import entitlements, event_logger, exceptions, lock, messages
+from uaclient.api.u.pro.services.dependencies.v1 import (
+    ServiceWithDependencies,
+    ServiceWithReason,
+)
 from uaclient.cli import main, main_error_handler
-from uaclient.cli.disable import action_disable
+from uaclient.cli.disable import action_disable, prompt_for_dependency_handling
 from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
 )
+from uaclient.testing.helpers import does_not_raise
 
 
 @pytest.fixture
@@ -126,6 +131,7 @@ class TestDisable:
             type(m_entitlement).name = mock.PropertyMock(
                 return_value=entitlement_name
             )
+            m_entitlement._check_for_reboot.return_value = False
 
         def factory_side_effect(cfg, name, ent_dict=ent_dict):
             return ent_dict.get(name)
@@ -146,7 +152,7 @@ class TestDisable:
                 mock.call(cfg, assume_yes=assume_yes, purge=False)
             ] == m_entitlement_cls.call_args_list
 
-        expected_disable_call = mock.call()
+        expected_disable_call = mock.call(mock.ANY)
         for m_entitlement in entitlements_obj:
             assert [
                 expected_disable_call
@@ -193,6 +199,7 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.contract.UAContractClient.update_activity_token")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
@@ -203,6 +210,7 @@ class TestDisable:
         m_valid_services,
         m_entitlement_factory,
         _m_check_lock_info,
+        _m_update_activity_token,
         assume_yes,
         tmpdir,
         event,
@@ -222,6 +230,7 @@ class TestDisable:
             ),
         )
         type(m_ent1_obj).name = mock.PropertyMock(return_value="ent1")
+        m_ent1_obj._check_for_reboot.return_value = False
 
         m_ent2_cls = mock.Mock()
         m_ent2_obj = m_ent2_cls.return_value
@@ -234,12 +243,14 @@ class TestDisable:
             ),
         )
         type(m_ent2_obj).name = mock.PropertyMock(return_value="ent2")
+        m_ent2_obj._check_for_reboot.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enabled_variant = None
         m_ent3_obj.disable.return_value = (True, None)
         type(m_ent3_obj).name = mock.PropertyMock(return_value="ent3")
+        m_ent3_obj._check_for_reboot.return_value = False
 
         def factory_side_effect(cfg, name):
             if name == "ent2":
@@ -257,7 +268,8 @@ class TestDisable:
         args_mock.assume_yes = assume_yes
         args_mock.purge = False
 
-        with pytest.raises(exceptions.UbuntuProError) as err:
+        first_fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(first_fake_stdout):
             with mock.patch.object(lock, "lock_data_file"):
                 action_disable(args_mock, cfg=cfg)
 
@@ -267,7 +279,7 @@ class TestDisable:
                 invalid_service="ent1",
                 service_msg="Try ent2, ent3.",
             ).msg
-            == err.value.msg
+            in first_fake_stdout.getvalue()
         )
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
@@ -275,7 +287,7 @@ class TestDisable:
                 mock.call(cfg, assume_yes=assume_yes, purge=False)
             ] == m_ent_cls.call_args_list
 
-        expected_disable_call = mock.call()
+        expected_disable_call = mock.call(mock.ANY)
         for m_ent in [m_ent2_obj, m_ent3_obj]:
             assert [expected_disable_call] == m_ent.disable.call_args_list
 
@@ -285,17 +297,10 @@ class TestDisable:
         cfg = FakeConfig.for_attached_machine()
         args_mock.assume_yes = True
         args_mock.format = "json"
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    with mock.patch.object(lock, "lock_data_file"):
-                        fake_stdout = io.StringIO()
-                        with contextlib.redirect_stdout(fake_stdout):
-                            main_error_handler(action_disable)(
-                                args_mock, cfg=cfg
-                            )
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_disable)(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -333,16 +338,17 @@ class TestDisable:
     @pytest.mark.parametrize(
         "root,expected_error_template",
         [
-            (True, messages.E_INVALID_SERVICE_OP_FAILURE),
             (False, messages.E_NONROOT_USER),
         ],
     )
+    @mock.patch("uaclient.contract.UAContractClient.update_activity_token")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.util.we_are_currently_root")
     def test_invalid_service_error_message(
         self,
         m_we_are_currently_root,
         _m_check_lock_info,
+        _m_update_activity_token,
         root,
         expected_error_template,
         FakeConfig,
@@ -355,25 +361,13 @@ class TestDisable:
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
         args.purge = False
+        args.service = ["esm-infra"]
 
-        if root:
-            expected_error = expected_error_template.format(
-                operation="disable",
-                invalid_service="bogus",
-                service_msg=all_service_msg,
-            )
-            expected_info = {
-                "operation": "disable",
-                "invalid_service": "bogus",
-                "service_msg": all_service_msg,
-            }
-        else:
-            expected_error = expected_error_template
-            expected_info = None
+        expected_error = expected_error_template
+        expected_info = None
 
         with pytest.raises(exceptions.UbuntuProError) as err:
             with mock.patch.object(lock, "lock_data_file"):
-                args.service = ["bogus"]
                 action_disable(args, cfg)
 
         assert expected_error.msg == err.value.msg
@@ -411,10 +405,12 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
+    @mock.patch("uaclient.contract.UAContractClient.update_activity_token")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     def test_invalid_service_names(
         self,
         _m_check_lock_info,
+        _m_update_activity_token,
         service,
         FakeConfig,
         event,
@@ -430,24 +426,20 @@ class TestDisable:
             invalid_service=", ".join(sorted(service)),
             service_msg=all_service_msg,
         )
-        with pytest.raises(exceptions.UbuntuProError) as err:
+        first_fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(first_fake_stdout):
             with mock.patch.object(lock, "lock_data_file"):
                 args.service = service
                 action_disable(args, cfg)
 
-        assert expected_error.msg == err.value.msg
+        assert expected_error.msg in first_fake_stdout.getvalue()
 
         args.assume_yes = True
         args.format = "json"
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    with mock.patch.object(lock, "lock_data_file"):
-                        fake_stdout = io.StringIO()
-                        with contextlib.redirect_stdout(fake_stdout):
-                            main_error_handler(action_disable)(args, cfg)
+        with mock.patch.object(lock, "lock_data_file"):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_disable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -663,3 +655,160 @@ class TestDisable:
             ).msg
             in err.strip()
         )
+
+
+class TestPromptForDependencyHandling:
+    @pytest.mark.parametrize(
+        [
+            "service",
+            "all_dependencies",
+            "enabled_service_names",
+            "called_name",
+            "service_title",
+            "prompt_side_effects",
+            "expected_prompts",
+            "expected_raise",
+        ],
+        [
+            # no dependencies
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="two", incompatible_with=[], depends_on=[]
+                    )
+                ],
+                [],
+                "one",
+                "One",
+                [],
+                [],
+                does_not_raise(),
+            ),
+            # required by "two", but two not enabled
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="two",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="one", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                [],
+                "one",
+                "One",
+                [],
+                [],
+                does_not_raise(),
+            ),
+            # required by "two", two enabled, successful prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="two",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="one", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                ["two"],
+                "one",
+                "One",
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+            # required by "two", two enabled, denied prompt
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="two",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="one", reason=mock.MagicMock()
+                            )
+                        ],
+                    )
+                ],
+                ["two"],
+                "one",
+                "One",
+                [False],
+                [mock.call(msg=mock.ANY)],
+                pytest.raises(exceptions.DependentServiceStopsDisable),
+            ),
+            # required by "two" and "three", three enabled, success
+            (
+                "one",
+                [
+                    ServiceWithDependencies(
+                        name="two",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="one", reason=mock.MagicMock()
+                            )
+                        ],
+                    ),
+                    ServiceWithDependencies(
+                        name="three",
+                        incompatible_with=[],
+                        depends_on=[
+                            ServiceWithReason(
+                                name="one", reason=mock.MagicMock()
+                            )
+                        ],
+                    ),
+                ],
+                ["three"],
+                "one",
+                "One",
+                [True],
+                [mock.call(msg=mock.ANY)],
+                does_not_raise(),
+            ),
+        ],
+    )
+    @mock.patch("uaclient.entitlements.get_title")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_prompt_for_dependency_handling(
+        self,
+        m_prompt_for_confirmation,
+        m_entitlement_get_title,
+        service,
+        all_dependencies,
+        enabled_service_names,
+        called_name,
+        service_title,
+        prompt_side_effects,
+        expected_prompts,
+        expected_raise,
+        FakeConfig,
+    ):
+        m_entitlement_get_title.side_effect = (
+            lambda cfg, name, variant="": name.title()
+        )
+        m_prompt_for_confirmation.side_effect = prompt_side_effects
+
+        with expected_raise:
+            prompt_for_dependency_handling(
+                FakeConfig(),
+                service,
+                all_dependencies,
+                enabled_service_names,
+                called_name,
+                service_title,
+            )
+
+        assert expected_prompts == m_prompt_for_confirmation.call_args_list

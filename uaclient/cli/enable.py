@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Optional
+from typing import List
 
 from uaclient import (
     api,
@@ -25,27 +25,6 @@ from uaclient.entitlements.entitlement_status import (
 )
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
-
-
-class CLIEnableProgress(api.AbstractProgress):
-    def progress(
-        self,
-        *,
-        total_steps: int,
-        done_steps: int,
-        previous_step_message: Optional[str],
-        current_step_message: Optional[str]
-    ):
-        if current_step_message is not None:
-            print(current_step_message)
-
-    def _on_event(self, event: str, payload):
-        if event == "info":
-            print(payload)
-            return
-        elif event == "message_operation":
-            if not util.handle_message_operations(payload, print):
-                raise exceptions.PromptDeniedError()
 
 
 def prompt_for_dependency_handling(
@@ -107,17 +86,6 @@ def prompt_for_dependency_handling(
             )
 
 
-def _null_print(*args, **kwargs):
-    pass
-
-
-def _create_print_function(json_output: bool):
-    if json_output:
-        return _null_print
-    else:
-        return print
-
-
 @cli_util.verify_json_format_args
 @cli_util.assert_root
 @cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
@@ -143,7 +111,9 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     # function defined above if args.format == "json". We use this function
     # throughout enable for things that should get printed in the normal
     # interactive output so that they don't get printed for the json output.
-    interactive_only_print = _create_print_function(json_output)
+    interactive_only_print = cli_util.create_interactive_only_print_function(
+        json_output
+    )
 
     variant = getattr(args, "variant", "")
     access_only = args.access_only
@@ -216,7 +186,9 @@ def action_enable(args, *, cfg, **kwargs) -> int:
             if json_output:
                 progress = api.ProgressWrapper()
             else:
-                progress = api.ProgressWrapper(CLIEnableProgress())
+                progress = api.ProgressWrapper(
+                    cli_util.CLIEnableDisableProgress()
+                )
 
             ent = entitlements.entitlement_factory(
                 cfg, ent_name, variant=variant

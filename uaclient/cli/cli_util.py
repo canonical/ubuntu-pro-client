@@ -1,7 +1,43 @@
 from functools import wraps
+from typing import Optional
 
-from uaclient import entitlements, exceptions, lock, util
+from uaclient import api, entitlements, exceptions, lock, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+
+
+class CLIEnableDisableProgress(api.AbstractProgress):
+    def __init__(self):
+        self.is_interactive = True
+
+    def progress(
+        self,
+        *,
+        total_steps: int,
+        done_steps: int,
+        previous_step_message: Optional[str],
+        current_step_message: Optional[str]
+    ):
+        if current_step_message is not None:
+            print(current_step_message)
+
+    def _on_event(self, event: str, payload):
+        if event == "info":
+            print(payload)
+            return
+        elif event == "message_operation":
+            if not util.handle_message_operations(payload, print):
+                raise exceptions.PromptDeniedError()
+
+
+def _null_print(*args, **kwargs):
+    pass
+
+
+def create_interactive_only_print_function(json_output: bool):
+    if json_output:
+        return _null_print
+    else:
+        return print
 
 
 def assert_lock_file(lock_holder=None):

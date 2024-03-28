@@ -99,11 +99,11 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     repo_key_file = "ubuntu-pro-esm-apps.gpg"
 
     def disable(
-        self, silent=False
+        self, progress: api.ProgressWrapper
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
         from uaclient.timer.update_messaging import update_motd_messages
 
-        disable_performed, fail = super().disable(silent=silent)
+        disable_performed, fail = super().disable(progress)
         if disable_performed:
             update_motd_messages(self.cfg)
             if system.is_current_series_lts():
@@ -120,11 +120,11 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     repo_key_file = "ubuntu-pro-esm-infra.gpg"
 
     def disable(
-        self, silent=False
+        self, progress: api.ProgressWrapper
     ) -> Tuple[bool, Union[None, CanDisableFailure]]:
         from uaclient.timer.update_messaging import update_motd_messages
 
-        disable_performed, fail = super().disable(silent=silent)
+        disable_performed, fail = super().disable(progress)
         if disable_performed:
             update_motd_messages(self.cfg)
             if system.is_current_series_active_esm():
