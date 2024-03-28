@@ -34,6 +34,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       One moment, checking your subscription first
       Real-time kernel is not available for Ubuntu <version> (<full_name>).
+      Could not enable Real-time kernel.
       """
 
     Examples: ubuntu release
