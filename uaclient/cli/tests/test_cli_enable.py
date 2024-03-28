@@ -512,6 +512,11 @@ class TestActionEnable:
                 action_enable(args, cfg)
 
         assert [
+            # first one for getting title/real name
+            mock.call(
+                cfg,
+                called_name="testitlement",
+            ),
             mock.call(
                 cfg,
                 assume_yes=assume_yes,
@@ -519,7 +524,7 @@ class TestActionEnable:
                 called_name="testitlement",
                 access_only=False,
                 extra_args=None,
-            )
+            ),
         ] == m_entitlement_cls.call_args_list
 
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
@@ -615,6 +620,11 @@ class TestActionEnable:
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
+                # first one for getting title/real name
+                mock.call(
+                    cfg,
+                    called_name=m_ent_cls.name,
+                ),
                 mock.call(
                     cfg,
                     assume_yes=assume_yes,
@@ -622,7 +632,7 @@ class TestActionEnable:
                     called_name=m_ent_cls.name,
                     access_only=False,
                     extra_args=None,
-                )
+                ),
             ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call(mock.ANY)
@@ -785,6 +795,11 @@ class TestActionEnable:
 
         for m_ent_cls in mock_ent_list:
             assert [
+                # first one for getting title/real name
+                mock.call(
+                    cfg,
+                    called_name=m_ent_cls.name,
+                ),
                 mock.call(
                     cfg,
                     assume_yes=assume_yes,
@@ -792,7 +807,7 @@ class TestActionEnable:
                     called_name=m_ent_cls.name,
                     access_only=False,
                     extra_args=None,
-                )
+                ),
             ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call(mock.ANY)
@@ -1043,6 +1058,11 @@ class TestActionEnable:
                 ret = action_enable(args_mock, cfg=cfg)
 
         assert [
+            # first one for getting title/real name
+            mock.call(
+                cfg,
+                called_name="testitlement",
+            ),
             mock.call(
                 cfg,
                 assume_yes=True,
@@ -1050,7 +1070,7 @@ class TestActionEnable:
                 called_name="testitlement",
                 access_only=False,
                 extra_args=None,
-            )
+            ),
         ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value
@@ -1150,6 +1170,7 @@ class TestPromptForDependencyHandling:
             "all_dependencies",
             "enabled_service_names",
             "called_name",
+            "service_title",
             "cfg_block_disable_on_enable",
             "prompt_side_effects",
             "expected_prompts",
@@ -1166,6 +1187,7 @@ class TestPromptForDependencyHandling:
                 ],
                 [],
                 "one",
+                "One",
                 False,
                 [],
                 [],
@@ -1187,6 +1209,7 @@ class TestPromptForDependencyHandling:
                 ],
                 [],
                 "one",
+                "One",
                 False,
                 [],
                 [],
@@ -1208,6 +1231,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two"],
                 "one",
+                "One",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1229,6 +1253,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two"],
                 "one",
+                "One",
                 True,
                 [],
                 [],
@@ -1250,6 +1275,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two"],
                 "one",
+                "One",
                 False,
                 [False],
                 [mock.call(msg=mock.ANY)],
@@ -1274,6 +1300,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["three"],
                 "one",
+                "One",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1295,6 +1322,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two"],
                 "one",
+                "One",
                 False,
                 [],
                 [],
@@ -1316,6 +1344,7 @@ class TestPromptForDependencyHandling:
                 ],
                 [],
                 "one",
+                "One",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1337,6 +1366,7 @@ class TestPromptForDependencyHandling:
                 ],
                 [],
                 "one",
+                "One",
                 False,
                 [False],
                 [mock.call(msg=mock.ANY)],
@@ -1361,6 +1391,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two"],
                 "one",
+                "One",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1398,6 +1429,7 @@ class TestPromptForDependencyHandling:
                 ],
                 ["two", "four", "six"],
                 "one",
+                "One",
                 False,
                 [True, True, True, True],
                 [
@@ -1410,29 +1442,28 @@ class TestPromptForDependencyHandling:
             ),
         ],
     )
-    @mock.patch.object(entitlements, "ENTITLEMENT_NAME_TO_TITLE")
+    @mock.patch("uaclient.entitlements.get_title")
     @mock.patch("uaclient.util.prompt_for_confirmation")
     @mock.patch("uaclient.util.is_config_value_true")
     def test_prompt_for_dependency_handling(
         self,
         m_is_config_value_true,
         m_prompt_for_confirmation,
-        m_entitlement_name_to_title,
+        m_entitlement_get_title,
         service,
         all_dependencies,
         enabled_service_names,
         called_name,
+        service_title,
         cfg_block_disable_on_enable,
         prompt_side_effects,
         expected_prompts,
         expected_raise,
         FakeConfig,
     ):
-        m_entitlement_name_to_title.return_value = {
-            "one": "One",
-            "two": "Two",
-            "three": "Three",
-        }
+        m_entitlement_get_title.side_effect = (
+            lambda cfg, name, variant="": name.title()
+        )
         m_is_config_value_true.return_value = cfg_block_disable_on_enable
         m_prompt_for_confirmation.side_effect = prompt_side_effects
 
@@ -1443,6 +1474,7 @@ class TestPromptForDependencyHandling:
                 all_dependencies,
                 enabled_service_names,
                 called_name,
+                service_title,
             )
 
         assert expected_prompts == m_prompt_for_confirmation.call_args_list
