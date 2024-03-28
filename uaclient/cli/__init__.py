@@ -50,7 +50,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_util, enable, fix
+from uaclient.cli import cli_util, disable, enable, fix
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import PRINT_WRAP_WIDTH
@@ -472,46 +472,6 @@ def help_parser(parser, cfg: config.UAConfig):
     return parser
 
 
-def disable_parser(parser, cfg: config.UAConfig):
-    """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(
-        name=NAME, command="disable <service> [<service>]"
-    )
-    parser.description = messages.CLI_DISABLE_DESC
-    parser.usage = usage
-    parser.prog = "disable"
-    parser._positionals.title = messages.CLI_ARGS
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument(
-        "service",
-        action="store",
-        nargs="+",
-        help=(
-            messages.CLI_DISABLE_SERVICE.format(
-                options=", ".join(entitlements.valid_services(cfg=cfg))
-            )
-        ),
-    )
-    parser.add_argument(
-        "--assume-yes",
-        action="store_true",
-        help=messages.CLI_ASSUME_YES.format(command="disable"),
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=["cli", "json"],
-        default="cli",
-        help=messages.CLI_FORMAT_DESC.format(default="cli"),
-    )
-    parser.add_argument(
-        "--purge",
-        action="store_true",
-        help=messages.CLI_PURGE,
-    )
-    return parser
-
-
 def system_parser(parser):
     """Build or extend an arg parser for system subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="system <command>")
@@ -841,59 +801,6 @@ def action_config_unset(args, *, cfg, **kwargs):
 
 @cli_util.verify_json_format_args
 @cli_util.assert_root
-@cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
-@cli_util.assert_lock_file("pro disable")
-def action_disable(args, *, cfg, **kwargs):
-    """Perform the disable action on a list of entitlements.
-
-    @return: 0 on success, 1 otherwise
-    """
-    if args.purge and args.assume_yes:
-        raise exceptions.InvalidOptionCombination(
-            option1="--purge", option2="--assume-yes"
-        )
-
-    names = getattr(args, "service", [])
-    entitlements_found, entitlements_not_found = get_valid_entitlement_names(
-        names, cfg
-    )
-    ret = True
-
-    for ent_name in entitlements_found:
-        ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
-        ent = ent_cls(cfg, assume_yes=args.assume_yes, purge=args.purge)
-
-        ret &= _perform_disable(ent, cfg, assume_yes=args.assume_yes)
-
-    if entitlements_not_found:
-        valid_names = (
-            "Try "
-            + ", ".join(entitlements.valid_services(cfg=cfg, allow_beta=True))
-            + "."
-        )
-        service_msg = "\n".join(
-            textwrap.wrap(
-                valid_names,
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
-        )
-        raise exceptions.InvalidServiceOpError(
-            operation="disable",
-            invalid_service=", ".join(entitlements_not_found),
-            service_msg=service_msg,
-        )
-
-    contract_client = contract.UAContractClient(cfg)
-    contract_client.update_activity_token()
-
-    event.process_events()
-    return 0 if ret else 1
-
-
-@cli_util.verify_json_format_args
-@cli_util.assert_root
 @cli_util.assert_attached()
 @cli_util.assert_lock_file("pro detach")
 def action_detach(args, *, cfg, **kwargs) -> int:
@@ -1177,12 +1084,7 @@ def get_parser(cfg: config.UAConfig):
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
 
-    parser_disable = subparsers.add_parser(
-        "disable", help=messages.CLI_ROOT_DISABLE
-    )
-    disable_parser(parser_disable, cfg=cfg)
-    parser_disable.set_defaults(action=action_disable)
-
+    disable.add_parser(subparsers, cfg)
     enable.add_parser(subparsers, cfg)
     fix.add_parser(subparsers)
 
