@@ -36,8 +36,6 @@ ENTITLEMENT_CLASSES = [
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
 
-ENTITLEMENT_NAME_TO_TITLE = {e.name: e.title for e in ENTITLEMENT_CLASSES}
-
 
 def entitlement_factory(cfg: UAConfig, name: str, variant: str = ""):
     """Returns a UAEntitlement class based on the provided name.
@@ -274,3 +272,12 @@ def check_entitlement_apt_directives_are_unique(
                 )
 
     return True
+
+
+def get_title(cfg: UAConfig, ent_name: str, variant=""):
+    try:
+        return entitlement_factory(cfg, ent_name, variant=variant)(
+            cfg, called_name=ent_name
+        ).title
+    except exceptions.UbuntuProError:
+        return ent_name

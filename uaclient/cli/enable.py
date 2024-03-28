@@ -54,12 +54,10 @@ def prompt_for_dependency_handling(
     all_dependencies: List[ServiceWithDependencies],
     enabled_service_names: List[str],
     called_name: str,
+    service_title: str,
 ):
     incompatible_services = []
     required_services = []
-    service_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
-        service, service
-    )
 
     dependencies = next(
         (s for s in all_dependencies if s.name == service), None
@@ -81,10 +79,8 @@ def prompt_for_dependency_handling(
             config=cfg.cfg,
             path_to_value="features.block_disable_on_enable",
         )
-        incompatible_service_title = (
-            entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
-                incompatible_service, incompatible_service
-            )
+        incompatible_service_title = entitlements.get_title(
+            cfg, incompatible_service
         )
         user_msg = messages.INCOMPATIBLE_SERVICE.format(
             service_being_enabled=service_title,
@@ -99,9 +95,7 @@ def prompt_for_dependency_handling(
             )
 
     for required_service in required_services:
-        required_service_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
-            required_service, required_service
-        )
+        required_service_title = entitlements.get_title(cfg, required_service)
         user_msg = messages.REQUIRED_SERVICE.format(
             service_being_enabled=service_title,
             required_service=required_service_title,
@@ -188,13 +182,14 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         cfg, entitlements_found
     ):
         try:
-            real_name = entitlements.entitlement_factory(cfg, ent_name).name
+            ent = entitlements.entitlement_factory(
+                cfg, ent_name, variant=variant
+            )(cfg, called_name=ent_name)
+            real_name = ent.name
+            ent_title = ent.title
         except exceptions.UbuntuProError:
             real_name = ent_name
-
-        ent_title = entitlements.ENTITLEMENT_NAME_TO_TITLE.get(
-            real_name, ent_name
-        )
+            ent_title = ent_name
 
         if not args.assume_yes:
             # this never happens for json output because we assert earlier that
@@ -206,6 +201,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                     all_dependencies,
                     enabled_service_names,
                     called_name=ent_name,
+                    service_title=ent_title,
                 )
             except exceptions.UbuntuProError as e:
                 LOG.exception(e)
