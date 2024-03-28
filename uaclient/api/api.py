@@ -1,8 +1,8 @@
 import json
 from importlib import import_module
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from uaclient.api import errors
+from uaclient.api import AbstractProgress, errors
 from uaclient.api.data_types import APIData, APIResponse, ErrorWarningObject
 from uaclient.config import UAConfig
 from uaclient.data_types import IncorrectFieldTypeError
@@ -25,6 +25,7 @@ VALID_ENDPOINTS = [
     "u.pro.security.status.livepatch_cves.v1",
     "u.pro.security.status.reboot_required.v1",
     "u.pro.services.dependencies.v1",
+    "u.pro.services.enable.v1",
     "u.pro.status.enabled_services.v1",
     "u.pro.status.is_attached.v1",
     "u.pro.version.v1",
@@ -90,7 +91,11 @@ def _process_data(
 
 
 def call_api(
-    endpoint_path: str, options: List[str], data: str, cfg: UAConfig
+    endpoint_path: str,
+    options: List[str],
+    data: str,
+    cfg: UAConfig,
+    progress_object: Optional[AbstractProgress] = None,
 ) -> APIResponse:
 
     if endpoint_path not in VALID_ENDPOINTS:
@@ -124,7 +129,12 @@ def call_api(
             )
 
         try:
-            result = endpoint.fn(options, cfg)
+            if endpoint.supports_progress:
+                result = endpoint.fn(
+                    options, cfg, progress_object=progress_object
+                )
+            else:
+                result = endpoint.fn(options, cfg)
         except Exception as e:
             return errors.error_out(e)
 
@@ -134,7 +144,10 @@ def call_api(
                 errors.APINoArgsForEndpoint(endpoint=endpoint_path)
             )
         try:
-            result = endpoint.fn(cfg)
+            if endpoint.supports_progress:
+                result = endpoint.fn(cfg, progress_object=progress_object)
+            else:
+                result = endpoint.fn(cfg)
         except Exception as e:
             return errors.error_out(e)
 
@@ -168,8 +181,10 @@ class APIEndpoint:
         name: str,
         fn: Callable,
         options_cls,
+        supports_progress: bool = False,
     ):
         self.version = version
         self.name = name
         self.fn = fn
         self.options_cls = options_cls
+        self.supports_progress = supports_progress
